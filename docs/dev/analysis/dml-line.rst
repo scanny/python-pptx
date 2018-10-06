@@ -3,8 +3,8 @@ Line format
 ===========
 
 
-Intial scope
-------------
+Initial scope
+-------------
 
 * Shape.line, Connector.line to follow, then Cell.border(s).line, possibly
   text underline and font.line (character outline)
@@ -13,12 +13,37 @@ Intial scope
 Protocol
 --------
 
-::
+**Accessing line.** A shape object has a `.line` property that returns
+a `LineFormat` object. The `.line` property is idempotent; it always returns
+the same `LineFormat` object for a given shape object::
+
+    >>> line = shape.line
+    >>> assert(isinstance(line, LineFormat)
+
+**Line properties.** A line has multiple properties, such as width, dash style, head and tail ends and fill::
 
     >>> shape.line
-    <pptx.dml.line.LineFormat instance at x123456789>
-    >>> shape.fore_color
-    <pptx.dml.line.LineFormat instance at x123456789>
+    <pptx.dml.line.LineFormat at 0x1b8f6f86eb8>
+    >>> shape.line.color
+    <pptx.dml.color.ColorFormat at 0x1b8f6f83908>
+    >>> shape.line.width = Pt(1)
+    >>> shape.line.width
+    12700
+
+Dash style can be set using `MSO_LINE_DASH_STYLE`::
+
+    >>> shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+    >>> shape.line.dash_style
+    4
+
+Tail and head ends style can be set using `MSO_ARROWHEAD_STYLE`::
+
+    >>> shape.line.tail_end = MSO_ARROWHEAD_STYLE.DIAMOND
+    >>> shape.line.tail_end
+    5
+    >>> shape.line.tail_end = MSO_ARROWHEAD_STYLE.OVAL
+    >>> shape.line.tail_end
+    6
 
 
 Notes
@@ -64,7 +89,7 @@ MS API
   | https://msdn.microsoft.com/en-us/vba/powerpoint-vba/articles/lineformat-dashstyle-property-powerpoint
 
 * | MsoLineDashStyle Enumeration
-  | https://msdn.microsoft.com/en-us/library/aa432639(v=office.12).aspx
+  | https://docs.microsoft.com/en-us/office/vba/api/office.msolinedashstyle
 
   +-----------------------+-------+----------------------------------+
   | Name                  | Value | Description                      |
@@ -88,13 +113,68 @@ MS API
   | msoLineSquareDot      | 2     | Line is made up of square dots.  |
   +-----------------------+-------+----------------------------------+
 
+* | MsoArrowheadStyle Enumeration
+  | https://docs.microsoft.com/en-us/office/vba/api/Office.MsoArrowheadStyle
+
+  +------------------------+-------+---------------------------------+
+  | Name                   | Value | Description                     |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadDiamond    | 5     | Diamond-shaped.                 |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadNone       | 1     | No arrowhead.                   |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadOpen       | 3     | Open.                           |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadOval       | 6     | Oval-shaped.                    |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadStealth    | 4     | Stealth-shaped.                 |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadStyleMixed | -2    | Return value only.              |
+  +------------------------+-------+---------------------------------+
+  | msoArrowheadTriangle   | 5     | Triangular.                     |
+  +------------------------+-------+---------------------------------+
+
+* | MsoArrowheadLength Enumeration
+  | https://docs.microsoft.com/en-us/office/vba/api/Office.MsoArrowheadLength
+
+  +--------------------------+-------+---------------------------------+
+  | Name                     | Value | Description                     |
+  +--------------------------+-------+---------------------------------+
+  | msoArrowheadLengthMedium | 2     | Medium.                         |
+  +--------------------------+-------+---------------------------------+
+  | msoArrowheadLengthMixed  | -2    | Return value only.              |
+  +--------------------------+-------+---------------------------------+
+  | msoArrowheadLong         | 3     | Long.                           |
+  +--------------------------+-------+---------------------------------+
+  | msoArrowheadShort        | 1     | Short.                          |
+  +--------------------------+-------+---------------------------------+
+
+* | MsoArrowheadWidth Enumeration
+  | https://docs.microsoft.com/en-us/office/vba/api/Office.MsoArrowheadWidth
+
+  +-------------------------+-------+---------------------------------+
+  | Name                    | Value | Description                     |
+  +-------------------------+-------+---------------------------------+
+  | msoArrowheadNarrow      | 1     | Narrow.                         |
+  +-------------------------+-------+---------------------------------+
+  | msoArrowheadWide        | 3     | Wide.                           |
+  +-------------------------+-------+---------------------------------+
+  | msoArrowheadWidthMedium | 2     | Medium.                         |
+  +-------------------------+-------+---------------------------------+
+  | msoArrowheadWidthMixed  | -2    | Return value only.              |
+  +-------------------------+-------+---------------------------------+
+
 
 Specimen XML
 ------------
 
 .. highlight:: xml
 
-solid line color::
+Default 1 Pt line::
+
+    <a:ln w="12700"/>
+
+Solid line color::
 
     <p:spPr>
       <a:xfrm>
@@ -111,7 +191,14 @@ solid line color::
       </a:ln>
     </p:spPr>
 
-little bit of everything::
+Line ends::
+
+    <a:ln w="12700">
+      <a:headEnd type="oval" w="med" len="lg"/>
+      <a:tailEnd type="diamond" w="sm" len="med"/>
+    </a:ln>
+
+Little bit of everything::
 
     <p:spPr>
       <a:xfrm>
@@ -178,6 +265,12 @@ Related Schema Definitions
     <xsd:attribute name="algn" type="ST_PenAlignment"/>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_LineEndProperties">
+    <xsd:attribute name="type" type="ST_LineEndType" use="optional"/>
+    <xsd:attribute name="w" type="ST_LineEndWidth" use="optional"/>
+    <xsd:attribute name="len" type="ST_LineEndLength" use="optional"/>
+  </xsd:complexType>
+
   <xsd:group name="EG_LineFillProperties">
     <xsd:choice>
       <xsd:element name="noFill"    type="CT_NoFillProperties"/>
@@ -212,6 +305,33 @@ Related Schema Definitions
       <xsd:element name="effectDag" type="CT_EffectContainer"/>
     </xsd:choice>
   </xsd:group>
+
+  <xsd:simpleType name="ST_LineEndType">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="none"/>
+      <xsd:enumeration value="triangle"/>
+      <xsd:enumeration value="stealth"/>
+      <xsd:enumeration value="diamond"/>
+      <xsd:enumeration value="oval"/>
+      <xsd:enumeration value="arrow"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_LineEndWidth">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="sm"/>
+      <xsd:enumeration value="med"/>
+      <xsd:enumeration value="lg"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_LineEndLength">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="sm"/>
+      <xsd:enumeration value="med"/>
+      <xsd:enumeration value="lg"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
   <xsd:simpleType name="ST_LineWidth">
     <xsd:restriction base="ST_Coordinate32Unqualified">
