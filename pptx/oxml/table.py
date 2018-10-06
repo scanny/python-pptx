@@ -373,6 +373,34 @@ class CT_TableCellProperties(BaseOxmlElement):
         ),
         successors=("a:headers", "a:extLst"),
     )
+    lnL = ZeroOrOne(
+        "a:lnL",
+        successors=("a:lnR", "a:lnT", "a:lnB", "a:lnTlToBr", "a:lnBlToTr", "a:noFill", "a:solidFill", "a:gradFill",
+                    "a:blipFill", "a:pattFill", "a:grpFill"),
+    )
+    lnR = ZeroOrOne(
+        "a:lnR",
+        successors=("a:lnT", "a:lnB", "a:lnTlToBr", "a:lnBlToTr", "a:noFill", "a:solidFill", "a:gradFill",
+                    "a:blipFill", "a:pattFill", "a:grpFill"),
+    )
+    lnT = ZeroOrOne(
+        "a:lnT",
+        successors=("a:lnB", "a:lnTlToBr", "a:lnBlToTr", "a:noFill", "a:solidFill", "a:gradFill", "a:blipFill",
+                    "a:pattFill", "a:grpFill"),
+    )
+    lnB = ZeroOrOne(
+        "a:lnB",
+        successors=("a:lnTlToBr", "a:lnBlToTr", "a:noFill", "a:solidFill", "a:gradFill", "a:blipFill", "a:pattFill",
+                    "a:grpFill"),
+    )
+    lnTlToBr = ZeroOrOne(
+        "a:lnTlToBr",
+        successors=("a:lnBlToTr", "a:noFill", "a:solidFill", "a:gradFill", "a:blipFill", "a:pattFill", "a:grpFill"),
+    )
+    lnBlToTr = ZeroOrOne(
+        "a:lnBlToTr",
+        successors=("a:noFill", "a:solidFill", "a:gradFill", "a:blipFill", "a:pattFill", "a:grpFill"),
+    )
     anchor = OptionalAttribute("anchor", MSO_VERTICAL_ANCHOR)
     marL = OptionalAttribute("marL", ST_Coordinate32)
     marR = OptionalAttribute("marR", ST_Coordinate32)
