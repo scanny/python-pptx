@@ -147,6 +147,51 @@ class MSO_LINE_DASH_STYLE(XmlEnumeration):
     )
 
 
+@alias("MSO_ARROWHEAD")
+class MSO_ARROWHEAD_STYLE(XmlEnumeration):
+    """Specifies the style of the arrowhead at the end of a line.
+
+     Alias: ``MSO_ARROWHEAD``
+
+     Example::
+
+         from pptx.enum.dml import MSO_ARROWHEAD
+
+         shape.line.head_end == MSO_ARROWHEAD.TRIANGLE
+    """
+
+    __ms_name__ = "MsoArrowheadStyle"
+
+    __url__ = (
+        "https://msdn.microsoft.com/en-us/vba/office-shared-vba/articles/msoarrowh"
+        "eadstyle-enumeration-office"
+    )
+
+    __members__ = (
+        XmlMappedEnumMember(
+            "DIAMOND", 5, "diamond", "Diamond-shaped."
+        ),
+        XmlMappedEnumMember(
+            "NONE", 1, "none", "No arrowhead."
+        ),
+        XmlMappedEnumMember(
+            "OPEN", 3, "open", "Open."
+        ),
+        XmlMappedEnumMember(
+            "OVAL", 6, "oval", "Oval-shaped."
+        ),
+        XmlMappedEnumMember(
+            "STEALTH", 4, "stealth", "Stealth-shaped."
+        ),
+        XmlMappedEnumMember(
+            "TRIANGLE", 2, "triangle", "Triangular."
+        ),
+        ReturnValueOnlyEnumMember(
+            "MIXED", -2, "Indicates a combination of the other states."
+        ),
+    )
+
+
 @alias("MSO_PATTERN")
 class MSO_PATTERN_TYPE(XmlEnumeration):
     """Specifies the fill pattern used in a shape.

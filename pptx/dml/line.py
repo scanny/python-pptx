@@ -90,6 +90,58 @@ class LineFormat(object):
         ln = self._get_or_add_ln()
         ln.w = emu
 
+    @property
+    def head_end(self):
+        """Return value indicating line head end.
+
+        Returns a member of :ref:`MsoArrowheadStyle` indicating line head end,
+        or |None| if no explicit value has been set. When no explicit value
+        has been set, the line head end is inherited from the style hierarchy.
+
+        Assigning |None| removes any existing explicitly-defined head end.
+        """
+        ln = self._ln
+        if ln is None:
+            return None
+        return ln.headEnd_type
+
+    @head_end.setter
+    def head_end(self, head_end):
+        if head_end is None:
+            ln = self._ln
+            if ln is None:
+                return
+            ln._remove_headEnd()
+            return
+        ln = self._get_or_add_ln()
+        ln.headEnd_type = head_end
+
+    @property
+    def tail_end(self):
+        """Return value indicating line tail end.
+
+        Returns a member of :ref:`MsoArrowheadStyle` indicating line tail end,
+        or |None| if no explicit value has been set. When no explicit value
+        has been set, the line tail end is inherited from the style hierarchy.
+
+        Assigning |None| removes any existing explicitly-defined tail end.
+        """
+        ln = self._ln
+        if ln is None:
+            return None
+        return ln.tailEnd_type
+
+    @tail_end.setter
+    def tail_end(self, tail_end):
+        if tail_end is None:
+            ln = self._ln
+            if ln is None:
+                return
+            ln._remove_tailEnd()
+            return
+        ln = self._get_or_add_ln()
+        ln.tailEnd_type = tail_end
+
     def _get_or_add_ln(self):
         """
         Return the ``<a:ln>`` element containing the line format properties

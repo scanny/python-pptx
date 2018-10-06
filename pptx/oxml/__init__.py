@@ -271,8 +271,14 @@ register_element_cls("a:solidFill", CT_SolidColorFillProperties)
 register_element_cls("a:srcRect", CT_RelativeRect)
 
 
-from .dml.line import CT_PresetLineDashProperties  # noqa: E402
+from .dml.line import (  # noqa: E402
+    CT_HeadEndProperties,
+    CT_TailEndProperties,
+    CT_PresetLineDashProperties,
+)
 
+register_element_cls("a:headEnd",   CT_HeadEndProperties)
+register_element_cls("a:tailEnd",   CT_TailEndProperties)
 register_element_cls("a:prstDash", CT_PresetLineDashProperties)
 
 
