@@ -7,7 +7,7 @@ lxml custom element classes for DrawingML-related XML elements.
 from __future__ import absolute_import
 
 from ...enum.dml import MSO_THEME_COLOR
-from ..simpletypes import ST_HexColorRGB, ST_Percentage
+from ..simpletypes import ST_HexColorRGB, ST_Percentage, ST_AlphaValue
 from ..xmlchemy import (
     BaseOxmlElement, Choice, RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
 )
@@ -19,6 +19,11 @@ class _BaseColorElement(BaseOxmlElement):
     """
     lumMod = ZeroOrOne('a:lumMod')
     lumOff = ZeroOrOne('a:lumOff')
+
+    eg_alphaChoice = ZeroOrOneChoice(
+        (Choice('a:alpha'),),
+        successors=('a:alpha',)
+    )
 
     def add_lumMod(self, value):
         """
@@ -45,6 +50,30 @@ class _BaseColorElement(BaseOxmlElement):
         self._remove_lumOff()
         return self
 
+    def add_alphaMod(self, value):
+        """
+        Return a newly added <a:alphaMod> child element.
+        """
+        alphaMod = self._add_alphaMod()
+        alphaMod.val = value
+        return lumalpha
+
+    def add_alphaOff(self, value):
+        """
+        Return a newly added <a:alphaOff> child element.
+        """
+        alphaOff = self._add_alphaOff()
+        alphaOff.val = value
+        return alphaOff
+
+    def clear_alpha(self):
+        """
+        Return self after removing any <a:alphaMod> and <a:alphaOff> child
+        elements.
+        """
+        self._remove_alphaMod()
+        self._remove_alphaOff()
+        return self
 
 class CT_Color(BaseOxmlElement):
     """Custom element class for `a:fgClr`, `a:bgClr` and perhaps others."""
@@ -98,3 +127,10 @@ class CT_SystemColor(_BaseColorElement):
     """
     Custom element class for <a:sysClr> element.
     """
+
+
+class CT_Alpha(BaseOxmlElement):
+    """
+    Custom element class for <a:alpha> element.
+    """
+    val = RequiredAttribute('val', ST_AlphaValue)

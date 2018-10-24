@@ -7,6 +7,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 from collections import Sequence
 
 from ..dml.chtfmt import ChartFormat
+from ..dml.fill import FillFormat
 from .marker import Marker
 from ..oxml.ns import qn
 from .point import BubblePoints, CategoryPoints, XyPoints
@@ -98,10 +99,27 @@ class AreaSeries(_BaseCategorySeries):
     """
     A data point series belonging to an area plot.
     """
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this series, providing access to fill
+        properties such as fill color.
+        """
+        spPr = self._element.get_or_add_spPr()
+        return FillFormat.from_fill_parent(spPr)
 
 
 class BarSeries(_BaseCategorySeries):
     """A data point series belonging to a bar plot."""
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this series, providing access to fill
+        properties such as fill color.
+        """
+        spPr = self._element.get_or_add_spPr()
+        return FillFormat.from_fill_parent(spPr)
 
     @property
     def invert_if_negative(self):
