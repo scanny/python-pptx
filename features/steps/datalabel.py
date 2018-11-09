@@ -16,6 +16,61 @@ from helpers import test_pptx
 
 # given ===================================================
 
+@given('a DataLabels object {showing_or_not} category-name as data_labels')
+def given_a_DataLabels_object_showing_or_not_cat_name(context, showing_or_not):
+    series_idx = {
+        'not showing': 0,
+        'showing': 1,
+    }[showing_or_not]
+    prs = Presentation(test_pptx('cht-datalabels'))
+    chart = prs.slides[2].shapes[0].chart
+    context.data_labels = chart.plots[0].series[series_idx].data_labels
+
+
+@given('a DataLabels object {showing_or_not} legend-key as data_labels')
+def given_a_DataLabels_object_showing_or_not_leg_key(context, showing_or_not):
+    series_idx = {
+        'not showing': 0,
+        'showing': 1,
+    }[showing_or_not]
+    prs = Presentation(test_pptx('cht-datalabels'))
+    chart = prs.slides[2].shapes[0].chart
+    context.data_labels = chart.plots[0].series[series_idx].data_labels
+
+
+@given('a DataLabels object {showing_or_not} percentage as data_labels')
+def given_a_DataLabels_object_showing_or_not_percent(context, showing_or_not):
+    slide_idx = {
+        'not showing': 4,
+        'showing': 3,
+    }[showing_or_not]
+    prs = Presentation(test_pptx('cht-datalabels'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.data_labels = chart.plots[0].series[0].data_labels
+
+
+@given('a DataLabels object {showing_or_not} series-name as data_labels')
+def given_a_DataLabels_object_showing_or_not_ser_name(context, showing_or_not):
+    series_idx = {
+        'not showing': 0,
+        'showing': 1,
+    }[showing_or_not]
+    prs = Presentation(test_pptx('cht-datalabels'))
+    chart = prs.slides[2].shapes[0].chart
+    context.data_labels = chart.plots[0].series[series_idx].data_labels
+
+
+@given('a DataLabels object {showing_or_not} value as data_labels')
+def given_a_DataLabels_object_showing_or_not_value(context, showing_or_not):
+    series_idx = {
+        'not showing': 0,
+        'showing': 1,
+    }[showing_or_not]
+    prs = Presentation(test_pptx('cht-datalabels'))
+    chart = prs.slides[2].shapes[0].chart
+    context.data_labels = chart.plots[0].series[series_idx].data_labels
+
+
 @given('a DataLabels object with {pos} position as data_labels')
 def given_a_DataLabels_object_with_pos_position(context, pos):
     slide_idx = {
@@ -85,6 +140,31 @@ def when_I_assign_value_to_data_labels_position(context, value):
     context.data_labels.position = new_value
 
 
+@when('I assign {value} to data_labels.show_category_name')
+def when_I_assign_value_to_data_labels_show_category_name(context, value):
+    context.data_labels.show_category_name = eval(value)
+
+
+@when('I assign {value} to data_labels.show_legend_key')
+def when_I_assign_value_to_data_labels_show_legend_key(context, value):
+    context.data_labels.show_legend_key = eval(value)
+
+
+@when('I assign {value} to data_labels.show_percentage')
+def when_I_assign_value_to_data_labels_show_percentage(context, value):
+    context.data_labels.show_percentage = eval(value)
+
+
+@when('I assign {value} to data_labels.show_series_name')
+def when_I_assign_value_to_data_labels_show_series_name(context, value):
+    context.data_labels.show_series_name = eval(value)
+
+
+@when('I assign {value} to data_labels.show_value')
+def when_I_assign_value_to_data_labels_show_value(context, value):
+    context.data_labels.show_value = eval(value)
+
+
 # then ====================================================
 
 @then('data_label.font is a Font object')
@@ -126,3 +206,33 @@ def then_data_labels_position_is_value(context, value):
     assert data_labels.position is expected_value, (
         'got %s' % data_labels.position
     )
+
+
+@then('data_labels.show_category_name is {value}')
+def then_data_labels_show_category_name_is_value(context, value):
+    actual, expected = context.data_labels.show_category_name, eval(value)
+    assert actual is expected, 'data_labels.show_category_name is %s' % actual
+
+
+@then('data_labels.show_legend_key is {value}')
+def then_data_labels_show_legend_key_is_value(context, value):
+    actual, expected = context.data_labels.show_legend_key, eval(value)
+    assert actual is expected, 'data_labels.show_legend_key is %s' % actual
+
+
+@then('data_labels.show_percentage is {value}')
+def then_data_labels_show_percentage_is_value(context, value):
+    actual, expected = context.data_labels.show_percentage, eval(value)
+    assert actual is expected, 'data_labels.show_percentage is %s' % actual
+
+
+@then('data_labels.show_series_name is {value}')
+def then_data_labels_show_series_name_is_value(context, value):
+    actual, expected = context.data_labels.show_series_name, eval(value)
+    assert actual is expected, 'data_labels.show_series_name is %s' % actual
+
+
+@then('data_labels.show_value is {value}')
+def then_data_labels_show_value_is_value(context, value):
+    actual, expected = context.data_labels.show_value, eval(value)
+    assert actual is expected, 'data_labels.show_value is %s' % actual

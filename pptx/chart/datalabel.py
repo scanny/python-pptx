@@ -13,10 +13,14 @@ from ..util import lazyproperty
 
 
 class DataLabels(object):
+    """Provides access to properties of data labels for a plot or a series.
+
+    This is not a collection and does not provide access to individual data
+    labels. Access to individual labels is via the |Point| object. The
+    properties this object provides control formatting of *all* the data
+    labels in its scope.
     """
-    Collection of data labels associated with a plot, and perhaps with
-    a series or data point, although the latter two are not yet implemented.
-    """
+
     def __init__(self, dLbls):
         super(DataLabels, self).__init__()
         self._element = dLbls
@@ -91,6 +95,35 @@ class DataLabels(object):
             self._element._remove_dLblPos()
             return
         self._element.get_or_add_dLblPos().val = value
+
+    @property
+    def show_category_name(self):
+        """True when name of category should appear in datapoint label."""
+        raise NotImplementedError
+
+    @property
+    def show_legend_key(self):
+        """True when data label displays legend-color swatch."""
+        raise NotImplementedError
+
+    @property
+    def show_percentage(self):
+        """True when data label displays percentage.
+
+        This option is not operative on all chart types. Percentage appears
+        on polar charts such as pie and donut.
+        """
+        raise NotImplementedError
+
+    @property
+    def show_series_name(self):
+        """True when data label displays series name."""
+        raise NotImplementedError
+
+    @property
+    def show_value(self):
+        """True when data label displays numeric value of datapoint."""
+        raise NotImplementedError
 
 
 class DataLabel(object):

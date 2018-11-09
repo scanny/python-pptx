@@ -3,6 +3,132 @@ Feature: Access and modify data labels properties
   As a developer using python-pptx
   I need access to data label objects and their properties
 
+# ---DataLabels---
+
+  @wip
+  Scenario Outline: DataLabel.show_category_name getter
+    Given a DataLabels object <showing-or-not> category-name as data_labels
+     Then data_labels.show_category_name is <value>
+
+    Examples: data_label.show_category_name states
+      | showing-or-not | value |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_category_name setter
+    Given a DataLabels object <showing-or-not> category-name as data_labels
+     When I assign <value> to data_labels.show_category_name
+     Then data_labels.show_category_name is <value>
+
+    Examples: data_label.show_category_name states
+      | showing-or-not | value |
+      | not showing    | True  |
+      | showing        | False |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_legend_key getter
+    Given a DataLabels object <showing-or-not> legend-key as data_labels
+     Then data_labels.show_legend_key is <value>
+
+    Examples: data_label.show_legend_key states
+      | showing-or-not | value |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_legend_key setter
+    Given a DataLabels object <showing-or-not> legend-key as data_labels
+     When I assign <value> to data_labels.show_legend_key
+     Then data_labels.show_legend_key is <value>
+
+    Examples: data_label.show_legend_key states
+      | showing-or-not | value |
+      | not showing    | True  |
+      | showing        | False |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_percentage getter
+    Given a DataLabels object <showing-or-not> percentage as data_labels
+     Then data_labels.show_percentage is <value>
+
+    Examples: data_label.show_percentage states
+      | showing-or-not | value |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_percentage setter
+    Given a DataLabels object <showing-or-not> percentage as data_labels
+     When I assign <value> to data_labels.show_percentage
+     Then data_labels.show_percentage is <value>
+
+    Examples: data_label.show_percentage states
+      | showing-or-not | value |
+      | not showing    | True  |
+      | showing        | False |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_series_name getter
+    Given a DataLabels object <showing-or-not> series-name as data_labels
+     Then data_labels.show_series_name is <value>
+
+    Examples: data_label.show_series_name states
+      | showing-or-not | value |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_series_name setter
+    Given a DataLabels object <showing-or-not> series-name as data_labels
+     When I assign <value> to data_labels.show_series_name
+     Then data_labels.show_series_name is <value>
+
+    Examples: data_label.show_series_name states
+      | showing-or-not | value |
+      | not showing    | True  |
+      | showing        | False |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_value getter
+    Given a DataLabels object <showing-or-not> value as data_labels
+     Then data_labels.show_series_name is <value>
+
+    Examples: data_label.show_value states
+      | showing-or-not | value |
+      | not showing    | False |
+      | showing        | True  |
+
+
+  @wip
+  Scenario Outline: DataLabel.show_value setter
+    Given a DataLabels object <showing-or-not> value as data_labels
+     When I assign <value> to data_labels.show_value
+     Then data_labels.show_value is <value>
+
+    Examples: data_label.show_value states
+      | showing-or-not | value |
+      | not showing    | True  |
+      | showing        | False |
+      | not showing    | False |
+      | showing        | True  |
+
 
   Scenario Outline: DataLabels.position getter
     Given a DataLabels object with <position> position as data_labels
@@ -25,8 +151,9 @@ Feature: Access and modify data labels properties
       | inside-base | OUTSIDE_END | OUTSIDE_END    |
       | inside-base | None        | None           |
 
+# ---DataLabel---
 
-  Scenario Outline: DataLabel.font getter
+  Scenario Outline: DataLabel.font
     Given a data label <having-or-not> custom font as data_label
      Then data_label.font is a Font object
 
@@ -81,7 +208,7 @@ Feature: Access and modify data labels properties
       | below     | None   |
 
 
-  Scenario Outline: Get DataLabel.text_frame
+  Scenario Outline: DataLabel.text_frame
     Given a data label <having-or-not> custom text as data_label
      Then data_label.text_frame is a TextFrame object
 
