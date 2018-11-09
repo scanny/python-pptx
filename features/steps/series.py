@@ -20,49 +20,49 @@ from helpers import test_pptx
 
 # given ===================================================
 
-@given('a bar series having fill of {fill}')
-def given_a_bar_series_having_fill_of_fill(context, fill):
+@given('a BarSeries object having {fill_type} fill as series')
+def given_a_BarSeries_object_having_fill_type_as_series(context, fill_type):
     series_idx = {
         'Automatic': 0,
         'No Fill':   1,
         'Orange':    2,
         'Accent 1':  3,
-    }[fill]
-    prs = Presentation(test_pptx('cht-series-props'))
-    plot = prs.slides[0].shapes[0].chart.plots[0]
+    }[fill_type]
+    prs = Presentation(test_pptx('cht-series'))
+    plot = prs.slides[2].shapes[0].chart.plots[0]
     context.series = plot.series[series_idx]
 
 
-@given('a bar series having invert_if_negative of {setting}')
+@given('a BarSeries object having invert_if_negative of {setting} as series')
 def given_a_bar_series_having_invert_if_negative_setting(context, setting):
     series_idx = {
         'no explicit setting': 0,
         'True':                1,
         'False':               2,
     }[setting]
-    prs = Presentation(test_pptx('cht-series-props'))
-    plot = prs.slides[0].shapes[0].chart.plots[0]
+    prs = Presentation(test_pptx('cht-series'))
+    plot = prs.slides[2].shapes[0].chart.plots[0]
     context.series = plot.series[series_idx]
 
 
-@given('a bar series with values {values}')
-def given_a_bar_series_with_values(context, values):
-    prs = Presentation(test_pptx('cht-series-props'))
+@given('a BarSeries object having values {values} as series')
+def given_a_bar_series_having_values_as_series(context, values):
+    prs = Presentation(test_pptx('cht-series'))
     series_idx = {
         '1.2, 2.3, 3.4':  0,
         '4.5, None, 6.7': 1,
     }[values]
-    context.series = prs.slides[1].shapes[0].chart.plots[0].series[series_idx]
+    context.series = prs.slides[3].shapes[0].chart.plots[0].series[series_idx]
 
 
-@given('a bar series having {width} line')
-def given_a_bar_series_having_width_line(context, width):
+@given('a BarSeries object having {width} line as series')
+def given_a_bar_series_having_width_line_as_series(context, width):
     series_idx = {
         'no':      0,
         '1 point': 1,
     }[width]
-    prs = Presentation(test_pptx('cht-series-props'))
-    plot = prs.slides[0].shapes[0].chart.plots[0]
+    prs = Presentation(test_pptx('cht-series'))
+    plot = prs.slides[2].shapes[0].chart.plots[0]
     context.series = plot.series[series_idx]
 
 
@@ -118,40 +118,40 @@ def given_a_points_type_object_containing_3_points(context, points_type):
 
 @given('a series')
 def given_a_series(context):
-    prs = Presentation(test_pptx('cht-series-props'))
-    context.series = prs.slides[0].shapes[0].chart.plots[0].series[0]
+    prs = Presentation(test_pptx('cht-series'))
+    context.series = prs.slides[3].shapes[0].chart.plots[0].series[0]
 
 
-@given('a series collection for a plot having {count} series')
-def given_a_series_collection_for_a_plot_having_count_series(context, count):
-    prs = Presentation(test_pptx('cht-series-access'))
+@given('a {prefix}Series object as series')
+def given_a_series_of_type_series_type(context, prefix):
+    slide_idx = {
+        'Category': 3,
+        'Xy':       4,
+        'Bubble':   5,
+        'Line':     6,
+        'Radar':    7,
+    }[prefix]
+    prs = Presentation(test_pptx('cht-series'))
+    context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
+
+
+@given('a SeriesCollection object for a plot having {n} series')
+def given_a_SeriesCollection_object_for_a_plot_having_n_series(context, n):
+    prs = Presentation(test_pptx('cht-series'))
     plot = prs.slides[0].shapes[0].chart.plots[0]
     context.series_collection = plot.series
-    context.series_count = int(count)
+    context.series_count = int(n)
 
 
-@given('a series collection for a {type_} chart having {count} series')
-def given_a_series_collection_for_chart_having_series(context, type_, count):
+@given('a SeriesCollection object for a {type_} chart having {n} series')
+def given_a_SeriesCollection_for_chart_having_n_series(context, type_, n):
     slide_idx = {
         'single-plot': 0,
         'multi-plot':  1,
     }[type_]
-    prs = Presentation(test_pptx('cht-series-access'))
+    prs = Presentation(test_pptx('cht-series'))
     context.series_collection = prs.slides[slide_idx].shapes[0].chart.series
-    context.series_count = int(count)
-
-
-@given('a series of type {series_type}')
-def given_a_series_of_type_series_type(context, series_type):
-    slide_idx = {
-        'Category': 1,
-        'XY':       2,
-        'Bubble':   3,
-        'Line':     4,
-        'Radar':    5,
-    }[series_type]
-    prs = Presentation(test_pptx('cht-series-props'))
-    context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
+    context.series_count = int(n)
 
 
 # when ====================================================
@@ -362,8 +362,9 @@ def then_series_marker_is_a_Marker_object(context):
 
 @then('series.points is a {type_name} object')
 def then_series_points_is_a_type_name_object(context, type_name):
-    series = context.series
-    assert type(series.points).__name__ == type_name
+    actual = type(context.series.points).__name__
+    expected = type_name
+    assert actual == expected, 'series.points is a %s object' % actual
 
 
 @then('series.values is {values}')
