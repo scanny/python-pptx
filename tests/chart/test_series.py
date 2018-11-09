@@ -1,13 +1,14 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.chart.series module
-"""
+"""Test suite for pptx.chart.series module."""
 
-from __future__ import absolute_import, print_function
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 import pytest
 
+from pptx.chart.datalabel import DataLabels
 from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.chart.series import (
@@ -80,6 +81,19 @@ class Describe_BaseCategorySeries(object):
         base_category_series = subclass_fixture
         assert isinstance(base_category_series, _BaseSeries)
 
+    def it_provides_access_to_its_data_labels(
+            self, data_labels_fixture, DataLabels_, data_labels_):
+        ser, expected_dLbls_xml = data_labels_fixture
+        DataLabels_.return_value = data_labels_
+        series = _BaseCategorySeries(ser)
+
+        data_labels = series.data_labels
+
+        dLbls = ser.xpath('c:dLbls')[0]
+        assert dLbls.xml == expected_dLbls_xml
+        DataLabels_.assert_called_once_with(dLbls)
+        assert data_labels is data_labels_
+
     def it_provides_access_to_its_points(self, points_fixture):
         series, CategoryPoints_, ser, points_ = points_fixture
         points = series.points
@@ -91,6 +105,19 @@ class Describe_BaseCategorySeries(object):
         assert series.values == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:ser',
+         'c:dLbls/(c:showLegendKey{val=0},c:showVal{val=0},c:showCatName{val'
+         '=0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val'
+         '=0},c:showLeaderLines{val=1})'),
+        ('c:ser/c:dLbls', 'c:dLbls'),
+    ])
+    def data_labels_fixture(self, request):
+        ser_cxml, expected_dLbls_cxml = request.param
+        ser = element(ser_cxml)
+        expected_dLbls_xml = xml(expected_dLbls_cxml)
+        return ser, expected_dLbls_xml
 
     @pytest.fixture
     def points_fixture(self, CategoryPoints_, points_):
@@ -133,6 +160,14 @@ class Describe_BaseCategorySeries(object):
         return class_mock(
             request, 'pptx.chart.series.CategoryPoints', return_value=points_
         )
+
+    @pytest.fixture
+    def DataLabels_(self, request):
+        return class_mock(request, 'pptx.chart.series.DataLabels')
+
+    @pytest.fixture
+    def data_labels_(self, request):
+        return instance_mock(request, DataLabels)
 
     @pytest.fixture
     def points_(self, request):

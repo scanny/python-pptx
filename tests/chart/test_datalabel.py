@@ -65,7 +65,7 @@ class DescribeDataLabel(object):
          'al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val='
          '0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0'
          '},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c'
-         ':showBubbleSize{val=0})'),
+         ':showBubbleSize{val=0},c:showLeaderLines{val=1})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p))',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p/a:p'
          'Pr/a:defRPr))'),
@@ -106,7 +106,7 @@ class DescribeDataLabel(object):
          'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
          '},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}'
          ',c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:'
-         'showBubbleSize{val=0})'),
+         'showBubbleSize{val=0},c:showLeaderLines{val=1})'),
         ('c:ser{a:b=c}/c:dLbls', True,
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val'
@@ -153,7 +153,8 @@ class DescribeDataLabel(object):
          'y{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0'
          '},c:showPercent{val=0},c:showBubbleSize{val=0}),c:showLegendKey{va'
          'l=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val=0},c:'
-         'showPercent{val=0},c:showBubbleSize{val=0})'),
+         'showPercent{val=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1'
+         '})'),
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr})', 'BELOW',
          'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})'),
         ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})', None,
@@ -176,7 +177,7 @@ class DescribeDataLabel(object):
          'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
          '},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}'
          ',c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:'
-         'showBubbleSize{val=0})'),
+         'showBubbleSize{val=0},c:showLeaderLines{val=1})'),
         ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
          'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
          ':lstStyle,a:p/a:pPr/a:defRPr))'),

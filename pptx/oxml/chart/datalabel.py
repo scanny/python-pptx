@@ -1,18 +1,16 @@
 # encoding: utf-8
 
-"""
-Data label-related oxml objects.
-"""
+"""Chart data-label related oxml objects."""
 
 from __future__ import (
     absolute_import, division, print_function, unicode_literals
 )
 
-from .. import parse_xml
-from ...enum.chart import XL_DATA_LABEL_POSITION
-from ..ns import nsdecls
-from ..text import CT_TextBody
-from ..xmlchemy import (
+from pptx.enum.chart import XL_DATA_LABEL_POSITION
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.text import CT_TextBody
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
 )
 
@@ -117,9 +115,8 @@ class CT_DLblPos(BaseOxmlElement):
 
 
 class CT_DLbls(BaseOxmlElement):
-    """
-    ``<c:dLbls>`` element specifying the properties of a set of data labels.
-    """
+    """`c:dLbls` element specifying properties for a set of data labels."""
+
     _tag_seq = (
         'c:dLbl', 'c:numFmt', 'c:spPr', 'c:txPr', 'c:dLblPos',
         'c:showLegendKey', 'c:showVal', 'c:showCatName', 'c:showSerName',
@@ -174,6 +171,7 @@ class CT_DLbls(BaseOxmlElement):
             '  <c:showSerName val="0"/>\n'
             '  <c:showPercent val="0"/>\n'
             '  <c:showBubbleSize val="0"/>\n'
+            '  <c:showLeaderLines val="1"/>\n'
             '</c:dLbls>' % nsdecls('c')
         )
 

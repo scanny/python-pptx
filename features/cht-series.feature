@@ -37,7 +37,6 @@ Feature: Chart series
       | plot              |   3   |
 
 
-  @wip
   Scenario Outline: series.data_labels
     Given a <series-type>Series object as series
      Then series.data_labels is a DataLabels object

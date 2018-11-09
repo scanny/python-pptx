@@ -118,7 +118,7 @@ class Describe_BasePlot(object):
             expected_cxml = expected_cxml[:-1] + (
                 '(c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val='
                 '0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
-                'ze{val=0})'
+                'ze{val=0},c:showLeaderLines{val=1})'
             )
         plot = PlotFactory(element(xChart_cxml), None)
         expected_xml = xml(expected_cxml)

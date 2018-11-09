@@ -2,15 +2,18 @@
 
 """Series-related objects."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import (
+    absolute_import, division, print_function, unicode_literals
+)
 
 from collections import Sequence
 
-from ..dml.chtfmt import ChartFormat
-from .marker import Marker
-from ..oxml.ns import qn
-from .point import BubblePoints, CategoryPoints, XyPoints
-from ..util import lazyproperty
+from pptx.chart.datalabel import DataLabels
+from pptx.chart.marker import Marker
+from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
+from pptx.dml.chtfmt import ChartFormat
+from pptx.oxml.ns import qn
+from pptx.util import lazyproperty
 
 
 class _BaseSeries(object):
@@ -51,9 +54,13 @@ class _BaseSeries(object):
 
 
 class _BaseCategorySeries(_BaseSeries):
-    """
-    Base class for |BarSeries| and other category chart series classes.
-    """
+    """Base class for |BarSeries| and other category chart series classes."""
+
+    @lazyproperty
+    def data_labels(self):
+        """|DataLabels| object controlling data labels for this series."""
+        return DataLabels(self._ser.get_or_add_dLbls())
+
     @lazyproperty
     def points(self):
         """

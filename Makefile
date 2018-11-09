@@ -23,7 +23,6 @@ accept:
 clean:
 	find . -type f -name \*.pyc -exec rm {} \;
 	find . -type f -name .DS_Store -exec rm {} \;
-	# rm -rf dist *.egg-info .coverage
 	rm -rf dist .coverage
 
 cleandocs:
