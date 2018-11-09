@@ -127,6 +127,7 @@ class CT_DLbls(BaseOxmlElement):
     numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[2:])
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[4:])
     dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[5:])
+    showLegendKey = ZeroOrOne('c:showLegendKey', successors=_tag_seq[6:])
     showVal = ZeroOrOne('c:showVal', successors=_tag_seq[7:])
     showCatName = ZeroOrOne('c:showCatName', successors=_tag_seq[8:])
     del _tag_seq
@@ -208,6 +209,9 @@ class CT_DLbls(BaseOxmlElement):
         explicitly False.
         """
         return parse_xml('<c:showCatName %s val="0"/>' % nsdecls('c'))
+
+    def _new_showLegendKey(self):
+        return parse_xml('<c:showLegendKey %s val="0"/>' % nsdecls('c'))
 
     def _new_txPr(self):
         return CT_TextBody.new_txPr()

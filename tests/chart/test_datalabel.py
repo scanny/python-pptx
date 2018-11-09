@@ -266,6 +266,14 @@ class DescribeDataLabels(object):
 
         assert data_labels._element.xml == expected_xml
 
+    def it_knows_whether_it_shows_legend_key(self, lgndkey_get_fixture):
+        dLbls, expected_value = lgndkey_get_fixture
+        data_labels = DataLabels(dLbls)
+
+        show_legend_key = data_labels.show_legend_key
+
+        assert show_legend_key == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -304,6 +312,19 @@ class DescribeDataLabels(object):
         defRPr = dLbls.xpath('.//a:defRPr')[0]
         data_labels = DataLabels(dLbls)
         return data_labels, Font_, defRPr, font_
+
+    @pytest.fixture(params=[
+        ('c:dLbls', False),
+        ('c:dLbls/c:showLegendKey{val=0}', False),
+        ('c:dLbls/c:showLegendKey{val=1}', True),
+        ('c:dLbls/c:showLegendKey{val=true}', True),
+        # ---not an expected situation, but schema-compliant---
+        ('c:dLbls/c:showLegendKey', True),
+    ])
+    def lgndkey_get_fixture(self, request):
+        dLbls_cxml, expected_value = request.param
+        dLbls = element(dLbls_cxml)
+        return dLbls, expected_value
 
     @pytest.fixture(params=[
         ('c:dLbls',                             'General'),

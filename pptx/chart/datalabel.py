@@ -108,7 +108,7 @@ class DataLabels(object):
     @property
     def show_legend_key(self):
         """True when data label displays legend-color swatch."""
-        raise NotImplementedError
+        return self._element.get_or_add_showLegendKey().val
 
     @property
     def show_percentage(self):
