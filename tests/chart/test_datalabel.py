@@ -250,7 +250,28 @@ class DescribeDataLabels(object):
         data_labels.position = new_value
         assert data_labels._element.xml == expected_xml
 
+    def it_knows_whether_it_shows_category_name(self, catname_get_fixture):
+        dLbls, expected_value = catname_get_fixture
+        data_labels = DataLabels(dLbls)
+
+        show_category_name = data_labels.show_category_name
+
+        assert show_category_name == expected_value
+
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('c:dLbls', False),
+        ('c:dLbls/c:showCatName{val=0}', False),
+        ('c:dLbls/c:showCatName{val=1}', True),
+        ('c:dLbls/c:showCatName{val=true}', True),
+        # ---not an expected situation, but schema-compliant---
+        ('c:dLbls/c:showCatName', True),
+    ])
+    def catname_get_fixture(self, request):
+        dLbls_cxml, expected_value = request.param
+        dLbls = element(dLbls_cxml)
+        return dLbls, expected_value
 
     @pytest.fixture
     def font_fixture(self, Font_, font_):

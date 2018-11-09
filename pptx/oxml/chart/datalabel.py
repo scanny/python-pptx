@@ -128,6 +128,7 @@ class CT_DLbls(BaseOxmlElement):
     txPr = ZeroOrOne('c:txPr', successors=_tag_seq[4:])
     dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[5:])
     showVal = ZeroOrOne('c:showVal', successors=_tag_seq[7:])
+    showCatName = ZeroOrOne('c:showCatName', successors=_tag_seq[8:])
     del _tag_seq
 
     @property
@@ -197,6 +198,16 @@ class CT_DLbls(BaseOxmlElement):
 
     def _new_dLbl(self):
         return CT_DLbl.new_dLbl()
+
+    def _new_showCatName(self):
+        """Return a new `c:showCatName` with value initialized.
+
+        This method is called by the metaclass-generated code whenever a new
+        `c:showCatName` element is required. In this case, it defaults to
+        `val=true`, which is not what we need so we override to make val
+        explicitly False.
+        """
+        return parse_xml('<c:showCatName %s val="0"/>' % nsdecls('c'))
 
     def _new_txPr(self):
         return CT_TextBody.new_txPr()

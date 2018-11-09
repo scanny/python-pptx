@@ -99,7 +99,7 @@ class DataLabels(object):
     @property
     def show_category_name(self):
         """True when name of category should appear in datapoint label."""
-        raise NotImplementedError
+        return self._element.get_or_add_showCatName().val
 
     @property
     def show_legend_key(self):

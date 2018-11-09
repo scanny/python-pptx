@@ -5,7 +5,6 @@ Feature: Access and modify data labels properties
 
 # ---DataLabels---
 
-  @wip
   Scenario Outline: DataLabel.show_category_name getter
     Given a DataLabels object <showing-or-not> category-name as data_labels
      Then data_labels.show_category_name is <value>
