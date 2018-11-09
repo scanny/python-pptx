@@ -258,6 +258,14 @@ class DescribeDataLabels(object):
 
         assert show_category_name == expected_value
 
+    def it_can_set_whether_it_shows_category_name(self, catname_set_fixture):
+        dLbls, new_value, expected_xml = catname_set_fixture
+        data_labels = DataLabels(dLbls)
+
+        data_labels.show_category_name = new_value
+
+        assert data_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -272,6 +280,23 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
+
+    @pytest.fixture(params=[
+        ('c:dLbls', False, 'c:dLbls/c:showCatName{val=0}'),
+        ('c:dLbls', True, 'c:dLbls/c:showCatName{val=1}'),
+        ('c:dLbls/c:showCatName', False, 'c:dLbls/c:showCatName{val=0}'),
+        ('c:dLbls/c:showCatName{val=0}', False,
+         'c:dLbls/c:showCatName{val=0}'),
+        ('c:dLbls/c:showCatName{val=0}', True,
+         'c:dLbls/c:showCatName{val=1}'),
+        ('c:dLbls/c:showCatName{val=1}', False,
+         'c:dLbls/c:showCatName{val=0}'),
+    ])
+    def catname_set_fixture(self, request):
+        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
+        dLbls = element(dLbls_cxml)
+        expected_dLbls_xml = xml(expected_dLbls_cxml)
+        return dLbls, new_value, expected_dLbls_xml
 
     @pytest.fixture
     def font_fixture(self, Font_, font_):

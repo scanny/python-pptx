@@ -101,6 +101,10 @@ class DataLabels(object):
         """True when name of category should appear in datapoint label."""
         return self._element.get_or_add_showCatName().val
 
+    @show_category_name.setter
+    def show_category_name(self, value):
+        self._element.get_or_add_showCatName().val = bool(value)
+
     @property
     def show_legend_key(self):
         """True when data label displays legend-color swatch."""
