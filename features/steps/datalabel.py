@@ -16,7 +16,18 @@ from helpers import test_pptx
 
 # given ===================================================
 
-@given('a data label {having_or_not} custom font')
+@given('a DataLabels object with {pos} position as data_labels')
+def given_a_DataLabels_object_with_pos_position(context, pos):
+    slide_idx = {
+        'inherited': 0,
+        'inside-base': 1,
+    }[pos]
+    prs = Presentation(test_pptx('cht-datalabels'))
+    chart = prs.slides[slide_idx].shapes[0].chart
+    context.data_labels = chart.plots[0].data_labels
+
+
+@given('a data label {having_or_not} custom font as data_label')
 def given_a_data_label_having_or_not_custom_font(context, having_or_not):
     point_idx = {
         'having a':  0,
@@ -27,7 +38,7 @@ def given_a_data_label_having_or_not_custom_font(context, having_or_not):
     context.data_label = points[point_idx].data_label
 
 
-@given('a data label {having_or_not} custom text')
+@given('a data label {having_or_not} custom text as data_label')
 def given_a_data_label_having_or_not_custom_text(context, having_or_not):
     point_idx = {
         'having':    0,
@@ -38,28 +49,16 @@ def given_a_data_label_having_or_not_custom_text(context, having_or_not):
     context.data_label = plot.series[0].points[point_idx].data_label
 
 
-@given('a data label positioned {relation} its data point')
-def given_a_data_label_positioned_relation_its_data_point(context, relation):
+@given('a data label with {pos} position as data_label')
+def given_a_data_label_with_pos_position_as_data_label(context, pos):
     point_idx = {
-        'in unspecified relation to': 0,
-        'centered on':                1,
-        'below':                      2,
-    }[relation]
+        'inherited': 0,
+        'centered': 1,
+        'below': 2,
+    }[pos]
     prs = Presentation(test_pptx('cht-point-props'))
     plot = prs.slides[1].shapes[0].chart.plots[0]
     context.data_label = plot.series[0].points[point_idx].data_label
-
-
-@given('bar chart data labels positioned {relation_to} their data point')
-def given_bar_chart_data_labels_positioned_relation_to_their_data_point(
-        context, relation_to):
-    slide_idx = {
-        'in unspecified relation to': 0,
-        'inside, at the base of':     1,
-    }[relation_to]
-    prs = Presentation(test_pptx('cht-datalabels-props'))
-    chart = prs.slides[slide_idx].shapes[0].chart
-    context.data_labels = chart.plots[0].data_labels
 
 
 # when ====================================================
