@@ -37,6 +37,21 @@ Feature: Chart series
       | plot              |   3   |
 
 
+  @wip
+  Scenario Outline: series.data_labels
+    Given a <series-type>Series object as series
+     Then series.data_labels is a DataLabels object
+
+    Examples: Series types
+      | series-type |
+      | Area        |
+      | Bar         |
+      | Doughnut    |
+      | Line        |
+      | Pie         |
+      | Radar       |
+
+
   Scenario Outline: BarSeries.invert_if_negative value
     Given a BarSeries object having invert_if_negative of <setting> as series
      Then series.invert_if_negative is <expected-value>

@@ -125,11 +125,15 @@ def given_a_series(context):
 @given('a {prefix}Series object as series')
 def given_a_series_of_type_series_type(context, prefix):
     slide_idx = {
+        'Area': 8,
+        'Bar': 3,
+        'Bubble': 5,
         'Category': 3,
-        'Xy':       4,
-        'Bubble':   5,
-        'Line':     6,
-        'Radar':    7,
+        'Doughnut': 9,
+        'Line': 6,
+        'Pie': 10,
+        'Radar': 7,
+        'Xy': 4,
     }[prefix]
     prs = Presentation(test_pptx('cht-series'))
     context.series = prs.slides[slide_idx].shapes[0].chart.plots[0].series[0]
@@ -298,14 +302,22 @@ def then_point_marker_is_a_Marker_object(context):
 
 @then('points[2] is a Point object')
 def then_points_2_is_a_Point_object(context):
-    points = context.points
-    assert type(points[2]).__name__ == 'Point'
+    actual = type(context.points[2]).__name__
+    assert actual == 'Point', 'points[2] is a %s object' % actual
 
 
 @then('series_collection[2] is a Series object')
 def then_series_collection_2_is_a_Series_object(context):
     type_name = type(context.series_collection[2]).__name__
     assert type_name.endswith('Series'), 'got %s' % type_name
+
+
+@then('series.data_labels is a DataLabels object')
+def then_series_data_labels_is_a_DataLabels_object(context):
+    actual = type(context.series.data_labels).__name__
+    assert actual == 'DataLabels', (
+        'series.data_labels is a %s object' % actual
+    )
 
 
 @then('series.format.fill.fore_color.rgb is FF6600')
@@ -350,14 +362,14 @@ def then_series_format_line_width_is_width(context, width):
 
 @then('series.format is a ChartFormat object')
 def then_series_format_is_a_ChartFormat_object(context):
-    series = context.series
-    assert type(series.format).__name__ == 'ChartFormat'
+    actual = type(context.series.format).__name__
+    assert actual == 'ChartFormat', 'series.format is a %s object' % actual
 
 
 @then('series.marker is a Marker object')
 def then_series_marker_is_a_Marker_object(context):
-    series = context.series
-    assert type(series.marker).__name__ == 'Marker'
+    actual = type(context.series.marker).__name__
+    assert actual == 'Marker', 'series.marker is a %s object' % actual
 
 
 @then('series.points is a {type_name} object')
