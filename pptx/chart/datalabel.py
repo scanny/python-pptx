@@ -110,6 +110,10 @@ class DataLabels(object):
         """True when data label displays legend-color swatch."""
         return self._element.get_or_add_showLegendKey().val
 
+    @show_legend_key.setter
+    def show_legend_key(self, value):
+        self._element.get_or_add_showLegendKey().val = bool(value)
+
     @property
     def show_percentage(self):
         """True when data label displays percentage.

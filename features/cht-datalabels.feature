@@ -38,7 +38,6 @@ Feature: Access and modify data labels properties
       | showing        | True  |
 
 
-  @wip
   Scenario Outline: DataLabel.show_legend_key setter
     Given a DataLabels object <showing-or-not> legend-key as data_labels
      When I assign <value> to data_labels.show_legend_key

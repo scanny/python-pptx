@@ -274,6 +274,14 @@ class DescribeDataLabels(object):
 
         assert show_legend_key == expected_value
 
+    def it_can_set_whether_it_shows_legend_key(self, lgndkey_set_fixture):
+        dLbls, new_value, expected_xml = lgndkey_set_fixture
+        data_labels = DataLabels(dLbls)
+
+        data_labels.show_legend_key = new_value
+
+        assert data_labels._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -325,6 +333,23 @@ class DescribeDataLabels(object):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
+
+    @pytest.fixture(params=[
+        ('c:dLbls', False, 'c:dLbls/c:showLegendKey{val=0}'),
+        ('c:dLbls', True, 'c:dLbls/c:showLegendKey{val=1}'),
+        ('c:dLbls/c:showLegendKey', False, 'c:dLbls/c:showLegendKey{val=0}'),
+        ('c:dLbls/c:showLegendKey{val=0}', False,
+         'c:dLbls/c:showLegendKey{val=0}'),
+        ('c:dLbls/c:showLegendKey{val=0}', True,
+         'c:dLbls/c:showLegendKey{val=1}'),
+        ('c:dLbls/c:showLegendKey{val=1}', False,
+         'c:dLbls/c:showLegendKey{val=0}'),
+    ])
+    def lgndkey_set_fixture(self, request):
+        dLbls_cxml, new_value, expected_dLbls_cxml = request.param
+        dLbls = element(dLbls_cxml)
+        expected_dLbls_xml = xml(expected_dLbls_cxml)
+        return dLbls, new_value, expected_dLbls_xml
 
     @pytest.fixture(params=[
         ('c:dLbls',                             'General'),
