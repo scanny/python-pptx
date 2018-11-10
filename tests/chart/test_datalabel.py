@@ -282,6 +282,14 @@ class DescribeDataLabels(object):
 
         assert data_labels._element.xml == expected_xml
 
+    def it_knows_whether_it_shows_percentage(self, percent_get_fixture):
+        dLbls, expected_value = percent_get_fixture
+        data_labels = DataLabels(dLbls)
+
+        show_percentage = data_labels.show_percentage
+
+        assert show_percentage == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -396,6 +404,18 @@ class DescribeDataLabels(object):
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_dLbls_cxml)
         return data_labels, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:dLbls', False),
+        ('c:dLbls/c:showPercent{val=0}', False),
+        ('c:dLbls/c:showPercent{val=1}', True),
+        ('c:dLbls/c:showPercent{val=true}', True),
+        ('c:dLbls/c:showPercent', True),
+    ])
+    def percent_get_fixture(self, request):
+        dLbls_cxml, expected_value = request.param
+        dLbls = element(dLbls_cxml)
+        return dLbls, expected_value
 
     @pytest.fixture(params=[
         ('c:dLbls',                       None),

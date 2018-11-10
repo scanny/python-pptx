@@ -51,7 +51,6 @@ Feature: Access and modify data labels properties
       | showing        | True  |
 
 
-  @wip
   Scenario Outline: DataLabel.show_percentage getter
     Given a DataLabels object <showing-or-not> percentage as data_labels
      Then data_labels.show_percentage is <value>
