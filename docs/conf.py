@@ -204,7 +204,7 @@ rst_epilog = """
 
 .. |GroupShapes| replace:: :class:`.GroupShapes`
 
-.. |_Hyperlink| replace:: :class:`_Hyperlink`
+.. |_Hyperlink| replace:: :class:`._Hyperlink`
 
 .. |Hyperlink| replace:: :class:`.Hyperlink`
 
