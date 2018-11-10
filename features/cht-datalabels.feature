@@ -97,7 +97,6 @@ Feature: Access and modify data labels properties
       | showing        | True  |
 
 
-  @wip
   Scenario Outline: DataLabel.show_value getter
     Given a DataLabels object <showing-or-not> value as data_labels
      Then data_labels.show_series_name is <value>

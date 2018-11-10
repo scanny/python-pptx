@@ -139,7 +139,7 @@ class DataLabels(object):
     @property
     def show_value(self):
         """True when data label displays numeric value of datapoint."""
-        raise NotImplementedError
+        return self._element.get_or_add_showVal().val
 
 
 class DataLabel(object):
