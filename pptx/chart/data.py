@@ -136,7 +136,6 @@ class _BaseSeriesData(Sequence):
     access to series-level attributes like the series label.
     """
     def __init__(self, chart_data, name, number_format):
-        super(_BaseSeriesData, self).__init__()
         self._chart_data = chart_data
         self._name = name
         self._number_format = number_format
@@ -174,7 +173,7 @@ class _BaseSeriesData(Sequence):
         column heading for the y-values of this series and may also appear in
         the chart legend and perhaps other chart locations.
         """
-        return self._name
+        return self._name if self._name is not None else ''
 
     @property
     def name_ref(self):
@@ -579,7 +578,7 @@ class Category(object):
         be a string, a number, or a datetime.date or datetime.datetime
         object.
         """
-        return self._label
+        return self._label if self._label is not None else ''
 
     def numeric_str_val(self, date_1904=False):
         """

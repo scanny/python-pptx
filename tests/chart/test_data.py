@@ -78,11 +78,27 @@ class Describe_BaseChartData(object):
 
 class Describe_BaseSeriesData(object):
 
+    def it_knows_its_name(self, name_fixture):
+        name_arg, expected_value = name_fixture
+        series_data = _BaseSeriesData(None, name_arg, None)
+
+        name = series_data.name
+
+        assert name == expected_value
+
     def it_knows_its_number_format(self, number_format_fixture):
         series_data, expected_value = number_format_fixture
         assert series_data.number_format == expected_value
 
     # fixtures -------------------------------------------------------
+
+    @pytest.fixture(params=[
+        ('Tincture of Foo', 'Tincture of Foo'),
+        (None, ''),
+    ])
+    def name_fixture(self, request):
+        name, expected_value = request.param
+        return name, expected_value
 
     @pytest.fixture(params=[
         ('General', 42,   42),
@@ -495,8 +511,12 @@ class DescribeCategory(object):
             category.depth
 
     def it_knows_its_label(self, label_fixture):
-        category, expected_value = label_fixture
-        assert category.label == expected_value
+        label_arg, expected_value = label_fixture
+        category = Category(label_arg, None)
+
+        label = category.label
+
+        assert label == expected_value
 
     def it_knows_its_numeric_string_value(self, num_str_fixture):
         category, date_1904, expected_value = num_str_fixture
@@ -586,11 +606,13 @@ class DescribeCategory(object):
         category._sub_categories = sub_categories_
         return category, sub_category_, expected_value
 
-    @pytest.fixture
-    def label_fixture(self):
-        label = 'foobar'
-        category = Category(label, None)
-        return category, label
+    @pytest.fixture(params=[
+        ('Able the Label', 'Able the Label'),
+        (None, ''),
+    ])
+    def label_fixture(self, request):
+        label, expected_value = request.param
+        return label, expected_value
 
     @pytest.fixture(params=[
         ((),        1),
