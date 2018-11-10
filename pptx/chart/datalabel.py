@@ -141,6 +141,10 @@ class DataLabels(object):
         """True when data label displays numeric value of datapoint."""
         return self._element.get_or_add_showVal().val
 
+    @show_value.setter
+    def show_value(self, value):
+        self._element.get_or_add_showVal().val = bool(value)
+
 
 class DataLabel(object):
     """
