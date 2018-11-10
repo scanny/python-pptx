@@ -98,7 +98,7 @@ class DataLabels(object):
 
     @property
     def show_category_name(self):
-        """True when name of category should appear in datapoint label."""
+        """Read/write. True when name of category should appear in label."""
         return self._element.get_or_add_showCatName().val
 
     @show_category_name.setter
@@ -107,7 +107,7 @@ class DataLabels(object):
 
     @property
     def show_legend_key(self):
-        """True when data label displays legend-color swatch."""
+        """Read/write. True when data label displays legend-color swatch."""
         return self._element.get_or_add_showLegendKey().val
 
     @show_legend_key.setter
@@ -116,7 +116,7 @@ class DataLabels(object):
 
     @property
     def show_percentage(self):
-        """True when data label displays percentage.
+        """Read/write. True when data label displays percentage.
 
         This option is not operative on all chart types. Percentage appears
         on polar charts such as pie and donut.
@@ -129,7 +129,7 @@ class DataLabels(object):
 
     @property
     def show_series_name(self):
-        """True when data label displays series name."""
+        """Read/write. True when data label displays series name."""
         return self._element.get_or_add_showSerName().val
 
     @show_series_name.setter
@@ -138,7 +138,7 @@ class DataLabels(object):
 
     @property
     def show_value(self):
-        """True when data label displays numeric value of datapoint."""
+        """Read/write. True when label displays numeric value of datapoint."""
         return self._element.get_or_add_showVal().val
 
     @show_value.setter
