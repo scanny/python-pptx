@@ -130,6 +130,7 @@ class CT_DLbls(BaseOxmlElement):
     showLegendKey = ZeroOrOne('c:showLegendKey', successors=_tag_seq[6:])
     showVal = ZeroOrOne('c:showVal', successors=_tag_seq[7:])
     showCatName = ZeroOrOne('c:showCatName', successors=_tag_seq[8:])
+    showSerName = ZeroOrOne('c:showSerName', successors=_tag_seq[9:])
     showPercent = ZeroOrOne('c:showPercent', successors=_tag_seq[10:])
     del _tag_seq
 
@@ -216,6 +217,9 @@ class CT_DLbls(BaseOxmlElement):
 
     def _new_showPercent(self):
         return parse_xml('<c:showPercent %s val="0"/>' % nsdecls('c'))
+
+    def _new_showSerName(self):
+        return parse_xml('<c:showSerName %s val="0"/>' % nsdecls('c'))
 
     def _new_txPr(self):
         return CT_TextBody.new_txPr()

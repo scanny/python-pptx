@@ -130,7 +130,7 @@ class DataLabels(object):
     @property
     def show_series_name(self):
         """True when data label displays series name."""
-        raise NotImplementedError
+        return self._element.get_or_add_showSerName().val
 
     @property
     def show_value(self):

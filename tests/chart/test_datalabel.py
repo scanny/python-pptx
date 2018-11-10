@@ -298,6 +298,14 @@ class DescribeDataLabels(object):
 
         assert data_labels._element.xml == expected_xml
 
+    def it_knows_whether_it_shows_series_name(self, sername_get_fixture):
+        dLbls, expected_value = sername_get_fixture
+        data_labels = DataLabels(dLbls)
+
+        show_series_name = data_labels.show_series_name
+
+        assert show_series_name == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -464,6 +472,18 @@ class DescribeDataLabels(object):
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_dLbls_cxml)
         return data_labels, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:dLbls', False),
+        ('c:dLbls/c:showSerName{val=0}', False),
+        ('c:dLbls/c:showSerName{val=1}', True),
+        ('c:dLbls/c:showSerName{val=true}', True),
+        ('c:dLbls/c:showSerName', True),
+    ])
+    def sername_get_fixture(self, request):
+        dLbls_cxml, expected_value = request.param
+        dLbls = element(dLbls_cxml)
+        return dLbls, expected_value
 
     @pytest.fixture(params=[
         ('c:dLbls{a:b=c}',
