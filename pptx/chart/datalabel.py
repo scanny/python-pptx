@@ -123,6 +123,10 @@ class DataLabels(object):
         """
         return self._element.get_or_add_showPercent().val
 
+    @show_percentage.setter
+    def show_percentage(self, value):
+        self._element.get_or_add_showPercent().val = bool(value)
+
     @property
     def show_series_name(self):
         """True when data label displays series name."""
