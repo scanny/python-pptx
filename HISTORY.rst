@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.6.16 (2018-11-09)
++++++++++++++++++++
+
+- Feature #395 DataLabels.show_* properties, e.g. .show_percentage
+- Feature #453 Chart data tolerates None for labels
+
+
 0.6.15 (2018-09-24)
 +++++++++++++++++++
 
