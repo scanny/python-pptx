@@ -147,7 +147,7 @@ class DescribeBaseShape(object):
     ])
     def dimensions_get_fixture(self, request, width, height):
         shape_elm_fixt_name, expect_values = request.param
-        shape_elm = request.getfuncargvalue(shape_elm_fixt_name)
+        shape_elm = request.getfixturevalue(shape_elm_fixt_name)
         shape = BaseShape(shape_elm, None)
         if not expect_values:
             width = height = None
@@ -162,9 +162,9 @@ class DescribeBaseShape(object):
     ])
     def dimensions_set_fixture(self, request, width, height):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
-        start_elm = request.getfuncargvalue(start_elm_fixt_name)
+        start_elm = request.getfixturevalue(start_elm_fixt_name)
         shape = BaseShape(start_elm, None)
-        expected_xml = request.getfuncargvalue(expected_elm_fixt_name).xml
+        expected_xml = request.getfixturevalue(expected_elm_fixt_name).xml
         return shape, width, height, expected_xml
 
     @pytest.fixture(params=[
@@ -241,7 +241,7 @@ class DescribeBaseShape(object):
     ])
     def position_get_fixture(self, request, left, top):
         shape_elm_fixt_name, expect_values = request.param
-        shape_elm = request.getfuncargvalue(shape_elm_fixt_name)
+        shape_elm = request.getfixturevalue(shape_elm_fixt_name)
         shape = BaseShape(shape_elm, None)
         if not expect_values:
             left = top = None
@@ -256,9 +256,9 @@ class DescribeBaseShape(object):
     ])
     def position_set_fixture(self, request, left, top):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
-        start_elm = request.getfuncargvalue(start_elm_fixt_name)
+        start_elm = request.getfixturevalue(start_elm_fixt_name)
         shape = BaseShape(start_elm, None)
-        expected_xml = request.getfuncargvalue(expected_elm_fixt_name).xml
+        expected_xml = request.getfixturevalue(expected_elm_fixt_name).xml
         return shape, left, top, expected_xml
 
     @pytest.fixture(params=[

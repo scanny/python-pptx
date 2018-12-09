@@ -227,9 +227,9 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     proxy class.
     """
 
-    eg_fillProperties = ZeroOrOneChoice((
-        Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-        Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
+    eg_fillProperties = ZeroOrOneChoice(
+        (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
+         Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
         successors=(
             'a:effectLst', 'a:effectDag', 'a:highlight', 'a:uLnTx', 'a:uLn',
             'a:uFillTx', 'a:uFill', 'a:latin', 'a:ea', 'a:cs', 'a:sym',
