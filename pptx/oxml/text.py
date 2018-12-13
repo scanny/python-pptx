@@ -28,6 +28,8 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    XsdString,
+    XsdToken
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -459,6 +461,10 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     lnSpc = ZeroOrOne("a:lnSpc", successors=_tag_seq[1:])
     spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
     spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
+    buClrTx = ZeroOrOne("a:buClrTx", successors=_tag_seq[4:])
+    buNone = ZeroOrOne("a:buNone", successors=_tag_seq[11:])
+    buAutoNum = ZeroOrOne("a:buAutoNum", successors=_tag_seq[12:])
+    buChar = ZeroOrOne("a:buChar", successors=_tag_seq[13:])
     defRPr = ZeroOrOne("a:defRPr", successors=_tag_seq[16:])
     lvl = OptionalAttribute("lvl", ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
@@ -575,3 +581,31 @@ class CT_TextSpacingPoint(BaseOxmlElement):
     """
 
     val = RequiredAttribute("val", ST_TextSpacingPoint)
+
+
+class CT_TextBulletColorFollowText(BaseOxmlElement):
+    """
+    <a:buClrTx> element, specifying that a bullet color should follow text.
+    """
+    pass
+
+
+class CT_TextNoBullet(BaseOxmlElement):
+    """
+    <a:buNone> element, specifying that a paragraph should not be bulleted.
+    """
+    pass
+
+
+class CT_TextCharBullet(BaseOxmlElement):
+    """
+    <a:buChar> element, specifying that a paragraph should have a character bullet.
+    """
+    char = RequiredAttribute("char", XsdString)
+
+
+class CT_TextNumberBullet(BaseOxmlElement):
+    """
+    <a:buAutoNum> element, specifying that a paragraph should have an auto numbering bullet.
+    """
+    type = RequiredAttribute("type", XsdToken)

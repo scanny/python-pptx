@@ -459,6 +459,10 @@ from .text import (  # noqa: E402
     CT_TextSpacing,
     CT_TextSpacingPercent,
     CT_TextSpacingPoint,
+    CT_TextNoBullet,
+    CT_TextCharBullet,
+    CT_TextNumberBullet,
+    CT_TextBulletColorFollowText
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -478,6 +482,10 @@ register_element_cls("a:spcAft", CT_TextSpacing)
 register_element_cls("a:spcBef", CT_TextSpacing)
 register_element_cls("a:spcPct", CT_TextSpacingPercent)
 register_element_cls("a:spcPts", CT_TextSpacingPoint)
+register_element_cls('a:buClrTx', CT_TextBulletColorFollowText)
+register_element_cls('a:buNone', CT_TextNoBullet)
+register_element_cls('a:buAutoNum', CT_TextNumberBullet)
+register_element_cls('a:buChar', CT_TextCharBullet)
 register_element_cls("a:txBody", CT_TextBody)
 register_element_cls("c:txPr", CT_TextBody)
 register_element_cls("p:txBody", CT_TextBody)
