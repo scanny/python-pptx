@@ -16,9 +16,9 @@ from helpers import test_pptx
 # given ===================================================
 
 
-@given('a SlideLayouts object containing 2 layouts')
+@given("a SlideLayouts object containing 2 layouts as slide_layouts")
 def given_a_SlideLayouts_object_containing_2_layouts(context):
-    prs = Presentation(test_pptx('mst-slide-layouts'))
+    prs = Presentation(test_pptx("mst-slide-layouts"))
     context.slide_layouts = prs.slide_master.slide_layouts
 
 
@@ -41,6 +41,12 @@ def given_a_Slides_object_containing_3_slides(context):
 def when_I_call_slides_add_slide(context):
     context.slide_layout = context.prs.slide_masters[0].slide_layouts[0]
     context.slides.add_slide(context.slide_layout)
+
+
+@when("I call slide_layouts.remove(slide_layouts[1])")
+def when_I_call_slide_layouts_remove(context):
+    slide_layouts = context.slide_layouts
+    slide_layouts.remove(slide_layouts[1])
 
 
 # then ====================================================
@@ -87,10 +93,9 @@ def then_len_slides_is_count(context, count):
     assert len(slides) == int(count)
 
 
-@then('len(slide_layouts) is 2')
-def then_len_slide_layouts_is_2(context):
-    slide_layouts = context.slide_layouts
-    assert len(slide_layouts) == 2
+@then('len(slide_layouts) is {n}')
+def then_len_slide_layouts_is_2(context, n):
+    assert len(context.slide_layouts) == int(n)
 
 
 @then('len(slide_masters) is 2')
@@ -103,6 +108,12 @@ def then_len_slide_masters_is_2(context):
 def then_slide_layouts_1_is_a_SlideLayout_object(context):
     slide_layouts = context.slide_layouts
     assert type(slide_layouts[1]).__name__ == 'SlideLayout'
+
+
+@then("slide_layouts.index(slide_layouts[1]) == 1")
+def then_slide_layouts_index_is_1(context):
+    slide_layouts = context.slide_layouts
+    assert slide_layouts.index(slide_layouts[1]) == 1
 
 
 @then('slide_masters[1] is a SlideMaster object')

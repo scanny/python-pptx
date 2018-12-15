@@ -95,6 +95,19 @@ Feature: slide properties
      Then slide_layout.slide_master is a SlideMaster object
 
 
+  @wip
+  Scenario: SlideLayout.used_by_slides
+    Given a SlideLayout object used by a slide as slide_layout
+      And a Slide object based on slide_layout as slide
+     Then slide in slide_layout.used_by_slides is True
+
+
+  @wip
+  Scenario: SlideLayout.used_by_slides
+    Given a SlideLayout object used by no slides as slide_layout
+     Then slide_layout.used_by_slides == ()
+
+
   Scenario: SlideMaster.background
     Given a SlideMaster object as slide
      Then slide.background is a _Background object

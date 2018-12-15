@@ -62,6 +62,11 @@ def given_a_slide_having_slide_id_256(context):
     context.slide = presentation.slides[0]
 
 
+@given('a Slide object based on slide_layout as slide')
+def given_a_Slide_object_based_on_slide_layout_as_slide(context):
+    context.slide = context.prs.slides[0]
+
+
 @given('a Slide object having {def_or_ovr} background as slide')
 def given_a_Slide_object_having_background_as_slide(context, def_or_ovr):
     slide_idx = {
@@ -83,6 +88,16 @@ def given_a_SlideLayout_object_having_name_as_slide(context, name):
     slide_layout_idx = 0 if name == 'of no explicit value' else 1
     prs = Presentation(test_pptx('sld-slide'))
     context.slide = prs.slide_layouts[slide_layout_idx]
+
+
+@given('a SlideLayout object used by {which_slides} as slide_layout')
+def given_a_SlideLayout_object_used_by_slides_as_slide_layout(context, which_slides):
+    slide_layout_idx = {
+        "a slide": 0,
+        "no slides": 1,
+    }[which_slides]
+    context.prs = Presentation(test_pptx('sld-slide'))
+    context.slide_layout = context.prs.slide_layouts[slide_layout_idx]
 
 
 @given('a SlideMaster object as slide')
@@ -118,6 +133,11 @@ def then_notes_slide_notes_text_frame_is_a_TextFrame_object(context):
 def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
     notes_slide = context.notes_slide
     assert type(notes_slide.placeholders).__name__ == 'NotesSlidePlaceholders'
+
+
+@then('slide in slide_layout.used_by_slides is True')
+def then_slide_in_slide_layout_used_by_slides_is_True(context):
+    assert context.slide in context.slide_layout.used_by_slides
 
 
 @then('slide.background is a _Background object')
@@ -197,3 +217,8 @@ def then_slide_layout_slide_master_is_a_SlideMaster_object(context):
 def then_slide_master_slide_layouts_is_a_SlideLayouts_object(context):
     slide_master = context.slide_master
     assert type(slide_master.slide_layouts).__name__ == 'SlideLayouts'
+
+
+@then('slide_layout.used_by_slides == ()')
+def then_slide_layout_used_by_slides_eq_empty_tuple(context):
+    assert context.slide_layout.used_by_slides == ()
