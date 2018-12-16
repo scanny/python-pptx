@@ -354,6 +354,13 @@ class SlideLayout(_BaseSlide):
         """
         return self.part.slide_master
 
+    @property
+    def used_by_slides(self):
+        """Tuple of slide objects based on this slide layout."""
+        # ---getting Slides collection requires going around the horn a bit---
+        slides = self.part.package.presentation_part.presentation.slides
+        return tuple(s for s in slides if s.slide_layout == self)
+
 
 class SlideLayouts(ParentedElementProxy):
     """

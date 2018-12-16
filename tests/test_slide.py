@@ -10,8 +10,10 @@ import pytest
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.package import Package
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
+from pptx.presentation import Presentation
 from pptx.shapes.base import BaseShape
 from pptx.shapes.placeholder import LayoutPlaceholder, NotesSlidePlaceholder
 from pptx.shapes.shapetree import (
@@ -659,6 +661,25 @@ class DescribeSlideLayout(object):
 
         assert slide_master is slide_master_
 
+    def it_knows_which_slides_are_based_on_it(
+            self,
+            used_by_fixture,
+            part_prop_,
+            slide_layout_part_,
+            package_,
+            presentation_part_,
+            presentation_,
+    ):
+        presentation_, slide_layout, expected_value = used_by_fixture
+        part_prop_.return_value = slide_layout_part_
+        slide_layout_part_.package = package_
+        package_.presentation_part = presentation_part_
+        presentation_part_.presentation = presentation_
+
+        used_by_slides = slide_layout.used_by_slides
+
+        assert used_by_slides == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -680,6 +701,17 @@ class DescribeSlideLayout(object):
         placeholders_prop_.return_value = _placeholders
         return slide_layout, expected_placeholders
 
+    @pytest.fixture(params=[(), (0,), (1,), (0, 1)])
+    def used_by_fixture(self, request, presentation_, slide_, slide_2_):
+        used_by_idxs = request.param
+        slides = (slide_, slide_2_)
+        slide_layout = SlideLayout(None, None)
+        for idx, s in enumerate(slides):
+            s.slide_layout = slide_layout if idx in used_by_idxs else None
+        presentation_.slides = slides
+        expected_value = tuple(s for i, s in enumerate(slides) if i in used_by_idxs)
+        return presentation_, slide_layout, expected_value
+
     # fixture components -----------------------------------
 
     @pytest.fixture
@@ -694,6 +726,10 @@ class DescribeSlideLayout(object):
         return class_mock(
             request, 'pptx.slide.LayoutShapes', return_value=shapes_
         )
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, Package)
 
     @pytest.fixture
     def part_prop_(self, request, slide_layout_part_):
@@ -720,8 +756,24 @@ class DescribeSlideLayout(object):
         )
 
     @pytest.fixture
+    def presentation_(self, request):
+        return instance_mock(request, Presentation)
+
+    @pytest.fixture
+    def presentation_part_(self, request):
+        return instance_mock(request, PresentationPart)
+
+    @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, LayoutShapes)
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)
+
+    @pytest.fixture
+    def slide_2_(self, request):
+        return instance_mock(request, Slide)
 
     @pytest.fixture
     def slide_layout_part_(self, request):
