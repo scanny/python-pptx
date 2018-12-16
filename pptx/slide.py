@@ -398,6 +398,13 @@ class SlideLayouts(ParentedElementProxy):
         """
         return len(self._sldLayoutIdLst)
 
+    def get_by_name(self, name, default=None):
+        """Return SlideLayout object having *name* or *default* if not found."""
+        for slide_layout in self:
+            if slide_layout.name == name:
+                return slide_layout
+        return default
+
     def index(self, slide_layout):
         """Return zero-based index of *slide_layout* in this collection.
 

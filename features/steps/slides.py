@@ -110,6 +110,12 @@ def then_slide_layouts_1_is_a_SlideLayout_object(context):
     assert type(slide_layouts[1]).__name__ == 'SlideLayout'
 
 
+@then("slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]")
+def then_slide_layouts_get_by_name_is_slide_layout(context):
+    slide_layouts = context.slide_layouts
+    assert slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]
+
+
 @then("slide_layouts.index(slide_layouts[1]) == 1")
 def then_slide_layouts_index_is_1(context):
     slide_layouts = context.slide_layouts

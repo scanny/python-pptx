@@ -827,6 +827,32 @@ class DescribeSlideLayouts(object):
         with pytest.raises(IndexError):
             slide_layouts[1]
 
+    def it_can_find_a_slide_layout_by_name(
+            self, _iter_, slide_layout_, slide_layout_2_
+    ):
+        _iter_.return_value = iter((slide_layout_, slide_layout_2_))
+        slide_layout_2_.name = "pick me!"
+        slide_layouts = SlideLayouts(None, None)
+
+        slide_layout = slide_layouts.get_by_name("pick me!")
+
+        assert slide_layout is slide_layout_2_
+
+    def but_it_returns_the_default_value_when_no_layout_has_that_name(
+            self, _iter_, slide_layout_, slide_layout_2_
+    ):
+        _iter_.return_value = iter((slide_layout_, slide_layout_2_))
+        slide_layout_2_.name = "not the droid you're looking for"
+        slide_layouts = SlideLayouts(None, None)
+
+        # ---default-default is None---
+        slide_layout = slide_layouts.get_by_name("pick me!")
+        assert slide_layout is None
+
+        # ---but default can be specified---
+        slide_layout = slide_layouts.get_by_name("pick me!", "default-value")
+        assert slide_layout is "default-value"
+
     def it_knows_the_index_of_each_of_its_slide_layouts(
             self, _iter_, slide_layout_, slide_layout_2_
     ):
