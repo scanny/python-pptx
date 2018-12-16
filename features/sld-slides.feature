@@ -47,7 +47,6 @@ Feature: Access an individual slide
      Then len(slide_layouts) is 2
 
 
-  @wip
   Scenario: SlideLayouts.index()
     Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then slide_layouts.index(slide_layouts[1]) == 1

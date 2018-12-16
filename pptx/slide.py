@@ -363,10 +363,9 @@ class SlideLayout(_BaseSlide):
 
 
 class SlideLayouts(ParentedElementProxy):
-    """
-    Collection of slide layouts belonging to an instance of |SlideMaster|,
-    having list access semantics. Supports indexed access, len(), and
-    iteration.
+    """Sequence of slide layouts belonging to a slide-master.
+
+    Supports indexed access, len(), iteration, index() and remove().
     """
 
     __slots__ = ('_sldLayoutIdLst',)
@@ -398,6 +397,16 @@ class SlideLayouts(ParentedElementProxy):
         Support len() built-in function (e.g. 'len(slides) == 4').
         """
         return len(self._sldLayoutIdLst)
+
+    def index(self, slide_layout):
+        """Return zero-based index of *slide_layout* in this collection.
+
+        Raises ValueError if *slide_layout* is not present in this collection.
+        """
+        for idx, this_layout in enumerate(self):
+            if slide_layout == this_layout:
+                return idx
+        raise ValueError("layout not in this SlideLayouts collection")
 
 
 class SlideMaster(_BaseMaster):

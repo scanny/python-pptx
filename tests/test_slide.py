@@ -827,6 +827,26 @@ class DescribeSlideLayouts(object):
         with pytest.raises(IndexError):
             slide_layouts[1]
 
+    def it_knows_the_index_of_each_of_its_slide_layouts(
+            self, _iter_, slide_layout_, slide_layout_2_
+    ):
+        _iter_.return_value = iter((slide_layout_, slide_layout_2_))
+        slide_layouts = SlideLayouts(None, None)
+
+        index = slide_layouts.index(slide_layout_2_)
+
+        assert index == 1
+
+    def but_it_raises_on_slide_layout_not_in_collection(
+            self, _iter_, slide_layout_, slide_layout_2_
+    ):
+        _iter_.return_value = iter((slide_layout_,))
+        slide_layouts = SlideLayouts(None, None)
+
+        with pytest.raises(ValueError) as e:
+            slide_layouts.index(slide_layout_2_)
+        assert str(e.value) == "layout not in this SlideLayouts collection"
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -842,11 +862,19 @@ class DescribeSlideLayouts(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def _iter_(self, request):
+        return method_mock(request, SlideLayouts, "__iter__")
+
+    @pytest.fixture
     def part_prop_(self, request):
         return property_mock(request, SlideLayouts, 'part')
 
     @pytest.fixture
     def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_layout_2_(self, request):
         return instance_mock(request, SlideLayout)
 
     @pytest.fixture
