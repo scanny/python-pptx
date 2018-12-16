@@ -418,7 +418,7 @@ class SlideLayouts(ParentedElementProxy):
     def remove(self, slide_layout):
         """Remove *slide_layout* from the collection.
 
-        Raises ValueError when *slide_layout* is in use. A slide layout which is the
+        Raises ValueError when *slide_layout* is in use; a slide layout which is the
         basis for one or more slides cannot be removed.
         """
         # ---raise if layout is in use---
@@ -450,16 +450,14 @@ class SlideMaster(_BaseMaster):
 
     @lazyproperty
     def slide_layouts(self):
-        """
-        Sequence of |SlideLayout| objects belonging to this slide master
-        """
+        """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
 
 
 class SlideMasters(ParentedElementProxy):
-    """
-    Collection of |SlideMaster| instances belonging to a presentation. Has
-    list access semantics, supporting indexed access, len(), and iteration.
+    """Sequence of |SlideMaster| objects belonging to a presentation.
+
+    Has list access semantics, supporting indexed access, len(), and iteration.
     """
 
     __slots__ = ('_sldMasterIdLst',)

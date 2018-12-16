@@ -326,9 +326,13 @@ rst_epilog = """
 
 .. |SlideLayout| replace:: :class:`.SlideLayout`
 
+.. |SlideLayouts| replace:: :class:`.SlideLayouts`
+
 .. |SlideLayoutPart| replace:: :class:`.SlideLayoutPart`
 
 .. |SlideMaster| replace:: :class:`.SlideMaster`
+
+.. |SlideMasters| replace:: :class:`.SlideMasters`
 
 .. |SlideMasterPart| replace:: :class:`.SlideMasterPart`
 
