@@ -847,6 +847,34 @@ class DescribeSlideLayouts(object):
             slide_layouts.index(slide_layout_2_)
         assert str(e.value) == "layout not in this SlideLayouts collection"
 
+    def it_can_remove_an_unused_slide_layout(
+            self, slide_layout_, index_, slide_master_, slide_master_part_
+    ):
+        slide_layout_.used_by_slides = ()
+        index_.return_value = 0
+        sldLayoutIdLst = element(
+            "p:sldLayoutIdLst/(p:sldLayoutId{r:id=rId1},p:sldLayoutId{r:id=rId2})"
+        )
+        slide_layout_.slide_master = slide_master_
+        slide_master_.part = slide_master_part_
+        slide_layouts = SlideLayouts(sldLayoutIdLst, None)
+
+        slide_layouts.remove(slide_layout_)
+
+        assert slide_layouts._sldLayoutIdLst.xml == xml(
+            "p:sldLayoutIdLst/p:sldLayoutId{r:id=rId2}"
+        )
+        slide_master_part_.drop_rel.assert_called_once_with("rId1")
+
+    def but_it_raises_on_attempt_to_remove_slide_layout_in_use(
+            self, slide_layout_, slide_
+    ):
+        slide_layout_.used_by_slides = (slide_,)
+        slide_layouts = SlideLayouts(None, None)
+
+        with pytest.raises(ValueError):
+            slide_layouts.remove(slide_layout_)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[
@@ -862,6 +890,10 @@ class DescribeSlideLayouts(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
+    def index_(self, request):
+        return method_mock(request, SlideLayouts, "index")
+
+    @pytest.fixture
     def _iter_(self, request):
         return method_mock(request, SlideLayouts, "__iter__")
 
@@ -870,12 +902,20 @@ class DescribeSlideLayouts(object):
         return property_mock(request, SlideLayouts, 'part')
 
     @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, Slide)
+
+    @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def slide_layout_2_(self, request):
         return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_master_(self, request):
+        return instance_mock(request, SlideMaster)
 
     @pytest.fixture
     def slide_master_part_(self, request):

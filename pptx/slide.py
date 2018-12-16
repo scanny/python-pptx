@@ -408,6 +408,29 @@ class SlideLayouts(ParentedElementProxy):
                 return idx
         raise ValueError("layout not in this SlideLayouts collection")
 
+    def remove(self, slide_layout):
+        """Remove *slide_layout* from the collection.
+
+        Raises ValueError when *slide_layout* is in use. A slide layout which is the
+        basis for one or more slides cannot be removed.
+        """
+        # ---raise if layout is in use---
+        if slide_layout.used_by_slides:
+            raise ValueError('cannot remove slide-layout in use by one or more slides')
+
+        # ---target layout is identified by its index in this collection---
+        target_idx = self.index(slide_layout)
+
+        # --remove layout from p:sldLayoutIds of its master
+        # --this stops layout from showing up, but doesn't remove it from package
+        target_sldLayoutId = self._sldLayoutIdLst.sldLayoutId_lst[target_idx]
+        self._sldLayoutIdLst.remove(target_sldLayoutId)
+
+        # --drop relationship from master to layout
+        # --this removes layout from package, along with everything (only) it refers to,
+        # --including images (not used elsewhere) and hyperlinks
+        slide_layout.slide_master.part.drop_rel(target_sldLayoutId.rId)
+
 
 class SlideMaster(_BaseMaster):
     """

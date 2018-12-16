@@ -52,7 +52,6 @@ Feature: Access an individual slide
      Then slide_layouts.index(slide_layouts[1]) == 1
 
 
-  @wip
   Scenario: SlideLayouts.remove()
     Given a SlideLayouts object containing 2 layouts as slide_layouts
      When I call slide_layouts.remove(slide_layouts[1])
