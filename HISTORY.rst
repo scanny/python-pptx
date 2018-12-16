@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+0.6.17 (2018-12-16)
++++++++++++++++++++
+
+- Add SlideLayouts.remove() - Delete unused slide-layout
+- Add SlideLayout.used_by_slides - Get slides based on this slide-layout
+- Add SlideLayouts.index() - Get index of slide-layout in master
+- Add SlideLayouts.get_by_name() - Get slide-layout by its str name
+
+
 0.6.16 (2018-11-09)
 +++++++++++++++++++
 
