@@ -267,6 +267,8 @@ class Describe_LineSource(object):
     def it_generates_text_remainder_pairs(self):
         line_source = _LineSource('foo bar baz')
         expected = (
+            ('f',           _LineSource('oo bar baz')),
+            ('fo',          _LineSource('o bar baz')),
             ('foo',         _LineSource('bar baz')),
             ('foo bar',     _LineSource('baz')),
             ('foo bar baz', _LineSource('')),

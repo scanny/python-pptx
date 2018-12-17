@@ -231,11 +231,20 @@ class _LineSource(object):
 
     def __iter__(self):
         """
-        Generate a (text, remainder) pair for each possible even-word line
+        Generate a (text, remainder) pair for each possible line
         break in this line source, where *text* is a str value and remainder
-        is a |_LineSource| value.
+        is a |_LineSource| value. Line breaks are possible between each word
+        or between characters of the first word.
         """
+
         words = self._text.split()
+        first_word = words[0]
+        # If the first word is long, we can linebreak in the middle of it
+        for idx in range(1, len(first_word)):
+            line_text = first_word[:idx]
+            remainder_text = ' '.join([first_word[idx:]] + words[1:])
+            remainder = _LineSource(remainder_text)
+            yield _Line(line_text, remainder)
         for idx in range(1, len(words)+1):
             line_text = ' '.join(words[:idx])
             remainder_text = ' '.join(words[idx:])
