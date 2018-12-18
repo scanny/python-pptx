@@ -94,7 +94,7 @@ class PackageReader(object):
             if srel.is_external:
                 continue
             partname = srel.target_partname
-            if partname in visited_partnames:
+            if partname in visited_partnames or partname.endswith("NULL"):
                 continue
             visited_partnames.append(partname)
             part_srels = PackageReader._srels_for(phys_reader, partname)

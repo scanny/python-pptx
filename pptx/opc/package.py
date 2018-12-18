@@ -547,6 +547,8 @@ class Unmarshaller(object):
         """
         for source_uri, srel in pkg_reader.iter_srels():
             source = package if source_uri == '/' else parts[source_uri]
+            if not srel.is_external and srel.target_partname.endswith("NULL"):
+                continue
             target = (srel.target_ref if srel.is_external
                       else parts[srel.target_partname])
             source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
