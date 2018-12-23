@@ -310,7 +310,7 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
-    def insert_picture(self, image_file, crop=True, vcenter=False):
+    def insert_picture(self, image_file, crop=True, vcenter=False, hcenter=False):
         """
         Return a |PlaceholderPicture| object depicting the image in
         *image_file*, which may be either a path (string) or a file-like
@@ -320,11 +320,11 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
-        pic = self._new_placeholder_pic(image_file, crop, vcenter)
+        pic = self._new_placeholder_pic(image_file, crop, vcenter, hcenter)
         self._replace_placeholder_with(pic)
         return PlaceholderPicture(pic, self._parent)
 
-    def _new_placeholder_pic(self, image_file, crop=True, vcenter=False):
+    def _new_placeholder_pic(self, image_file, crop=True, vcenter=False, hcenter=False):
         """
         Return a new `p:pic` element depicting the image in *image_file*,
         suitable for use as a placeholder. In particular this means not
@@ -349,6 +349,9 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
             if aspectPh > aspectImg:
                 w = int(ph_h * aspectImg)
                 h = ph_h  # keep the height
+
+                if hcenter:
+                    left = left + (ph_w - w) / 2
 
             else:
                 w = ph_w  # keep the width
