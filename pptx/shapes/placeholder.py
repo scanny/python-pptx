@@ -310,7 +310,7 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
-    def insert_picture(self, image_file):
+    def insert_picture(self, image_file, crop=True, vcenter=False, hcenter=False):
         """
         Return a |PlaceholderPicture| object depicting the image in
         *image_file*, which may be either a path (string) or a file-like
@@ -320,11 +320,11 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
-        pic = self._new_placeholder_pic(image_file)
+        pic = self._new_placeholder_pic(image_file, crop, vcenter, hcenter)
         self._replace_placeholder_with(pic)
         return PlaceholderPicture(pic, self._parent)
 
-    def _new_placeholder_pic(self, image_file):
+    def _new_placeholder_pic(self, image_file, crop=True, vcenter=False, hcenter=False):
         """
         Return a new `p:pic` element depicting the image in *image_file*,
         suitable for use as a placeholder. In particular this means not
@@ -333,8 +333,34 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         """
         rId, desc, image_size = self._get_or_add_image(image_file)
         shape_id, name = self.shape_id, self.name
-        pic = CT_Picture.new_ph_pic(shape_id, name, desc, rId)
-        pic.crop_to_fit(image_size, (self.width, self.height))
+        if crop:
+            pic = CT_Picture.new_ph_pic(shape_id, name, desc, rId)
+            pic.crop_to_fit(image_size, (self.width, self.height))
+        else:
+            ph_w, ph_h = self.width, self.height
+            aspectPh = ph_w / ph_h
+
+            img_w, img_h = image_size
+            aspectImg = img_w / img_h
+
+            left = self.left
+            top = self.top
+
+            if aspectPh > aspectImg:
+                w = int(ph_h * aspectImg)
+                h = ph_h  # keep the height
+
+                if hcenter:
+                    left = left + (ph_w - w) / 2
+
+            else:
+                w = ph_w  # keep the width
+                h = int(ph_w / aspectImg)
+
+                if vcenter:
+                    top = top + (ph_h - h) / 2
+
+            pic = CT_Picture.new_pic(shape_id, name, desc, rId, left, top, w, h)
         return pic
 
     def _get_or_add_image(self, image_file):
