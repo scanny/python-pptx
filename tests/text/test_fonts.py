@@ -54,7 +54,7 @@ class DescribeFontFiles(object):
         font_dirs = FontFiles._windows_font_directories()
         assert font_dirs == expected_dirs
 
-    def it_knows_linux_font_dirs_to_help_find(self, win_dirs_fixture):
+    def it_knows_linux_font_dirs_to_help_find(self, linux_dirs_fixture):
         expected_dirs = linux_dirs_fixture
         font_dirs = FontFiles._linux_font_directories()
         assert font_dirs == expected_dirs
@@ -86,11 +86,12 @@ class DescribeFontFiles(object):
     ])
     def font_dirs_fixture(
             self, request, _os_x_font_directories_,
-            _windows_font_directories_):
+            _windows_font_directories_, _linux_font_directories_):
         platform, expected_dirs = request.param
         dirs_meth_mock = {
             'darwin': _os_x_font_directories_,
             'win32':  _windows_font_directories_,
+            'linux':  _linux_font_directories_,
         }[platform]
         sys_ = var_mock(request, 'pptx.text.fonts.sys')
         sys_.platform = platform
