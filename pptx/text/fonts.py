@@ -110,6 +110,7 @@ class FontFiles(object):
         """
         linux_font_dirs = [
             '/usr/share/fonts',
+            '/usr/local/share/fonts',
         ]
         home = os.environ.get('HOME')
         if home is not None:
