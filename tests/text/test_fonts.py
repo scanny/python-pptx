@@ -148,7 +148,9 @@ class DescribeFontFiles(object):
         os_.environ = {'HOME': '/home/fbar'}
         return [
             '/usr/share/fonts',
+            '/usr/local/share/fonts',
             '/home/fbar/.fonts',
+            '/home/fbar/.local/share/fonts',
         ]
 
     # fixture components -----------------------------------
