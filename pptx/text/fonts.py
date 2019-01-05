@@ -114,7 +114,8 @@ class FontFiles(object):
         home = os.environ.get('HOME')
         if home is not None:
             linux_font_dirs.extend([
-                os.path.join(home, '.fonts')
+                os.path.join(home, '.fonts'),
+                os.path.join(home, '.local/share/fonts'),
             ])
         return linux_font_dirs
 
