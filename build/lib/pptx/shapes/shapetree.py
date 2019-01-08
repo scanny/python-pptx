@@ -63,7 +63,6 @@ class _BaseShapes(ParentedElementProxy):
     def __init__(self, spTree, parent):
         super(_BaseShapes, self).__init__(spTree, parent)
         self._spTree = spTree
-        self._cached_max_shape_id = None
 
     def __getitem__(self, idx):
         """
@@ -129,37 +128,6 @@ class _BaseShapes(ParentedElementProxy):
             PP_PLACEHOLDER.TITLE:        'Title',
         }[ph_type]
 
-    @property
-    def turbo_add_enabled(self):
-        """True if "turbo-add" mode is enabled. Read/Write.
-
-        EXPERIMENTAL: This feature can radically improve performance when
-        adding large numbers (hundreds of shapes) to a slide. It works by
-        caching the last shape ID used and incrementing that value to assign
-        the next shape id. This avoids repeatedly searching all shape ids in
-        the slide each time a new ID is required.
-
-        Performance is not noticeably improved for a slide with a relatively
-        small number of shapes, but because the search time rises with the
-        square of the shape count, this option can be useful for optimizing
-        generation of a slide composed of many shapes.
-
-        Shape-id collisions can occur (causing a repair error on load) if
-        more than one |Slide| object is used to interact with the same slide
-        in the presentation. Note that the |Slides| collection creates a new
-        |Slide| object each time a slide is accessed
-        (e.g. `slide = prs.slides[0]`, so you must be careful to limit use to
-        a single |Slide| object.
-        """
-        return self._cached_max_shape_id is not None
-
-    @turbo_add_enabled.setter
-    def turbo_add_enabled(self, value):
-        enable = bool(value)
-        self._cached_max_shape_id = (
-            self._spTree.max_shape_id if enable else None
-        )
-
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -208,16 +176,16 @@ class _BaseShapes(ParentedElementProxy):
     def _next_shape_id(self):
         """Return a unique shape id suitable for use with a new shape.
 
-        The returned id is 1 greater than the maximum shape id used so far.
-        In practice, the minimum id is 2 because the spTree element is always
-        assigned id="1".
+        The returned id is the next available positive integer drawing object
+        id in shape tree, starting from 1 and making use of any gaps in
+        numbering. In practice, the minimum id is 2 because the spTree
+        element is always assigned id="1".
         """
-        # ---presence of cached-max-shape-id indicates turbo mode is on---
-        if self._cached_max_shape_id is not None:
-            self._cached_max_shape_id += 1
-            return self._cached_max_shape_id
-
-        return self._spTree.max_shape_id + 1
+        id_str_lst = self._spTree.xpath('//@id')
+        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
+        for n in range(1, len(used_ids)+2):
+            if n not in used_ids:
+                return n
 
     def _shape_factory(self, shape_elm):
         """
@@ -277,10 +245,7 @@ class _BaseGroupShapes(_BaseShapes):
         a shape is added to it.
         """
         grpSp = self._element.add_grpSp()
-        for shape in shapes:
-            grpSp.insert_element_before(shape._element, 'p:extLst')
-        if shapes:
-            grpSp.recalculate_extents()
+        self._recalculate_extents()
         return self._shape_factory(grpSp)
 
     def add_picture(self, image_file, left, top, width=None, height=None):
@@ -305,9 +270,8 @@ class _BaseGroupShapes(_BaseShapes):
         print("I'm in add_shape !!!!")
         """Return new |Shape| object appended to this shape tree.
 
-        *autoshape_type_id* is a member of :ref:`MsoAutoShapeType` e.g.
-        ``MSO_SHAPE.RECTANGLE`` specifying the type of shape to be added. The
-        remaining arguments specify the new shape's position and size.
+        Auto shape is of type specified by *autoshape_type_id* (like
+        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
         """
         autoshape_type = AutoShapeType(autoshape_type_id)
         sp = self._add_sp(autoshape_type, left, top, width, height)
