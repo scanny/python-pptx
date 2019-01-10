@@ -39,6 +39,13 @@ class Describe_BasePlot(object):
         plot.has_data_labels = new_value
         assert plot._element.xml == expected_xml
 
+    def it_can_change_whether_it_has_start_angle(
+            self, doughnut_fixture):
+        plot, new_value, expected_xml = doughnut_fixture
+        if new_value:
+            plot.first_slice_ang = new_value
+        assert plot._element.xml == expected_xml
+
     def it_knows_whether_it_varies_color_by_category(
             self, vary_by_categories_get_fixture):
         plot, expected_value = vary_by_categories_get_fixture
@@ -120,6 +127,16 @@ class Describe_BasePlot(object):
                 '0},c:showSerName{val=0},c:showPercent{val=0},c:showBubbleSi'
                 'ze{val=0},c:showLeaderLines{val=1})'
             )
+        plot = PlotFactory(element(xChart_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return plot, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        ('c:doughnutChart', 90, 'c:doughnutChart/c:firstSliceAng{val=90}'),
+        ('c:doughnutChart', False, 'c:doughnutChart')
+    ])
+    def doughnut_fixture(self, request):
+        xChart_cxml, new_value, expected_cxml = request.param
         plot = PlotFactory(element(xChart_cxml), None)
         expected_xml = xml(expected_cxml)
         return plot, new_value, expected_xml
