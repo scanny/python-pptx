@@ -24,7 +24,8 @@ class EmbeddedXlsxPart(EmbeddedPackagePart):
     An Excel file stored in a part, typically used as a data source for
     a chart.
     """
-    partname_template = '/ppt/embeddings/Microsoft_Excel_Sheet%d.xlsx'
+
+    partname_template = "/ppt/embeddings/Microsoft_Excel_Sheet%d.xlsx"
 
     @classmethod
     def new(cls, xlsx_blob, package):

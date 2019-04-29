@@ -4,9 +4,7 @@
 Test suite for pptx.presentation module.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -21,7 +19,6 @@ from .unitutil.mock import class_mock, instance_mock, property_mock
 
 
 class DescribePresentation(object):
-
     def it_knows_the_height_of_its_slides(self, sld_height_get_fixture):
         prs, expected_value = sld_height_get_fixture
         assert prs.slide_height == expected_value
@@ -57,9 +54,7 @@ class DescribePresentation(object):
         Slides_, slides_, expected_xml = slides_fixture[3:]
         slides = prs.slides
         rename_slide_parts_.assert_called_once_with(rIds)
-        Slides_.assert_called_once_with(
-            prs._element.xpath('p:sldIdLst')[0], prs
-        )
+        Slides_.assert_called_once_with(prs._element.xpath("p:sldIdLst")[0], prs)
         assert prs._element.xml == expected_xml
         assert slides is slides_
 
@@ -77,7 +72,7 @@ class DescribePresentation(object):
         prs, SlideMasters_, slide_masters_, expected_xml = masters_fixture
         slide_masters = prs.slide_masters
         SlideMasters_.assert_called_once_with(
-            prs._element.xpath('p:sldMasterIdLst')[0], prs
+            prs._element.xpath("p:sldMasterIdLst")[0], prs
         )
         assert slide_masters is slide_masters_
         assert prs._element.xml == expected_xml
@@ -110,12 +105,12 @@ class DescribePresentation(object):
         getitem_.return_value = slide_master_
         return prs, getitem_, slide_master_
 
-    @pytest.fixture(params=[
-        ('p:presentation',
-         'p:presentation/p:sldMasterIdLst'),
-        ('p:presentation/p:sldMasterIdLst',
-         'p:presentation/p:sldMasterIdLst'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:presentation", "p:presentation/p:sldMasterIdLst"),
+            ("p:presentation/p:sldMasterIdLst", "p:presentation/p:sldMasterIdLst"),
+        ]
+    )
     def masters_fixture(self, request, SlideMasters_, slide_masters_):
         prs_cxml, expected_cxml = request.param
         prs = Presentation(element(prs_cxml), None)
@@ -136,59 +131,64 @@ class DescribePresentation(object):
     @pytest.fixture
     def save_fixture(self, prs_part_):
         prs = Presentation(None, prs_part_)
-        file_ = 'foobar.docx'
+        file_ = "foobar.docx"
         return prs, file_, prs_part_
 
-    @pytest.fixture(params=[
-        ('p:presentation',                None),
-        ('p:presentation/p:sldSz{cy=42}', 42),
-    ])
+    @pytest.fixture(
+        params=[("p:presentation", None), ("p:presentation/p:sldSz{cy=42}", 42)]
+    )
     def sld_height_get_fixture(self, request):
         prs_cxml, expected_value = request.param
         prs = Presentation(element(prs_cxml), None)
         return prs, expected_value
 
-    @pytest.fixture(params=[
-        ('p:presentation',
-         'p:presentation/p:sldSz{cy=914400}'),
-        ('p:presentation/p:sldSz{cy=424242}',
-         'p:presentation/p:sldSz{cy=914400}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:presentation", "p:presentation/p:sldSz{cy=914400}"),
+            ("p:presentation/p:sldSz{cy=424242}", "p:presentation/p:sldSz{cy=914400}"),
+        ]
+    )
     def sld_height_set_fixture(self, request):
         prs_cxml, expected_cxml = request.param
         prs = Presentation(element(prs_cxml), None)
         expected_xml = xml(expected_cxml)
         return prs, 914400, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:presentation',                None),
-        ('p:presentation/p:sldSz{cx=42}', 42),
-    ])
+    @pytest.fixture(
+        params=[("p:presentation", None), ("p:presentation/p:sldSz{cx=42}", 42)]
+    )
     def sld_width_get_fixture(self, request):
         prs_cxml, expected_value = request.param
         prs = Presentation(element(prs_cxml), None)
         return prs, expected_value
 
-    @pytest.fixture(params=[
-        ('p:presentation',
-         'p:presentation/p:sldSz{cx=914400}'),
-        ('p:presentation/p:sldSz{cx=424242}',
-         'p:presentation/p:sldSz{cx=914400}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:presentation", "p:presentation/p:sldSz{cx=914400}"),
+            ("p:presentation/p:sldSz{cx=424242}", "p:presentation/p:sldSz{cx=914400}"),
+        ]
+    )
     def sld_width_set_fixture(self, request):
         prs_cxml, expected_cxml = request.param
         prs = Presentation(element(prs_cxml), None)
         expected_xml = xml(expected_cxml)
         return prs, 914400, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:presentation', [], 'p:presentation/p:sldIdLst'),
-        ('p:presentation/p:sldIdLst/p:sldId{r:id=a}', ['a'],
-         'p:presentation/p:sldIdLst/p:sldId{r:id=a}'),
-        ('p:presentation/p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})',
-         ['a', 'b'],
-         'p:presentation/p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:presentation", [], "p:presentation/p:sldIdLst"),
+            (
+                "p:presentation/p:sldIdLst/p:sldId{r:id=a}",
+                ["a"],
+                "p:presentation/p:sldIdLst/p:sldId{r:id=a}",
+            ),
+            (
+                "p:presentation/p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})",
+                ["a", "b"],
+                "p:presentation/p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})",
+            ),
+        ]
+    )
     def slides_fixture(self, request, part_prop_, Slides_, slides_):
         prs_cxml, rIds, expected_cxml = request.param
         prs = Presentation(element(prs_cxml), None)
@@ -204,7 +204,7 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def masters_prop_(self, request):
-        return property_mock(request, Presentation, 'slide_masters')
+        return property_mock(request, Presentation, "slide_masters")
 
     @pytest.fixture
     def notes_master_(self, request):
@@ -212,7 +212,7 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def part_prop_(self, request):
-        return property_mock(request, Presentation, 'part')
+        return property_mock(request, Presentation, "part")
 
     @pytest.fixture
     def prs_part_(self, request):
@@ -225,8 +225,7 @@ class DescribePresentation(object):
     @pytest.fixture
     def SlideMasters_(self, request, slide_masters_):
         return class_mock(
-            request, 'pptx.presentation.SlideMasters',
-            return_value=slide_masters_
+            request, "pptx.presentation.SlideMasters", return_value=slide_masters_
         )
 
     @pytest.fixture
@@ -239,9 +238,7 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def Slides_(self, request, slides_):
-        return class_mock(
-            request, 'pptx.presentation.Slides', return_value=slides_
-        )
+        return class_mock(request, "pptx.presentation.Slides", return_value=slides_)
 
     @pytest.fixture
     def slides_(self, request):

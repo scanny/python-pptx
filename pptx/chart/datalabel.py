@@ -4,9 +4,7 @@
 Data label-related objects.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ..text.text import Font, TextFrame
 from ..util import lazyproperty
@@ -47,7 +45,7 @@ class DataLabels(object):
         """
         numFmt = self._element.numFmt
         if numFmt is None:
-            return 'General'
+            return "General"
         return numFmt.formatCode
 
     @number_format.setter
@@ -150,6 +148,7 @@ class DataLabel(object):
     """
     The data label associated with an individual data point.
     """
+
     def __init__(self, ser, idx):
         super(DataLabel, self).__init__()
         self._ser = self._element = ser
@@ -182,7 +181,7 @@ class DataLabel(object):
         dLbl = self._dLbl
         if dLbl is None:
             return False
-        if dLbl.xpath('c:tx/c:rich'):
+        if dLbl.xpath("c:tx/c:rich"):
             return True
         return False
 

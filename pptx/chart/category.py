@@ -8,9 +8,7 @@ Categories can be hierarchical, so there are members allowing discovery of
 the depth of that hierarchy and providing means to navigate it.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import Sequence
 
@@ -21,6 +19,7 @@ class Categories(Sequence):
     label on the chart. Provides properties for dealing with hierarchical
     categories.
     """
+
     def __init__(self, xChart):
         super(Categories, self).__init__()
         self._xChart = xChart
@@ -75,8 +74,10 @@ class Categories(Sequence):
             return tuple([(category.label,) for category in self])
 
         return tuple(
-            [tuple([category.label for category in reversed(flat_cat)])
-             for flat_cat in self._iter_flattened_categories()]
+            [
+                tuple([category.label for category in reversed(flat_cat)])
+                for flat_cat in self._iter_flattened_categories()
+            ]
         )
 
     @property
@@ -149,8 +150,9 @@ class Category(str):
     value, and additional attributes representing other aspects of the
     category.
     """
+
     def __new__(cls, pt, *args):
-        category_label = '' if pt is None else pt.v.text
+        category_label = "" if pt is None else pt.v.text
         return str.__new__(cls, category_label)
 
     def __init__(self, pt, idx=None):
@@ -189,6 +191,7 @@ class CategoryLevel(Sequence):
     categories are hierarchical, meaning they have more than one level and
     higher level categories group those at lower levels.
     """
+
     def __init__(self, lvl):
         self._element = self._lvl = lvl
 

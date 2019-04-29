@@ -2,28 +2,41 @@
 
 """Custom element classes for text-related XML elements"""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.compat import to_unicode
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import (
-    MSO_AUTO_SIZE, MSO_TEXT_UNDERLINE_TYPE, MSO_VERTICAL_ANCHOR,
-    PP_PARAGRAPH_ALIGNMENT
+    MSO_AUTO_SIZE,
+    MSO_TEXT_UNDERLINE_TYPE,
+    MSO_VERTICAL_ANCHOR,
+    PP_PARAGRAPH_ALIGNMENT,
 )
 from pptx.exc import InvalidXmlError
 from pptx.oxml import parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
-    ST_Coordinate32, ST_TextFontScalePercentOrPercentString, ST_TextFontSize,
-    ST_TextIndentLevelType, ST_TextSpacingPercentOrPercentString,
-    ST_TextSpacingPoint, ST_TextTypeface, ST_TextWrappingType, XsdBoolean
+    ST_Coordinate32,
+    ST_TextFontScalePercentOrPercentString,
+    ST_TextFontSize,
+    ST_TextIndentLevelType,
+    ST_TextSpacingPercentOrPercentString,
+    ST_TextSpacingPoint,
+    ST_TextTypeface,
+    ST_TextWrappingType,
+    XsdBoolean,
 )
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, Choice, OneAndOnlyOne, OneOrMore, OptionalAttribute,
-    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
+    BaseOxmlElement,
+    Choice,
+    OneAndOnlyOne,
+    OneOrMore,
+    OptionalAttribute,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
+    ZeroOrOneChoice,
 )
 from pptx.util import Emu, Length
 
@@ -31,15 +44,15 @@ from pptx.util import Emu, Length
 class CT_RegularTextRun(BaseOxmlElement):
     """`a:r` custom element class"""
 
-    rPr = ZeroOrOne('a:rPr', successors=('a:t',))
-    t = OneAndOnlyOne('a:t')
+    rPr = ZeroOrOne("a:rPr", successors=("a:t",))
+    t = OneAndOnlyOne("a:t")
 
     @property
     def text(self):
         """(unicode) str containing text of (required) `a:t` child"""
         text = self.t.text
         # t.text is None when t element is empty, e.g. '<a:t/>'
-        return to_unicode(text) if text is not None else u''
+        return to_unicode(text) if text is not None else ""
 
 
 class CT_TextBody(BaseOxmlElement):
@@ -48,8 +61,8 @@ class CT_TextBody(BaseOxmlElement):
     Also used for `c:txPr` in charts and perhaps other elements.
     """
 
-    bodyPr = OneAndOnlyOne('a:bodyPr')
-    p = OneOrMore('a:p')
+    bodyPr = OneAndOnlyOne("a:bodyPr")
+    p = OneOrMore("a:p")
 
     def clear_content(self):
         """Remove all `a:p` children, but leave any others.
@@ -80,9 +93,9 @@ class CT_TextBody(BaseOxmlElement):
             return False
 
         if not ps:
-            raise InvalidXmlError('p:txBody must have at least one a:p')
+            raise InvalidXmlError("p:txBody must have at least one a:p")
 
-        if ps[0].text != '':
+        if ps[0].text != "":
             return False
         return True
 
@@ -121,16 +134,16 @@ class CT_TextBody(BaseOxmlElement):
         like data labels or tick labels.
         """
         xml = (
-            '<c:txPr %s>\n'
-            '  <a:bodyPr/>\n'
-            '  <a:lstStyle/>\n'
-            '  <a:p>\n'
-            '    <a:pPr>\n'
-            '      <a:defRPr/>\n'
-            '    </a:pPr>\n'
-            '  </a:p>\n'
-            '</c:txPr>\n'
-        ) % nsdecls('c', 'a')
+            "<c:txPr %s>\n"
+            "  <a:bodyPr/>\n"
+            "  <a:lstStyle/>\n"
+            "  <a:p>\n"
+            "    <a:pPr>\n"
+            "      <a:defRPr/>\n"
+            "    </a:pPr>\n"
+            "  </a:p>\n"
+            "</c:txPr>\n"
+        ) % nsdecls("c", "a")
         txPr = parse_xml(xml)
         return txPr
 
@@ -147,29 +160,29 @@ class CT_TextBody(BaseOxmlElement):
     @classmethod
     def _a_txBody_tmpl(cls):
         return (
-            '<a:txBody %s>\n'
-            '  <a:bodyPr/>\n'
-            '  <a:p/>\n'
-            '</a:txBody>\n' % (nsdecls('a'))
+            "<a:txBody %s>\n"
+            "  <a:bodyPr/>\n"
+            "  <a:p/>\n"
+            "</a:txBody>\n" % (nsdecls("a"))
         )
 
     @classmethod
     def _p_txBody_tmpl(cls):
         return (
-            '<p:txBody %s>\n'
-            '  <a:bodyPr/>\n'
-            '  <a:p/>\n'
-            '</p:txBody>\n' % (nsdecls('p', 'a'))
+            "<p:txBody %s>\n"
+            "  <a:bodyPr/>\n"
+            "  <a:p/>\n"
+            "</p:txBody>\n" % (nsdecls("p", "a"))
         )
 
     @classmethod
     def _txBody_tmpl(cls):
         return (
-            '<p:txBody %s>\n'
-            '  <a:bodyPr/>\n'
-            '  <a:lstStyle/>\n'
-            '  <a:p/>\n'
-            '</p:txBody>\n' % (nsdecls('a', 'p'))
+            "<p:txBody %s>\n"
+            "  <a:bodyPr/>\n"
+            "  <a:lstStyle/>\n"
+            "  <a:p/>\n"
+            "</p:txBody>\n" % (nsdecls("a", "p"))
         )
 
 
@@ -177,17 +190,17 @@ class CT_TextBodyProperties(BaseOxmlElement):
     """
     <a:bodyPr> custom element class
     """
-    eg_textAutoFit = ZeroOrOneChoice((
-        Choice('a:noAutofit'), Choice('a:normAutofit'),
-        Choice('a:spAutoFit')),
-        successors=('a:scene3d', 'a:sp3d', 'a:flatTx', 'a:extLst')
+
+    eg_textAutoFit = ZeroOrOneChoice(
+        (Choice("a:noAutofit"), Choice("a:normAutofit"), Choice("a:spAutoFit")),
+        successors=("a:scene3d", "a:sp3d", "a:flatTx", "a:extLst"),
     )
-    lIns = OptionalAttribute('lIns', ST_Coordinate32, default=Emu(91440))
-    tIns = OptionalAttribute('tIns', ST_Coordinate32, default=Emu(45720))
-    rIns = OptionalAttribute('rIns', ST_Coordinate32, default=Emu(91440))
-    bIns = OptionalAttribute('bIns', ST_Coordinate32, default=Emu(45720))
-    anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
-    wrap = OptionalAttribute('wrap', ST_TextWrappingType)
+    lIns = OptionalAttribute("lIns", ST_Coordinate32, default=Emu(91440))
+    tIns = OptionalAttribute("tIns", ST_Coordinate32, default=Emu(45720))
+    rIns = OptionalAttribute("rIns", ST_Coordinate32, default=Emu(91440))
+    bIns = OptionalAttribute("bIns", ST_Coordinate32, default=Emu(45720))
+    anchor = OptionalAttribute("anchor", MSO_VERTICAL_ANCHOR)
+    wrap = OptionalAttribute("wrap", ST_TextWrappingType)
 
     @property
     def autofit(self):
@@ -207,9 +220,8 @@ class CT_TextBodyProperties(BaseOxmlElement):
     def autofit(self, value):
         if value is not None and value not in MSO_AUTO_SIZE._valid_settings:
             raise ValueError(
-                'only None or a member of the MSO_AUTO_SIZE enumeration can '
-                'be assigned to CT_TextBodyProperties.autofit, got %s'
-                % value
+                "only None or a member of the MSO_AUTO_SIZE enumeration can "
+                "be assigned to CT_TextBodyProperties.autofit, got %s" % value
             )
         self._remove_eg_textAutoFit()
         if value == MSO_AUTO_SIZE.NONE:
@@ -228,27 +240,53 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     """
 
     eg_fillProperties = ZeroOrOneChoice(
-        (Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-         Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
+        (
+            Choice("a:noFill"),
+            Choice("a:solidFill"),
+            Choice("a:gradFill"),
+            Choice("a:blipFill"),
+            Choice("a:pattFill"),
+            Choice("a:grpFill"),
+        ),
         successors=(
-            'a:effectLst', 'a:effectDag', 'a:highlight', 'a:uLnTx', 'a:uLn',
-            'a:uFillTx', 'a:uFill', 'a:latin', 'a:ea', 'a:cs', 'a:sym',
-            'a:hlinkClick', 'a:hlinkMouseOver', 'a:rtl', 'a:extLst'
-        )
+            "a:effectLst",
+            "a:effectDag",
+            "a:highlight",
+            "a:uLnTx",
+            "a:uLn",
+            "a:uFillTx",
+            "a:uFill",
+            "a:latin",
+            "a:ea",
+            "a:cs",
+            "a:sym",
+            "a:hlinkClick",
+            "a:hlinkMouseOver",
+            "a:rtl",
+            "a:extLst",
+        ),
     )
-    latin = ZeroOrOne('a:latin', successors=(
-        'a:ea', 'a:cs', 'a:sym', 'a:hlinkClick', 'a:hlinkMouseOver', 'a:rtl',
-        'a:extLst'
-    ))
-    hlinkClick = ZeroOrOne('a:hlinkClick', successors=(
-        'a:hlinkMouseOver', 'a:rtl', 'a:extLst'
-    ))
+    latin = ZeroOrOne(
+        "a:latin",
+        successors=(
+            "a:ea",
+            "a:cs",
+            "a:sym",
+            "a:hlinkClick",
+            "a:hlinkMouseOver",
+            "a:rtl",
+            "a:extLst",
+        ),
+    )
+    hlinkClick = ZeroOrOne(
+        "a:hlinkClick", successors=("a:hlinkMouseOver", "a:rtl", "a:extLst")
+    )
 
-    lang = OptionalAttribute('lang', MSO_LANGUAGE_ID)
-    sz = OptionalAttribute('sz', ST_TextFontSize)
-    b = OptionalAttribute('b', XsdBoolean)
-    i = OptionalAttribute('i', XsdBoolean)
-    u = OptionalAttribute('u', MSO_TEXT_UNDERLINE_TYPE)
+    lang = OptionalAttribute("lang", MSO_LANGUAGE_ID)
+    sz = OptionalAttribute("sz", ST_TextFontSize)
+    b = OptionalAttribute("b", XsdBoolean)
+    i = OptionalAttribute("i", XsdBoolean)
+    u = OptionalAttribute("u", MSO_TEXT_UNDERLINE_TYPE)
 
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()
@@ -266,8 +304,9 @@ class CT_TextField(BaseOxmlElement):
     """
     <a:fld> field element, for either a slide number or date field
     """
-    rPr = ZeroOrOne('a:rPr', successors=('a:pPr', 'a:t'))
-    t = ZeroOrOne('a:t', successors=())
+
+    rPr = ZeroOrOne("a:rPr", successors=("a:pPr", "a:t"))
+    t = ZeroOrOne("a:t", successors=())
 
     @property
     def text(self):
@@ -276,9 +315,9 @@ class CT_TextField(BaseOxmlElement):
         """
         t = self.t
         if t is None:
-            return u''
+            return ""
         text = t.text
-        return to_unicode(text) if text is not None else u''
+        return to_unicode(text) if text is not None else ""
 
 
 class CT_TextFont(BaseOxmlElement):
@@ -286,14 +325,16 @@ class CT_TextFont(BaseOxmlElement):
     Custom element class for <a:latin>, <a:ea>, <a:cs>, and <a:sym> child
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
     """
-    typeface = RequiredAttribute('typeface', ST_TextTypeface)
+
+    typeface = RequiredAttribute("typeface", ST_TextTypeface)
 
 
 class CT_TextLineBreak(BaseOxmlElement):
     """
     <a:br> line break element
     """
-    rPr = ZeroOrOne('a:rPr', successors=())
+
+    rPr = ZeroOrOne("a:rPr", successors=())
 
     @property
     def text(self):
@@ -301,27 +342,26 @@ class CT_TextLineBreak(BaseOxmlElement):
         Unconditionally a single line feed character. A line break element
         can contain no text other than the implicit line feed it represents.
         """
-        return u'\n'
+        return "\n"
 
 
 class CT_TextNormalAutofit(BaseOxmlElement):
     """
     <a:normAutofit> element specifying fit text to shape font reduction, etc.
     """
+
     fontScale = OptionalAttribute(
-        'fontScale', ST_TextFontScalePercentOrPercentString, default=100.0
+        "fontScale", ST_TextFontScalePercentOrPercentString, default=100.0
     )
 
 
 class CT_TextParagraph(BaseOxmlElement):
     """`a:p` custom element class"""
 
-    pPr = ZeroOrOne('a:pPr', successors=(
-        'a:r', 'a:br', 'a:fld', 'a:endParaRPr'
-    ))
-    r = ZeroOrMore('a:r', successors=('a:endParaRPr',))
-    br = ZeroOrMore('a:br', successors=('a:endParaRPr',))
-    endParaRPr = ZeroOrOne('a:endParaRPr', successors=())
+    pPr = ZeroOrOne("a:pPr", successors=("a:r", "a:br", "a:fld", "a:endParaRPr"))
+    r = ZeroOrMore("a:r", successors=("a:endParaRPr",))
+    br = ZeroOrMore("a:br", successors=("a:endParaRPr",))
+    endParaRPr = ZeroOrOne("a:endParaRPr", successors=())
 
     def add_br(self):
         """
@@ -344,7 +384,7 @@ class CT_TextParagraph(BaseOxmlElement):
         Any `\n` characters in *text* delimit `a:r` (run) elements and
         themselves are translated to `a:br` (line-break) elements.
         """
-        for idx, r_str in enumerate(text.split('\n')):
+        for idx, r_str in enumerate(text.split("\n")):
             # ---breaks are only added *between* items, not at start---
             if idx > 0:
                 self.add_br()
@@ -365,10 +405,10 @@ class CT_TextParagraph(BaseOxmlElement):
     def text(self):
         """str text contained in this paragraph."""
         # ---note this shadows the lxml _Element.text---
-        return ''.join([child.text for child in self.content_children])
+        return "".join([child.text for child in self.content_children])
 
     def _new_r(self):
-        r_xml = '<a:r %s><a:t/></a:r>' % nsdecls('a')
+        r_xml = "<a:r %s><a:t/></a:r>" % nsdecls("a")
         return parse_xml(r_xml)
 
 
@@ -376,18 +416,32 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     """
     <a:pPr> custom element class
     """
+
     _tag_seq = (
-        'a:lnSpc', 'a:spcBef', 'a:spcAft', 'a:buClrTx', 'a:buClr',
-        'a:buSzTx', 'a:buSzPct', 'a:buSzPts', 'a:buFontTx', 'a:buFont',
-        'a:buNone', 'a:buAutoNum', 'a:buChar', 'a:buBlip', 'a:tabLst',
-        'a:defRPr', 'a:extLst',
+        "a:lnSpc",
+        "a:spcBef",
+        "a:spcAft",
+        "a:buClrTx",
+        "a:buClr",
+        "a:buSzTx",
+        "a:buSzPct",
+        "a:buSzPts",
+        "a:buFontTx",
+        "a:buFont",
+        "a:buNone",
+        "a:buAutoNum",
+        "a:buChar",
+        "a:buBlip",
+        "a:tabLst",
+        "a:defRPr",
+        "a:extLst",
     )
-    lnSpc = ZeroOrOne('a:lnSpc', successors=_tag_seq[1:])
-    spcBef = ZeroOrOne('a:spcBef', successors=_tag_seq[2:])
-    spcAft = ZeroOrOne('a:spcAft', successors=_tag_seq[3:])
-    defRPr = ZeroOrOne('a:defRPr', successors=_tag_seq[16:])
-    lvl = OptionalAttribute('lvl', ST_TextIndentLevelType, default=0)
-    algn = OptionalAttribute('algn', PP_PARAGRAPH_ALIGNMENT)
+    lnSpc = ZeroOrOne("a:lnSpc", successors=_tag_seq[1:])
+    spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
+    spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
+    defRPr = ZeroOrOne("a:defRPr", successors=_tag_seq[16:])
+    lvl = OptionalAttribute("lvl", ST_TextIndentLevelType, default=0)
+    algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
     del _tag_seq
 
     @property
@@ -460,10 +514,11 @@ class CT_TextSpacing(BaseOxmlElement):
     """
     Used for <a:lnSpc>, <a:spcBef>, and <a:spcAft> elements.
     """
+
     # this should actually be a OneAndOnlyOneChoice, but that's not
     # implemented yet.
-    spcPct = ZeroOrOne('a:spcPct')
-    spcPts = ZeroOrOne('a:spcPts')
+    spcPct = ZeroOrOne("a:spcPct")
+    spcPts = ZeroOrOne("a:spcPts")
 
     def set_spcPct(self, value):
         """
@@ -489,7 +544,8 @@ class CT_TextSpacingPercent(BaseOxmlElement):
     <a:spcPct> element, specifying spacing in thousandths of a percent in its
     `val` attribute.
     """
-    val = RequiredAttribute('val', ST_TextSpacingPercentOrPercentString)
+
+    val = RequiredAttribute("val", ST_TextSpacingPercentOrPercentString)
 
 
 class CT_TextSpacingPoint(BaseOxmlElement):
@@ -497,4 +553,5 @@ class CT_TextSpacingPoint(BaseOxmlElement):
     <a:spcPts> element, specifying spacing in centipoints in its `val`
     attribute.
     """
-    val = RequiredAttribute('val', ST_TextSpacingPoint)
+
+    val = RequiredAttribute("val", ST_TextSpacingPoint)

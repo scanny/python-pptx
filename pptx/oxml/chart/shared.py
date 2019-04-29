@@ -2,17 +2,22 @@
 
 """Shared oxml objects for charts."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
-    ST_LayoutMode, XsdBoolean, XsdDouble, XsdString, XsdUnsignedInt
+    ST_LayoutMode,
+    XsdBoolean,
+    XsdDouble,
+    XsdString,
+    XsdUnsignedInt,
 )
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, OptionalAttribute, RequiredAttribute, ZeroOrOne
+    BaseOxmlElement,
+    OptionalAttribute,
+    RequiredAttribute,
+    ZeroOrOne,
 )
 
 
@@ -20,7 +25,8 @@ class CT_Boolean(BaseOxmlElement):
     """
     Common complex type used for elements having a True/False value.
     """
-    val = OptionalAttribute('val', XsdBoolean, default=True)
+
+    val = OptionalAttribute("val", XsdBoolean, default=True)
 
 
 class CT_Boolean_Explicit(BaseOxmlElement):
@@ -33,7 +39,8 @@ class CT_Boolean_Explicit(BaseOxmlElement):
     as |True| (consistent with the spec), but always write the attribute
     whenever there is occasion for changing the element.
     """
-    _val = OptionalAttribute('val', XsdBoolean, default=True)
+
+    _val = OptionalAttribute("val", XsdBoolean, default=True)
 
     @property
     def val(self):
@@ -41,22 +48,24 @@ class CT_Boolean_Explicit(BaseOxmlElement):
 
     @val.setter
     def val(self, value):
-        val_str = '1' if bool(value) is True else '0'
-        self.set('val', val_str)
+        val_str = "1" if bool(value) is True else "0"
+        self.set("val", val_str)
 
 
 class CT_Double(BaseOxmlElement):
     """
     Used for floating point values.
     """
-    val = RequiredAttribute('val', XsdDouble)
+
+    val = RequiredAttribute("val", XsdDouble)
 
 
 class CT_Layout(BaseOxmlElement):
     """
     ``<c:layout>`` custom element class
     """
-    manualLayout = ZeroOrOne('c:manualLayout', successors=('c:extLst',))
+
+    manualLayout = ZeroOrOne("c:manualLayout", successors=("c:extLst",))
 
     @property
     def horz_offset(self):
@@ -89,21 +98,29 @@ class CT_LayoutMode(BaseOxmlElement):
     Used for ``<c:xMode>``, ``<c:yMode>``, ``<c:wMode>``, and ``<c:hMode>``
     child elements of CT_ManualLayout.
     """
-    val = OptionalAttribute(
-        'val', ST_LayoutMode, default=ST_LayoutMode.FACTOR
-    )
+
+    val = OptionalAttribute("val", ST_LayoutMode, default=ST_LayoutMode.FACTOR)
 
 
 class CT_ManualLayout(BaseOxmlElement):
     """
     ``<c:manualLayout>`` custom element class
     """
+
     _tag_seq = (
-        'c:layoutTarget', 'c:xMode', 'c:yMode', 'c:wMode', 'c:hMode', 'c:x',
-        'c:y', 'c:w', 'c:h', 'c:extLst'
+        "c:layoutTarget",
+        "c:xMode",
+        "c:yMode",
+        "c:wMode",
+        "c:hMode",
+        "c:x",
+        "c:y",
+        "c:w",
+        "c:h",
+        "c:extLst",
     )
-    xMode = ZeroOrOne('c:xMode', successors=_tag_seq[2:])
-    x = ZeroOrOne('c:x', successors=_tag_seq[6:])
+    xMode = ZeroOrOne("c:xMode", successors=_tag_seq[2:])
+    x = ZeroOrOne("c:x", successors=_tag_seq[6:])
     del _tag_seq
 
     @property
@@ -131,18 +148,17 @@ class CT_NumFmt(BaseOxmlElement):
     ``<c:numFmt>`` element specifying the formatting for number labels on a
     tick mark or data point.
     """
-    formatCode = RequiredAttribute('formatCode', XsdString)
-    sourceLinked = OptionalAttribute('sourceLinked', XsdBoolean)
+
+    formatCode = RequiredAttribute("formatCode", XsdString)
+    sourceLinked = OptionalAttribute("sourceLinked", XsdBoolean)
 
 
 class CT_Title(BaseOxmlElement):
     """`c:title` custom element class."""
 
-    _tag_seq = (
-        'c:tx', 'c:layout', 'c:overlay', 'c:spPr', 'c:txPr', 'c:extLst'
-    )
-    tx = ZeroOrOne('c:tx', successors=_tag_seq[1:])
-    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[4:])
+    _tag_seq = ("c:tx", "c:layout", "c:overlay", "c:spPr", "c:txPr", "c:extLst")
+    tx = ZeroOrOne("c:tx", successors=_tag_seq[1:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[4:])
     del _tag_seq
 
     def get_or_add_tx_rich(self):
@@ -161,7 +177,7 @@ class CT_Title(BaseOxmlElement):
     @property
     def tx_rich(self):
         """Return `c:tx/c:rich` or |None| if not present."""
-        richs = self.xpath('c:tx/c:rich')
+        richs = self.xpath("c:tx/c:rich")
         if not richs:
             return None
         return richs[0]
@@ -170,10 +186,10 @@ class CT_Title(BaseOxmlElement):
     def new_title():
         """Return "loose" `c:title` element containing default children."""
         return parse_xml(
-            '<c:title %s>'
-            '  <c:layout/>'
+            "<c:title %s>"
+            "  <c:layout/>"
             '  <c:overlay val="0"/>'
-            '</c:title>' % nsdecls('c')
+            "</c:title>" % nsdecls("c")
         )
 
 
@@ -182,20 +198,21 @@ class CT_Tx(BaseOxmlElement):
     ``<c:tx>`` element containing the text for a label on a data point or
     other chart item.
     """
-    strRef = ZeroOrOne('c:strRef')
-    rich = ZeroOrOne('c:rich')
+
+    strRef = ZeroOrOne("c:strRef")
+    rich = ZeroOrOne("c:rich")
 
     def _new_rich(self):
         return parse_xml(
-            '<c:rich %s>'
-            '  <a:bodyPr/>'
-            '  <a:lstStyle/>'
-            '  <a:p>'
-            '    <a:pPr>'
-            '      <a:defRPr/>'
-            '    </a:pPr>'
-            '  </a:p>'
-            '</c:rich>' % nsdecls('c', 'a')
+            "<c:rich %s>"
+            "  <a:bodyPr/>"
+            "  <a:lstStyle/>"
+            "  <a:p>"
+            "    <a:pPr>"
+            "      <a:defRPr/>"
+            "    </a:pPr>"
+            "  </a:p>"
+            "</c:rich>" % nsdecls("c", "a")
         )
 
 
@@ -203,4 +220,5 @@ class CT_UnsignedInt(BaseOxmlElement):
     """
     ``<c:idx>`` element and others.
     """
-    val = RequiredAttribute('val', XsdUnsignedInt)
+
+    val = RequiredAttribute("val", XsdUnsignedInt)

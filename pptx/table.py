@@ -2,9 +2,7 @@
 
 """Table-related objects such as Table and Cell."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.compat import is_integer, to_unicode
 from pptx.dml.fill import FillFormat
@@ -271,9 +269,9 @@ class _Cell(Subshape):
         tc_range = TcRange(self._tc, other_cell._tc)
 
         if not tc_range.in_same_table:
-            raise ValueError('other_cell from different table')
+            raise ValueError("other_cell from different table")
         if tc_range.contains_merged_cell:
-            raise ValueError('range contains one or more merged cells')
+            raise ValueError("range contains one or more merged cells")
 
         tc_range.move_content_to_origin()
 
@@ -324,8 +322,7 @@ class _Cell(Subshape):
         """
         if not self.is_merge_origin:
             raise ValueError(
-                'not a merge-origin cell; only a merge-origin cell can be sp'
-                'lit'
+                "not a merge-origin cell; only a merge-origin cell can be sp" "lit"
             )
 
         tc_range = TcRange.from_merge_origin(self._tc)
@@ -388,7 +385,7 @@ class _Cell(Subshape):
         Raise ValueError if *margin_value* is not a positive integer value or
         |None|.
         """
-        if (not is_integer(margin_value) and margin_value is not None):
+        if not is_integer(margin_value) and margin_value is not None:
             tmpl = "margin value must be integer or None, got '%s'"
             raise TypeError(tmpl % margin_value)
 

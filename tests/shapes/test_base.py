@@ -21,17 +21,25 @@ from pptx.shapes.picture import Picture
 from pptx.shapes.shapetree import BaseShapeFactory, SlideShapes
 
 from ..oxml.unitdata.shape import (
-    a_cNvPr, a_cxnSp, a_graphicFrame, a_grpSp, a_grpSpPr, a_p_xfrm, a_pic,
-    an_ext, an_nvSpPr, an_off, an_sp, an_spPr, an_xfrm
+    a_cNvPr,
+    a_cxnSp,
+    a_graphicFrame,
+    a_grpSp,
+    a_grpSpPr,
+    a_p_xfrm,
+    a_pic,
+    an_ext,
+    an_nvSpPr,
+    an_off,
+    an_sp,
+    an_spPr,
+    an_xfrm,
 )
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import (
-    class_mock, instance_mock, loose_mock, property_mock
-)
+from ..unitutil.mock import class_mock, instance_mock, loose_mock, property_mock
 
 
 class DescribeBaseShape(object):
-
     def it_provides_access_to_its_click_action(self, click_action_fixture):
         shape, ActionSetting_, cNvPr, click_action_ = click_action_fixture
         click_action = shape.click_action
@@ -124,27 +132,36 @@ class DescribeBaseShape(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        'p:sp/p:nvSpPr/p:cNvPr',
-        'p:grpSp/p:nvGrpSpPr/p:cNvPr',
-        'p:graphicFrame/p:nvGraphicFramePr/p:cNvPr',
-        'p:cxnSp/p:nvCxnSpPr/p:cNvPr',
-        'p:pic/p:nvPicPr/p:cNvPr',
-    ])
+    @pytest.fixture(
+        params=[
+            "p:sp/p:nvSpPr/p:cNvPr",
+            "p:grpSp/p:nvGrpSpPr/p:cNvPr",
+            "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr",
+            "p:cxnSp/p:nvCxnSpPr/p:cNvPr",
+            "p:pic/p:nvPicPr/p:cNvPr",
+        ]
+    )
     def click_action_fixture(self, request, ActionSetting_, action_setting_):
         sp_cxml = request.param
         sp = element(sp_cxml)
-        cNvPr = sp.xpath('//p:cNvPr')[0]
+        cNvPr = sp.xpath("//p:cNvPr")[0]
         shape = BaseShape(sp, None)
         return shape, ActionSetting_, cNvPr, action_setting_
 
-    @pytest.fixture(params=[
-        ('sp',           False), ('sp_with_ext',           True),
-        ('pic',          False), ('pic_with_ext',          True),
-        ('graphicFrame', False), ('graphicFrame_with_ext', True),
-        ('grpSp',        False), ('grpSp_with_ext',        True),
-        ('cxnSp',        False), ('cxnSp_with_ext',        True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("sp", False),
+            ("sp_with_ext", True),
+            ("pic", False),
+            ("pic_with_ext", True),
+            ("graphicFrame", False),
+            ("graphicFrame_with_ext", True),
+            ("grpSp", False),
+            ("grpSp_with_ext", True),
+            ("cxnSp", False),
+            ("cxnSp_with_ext", True),
+        ]
+    )
     def dimensions_get_fixture(self, request, width, height):
         shape_elm_fixt_name, expect_values = request.param
         shape_elm = request.getfixturevalue(shape_elm_fixt_name)
@@ -153,13 +170,15 @@ class DescribeBaseShape(object):
             width = height = None
         return shape, width, height
 
-    @pytest.fixture(params=[
-        ('sp',           'sp_with_ext'),
-        ('pic',          'pic_with_ext'),
-        ('graphicFrame', 'graphicFrame_with_ext'),
-        ('grpSp',        'grpSp_with_ext'),
-        ('cxnSp',        'cxnSp_with_ext'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("sp", "sp_with_ext"),
+            ("pic", "pic_with_ext"),
+            ("graphicFrame", "graphicFrame_with_ext"),
+            ("grpSp", "grpSp_with_ext"),
+            ("cxnSp", "cxnSp_with_ext"),
+        ]
+    )
     def dimensions_set_fixture(self, request, width, height):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
         start_elm = request.getfixturevalue(start_elm_fixt_name)
@@ -167,13 +186,15 @@ class DescribeBaseShape(object):
         expected_xml = request.getfixturevalue(expected_elm_fixt_name).xml
         return shape, width, height, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:sp/p:nvSpPr/p:cNvPr{id=1}', 1),
-        ('p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=2}', 2),
-        ('p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3}', 3),
-        ('p:grpSp/p:nvGrpSpPr/p:cNvPr{id=4}', 4),
-        ('p:pic/p:nvPicPr/p:cNvPr{id=5}', 5),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1}", 1),
+            ("p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=2}", 2),
+            ("p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3}", 3),
+            ("p:grpSp/p:nvGrpSpPr/p:cNvPr{id=4}", 4),
+            ("p:pic/p:nvPicPr/p:cNvPr{id=5}", 5),
+        ]
+    )
     def id_fixture(self, request):
         xSp_cxml, expected_value = request.param
         shape = BaseShape(element(xSp_cxml), None)
@@ -189,26 +210,47 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def name_get_fixture(self, shape_name):
         shape_elm = (
-            an_sp().with_nsdecls().with_child(
-                an_nvSpPr().with_child(
-                    a_cNvPr().with_name(shape_name)))
+            an_sp()
+            .with_nsdecls()
+            .with_child(an_nvSpPr().with_child(a_cNvPr().with_name(shape_name)))
         ).element
         shape = BaseShape(shape_elm, None)
         return shape, shape_name
 
-    @pytest.fixture(params=[
-        ('p:sp/p:nvSpPr/p:cNvPr{id=1,name=foo}',       Shape,     'Shape1',
-         'p:sp/p:nvSpPr/p:cNvPr{id=1,name=Shape1}'),
-        ('p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,name=bar}', BaseShape, 'Shape2',
-         'p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,name=Shape2}'),
-        ('p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,name=baz}',
-         GraphicFrame, 'Shape3',
-         'p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,name=Shape3}'),
-        ('p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,name=boo}', BaseShape, 'Shape4',
-         'p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,name=Shape4}'),
-        ('p:pic/p:nvPicPr/p:cNvPr{id=5,name=far}',     Picture,   'Shape5',
-         'p:pic/p:nvPicPr/p:cNvPr{id=5,name=Shape5}'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=foo}",
+                Shape,
+                "Shape1",
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=Shape1}",
+            ),
+            (
+                "p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,name=bar}",
+                BaseShape,
+                "Shape2",
+                "p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,name=Shape2}",
+            ),
+            (
+                "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,name=baz}",
+                GraphicFrame,
+                "Shape3",
+                "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,name=Shape3}",
+            ),
+            (
+                "p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,name=boo}",
+                BaseShape,
+                "Shape4",
+                "p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,name=Shape4}",
+            ),
+            (
+                "p:pic/p:nvPicPr/p:cNvPr{id=5,name=far}",
+                Picture,
+                "Shape5",
+                "p:pic/p:nvPicPr/p:cNvPr{id=5,name=Shape5}",
+            ),
+        ]
+    )
     def name_set_fixture(self, request):
         xSp_cxml, ShapeCls, new_value, expected_xSp_cxml = request.param
         shape = ShapeCls(element(xSp_cxml), None)
@@ -223,22 +265,29 @@ class DescribeBaseShape(object):
 
     @pytest.fixture
     def phfmt_fixture(self, _PlaceholderFormat_, placeholder_format_):
-        sp = element('p:sp/p:nvSpPr/p:nvPr/p:ph')
-        ph = sp.xpath('//p:ph')[0]
+        sp = element("p:sp/p:nvSpPr/p:nvPr/p:ph")
+        ph = sp.xpath("//p:ph")[0]
         shape = BaseShape(sp, None)
         return shape, _PlaceholderFormat_, placeholder_format_, ph
 
     @pytest.fixture
     def phfmt_raise_fixture(self):
-        return BaseShape(element('p:sp/p:nvSpPr/p:nvPr'), None)
+        return BaseShape(element("p:sp/p:nvSpPr/p:nvPr"), None)
 
-    @pytest.fixture(params=[
-        ('sp',           False), ('sp_with_off',           True),
-        ('pic',          False), ('pic_with_off',          True),
-        ('graphicFrame', False), ('graphicFrame_with_off', True),
-        ('grpSp',        False), ('grpSp_with_off',        True),
-        ('cxnSp',        False), ('cxnSp_with_off',        True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("sp", False),
+            ("sp_with_off", True),
+            ("pic", False),
+            ("pic_with_off", True),
+            ("graphicFrame", False),
+            ("graphicFrame_with_off", True),
+            ("grpSp", False),
+            ("grpSp_with_off", True),
+            ("cxnSp", False),
+            ("cxnSp_with_off", True),
+        ]
+    )
     def position_get_fixture(self, request, left, top):
         shape_elm_fixt_name, expect_values = request.param
         shape_elm = request.getfixturevalue(shape_elm_fixt_name)
@@ -247,13 +296,15 @@ class DescribeBaseShape(object):
             left = top = None
         return shape, left, top
 
-    @pytest.fixture(params=[
-        ('sp',           'sp_with_off'),
-        ('pic',          'pic_with_off'),
-        ('graphicFrame', 'graphicFrame_with_off'),
-        ('grpSp',        'grpSp_with_off'),
-        ('cxnSp',        'cxnSp_with_off'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("sp", "sp_with_off"),
+            ("pic", "pic_with_off"),
+            ("graphicFrame", "graphicFrame_with_off"),
+            ("grpSp", "grpSp_with_off"),
+            ("cxnSp", "cxnSp_with_off"),
+        ]
+    )
     def position_set_fixture(self, request, left, top):
         start_elm_fixt_name, expected_elm_fixt_name = request.param
         start_elm = request.getfixturevalue(start_elm_fixt_name)
@@ -261,44 +312,50 @@ class DescribeBaseShape(object):
         expected_xml = request.getfixturevalue(expected_elm_fixt_name).xml
         return shape, left, top, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:sp/p:spPr', 0.0),
-        ('p:sp/p:spPr/a:xfrm{rot=60000}', 1.0),
-        ('p:sp/p:spPr/a:xfrm{rot=2545200}', 42.42),
-        ('p:sp/p:spPr/a:xfrm{rot=-60000}', 359.0),
-        ('p:grpSp/p:grpSpPr/a:xfrm{rot=2545200}', 42.42),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:spPr", 0.0),
+            ("p:sp/p:spPr/a:xfrm{rot=60000}", 1.0),
+            ("p:sp/p:spPr/a:xfrm{rot=2545200}", 42.42),
+            ("p:sp/p:spPr/a:xfrm{rot=-60000}", 359.0),
+            ("p:grpSp/p:grpSpPr/a:xfrm{rot=2545200}", 42.42),
+        ]
+    )
     def rotation_get_fixture(self, request):
         xSp_cxml, expected_value = request.param
         shape = BaseShapeFactory(element(xSp_cxml), None)
         return shape, expected_value
 
-    @pytest.fixture(params=[
-        ('p:sp/p:spPr/a:xfrm', 1.0,
-         'p:sp/p:spPr/a:xfrm{rot=60000}'),
-        ('p:sp/p:spPr/a:xfrm{rot=60000}', 0.0,
-         'p:sp/p:spPr/a:xfrm'),
-        ('p:sp/p:spPr/a:xfrm{rot=60000}', -420.0,
-         'p:sp/p:spPr/a:xfrm{rot=18000000}'),
-        ('p:grpSp/p:grpSpPr/a:xfrm', 1.0,
-         'p:grpSp/p:grpSpPr/a:xfrm{rot=60000}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:spPr/a:xfrm", 1.0, "p:sp/p:spPr/a:xfrm{rot=60000}"),
+            ("p:sp/p:spPr/a:xfrm{rot=60000}", 0.0, "p:sp/p:spPr/a:xfrm"),
+            (
+                "p:sp/p:spPr/a:xfrm{rot=60000}",
+                -420.0,
+                "p:sp/p:spPr/a:xfrm{rot=18000000}",
+            ),
+            ("p:grpSp/p:grpSpPr/a:xfrm", 1.0, "p:grpSp/p:grpSpPr/a:xfrm{rot=60000}"),
+        ]
+    )
     def rotation_set_fixture(self, request):
         xSp_cxml, new_value, expected_xSp_cxml = request.param
         shape = BaseShapeFactory(element(xSp_cxml), None)
         expected_xml = xml(expected_xSp_cxml)
         return shape, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        'p:sp/p:spPr',
-        'p:cxnSp/p:spPr',
-        'p:pic/p:spPr',
-        # ---group and graphic frame shapes override this property---
-    ])
+    @pytest.fixture(
+        params=[
+            "p:sp/p:spPr",
+            "p:cxnSp/p:spPr",
+            "p:pic/p:spPr",
+            # ---group and graphic frame shapes override this property---
+        ]
+    )
     def shadow_fixture(self, request, ShadowFormat_, shadow_):
         sp_cxml = request.param
         sp = element(sp_cxml)
-        spPr = sp.xpath('//p:spPr')[0]
+        spPr = sp.xpath("//p:spPr")[0]
         ShadowFormat_.return_value = shadow_
 
         shape = BaseShape(sp, None)
@@ -309,8 +366,7 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def ActionSetting_(self, request, action_setting_):
         return class_mock(
-            request, 'pptx.shapes.base.ActionSetting',
-            return_value=action_setting_
+            request, "pptx.shapes.base.ActionSetting", return_value=action_setting_
         )
 
     @pytest.fixture
@@ -324,19 +380,25 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def cxnSp_with_ext(self, width, height):
         return (
-            a_cxnSp().with_nsdecls().with_child(
+            a_cxnSp()
+            .with_nsdecls()
+            .with_child(
                 an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_ext().with_cx(width).with_cy(height))))
+                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
+                )
+            )
         ).element
 
     @pytest.fixture
     def cxnSp_with_off(self, left, top):
         return (
-            a_cxnSp().with_nsdecls().with_child(
+            a_cxnSp()
+            .with_nsdecls()
+            .with_child(
                 an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_off().with_x(left).with_y(top))))
+                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
+                )
+            )
         ).element
 
     @pytest.fixture
@@ -347,42 +409,45 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def graphicFrame_with_ext(self, width, height):
         return (
-            a_graphicFrame().with_nsdecls().with_child(
-                a_p_xfrm().with_child(
-                    an_ext().with_cx(width).with_cy(height)))
+            a_graphicFrame()
+            .with_nsdecls()
+            .with_child(a_p_xfrm().with_child(an_ext().with_cx(width).with_cy(height)))
         ).element
 
     @pytest.fixture
     def graphicFrame_with_off(self, left, top):
         return (
-            a_graphicFrame().with_nsdecls().with_child(
-                a_p_xfrm().with_child(
-                    an_off().with_x(left).with_y(top)))
+            a_graphicFrame()
+            .with_nsdecls()
+            .with_child(a_p_xfrm().with_child(an_off().with_x(left).with_y(top)))
         ).element
 
     @pytest.fixture
     def grpSp(self):
-        return (
-            a_grpSp().with_nsdecls('p', 'a').with_child(
-                a_grpSpPr())
-        ).element
+        return (a_grpSp().with_nsdecls("p", "a").with_child(a_grpSpPr())).element
 
     @pytest.fixture
     def grpSp_with_ext(self, width, height):
         return (
-            a_grpSp().with_nsdecls('p', 'a').with_child(
+            a_grpSp()
+            .with_nsdecls("p", "a")
+            .with_child(
                 a_grpSpPr().with_child(
-                    an_xfrm().with_child(
-                        an_ext().with_cx(width).with_cy(height))))
+                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
+                )
+            )
         ).element
 
     @pytest.fixture
     def grpSp_with_off(self, left, top):
         return (
-            a_grpSp().with_nsdecls('p', 'a').with_child(
+            a_grpSp()
+            .with_nsdecls("p", "a")
+            .with_child(
                 a_grpSpPr().with_child(
-                    an_xfrm().with_child(
-                        an_off().with_x(left).with_y(top))))
+                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
+                )
+            )
         ).element
 
     @pytest.fixture
@@ -400,26 +465,33 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def pic_with_off(self, left, top):
         return (
-            a_pic().with_nsdecls().with_child(
+            a_pic()
+            .with_nsdecls()
+            .with_child(
                 an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_off().with_x(left).with_y(top))))
+                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
+                )
+            )
         ).element
 
     @pytest.fixture
     def pic_with_ext(self, width, height):
         return (
-            a_pic().with_nsdecls().with_child(
+            a_pic()
+            .with_nsdecls()
+            .with_child(
                 an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_ext().with_cx(width).with_cy(height))))
+                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
+                )
+            )
         ).element
 
     @pytest.fixture
     def _PlaceholderFormat_(self, request, placeholder_format_):
         return class_mock(
-            request, 'pptx.shapes.base._PlaceholderFormat',
-            return_value=placeholder_format_
+            request,
+            "pptx.shapes.base._PlaceholderFormat",
+            return_value=placeholder_format_,
         )
 
     @pytest.fixture
@@ -432,13 +504,16 @@ class DescribeBaseShape(object):
 
     @pytest.fixture
     def ShadowFormat_(self, request):
-        return class_mock(request, 'pptx.shapes.base.ShadowFormat')
+        return class_mock(request, "pptx.shapes.base.ShadowFormat")
 
     @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):
         return instance_mock(
-            request, BaseShapeElement, shape_id=shape_id,
-            shape_name=shape_name, txBody=txBody_
+            request,
+            BaseShapeElement,
+            shape_id=shape_id,
+            shape_name=shape_name,
+            txBody=txBody_,
         )
 
     @pytest.fixture
@@ -447,11 +522,11 @@ class DescribeBaseShape(object):
 
     @pytest.fixture
     def shape_name(self):
-        return 'Foobar 41'
+        return "Foobar 41"
 
     @pytest.fixture
     def shape_text_frame_(self, request):
-        return property_mock(request, BaseShape, 'text_frame')
+        return property_mock(request, BaseShape, "text_frame")
 
     @pytest.fixture
     def shapes_(self, request):
@@ -464,19 +539,25 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def sp_with_ext(self, width, height):
         return (
-            an_sp().with_nsdecls().with_child(
+            an_sp()
+            .with_nsdecls()
+            .with_child(
                 an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_ext().with_cx(width).with_cy(height))))
+                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
+                )
+            )
         ).element
 
     @pytest.fixture
     def sp_with_off(self, left, top):
         return (
-            an_sp().with_nsdecls().with_child(
+            an_sp()
+            .with_nsdecls()
+            .with_child(
                 an_spPr().with_child(
-                    an_xfrm().with_child(
-                        an_off().with_x(left).with_y(top))))
+                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
+                )
+            )
         ).element
 
     @pytest.fixture
@@ -493,7 +574,6 @@ class DescribeBaseShape(object):
 
 
 class DescribeSubshape(object):
-
     def it_knows_the_part_it_belongs_to(self, subshape_with_parent_):
         subshape, parent_ = subshape_with_parent_
         part = subshape.part
@@ -503,13 +583,12 @@ class DescribeSubshape(object):
 
     @pytest.fixture
     def subshape_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
+        parent_ = loose_mock(request, name="parent_")
         subshape = Subshape(parent_)
         return subshape, parent_
 
 
 class Describe_PlaceholderFormat(object):
-
     def it_knows_its_idx(self, idx_get_fixture):
         placeholder_format, expected_value = idx_get_fixture
         assert placeholder_format.idx == expected_value
@@ -520,19 +599,18 @@ class Describe_PlaceholderFormat(object):
 
     # fixtures ---------------------------------------------
 
-    @pytest.fixture(params=[
-        ('p:ph',          0),
-        ('p:ph{idx=42}', 42),
-    ])
+    @pytest.fixture(params=[("p:ph", 0), ("p:ph{idx=42}", 42)])
     def idx_get_fixture(self, request):
         ph_cxml, expected_value = request.param
         placeholder_format = _PlaceholderFormat(element(ph_cxml))
         return placeholder_format, expected_value
 
-    @pytest.fixture(params=[
-        ('p:ph',           PP_PLACEHOLDER.OBJECT),
-        ('p:ph{type=pic}', PP_PLACEHOLDER.PICTURE),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:ph", PP_PLACEHOLDER.OBJECT),
+            ("p:ph{type=pic}", PP_PLACEHOLDER.PICTURE),
+        ]
+    )
     def type_get_fixture(self, request):
         ph_cxml, expected_value = request.param
         placeholder_format = _PlaceholderFormat(element(ph_cxml))

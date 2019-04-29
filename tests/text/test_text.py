@@ -22,12 +22,15 @@ from pptx.util import Inches, Pt
 from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
-    class_mock, instance_mock, loose_mock, method_mock, property_mock
+    class_mock,
+    instance_mock,
+    loose_mock,
+    method_mock,
+    property_mock,
 )
 
 
 class DescribeTextFrame(object):
-
     def it_knows_its_autosize_setting(self, autosize_get_fixture):
         text_frame, expected_value = autosize_get_fixture
         assert text_frame.auto_size == expected_value
@@ -88,9 +91,9 @@ class DescribeTextFrame(object):
         assert text_frame._element.xml == expected_xml
 
     def it_raises_on_attempt_to_set_margin_to_non_int(self):
-        text_frame = TextFrame(element('p:txBody/a:bodyPr'), None)
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
         with pytest.raises(TypeError):
-            text_frame.margin_bottom = '0.1'
+            text_frame.margin_bottom = "0.1"
 
     def it_knows_the_part_it_belongs_to(self, text_frame_with_parent_):
         text_frame, parent_ = text_frame_with_parent_
@@ -98,11 +101,17 @@ class DescribeTextFrame(object):
         assert part is parent_.part
 
     def it_can_resize_its_text_to_best_fit(
-            self, text_prop_, _best_fit_font_size_, _apply_fit_):
+        self, text_prop_, _best_fit_font_size_, _apply_fit_
+    ):
         family, max_size, bold, italic, font_file, font_size = (
-            'Family', 42, 'bold', 'italic', 'font_file', 21
+            "Family",
+            42,
+            "bold",
+            "italic",
+            "font_file",
+            21,
         )
-        text_prop_.return_value = 'some text'
+        text_prop_.return_value = "some text"
         _best_fit_font_size_.return_value = font_size
         text_frame = TextFrame(None, None)
 
@@ -111,19 +120,14 @@ class DescribeTextFrame(object):
         text_frame._best_fit_font_size.assert_called_once_with(
             family, max_size, bold, italic, font_file
         )
-        text_frame._apply_fit.assert_called_once_with(
-            family, font_size, bold, italic
-        )
+        text_frame._apply_fit.assert_called_once_with(family, font_size, bold, italic)
 
-    def it_calculates_its_best_fit_font_size_to_help_fit_text(
-            self, size_font_fixture):
+    def it_calculates_its_best_fit_font_size_to_help_fit_text(self, size_font_fixture):
         text_frame, family, max_size, bold, italic = size_font_fixture[:5]
         FontFiles_, TextFitter_, text, extents = size_font_fixture[5:9]
         font_file_, font_size_ = size_font_fixture[9:]
 
-        font_size = text_frame._best_fit_font_size(
-            family, max_size, bold, italic, None
-        )
+        font_size = text_frame._best_fit_font_size(family, max_size, bold, italic, None)
 
         FontFiles_.find.assert_called_once_with(family, bold, italic)
         TextFitter_.best_fit_font_size.assert_called_once_with(
@@ -133,8 +137,8 @@ class DescribeTextFrame(object):
 
     def it_calculates_its_effective_size_to_help_fit_text(self):
         sp_cxml = (
-            'p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,c'
-            'y=914400}),p:txBody/(a:bodyPr,a:p))'
+            "p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,c"
+            "y=914400}),p:txBody/(a:bodyPr,a:p))"
         )
         text_frame = Shape(element(sp_cxml), None).text_frame
         assert text_frame._extents == (731520, 822960)
@@ -144,49 +148,55 @@ class DescribeTextFrame(object):
         text_frame._apply_fit(family, font_size, bold, italic)
         assert text_frame.auto_size is MSO_AUTO_SIZE.NONE
         assert text_frame.word_wrap is True
-        text_frame._set_font.assert_called_once_with(
-            family, font_size, bold, italic
-        )
+        text_frame._set_font.assert_called_once_with(family, font_size, bold, italic)
 
     def it_sets_its_font_to_help_fit_text(self, set_font_fixture):
-        text_frame, family, size, bold, italic, expected_xml = (
-            set_font_fixture
-        )
+        text_frame, family, size, bold, italic, expected_xml = set_font_fixture
         text_frame._set_font(family, size, bold, italic)
         assert text_frame._element.xml == expected_xml
 
     # fixtures ---------------------------------------------
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',       'p:txBody/(a:bodyPr,a:p)'),
-        ('p:txBody/(a:bodyPr,a:p)', 'p:txBody/(a:bodyPr,a:p,a:p)'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", "p:txBody/(a:bodyPr,a:p)"),
+            ("p:txBody/(a:bodyPr,a:p)", "p:txBody/(a:bodyPr,a:p,a:p)"),
+        ]
+    )
     def add_paragraph_fixture(self, request):
         txBody_cxml, expected_cxml = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',           None),
-        ('p:txBody/a:bodyPr{anchor=t}', MSO_ANCHOR.TOP),
-        ('p:txBody/a:bodyPr{anchor=b}', MSO_ANCHOR.BOTTOM),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", None),
+            ("p:txBody/a:bodyPr{anchor=t}", MSO_ANCHOR.TOP),
+            ("p:txBody/a:bodyPr{anchor=b}", MSO_ANCHOR.BOTTOM),
+        ]
+    )
     def anchor_get_fixture(self, request):
         txBody_cxml, expected_value = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         return text_frame, expected_value
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',             MSO_ANCHOR.TOP,
-         'p:txBody/a:bodyPr{anchor=t}'),
-        ('p:txBody/a:bodyPr{anchor=t}',   MSO_ANCHOR.MIDDLE,
-         'p:txBody/a:bodyPr{anchor=ctr}'),
-        ('p:txBody/a:bodyPr{anchor=ctr}', MSO_ANCHOR.BOTTOM,
-         'p:txBody/a:bodyPr{anchor=b}'),
-        ('p:txBody/a:bodyPr{anchor=b}',   None,
-         'p:txBody/a:bodyPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", MSO_ANCHOR.TOP, "p:txBody/a:bodyPr{anchor=t}"),
+            (
+                "p:txBody/a:bodyPr{anchor=t}",
+                MSO_ANCHOR.MIDDLE,
+                "p:txBody/a:bodyPr{anchor=ctr}",
+            ),
+            (
+                "p:txBody/a:bodyPr{anchor=ctr}",
+                MSO_ANCHOR.BOTTOM,
+                "p:txBody/a:bodyPr{anchor=b}",
+            ),
+            ("p:txBody/a:bodyPr{anchor=b}", None, "p:txBody/a:bodyPr"),
+        ]
+    )
     def anchor_set_fixture(self, request):
         txBody_cxml, new_value, expected_cxml = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
@@ -195,68 +205,96 @@ class DescribeTextFrame(object):
 
     @pytest.fixture
     def apply_fit_fixture(self, _set_font_):
-        txBody = element('p:txBody/a:bodyPr')
+        txBody = element("p:txBody/a:bodyPr")
         text_frame = TextFrame(txBody, None)
-        family, font_size, bold, italic = 'Family', 42, True, False
+        family, font_size, bold, italic = "Family", 42, True, False
         return text_frame, family, font_size, bold, italic
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr', None),
-        ('p:txBody/a:bodyPr/a:noAutofit',   MSO_AUTO_SIZE.NONE),
-        ('p:txBody/a:bodyPr/a:spAutoFit',   MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT),
-        ('p:txBody/a:bodyPr/a:normAutofit', MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", None),
+            ("p:txBody/a:bodyPr/a:noAutofit", MSO_AUTO_SIZE.NONE),
+            ("p:txBody/a:bodyPr/a:spAutoFit", MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT),
+            ("p:txBody/a:bodyPr/a:normAutofit", MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE),
+        ]
+    )
     def autosize_get_fixture(self, request):
         txBody_cxml, expected_value = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         return text_frame, expected_value
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',               MSO_AUTO_SIZE.NONE,
-         'p:txBody/a:bodyPr/a:noAutofit'),
-        ('p:txBody/a:bodyPr/a:noAutofit',   MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
-         'p:txBody/a:bodyPr/a:spAutoFit'),
-        ('p:txBody/a:bodyPr/a:spAutoFit',   MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
-         'p:txBody/a:bodyPr/a:normAutofit'),
-        ('p:txBody/a:bodyPr/a:normAutofit', None,
-         'p:txBody/a:bodyPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", MSO_AUTO_SIZE.NONE, "p:txBody/a:bodyPr/a:noAutofit"),
+            (
+                "p:txBody/a:bodyPr/a:noAutofit",
+                MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT,
+                "p:txBody/a:bodyPr/a:spAutoFit",
+            ),
+            (
+                "p:txBody/a:bodyPr/a:spAutoFit",
+                MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE,
+                "p:txBody/a:bodyPr/a:normAutofit",
+            ),
+            ("p:txBody/a:bodyPr/a:normAutofit", None, "p:txBody/a:bodyPr"),
+        ]
+    )
     def autosize_set_fixture(self, request):
         txBody_cxml, value, expected_cxml = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, value, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',             'left',   'emu',    Inches(0.1)),
-        ('p:txBody/a:bodyPr',             'top',    'emu',    Inches(0.05)),
-        ('p:txBody/a:bodyPr',             'right',  'emu',    Inches(0.1)),
-        ('p:txBody/a:bodyPr',             'bottom', 'emu',    Inches(0.05)),
-        ('p:txBody/a:bodyPr{lIns=9144}',  'left',   'cm',     0.0254),
-        ('p:txBody/a:bodyPr{tIns=18288}', 'top',    'mm',     0.508),
-        ('p:txBody/a:bodyPr{rIns=76200}', 'right',  'pt',     6.0),
-        ('p:txBody/a:bodyPr{bIns=36576}', 'bottom', 'inches', 0.04),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", "left", "emu", Inches(0.1)),
+            ("p:txBody/a:bodyPr", "top", "emu", Inches(0.05)),
+            ("p:txBody/a:bodyPr", "right", "emu", Inches(0.1)),
+            ("p:txBody/a:bodyPr", "bottom", "emu", Inches(0.05)),
+            ("p:txBody/a:bodyPr{lIns=9144}", "left", "cm", 0.0254),
+            ("p:txBody/a:bodyPr{tIns=18288}", "top", "mm", 0.508),
+            ("p:txBody/a:bodyPr{rIns=76200}", "right", "pt", 6.0),
+            ("p:txBody/a:bodyPr{bIns=36576}", "bottom", "inches", 0.04),
+        ]
+    )
     def margin_get_fixture(self, request):
         txBody_cxml, side, unit, expected_value = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         prop_name = "margin_%s" % side
         return text_frame, prop_name, unit, expected_value
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',            'left',   Inches(0.11),
-         'p:txBody/a:bodyPr{lIns=100584}'),
-        ('p:txBody/a:bodyPr{tIns=1234}', 'top',    Inches(0.12),
-         'p:txBody/a:bodyPr{tIns=109728}'),
-        ('p:txBody/a:bodyPr{rIns=2345}', 'right',  Inches(0.13),
-         'p:txBody/a:bodyPr{rIns=118872}'),
-        ('p:txBody/a:bodyPr{bIns=3456}', 'bottom', Inches(0.14),
-         'p:txBody/a:bodyPr{bIns=128016}'),
-        ('p:txBody/a:bodyPr', 'left',   Inches(0.1),  'p:txBody/a:bodyPr'),
-        ('p:txBody/a:bodyPr', 'top',    Inches(0.05), 'p:txBody/a:bodyPr'),
-        ('p:txBody/a:bodyPr', 'right',  Inches(0.1),  'p:txBody/a:bodyPr'),
-        ('p:txBody/a:bodyPr', 'bottom', Inches(0.05), 'p:txBody/a:bodyPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "p:txBody/a:bodyPr",
+                "left",
+                Inches(0.11),
+                "p:txBody/a:bodyPr{lIns=100584}",
+            ),
+            (
+                "p:txBody/a:bodyPr{tIns=1234}",
+                "top",
+                Inches(0.12),
+                "p:txBody/a:bodyPr{tIns=109728}",
+            ),
+            (
+                "p:txBody/a:bodyPr{rIns=2345}",
+                "right",
+                Inches(0.13),
+                "p:txBody/a:bodyPr{rIns=118872}",
+            ),
+            (
+                "p:txBody/a:bodyPr{bIns=3456}",
+                "bottom",
+                Inches(0.14),
+                "p:txBody/a:bodyPr{bIns=128016}",
+            ),
+            ("p:txBody/a:bodyPr", "left", Inches(0.1), "p:txBody/a:bodyPr"),
+            ("p:txBody/a:bodyPr", "top", Inches(0.05), "p:txBody/a:bodyPr"),
+            ("p:txBody/a:bodyPr", "right", Inches(0.1), "p:txBody/a:bodyPr"),
+            ("p:txBody/a:bodyPr", "bottom", Inches(0.05), "p:txBody/a:bodyPr"),
+        ]
+    )
     def margin_set_fixture(self, request):
         txBody_cxml, side, new_value, expected_txBody_cxml = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
@@ -264,93 +302,125 @@ class DescribeTextFrame(object):
         expected_xml = xml(expected_txBody_cxml)
         return text_frame, prop_name, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        'p:txBody',
-        'p:txBody/a:p',
-        'p:txBody/(a:p,a:p)',
-    ])
+    @pytest.fixture(params=["p:txBody", "p:txBody/a:p", "p:txBody/(a:p,a:p)"])
     def paragraphs_fixture(self, request):
         txBody_cxml = request.param
         txBody = element(txBody_cxml)
         text_frame = TextFrame(txBody, None)
-        ps = txBody.xpath('.//a:p')
+        ps = txBody.xpath(".//a:p")
         return text_frame, ps
 
-    @pytest.fixture(params=[
-        ('p:txBody/(a:bodyPr,a:p/a:r)', True, False,
-         'p:txBody/(a:bodyPr,a:p/(a:r/a:rPr{sz=600,b=1,i=0}/a:latin{typeface'
-         '=F},a:endParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F}))'),
-        ('p:txBody/a:p/a:br', True, False,
-         'p:txBody/a:p/(a:br/a:rPr{sz=600,b=1,i=0}/a:latin{typeface=F},a:end'
-         'ParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F})'),
-        ('p:txBody/a:p/a:fld', True, False,
-         'p:txBody/a:p/(a:fld/a:rPr{sz=600,b=1,i=0}/a:latin{typeface=F},a:en'
-         'dParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F})'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "p:txBody/(a:bodyPr,a:p/a:r)",
+                True,
+                False,
+                "p:txBody/(a:bodyPr,a:p/(a:r/a:rPr{sz=600,b=1,i=0}/a:latin{typeface"
+                "=F},a:endParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F}))",
+            ),
+            (
+                "p:txBody/a:p/a:br",
+                True,
+                False,
+                "p:txBody/a:p/(a:br/a:rPr{sz=600,b=1,i=0}/a:latin{typeface=F},a:end"
+                "ParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F})",
+            ),
+            (
+                "p:txBody/a:p/a:fld",
+                True,
+                False,
+                "p:txBody/a:p/(a:fld/a:rPr{sz=600,b=1,i=0}/a:latin{typeface=F},a:en"
+                "dParaRPr{sz=600,b=1,i=0}/a:latin{typeface=F})",
+            ),
+        ]
+    )
     def set_font_fixture(self, request):
         txBody_cxml, bold, italic, expected_cxml = request.param
-        family, size = 'F', 6
+        family, size = "F", 6
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, family, size, bold, italic, expected_xml
 
     @pytest.fixture
-    def size_font_fixture(
-            self, FontFiles_, TextFitter_, text_prop_, _extents_prop_):
+    def size_font_fixture(self, FontFiles_, TextFitter_, text_prop_, _extents_prop_):
         text_frame = TextFrame(None, None)
-        family, max_size, bold, italic = 'Family', 42, True, False
-        text, extents, font_size, font_file = 'text', (111, 222), 21, 'f.ttf'
+        family, max_size, bold, italic = "Family", 42, True, False
+        text, extents, font_size, font_file = "text", (111, 222), 21, "f.ttf"
         text_prop_.return_value = text
         _extents_prop_.return_value = extents
         FontFiles_.find.return_value = font_file
         TextFitter_.best_fit_font_size.return_value = font_size
         return (
-            text_frame, family, max_size, bold, italic, FontFiles_,
-            TextFitter_, text, extents, font_file, font_size
+            text_frame,
+            family,
+            max_size,
+            bold,
+            italic,
+            FontFiles_,
+            TextFitter_,
+            text,
+            extents,
+            font_file,
+            font_size,
         )
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:p/a:r/a:t"foobar"',                     'foobar'),
-        ('p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',     'foo\nbar'),
-        ('p:txBody/(a:p,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', '\nfoo\nbar'),
-    ])
+    @pytest.fixture(
+        params=[
+            ('p:txBody/a:p/a:r/a:t"foobar"', "foobar"),
+            ('p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', "foo\nbar"),
+            ('p:txBody/(a:p,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', "\nfoo\nbar"),
+        ]
+    )
     def text_get_fixture(self, request):
         txBody_cxml, expected_value = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         return text_frame, expected_value
 
-    @pytest.fixture(params=[
-        ('p:txBody/(a:bodyPr,a:p)', 'foobar',
-         'p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")'),
-        ('p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")', 'barfoo',
-         'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")'),
-        ('p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', 'barfoo',
-         'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "p:txBody/(a:bodyPr,a:p)",
+                "foobar",
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
+            ),
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
+                "barfoo",
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")',
+            ),
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
+                "barfoo",
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")',
+            ),
+        ]
+    )
     def text_set_fixture(self, request):
         txBody_cxml, text, expected_cxml = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, text, expected_xml
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',              None),
-        ('p:txBody/a:bodyPr{wrap=square}', True),
-        ('p:txBody/a:bodyPr{wrap=none}',   False),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", None),
+            ("p:txBody/a:bodyPr{wrap=square}", True),
+            ("p:txBody/a:bodyPr{wrap=none}", False),
+        ]
+    )
     def wrap_get_fixture(self, request):
         txBody_cxml, expected_value = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
         return text_frame, expected_value
 
-    @pytest.fixture(params=[
-        ('p:txBody/a:bodyPr',              True,
-         'p:txBody/a:bodyPr{wrap=square}'),
-        ('p:txBody/a:bodyPr{wrap=square}', False,
-         'p:txBody/a:bodyPr{wrap=none}'),
-        ('p:txBody/a:bodyPr{wrap=none}',   None,
-         'p:txBody/a:bodyPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:txBody/a:bodyPr", True, "p:txBody/a:bodyPr{wrap=square}"),
+            ("p:txBody/a:bodyPr{wrap=square}", False, "p:txBody/a:bodyPr{wrap=none}"),
+            ("p:txBody/a:bodyPr{wrap=none}", None, "p:txBody/a:bodyPr"),
+        ]
+    )
     def wrap_set_fixture(self, request):
         txBody_cxml, new_value, expected_txBody_cxml = request.param
         text_frame = TextFrame(element(txBody_cxml), None)
@@ -361,41 +431,40 @@ class DescribeTextFrame(object):
 
     @pytest.fixture
     def _apply_fit_(self, request):
-        return method_mock(request, TextFrame, '_apply_fit')
+        return method_mock(request, TextFrame, "_apply_fit")
 
     @pytest.fixture
     def _best_fit_font_size_(self, request):
-        return method_mock(request, TextFrame, '_best_fit_font_size')
+        return method_mock(request, TextFrame, "_best_fit_font_size")
 
     @pytest.fixture
     def _extents_prop_(self, request):
-        return property_mock(request, TextFrame, '_extents')
+        return property_mock(request, TextFrame, "_extents")
 
     @pytest.fixture
     def FontFiles_(self, request):
-        return class_mock(request, 'pptx.text.text.FontFiles')
+        return class_mock(request, "pptx.text.text.FontFiles")
 
     @pytest.fixture
     def _set_font_(self, request):
-        return method_mock(request, TextFrame, '_set_font')
+        return method_mock(request, TextFrame, "_set_font")
 
     @pytest.fixture
     def TextFitter_(self, request):
-        return class_mock(request, 'pptx.text.text.TextFitter')
+        return class_mock(request, "pptx.text.text.TextFitter")
 
     @pytest.fixture
     def text_frame_with_parent_(self, request):
-        parent_ = loose_mock(request, name='parent_')
+        parent_ = loose_mock(request, name="parent_")
         text_frame = TextFrame(None, parent_)
         return text_frame, parent_
 
     @pytest.fixture
     def text_prop_(self, request):
-        return property_mock(request, TextFrame, 'text')
+        return property_mock(request, TextFrame, "text")
 
 
 class DescribeFont(object):
-
     def it_knows_its_bold_setting(self, bold_get_fixture):
         font, expected_value = bold_get_fixture
         assert font.bold == expected_value
@@ -425,7 +494,7 @@ class DescribeFont(object):
 
     def it_knows_its_underline_setting(self, underline_get_fixture):
         font, expected_value = underline_get_fixture
-        assert font.underline is expected_value, 'got %s' % font.underline
+        assert font.underline is expected_value, "got %s" % font.underline
 
     def it_can_change_its_underline_setting(self, underline_set_fixture):
         font, new_value, expected_xml = underline_set_fixture
@@ -458,133 +527,139 @@ class DescribeFont(object):
 
     # fixtures ---------------------------------------------
 
-    @pytest.fixture(params=[
-        ('a:rPr',      None),
-        ('a:rPr{b=0}', False),
-        ('a:rPr{b=1}', True),
-    ])
+    @pytest.fixture(
+        params=[("a:rPr", None), ("a:rPr{b=0}", False), ("a:rPr{b=1}", True)]
+    )
     def bold_get_fixture(self, request):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
 
-    @pytest.fixture(params=[
-        ('a:rPr',      True,  'a:rPr{b=1}'),
-        ('a:rPr{b=1}', False, 'a:rPr{b=0}'),
-        ('a:rPr{b=0}', None,  'a:rPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{b=1}"),
+            ("a:rPr{b=1}", False, "a:rPr{b=0}"),
+            ("a:rPr{b=0}", None, "a:rPr"),
+        ]
+    )
     def bold_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
         return font, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:rPr',      None),
-        ('a:rPr{i=0}', False),
-        ('a:rPr{i=1}', True),
-    ])
+    @pytest.fixture(
+        params=[("a:rPr", None), ("a:rPr{i=0}", False), ("a:rPr{i=1}", True)]
+    )
     def italic_get_fixture(self, request):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
 
-    @pytest.fixture(params=[
-        ('a:rPr',      True,  'a:rPr{i=1}'),
-        ('a:rPr{i=1}', False, 'a:rPr{i=0}'),
-        ('a:rPr{i=0}', None,  'a:rPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{i=1}"),
+            ("a:rPr{i=1}", False, "a:rPr{i=0}"),
+            ("a:rPr{i=0}", None, "a:rPr"),
+        ]
+    )
     def italic_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
         return font, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:rPr',             MSO_LANGUAGE_ID.NONE),
-        ('a:rPr{lang=pl-PL}', MSO_LANGUAGE_ID.POLISH),
-        ('a:rPr{lang=de-AT}', MSO_LANGUAGE_ID.GERMAN_AUSTRIA),
-        ('a:rPr{lang=fr-FR}', MSO_LANGUAGE_ID.FRENCH),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", MSO_LANGUAGE_ID.NONE),
+            ("a:rPr{lang=pl-PL}", MSO_LANGUAGE_ID.POLISH),
+            ("a:rPr{lang=de-AT}", MSO_LANGUAGE_ID.GERMAN_AUSTRIA),
+            ("a:rPr{lang=fr-FR}", MSO_LANGUAGE_ID.FRENCH),
+        ]
+    )
     def language_id_get_fixture(self, request):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
 
-    @pytest.fixture(params=[
-        ('a:rPr',             MSO_LANGUAGE_ID.ZULU, 'a:rPr{lang=zu-ZA}'),
-        ('a:rPr{lang=zu-ZA}', MSO_LANGUAGE_ID.URDU, 'a:rPr{lang=ur-PK}'),
-        ('a:rPr{lang=ur-PK}', MSO_LANGUAGE_ID.NONE, 'a:rPr'),
-        ('a:rPr{lang=ur-PK}', None,                 'a:rPr'),
-        ('a:rPr',             MSO_LANGUAGE_ID.NONE, 'a:rPr'),
-        ('a:rPr',             None,                 'a:rPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", MSO_LANGUAGE_ID.ZULU, "a:rPr{lang=zu-ZA}"),
+            ("a:rPr{lang=zu-ZA}", MSO_LANGUAGE_ID.URDU, "a:rPr{lang=ur-PK}"),
+            ("a:rPr{lang=ur-PK}", MSO_LANGUAGE_ID.NONE, "a:rPr"),
+            ("a:rPr{lang=ur-PK}", None, "a:rPr"),
+            ("a:rPr", MSO_LANGUAGE_ID.NONE, "a:rPr"),
+            ("a:rPr", None, "a:rPr"),
+        ]
+    )
     def language_id_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
         return font, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:rPr',                          None),
-        ('a:rPr/a:latin{typeface=Foobar}', 'Foobar'),
-    ])
+    @pytest.fixture(
+        params=[("a:rPr", None), ("a:rPr/a:latin{typeface=Foobar}", "Foobar")]
+    )
     def name_get_fixture(self, request):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
 
-    @pytest.fixture(params=[
-        ('a:rPr',                           'Foobar',
-         'a:rPr/a:latin{typeface=Foobar}'),
-        ('a:rPr/a:latin{typeface=Foobar}',  'Barfoo',
-         'a:rPr/a:latin{typeface=Barfoo}'),
-        ('a:rPr/a:latin{typeface=Barfoo}',  None,
-         'a:rPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", "Foobar", "a:rPr/a:latin{typeface=Foobar}"),
+            (
+                "a:rPr/a:latin{typeface=Foobar}",
+                "Barfoo",
+                "a:rPr/a:latin{typeface=Barfoo}",
+            ),
+            ("a:rPr/a:latin{typeface=Barfoo}", None, "a:rPr"),
+        ]
+    )
     def name_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
         return font, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:rPr',          None),
-        ('a:rPr{sz=2400}', 304800),
-    ])
+    @pytest.fixture(params=[("a:rPr", None), ("a:rPr{sz=2400}", 304800)])
     def size_get_fixture(self, request):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
 
-    @pytest.fixture(params=[
-        ('a:rPr',          Pt(24), 'a:rPr{sz=2400}'),
-        ('a:rPr{sz=2400}', None,   'a:rPr'),
-    ])
+    @pytest.fixture(
+        params=[("a:rPr", Pt(24), "a:rPr{sz=2400}"), ("a:rPr{sz=2400}", None, "a:rPr")]
+    )
     def size_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
         return font, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:rPr',         None),
-        ('a:rPr{u=none}', False),
-        ('a:rPr{u=sng}',  True),
-        ('a:rPr{u=dbl}',  MSO_UNDERLINE.DOUBLE_LINE),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", None),
+            ("a:rPr{u=none}", False),
+            ("a:rPr{u=sng}", True),
+            ("a:rPr{u=dbl}", MSO_UNDERLINE.DOUBLE_LINE),
+        ]
+    )
     def underline_get_fixture(self, request):
         rPr_cxml, expected_value = request.param
         font = Font(element(rPr_cxml))
         return font, expected_value
 
-    @pytest.fixture(params=[
-        ('a:rPr',         True,                    'a:rPr{u=sng}'),
-        ('a:rPr{u=sng}',  False,                   'a:rPr{u=none}'),
-        ('a:rPr{u=none}', MSO_UNDERLINE.WAVY_LINE, 'a:rPr{u=wavy}'),
-        ('a:rPr{u=wavy}', MSO_UNDERLINE.NONE,      'a:rPr{u=none}'),
-        ('a:rPr{u=wavy}', None,                    'a:rPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{u=sng}"),
+            ("a:rPr{u=sng}", False, "a:rPr{u=none}"),
+            ("a:rPr{u=none}", MSO_UNDERLINE.WAVY_LINE, "a:rPr{u=wavy}"),
+            ("a:rPr{u=wavy}", MSO_UNDERLINE.NONE, "a:rPr{u=none}"),
+            ("a:rPr{u=wavy}", None, "a:rPr"),
+        ]
+    )
     def underline_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
@@ -595,11 +670,10 @@ class DescribeFont(object):
 
     @pytest.fixture
     def font(self):
-        return Font(element('a:rPr'))
+        return Font(element("a:rPr"))
 
 
 class Describe_Hyperlink(object):
-
     def it_knows_the_target_url_of_the_hyperlink(self, hlink_with_url_):
         hlink, rId, url = hlink_with_url_
         assert hlink.address == url
@@ -608,8 +682,7 @@ class Describe_Hyperlink(object):
     def it_has_None_for_address_when_no_hyperlink_is_present(self, hlink):
         assert hlink.address is None
 
-    def it_can_set_the_target_url(
-            self, hlink, rPr_with_hlinkClick_xml, url):
+    def it_can_set_the_target_url(self, hlink, rPr_with_hlinkClick_xml, url):
         hlink.address = url
         # verify -----------------------
         hlink.part.relate_to.assert_called_once_with(
@@ -625,9 +698,10 @@ class Describe_Hyperlink(object):
         hlink.part.drop_rel.assert_called_once_with(rId)
 
     def it_should_remove_the_hyperlink_when_url_set_to_empty_string(
-            self, remove_hlink_fixture_):
+        self, remove_hlink_fixture_
+    ):
         hlink, rPr_xml, rId = remove_hlink_fixture_
-        hlink.address = ''
+        hlink.address = ""
         assert hlink._rPr.xml == rPr_xml
         hlink.part.drop_rel.assert_called_once_with(rId)
 
@@ -647,22 +721,19 @@ class Describe_Hyperlink(object):
 
     @pytest.fixture
     def change_hlink_fixture_(
-            self, request, hlink_with_hlinkClick, rId, rId_2, part_, url_2):
+        self, request, hlink_with_hlinkClick, rId, rId_2, part_, url_2
+    ):
         hlinkClick_bldr = an_hlinkClick().with_rId(rId_2)
-        new_rPr_xml = (
-            an_rPr().with_nsdecls('a', 'r')
-                    .with_child(hlinkClick_bldr)
-                    .xml()
-        )
+        new_rPr_xml = an_rPr().with_nsdecls("a", "r").with_child(hlinkClick_bldr).xml()
         part_.relate_to.return_value = rId_2
-        property_mock(request, _Hyperlink, 'part', return_value=part_)
+        property_mock(request, _Hyperlink, "part", return_value=part_)
         return hlink_with_hlinkClick, rId, url_2, new_rPr_xml
 
     @pytest.fixture
     def hlink(self, request, part_):
-        rPr = an_rPr().with_nsdecls('a', 'r').element
+        rPr = an_rPr().with_nsdecls("a", "r").element
         hlink = _Hyperlink(rPr, None)
-        property_mock(request, _Hyperlink, 'part', return_value=part_)
+        property_mock(request, _Hyperlink, "part", return_value=part_)
         return hlink
 
     @pytest.fixture
@@ -671,9 +742,8 @@ class Describe_Hyperlink(object):
         return _Hyperlink(rPr, None)
 
     @pytest.fixture
-    def hlink_with_url_(
-            self, request, part_, hlink_with_hlinkClick, rId, url):
-        property_mock(request, _Hyperlink, 'part', return_value=part_)
+    def hlink_with_url_(self, request, part_, hlink_with_hlinkClick, rId, url):
+        property_mock(request, _Hyperlink, "part", return_value=part_)
         return hlink_with_hlinkClick, rId, url
 
     @pytest.fixture
@@ -689,25 +759,21 @@ class Describe_Hyperlink(object):
 
     @pytest.fixture
     def rId(self):
-        return 'rId2'
+        return "rId2"
 
     @pytest.fixture
     def rId_2(self):
-        return 'rId6'
+        return "rId6"
 
     @pytest.fixture
-    def remove_hlink_fixture_(
-            self, request, hlink_with_hlinkClick, rPr_xml, rId):
-        property_mock(request, _Hyperlink, 'part')
+    def remove_hlink_fixture_(self, request, hlink_with_hlinkClick, rPr_xml, rId):
+        property_mock(request, _Hyperlink, "part")
         return hlink_with_hlinkClick, rPr_xml, rId
 
     @pytest.fixture
     def rPr_with_hlinkClick_bldr(self, rId):
         hlinkClick_bldr = an_hlinkClick().with_rId(rId)
-        rPr_bldr = (
-            an_rPr().with_nsdecls('a', 'r')
-                    .with_child(hlinkClick_bldr)
-        )
+        rPr_bldr = an_rPr().with_nsdecls("a", "r").with_child(hlinkClick_bldr)
         return rPr_bldr
 
     @pytest.fixture
@@ -716,19 +782,18 @@ class Describe_Hyperlink(object):
 
     @pytest.fixture
     def rPr_xml(self):
-        return an_rPr().with_nsdecls('a', 'r').xml()
+        return an_rPr().with_nsdecls("a", "r").xml()
 
     @pytest.fixture
     def url(self):
-        return 'https://github.com/scanny/python-pptx'
+        return "https://github.com/scanny/python-pptx"
 
     @pytest.fixture
     def url_2(self):
-        return 'https://pypi.python.org/pypi/python-pptx'
+        return "https://pypi.python.org/pypi/python-pptx"
 
 
 class Describe_Paragraph(object):
-
     def it_knows_its_horizontal_alignment(self, alignment_get_fixture):
         paragraph, expected_value = alignment_get_fixture
         assert paragraph.alignment == expected_value
@@ -798,8 +863,7 @@ class Describe_Paragraph(object):
         paragraph.clear()
         assert paragraph._element.xml == expected_xml
 
-    def it_provides_access_to_the_default_paragraph_font(
-            self, paragraph, Font_):
+    def it_provides_access_to_the_default_paragraph_font(self, paragraph, Font_):
         font = paragraph.font
         Font_.assert_called_once_with(paragraph._defRPr)
         assert font == Font_.return_value
@@ -816,117 +880,140 @@ class Describe_Paragraph(object):
 
     # fixtures ---------------------------------------------
 
-    @pytest.fixture(params=[
-        ('a:p',                                     None),
-        ('a:p/a:pPr',                               None),
-        ('a:p/a:pPr/a:spcAft/a:spcPct{val=150000}', None),
-        ('a:p/a:pPr/a:spcAft/a:spcPts{val=600}',    76200),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", None),
+            ("a:p/a:pPr", None),
+            ("a:p/a:pPr/a:spcAft/a:spcPct{val=150000}", None),
+            ("a:p/a:pPr/a:spcAft/a:spcPts{val=600}", 76200),
+        ]
+    )
     def after_get_fixture(self, request):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
 
-    @pytest.fixture(params=[
-        ('a:p',                                     Pt(8.333),
-         'a:p/a:pPr/a:spcAft/a:spcPts{val=833}'),
-        ('a:p/a:pPr/a:spcAft/a:spcPts{val=600}',    Pt(42),
-         'a:p/a:pPr/a:spcAft/a:spcPts{val=4200}'),
-        ('a:p/a:pPr/a:spcAft/a:spcPct{val=150000}', Pt(24),
-         'a:p/a:pPr/a:spcAft/a:spcPts{val=2400}'),
-        ('a:p/a:pPr/a:spcAft/a:spcPts{val=600}',    None,
-         'a:p/a:pPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", Pt(8.333), "a:p/a:pPr/a:spcAft/a:spcPts{val=833}"),
+            (
+                "a:p/a:pPr/a:spcAft/a:spcPts{val=600}",
+                Pt(42),
+                "a:p/a:pPr/a:spcAft/a:spcPts{val=4200}",
+            ),
+            (
+                "a:p/a:pPr/a:spcAft/a:spcPct{val=150000}",
+                Pt(24),
+                "a:p/a:pPr/a:spcAft/a:spcPts{val=2400}",
+            ),
+            ("a:p/a:pPr/a:spcAft/a:spcPts{val=600}", None, "a:p/a:pPr"),
+        ]
+    )
     def after_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:p',                 None),
-        ('a:p/a:pPr{algn=ctr}', PP_ALIGN.CENTER),
-        ('a:p/a:pPr{algn=r}',   PP_ALIGN.RIGHT),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", None),
+            ("a:p/a:pPr{algn=ctr}", PP_ALIGN.CENTER),
+            ("a:p/a:pPr{algn=r}", PP_ALIGN.RIGHT),
+        ]
+    )
     def alignment_get_fixture(self, request):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
 
-    @pytest.fixture(params=[
-        ('a:p',                  PP_ALIGN.LEFT,    'a:p/a:pPr{algn=l}'),
-        ('a:p/a:pPr{algn=l}',    PP_ALIGN.JUSTIFY, 'a:p/a:pPr{algn=just}'),
-        ('a:p/a:pPr{algn=just}', None,             'a:p/a:pPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", PP_ALIGN.LEFT, "a:p/a:pPr{algn=l}"),
+            ("a:p/a:pPr{algn=l}", PP_ALIGN.JUSTIFY, "a:p/a:pPr{algn=just}"),
+            ("a:p/a:pPr{algn=just}", None, "a:p/a:pPr"),
+        ]
+    )
     def alignment_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:p',                                     None),
-        ('a:p/a:pPr',                               None),
-        ('a:p/a:pPr/a:spcBef/a:spcPct{val=150000}', None),
-        ('a:p/a:pPr/a:spcBef/a:spcPts{val=600}',    76200),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", None),
+            ("a:p/a:pPr", None),
+            ("a:p/a:pPr/a:spcBef/a:spcPct{val=150000}", None),
+            ("a:p/a:pPr/a:spcBef/a:spcPts{val=600}", 76200),
+        ]
+    )
     def before_get_fixture(self, request):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
 
-    @pytest.fixture(params=[
-        ('a:p',                                     Pt(8.333),
-         'a:p/a:pPr/a:spcBef/a:spcPts{val=833}'),
-        ('a:p/a:pPr/a:spcBef/a:spcPts{val=600}',    Pt(42),
-         'a:p/a:pPr/a:spcBef/a:spcPts{val=4200}'),
-        ('a:p/a:pPr/a:spcBef/a:spcPct{val=150000}', Pt(24),
-         'a:p/a:pPr/a:spcBef/a:spcPts{val=2400}'),
-        ('a:p/a:pPr/a:spcBef/a:spcPts{val=600}',    None,
-         'a:p/a:pPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", Pt(8.333), "a:p/a:pPr/a:spcBef/a:spcPts{val=833}"),
+            (
+                "a:p/a:pPr/a:spcBef/a:spcPts{val=600}",
+                Pt(42),
+                "a:p/a:pPr/a:spcBef/a:spcPts{val=4200}",
+            ),
+            (
+                "a:p/a:pPr/a:spcBef/a:spcPct{val=150000}",
+                Pt(24),
+                "a:p/a:pPr/a:spcBef/a:spcPts{val=2400}",
+            ),
+            ("a:p/a:pPr/a:spcBef/a:spcPts{val=600}", None, "a:p/a:pPr"),
+        ]
+    )
     def before_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:p/a:r/a:t"foo"',              'a:p'),
-        ('a:p/(a:br,a:r/a:t"foo")',       'a:p'),
-        ('a:p/(a:fld,a:br,a:r/a:t"foo")', 'a:p'),
-    ])
+    @pytest.fixture(
+        params=[
+            ('a:p/a:r/a:t"foo"', "a:p"),
+            ('a:p/(a:br,a:r/a:t"foo")', "a:p"),
+            ('a:p/(a:fld,a:br,a:r/a:t"foo")', "a:p"),
+        ]
+    )
     def clear_fixture(self, request):
         p_cxml, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:p',              0),
-        ('a:p/a:pPr{lvl=2}', 2),
-    ])
+    @pytest.fixture(params=[("a:p", 0), ("a:p/a:pPr{lvl=2}", 2)])
     def level_get_fixture(self, request):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
 
-    @pytest.fixture(params=[
-        ('a:p',              1, 'a:p/a:pPr{lvl=1}'),
-        ('a:p/a:pPr{lvl=1}', 2, 'a:p/a:pPr{lvl=2}'),
-        ('a:p/a:pPr{lvl=2}', 0, 'a:p/a:pPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", 1, "a:p/a:pPr{lvl=1}"),
+            ("a:p/a:pPr{lvl=1}", 2, "a:p/a:pPr{lvl=2}"),
+            ("a:p/a:pPr{lvl=2}", 0, "a:p/a:pPr"),
+        ]
+    )
     def level_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:p', 'a:p/a:br'),
-        ('a:p/a:r', 'a:p/(a:r,a:br)'),
-        ('a:p/a:br', 'a:p/(a:br,a:br)'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", "a:p/a:br"),
+            ("a:p/a:r", "a:p/(a:r,a:br)"),
+            ("a:p/a:br", "a:p/(a:br,a:br)"),
+        ]
+    )
     def line_break_fixture(self, request):
         cxml, expected_cxml = request.param
         paragraph = _Paragraph(element(cxml), None)
@@ -937,74 +1024,93 @@ class Describe_Paragraph(object):
     def runs_fixture(self):
         p_cxml = 'a:p/(a:r/a:t"Foo",a:r/a:t"Bar",a:r/a:t"Baz")'
         paragraph = _Paragraph(element(p_cxml), None)
-        expected_text = ('Foo', 'Bar', 'Baz')
+        expected_text = ("Foo", "Bar", "Baz")
         return paragraph, expected_text
 
-    @pytest.fixture(params=[
-        ('a:p',                                     None),
-        ('a:p/a:pPr',                               None),
-        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=1800}',    228600),
-        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=142000}',  1.42),
-        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=124.64%}', 1.2464),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", None),
+            ("a:p/a:pPr", None),
+            ("a:p/a:pPr/a:lnSpc/a:spcPts{val=1800}", 228600),
+            ("a:p/a:pPr/a:lnSpc/a:spcPct{val=142000}", 1.42),
+            ("a:p/a:pPr/a:lnSpc/a:spcPct{val=124.64%}", 1.2464),
+        ]
+    )
     def spacing_get_fixture(self, request):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
 
-    @pytest.fixture(params=[
-        ('a:p',                                     1.42,
-         'a:p/a:pPr/a:lnSpc/a:spcPct{val=142000}'),
-        ('a:p',                                     Pt(42),
-         'a:p/a:pPr/a:lnSpc/a:spcPts{val=4200}'),
-        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=110000}',  0.875,
-         'a:p/a:pPr/a:lnSpc/a:spcPct{val=87500}'),
-        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=600}',     Pt(42),
-         'a:p/a:pPr/a:lnSpc/a:spcPts{val=4200}'),
-        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=1900}',    0.925,
-         'a:p/a:pPr/a:lnSpc/a:spcPct{val=92500}'),
-        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=150000}',  Pt(24),
-         'a:p/a:pPr/a:lnSpc/a:spcPts{val=2400}'),
-        ('a:p/a:pPr/a:lnSpc/a:spcPts{val=600}',     None,
-         'a:p/a:pPr'),
-        ('a:p/a:pPr/a:lnSpc/a:spcPct{val=150000}',  None,
-         'a:p/a:pPr'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:p", 1.42, "a:p/a:pPr/a:lnSpc/a:spcPct{val=142000}"),
+            ("a:p", Pt(42), "a:p/a:pPr/a:lnSpc/a:spcPts{val=4200}"),
+            (
+                "a:p/a:pPr/a:lnSpc/a:spcPct{val=110000}",
+                0.875,
+                "a:p/a:pPr/a:lnSpc/a:spcPct{val=87500}",
+            ),
+            (
+                "a:p/a:pPr/a:lnSpc/a:spcPts{val=600}",
+                Pt(42),
+                "a:p/a:pPr/a:lnSpc/a:spcPts{val=4200}",
+            ),
+            (
+                "a:p/a:pPr/a:lnSpc/a:spcPts{val=1900}",
+                0.925,
+                "a:p/a:pPr/a:lnSpc/a:spcPct{val=92500}",
+            ),
+            (
+                "a:p/a:pPr/a:lnSpc/a:spcPct{val=150000}",
+                Pt(24),
+                "a:p/a:pPr/a:lnSpc/a:spcPts{val=2400}",
+            ),
+            ("a:p/a:pPr/a:lnSpc/a:spcPts{val=600}", None, "a:p/a:pPr"),
+            ("a:p/a:pPr/a:lnSpc/a:spcPct{val=150000}", None, "a:p/a:pPr"),
+        ]
+    )
     def spacing_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
         return paragraph, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('a:p/a:r/a:t"foobar"',                               'foobar'),
-        ('a:p/(a:r/a:t"foo", a:r/a:t"bar")',                  'foobar'),
-        ('a:p/(a:r/a:t"foo", a:br, a:r/a:t"bar")',            'foo\nbar'),
-        ('a:p/(a:r/a:t"foo ", a:fld/a:t"42", a:r/a:t" bar")', 'foo 42 bar'),
-        ('a:p/(a:r/a:t" foo", a:br, a:fld/a:t"42")',          ' foo\n42'),
-        ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)',          'foobar'),
-        ('a:p/a:fld/a:t"42"',                                 '42'),
-        ('a:p/a:br',                                          '\n'),
-    ])
+    @pytest.fixture(
+        params=[
+            ('a:p/a:r/a:t"foobar"', "foobar"),
+            ('a:p/(a:r/a:t"foo", a:r/a:t"bar")', "foobar"),
+            ('a:p/(a:r/a:t"foo", a:br, a:r/a:t"bar")', "foo\nbar"),
+            ('a:p/(a:r/a:t"foo ", a:fld/a:t"42", a:r/a:t" bar")', "foo 42 bar"),
+            ('a:p/(a:r/a:t" foo", a:br, a:fld/a:t"42")', " foo\n42"),
+            ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)', "foobar"),
+            ('a:p/a:fld/a:t"42"', "42"),
+            ("a:p/a:br", "\n"),
+        ]
+    )
     def text_get_fixture(self, request):
         p_cxml, expected_value = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         return paragraph, expected_value
 
-    @pytest.fixture(params=[
-        ('a:p/(a:r/a:t"foo",a:r/a:t"bar")', 'foobar', 'a:p/a:r/a:t"foobar"'),
-        ('a:p', '', 'a:p'),
-        ('a:p', 'foobar', 'a:p/a:r/a:t"foobar"'),
-        ('a:p', 'foo\nbar', 'a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")'),
-        ('a:p', '\nfoo\n', 'a:p/(a:br,a:r/a:t"foo",a:br)'),
-        ('a:p', '\n\nfoo', 'a:p/(a:br,a:br,a:r/a:t"foo")'),
-        ('a:p', 'foo\n', 'a:p/(a:r/a:t"foo",a:br)'),
-        ('a:p', '7-bit str', 'a:p/a:r/a:t"7-bit str"'),
-        ('a:p', '8-ɓïȶ str', u'a:p/a:r/a:t"8-ɓïȶ str"'),
-        ('a:p', u'ŮŦƑ literal', u'a:p/a:r/a:t"ŮŦƑ literal"'),
-        ('a:p', u'utf-8 unicode: Hér er texti',
-         u'a:p/a:r/a:t"utf-8 unicode: Hér er texti"'),
-    ])
+    @pytest.fixture(
+        params=[
+            ('a:p/(a:r/a:t"foo",a:r/a:t"bar")', "foobar", 'a:p/a:r/a:t"foobar"'),
+            ("a:p", "", "a:p"),
+            ("a:p", "foobar", 'a:p/a:r/a:t"foobar"'),
+            ("a:p", "foo\nbar", 'a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")'),
+            ("a:p", "\nfoo\n", 'a:p/(a:br,a:r/a:t"foo",a:br)'),
+            ("a:p", "\n\nfoo", 'a:p/(a:br,a:br,a:r/a:t"foo")'),
+            ("a:p", "foo\n", 'a:p/(a:r/a:t"foo",a:br)'),
+            ("a:p", "7-bit str", 'a:p/a:r/a:t"7-bit str"'),
+            ("a:p", "8-ɓïȶ str", u'a:p/a:r/a:t"8-ɓïȶ str"'),
+            ("a:p", u"ŮŦƑ literal", u'a:p/a:r/a:t"ŮŦƑ literal"'),
+            (
+                "a:p",
+                u"utf-8 unicode: Hér er texti",
+                u'a:p/a:r/a:t"utf-8 unicode: Hér er texti"',
+            ),
+        ]
+    )
     def text_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
@@ -1015,7 +1121,7 @@ class Describe_Paragraph(object):
 
     @pytest.fixture
     def Font_(self, request):
-        return class_mock(request, 'pptx.text.text.Font')
+        return class_mock(request, "pptx.text.text.Font")
 
     @pytest.fixture
     def p_bldr(self):
@@ -1032,7 +1138,6 @@ class Describe_Paragraph(object):
 
 
 class Describe_Run(object):
-
     def it_provides_access_to_its_font(self, font_fixture):
         run, rPr, Font_, font_ = font_fixture
         font = run.font
@@ -1060,14 +1165,14 @@ class Describe_Run(object):
 
     @pytest.fixture
     def font_fixture(self, Font_, font_):
-        r = element('a:r/a:rPr')
+        r = element("a:r/a:rPr")
         rPr = r.rPr
         run = _Run(r, None)
         return run, rPr, Font_, font_
 
     @pytest.fixture
     def hyperlink_fixture(self, _Hyperlink_, hlink_):
-        r = element('a:r/a:rPr')
+        r = element("a:r/a:rPr")
         rPr = r.rPr
         run = _Run(r, None)
         return run, rPr, _Hyperlink_, hlink_
@@ -1076,11 +1181,9 @@ class Describe_Run(object):
     def text_get_fixture(self):
         r = element('a:r/a:t"foobar"')
         run = _Run(r, None)
-        return run, 'foobar'
+        return run, "foobar"
 
-    @pytest.fixture(params=[
-        ('a:r/a:t', 'barfoo', 'a:r/a:t"barfoo"'),
-    ])
+    @pytest.fixture(params=[("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"')])
     def text_set_fixture(self, request):
         r_cxml, new_value, expected_r_cxml = request.param
         run = _Run(element(r_cxml), None)
@@ -1091,7 +1194,7 @@ class Describe_Run(object):
 
     @pytest.fixture
     def Font_(self, request, font_):
-        return class_mock(request, 'pptx.text.text.Font', return_value=font_)
+        return class_mock(request, "pptx.text.text.Font", return_value=font_)
 
     @pytest.fixture
     def font_(self, request):
@@ -1099,9 +1202,7 @@ class Describe_Run(object):
 
     @pytest.fixture
     def _Hyperlink_(self, request, hlink_):
-        return class_mock(
-            request, 'pptx.text.text._Hyperlink', return_value=hlink_
-        )
+        return class_mock(request, "pptx.text.text._Hyperlink", return_value=hlink_)
 
     @pytest.fixture
     def hlink_(self, request):

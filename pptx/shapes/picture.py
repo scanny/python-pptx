@@ -2,9 +2,7 @@
 
 """Shapes based on the `p:pic` element, including Picture and Movie."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
@@ -193,7 +191,7 @@ class Picture(_BasePicture):
         """
         slide_part, rId = self.part, self._element.blip_rId
         if rId is None:
-            raise ValueError('no embedded image')
+            raise ValueError("no embedded image")
         return slide_part.get_image(rId)
 
     @property

@@ -2,9 +2,7 @@
 
 """Chart-related objects such as Chart and ChartTitle."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import Sequence
 
@@ -45,7 +43,7 @@ class Chart(PartElementProxy):
         if valAx_lst:
             return ValueAxis(valAx_lst[0])
 
-        raise ValueError('chart has no category axis')
+        raise ValueError("chart has no category axis")
 
     @property
     def chart_style(self):
@@ -95,11 +93,10 @@ class Chart(PartElementProxy):
     def font(self):
         """Font object controlling text format defaults for this chart."""
         defRPr = (
-            self._chartSpace
-                .get_or_add_txPr()
-                .p_lst[0]
-                .get_or_add_pPr()
-                .get_or_add_defRPr()
+            self._chartSpace.get_or_add_txPr()
+            .p_lst[0]
+            .get_or_add_pPr()
+            .get_or_add_defRPr()
         )
         return Font(defRPr)
 
@@ -196,7 +193,7 @@ class Chart(PartElementProxy):
         """
         valAx_lst = self._chartSpace.valAx_lst
         if not valAx_lst:
-            raise ValueError('chart has no value axis')
+            raise ValueError("chart has no value axis")
 
         idx = 1 if len(valAx_lst) > 1 else 0
         return ValueAxis(valAx_lst[idx])
@@ -218,7 +215,7 @@ class ChartTitle(ElementProxy):
     # actually differ in certain fuller behaviors, but at present they're
     # essentially identical.
 
-    __slots__ = ('_title', '_format')
+    __slots__ = ("_title", "_format")
 
     def __init__(self, title):
         super(ChartTitle, self).__init__(title)
@@ -274,6 +271,7 @@ class _Plots(Sequence):
     types are displayed in a single set of axes, like a bar plot with
     a superimposed line plot.
     """
+
     def __init__(self, plotArea, chart):
         super(_Plots, self).__init__()
         self._plotArea = plotArea

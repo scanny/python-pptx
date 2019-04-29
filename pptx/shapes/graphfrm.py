@@ -6,9 +6,7 @@ A graphic frame is a common container for table, chart, smart art, and media
 objects.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
@@ -28,7 +26,7 @@ class GraphicFrame(BaseShape):
         |ValueError| if this graphic frame does not contain a chart.
         """
         if not self.has_chart:
-            raise ValueError('shape does not contain a chart')
+            raise ValueError("shape does not contain a chart")
         return self.chart_part.chart
 
     @property
@@ -66,9 +64,7 @@ class GraphicFrame(BaseShape):
         content-specific (i.e. different for charts, tables, etc.) and has
         not yet been implemented.
         """
-        raise NotImplementedError(
-            'shadow property on GraphicFrame not yet supported'
-        )
+        raise NotImplementedError("shadow property on GraphicFrame not yet supported")
 
     @property
     def shape_type(self):
@@ -90,6 +86,6 @@ class GraphicFrame(BaseShape):
         |ValueError| if this graphic frame does not contain a table.
         """
         if not self.has_table:
-            raise ValueError('shape does not contain a table')
+            raise ValueError("shape does not contain a table")
         tbl = self._element.graphic.graphicData.tbl
         return Table(tbl, self)

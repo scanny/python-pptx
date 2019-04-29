@@ -2,9 +2,7 @@
 
 """Series-related objects."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import Sequence
 
@@ -20,6 +18,7 @@ class _BaseSeries(object):
     """
     Base class for |BarSeries| and other series classes.
     """
+
     def __init__(self, ser):
         super(_BaseSeries, self).__init__()
         self._element = ser
@@ -48,8 +47,8 @@ class _BaseSeries(object):
         column for this series in the Excel worksheet. It also appears as the
         label for this series in the legend.
         """
-        names = self._element.xpath('./c:tx//c:pt/c:v/text()')
-        name = names[0] if names else ''
+        names = self._element.xpath("./c:tx//c:pt/c:v/text()")
+        name = names[0] if names else ""
         return name
 
 
@@ -75,6 +74,7 @@ class _BaseCategorySeries(_BaseSeries):
         Read-only. A sequence containing the float values for this series, in
         the order they appear on the chart.
         """
+
         def iter_values():
             val = self._element.val
             if val is None:
@@ -90,6 +90,7 @@ class _MarkerMixin(object):
     Mixin class providing `.marker` property for line-type chart series. The
     line-type charts are Line, XY, and Radar.
     """
+
     @lazyproperty
     def marker(self):
         """
@@ -136,6 +137,7 @@ class LineSeries(_BaseCategorySeries, _MarkerMixin):
     """
     A data point series belonging to a line plot.
     """
+
     @property
     def smooth(self):
         """
@@ -170,6 +172,7 @@ class XySeries(_BaseSeries, _MarkerMixin):
     """
     A data point series belonging to an XY (scatter) plot.
     """
+
     def iter_values(self):
         """
         Generate each float Y value in this series, in the order they appear
@@ -204,6 +207,7 @@ class BubbleSeries(XySeries):
     """
     A data point series belonging to a bubble plot.
     """
+
     @lazyproperty
     def points(self):
         """
@@ -218,6 +222,7 @@ class SeriesCollection(Sequence):
     """
     A sequence of |Series| objects.
     """
+
     def __init__(self, parent_elm):
         # *parent_elm* can be either a c:plotArea or xChart element
         super(SeriesCollection, self).__init__()
@@ -240,18 +245,18 @@ def _SeriesFactory(ser):
 
     try:
         SeriesCls = {
-            qn('c:areaChart'):     AreaSeries,
-            qn('c:barChart'):      BarSeries,
-            qn('c:bubbleChart'):   BubbleSeries,
-            qn('c:doughnutChart'): PieSeries,
-            qn('c:lineChart'):     LineSeries,
-            qn('c:pieChart'):      PieSeries,
-            qn('c:radarChart'):    RadarSeries,
-            qn('c:scatterChart'):  XySeries,
+            qn("c:areaChart"): AreaSeries,
+            qn("c:barChart"): BarSeries,
+            qn("c:bubbleChart"): BubbleSeries,
+            qn("c:doughnutChart"): PieSeries,
+            qn("c:lineChart"): LineSeries,
+            qn("c:pieChart"): PieSeries,
+            qn("c:radarChart"): RadarSeries,
+            qn("c:scatterChart"): XySeries,
         }[xChart_tag]
     except KeyError:
         raise NotImplementedError(
-            'series class for %s not yet implemented' % xChart_tag
+            "series class for %s not yet implemented" % xChart_tag
         )
 
     return SeriesCls(ser)

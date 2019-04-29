@@ -2,9 +2,7 @@
 
 """lxml custom element classes for picture-related XML elements."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .. import parse_xml
 from ..ns import nsdecls
@@ -17,9 +15,10 @@ class CT_Picture(BaseShapeElement):
     ``<p:pic>`` element, which represents a picture shape (an image placement
     on a slide).
     """
-    nvPicPr = OneAndOnlyOne('p:nvPicPr')
-    blipFill = OneAndOnlyOne('p:blipFill')
-    spPr = OneAndOnlyOne('p:spPr')
+
+    nvPicPr = OneAndOnlyOne("p:nvPicPr")
+    blipFill = OneAndOnlyOne("p:blipFill")
+    spPr = OneAndOnlyOne("p:spPr")
 
     @property
     def blip_rId(self):
@@ -59,9 +58,7 @@ class CT_Picture(BaseShapeElement):
         Return a new `p:pic` placeholder element populated with the supplied
         parameters.
         """
-        return parse_xml(
-            cls._pic_ph_tmpl() % (id_, name, desc, rId)
-        )
+        return parse_xml(cls._pic_ph_tmpl() % (id_, name, desc, rId))
 
     @classmethod
     def new_pic(cls, id_, name, desc, rId, left, top, width, height):
@@ -69,27 +66,34 @@ class CT_Picture(BaseShapeElement):
         Return a new ``<p:pic>`` element tree configured with the supplied
         parameters.
         """
-        xml = cls._pic_tmpl() % (
-            id_, name, desc, rId, left, top, width, height
-        )
+        xml = cls._pic_tmpl() % (id_, name, desc, rId, left, top, width, height)
         pic = parse_xml(xml)
         return pic
 
     @classmethod
-    def new_video_pic(cls, shape_id, shape_name, video_rId, media_rId,
-                      poster_frame_rId, x, y, cx, cy):
+    def new_video_pic(
+        cls, shape_id, shape_name, video_rId, media_rId, poster_frame_rId, x, y, cx, cy
+    ):
         """Return a new `p:pic` populated with the specified video."""
         return parse_xml(
-            cls._pic_video_tmpl() % (
-                shape_id, shape_name, video_rId, media_rId, poster_frame_rId,
-                x, y, cx, cy
+            cls._pic_video_tmpl()
+            % (
+                shape_id,
+                shape_name,
+                video_rId,
+                media_rId,
+                poster_frame_rId,
+                x,
+                y,
+                cx,
+                cy,
             )
         )
 
     @property
     def srcRect_b(self):
         """Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present."""
-        return self._srcRect_x('b')
+        return self._srcRect_x("b")
 
     @srcRect_b.setter
     def srcRect_b(self, value):
@@ -98,7 +102,7 @@ class CT_Picture(BaseShapeElement):
     @property
     def srcRect_l(self):
         """Value of `p:blipFill/a:srcRect/@l` or 0.0 if not present."""
-        return self._srcRect_x('l')
+        return self._srcRect_x("l")
 
     @srcRect_l.setter
     def srcRect_l(self, value):
@@ -107,7 +111,7 @@ class CT_Picture(BaseShapeElement):
     @property
     def srcRect_r(self):
         """Value of `p:blipFill/a:srcRect/@r` or 0.0 if not present."""
-        return self._srcRect_x('r')
+        return self._srcRect_x("r")
 
     @srcRect_r.setter
     def srcRect_r(self, value):
@@ -116,7 +120,7 @@ class CT_Picture(BaseShapeElement):
     @property
     def srcRect_t(self):
         """Value of `p:blipFill/a:srcRect/@t` or 0.0 if not present."""
-        return self._srcRect_x('t')
+        return self._srcRect_x("t")
 
     @srcRect_t.setter
     def srcRect_t(self, value):
@@ -130,6 +134,7 @@ class CT_Picture(BaseShapeElement):
         as a fraction of 1.0, e.g. 0.425 represents 42.5%. *image_size* and
         *view_size* are each (width, height) pairs.
         """
+
         def aspect_ratio(width, height):
             return width / height
 
@@ -137,100 +142,100 @@ class CT_Picture(BaseShapeElement):
         ar_image = aspect_ratio(*image_size)
 
         if ar_view < ar_image:  # image too wide
-            crop = (1.0 - (ar_view/ar_image)) / 2.0
+            crop = (1.0 - (ar_view / ar_image)) / 2.0
             return (crop, 0.0, crop, 0.0)
         if ar_view > ar_image:  # image too tall
-            crop = (1.0 - (ar_image/ar_view)) / 2.0
+            crop = (1.0 - (ar_image / ar_view)) / 2.0
             return (0.0, crop, 0.0, crop)
         return (0.0, 0.0, 0.0, 0.0)
 
     @classmethod
     def _pic_ph_tmpl(cls):
         return (
-            '<p:pic %s>\n'
-            '  <p:nvPicPr>\n'
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
             '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
-            '    <p:cNvPicPr>\n'
+            "    <p:cNvPicPr>\n"
             '      <a:picLocks noGrp="1" noChangeAspect="1"/>\n'
-            '    </p:cNvPicPr>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvPicPr>\n'
-            '  <p:blipFill>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
             '    <a:blip r:embed="%%s"/>\n'
-            '    <a:stretch>\n'
-            '      <a:fillRect/>\n'
-            '    </a:stretch>\n'
-            '  </p:blipFill>\n'
-            '  <p:spPr/>\n'
-            '</p:pic>' % nsdecls('p', 'a', 'r')
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr/>\n"
+            "</p:pic>" % nsdecls("p", "a", "r")
         )
 
     @classmethod
     def _pic_tmpl(cls):
         return (
-            '<p:pic %s>\n'
-            '  <p:nvPicPr>\n'
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
             '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
-            '    <p:cNvPicPr>\n'
+            "    <p:cNvPicPr>\n"
             '      <a:picLocks noChangeAspect="1"/>\n'
-            '    </p:cNvPicPr>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvPicPr>\n'
-            '  <p:blipFill>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
             '    <a:blip r:embed="%%s"/>\n'
-            '    <a:stretch>\n'
-            '      <a:fillRect/>\n'
-            '    </a:stretch>\n'
-            '  </p:blipFill>\n'
-            '  <p:spPr>\n'
-            '    <a:xfrm>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
             '      <a:off x="%%d" y="%%d"/>\n'
             '      <a:ext cx="%%d" cy="%%d"/>\n'
-            '    </a:xfrm>\n'
+            "    </a:xfrm>\n"
             '    <a:prstGeom prst="rect">\n'
-            '      <a:avLst/>\n'
-            '    </a:prstGeom>\n'
-            '  </p:spPr>\n'
-            '</p:pic>' % nsdecls('a', 'p', 'r')
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>" % nsdecls("a", "p", "r")
         )
 
     @classmethod
     def _pic_video_tmpl(cls):
         return (
-            '<p:pic %s>\n'
-            '  <p:nvPicPr>\n'
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
             '    <p:cNvPr id="%%d" name="%%s">\n'
             '      <a:hlinkClick r:id="" action="ppaction://media"/>\n'
-            '    </p:cNvPr>\n'
-            '    <p:cNvPicPr>\n'
+            "    </p:cNvPr>\n"
+            "    <p:cNvPicPr>\n"
             '      <a:picLocks noChangeAspect="1"/>\n'
-            '    </p:cNvPicPr>\n'
-            '    <p:nvPr>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr>\n"
             '      <a:videoFile r:link="%%s"/>\n'
-            '      <p:extLst>\n'
+            "      <p:extLst>\n"
             '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">\n'
             '          <p14:media xmlns:p14="http://schemas.microsoft.com/of'
             'fice/powerpoint/2010/main" r:embed="%%s"/>\n'
-            '        </p:ext>\n'
-            '      </p:extLst>\n'
-            '    </p:nvPr>\n'
-            '  </p:nvPicPr>\n'
-            '  <p:blipFill>\n'
+            "        </p:ext>\n"
+            "      </p:extLst>\n"
+            "    </p:nvPr>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
             '    <a:blip r:embed="%%s"/>\n'
-            '    <a:stretch>\n'
-            '      <a:fillRect/>\n'
-            '    </a:stretch>\n'
-            '  </p:blipFill>\n'
-            '  <p:spPr>\n'
-            '    <a:xfrm>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
             '      <a:off x="%%d" y="%%d"/>\n'
             '      <a:ext cx="%%d" cy="%%d"/>\n'
-            '    </a:xfrm>\n'
+            "    </a:xfrm>\n"
             '    <a:prstGeom prst="rect">\n'
-            '      <a:avLst/>\n'
-            '    </a:prstGeom>\n'
-            '  </p:spPr>\n'
-            '</p:pic>' % nsdecls('a', 'p', 'r')
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>" % nsdecls("a", "p", "r")
         )
 
     def _srcRect_x(self, attr_name):
@@ -248,5 +253,6 @@ class CT_PictureNonVisual(BaseOxmlElement):
     ``<p:nvPicPr>`` element, containing non-visual properties for a picture
     shape.
     """
-    cNvPr = OneAndOnlyOne('p:cNvPr')
-    nvPr = OneAndOnlyOne('p:nvPr')
+
+    cNvPr = OneAndOnlyOne("p:cNvPr")
+    nvPr = OneAndOnlyOne("p:nvPr")

@@ -13,6 +13,7 @@ class TextFitter(tuple):
     """
     Value object that knows how to fit text into given rectangular extents.
     """
+
     def __new__(cls, line_source, extents, font_file):
         width, height = extents
         return tuple.__new__(cls, (line_source, width, height, font_file))
@@ -34,9 +35,7 @@ class TextFitter(tuple):
         *max_size* that this fitter can fit.
         """
         predicate = self._fits_inside_predicate
-        sizes = _BinarySearchTree.from_ordered_sequence(
-            range(1, int(max_size)+1)
-        )
+        sizes = _BinarySearchTree.from_ordered_sequence(range(1, int(max_size) + 1))
         return sizes.find_max(predicate)
 
     def _break_line(self, line_source, point_size):
@@ -55,6 +54,7 @@ class TextFitter(tuple):
         that text fits in this fitter when rendered at *point_size*. Used as
         predicate for _break_line()
         """
+
         def predicate(line):
             """
             Return |True| if *line* fits in this fitter when rendered at
@@ -72,6 +72,7 @@ class TextFitter(tuple):
         |True| if the text in this fitter can be wrapped to fit entirely
         within its extents when rendered at that point size.
         """
+
         def predicate(point_size):
             """
             Return |True| if the text in *line_source* can be wrapped to fit
@@ -79,7 +80,7 @@ class TextFitter(tuple):
             font defined in *font_file*.
             """
             text_lines = self._wrap_lines(self._line_source, point_size)
-            cy = _rendered_size('Ty', point_size, self._font_file)[1]
+            cy = _rendered_size("Ty", point_size, self._font_file)[1]
             return (cy * len(text_lines)) <= self._height
 
         return predicate
@@ -118,6 +119,7 @@ class _BinarySearchTree(object):
     A node in a binary search tree. Uniform for root, subtree root, and leaf
     nodes.
     """
+
     def __init__(self, value):
         self._value = value
         self._lesser = None
@@ -154,24 +156,24 @@ class _BinarySearchTree(object):
         Insert a new node containing *value* into this tree such that its
         structure as a binary search tree is preserved.
         """
-        side = '_lesser' if value < self.value else '_greater'
+        side = "_lesser" if value < self.value else "_greater"
         child = getattr(self, side)
         if child is None:
             setattr(self, side, _BinarySearchTree(value))
         else:
             child.insert(value)
 
-    def tree(self, level=0, prefix=''):
+    def tree(self, level=0, prefix=""):
         """
         A string representation of the tree rooted in this node, useful for
         debugging purposes.
         """
-        text = '%s%s\n' % (prefix, self.value.text)
-        prefix = '%s└── ' % ('    ' * level)
+        text = "%s%s\n" % (prefix, self.value.text)
+        prefix = "%s└── " % ("    " * level)
         if self._lesser:
-            text += self._lesser.tree(level+1, prefix)
+            text += self._lesser.tree(level + 1, prefix)
         if self._greater:
-            text += self._greater.tree(level+1, prefix)
+            text += self._greater.tree(level + 1, prefix)
         return text
 
     @property
@@ -189,9 +191,9 @@ class _BinarySearchTree(object):
         """
         if len(seq) == 0:
             return [], None, []
-        mid_idx = int(len(seq)/2)
+        mid_idx = int(len(seq) / 2)
         mid = seq[mid_idx]
-        greater = seq[mid_idx+1:]
+        greater = seq[mid_idx + 1 :]
         lesser = seq[:mid_idx]
         return mid, greater, lesser
 
@@ -216,6 +218,7 @@ class _LineSource(object):
     object. Its boolean value is |True| when it contains text, |False| when
     its text is the empty string or whitespace only.
     """
+
     def __init__(self, text):
         self._text = text
 
@@ -224,7 +227,7 @@ class _LineSource(object):
         Gives this object boolean behaviors (in Python 3). bool(line_source)
         is False if it contains the empty string or whitespace only.
         """
-        return self._text.strip() != ''
+        return self._text.strip() != ""
 
     def __eq__(self, other):
         return self._text == other._text
@@ -236,9 +239,9 @@ class _LineSource(object):
         is a |_LineSource| value.
         """
         words = self._text.split()
-        for idx in range(1, len(words)+1):
-            line_text = ' '.join(words[:idx])
-            remainder_text = ' '.join(words[idx:])
+        for idx in range(1, len(words) + 1):
+            line_text = " ".join(words[:idx])
+            remainder_text = " ".join(words[idx:])
             remainder = _LineSource(remainder_text)
             yield _Line(line_text, remainder)
 
@@ -247,7 +250,7 @@ class _LineSource(object):
         Gives this object boolean behaviors (in Python 2). bool(line_source)
         is False if it contains the empty string or whitespace only.
         """
-        return self._text.strip() != ''
+        return self._text.strip() != ""
 
     def __repr__(self):
         return "<_LineSource('%s')>" % self._text
@@ -259,6 +262,7 @@ class _Line(tuple):
     and a |_LineSource| value containing the text that remains after the line
     is broken at this spot.
     """
+
     def __new__(cls, text, remainder):
         return tuple.__new__(cls, (text, remainder))
 
@@ -287,6 +291,7 @@ class _Fonts(object):
     """
     A memoizing cache for ImageFont objects.
     """
+
     fonts = {}
 
     @classmethod

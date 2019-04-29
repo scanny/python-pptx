@@ -2,9 +2,7 @@
 
 """Custom element classes for top-level chart-related XML elements."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.shared import CT_Title
@@ -12,28 +10,39 @@ from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.simpletypes import ST_Style, XsdString
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
 )
 
 
 class CT_Chart(BaseOxmlElement):
     """`c:chart` custom element class."""
-    _tag_seq = (
-        'c:title', 'c:autoTitleDeleted', 'c:pivotFmts', 'c:view3D',
-        'c:floor', 'c:sideWall', 'c:backWall', 'c:plotArea', 'c:legend',
-        'c:plotVisOnly', 'c:dispBlanksAs', 'c:showDLblsOverMax', 'c:extLst',
-    )
-    title = ZeroOrOne('c:title', successors=_tag_seq[1:])
-    autoTitleDeleted = ZeroOrOne(
-        'c:autoTitleDeleted', successors=_tag_seq[2:]
-    )
-    plotArea = OneAndOnlyOne('c:plotArea')
-    legend = ZeroOrOne('c:legend', successors=_tag_seq[9:])
-    rId = RequiredAttribute('r:id', XsdString)
 
-    _chart_tmpl = (
-        '<c:chart %s %s r:id="%%s"/>' % (nsdecls('c'), nsdecls('r'))
+    _tag_seq = (
+        "c:title",
+        "c:autoTitleDeleted",
+        "c:pivotFmts",
+        "c:view3D",
+        "c:floor",
+        "c:sideWall",
+        "c:backWall",
+        "c:plotArea",
+        "c:legend",
+        "c:plotVisOnly",
+        "c:dispBlanksAs",
+        "c:showDLblsOverMax",
+        "c:extLst",
     )
+    title = ZeroOrOne("c:title", successors=_tag_seq[1:])
+    autoTitleDeleted = ZeroOrOne("c:autoTitleDeleted", successors=_tag_seq[2:])
+    plotArea = OneAndOnlyOne("c:plotArea")
+    legend = ZeroOrOne("c:legend", successors=_tag_seq[9:])
+    rId = RequiredAttribute("r:id", XsdString)
+
+    _chart_tmpl = '<c:chart %s %s r:id="%%s"/>' % (nsdecls("c"), nsdecls("r"))
 
     @property
     def has_legend(self):
@@ -74,16 +83,28 @@ class CT_Chart(BaseOxmlElement):
 
 class CT_ChartSpace(BaseOxmlElement):
     """`c:chartSpace` root element of a chart part."""
+
     _tag_seq = (
-        'c:date1904', 'c:lang', 'c:roundedCorners', 'c:style', 'c:clrMapOvr',
-        'c:pivotSource', 'c:protection', 'c:chart', 'c:spPr', 'c:txPr',
-        'c:externalData', 'c:printSettings', 'c:userShapes', 'c:extLst',
+        "c:date1904",
+        "c:lang",
+        "c:roundedCorners",
+        "c:style",
+        "c:clrMapOvr",
+        "c:pivotSource",
+        "c:protection",
+        "c:chart",
+        "c:spPr",
+        "c:txPr",
+        "c:externalData",
+        "c:printSettings",
+        "c:userShapes",
+        "c:extLst",
     )
-    date1904 = ZeroOrOne('c:date1904', successors=_tag_seq[1:])
-    style = ZeroOrOne('c:style', successors=_tag_seq[4:])
-    chart = OneAndOnlyOne('c:chart')
-    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[10:])
-    externalData = ZeroOrOne('c:externalData', successors=_tag_seq[11:])
+    date1904 = ZeroOrOne("c:date1904", successors=_tag_seq[1:])
+    style = ZeroOrOne("c:style", successors=_tag_seq[4:])
+    chart = OneAndOnlyOne("c:chart")
+    txPr = ZeroOrOne("c:txPr", successors=_tag_seq[10:])
+    externalData = ZeroOrOne("c:externalData", successors=_tag_seq[11:])
     del _tag_seq
 
     @property
@@ -104,7 +125,7 @@ class CT_ChartSpace(BaseOxmlElement):
 
     @property
     def dateAx_lst(self):
-        return self.xpath('c:chart/c:plotArea/c:dateAx')
+        return self.xpath("c:chart/c:plotArea/c:dateAx")
 
     def get_or_add_title(self):
         """Return the `c:title` grandchild, newly created if not present."""
@@ -153,16 +174,18 @@ class CT_ExternalData(BaseOxmlElement):
     `<c:externalData>` element, defining link to embedded Excel package part
     containing the chart data.
     """
-    autoUpdate = ZeroOrOne('c:autoUpdate')
-    rId = RequiredAttribute('r:id', XsdString)
+
+    autoUpdate = ZeroOrOne("c:autoUpdate")
+    rId = RequiredAttribute("r:id", XsdString)
 
 
 class CT_PlotArea(BaseOxmlElement):
     """
     ``<c:plotArea>`` element.
     """
-    catAx = ZeroOrMore('c:catAx')
-    valAx = ZeroOrMore('c:valAx')
+
+    catAx = ZeroOrMore("c:catAx")
+    valAx = ZeroOrMore("c:valAx")
 
     def iter_sers(self):
         """
@@ -179,12 +202,22 @@ class CT_PlotArea(BaseOxmlElement):
         Generate each xChart child element in document.
         """
         plot_tags = (
-            qn('c:area3DChart'), qn('c:areaChart'), qn('c:bar3DChart'),
-            qn('c:barChart'), qn('c:bubbleChart'), qn('c:doughnutChart'),
-            qn('c:line3DChart'), qn('c:lineChart'), qn('c:ofPieChart'),
-            qn('c:pie3DChart'), qn('c:pieChart'), qn('c:radarChart'),
-            qn('c:scatterChart'), qn('c:stockChart'), qn('c:surface3DChart'),
-            qn('c:surfaceChart')
+            qn("c:area3DChart"),
+            qn("c:areaChart"),
+            qn("c:bar3DChart"),
+            qn("c:barChart"),
+            qn("c:bubbleChart"),
+            qn("c:doughnutChart"),
+            qn("c:line3DChart"),
+            qn("c:lineChart"),
+            qn("c:ofPieChart"),
+            qn("c:pie3DChart"),
+            qn("c:pieChart"),
+            qn("c:radarChart"),
+            qn("c:scatterChart"),
+            qn("c:stockChart"),
+            qn("c:surface3DChart"),
+            qn("c:surfaceChart"),
         )
 
         for child in self.iterchildren():
@@ -214,7 +247,7 @@ class CT_PlotArea(BaseOxmlElement):
         idx_vals = [s.idx.val for s in self.sers]
         if not idx_vals:
             return 0
-        return max(idx_vals)+1
+        return max(idx_vals) + 1
 
     @property
     def next_order(self):
@@ -226,7 +259,7 @@ class CT_PlotArea(BaseOxmlElement):
         order_vals = [s.order.val for s in self.sers]
         if not order_vals:
             return 0
-        return max(order_vals)+1
+        return max(order_vals) + 1
 
     @property
     def sers(self):
@@ -251,4 +284,5 @@ class CT_Style(BaseOxmlElement):
     """
     ``<c:style>`` element; defines the chart style.
     """
-    val = RequiredAttribute('val', ST_Style)
+
+    val = RequiredAttribute("val", ST_Style)

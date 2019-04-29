@@ -7,9 +7,7 @@ objects (but not to other connectors). A connector can be straight, have
 elbows, or can be curved.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.dml.line import LineFormat
 from pptx.shapes.base import BaseShape
@@ -23,6 +21,7 @@ class Connector(BaseShape):
     other objects (but not to other connectors). A connector can be straight,
     have elbows, or can be curved.
     """
+
     def begin_connect(self, shape, cxn_pt_idx):
         """
         **EXPERIMENTAL** - *The current implementation only works properly
@@ -52,7 +51,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
-        begin_x = x+cx if flipH else x
+        begin_x = x + cx if flipH else x
         return Emu(begin_x)
 
     @begin_x.setter
@@ -92,7 +91,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
-        begin_y = y+cy if flipV else y
+        begin_y = y + cy if flipV else y
         return Emu(begin_y)
 
     @begin_y.setter
@@ -148,7 +147,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
-        end_x = x if flipH else x+cx
+        end_x = x if flipH else x + cx
         return Emu(end_x)
 
     @end_x.setter
@@ -188,7 +187,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
-        end_y = y if flipV else y+cy
+        end_y = y if flipV else y + cy
         return Emu(end_y)
 
     @end_y.setter
@@ -271,10 +270,10 @@ class Connector(BaseShape):
         """
         x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
         self.begin_x, self.begin_y = {
-            0: (int(x + cx/2), y),
-            1: (x, int(y + cy/2)),
-            2: (int(x + cx/2), y + cy),
-            3: (x + cx, int(y + cy/2)),
+            0: (int(x + cx / 2), y),
+            1: (x, int(y + cy / 2)),
+            2: (int(x + cx / 2), y + cy),
+            3: (x + cx, int(y + cy / 2)),
         }[cxn_pt_idx]
 
     def _move_end_to_cxn(self, shape, cxn_pt_idx):
@@ -284,8 +283,8 @@ class Connector(BaseShape):
         """
         x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
         self.end_x, self.end_y = {
-            0: (int(x + cx/2), y),
-            1: (x, int(y + cy/2)),
-            2: (int(x + cx/2), y + cy),
-            3: (x + cx, int(y + cy/2)),
+            0: (int(x + cx / 2), y),
+            1: (x, int(y + cy / 2)),
+            2: (int(x + cx / 2), y + cy),
+            3: (x + cx, int(y + cy / 2)),
         }[cxn_pt_idx]

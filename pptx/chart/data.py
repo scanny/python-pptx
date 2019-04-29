@@ -11,9 +11,7 @@ from collections import Sequence
 from numbers import Number
 
 from ..util import lazyproperty
-from .xlsx import (
-    BubbleWorkbookWriter, CategoryWorkbookWriter, XyWorkbookWriter
-)
+from .xlsx import BubbleWorkbookWriter, CategoryWorkbookWriter, XyWorkbookWriter
 from .xmlwriter import ChartXmlWriter
 
 
@@ -27,7 +25,8 @@ class _BaseChartData(Sequence):
     :meth:`Chart.replace_data`. The data structure varies between major chart
     categories such as category charts and XY charts.
     """
-    def __init__(self, number_format='General'):
+
+    def __init__(self, number_format="General"):
         super(_BaseChartData, self).__init__()
         self._number_format = number_format
         self._series = []
@@ -51,7 +50,7 @@ class _BaseChartData(Sequence):
             if series is this_series:
                 return count
             count += len(this_series)
-        raise ValueError('series not in chart data object')
+        raise ValueError("series not in chart data object")
 
     @property
     def number_format(self):
@@ -71,7 +70,7 @@ class _BaseChartData(Sequence):
         for idx, s in enumerate(self):
             if series is s:
                 return idx
-        raise ValueError('series not in chart data object')
+        raise ValueError("series not in chart data object")
 
     def series_name_ref(self, series):
         """
@@ -101,7 +100,7 @@ class _BaseChartData(Sequence):
         containing the series in this chart data object, as bytes suitable
         for writing directly to a file.
         """
-        return self._xml(chart_type).encode('utf-8')
+        return self._xml(chart_type).encode("utf-8")
 
     def y_values_ref(self, series):
         """
@@ -116,7 +115,7 @@ class _BaseChartData(Sequence):
         The worksheet writer object to which layout and writing of the Excel
         worksheet for this chart will be delegated.
         """
-        raise NotImplementedError('must be implemented by all subclasses')
+        raise NotImplementedError("must be implemented by all subclasses")
 
     def _xml(self, chart_type):
         """
@@ -135,6 +134,7 @@ class _BaseSeriesData(Sequence):
     worksheet. It operates as a sequence of data points, as well as providing
     access to series-level attributes like the series label.
     """
+
     def __init__(self, chart_data, name, number_format):
         self._chart_data = chart_data
         self._name = name
@@ -173,7 +173,7 @@ class _BaseSeriesData(Sequence):
         column heading for the y-values of this series and may also appear in
         the chart legend and perhaps other chart locations.
         """
-        return self._name if self._name is not None else ''
+        return self._name if self._name is not None else ""
 
     @property
     def name_ref(self):
@@ -233,6 +233,7 @@ class _BaseDataPoint(object):
     """
     Base class providing common members for data point objects.
     """
+
     def __init__(self, series_data, number_format):
         super(_BaseDataPoint, self).__init__()
         self._series_data = series_data
@@ -267,6 +268,7 @@ class CategoryChartData(_BaseChartData):
     (X) values and each data point in its series specifies only the Y value.
     The corresponding X value is inferred by its position in the sequence.
     """
+
     def add_category(self, label):
         """
         Return a newly created |data.Category| object having *label* and
@@ -342,6 +344,7 @@ class Categories(Sequence):
     A sequence of |data.Category| objects, also having certain hierarchical
     graph behaviors for support of multi-level (nested) categories.
     """
+
     def __init__(self):
         super(Categories, self).__init__()
         self._categories = []
@@ -427,7 +430,7 @@ class Categories(Sequence):
         first_depth = categories[0].depth
         for category in categories[1:]:
             if category.depth != first_depth:
-                raise ValueError('category depth not uniform')
+                raise ValueError("category depth not uniform")
         return first_depth
 
     def index(self, category):
@@ -440,7 +443,7 @@ class Categories(Sequence):
             if category is this_category:
                 return index
             index += this_category.leaf_count
-        raise ValueError('category not in top-level categories')
+        raise ValueError("category not in top-level categories")
 
     @property
     def leaf_count(self):
@@ -458,11 +461,10 @@ class Categories(Sequence):
         hierarchy from the bottom up. The first level contains all leaf
         categories, and each subsequent is the next level up.
         """
+
         def levels(categories):
             # yield all lower levels
-            sub_categories = [
-                sc for c in categories for sc in c.sub_categories
-            ]
+            sub_categories = [sc for c in categories for sc in c.sub_categories]
             if sub_categories:
                 for level in levels(sub_categories):
                     yield level
@@ -482,7 +484,7 @@ class Categories(Sequence):
         are string labels. Assigning |None| causes the default number format
         to be used, based on the type of the category labels.
         """
-        GENERAL = 'General'
+        GENERAL = "General"
 
         # defined value takes precedence
         if self._number_format is not None:
@@ -496,7 +498,7 @@ class Categories(Sequence):
         # everything except dates gets 'General'
         first_cat_label = self[0].label
         if isinstance(first_cat_label, (datetime.date, datetime.datetime)):
-            return 'yyyy\-mm\-dd'
+            return r"yyyy\-mm\-dd"
         return GENERAL
 
     @number_format.setter
@@ -510,6 +512,7 @@ class Category(object):
     category axis, but also able to be configured in a hierarchy for support
     of multi-level category charts.
     """
+
     def __init__(self, label, parent):
         super(Category, self).__init__()
         self._label = label
@@ -537,7 +540,7 @@ class Category(object):
         first_depth = sub_categories[0].depth
         for category in sub_categories[1:]:
             if category.depth != first_depth:
-                raise ValueError('category depth not uniform')
+                raise ValueError("category depth not uniform")
         return first_depth + 1
 
     @property
@@ -559,7 +562,7 @@ class Category(object):
             if sub_category is this_sub_category:
                 return index
             index += this_sub_category.leaf_count
-        raise ValueError('sub_category not in this category')
+        raise ValueError("sub_category not in this category")
 
     @property
     def leaf_count(self):
@@ -578,7 +581,7 @@ class Category(object):
         be a string, a number, or a datetime.date or datetime.datetime
         object.
         """
-        return self._label if self._label is not None else ''
+        return self._label if self._label is not None else ""
 
     def numeric_str_val(self, date_1904=False):
         """
@@ -589,7 +592,7 @@ class Category(object):
         """
         label = self._label
         if isinstance(label, (datetime.date, datetime.datetime)):
-            return '%.1f' % self._excel_date_number(date_1904)
+            return "%.1f" % self._excel_date_number(date_1904)
         return str(self._label)
 
     @property
@@ -635,6 +638,7 @@ class CategorySeriesData(_BaseSeriesData):
     number format to be applied to each data point not having a specified
     number format.
     """
+
     def add_data_point(self, value, number_format=None):
         """
         Return a CategoryDataPoint object newly created with value *value*,
@@ -683,6 +687,7 @@ class XyChartData(_BaseChartData):
     chart. Unlike ChartData, it has no category sequence. Rather, each data
     point of each series specifies both an X and a Y value.
     """
+
     def add_series(self, name, number_format=None):
         """
         Return an |XySeriesData| object newly created and added at the end of
@@ -708,6 +713,7 @@ class BubbleChartData(XyChartData):
     A bubble chart is essentially an XY chart where the markers are scaled to
     provide a third quantitative dimension to the exhibit.
     """
+
     def add_series(self, name, number_format=None):
         """
         Return a |BubbleSeriesData| object newly created and added at the end
@@ -745,6 +751,7 @@ class XySeriesData(_BaseSeriesData):
     segment to "travel backward" (implying a multi-valued function). The data
     points are not automatically sorted into increasing order by X value.
     """
+
     def add_data_point(self, x, y, number_format=None):
         """
         Return an XyDataPoint object newly created with values *x* and *y*,
@@ -766,6 +773,7 @@ class BubbleSeriesData(XySeriesData):
     throughout the chart building process because a data point has no unique
     identifier and can only be retrieved by index.
     """
+
     def add_data_point(self, x, y, size, number_format=None):
         """
         Append a new BubbleDataPoint object having the values *x*, *y*, and
@@ -799,6 +807,7 @@ class CategoryDataPoint(_BaseDataPoint):
     the datapoint and the number format with which it should appear in the
     Excel file.
     """
+
     def __init__(self, series_data, value, number_format):
         super(CategoryDataPoint, self).__init__(series_data, number_format)
         self._value = value
@@ -816,6 +825,7 @@ class XyDataPoint(_BaseDataPoint):
     A data point in an XY chart series. Provides access to the x and y values
     of the datapoint.
     """
+
     def __init__(self, series_data, x, y, number_format):
         super(XyDataPoint, self).__init__(series_data, number_format)
         self._x = x
@@ -841,6 +851,7 @@ class BubbleDataPoint(XyDataPoint):
     A data point in a bubble chart series. Provides access to the x, y, and
     size values of the datapoint.
     """
+
     def __init__(self, series_data, x, y, size, number_format):
         super(BubbleDataPoint, self).__init__(series_data, x, y, number_format)
         self._size = size

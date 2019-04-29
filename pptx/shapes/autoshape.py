@@ -30,6 +30,7 @@ class Adjustment(object):
     Values are |float| and generally range from 0.0 to 1.0, although the value
     can be negative or greater than 1.0 in certain circumstances.
     """
+
     def __init__(self, name, def_val, actual=None):
         super(Adjustment, self).__init__()
         self.name = name
@@ -95,6 +96,7 @@ class AdjustmentCollection(object):
     an available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
+
     def __init__(self, prstGeom):
         super(AdjustmentCollection, self).__init__()
         self._adjustments_ = self._initialized_adjustments(prstGeom)
@@ -193,6 +195,7 @@ class AutoShapeType(object):
        Informal string description of auto shape.
 
     """
+
     _instances = {}
 
     def __new__(cls, autoshape_type_id):
@@ -210,7 +213,7 @@ class AutoShapeType(object):
     def __init__(self, autoshape_type_id):
         """Initialize attributes from constant values in pptx.spec"""
         # skip loading if this instance is from the cache
-        if hasattr(self, '_loaded'):
+        if hasattr(self, "_loaded"):
             return
         # raise on bad autoshape_type_id
         if autoshape_type_id not in autoshape_types:
@@ -221,7 +224,7 @@ class AutoShapeType(object):
         # otherwise initialize new instance
         autoshape_type = autoshape_types[autoshape_type_id]
         self._autoshape_type_id = autoshape_type_id
-        self._basename = autoshape_type['basename']
+        self._basename = autoshape_type["basename"]
         self._loaded = True
 
     @property
@@ -245,7 +248,7 @@ class AutoShapeType(object):
         Return sequence of name, value tuples representing the adjustment
         value defaults for the auto shape type identified by *prst*.
         """
-        return autoshape_types[prst]['avLst']
+        return autoshape_types[prst]["avLst"]
 
     @property
     def desc(self):
@@ -276,6 +279,7 @@ class Shape(BaseShape):
     that can appear in any of the slide-type parts (slide, slideLayout,
     slideMaster, notesPage, notesMaster, handoutMaster).
     """
+
     def __init__(self, sp, parent):
         super(Shape, self).__init__(sp, parent)
         self._sp = sp
@@ -352,7 +356,7 @@ class Shape(BaseShape):
             return MSO_SHAPE_TYPE.AUTO_SHAPE
         if self._sp.is_textbox:
             return MSO_SHAPE_TYPE.TEXT_BOX
-        msg = 'Shape instance of unrecognized shape type'
+        msg = "Shape instance of unrecognized shape type"
         raise NotImplementedError(msg)
 
     @property

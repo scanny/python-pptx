@@ -2,9 +2,7 @@
 
 """Visual effects on a shape such as shadow, glow, and reflection."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 class ShadowFormat(object):

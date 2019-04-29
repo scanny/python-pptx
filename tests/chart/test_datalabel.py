@@ -2,9 +2,7 @@
 
 """Unit test suite for the pptx.chart.datalabel module"""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -17,7 +15,6 @@ from ..unitutil.mock import class_mock, instance_mock, method_mock
 
 
 class DescribeDataLabel(object):
-
     def it_has_a_font(self, font_fixture):
         data_label, expected_xml = font_fixture
         font = data_label.font
@@ -54,134 +51,189 @@ class DescribeDataLabel(object):
         data_label, expected_xml = rich_fixture
         rich = data_label._get_or_add_rich()
         assert data_label._ser.xml == expected_xml
-        assert rich is data_label._ser.xpath('c:dLbls/c:dLbl/c:tx/c:rich')[0]
+        assert rich is data_label._ser.xpath("c:dLbls/c:dLbl/c:tx/c:rich")[0]
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('c:ser{a:b=c}',
-         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr'
-         ',a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{v'
-         'al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val='
-         '0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0'
-         '},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c'
-         ':showBubbleSize{val=0},c:showLeaderLines{val=1})'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p))',
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p/a:p'
-         'Pr/a:defRPr))'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "c:ser{a:b=c}",
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr"
+                ",a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{v"
+                "al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val="
+                "0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0"
+                "},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c"
+                ":showBubbleSize{val=0},c:showLeaderLines{val=1})",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p))",
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p/a:p"
+                "Pr/a:defRPr))",
+            ),
+        ]
+    )
     def font_fixture(self, request):
         ser_cxml, expected_cxml = request.param
         data_label = DataLabel(element(ser_cxml), 9)
         expected_xml = xml(expected_cxml)
         return data_label, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:ser',                                              False),
-        ('c:ser/c:dLbls',                                      False),
-        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                 False),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', False),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)',   False),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)',   True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:ser", False),
+            ("c:ser/c:dLbls", False),
+            ("c:ser/c:dLbls/c:dLbl/c:idx{val=42}", False),
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)", False),
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)", False),
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)", True),
+        ]
+    )
     def has_tf_get_fixture(self, request):
         ser_cxml, expected_value = request.param
         data_label = DataLabel(element(ser_cxml), 42)
         return data_label, expected_value
 
-    @pytest.fixture(params=[
-        ('c:ser', False, 'c:ser'),
-        ('c:ser/c:dLbls', False, 'c:ser/c:dLbls'),
-        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}', False,
-         'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', False,
-         'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)', False,
-         'c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)', False,
-         'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
-        ('c:ser{a:b=c}', True,
-         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,'
-         'a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va'
-         'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
-         '},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}'
-         ',c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:'
-         'showBubbleSize{val=0},c:showLeaderLines{val=1})'),
-        ('c:ser{a:b=c}/c:dLbls', True,
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val'
-         '=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0}'
-         ',c:showBubbleSize{val=0})'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}', True,
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p/a:pPr/a:defRPr))'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)', True,
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p/a:pPr/a:defRPr))'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)', True,
-         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c'
-         ':idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),'
-         'c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:sho'
-         'wSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}))'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}', True,
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p/a:pPr/a:defRPr))'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:ser", False, "c:ser"),
+            ("c:ser/c:dLbls", False, "c:ser/c:dLbls"),
+            (
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=42}",
+                False,
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=42}",
+            ),
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)",
+                False,
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)",
+            ),
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)",
+                False,
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)",
+            ),
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)",
+                False,
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=42}",
+            ),
+            (
+                "c:ser{a:b=c}",
+                True,
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,"
+                "a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va"
+                "l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0"
+                "},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}"
+                ",c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:"
+                "showBubbleSize{val=0},c:showLeaderLines{val=1})",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls",
+                True,
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
+                ":lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val"
+                "=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0}"
+                ",c:showBubbleSize{val=0})",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}",
+                True,
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
+                ":lstStyle,a:p/a:pPr/a:defRPr))",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)",
+                True,
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
+                ":lstStyle,a:p/a:pPr/a:defRPr))",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)",
+                True,
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c"
+                ":idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),"
+                "c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:sho"
+                "wSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}))",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}",
+                True,
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
+                ":lstStyle,a:p/a:pPr/a:defRPr))",
+            ),
+        ]
+    )
     def has_tf_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
         data_label = DataLabel(element(ser_cxml), 42)
         expected_xml = xml(expected_cxml)
         return data_label, value, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:ser',                                                 None),
-        ('c:ser/c:dLbls/c:dLbl/c:idx{val=42}',                    None),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})', 'BELOW'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:ser", None),
+            ("c:ser/c:dLbls/c:dLbl/c:idx{val=42}", None),
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})", "BELOW"),
+        ]
+    )
     def position_get_fixture(self, request):
         ser_cxml, value = request.param
         data_label = DataLabel(element(ser_cxml), 42)
-        expected_value = (
-            None if value is None else getattr(XL_LABEL_POSITION, value)
-        )
+        expected_value = None if value is None else getattr(XL_LABEL_POSITION, value)
         return data_label, expected_value
 
-    @pytest.fixture(params=[
-        ('c:ser{a:b=c}', 'CENTER',
-         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:spPr,c:txPr/(a:bodyP'
-         'r,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr},c:showLegendKe'
-         'y{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0'
-         '},c:showPercent{val=0},c:showBubbleSize{val=0}),c:showLegendKey{va'
-         'l=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val=0},c:'
-         'showPercent{val=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1'
-         '})'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr})', 'BELOW',
-         'c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})'),
-        ('c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})', None,
-         'c:ser/c:dLbls/c:dLbl/c:idx{val=42}'),
-        ('c:ser', None, 'c:ser'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "c:ser{a:b=c}",
+                "CENTER",
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:spPr,c:txPr/(a:bodyP"
+                "r,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr},c:showLegendKe"
+                "y{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0"
+                "},c:showPercent{val=0},c:showBubbleSize{val=0}),c:showLegendKey{va"
+                "l=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val=0},c:"
+                "showPercent{val=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1"
+                "})",
+            ),
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr})",
+                "BELOW",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})",
+            ),
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})",
+                None,
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=42}",
+            ),
+            ("c:ser", None, "c:ser"),
+        ]
+    )
     def position_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
         data_label = DataLabel(element(ser_cxml), 42)
-        new_value = (
-            None if value is None else getattr(XL_LABEL_POSITION, value)
-        )
+        new_value = None if value is None else getattr(XL_LABEL_POSITION, value)
         expected_xml = xml(expected_cxml)
         return data_label, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:ser{a:b=c}',
-         'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,'
-         'a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va'
-         'l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0'
-         '},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}'
-         ',c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:'
-         'showBubbleSize{val=0},c:showLeaderLines{val=1})'),
-        ('c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)',
-         'c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a'
-         ':lstStyle,a:p/a:pPr/a:defRPr))'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "c:ser{a:b=c}",
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,"
+                "a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va"
+                "l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0"
+                "},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}"
+                ",c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:"
+                "showBubbleSize{val=0},c:showLeaderLines{val=1})",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)",
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
+                ":lstStyle,a:p/a:pPr/a:defRPr))",
+            ),
+        ]
+    )
     def rich_fixture(self, request):
         ser_cxml, expected_cxml = request.param
         data_label = DataLabel(element(ser_cxml), 42)
@@ -199,15 +251,14 @@ class DescribeDataLabel(object):
 
     @pytest.fixture
     def _get_or_add_rich_(self, request):
-        return method_mock(request, DataLabel, '_get_or_add_rich')
+        return method_mock(request, DataLabel, "_get_or_add_rich")
 
     @pytest.fixture
     def TextFrame_(self, request):
-        return class_mock(request, 'pptx.chart.datalabel.TextFrame')
+        return class_mock(request, "pptx.chart.datalabel.TextFrame")
 
 
 class DescribeDataLabels(object):
-
     def it_provides_access_to_its_font(self, font_fixture):
         data_labels, Font_, defRPr, font_ = font_fixture
         font = data_labels.font
@@ -229,15 +280,15 @@ class DescribeDataLabels(object):
         assert data_labels._element.xml == expected_xml
 
     def it_knows_whether_its_number_format_is_linked(
-            self, number_format_is_linked_get_fixture):
+        self, number_format_is_linked_get_fixture
+    ):
         data_labels, expected_value = number_format_is_linked_get_fixture
         assert data_labels.number_format_is_linked is expected_value
 
     def it_can_change_whether_its_number_format_is_linked(
-            self, number_format_is_linked_set_fixture):
-        data_labels, new_value, expected_xml = (
-            number_format_is_linked_set_fixture
-        )
+        self, number_format_is_linked_set_fixture
+    ):
+        data_labels, new_value, expected_xml = number_format_is_linked_set_fixture
         data_labels.number_format_is_linked = new_value
         assert data_labels._element.xml == expected_xml
 
@@ -332,30 +383,31 @@ class DescribeDataLabels(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False),
-        ('c:dLbls/c:showCatName{val=0}', False),
-        ('c:dLbls/c:showCatName{val=1}', True),
-        ('c:dLbls/c:showCatName{val=true}', True),
-        # ---not an expected situation, but schema-compliant---
-        ('c:dLbls/c:showCatName', True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False),
+            ("c:dLbls/c:showCatName{val=0}", False),
+            ("c:dLbls/c:showCatName{val=1}", True),
+            ("c:dLbls/c:showCatName{val=true}", True),
+            # ---not an expected situation, but schema-compliant---
+            ("c:dLbls/c:showCatName", True),
+        ]
+    )
     def catname_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False, 'c:dLbls/c:showCatName{val=0}'),
-        ('c:dLbls', True, 'c:dLbls/c:showCatName{val=1}'),
-        ('c:dLbls/c:showCatName', False, 'c:dLbls/c:showCatName{val=0}'),
-        ('c:dLbls/c:showCatName{val=0}', False,
-         'c:dLbls/c:showCatName{val=0}'),
-        ('c:dLbls/c:showCatName{val=0}', True,
-         'c:dLbls/c:showCatName{val=1}'),
-        ('c:dLbls/c:showCatName{val=1}', False,
-         'c:dLbls/c:showCatName{val=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False, "c:dLbls/c:showCatName{val=0}"),
+            ("c:dLbls", True, "c:dLbls/c:showCatName{val=1}"),
+            ("c:dLbls/c:showCatName", False, "c:dLbls/c:showCatName{val=0}"),
+            ("c:dLbls/c:showCatName{val=0}", False, "c:dLbls/c:showCatName{val=0}"),
+            ("c:dLbls/c:showCatName{val=0}", True, "c:dLbls/c:showCatName{val=1}"),
+            ("c:dLbls/c:showCatName{val=1}", False, "c:dLbls/c:showCatName{val=0}"),
+        ]
+    )
     def catname_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         dLbls = element(dLbls_cxml)
@@ -364,205 +416,240 @@ class DescribeDataLabels(object):
 
     @pytest.fixture
     def font_fixture(self, Font_, font_):
-        dLbls = element('c:dLbls/c:txPr/a:p/a:pPr/a:defRPr')
-        defRPr = dLbls.xpath('.//a:defRPr')[0]
+        dLbls = element("c:dLbls/c:txPr/a:p/a:pPr/a:defRPr")
+        defRPr = dLbls.xpath(".//a:defRPr")[0]
         data_labels = DataLabels(dLbls)
         return data_labels, Font_, defRPr, font_
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False),
-        ('c:dLbls/c:showLegendKey{val=0}', False),
-        ('c:dLbls/c:showLegendKey{val=1}', True),
-        ('c:dLbls/c:showLegendKey{val=true}', True),
-        # ---not an expected situation, but schema-compliant---
-        ('c:dLbls/c:showLegendKey', True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False),
+            ("c:dLbls/c:showLegendKey{val=0}", False),
+            ("c:dLbls/c:showLegendKey{val=1}", True),
+            ("c:dLbls/c:showLegendKey{val=true}", True),
+            # ---not an expected situation, but schema-compliant---
+            ("c:dLbls/c:showLegendKey", True),
+        ]
+    )
     def lgndkey_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False, 'c:dLbls/c:showLegendKey{val=0}'),
-        ('c:dLbls', True, 'c:dLbls/c:showLegendKey{val=1}'),
-        ('c:dLbls/c:showLegendKey', False, 'c:dLbls/c:showLegendKey{val=0}'),
-        ('c:dLbls/c:showLegendKey{val=0}', False,
-         'c:dLbls/c:showLegendKey{val=0}'),
-        ('c:dLbls/c:showLegendKey{val=0}', True,
-         'c:dLbls/c:showLegendKey{val=1}'),
-        ('c:dLbls/c:showLegendKey{val=1}', False,
-         'c:dLbls/c:showLegendKey{val=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False, "c:dLbls/c:showLegendKey{val=0}"),
+            ("c:dLbls", True, "c:dLbls/c:showLegendKey{val=1}"),
+            ("c:dLbls/c:showLegendKey", False, "c:dLbls/c:showLegendKey{val=0}"),
+            ("c:dLbls/c:showLegendKey{val=0}", False, "c:dLbls/c:showLegendKey{val=0}"),
+            ("c:dLbls/c:showLegendKey{val=0}", True, "c:dLbls/c:showLegendKey{val=1}"),
+            ("c:dLbls/c:showLegendKey{val=1}", False, "c:dLbls/c:showLegendKey{val=0}"),
+        ]
+    )
     def lgndkey_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         dLbls = element(dLbls_cxml)
         expected_dLbls_xml = xml(expected_dLbls_cxml)
         return dLbls, new_value, expected_dLbls_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls',                             'General'),
-        ('c:dLbls/c:numFmt{formatCode=foobar}', 'foobar'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", "General"),
+            ("c:dLbls/c:numFmt{formatCode=foobar}", "foobar"),
+        ]
+    )
     def number_format_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', 'General',
-         'c:dLbls/c:numFmt{formatCode=General,sourceLinked=0}'),
-        ('c:dLbls/c:numFmt{formatCode=General}', '00.00',
-         'c:dLbls/c:numFmt{formatCode=00.00,sourceLinked=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "c:dLbls",
+                "General",
+                "c:dLbls/c:numFmt{formatCode=General,sourceLinked=0}",
+            ),
+            (
+                "c:dLbls/c:numFmt{formatCode=General}",
+                "00.00",
+                "c:dLbls/c:numFmt{formatCode=00.00,sourceLinked=0}",
+            ),
+        ]
+    )
     def number_format_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_dLbls_cxml)
         return data_labels, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls',                          True),
-        ('c:dLbls/c:numFmt',                 True),
-        ('c:dLbls/c:numFmt{sourceLinked=0}', False),
-        ('c:dLbls/c:numFmt{sourceLinked=1}', True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", True),
+            ("c:dLbls/c:numFmt", True),
+            ("c:dLbls/c:numFmt{sourceLinked=0}", False),
+            ("c:dLbls/c:numFmt{sourceLinked=1}", True),
+        ]
+    )
     def number_format_is_linked_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', True,  'c:dLbls/c:numFmt{sourceLinked=1}'),
-        ('c:dLbls', False, 'c:dLbls/c:numFmt{sourceLinked=0}'),
-        ('c:dLbls', None,  'c:dLbls/c:numFmt'),
-        ('c:dLbls/c:numFmt', True, 'c:dLbls/c:numFmt{sourceLinked=1}'),
-        ('c:dLbls/c:numFmt{sourceLinked=1}', False,
-         'c:dLbls/c:numFmt{sourceLinked=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", True, "c:dLbls/c:numFmt{sourceLinked=1}"),
+            ("c:dLbls", False, "c:dLbls/c:numFmt{sourceLinked=0}"),
+            ("c:dLbls", None, "c:dLbls/c:numFmt"),
+            ("c:dLbls/c:numFmt", True, "c:dLbls/c:numFmt{sourceLinked=1}"),
+            (
+                "c:dLbls/c:numFmt{sourceLinked=1}",
+                False,
+                "c:dLbls/c:numFmt{sourceLinked=0}",
+            ),
+        ]
+    )
     def number_format_is_linked_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_dLbls_cxml)
         return data_labels, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False),
-        ('c:dLbls/c:showPercent{val=0}', False),
-        ('c:dLbls/c:showPercent{val=1}', True),
-        ('c:dLbls/c:showPercent{val=true}', True),
-        ('c:dLbls/c:showPercent', True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False),
+            ("c:dLbls/c:showPercent{val=0}", False),
+            ("c:dLbls/c:showPercent{val=1}", True),
+            ("c:dLbls/c:showPercent{val=true}", True),
+            ("c:dLbls/c:showPercent", True),
+        ]
+    )
     def percent_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False, 'c:dLbls/c:showPercent{val=0}'),
-        ('c:dLbls', True, 'c:dLbls/c:showPercent{val=1}'),
-        ('c:dLbls/c:showPercent', False, 'c:dLbls/c:showPercent{val=0}'),
-        ('c:dLbls/c:showPercent{val=0}', False,
-         'c:dLbls/c:showPercent{val=0}'),
-        ('c:dLbls/c:showPercent{val=0}', True,
-         'c:dLbls/c:showPercent{val=1}'),
-        ('c:dLbls/c:showPercent{val=1}', False,
-         'c:dLbls/c:showPercent{val=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False, "c:dLbls/c:showPercent{val=0}"),
+            ("c:dLbls", True, "c:dLbls/c:showPercent{val=1}"),
+            ("c:dLbls/c:showPercent", False, "c:dLbls/c:showPercent{val=0}"),
+            ("c:dLbls/c:showPercent{val=0}", False, "c:dLbls/c:showPercent{val=0}"),
+            ("c:dLbls/c:showPercent{val=0}", True, "c:dLbls/c:showPercent{val=1}"),
+            ("c:dLbls/c:showPercent{val=1}", False, "c:dLbls/c:showPercent{val=0}"),
+        ]
+    )
     def percent_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         dLbls = element(dLbls_cxml)
         expected_dLbls_xml = xml(expected_dLbls_cxml)
         return dLbls, new_value, expected_dLbls_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls',                       None),
-        ('c:dLbls/c:dLblPos{val=inBase}', XL_LABEL_POSITION.INSIDE_BASE),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", None),
+            ("c:dLbls/c:dLblPos{val=inBase}", XL_LABEL_POSITION.INSIDE_BASE),
+        ]
+    )
     def position_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         return data_labels, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls',                       XL_LABEL_POSITION.INSIDE_BASE,
-         'c:dLbls/c:dLblPos{val=inBase}'),
-        ('c:dLbls/c:dLblPos{val=inBase}', XL_LABEL_POSITION.OUTSIDE_END,
-         'c:dLbls/c:dLblPos{val=outEnd}'),
-        ('c:dLbls/c:dLblPos{val=inBase}', None, 'c:dLbls'),
-        ('c:dLbls',                       None, 'c:dLbls'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", XL_LABEL_POSITION.INSIDE_BASE, "c:dLbls/c:dLblPos{val=inBase}"),
+            (
+                "c:dLbls/c:dLblPos{val=inBase}",
+                XL_LABEL_POSITION.OUTSIDE_END,
+                "c:dLbls/c:dLblPos{val=outEnd}",
+            ),
+            ("c:dLbls/c:dLblPos{val=inBase}", None, "c:dLbls"),
+            ("c:dLbls", None, "c:dLbls"),
+        ]
+    )
     def position_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_dLbls_cxml)
         return data_labels, new_value, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False),
-        ('c:dLbls/c:showSerName{val=0}', False),
-        ('c:dLbls/c:showSerName{val=1}', True),
-        ('c:dLbls/c:showSerName{val=true}', True),
-        ('c:dLbls/c:showSerName', True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False),
+            ("c:dLbls/c:showSerName{val=0}", False),
+            ("c:dLbls/c:showSerName{val=1}", True),
+            ("c:dLbls/c:showSerName{val=true}", True),
+            ("c:dLbls/c:showSerName", True),
+        ]
+    )
     def sername_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False, 'c:dLbls/c:showSerName{val=0}'),
-        ('c:dLbls', True, 'c:dLbls/c:showSerName{val=1}'),
-        ('c:dLbls/c:showSerName', False, 'c:dLbls/c:showSerName{val=0}'),
-        ('c:dLbls/c:showSerName{val=0}', False,
-         'c:dLbls/c:showSerName{val=0}'),
-        ('c:dLbls/c:showSerName{val=0}', True,
-         'c:dLbls/c:showSerName{val=1}'),
-        ('c:dLbls/c:showSerName{val=1}', False,
-         'c:dLbls/c:showSerName{val=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False, "c:dLbls/c:showSerName{val=0}"),
+            ("c:dLbls", True, "c:dLbls/c:showSerName{val=1}"),
+            ("c:dLbls/c:showSerName", False, "c:dLbls/c:showSerName{val=0}"),
+            ("c:dLbls/c:showSerName{val=0}", False, "c:dLbls/c:showSerName{val=0}"),
+            ("c:dLbls/c:showSerName{val=0}", True, "c:dLbls/c:showSerName{val=1}"),
+            ("c:dLbls/c:showSerName{val=1}", False, "c:dLbls/c:showSerName{val=0}"),
+        ]
+    )
     def sername_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         dLbls = element(dLbls_cxml)
         expected_dLbls_xml = xml(expected_dLbls_cxml)
         return dLbls, new_value, expected_dLbls_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls{a:b=c}',
-         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)'),
-        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p)',
-         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
-        ('c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)',
-         'c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)'),
-    ])
+    @pytest.fixture(
+        params=[
+            (
+                "c:dLbls{a:b=c}",
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)",
+            ),
+            (
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p)",
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)",
+            ),
+            (
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)",
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)",
+            ),
+        ]
+    )
     def txPr_fixture(self, request):
         dLbls_cxml, expected_cxml = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_cxml)
         return data_labels, expected_xml
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False),
-        ('c:dLbls/c:showVal{val=0}', False),
-        ('c:dLbls/c:showVal{val=1}', True),
-        ('c:dLbls/c:showVal{val=true}', True),
-        ('c:dLbls/c:showVal', True),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False),
+            ("c:dLbls/c:showVal{val=0}", False),
+            ("c:dLbls/c:showVal{val=1}", True),
+            ("c:dLbls/c:showVal{val=true}", True),
+            ("c:dLbls/c:showVal", True),
+        ]
+    )
     def value_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
         dLbls = element(dLbls_cxml)
         return dLbls, expected_value
 
-    @pytest.fixture(params=[
-        ('c:dLbls', False, 'c:dLbls/c:showVal{val=0}'),
-        ('c:dLbls', True, 'c:dLbls/c:showVal{val=1}'),
-        ('c:dLbls/c:showVal', False, 'c:dLbls/c:showVal{val=0}'),
-        ('c:dLbls/c:showVal{val=0}', False,
-         'c:dLbls/c:showVal{val=0}'),
-        ('c:dLbls/c:showVal{val=0}', True,
-         'c:dLbls/c:showVal{val=1}'),
-        ('c:dLbls/c:showVal{val=1}', False,
-         'c:dLbls/c:showVal{val=0}'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("c:dLbls", False, "c:dLbls/c:showVal{val=0}"),
+            ("c:dLbls", True, "c:dLbls/c:showVal{val=1}"),
+            ("c:dLbls/c:showVal", False, "c:dLbls/c:showVal{val=0}"),
+            ("c:dLbls/c:showVal{val=0}", False, "c:dLbls/c:showVal{val=0}"),
+            ("c:dLbls/c:showVal{val=0}", True, "c:dLbls/c:showVal{val=1}"),
+            ("c:dLbls/c:showVal{val=1}", False, "c:dLbls/c:showVal{val=0}"),
+        ]
+    )
     def value_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
         dLbls = element(dLbls_cxml)
@@ -573,9 +660,7 @@ class DescribeDataLabels(object):
 
     @pytest.fixture
     def Font_(self, request, font_):
-        return class_mock(
-            request, 'pptx.chart.datalabel.Font', return_value=font_
-        )
+        return class_mock(request, "pptx.chart.datalabel.Font", return_value=font_)
 
     @pytest.fixture
     def font_(self, request):

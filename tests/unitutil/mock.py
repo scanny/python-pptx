@@ -11,9 +11,7 @@ import sys
 if sys.version_info >= (3, 3):
     from unittest import mock  # noqa
     from unittest.mock import ANY, call, MagicMock  # noqa
-    from unittest.mock import (
-        create_autospec, Mock, mock_open, patch, PropertyMock
-    )
+    from unittest.mock import create_autospec, Mock, mock_open, patch, PropertyMock
 else:
     import mock  # noqa
     from mock import ANY, call, MagicMock  # noqa
@@ -58,7 +56,7 @@ def initializer_mock(request, cls, **kwargs):
     Return a mock for the __init__ method on *cls* where the patch is
     reversed after pytest uses it.
     """
-    _patch = patch.object(cls, '__init__', return_value=None, **kwargs)
+    _patch = patch.object(cls, "__init__", return_value=None, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
@@ -72,9 +70,7 @@ def instance_mock(request, cls, name=None, spec_set=True, **kwargs):
     the Mock() call that creates the mock.
     """
     name = name if name is not None else request.fixturename
-    return create_autospec(
-        cls, _name=name, spec_set=spec_set, instance=True, **kwargs
-    )
+    return create_autospec(cls, _name=name, spec_set=spec_set, instance=True, **kwargs)
 
 
 def loose_mock(request, name=None, **kwargs):
@@ -102,7 +98,7 @@ def open_mock(request, module_name, **kwargs):
     """
     Return a mock for the builtin `open()` method in *module_name*.
     """
-    target = '%s.open' % module_name
+    target = "%s.open" % module_name
     _patch = patch(target, mock_open(), create=True, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()

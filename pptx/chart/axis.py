@@ -8,7 +8,10 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 from ..dml.chtfmt import ChartFormat
 from ..enum.chart import (
-    XL_AXIS_CROSSES, XL_CATEGORY_TYPE, XL_TICK_LABEL_POSITION, XL_TICK_MARK
+    XL_AXIS_CROSSES,
+    XL_CATEGORY_TYPE,
+    XL_TICK_LABEL_POSITION,
+    XL_TICK_MARK,
 )
 from ..oxml.ns import qn
 from ..shared import ElementProxy
@@ -21,6 +24,7 @@ class _BaseAxis(object):
     Base class for chart axis objects. All axis objects share these
     properties.
     """
+
     def __init__(self, xAx):
         super(_BaseAxis, self).__init__()
         self._element = xAx  # axis element, c:catAx or c:valAx
@@ -218,9 +222,7 @@ class _BaseAxis(object):
     @visible.setter
     def visible(self, value):
         if value not in (True, False):
-            raise ValueError(
-                "assigned value must be True or False, got: %s" % value
-            )
+            raise ValueError("assigned value must be True or False, got: %s" % value)
         delete = self._element.get_or_add_delete_()
         delete.val = not value
 
@@ -228,7 +230,7 @@ class _BaseAxis(object):
 class AxisTitle(ElementProxy):
     """Provides properties for manipulating axis title."""
 
-    __slots__ = ('_title', '_format')
+    __slots__ = ("_title", "_format")
 
     def __init__(self, title):
         super(AxisTitle, self).__init__(title)
@@ -280,6 +282,7 @@ class CategoryAxis(_BaseAxis):
     """
     A category axis of a chart.
     """
+
     @property
     def category_type(self):
         """
@@ -295,6 +298,7 @@ class DateAxis(_BaseAxis):
     display behaviors such as making length of equal periods equal and
     normalizing month start dates despite unequal month lengths.
     """
+
     @property
     def category_type(self):
         """
@@ -310,7 +314,7 @@ class MajorGridlines(ElementProxy):
     axis.
     """
 
-    __slots__ = ('_xAx', '_format')
+    __slots__ = ("_xAx", "_format")
 
     def __init__(self, xAx):
         super(MajorGridlines, self).__init__(xAx)
@@ -330,6 +334,7 @@ class TickLabels(object):
     """
     A service class providing access to formatting of axis tick mark labels.
     """
+
     def __init__(self, xAx_elm):
         super(TickLabels, self).__init__()
         self._element = xAx_elm
@@ -357,7 +362,7 @@ class TickLabels(object):
         """
         numFmt = self._element.numFmt
         if numFmt is None:
-            return 'General'
+            return "General"
         return numFmt.formatCode
 
     @number_format.setter
@@ -400,8 +405,8 @@ class TickLabels(object):
 
     @offset.setter
     def offset(self, value):
-        if self._element.tag != qn('c:catAx'):
-            raise ValueError('only a category axis has an offset')
+        if self._element.tag != qn("c:catAx"):
+            raise ValueError("only a category axis has an offset")
         self._element._remove_lblOffset()
         if value == 100:
             return
@@ -415,6 +420,7 @@ class ValueAxis(_BaseAxis):
     axis is generally a value axis, however both axes of an XY-type chart are
     value axes.
     """
+
     @property
     def crosses(self):
         """
@@ -508,9 +514,6 @@ class ValueAxis(_BaseAxis):
         this axis.
         """
         crossAx_id = self._element.crossAx.val
-        expr = (
-            '(../c:catAx | ../c:valAx | ../c:dateAx)/c:axId[@val="%d"]'
-            % crossAx_id
-        )
+        expr = '(../c:catAx | ../c:valAx | ../c:dateAx)/c:axId[@val="%d"]' % crossAx_id
         cross_axId = self._element.xpath(expr)[0]
         return cross_axId.getparent()

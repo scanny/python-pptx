@@ -18,7 +18,8 @@ class ChartPart(XmlPart):
     A chart part; corresponds to parts having partnames matching
     ppt/charts/chart[1-9][0-9]*.xml
     """
-    partname_template = '/ppt/charts/chart%d.xml'
+
+    partname_template = "/ppt/charts/chart%d.xml"
 
     @classmethod
     def new(cls, chart_type, chart_data, package):
@@ -55,6 +56,7 @@ class ChartWorkbook(object):
     Provides access to the external chart data in a linked or embedded Excel
     workbook.
     """
+
     def __init__(self, chartSpace, chart_part):
         super(ChartWorkbook, self).__init__()
         self._chartSpace = chartSpace

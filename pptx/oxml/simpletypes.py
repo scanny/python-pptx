@@ -15,7 +15,6 @@ from pptx.util import Centipoints, Emu
 
 
 class BaseSimpleType(object):
-
     @classmethod
     def from_xml(cls, str_value):
         return cls.convert_from_xml(str_value)
@@ -32,24 +31,20 @@ class BaseSimpleType(object):
         Note that int values are accepted.
         """
         if not isinstance(value, (int, float)):
-            raise TypeError(
-                "value must be a number, got %s" % type(value)
-            )
+            raise TypeError("value must be a number, got %s" % type(value))
 
     @classmethod
     def validate_int(cls, value):
         if not isinstance(value, numbers.Integral):
-            raise TypeError(
-                "value must be an integral type, got %s" % type(value)
-            )
+            raise TypeError("value must be an integral type, got %s" % type(value))
 
     @classmethod
     def validate_float_in_range(cls, value, min_inclusive, max_inclusive):
         cls.validate_float(value)
         if value < min_inclusive or value > max_inclusive:
             raise ValueError(
-                "value must be in range %s to %s inclusive, got %s" %
-                (min_inclusive, max_inclusive, value)
+                "value must be in range %s to %s inclusive, got %s"
+                % (min_inclusive, max_inclusive, value)
             )
 
     @classmethod
@@ -57,8 +52,8 @@ class BaseSimpleType(object):
         cls.validate_int(value)
         if value < min_inclusive or value > max_inclusive:
             raise ValueError(
-                "value must be in range %d to %d inclusive, got %d" %
-                (min_inclusive, max_inclusive, value)
+                "value must be in range %d to %d inclusive, got %d"
+                % (min_inclusive, max_inclusive, value)
             )
 
     @classmethod
@@ -70,13 +65,10 @@ class BaseSimpleType(object):
                 return value
         except NameError:  # means we're on Python 3
             pass
-        raise TypeError(
-            "value must be a string, got %s" % type(value)
-        )
+        raise TypeError("value must be a string, got %s" % type(value))
 
 
 class BaseFloatType(BaseSimpleType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         return float(str_value)
@@ -88,16 +80,13 @@ class BaseFloatType(BaseSimpleType):
     @classmethod
     def validate(cls, value):
         if not isinstance(value, (int, float)):
-            raise TypeError(
-                "value must be a number, got %s" % type(value)
-            )
+            raise TypeError("value must be a number, got %s" % type(value))
 
 
 class BaseIntType(BaseSimpleType):
-
     @classmethod
     def convert_from_percent_literal(cls, str_value):
-        int_str = str_value.replace('%', '')
+        int_str = str_value.replace("%", "")
         return int(int_str)
 
     @classmethod
@@ -114,7 +103,6 @@ class BaseIntType(BaseSimpleType):
 
 
 class BaseStringType(BaseSimpleType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         return str_value
@@ -129,14 +117,11 @@ class BaseStringType(BaseSimpleType):
 
 
 class BaseStringEnumerationType(BaseStringType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_string(value)
         if value not in cls._members:
-            raise ValueError(
-                "must be one of %s, got '%s'" % (cls._members, value)
-            )
+            raise ValueError("must be one of %s, got '%s'" % (cls._members, value))
 
 
 class XsdAnyUri(BaseStringType):
@@ -148,19 +133,17 @@ class XsdAnyUri(BaseStringType):
 
 
 class XsdBoolean(BaseSimpleType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
-        if str_value not in ('1', '0', 'true', 'false'):
+        if str_value not in ("1", "0", "true", "false"):
             raise InvalidXmlError(
-                "value must be one of '1', '0', 'true' or 'false', got '%s'"
-                % str_value
+                "value must be one of '1', '0', 'true' or 'false', got '%s'" % str_value
             )
-        return str_value in ('1', 'true')
+        return str_value in ("1", "true")
 
     @classmethod
     def convert_to_xml(cls, value):
-        return {True: '1', False: '0'}[value]
+        return {True: "1", False: "0"}[value]
 
     @classmethod
     def validate(cls, value):
@@ -183,19 +166,15 @@ class XsdId(BaseStringType):
 
 
 class XsdInt(BaseIntType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, -2147483648, 2147483647)
 
 
 class XsdLong(BaseIntType):
-
     @classmethod
     def validate(cls, value):
-        cls.validate_int_in_range(
-            value, -9223372036854775808, 9223372036854775807
-        )
+        cls.validate_int_in_range(value, -9223372036854775808, 9223372036854775807)
 
 
 class XsdString(BaseStringType):
@@ -223,21 +202,18 @@ class XsdTokenEnumeration(BaseStringEnumerationType):
 
 
 class XsdUnsignedByte(BaseIntType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 255)
 
 
 class XsdUnsignedInt(BaseIntType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 4294967295)
 
 
 class XsdUnsignedShort(BaseIntType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 65535)
@@ -248,6 +224,7 @@ class ST_Angle(XsdInt):
     Valid values for `rot` attribute on `<a:xfrm>` element. 60000ths of
     a degree rotation.
     """
+
     DEGREE_INCREMENTS = 60000
     THREE_SIXTY = 360 * DEGREE_INCREMENTS
 
@@ -275,21 +252,21 @@ class ST_AxisUnit(XsdDouble):
     """
     Valid values for val attribute on c:majorUnit and others.
     """
+
     @classmethod
     def validate(cls, value):
         super(ST_AxisUnit, cls).validate(value)
         if value <= 0.0:
-            raise ValueError(
-                "must be positive numeric value, got %s" % value
-            )
+            raise ValueError("must be positive numeric value, got %s" % value)
 
 
 class ST_BarDir(XsdStringEnumeration):
     """
     Valid values for <c:barDir val="?"> attribute
     """
-    BAR = 'bar'
-    COL = 'col'
+
+    BAR = "bar"
+    COL = "col"
 
     _members = (BAR, COL)
 
@@ -299,9 +276,10 @@ class ST_BubbleScale(BaseIntType):
     String value is an integer in range 0-300, representing a percent,
     optionally including a '%' suffix.
     """
+
     @classmethod
     def convert_from_xml(cls, str_value):
-        if '%' in str_value:
+        if "%" in str_value:
             return cls.convert_from_percent_literal(str_value)
         return super(ST_BubbleScale, cls).convert_from_xml(str_value)
 
@@ -316,14 +294,14 @@ class ST_ContentType(XsdString):
     but figuring it's not worth the trouble or run time to identify
     a programming error (as opposed to a user/runtime error).
     """
+
     pass
 
 
 class ST_Coordinate(BaseSimpleType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
-        if 'i' in str_value or 'm' in str_value or 'p' in str_value:
+        if "i" in str_value or "m" in str_value or "p" in str_value:
             return ST_UniversalMeasure.convert_from_xml(str_value)
         return Emu(int(str_value))
 
@@ -340,9 +318,10 @@ class ST_Coordinate32(BaseSimpleType):
     """
     xsd:union of ST_Coordinate32Unqualified, ST_UniversalMeasure
     """
+
     @classmethod
     def convert_from_xml(cls, str_value):
-        if 'i' in str_value or 'm' in str_value or 'p' in str_value:
+        if "i" in str_value or "m" in str_value or "p" in str_value:
             return ST_UniversalMeasure.convert_from_xml(str_value)
         return ST_Coordinate32Unqualified.convert_from_xml(str_value)
 
@@ -356,14 +335,12 @@ class ST_Coordinate32(BaseSimpleType):
 
 
 class ST_Coordinate32Unqualified(XsdInt):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         return Emu(int(str_value))
 
 
 class ST_CoordinateUnqualified(XsdLong):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, -27273042329600, 27273042316900)
@@ -373,8 +350,9 @@ class ST_Direction(XsdTokenEnumeration):
     """
     Valid values for <p:ph orient=""> attribute
     """
-    HORZ = 'horz'
-    VERT = 'vert'
+
+    HORZ = "horz"
+    VERT = "vert"
 
     _members = (HORZ, VERT)
 
@@ -389,6 +367,7 @@ class ST_Extension(XsdString):
     it's not worth the trouble or run time to identify a programming error
     (as opposed to a user/runtime error).
     """
+
     pass
 
 
@@ -397,9 +376,10 @@ class ST_GapAmount(BaseIntType):
     String value is an integer in range 0-500, representing a percent,
     optionally including a '%' suffix.
     """
+
     @classmethod
     def convert_from_xml(cls, str_value):
-        if '%' in str_value:
+        if "%" in str_value:
             return cls.convert_from_percent_literal(str_value)
         return super(ST_GapAmount, cls).convert_from_xml(str_value)
 
@@ -413,16 +393,16 @@ class ST_Grouping(XsdStringEnumeration):
     Valid values for <c:grouping val=""> attribute. Overloaded for use as
     ST_BarGrouping using same tag name.
     """
-    CLUSTERED = 'clustered'
-    PERCENT_STACKED = 'percentStacked'
-    STACKED = 'stacked'
-    STANDARD = 'standard'
+
+    CLUSTERED = "clustered"
+    PERCENT_STACKED = "percentStacked"
+    STACKED = "stacked"
+    STANDARD = "standard"
 
     _members = (CLUSTERED, PERCENT_STACKED, STACKED, STANDARD)
 
 
 class ST_HexColorRGB(BaseStringType):
-
     @classmethod
     def convert_to_xml(cls, value):
         """
@@ -438,8 +418,7 @@ class ST_HexColorRGB(BaseStringType):
         # must be 6 chars long----------
         if len(str_value) != 6:
             raise ValueError(
-                "RGB string must be six characters long, got '%s'"
-                % str_value
+                "RGB string must be six characters long, got '%s'" % str_value
             )
 
         # must parse as hex int --------
@@ -447,8 +426,7 @@ class ST_HexColorRGB(BaseStringType):
             int(str_value, 16)
         except ValueError:
             raise ValueError(
-                "RGB string must be valid hex string, got '%s'"
-                % str_value
+                "RGB string must be valid hex string, got '%s'" % str_value
             )
 
 
@@ -457,8 +435,9 @@ class ST_LayoutMode(XsdStringEnumeration):
     Valid values for `val` attribute on c:xMode and other elements of type
     CT_LayoutMode.
     """
-    EDGE = 'edge'
-    FACTOR = 'factor'
+
+    EDGE = "edge"
+    FACTOR = "factor"
 
     _members = (EDGE, FACTOR)
 
@@ -468,9 +447,10 @@ class ST_LblOffset(XsdUnsignedShort):
     Unsigned integer value between 0 and 1000 inclusive, with optional
     percent character ('%') suffix.
     """
+
     @classmethod
     def convert_from_xml(cls, str_value):
-        if str_value.endswith('%'):
+        if str_value.endswith("%"):
             return cls.convert_from_percent_literal(str_value)
         return int(str_value)
 
@@ -480,7 +460,6 @@ class ST_LblOffset(XsdUnsignedShort):
 
 
 class ST_LineWidth(XsdInt):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         return Emu(int(str_value))
@@ -496,7 +475,6 @@ class ST_LineWidth(XsdInt):
 
 
 class ST_MarkerSize(XsdUnsignedByte):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 2, 72)
@@ -507,9 +485,10 @@ class ST_Overlap(BaseIntType):
     String value is an integer in range -100..100, representing a percent,
     optionally including a '%' suffix.
     """
+
     @classmethod
     def convert_from_xml(cls, str_value):
-        if '%' in str_value:
+        if "%" in str_value:
             return cls.convert_from_percent_literal(str_value)
         return super(ST_Overlap, cls).convert_from_xml(str_value)
 
@@ -528,13 +507,13 @@ class ST_Percentage(BaseIntType):
 
     @classmethod
     def convert_from_xml(cls, str_value):
-        if '%' in str_value:
+        if "%" in str_value:
             return cls._convert_from_percent_literal(str_value)
         return int(str_value) / 100000.0
 
     @classmethod
     def convert_to_xml(cls, value):
-        return str(int(round(value*100000.0)))
+        return str(int(round(value * 100000.0)))
 
     @classmethod
     def validate(cls, value):
@@ -550,20 +529,18 @@ class ST_PlaceholderSize(XsdTokenEnumeration):
     """
     Valid values for <p:ph> sz (size) attribute
     """
-    FULL = 'full'
-    HALF = 'half'
-    QUARTER = 'quarter'
+
+    FULL = "full"
+    HALF = "half"
+    QUARTER = "quarter"
 
     _members = (FULL, HALF, QUARTER)
 
 
 class ST_PositiveCoordinate(XsdLong):
-
     @classmethod
     def convert_from_xml(cls, str_value):
-        int_value = super(
-            ST_PositiveCoordinate, cls
-        ).convert_from_xml(str_value)
+        int_value = super(ST_PositiveCoordinate, cls).convert_from_xml(str_value)
         return Emu(int_value)
 
     @classmethod
@@ -612,14 +589,12 @@ class ST_RelationshipId(XsdString):
 
 
 class ST_SlideId(XsdUnsignedInt):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 256, 2147483647)
 
 
 class ST_SlideSizeCoordinate(BaseIntType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         return Emu(str_value)
@@ -635,7 +610,6 @@ class ST_SlideSizeCoordinate(BaseIntType):
 
 
 class ST_Style(XsdUnsignedByte):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 1, 48)
@@ -646,10 +620,11 @@ class ST_TargetMode(XsdString):
     The valid values for the ``TargetMode`` attribute in a Relationship
     element, either 'External' or 'Internal'.
     """
+
     @classmethod
     def validate(cls, value):
         cls.validate_string(value)
-        if value not in ('External', 'Internal'):
+        if value not in ("External", "Internal"):
             raise ValueError(
                 "must be one of 'Internal' or 'External', got '%s'" % value
             )
@@ -660,9 +635,10 @@ class ST_TextFontScalePercentOrPercentString(BaseFloatType):
     Valid values for the `fontScale` attribute of ``<a:normAutofit>``.
     Translates to a float value.
     """
+
     @classmethod
     def convert_from_xml(cls, str_value):
-        if str_value.endswith('%'):
+        if str_value.endswith("%"):
             return float(str_value[:-1])  # trim off '%' character
         return int(str_value) / 1000.0
 
@@ -680,24 +656,21 @@ class ST_TextFontScalePercentOrPercentString(BaseFloatType):
 
 
 class ST_TextFontSize(BaseIntType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 100, 400000)
 
 
 class ST_TextIndentLevelType(BaseIntType):
-
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 8)
 
 
 class ST_TextSpacingPercentOrPercentString(BaseFloatType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
-        if str_value.endswith('%'):
+        if str_value.endswith("%"):
             return cls._convert_from_percent_literal(str_value)
         return int(str_value) / 100000.0
 
@@ -722,7 +695,6 @@ class ST_TextSpacingPercentOrPercentString(BaseFloatType):
 
 
 class ST_TextSpacingPoint(BaseIntType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         """
@@ -748,21 +720,25 @@ class ST_TextWrappingType(XsdTokenEnumeration):
     """
     Valid values for <a:bodyPr wrap=""> attribute
     """
-    NONE = 'none'
-    SQUARE = 'square'
+
+    NONE = "none"
+    SQUARE = "square"
 
     _members = (NONE, SQUARE)
 
 
 class ST_UniversalMeasure(BaseSimpleType):
-
     @classmethod
     def convert_from_xml(cls, str_value):
         float_part, units_part = str_value[:-2], str_value[-2:]
         quantity = float(float_part)
         multiplier = {
-            'mm': 36000, 'cm': 360000, 'in': 914400, 'pt': 12700,
-            'pc': 152400, 'pi': 152400
+            "mm": 36000,
+            "cm": 360000,
+            "in": 914400,
+            "pt": 12700,
+            "pc": 152400,
+            "pi": 152400,
         }[units_part]
         emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value

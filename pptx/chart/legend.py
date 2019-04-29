@@ -15,6 +15,7 @@ class Legend(object):
     """
     Represents the legend in a chart. A chart can have at most one legend.
     """
+
     def __init__(self, legend_elm):
         super(Legend, self).__init__()
         self._element = legend_elm

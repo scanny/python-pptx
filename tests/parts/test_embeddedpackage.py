@@ -16,7 +16,6 @@ from ..unitutil.mock import initializer_mock, instance_mock
 
 
 class DescribeEmbeddedXlsxPart(object):
-
     def it_can_construct_from_an_xlsx_blob(self, new_fixture):
         xlsx_blob_, package_, init_, partname_, xlsx_part_ = new_fixture
 
@@ -25,18 +24,14 @@ class DescribeEmbeddedXlsxPart(object):
         package_.next_partname.assert_called_once_with(
             EmbeddedXlsxPart.partname_template
         )
-        init_.assert_called_once_with(
-            partname_, CT.SML_SHEET, xlsx_blob_, package_
-        )
+        init_.assert_called_once_with(partname_, CT.SML_SHEET, xlsx_blob_, package_)
         assert isinstance(xlsx_part, EmbeddedXlsxPart)
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
     def new_fixture(self, xlsx_blob_, package_, init_, partname_, xlsx_part_):
-        return (
-            xlsx_blob_, package_, init_, partname_, xlsx_part_
-        )
+        return (xlsx_blob_, package_, init_, partname_, xlsx_part_)
 
     # fixture components ---------------------------------------------
 

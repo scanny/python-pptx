@@ -34,7 +34,7 @@ def to_unicode(text):
     this just returns *text* unchanged.
     """
     if not isinstance(text, str):
-        tmpl = 'expected unicode string, got %s value %s'
+        tmpl = "expected unicode string, got %s value %s"
         raise TypeError(tmpl % (type(text), text))
     return text
 

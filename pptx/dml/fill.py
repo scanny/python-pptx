@@ -2,17 +2,18 @@
 
 """DrawingML objects related to fill."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import Sequence
 
 from pptx.dml.color import ColorFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.oxml.dml.fill import (
-    CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
-    CT_NoFillProperties, CT_PatternFillProperties,
+    CT_BlipFillProperties,
+    CT_GradientFillProperties,
+    CT_GroupFillProperties,
+    CT_NoFillProperties,
+    CT_PatternFillProperties,
     CT_SolidColorFillProperties,
 )
 from pptx.shared import ElementProxy
@@ -24,6 +25,7 @@ class FillFormat(object):
     Provides access to the current fill properties object and provides
     methods to change the fill type.
     """
+
     def __init__(self, eg_fill_properties_parent, fill_obj):
         super(FillFormat, self).__init__()
         self._xPr = eg_fill_properties_parent
@@ -90,13 +92,13 @@ class FillFormat(object):
         gradient (e.g. a radial gradient).
         """
         if self.type != MSO_FILL.GRADIENT:
-            raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
+            raise TypeError("Fill is not of type MSO_FILL_TYPE.GRADIENT")
         return self._fill.gradient_angle
 
     @gradient_angle.setter
     def gradient_angle(self, value):
         if self.type != MSO_FILL.GRADIENT:
-            raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
+            raise TypeError("Fill is not of type MSO_FILL_TYPE.GRADIENT")
         self._fill.gradient_angle = value
 
     @property
@@ -108,7 +110,7 @@ class FillFormat(object):
         smoothly transitions.
         """
         if self.type != MSO_FILL.GRADIENT:
-            raise TypeError('Fill is not of type MSO_FILL_TYPE.GRADIENT')
+            raise TypeError("Fill is not of type MSO_FILL_TYPE.GRADIENT")
         return self._fill.gradient_stops
 
     @property
@@ -164,6 +166,7 @@ class _Fill(object):
     _SolidFill for ``<a:solidFill>``; also serves as the base class for all
     fill classes
     """
+
     def __new__(cls, xFill):
         if xFill is None:
             fill_cls = _NoneFill
@@ -186,24 +189,22 @@ class _Fill(object):
     @property
     def back_color(self):
         """Raise TypeError for types that do not override this property."""
-        tmpl = (
-            'fill type %s has no background color, call .patterned() first'
-        )
+        tmpl = "fill type %s has no background color, call .patterned() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
     def fore_color(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            'fill type %s has no foreground color, call .solid() or .pattern'
-            'ed() first'
+            "fill type %s has no foreground color, call .solid() or .pattern"
+            "ed() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
     def pattern(self):
         """Raise TypeError for fills that do not override this property."""
-        tmpl = 'fill type %s has no pattern, call .patterned() first'
+        tmpl = "fill type %s has no pattern, call .patterned() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
@@ -213,7 +214,6 @@ class _Fill(object):
 
 
 class _BlipFill(_Fill):
-
     @property
     def type(self):
         return MSO_FILL.PICTURE
@@ -239,7 +239,7 @@ class _GradFill(_Fill):
         # ---case 1: gradient path is explicit, but not linear---
         path = self._gradFill.path
         if path is not None:
-            raise ValueError('not a linear gradient')
+            raise ValueError("not a linear gradient")
 
         # ---case 2: gradient path is inherited (no a:lin OR a:path)---
         lin = self._gradFill.lin
@@ -253,8 +253,7 @@ class _GradFill(_Fill):
         # respect that in the API.
         clockwise_angle = lin.ang
         counter_clockwise_angle = (
-            0.0 if clockwise_angle == 0.0
-            else (360.0 - clockwise_angle)
+            0.0 if clockwise_angle == 0.0 else (360.0 - clockwise_angle)
         )
         return counter_clockwise_angle
 
@@ -262,7 +261,7 @@ class _GradFill(_Fill):
     def gradient_angle(self, value):
         lin = self._gradFill.lin
         if lin is None:
-            raise ValueError('not a linear gradient')
+            raise ValueError("not a linear gradient")
         lin.ang = 360.0 - value
 
     @lazyproperty
@@ -280,21 +279,18 @@ class _GradFill(_Fill):
 
 
 class _GrpFill(_Fill):
-
     @property
     def type(self):
         return MSO_FILL.GROUP
 
 
 class _NoFill(_Fill):
-
     @property
     def type(self):
         return MSO_FILL.BACKGROUND
 
 
 class _NoneFill(_Fill):
-
     @property
     def type(self):
         return None
@@ -380,7 +376,7 @@ class _GradientStop(ElementProxy):
     A gradient stop defines a color and a position.
     """
 
-    __slots__ = ('_gs', '_color')
+    __slots__ = ("_gs", "_color")
 
     def __init__(self, gs):
         super(_GradientStop, self).__init__(gs)

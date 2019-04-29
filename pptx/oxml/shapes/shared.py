@@ -2,21 +2,31 @@
 
 """Common shape-related oxml objects."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.dml.fill import CT_GradientFillProperties
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import (
-    ST_Angle, ST_Coordinate, ST_Direction, ST_DrawingElementId, ST_LineWidth,
-    ST_PlaceholderSize, ST_PositiveCoordinate, XsdBoolean, XsdString,
-    XsdUnsignedInt
+    ST_Angle,
+    ST_Coordinate,
+    ST_Direction,
+    ST_DrawingElementId,
+    ST_LineWidth,
+    ST_PlaceholderSize,
+    ST_PositiveCoordinate,
+    XsdBoolean,
+    XsdString,
+    XsdUnsignedInt,
 )
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, Choice, OptionalAttribute, OxmlElement,
-    RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
+    BaseOxmlElement,
+    Choice,
+    OptionalAttribute,
+    OxmlElement,
+    RequiredAttribute,
+    ZeroOrOne,
+    ZeroOrOneChoice,
 )
 from pptx.util import Emu
 
@@ -26,37 +36,38 @@ class BaseShapeElement(BaseOxmlElement):
     Provides common behavior for shape element classes like CT_Shape,
     CT_Picture, etc.
     """
+
     @property
     def cx(self):
-        return self._get_xfrm_attr('cx')
+        return self._get_xfrm_attr("cx")
 
     @cx.setter
     def cx(self, value):
-        self._set_xfrm_attr('cx', value)
+        self._set_xfrm_attr("cx", value)
 
     @property
     def cy(self):
-        return self._get_xfrm_attr('cy')
+        return self._get_xfrm_attr("cy")
 
     @cy.setter
     def cy(self, value):
-        self._set_xfrm_attr('cy', value)
+        self._set_xfrm_attr("cy", value)
 
     @property
     def flipH(self):
-        return bool(self._get_xfrm_attr('flipH'))
+        return bool(self._get_xfrm_attr("flipH"))
 
     @flipH.setter
     def flipH(self, value):
-        self._set_xfrm_attr('flipH', value)
+        self._set_xfrm_attr("flipH", value)
 
     @property
     def flipV(self):
-        return bool(self._get_xfrm_attr('flipV'))
+        return bool(self._get_xfrm_attr("flipV"))
 
     @flipV.setter
     def flipV(self, value):
-        self._set_xfrm_attr('flipV', value)
+        self._set_xfrm_attr("flipV", value)
 
     def get_or_add_xfrm(self):
         """
@@ -79,7 +90,7 @@ class BaseShapeElement(BaseOxmlElement):
         """
         The ``<p:ph>`` descendant element if there is one, None otherwise.
         """
-        ph_elms = self.xpath('./*[1]/p:nvPr/p:ph')
+        ph_elms = self.xpath("./*[1]/p:nvPr/p:ph")
         if len(ph_elms) == 0:
             return None
         return ph_elms[0]
@@ -161,15 +172,15 @@ class BaseShapeElement(BaseOxmlElement):
         """
         Child ``<p:txBody>`` element, None if not present
         """
-        return self.find(qn('p:txBody'))
+        return self.find(qn("p:txBody"))
 
     @property
     def x(self):
-        return self._get_xfrm_attr('x')
+        return self._get_xfrm_attr("x")
 
     @x.setter
     def x(self, value):
-        self._set_xfrm_attr('x', value)
+        self._set_xfrm_attr("x", value)
 
     @property
     def xfrm(self):
@@ -182,11 +193,11 @@ class BaseShapeElement(BaseOxmlElement):
 
     @property
     def y(self):
-        return self._get_xfrm_attr('y')
+        return self._get_xfrm_attr("y")
 
     @y.setter
     def y(self, value):
-        self._set_xfrm_attr('y', value)
+        self._set_xfrm_attr("y", value)
 
     @property
     def _nvXxPr(self):
@@ -195,7 +206,7 @@ class BaseShapeElement(BaseOxmlElement):
         name depends on the shape type, e.g. ``<p:nvPicPr>`` for picture
         shape.
         """
-        return self.xpath('./*[1]')[0]
+        return self.xpath("./*[1]")[0]
 
     def _get_xfrm_attr(self, name):
         xfrm = self.xfrm
@@ -212,30 +223,51 @@ class CT_ApplicationNonVisualDrawingProps(BaseOxmlElement):
     """
     ``<p:nvPr>`` element
     """
-    ph = ZeroOrOne('p:ph', successors=(
-        'a:audioCd', 'a:wavAudioFile', 'a:audioFile', 'a:videoFile',
-        'a:quickTimeFile', 'p:custDataLst', 'p:extLst'
-    ))
+
+    ph = ZeroOrOne(
+        "p:ph",
+        successors=(
+            "a:audioCd",
+            "a:wavAudioFile",
+            "a:audioFile",
+            "a:videoFile",
+            "a:quickTimeFile",
+            "p:custDataLst",
+            "p:extLst",
+        ),
+    )
 
 
 class CT_LineProperties(BaseOxmlElement):
     """Custom element class for <a:ln> element"""
+
     _tag_seq = (
-        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:pattFill', 'a:prstDash',
-        'a:custDash', 'a:round', 'a:bevel', 'a:miter', 'a:headEnd',
-        'a:tailEnd', 'a:extLst'
+        "a:noFill",
+        "a:solidFill",
+        "a:gradFill",
+        "a:pattFill",
+        "a:prstDash",
+        "a:custDash",
+        "a:round",
+        "a:bevel",
+        "a:miter",
+        "a:headEnd",
+        "a:tailEnd",
+        "a:extLst",
     )
     eg_lineFillProperties = ZeroOrOneChoice(
         (
-            Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-            Choice('a:pattFill')
+            Choice("a:noFill"),
+            Choice("a:solidFill"),
+            Choice("a:gradFill"),
+            Choice("a:pattFill"),
         ),
-        successors=_tag_seq[4:]
+        successors=_tag_seq[4:],
     )
-    prstDash = ZeroOrOne('a:prstDash', successors=_tag_seq[5:])
-    custDash = ZeroOrOne('a:custDash', successors=_tag_seq[6:])
+    prstDash = ZeroOrOne("a:prstDash", successors=_tag_seq[5:])
+    custDash = ZeroOrOne("a:custDash", successors=_tag_seq[6:])
     del _tag_seq
-    w = OptionalAttribute('w', ST_LineWidth, default=Emu(0))
+    w = OptionalAttribute("w", ST_LineWidth, default=Emu(0))
 
     @property
     def eg_fillProperties(self):
@@ -266,11 +298,12 @@ class CT_NonVisualDrawingProps(BaseOxmlElement):
     """
     ``<p:cNvPr>`` custom element class.
     """
-    _tag_seq = ('a:hlinkClick', 'a:hlinkHover', 'a:extLst')
-    hlinkClick = ZeroOrOne('a:hlinkClick', successors=_tag_seq[1:])
-    hlinkHover = ZeroOrOne('a:hlinkHover', successors=_tag_seq[2:])
-    id = RequiredAttribute('id', ST_DrawingElementId)
-    name = RequiredAttribute('name', XsdString)
+
+    _tag_seq = ("a:hlinkClick", "a:hlinkHover", "a:extLst")
+    hlinkClick = ZeroOrOne("a:hlinkClick", successors=_tag_seq[1:])
+    hlinkHover = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
+    id = RequiredAttribute("id", ST_DrawingElementId)
+    name = RequiredAttribute("name", XsdString)
     del _tag_seq
 
 
@@ -278,32 +311,29 @@ class CT_Placeholder(BaseOxmlElement):
     """
     ``<p:ph>`` custom element class.
     """
-    type = OptionalAttribute(
-        'type', PP_PLACEHOLDER, default=PP_PLACEHOLDER.OBJECT
-    )
-    orient = OptionalAttribute(
-        'orient', ST_Direction, default=ST_Direction.HORZ
-    )
-    sz = OptionalAttribute(
-        'sz', ST_PlaceholderSize, default=ST_PlaceholderSize.FULL
-    )
-    idx = OptionalAttribute('idx', XsdUnsignedInt, default=0)
+
+    type = OptionalAttribute("type", PP_PLACEHOLDER, default=PP_PLACEHOLDER.OBJECT)
+    orient = OptionalAttribute("orient", ST_Direction, default=ST_Direction.HORZ)
+    sz = OptionalAttribute("sz", ST_PlaceholderSize, default=ST_PlaceholderSize.FULL)
+    idx = OptionalAttribute("idx", XsdUnsignedInt, default=0)
 
 
 class CT_Point2D(BaseOxmlElement):
     """
     Custom element class for <a:off> element.
     """
-    x = RequiredAttribute('x', ST_Coordinate)
-    y = RequiredAttribute('y', ST_Coordinate)
+
+    x = RequiredAttribute("x", ST_Coordinate)
+    y = RequiredAttribute("y", ST_Coordinate)
 
 
 class CT_PositiveSize2D(BaseOxmlElement):
     """
     Custom element class for <a:ext> element.
     """
-    cx = RequiredAttribute('cx', ST_PositiveCoordinate)
-    cy = RequiredAttribute('cy', ST_PositiveCoordinate)
+
+    cx = RequiredAttribute("cx", ST_PositiveCoordinate)
+    cy = RequiredAttribute("cy", ST_PositiveCoordinate)
 
 
 class CT_ShapeProperties(BaseOxmlElement):
@@ -314,22 +344,38 @@ class CT_ShapeProperties(BaseOxmlElement):
     """
 
     _tag_seq = (
-        'a:xfrm', 'a:custGeom', 'a:prstGeom', 'a:noFill', 'a:solidFill',
-        'a:gradFill', 'a:blipFill', 'a:pattFill', 'a:grpFill', 'a:ln',
-        'a:effectLst', 'a:effectDag', 'a:scene3d', 'a:sp3d', 'a:extLst',
+        "a:xfrm",
+        "a:custGeom",
+        "a:prstGeom",
+        "a:noFill",
+        "a:solidFill",
+        "a:gradFill",
+        "a:blipFill",
+        "a:pattFill",
+        "a:grpFill",
+        "a:ln",
+        "a:effectLst",
+        "a:effectDag",
+        "a:scene3d",
+        "a:sp3d",
+        "a:extLst",
     )
-    xfrm = ZeroOrOne('a:xfrm', successors=_tag_seq[1:])
-    custGeom = ZeroOrOne('a:custGeom', successors=_tag_seq[2:])
-    prstGeom = ZeroOrOne('a:prstGeom', successors=_tag_seq[3:])
+    xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
+    custGeom = ZeroOrOne("a:custGeom", successors=_tag_seq[2:])
+    prstGeom = ZeroOrOne("a:prstGeom", successors=_tag_seq[3:])
     eg_fillProperties = ZeroOrOneChoice(
         (
-            Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-            Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')
+            Choice("a:noFill"),
+            Choice("a:solidFill"),
+            Choice("a:gradFill"),
+            Choice("a:blipFill"),
+            Choice("a:pattFill"),
+            Choice("a:grpFill"),
         ),
-        successors=_tag_seq[9:]
+        successors=_tag_seq[9:],
     )
-    ln = ZeroOrOne('a:ln', successors=_tag_seq[10:])
-    effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[11:])
+    ln = ZeroOrOne("a:ln", successors=_tag_seq[10:])
+    effectLst = ZeroOrOne("a:effectLst", successors=_tag_seq[11:])
     del _tag_seq
 
     @property
@@ -337,7 +383,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         """
         Shape width as an instance of Emu, or None if not present.
         """
-        cx_str_lst = self.xpath('./a:xfrm/a:ext/@cx')
+        cx_str_lst = self.xpath("./a:xfrm/a:ext/@cx")
         if not cx_str_lst:
             return None
         return Emu(cx_str_lst[0])
@@ -347,7 +393,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         """
         Shape height as an instance of Emu, or None if not present.
         """
-        cy_str_lst = self.xpath('./a:xfrm/a:ext/@cy')
+        cy_str_lst = self.xpath("./a:xfrm/a:ext/@cy")
         if not cy_str_lst:
             return None
         return Emu(cy_str_lst[0])
@@ -359,7 +405,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         slide, as an instance of Emu. Corresponds to the value of the
         `./xfrm/off/@x` attribute. None if not present.
         """
-        x_str_lst = self.xpath('./a:xfrm/a:off/@x')
+        x_str_lst = self.xpath("./a:xfrm/a:off/@x")
         if not x_str_lst:
             return None
         return Emu(x_str_lst[0])
@@ -370,7 +416,7 @@ class CT_ShapeProperties(BaseOxmlElement):
         The offset of the top of the shape from the top of the slide, as an
         instance of Emu. None if not present.
         """
-        y_str_lst = self.xpath('./a:xfrm/a:off/@y')
+        y_str_lst = self.xpath("./a:xfrm/a:off/@y")
         if not y_str_lst:
             return None
         return Emu(y_str_lst[0])
@@ -385,15 +431,16 @@ class CT_Transform2D(BaseOxmlElement):
     NOTE: this is a composite including CT_GroupTransform2D, which appears
     with the `a:xfrm` tag in a group shape (including a slide `p:spTree`).
     """
-    _tag_seq = ('a:off', 'a:ext', 'a:chOff', 'a:chExt')
-    off = ZeroOrOne('a:off', successors=_tag_seq[1:])
-    ext = ZeroOrOne('a:ext', successors=_tag_seq[2:])
-    chOff = ZeroOrOne('a:chOff', successors=_tag_seq[3:])
-    chExt = ZeroOrOne('a:chExt', successors=_tag_seq[4:])
+
+    _tag_seq = ("a:off", "a:ext", "a:chOff", "a:chExt")
+    off = ZeroOrOne("a:off", successors=_tag_seq[1:])
+    ext = ZeroOrOne("a:ext", successors=_tag_seq[2:])
+    chOff = ZeroOrOne("a:chOff", successors=_tag_seq[3:])
+    chExt = ZeroOrOne("a:chExt", successors=_tag_seq[4:])
     del _tag_seq
-    rot = OptionalAttribute('rot', ST_Angle, default=0.0)
-    flipH = OptionalAttribute('flipH', XsdBoolean, default=False)
-    flipV = OptionalAttribute('flipV', XsdBoolean, default=False)
+    rot = OptionalAttribute("rot", ST_Angle, default=0.0)
+    flipH = OptionalAttribute("flipH", XsdBoolean, default=False)
+    flipV = OptionalAttribute("flipV", XsdBoolean, default=False)
 
     @property
     def x(self):
@@ -444,13 +491,13 @@ class CT_Transform2D(BaseOxmlElement):
         ext.cy = value
 
     def _new_ext(self):
-        ext = OxmlElement('a:ext')
+        ext = OxmlElement("a:ext")
         ext.cx = 0
         ext.cy = 0
         return ext
 
     def _new_off(self):
-        off = OxmlElement('a:off')
+        off = OxmlElement("a:off")
         off.x = 0
         off.y = 0
         return off

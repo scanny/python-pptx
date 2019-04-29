@@ -2,21 +2,23 @@
 
 """Custom element classes for table-related XML elements"""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.enum.text import MSO_VERTICAL_ANCHOR
 from pptx.oxml import parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.simpletypes import (
-    ST_Coordinate, ST_Coordinate32, XsdBoolean, XsdInt
-)
+from pptx.oxml.simpletypes import ST_Coordinate, ST_Coordinate32, XsdBoolean, XsdInt
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
-    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
+    BaseOxmlElement,
+    Choice,
+    OneAndOnlyOne,
+    OptionalAttribute,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
+    ZeroOrOneChoice,
 )
 from pptx.util import Emu, lazyproperty
 
@@ -24,10 +26,10 @@ from pptx.util import Emu, lazyproperty
 class CT_Table(BaseOxmlElement):
     """`a:tbl` custom element class"""
 
-    _tag_seq = ('a:tblPr', 'a:tblGrid', 'a:tr')
-    tblPr = ZeroOrOne('a:tblPr', successors=_tag_seq[1:])
-    tblGrid = OneAndOnlyOne('a:tblGrid')
-    tr = ZeroOrMore('a:tr', successors=_tag_seq[3:])
+    _tag_seq = ("a:tblPr", "a:tblGrid", "a:tr")
+    tblPr = ZeroOrOne("a:tblPr", successors=_tag_seq[1:])
+    tblGrid = OneAndOnlyOne("a:tblGrid")
+    tr = ZeroOrMore("a:tr", successors=_tag_seq[3:])
     del _tag_seq
 
     def add_tr(self, height):
@@ -39,35 +41,35 @@ class CT_Table(BaseOxmlElement):
 
     @property
     def bandCol(self):
-        return self._get_boolean_property('bandCol')
+        return self._get_boolean_property("bandCol")
 
     @bandCol.setter
     def bandCol(self, value):
-        self._set_boolean_property('bandCol', value)
+        self._set_boolean_property("bandCol", value)
 
     @property
     def bandRow(self):
-        return self._get_boolean_property('bandRow')
+        return self._get_boolean_property("bandRow")
 
     @bandRow.setter
     def bandRow(self, value):
-        self._set_boolean_property('bandRow', value)
+        self._set_boolean_property("bandRow", value)
 
     @property
     def firstCol(self):
-        return self._get_boolean_property('firstCol')
+        return self._get_boolean_property("firstCol")
 
     @firstCol.setter
     def firstCol(self, value):
-        self._set_boolean_property('firstCol', value)
+        self._set_boolean_property("firstCol", value)
 
     @property
     def firstRow(self):
-        return self._get_boolean_property('firstRow')
+        return self._get_boolean_property("firstRow")
 
     @firstRow.setter
     def firstRow(self, value):
-        self._set_boolean_property('firstRow', value)
+        self._set_boolean_property("firstRow", value)
 
     def iter_tcs(self):
         """Generate each `a:tc` element in this tbl.
@@ -78,44 +80,44 @@ class CT_Table(BaseOxmlElement):
 
     @property
     def lastCol(self):
-        return self._get_boolean_property('lastCol')
+        return self._get_boolean_property("lastCol")
 
     @lastCol.setter
     def lastCol(self, value):
-        self._set_boolean_property('lastCol', value)
+        self._set_boolean_property("lastCol", value)
 
     @property
     def lastRow(self):
-        return self._get_boolean_property('lastRow')
+        return self._get_boolean_property("lastRow")
 
     @lastRow.setter
     def lastRow(self, value):
-        self._set_boolean_property('lastRow', value)
+        self._set_boolean_property("lastRow", value)
 
     @classmethod
     def new_tbl(cls, rows, cols, width, height, tableStyleId=None):
         """Return a new ``<p:tbl>`` element tree."""
         # working hypothesis is this is the default table style GUID
         if tableStyleId is None:
-            tableStyleId = '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
+            tableStyleId = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"
 
         xml = cls._tbl_tmpl() % (tableStyleId)
         tbl = parse_xml(xml)
 
         # add specified number of rows and columns
-        rowheight = height//rows
-        colwidth = width//cols
+        rowheight = height // rows
+        colwidth = width // cols
 
         for col in range(cols):
             # adjust width of last col to absorb any div error
-            if col == cols-1:
-                colwidth = width - ((cols-1) * colwidth)
+            if col == cols - 1:
+                colwidth = width - ((cols - 1) * colwidth)
             tbl.tblGrid.add_gridCol(width=colwidth)
 
         for row in range(rows):
             # adjust height of last row to absorb any div error
-            if row == rows-1:
-                rowheight = height - ((rows-1) * rowheight)
+            if row == rows - 1:
+                rowheight = height - ((rows - 1) * rowheight)
             tr = tbl.add_tr(height=rowheight)
             for col in range(cols):
                 tr.add_tc()
@@ -136,11 +138,7 @@ class CT_Table(BaseOxmlElement):
         if tblPr is None:
             return False
         propval = getattr(tblPr, propname)
-        return {
-            True:  True,
-            False: False,
-            None:  False
-        }[propval]
+        return {True: True, False: False, None: False}[propval]
 
     def _set_boolean_property(self, propname, value):
         """
@@ -153,8 +151,7 @@ class CT_Table(BaseOxmlElement):
         """
         if value not in (True, False):
             raise ValueError(
-                "assigned value must be either True or False, got %s" %
-                value
+                "assigned value must be either True or False, got %s" % value
             )
         tblPr = self.get_or_add_tblPr()
         setattr(tblPr, propname, value)
@@ -162,27 +159,27 @@ class CT_Table(BaseOxmlElement):
     @classmethod
     def _tbl_tmpl(cls):
         return (
-            '<a:tbl %s>\n'
+            "<a:tbl %s>\n"
             '  <a:tblPr firstRow="1" bandRow="1">\n'
-            '    <a:tableStyleId>%s</a:tableStyleId>\n'
-            '  </a:tblPr>\n'
-            '  <a:tblGrid/>\n'
-            '</a:tbl>' % (nsdecls('a'), '%s')
+            "    <a:tableStyleId>%s</a:tableStyleId>\n"
+            "  </a:tblPr>\n"
+            "  <a:tblGrid/>\n"
+            "</a:tbl>" % (nsdecls("a"), "%s")
         )
 
 
 class CT_TableCell(BaseOxmlElement):
     """`a:tc` custom element class"""
 
-    _tag_seq = ('a:txBody', 'a:tcPr', 'a:extLst')
-    txBody = ZeroOrOne('a:txBody', successors=_tag_seq[1:])
-    tcPr = ZeroOrOne('a:tcPr', successors=_tag_seq[2:])
+    _tag_seq = ("a:txBody", "a:tcPr", "a:extLst")
+    txBody = ZeroOrOne("a:txBody", successors=_tag_seq[1:])
+    tcPr = ZeroOrOne("a:tcPr", successors=_tag_seq[2:])
     del _tag_seq
 
-    gridSpan = OptionalAttribute('gridSpan', XsdInt, default=1)
-    rowSpan = OptionalAttribute('rowSpan', XsdInt, default=1)
-    hMerge = OptionalAttribute('hMerge', XsdBoolean, default=False)
-    vMerge = OptionalAttribute('vMerge', XsdBoolean, default=False)
+    gridSpan = OptionalAttribute("gridSpan", XsdInt, default=1)
+    rowSpan = OptionalAttribute("rowSpan", XsdInt, default=1)
+    hMerge = OptionalAttribute("hMerge", XsdBoolean, default=False)
+    vMerge = OptionalAttribute("vMerge", XsdBoolean, default=False)
 
     @property
     def anchor(self):
@@ -261,44 +258,44 @@ class CT_TableCell(BaseOxmlElement):
         property clears that attribute from the element, effectively setting
         it to the default value.
         """
-        return self._get_marX('marT', 45720)
+        return self._get_marX("marT", 45720)
 
     @marT.setter
     def marT(self, value):
-        self._set_marX('marT', value)
+        self._set_marX("marT", value)
 
     @property
     def marR(self):
         """
         Right margin value represented in ``marR`` attribute.
         """
-        return self._get_marX('marR', 91440)
+        return self._get_marX("marR", 91440)
 
     @marR.setter
     def marR(self, value):
-        self._set_marX('marR', value)
+        self._set_marX("marR", value)
 
     @property
     def marB(self):
         """
         Bottom margin value represented in ``marB`` attribute.
         """
-        return self._get_marX('marB', 45720)
+        return self._get_marX("marB", 45720)
 
     @marB.setter
     def marB(self, value):
-        self._set_marX('marB', value)
+        self._set_marX("marB", value)
 
     @property
     def marL(self):
         """
         Left margin value represented in ``marL`` attribute.
         """
-        return self._get_marX('marL', 91440)
+        return self._get_marX("marL", 91440)
 
     @marL.setter
     def marL(self, value):
-        self._set_marX('marL', value)
+        self._set_marX("marL", value)
 
     @classmethod
     def new(cls):
@@ -315,7 +312,7 @@ class CT_TableCell(BaseOxmlElement):
     @property
     def tbl(self):
         """Table element this cell belongs to."""
-        return self.xpath('ancestor::a:tbl')[0]
+        return self.xpath("ancestor::a:tbl")[0]
 
     @property
     def text(self):
@@ -323,8 +320,8 @@ class CT_TableCell(BaseOxmlElement):
         # ---note this shadows lxml _Element.text---
         txBody = self.txBody
         if txBody is None:
-            return ''
-        return '\n'.join([p.text for p in txBody.p_lst])
+            return ""
+        return "\n".join([p.text for p in txBody.p_lst])
 
     def _get_marX(self, attr_name, default):
         """
@@ -351,30 +348,36 @@ class CT_TableCell(BaseOxmlElement):
     @classmethod
     def _tc_tmpl(cls):
         return (
-            '<a:tc %s>\n'
-            '  <a:txBody>\n'
-            '    <a:bodyPr/>\n'
-            '    <a:lstStyle/>\n'
-            '    <a:p/>\n'
-            '  </a:txBody>\n'
-            '  <a:tcPr/>\n'
-            '</a:tc>' % nsdecls('a')
+            "<a:tc %s>\n"
+            "  <a:txBody>\n"
+            "    <a:bodyPr/>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p/>\n"
+            "  </a:txBody>\n"
+            "  <a:tcPr/>\n"
+            "</a:tc>" % nsdecls("a")
         )
 
 
 class CT_TableCellProperties(BaseOxmlElement):
     """`a:tcPr` custom element class"""
 
-    eg_fillProperties = ZeroOrOneChoice((
-        Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-        Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')),
-        successors=('a:headers', 'a:extLst')
+    eg_fillProperties = ZeroOrOneChoice(
+        (
+            Choice("a:noFill"),
+            Choice("a:solidFill"),
+            Choice("a:gradFill"),
+            Choice("a:blipFill"),
+            Choice("a:pattFill"),
+            Choice("a:grpFill"),
+        ),
+        successors=("a:headers", "a:extLst"),
     )
-    anchor = OptionalAttribute('anchor', MSO_VERTICAL_ANCHOR)
-    marL = OptionalAttribute('marL', ST_Coordinate32)
-    marR = OptionalAttribute('marR', ST_Coordinate32)
-    marT = OptionalAttribute('marT', ST_Coordinate32)
-    marB = OptionalAttribute('marB', ST_Coordinate32)
+    anchor = OptionalAttribute("anchor", MSO_VERTICAL_ANCHOR)
+    marL = OptionalAttribute("marL", ST_Coordinate32)
+    marR = OptionalAttribute("marR", ST_Coordinate32)
+    marT = OptionalAttribute("marT", ST_Coordinate32)
+    marB = OptionalAttribute("marB", ST_Coordinate32)
 
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()
@@ -384,14 +387,16 @@ class CT_TableCol(BaseOxmlElement):
     """
     ``<a:gridCol>`` custom element class
     """
-    w = RequiredAttribute('w', ST_Coordinate)
+
+    w = RequiredAttribute("w", ST_Coordinate)
 
 
 class CT_TableGrid(BaseOxmlElement):
     """
     ``<a:tblGrid>`` custom element class
     """
-    gridCol = ZeroOrMore('a:gridCol')
+
+    gridCol = ZeroOrMore("a:gridCol")
 
     def add_gridCol(self, width):
         """
@@ -405,20 +410,22 @@ class CT_TableProperties(BaseOxmlElement):
     """
     ``<a:tblPr>`` custom element class
     """
-    bandRow = OptionalAttribute('bandRow', XsdBoolean, default=False)
-    bandCol = OptionalAttribute('bandCol', XsdBoolean, default=False)
-    firstRow = OptionalAttribute('firstRow', XsdBoolean, default=False)
-    firstCol = OptionalAttribute('firstCol', XsdBoolean, default=False)
-    lastRow = OptionalAttribute('lastRow', XsdBoolean, default=False)
-    lastCol = OptionalAttribute('lastCol', XsdBoolean, default=False)
+
+    bandRow = OptionalAttribute("bandRow", XsdBoolean, default=False)
+    bandCol = OptionalAttribute("bandCol", XsdBoolean, default=False)
+    firstRow = OptionalAttribute("firstRow", XsdBoolean, default=False)
+    firstCol = OptionalAttribute("firstCol", XsdBoolean, default=False)
+    lastRow = OptionalAttribute("lastRow", XsdBoolean, default=False)
+    lastCol = OptionalAttribute("lastCol", XsdBoolean, default=False)
 
 
 class CT_TableRow(BaseOxmlElement):
     """
     ``<a:tr>`` custom element class
     """
-    tc = ZeroOrMore('a:tc', successors=('a:extLst',))
-    h = RequiredAttribute('h', ST_Coordinate)
+
+    tc = ZeroOrMore("a:tc", successors=("a:extLst",))
+    h = RequiredAttribute("h", ST_Coordinate)
 
     def add_tc(self):
         """
@@ -457,7 +464,7 @@ class TcRange(object):
         """Return instance created from merge-origin tc element."""
         other_tc = tc.tbl.tc(
             tc.row_idx + tc.rowSpan - 1,  # ---other_row_idx
-            tc.col_idx + tc.gridSpan - 1  # ---other_col_idx
+            tc.col_idx + tc.gridSpan - 1,  # ---other_col_idx
         )
         return cls(tc, other_tc)
 
@@ -490,20 +497,20 @@ class TcRange(object):
 
     def iter_except_left_col_tcs(self):
         """Generate each `a:tc` element not in leftmost column of range."""
-        for tr in self._tbl.tr_lst[self._top:self._bottom]:
-            for tc in tr.tc_lst[self._left + 1:self._right]:
+        for tr in self._tbl.tr_lst[self._top : self._bottom]:
+            for tc in tr.tc_lst[self._left + 1 : self._right]:
                 yield tc
 
     def iter_except_top_row_tcs(self):
         """Generate each `a:tc` element in non-first rows of range."""
-        for tr in self._tbl.tr_lst[self._top + 1:self._bottom]:
-            for tc in tr.tc_lst[self._left:self._right]:
+        for tr in self._tbl.tr_lst[self._top + 1 : self._bottom]:
+            for tc in tr.tc_lst[self._left : self._right]:
                 yield tc
 
     def iter_left_col_tcs(self):
         """Generate each `a:tc` element in leftmost column of range."""
         col_idx = self._left
-        for tr in self._tbl.tr_lst[self._top:self._bottom]:
+        for tr in self._tbl.tr_lst[self._top : self._bottom]:
             yield tr.tc_lst[col_idx]
 
     def iter_tcs(self):
@@ -513,14 +520,14 @@ class TcRange(object):
         """
         return (
             tc
-            for tr in self._tbl.tr_lst[self._top:self._bottom]
-            for tc in tr.tc_lst[self._left:self._right]
+            for tr in self._tbl.tr_lst[self._top : self._bottom]
+            for tc in tr.tc_lst[self._left : self._right]
         )
 
     def iter_top_row_tcs(self):
         """Generate each `a:tc` element in topmost row of range."""
         tr = self._tbl.tr_lst[self._top]
-        for tc in tr.tc_lst[self._left:self._right]:
+        for tc in tr.tc_lst[self._left : self._right]:
             yield tc
 
     def move_content_to_origin(self):
@@ -545,6 +552,7 @@ class TcRange(object):
         configurations such as (top-left, bottom-right),
         (bottom-left, top-right), etc.
         """
+
         def start_and_size(idx, other_idx):
             """Return beginning and length of range based on two indexes."""
             return min(idx, other_idx), abs(idx - other_idx) + 1

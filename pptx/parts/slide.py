@@ -4,9 +4,7 @@
 Slide and related objects.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .chart import ChartPart
 from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
@@ -23,6 +21,7 @@ class BaseSlidePart(XmlPart):
     Base class for slide parts, e.g. slide, slideLayout, slideMaster,
     notesSlide, notesMaster, and handoutMaster.
     """
+
     def get_image(self, rId):
         """
         Return an |Image| object containing the image related to this slide
@@ -56,6 +55,7 @@ class NotesMasterPart(BaseSlidePart):
     Notes master part. Corresponds to package file
     `ppt/notesMasters/notesMaster1.xml`.
     """
+
     @classmethod
     def create_default(cls, package):
         """
@@ -80,7 +80,7 @@ class NotesMasterPart(BaseSlidePart):
         Create and return a standalone, default notes master part based on
         the built-in template (without any related parts, such as theme).
         """
-        partname = PackURI('/ppt/notesMasters/notesMaster1.xml')
+        partname = PackURI("/ppt/notesMasters/notesMaster1.xml")
         content_type = CT.PML_NOTES_MASTER
         notesMaster = CT_NotesMaster.new_default()
         return NotesMasterPart(partname, content_type, notesMaster, package)
@@ -91,7 +91,7 @@ class NotesMasterPart(BaseSlidePart):
         Create and return a default theme part suitable for use with a notes
         master.
         """
-        partname = package.next_partname('/ppt/theme/theme%d.xml')
+        partname = package.next_partname("/ppt/theme/theme%d.xml")
         content_type = CT.OFC_THEME
         theme = CT_OfficeStyleSheet.new_default()
         return XmlPart(partname, content_type, theme, package)
@@ -103,6 +103,7 @@ class NotesSlidePart(BaseSlidePart):
     slide handout page. Corresponds to package file
     `ppt/notesSlides/notesSlide[1-9][0-9]*.xml`.
     """
+
     @classmethod
     def new(cls, package, slide_part):
         """
@@ -139,12 +140,10 @@ class NotesSlidePart(BaseSlidePart):
         Create and return a new notes slide part that is fully related, but
         has no shape content (i.e. placeholders not cloned).
         """
-        partname = package.next_partname('/ppt/notesSlides/notesSlide%d.xml')
+        partname = package.next_partname("/ppt/notesSlides/notesSlide%d.xml")
         content_type = CT.PML_NOTES_SLIDE
         notes = CT_NotesSlide.new()
-        notes_slide_part = NotesSlidePart(
-            partname, content_type, notes, package
-        )
+        notes_slide_part = NotesSlidePart(partname, content_type, notes, package)
         notes_slide_part.relate_to(notes_master_part, RT.NOTES_MASTER)
         notes_slide_part.relate_to(slide_part, RT.SLIDE)
         return notes_slide_part
@@ -154,6 +153,7 @@ class SlidePart(BaseSlidePart):
     """
     Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
     """
+
     @classmethod
     def new(cls, partname, package, slide_layout_part):
         """
@@ -257,6 +257,7 @@ class SlideLayoutPart(BaseSlidePart):
     Slide layout part. Corresponds to package files
     ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
+
     @lazyproperty
     def slide_layout(self):
         """
@@ -277,6 +278,7 @@ class SlideMasterPart(BaseSlidePart):
     Slide master part. Corresponds to package files
     ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
+
     def related_slide_layout(self, rId):
         """
         Return the |SlideLayout| object of the related |SlideLayoutPart|

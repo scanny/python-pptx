@@ -25,6 +25,7 @@ class TextFrame(Subshape):
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     child element of ``<p:sp>``. Not intended to be constructed directly.
     """
+
     def __init__(self, txBody, parent):
         super(TextFrame, self).__init__(parent)
         self._element = self._txBody = txBody
@@ -61,8 +62,14 @@ class TextFrame(Subshape):
         p = self.paragraphs[0]
         p.clear()
 
-    def fit_text(self, font_family='Calibri', max_size=18, bold=False,
-                 italic=False, font_file=None):
+    def fit_text(
+        self,
+        font_family="Calibri",
+        max_size=18,
+        bold=False,
+        italic=False,
+        font_file=None,
+    ):
         """Fit text-frame text entirely within bounds of its shape.
 
         Make the text in this text frame fit entirely within the bounds of
@@ -77,7 +84,7 @@ class TextFrame(Subshape):
         installed).
         """
         # ---no-op when empty as fit behavior not defined for that case---
-        if self.text == '':
+        if self.text == "":
             return
 
         font_size = self._best_fit_font_size(
@@ -154,7 +161,7 @@ class TextFrame(Subshape):
         converted to unicode assuming UTF-8 encoding. Each line feed
         character in the assigned string is translated to a line break.
         """
-        return '\n'.join(paragraph.text for paragraph in self.paragraphs)
+        return "\n".join(paragraph.text for paragraph in self.paragraphs)
 
     @text.setter
     def text(self, text):
@@ -188,8 +195,8 @@ class TextFrame(Subshape):
         """
         return {
             ST_TextWrappingType.SQUARE: True,
-            ST_TextWrappingType.NONE:   False,
-            None:                       None
+            ST_TextWrappingType.NONE: False,
+            None: None,
         }[self._txBody.bodyPr.wrap]
 
     @word_wrap.setter
@@ -199,9 +206,9 @@ class TextFrame(Subshape):
                 "assigned value must be True, False, or None, got %s" % value
             )
         self._txBody.bodyPr.wrap = {
-            True:  ST_TextWrappingType.SQUARE,
+            True: ST_TextWrappingType.SQUARE,
             False: ST_TextWrappingType.NONE,
-            None:  None
+            None: None,
         }[value]
 
     def _apply_fit(self, font_family, font_size, is_bold, is_italic):
@@ -240,7 +247,7 @@ class TextFrame(Subshape):
         """
         return (
             self._parent.width - self.margin_left - self.margin_right,
-            self._parent.height - self.margin_top - self.margin_bottom
+            self._parent.height - self.margin_top - self.margin_bottom,
         )
 
     def _set_font(self, family, size, bold, italic):
@@ -248,6 +255,7 @@ class TextFrame(Subshape):
         Set the font properties of all the text in this text frame to
         *family*, *size*, *bold*, and *italic*.
         """
+
         def iter_rPrs(txBody):
             for p in txBody.p_lst:
                 for elm in p.content_children:
@@ -271,6 +279,7 @@ class Font(object):
     appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in paragraph and
     ``<a:defRPr>`` in list style elements.
     """
+
     def __init__(self, rPr):
         super(Font, self).__init__()
         self._element = self._rPr = rPr
@@ -425,6 +434,7 @@ class _Hyperlink(Subshape):
     Text run hyperlink object. Corresponds to ``<a:hlinkClick>`` child
     element of the run's properties element (``<a:rPr>``).
     """
+
     def __init__(self, rPr, parent):
         super(_Hyperlink, self).__init__(parent)
         self._rPr = rPr
@@ -465,6 +475,7 @@ class _Paragraph(Subshape):
     """
     Paragraph object. Not intended to be constructed directly.
     """
+
     def __init__(self, p, parent):
         super(_Paragraph, self).__init__(parent)
         self._element = self._p = p
@@ -612,7 +623,7 @@ class _Paragraph(Subshape):
         string, or unicode. String values are converted to unicode assuming
         UTF-8 encoding.
         """
-        return ''.join(elm.text for elm in self._element.content_children)
+        return "".join(elm.text for elm in self._element.content_children)
 
     @text.setter
     def text(self, text):
@@ -642,6 +653,7 @@ class _Run(Subshape):
     """
     Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
     """
+
     def __init__(self, r, parent):
         super(_Run, self).__init__(parent)
         self._r = r

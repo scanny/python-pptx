@@ -10,55 +10,55 @@ from ...unitdata import BaseBuilder
 
 
 class CT_ApplicationNonVisualDrawingPropsBuilder(BaseBuilder):
-    __tag__ = 'p:nvPr'
-    __nspfxs__ = ('p',)
-    __attrs__ = ('isPhoto', 'userDrawn')
+    __tag__ = "p:nvPr"
+    __nspfxs__ = ("p",)
+    __attrs__ = ("isPhoto", "userDrawn")
 
 
 class CT_ConnectorBuilder(BaseBuilder):
-    __tag__ = 'p:cxnSp'
-    __nspfxs__ = ('p', 'a')
+    __tag__ = "p:cxnSp"
+    __nspfxs__ = ("p", "a")
     __attrs__ = ()
 
 
 class CT_GeomGuideBuilder(BaseBuilder):
-    __tag__ = 'a:gd'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('name', 'fmla')
+    __tag__ = "a:gd"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("name", "fmla")
 
 
 class CT_GeomGuideListBuilder(BaseBuilder):
-    __tag__ = 'a:avLst'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:avLst"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
 class CT_GraphicalObjectBuilder(BaseBuilder):
-    __tag__ = 'a:graphic'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:graphic"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
 class CT_GraphicalObjectDataBuilder(BaseBuilder):
-    __tag__ = 'a:graphicData'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('uri',)
+    __tag__ = "a:graphicData"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("uri",)
 
 
 class CT_GraphicalObjectFrameBuilder(BaseBuilder):
-    __tag__ = 'p:graphicFrame'
-    __nspfxs__ = ('p', 'a')
-    __attrs__ = ('bwMode',)
+    __tag__ = "p:graphicFrame"
+    __nspfxs__ = ("p", "a")
+    __attrs__ = ("bwMode",)
 
 
 class CT_GraphicalObjectFrameNonVisualBuilder(BaseBuilder):
-    __tag__ = 'p:nvGraphicFramePr'
-    __nspfxs__ = ('p',)
+    __tag__ = "p:nvGraphicFramePr"
+    __nspfxs__ = ("p",)
     __attrs__ = ()
 
 
 class CT_GroupShapeBuilder(BaseBuilder):
-    __nspfxs__ = ('p',)
+    __nspfxs__ = ("p",)
     __attrs__ = ()
 
     def __init__(self, tag):
@@ -67,80 +67,80 @@ class CT_GroupShapeBuilder(BaseBuilder):
 
 
 class CT_GroupShapePropertiesBuilder(BaseBuilder):
-    __tag__ = 'p:grpSpPr'
-    __nspfxs__ = ('p', 'a')
-    __attrs__ = ('bwMode',)
+    __tag__ = "p:grpSpPr"
+    __nspfxs__ = ("p", "a")
+    __attrs__ = ("bwMode",)
 
 
 class CT_NonVisualDrawingPropsBuilder(BaseBuilder):
-    __tag__ = 'p:cNvPr'
-    __nspfxs__ = ('p',)
-    __attrs__ = ('id', 'name', 'descr', 'hidden', 'title')
+    __tag__ = "p:cNvPr"
+    __nspfxs__ = ("p",)
+    __attrs__ = ("id", "name", "descr", "hidden", "title")
 
 
 class CT_NonVisualDrawingShapePropsBuilder(BaseBuilder):
-    __tag__ = 'p:cNvSpPr'
-    __nspfxs__ = ('p',)
-    __attrs__ = ('txBox',)
+    __tag__ = "p:cNvSpPr"
+    __nspfxs__ = ("p",)
+    __attrs__ = ("txBox",)
 
 
 class CT_PictureBuilder(BaseBuilder):
-    __tag__ = 'p:pic'
-    __nspfxs__ = ('p', 'a')
+    __tag__ = "p:pic"
+    __nspfxs__ = ("p", "a")
     __attrs__ = ()
 
 
 class CT_PictureNonVisualBuilder(BaseBuilder):
-    __tag__ = 'p:nvPicPr'
-    __nspfxs__ = ('p',)
+    __tag__ = "p:nvPicPr"
+    __nspfxs__ = ("p",)
     __attrs__ = ()
 
 
 class CT_PlaceholderBuilder(BaseBuilder):
-    __tag__ = 'p:ph'
-    __nspfxs__ = ('p',)
-    __attrs__ = ('type', 'orient', 'sz', 'idx', 'hasCustomPropt')
+    __tag__ = "p:ph"
+    __nspfxs__ = ("p",)
+    __attrs__ = ("type", "orient", "sz", "idx", "hasCustomPropt")
 
 
 class CT_Point2DBuilder(BaseBuilder):
-    __tag__ = 'a:off'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('x', 'y')
+    __tag__ = "a:off"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("x", "y")
 
 
 class CT_PositiveSize2DBuilder(BaseBuilder):
-    __tag__ = 'a:ext'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('cx', 'cy')
+    __tag__ = "a:ext"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("cx", "cy")
 
 
 class CT_PresetGeometry2DBuilder(BaseBuilder):
-    __tag__ = 'a:prstGeom'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('prst',)
+    __tag__ = "a:prstGeom"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("prst",)
 
 
 class CT_ShapeBuilder(BaseBuilder):
-    __tag__ = 'p:sp'
-    __nspfxs__ = ('p', 'a')
-    __attrs__ = ('useBgFill',)
+    __tag__ = "p:sp"
+    __nspfxs__ = ("p", "a")
+    __attrs__ = ("useBgFill",)
 
 
 class CT_ShapeNonVisualBuilder(BaseBuilder):
-    __tag__ = 'p:nvSpPr'
-    __nspfxs__ = ('p',)
+    __tag__ = "p:nvSpPr"
+    __nspfxs__ = ("p",)
     __attrs__ = ()
 
 
 class CT_ShapePropertiesBuilder(BaseBuilder):
-    __tag__ = 'p:spPr'
-    __nspfxs__ = ('p', 'a')
-    __attrs__ = ('bwMode',)
+    __tag__ = "p:spPr"
+    __nspfxs__ = ("p", "a")
+    __attrs__ = ("bwMode",)
 
 
 class CT_Transform2DBuilder(BaseBuilder):
-    __nspfxs__ = ('a',)
-    __attrs__ = ('rot', 'flipH', 'flipV')
+    __nspfxs__ = ("a",)
+    __attrs__ = ("rot", "flipH", "flipV")
 
     def __init__(self, tag):
         self.__tag__ = tag
@@ -176,7 +176,7 @@ def a_graphicFrame():
 
 
 def a_grpSp():
-    return CT_GroupShapeBuilder('p:grpSp')
+    return CT_GroupShapeBuilder("p:grpSp")
 
 
 def a_grpSpPr():
@@ -184,7 +184,7 @@ def a_grpSpPr():
 
 
 def a_p_xfrm():
-    return CT_Transform2DBuilder('p:xfrm')
+    return CT_Transform2DBuilder("p:xfrm")
 
 
 def a_ph():
@@ -236,4 +236,4 @@ def an_spPr():
 
 
 def an_xfrm():
-    return CT_Transform2DBuilder('a:xfrm')
+    return CT_Transform2DBuilder("a:xfrm")

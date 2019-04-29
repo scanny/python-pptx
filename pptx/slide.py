@@ -2,15 +2,19 @@
 
 """Slide-related objects, including masters, layouts, and notes."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.shapes.shapetree import (
-    LayoutPlaceholders, LayoutShapes, MasterPlaceholders, MasterShapes,
-    NotesSlidePlaceholders, NotesSlideShapes, SlidePlaceholders, SlideShapes
+    LayoutPlaceholders,
+    LayoutShapes,
+    MasterPlaceholders,
+    MasterShapes,
+    NotesSlidePlaceholders,
+    NotesSlideShapes,
+    SlidePlaceholders,
+    SlideShapes,
 )
 from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
@@ -19,7 +23,7 @@ from pptx.util import lazyproperty
 class _BaseSlide(PartElementProxy):
     """Base class for slide objects, including masters, layouts and notes."""
 
-    __slots__ = ('_background',)
+    __slots__ = ("_background",)
 
     @lazyproperty
     def background(self):
@@ -44,7 +48,7 @@ class _BaseSlide(PartElementProxy):
 
     @name.setter
     def name(self, value):
-        new_value = '' if value is None else value
+        new_value = "" if value is None else value
         self._element.cSld.name = new_value
 
 
@@ -54,7 +58,7 @@ class _BaseMaster(_BaseSlide):
     Provides access to placeholders and regular shapes.
     """
 
-    __slots__ = ('_placeholders', '_shapes')
+    __slots__ = ("_placeholders", "_shapes")
 
     @lazyproperty
     def placeholders(self):
@@ -88,7 +92,7 @@ class NotesSlide(_BaseSlide):
     shapes on the notes handout page.
     """
 
-    __slots__ = ('_placeholders', '_shapes')
+    __slots__ = ("_placeholders", "_shapes")
 
     def clone_master_placeholders(self, notes_master):
         """
@@ -97,6 +101,7 @@ class NotesSlide(_BaseSlide):
         preserved. Certain placeholders (header, date, footer) are not
         cloned.
         """
+
         def iter_cloneable_placeholders(notes_master):
             """
             Generate a reference to each placeholder in *notes_master* that
@@ -163,7 +168,7 @@ class NotesSlide(_BaseSlide):
 class Slide(_BaseSlide):
     """Slide object. Provides access to shapes and slide-level properties."""
 
-    __slots__ = ('_placeholders', '_shapes')
+    __slots__ = ("_placeholders", "_shapes")
 
     @property
     def background(self):
@@ -252,6 +257,7 @@ class Slides(ParentedElementProxy):
     list semantics for access to individual slides. Supports indexed access,
     len(), and iteration.
     """
+
     def __init__(self, sldIdLst, prs):
         super(Slides, self).__init__(sldIdLst, prs)
         self._sldIdLst = sldIdLst
@@ -263,7 +269,7 @@ class Slides(ParentedElementProxy):
         try:
             sldId = self._sldIdLst[idx]
         except IndexError:
-            raise IndexError('slide index out of range')
+            raise IndexError("slide index out of range")
         return self.part.related_slide(sldId.rId)
 
     def __iter__(self):
@@ -306,7 +312,7 @@ class Slides(ParentedElementProxy):
         for idx, this_slide in enumerate(self):
             if this_slide == slide:
                 return idx
-        raise ValueError('%s is not in slide collection' % slide)
+        raise ValueError("%s is not in slide collection" % slide)
 
 
 class SlideLayout(_BaseSlide):
@@ -315,7 +321,7 @@ class SlideLayout(_BaseSlide):
     slide layout-level properties.
     """
 
-    __slots__ = ('_placeholders', '_shapes')
+    __slots__ = ("_placeholders", "_shapes")
 
     def iter_cloneable_placeholders(self):
         """
@@ -324,8 +330,9 @@ class SlideLayout(_BaseSlide):
         slide.
         """
         latent_ph_types = (
-            PP_PLACEHOLDER.DATE, PP_PLACEHOLDER.FOOTER,
-            PP_PLACEHOLDER.SLIDE_NUMBER
+            PP_PLACEHOLDER.DATE,
+            PP_PLACEHOLDER.FOOTER,
+            PP_PLACEHOLDER.SLIDE_NUMBER,
         )
         for ph in self.placeholders:
             if ph.element.ph_type not in latent_ph_types:
@@ -368,7 +375,7 @@ class SlideLayouts(ParentedElementProxy):
     Supports indexed access, len(), iteration, index() and remove().
     """
 
-    __slots__ = ('_sldLayoutIdLst',)
+    __slots__ = ("_sldLayoutIdLst",)
 
     def __init__(self, sldLayoutIdLst, parent):
         super(SlideLayouts, self).__init__(sldLayoutIdLst, parent)
@@ -381,7 +388,7 @@ class SlideLayouts(ParentedElementProxy):
         try:
             sldLayoutId = self._sldLayoutIdLst[idx]
         except IndexError:
-            raise IndexError('slide layout index out of range')
+            raise IndexError("slide layout index out of range")
         return self.part.related_slide_layout(sldLayoutId.rId)
 
     def __iter__(self):
@@ -423,7 +430,7 @@ class SlideLayouts(ParentedElementProxy):
         """
         # ---raise if layout is in use---
         if slide_layout.used_by_slides:
-            raise ValueError('cannot remove slide-layout in use by one or more slides')
+            raise ValueError("cannot remove slide-layout in use by one or more slides")
 
         # ---target layout is identified by its index in this collection---
         target_idx = self.index(slide_layout)
@@ -446,7 +453,7 @@ class SlideMaster(_BaseMaster):
     inherited from |_BaseMaster|.
     """
 
-    __slots__ = ('_slide_layouts',)
+    __slots__ = ("_slide_layouts",)
 
     @lazyproperty
     def slide_layouts(self):
@@ -460,7 +467,7 @@ class SlideMasters(ParentedElementProxy):
     Has list access semantics, supporting indexed access, len(), and iteration.
     """
 
-    __slots__ = ('_sldMasterIdLst',)
+    __slots__ = ("_sldMasterIdLst",)
 
     def __init__(self, sldMasterIdLst, parent):
         super(SlideMasters, self).__init__(sldMasterIdLst, parent)
@@ -473,7 +480,7 @@ class SlideMasters(ParentedElementProxy):
         try:
             sldMasterId = self._sldMasterIdLst[idx]
         except IndexError:
-            raise IndexError('slide master index out of range')
+            raise IndexError("slide master index out of range")
         return self.part.related_slide_master(sldMasterId.rId)
 
     def __iter__(self):
@@ -499,7 +506,7 @@ class _Background(ElementProxy):
     has a |_Background| object.
     """
 
-    __slots__ = ('_cSld', '_fill')
+    __slots__ = ("_cSld", "_fill")
 
     def __init__(self, cSld):
         super(_Background, self).__init__(cSld)

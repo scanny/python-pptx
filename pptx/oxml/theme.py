@@ -4,9 +4,7 @@
 lxml custom element classes for theme-related XML elements.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from . import parse_from_template
 from .xmlchemy import BaseOxmlElement
@@ -16,9 +14,13 @@ class CT_OfficeStyleSheet(BaseOxmlElement):
     """
     ``<a:theme>`` element, root of a theme part
     """
+
     _tag_seq = (
-        'a:themeElements', 'a:objectDefaults', 'a:extraClrSchemeLst',
-        'a:custClrLst', 'a:extLst'
+        "a:themeElements",
+        "a:objectDefaults",
+        "a:extraClrSchemeLst",
+        "a:custClrLst",
+        "a:extLst",
     )
     del _tag_seq
 
@@ -28,4 +30,4 @@ class CT_OfficeStyleSheet(BaseOxmlElement):
         Return a new ``<a:theme>`` element containing default settings
         suitable for use with a notes master.
         """
-        return parse_from_template('theme')
+        return parse_from_template("theme")

@@ -23,6 +23,7 @@ class OpcPackage(object):
     the :meth:`open` class method with a path to a package file or file-like
     object containing one.
     """
+
     def __init__(self):
         super(OpcPackage, self).__init__()
 
@@ -40,6 +41,7 @@ class OpcPackage(object):
         Generate exactly one reference to each of the parts in the package by
         performing a depth-first traversal of the rels graph.
         """
+
         def walk_parts(source, visited=list()):
             for rel in source.rels.values():
                 if rel.is_external:
@@ -61,6 +63,7 @@ class OpcPackage(object):
         Generate exactly one reference to each relationship in the package by
         performing a depth-first traversal of the rels graph.
         """
+
         def walk_rels(source, visited=None):
             visited = [] if visited is None else visited
             for rel in source.rels.values():
@@ -107,11 +110,11 @@ class OpcPackage(object):
         integer portion of the partname. Example: '/ppt/slides/slide%d.xml'
         """
         partnames = [part.partname for part in self.iter_parts()]
-        for n in range(1, len(partnames)+2):
+        for n in range(1, len(partnames) + 2):
             candidate_partname = tmpl % n
             if candidate_partname not in partnames:
                 return PackURI(candidate_partname)
-        raise Exception('ProgrammingError: ran out of candidate_partnames')
+        raise Exception("ProgrammingError: ran out of candidate_partnames")
 
     @classmethod
     def open(cls, pkg_file):
@@ -172,6 +175,7 @@ class Part(object):
     intended to be subclassed in client code to implement specific part
     behaviors.
     """
+
     def __init__(self, partname, content_type, blob=None, package=None):
         super(Part, self).__init__()
         self._partname = partname
@@ -324,7 +328,7 @@ class Part(object):
         Return the count of references in this part's XML to the relationship
         identified by *rId*.
         """
-        rIds = self._element.xpath('//@r:id')
+        rIds = self._element.xpath("//@r:id")
         return len([_rId for _rId in rIds if _rId == rId])
 
 
@@ -335,10 +339,9 @@ class XmlPart(Part):
     of parsing and reserializing the XML payload and managing relationships
     to other parts.
     """
+
     def __init__(self, partname, content_type, element, package=None):
-        super(XmlPart, self).__init__(
-            partname, content_type, package=package
-        )
+        super(XmlPart, self).__init__(partname, content_type, package=package)
         self._element = element
 
     @property
@@ -365,6 +368,7 @@ class PartFactory(object):
     Provides a way for client code to specify a subclass of |Part| to be
     constructed by |Unmarshaller| based on its content type.
     """
+
     part_type_for = {}
     default_part_type = Part
 
@@ -388,6 +392,7 @@ class RelationshipCollection(dict):
     """
     Collection object for |_Relationship| instances, having list semantics.
     """
+
     def __init__(self, baseURI):
         super(RelationshipCollection, self).__init__()
         self._baseURI = baseURI
@@ -422,9 +427,7 @@ class RelationshipCollection(dict):
         rel = self._get_matching(reltype, target_ref, is_external=True)
         if rel is None:
             rId = self._next_rId
-            rel = self.add_relationship(
-                reltype, target_ref, rId, is_external=True
-            )
+            rel = self.add_relationship(reltype, target_ref, rId, is_external=True)
         return rel.rId
 
     def part_with_reltype(self, reltype):
@@ -452,9 +455,7 @@ class RelationshipCollection(dict):
         """
         rels_elm = CT_Relationships.new()
         for rel in self.values():
-            rels_elm.add_rel(
-                rel.rId, rel.reltype, rel.target_ref, rel.is_external
-            )
+            rels_elm.add_rel(rel.rId, rel.reltype, rel.target_ref, rel.is_external)
         return rels_elm.xml
 
     def _get_matching(self, reltype, target, is_external=False):
@@ -462,6 +463,7 @@ class RelationshipCollection(dict):
         Return relationship of matching *reltype*, *target*, and
         *is_external* from collection, or None if not found.
         """
+
         def matches(rel, reltype, target, is_external):
             if rel.reltype != reltype:
                 return False
@@ -498,8 +500,8 @@ class RelationshipCollection(dict):
         Next available rId in collection, starting from 'rId1' and making use
         of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
-        for n in range(1, len(self)+2):
-            rId_candidate = 'rId%d' % n  # like 'rId19'
+        for n in range(1, len(self) + 2):
+            rId_candidate = "rId%d" % n  # like 'rId19'
             if rId_candidate not in self:
                 return rId_candidate
 
@@ -509,6 +511,7 @@ class Unmarshaller(object):
     Hosts static methods for unmarshalling a package from a |PackageReader|
     instance.
     """
+
     @staticmethod
     def unmarshal(pkg_reader, package, part_factory):
         """
@@ -516,9 +519,7 @@ class Unmarshaller(object):
         contents of *pkg_reader*, delegating construction of each part to
         *part_factory*. Package relationships are added to *pkg*.
         """
-        parts = Unmarshaller._unmarshal_parts(
-            pkg_reader, package, part_factory
-        )
+        parts = Unmarshaller._unmarshal_parts(pkg_reader, package, part_factory)
         Unmarshaller._unmarshal_relationships(pkg_reader, package, parts)
         for part in parts.values():
             part.after_unmarshal()
@@ -533,9 +534,7 @@ class Unmarshaller(object):
         """
         parts = {}
         for partname, content_type, blob in pkg_reader.iter_sparts():
-            parts[partname] = part_factory(
-                partname, content_type, blob, package
-            )
+            parts[partname] = part_factory(partname, content_type, blob, package)
         return parts
 
     @staticmethod
@@ -546,9 +545,10 @@ class Unmarshaller(object):
         target part in *parts*.
         """
         for source_uri, srel in pkg_reader.iter_srels():
-            source = package if source_uri == '/' else parts[source_uri]
-            target = (srel.target_ref if srel.is_external
-                      else parts[srel.target_partname])
+            source = package if source_uri == "/" else parts[source_uri]
+            target = (
+                srel.target_ref if srel.is_external else parts[srel.target_partname]
+            )
             source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
 
 
@@ -556,6 +556,7 @@ class _Relationship(object):
     """
     Value object for relationship to part.
     """
+
     def __init__(self, rId, reltype, target, baseURI, external=False):
         super(_Relationship, self).__init__()
         self._rId = rId
@@ -579,8 +580,10 @@ class _Relationship(object):
     @property
     def target_part(self):
         if self._is_external:
-            raise ValueError("target_part property on _Relationship is undef"
-                             "ined when target mode is External")
+            raise ValueError(
+                "target_part property on _Relationship is undef"
+                "ined when target mode is External"
+            )
         return self._target
 
     @property

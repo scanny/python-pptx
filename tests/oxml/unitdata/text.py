@@ -10,44 +10,65 @@ from ...unitdata import BaseBuilder
 
 
 class CT_Hyperlink(BaseBuilder):
-    __tag__ = 'a:hlinkClick'
-    __nspfxs__ = ('a', 'r')
+    __tag__ = "a:hlinkClick"
+    __nspfxs__ = ("a", "r")
     __attrs__ = (
-        'r:id', 'invalidUrl', 'action', 'tgtFrame', 'tooltip', 'history',
-        'highlightClick', 'endSnd'
+        "r:id",
+        "invalidUrl",
+        "action",
+        "tgtFrame",
+        "tooltip",
+        "history",
+        "highlightClick",
+        "endSnd",
     )
 
     def with_rId(self, rId):
-        self._set_xmlattr('r:id', rId)
+        self._set_xmlattr("r:id", rId)
         return self
 
 
 class CT_OfficeArtExtensionList(BaseBuilder):
-    __tag__ = 'a:extLst'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:extLst"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
 class CT_RegularTextRunBuilder(BaseBuilder):
-    __tag__ = 'a:r'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:r"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
 class CT_TextBodyBuilder(BaseBuilder):
-    __tag__ = 'p:txBody'
-    __nspfxs__ = ('p', 'a')
+    __tag__ = "p:txBody"
+    __nspfxs__ = ("p", "a")
     __attrs__ = ()
 
 
 class CT_TextBodyPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:bodyPr'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:bodyPr"
+    __nspfxs__ = ("a",)
     __attrs__ = (
-        'rot', 'spcFirstLastPara', 'vertOverflow', 'horzOverflow', 'vert',
-        'wrap', 'lIns', 'tIns', 'rIns', 'bIns', 'numCol', 'spcCol', 'rtlCol',
-        'fromWordArt', 'anchor', 'anchorCtr', 'forceAA', 'upright',
-        'compatLnSpc',
+        "rot",
+        "spcFirstLastPara",
+        "vertOverflow",
+        "horzOverflow",
+        "vert",
+        "wrap",
+        "lIns",
+        "tIns",
+        "rIns",
+        "bIns",
+        "numCol",
+        "spcCol",
+        "rtlCol",
+        "fromWordArt",
+        "anchor",
+        "anchorCtr",
+        "forceAA",
+        "upright",
+        "compatLnSpc",
     )
 
 
@@ -56,8 +77,9 @@ class CT_TextCharacterPropertiesBuilder(BaseBuilder):
     Test data builder for CT_TextCharacterProperties XML element that appears
     as <a:endParaRPr> child of <a:p> and <a:rPr> child of <a:r>.
     """
-    __nspfxs__ = ('a',)
-    __attrs__ = ('b', 'i', 'sz', 'u')
+
+    __nspfxs__ = ("a",)
+    __attrs__ = ("b", "i", "sz", "u")
 
     def __init__(self, tag):
         self.__tag__ = tag
@@ -65,21 +87,21 @@ class CT_TextCharacterPropertiesBuilder(BaseBuilder):
 
 
 class CT_TextFontBuilder(BaseBuilder):
-    __tag__ = 'a:latin'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('typeface', 'panose', 'pitchFamily', 'charset')
+    __tag__ = "a:latin"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("typeface", "panose", "pitchFamily", "charset")
 
 
 class CT_TextNoAutofitBuilder(BaseBuilder):
-    __tag__ = 'a:noAutofit'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:noAutofit"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
 class CT_TextNormalAutofitBuilder(BaseBuilder):
-    __tag__ = 'a:normAutofit'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('fontScale', 'lnSpcReduction')
+    __tag__ = "a:normAutofit"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("fontScale", "lnSpcReduction")
 
 
 class CT_TextParagraphBuilder(BaseBuilder):
@@ -87,8 +109,9 @@ class CT_TextParagraphBuilder(BaseBuilder):
     Test data builder for CT_TextParagraph (<a:p>) XML element that appears
     as a child of <p:txBody>.
     """
-    __tag__ = 'a:p'
-    __nspfxs__ = ('a',)
+
+    __tag__ = "a:p"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
@@ -97,17 +120,27 @@ class CT_TextParagraphPropertiesBuilder(BaseBuilder):
     Test data builder for CT_TextParagraphProperties (<a:pPr>) XML element
     that appears as a child of <a:p>.
     """
-    __tag__ = 'a:pPr'
-    __nspfxs__ = ('a',)
+
+    __tag__ = "a:pPr"
+    __nspfxs__ = ("a",)
     __attrs__ = (
-        'marL', 'marR', 'lvl', 'indent', 'algn', 'defTabSz', 'rtl',
-        'eaLnBrk', 'fontAlgn', 'latinLnBrk', 'hangingPunct'
+        "marL",
+        "marR",
+        "lvl",
+        "indent",
+        "algn",
+        "defTabSz",
+        "rtl",
+        "eaLnBrk",
+        "fontAlgn",
+        "latinLnBrk",
+        "hangingPunct",
     )
 
 
 class CT_TextShapeAutofitBuilder(BaseBuilder):
-    __tag__ = 'a:spAutoFit'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:spAutoFit"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
@@ -125,7 +158,7 @@ def a_bodyPr():
 
 
 def a_defRPr():
-    return CT_TextCharacterPropertiesBuilder('a:defRPr')
+    return CT_TextCharacterPropertiesBuilder("a:defRPr")
 
 
 def a_latin():
@@ -151,7 +184,7 @@ def a_pPr():
 
 
 def a_t():
-    return XsdString('a:t', ('a',))
+    return XsdString("a:t", ("a",))
 
 
 def a_txBody():
@@ -159,7 +192,7 @@ def a_txBody():
 
 
 def an_endParaRPr():
-    return CT_TextCharacterPropertiesBuilder('a:endParaRPr')
+    return CT_TextCharacterPropertiesBuilder("a:endParaRPr")
 
 
 def an_extLst():
@@ -175,7 +208,7 @@ def an_r():
 
 
 def an_rPr():
-    return CT_TextCharacterPropertiesBuilder('a:rPr')
+    return CT_TextCharacterPropertiesBuilder("a:rPr")
 
 
 def an_spAutoFit():

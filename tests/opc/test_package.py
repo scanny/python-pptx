@@ -11,8 +11,13 @@ import pytest
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
-    OpcPackage, Part, PartFactory, _Relationship, RelationshipCollection,
-    Unmarshaller, XmlPart
+    OpcPackage,
+    Part,
+    PartFactory,
+    _Relationship,
+    RelationshipCollection,
+    Unmarshaller,
+    XmlPart,
 )
 from pptx.opc.pkgreader import PackageReader
 from pptx.oxml.xmlchemy import BaseOxmlElement
@@ -20,28 +25,35 @@ from pptx.package import Package
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import (
-    call, class_mock, cls_attr_mock, function_mock, initializer_mock,
-    instance_mock, loose_mock, method_mock, Mock, patch, PropertyMock
+    call,
+    class_mock,
+    cls_attr_mock,
+    function_mock,
+    initializer_mock,
+    instance_mock,
+    loose_mock,
+    method_mock,
+    Mock,
+    patch,
+    PropertyMock,
 )
 
 
 class DescribeOpcPackage(object):
-
-    def it_can_open_a_pkg_file(self, PackageReader_, PartFactory_,
-                               Unmarshaller_):
+    def it_can_open_a_pkg_file(self, PackageReader_, PartFactory_, Unmarshaller_):
         # mockery ----------------------
-        pkg_file = Mock(name='pkg_file')
+        pkg_file = Mock(name="pkg_file")
         pkg_reader = PackageReader_.from_file.return_value
         # exercise ---------------------
         pkg = OpcPackage.open(pkg_file)
         # verify -----------------------
         PackageReader_.from_file.assert_called_once_with(pkg_file)
-        Unmarshaller_.unmarshal.assert_called_once_with(pkg_reader, pkg,
-                                                        PartFactory_)
+        Unmarshaller_.unmarshal.assert_called_once_with(pkg_reader, pkg, PartFactory_)
         assert isinstance(pkg, OpcPackage)
 
     def it_initializes_its_rels_collection_on_first_reference(
-            self, RelationshipCollection_):
+        self, RelationshipCollection_
+    ):
         pkg = OpcPackage()
         rels = pkg.rels
         RelationshipCollection_.assert_called_once_with(PACKAGE_URI.baseURI)
@@ -53,12 +65,9 @@ class DescribeOpcPackage(object):
         # exercise ---------------------
         pkg.load_rel(reltype, target, rId)
         # verify -----------------------
-        pkg._rels.add_relationship.assert_called_once_with(
-            reltype, target, rId, False
-        )
+        pkg._rels.add_relationship.assert_called_once_with(reltype, target, rId, False)
 
-    def it_can_establish_a_relationship_to_another_part(
-            self, relate_to_part_fixture_):
+    def it_can_establish_a_relationship_to_another_part(self, relate_to_part_fixture_):
         pkg, part_, reltype, rId = relate_to_part_fixture_
         _rId = pkg.relate_to(part_, reltype)
         pkg.rels.get_or_add.assert_called_once_with(reltype, part_)
@@ -66,10 +75,10 @@ class DescribeOpcPackage(object):
 
     def it_can_provide_a_list_of_the_parts_it_contains(self):
         # mockery ----------------------
-        parts = [Mock(name='part1'), Mock(name='part2')]
+        parts = [Mock(name="part1"), Mock(name="part2")]
         pkg = OpcPackage()
         # verify -----------------------
-        with patch.object(OpcPackage, 'iter_parts', return_value=parts):
+        with patch.object(OpcPackage, "iter_parts", return_value=parts):
             assert pkg.parts == [parts[0], parts[1]]
 
     def it_can_iterate_over_its_parts(self, iter_parts_fixture):
@@ -88,22 +97,18 @@ class DescribeOpcPackage(object):
         pkg.rels.part_with_reltype.assert_called_once_with(reltype)
         assert related_part is related_part_
 
-    def it_can_find_the_next_available_vector_partname(
-            self, next_partname_fixture):
+    def it_can_find_the_next_available_vector_partname(self, next_partname_fixture):
         package, partname_template, expected_partname = next_partname_fixture
         partname = package.next_partname(partname_template)
         assert isinstance(partname, PackURI)
         assert partname == expected_partname
 
-    def it_can_save_to_a_pkg_file(
-            self, pkg_file_, PackageWriter_, parts, parts_):
+    def it_can_save_to_a_pkg_file(self, pkg_file_, PackageWriter_, parts, parts_):
         pkg = OpcPackage()
         pkg.save(pkg_file_)
         for part in parts_:
             part.before_marshal.assert_called_once_with()
-        PackageWriter_.write.assert_called_once_with(
-            pkg_file_, pkg._rels, parts_
-        )
+        PackageWriter_.write.assert_called_once_with(pkg_file_, pkg._rels, parts_)
 
     def it_can_be_notified_after_unmarshalling_is_complete(self, pkg):
         pkg.after_unmarshal()
@@ -122,38 +127,33 @@ class DescribeOpcPackage(object):
         expected_rels = list(rels)
         return package, expected_rels
 
-    @pytest.fixture(params=[
-        ((), 1), ((1,), 2), ((1, 2), 3), ((2, 3), 1), ((1, 3), 2)
-    ])
+    @pytest.fixture(params=[((), 1), ((1,), 2), ((1, 2), 3), ((2, 3), 1), ((1, 3), 2)])
     def next_partname_fixture(self, request, iter_parts_):
         existing_partname_numbers, next_partname_number = request.param
         package = OpcPackage()
         parts = [
             instance_mock(
-                request, Part, name='part[%d]' % idx,
-                partname='/foo/bar/baz%d.xml' % n
+                request, Part, name="part[%d]" % idx, partname="/foo/bar/baz%d.xml" % n
             )
             for idx, n in enumerate(existing_partname_numbers)
         ]
         iter_parts_.return_value = iter(parts)
-        partname_template = '/foo/bar/baz%d.xml'
-        expected_partname = PackURI(
-            '/foo/bar/baz%d.xml' % next_partname_number
-        )
+        partname_template = "/foo/bar/baz%d.xml"
+        expected_partname = PackURI("/foo/bar/baz%d.xml" % next_partname_number)
         return package, partname_template, expected_partname
 
     @pytest.fixture
     def relate_to_part_fixture_(self, request, pkg, rels_, reltype):
-        rId = 'rId99'
-        rel_ = instance_mock(request, _Relationship, name='rel_', rId=rId)
+        rId = "rId99"
+        rel_ = instance_mock(request, _Relationship, name="rel_", rId=rId)
         rels_.get_or_add.return_value = rel_
         pkg._rels = rels_
-        part_ = instance_mock(request, Part, name='part_')
+        part_ = instance_mock(request, Part, name="part_")
         return pkg, part_, reltype, rId
 
     @pytest.fixture
     def related_part_fixture_(self, request, rels_, reltype):
-        related_part_ = instance_mock(request, Part, name='related_part_')
+        related_part_ = instance_mock(request, Part, name="related_part_")
         rels_.part_with_reltype.return_value = related_part_
         pkg = OpcPackage()
         pkg._rels = rels_
@@ -173,11 +173,11 @@ class DescribeOpcPackage(object):
                    +--------> | part_2 |
                               +--------+
         """
-        r1 = self.rel(request, False, part_1_, 'r1')
-        r2 = self.rel(request, False, part_2_, 'r2')
-        r3 = self.rel(request, False, part_1_, 'r3')
-        r4 = self.rel(request, False, part_2_, 'r4')
-        r5 = self.rel(request, True,  None,    'r5')
+        r1 = self.rel(request, False, part_1_, "r1")
+        r2 = self.rel(request, False, part_2_, "r2")
+        r3 = self.rel(request, False, part_1_, "r3")
+        r4 = self.rel(request, False, part_2_, "r4")
+        r5 = self.rel(request, True, None, "r5")
 
         package = OpcPackage()
 
@@ -191,19 +191,19 @@ class DescribeOpcPackage(object):
 
     @pytest.fixture
     def iter_parts_(self, request):
-        return method_mock(request, OpcPackage, 'iter_parts')
+        return method_mock(request, OpcPackage, "iter_parts")
 
     @pytest.fixture
     def PackageReader_(self, request):
-        return class_mock(request, 'pptx.opc.package.PackageReader')
+        return class_mock(request, "pptx.opc.package.PackageReader")
 
     @pytest.fixture
     def PackageWriter_(self, request):
-        return class_mock(request, 'pptx.opc.package.PackageWriter')
+        return class_mock(request, "pptx.opc.package.PackageWriter")
 
     @pytest.fixture
     def PartFactory_(self, request):
-        return class_mock(request, 'pptx.opc.package.PartFactory')
+        return class_mock(request, "pptx.opc.package.PartFactory")
 
     @pytest.fixture
     def part_1_(self, request):
@@ -220,16 +220,15 @@ class DescribeOpcPackage(object):
         patch after each use.
         """
         _patch = patch.object(
-            OpcPackage, 'parts', new_callable=PropertyMock,
-            return_value=parts_
+            OpcPackage, "parts", new_callable=PropertyMock, return_value=parts_
         )
         request.addfinalizer(_patch.stop)
         return _patch.start()
 
     @pytest.fixture
     def parts_(self, request):
-        part_ = instance_mock(request, Part, name='part_')
-        part_2_ = instance_mock(request, Part, name='part_2_')
+        part_ = instance_mock(request, Part, name="part_")
+        part_2_ = instance_mock(request, Part, name="part_2_")
         return [part_, part_2_]
 
     @pytest.fixture
@@ -248,19 +247,22 @@ class DescribeOpcPackage(object):
 
     @pytest.fixture
     def RelationshipCollection_(self, request):
-        return class_mock(request, 'pptx.opc.package.RelationshipCollection')
+        return class_mock(request, "pptx.opc.package.RelationshipCollection")
 
     @pytest.fixture
     def rel_attrs_(self, request):
-        reltype = 'http://rel/type'
-        target_ = instance_mock(request, Part, name='target_')
-        rId = 'rId99'
+        reltype = "http://rel/type"
+        target_ = instance_mock(request, Part, name="target_")
+        rId = "rId99"
         return reltype, target_, rId
 
     def rel(self, request, is_external, target_part, name):
         return instance_mock(
-            request, _Relationship, is_external=is_external,
-            target_part=target_part, name=name
+            request,
+            _Relationship,
+            is_external=is_external,
+            target_part=target_part,
+            name=name,
         )
 
     def rels(self, request, values):
@@ -274,21 +276,18 @@ class DescribeOpcPackage(object):
 
     @pytest.fixture
     def reltype(self, request):
-        return 'http://rel/type'
+        return "http://rel/type"
 
     @pytest.fixture
     def Unmarshaller_(self, request):
-        return class_mock(request, 'pptx.opc.package.Unmarshaller')
+        return class_mock(request, "pptx.opc.package.Unmarshaller")
 
 
 class DescribePart(object):
-
     def it_can_be_constructed_by_PartFactory(self, load_fixture):
         partname_, content_type_, blob_, package_, __init_ = load_fixture
         part = Part.load(partname_, content_type_, blob_, package_)
-        __init_.assert_called_once_with(
-            partname_, content_type_, blob_, package_
-        )
+        __init_.assert_called_once_with(partname_, content_type_, blob_, package_)
         assert isinstance(part, Part)
 
     def it_knows_its_partname(self, partname_get_fixture):
@@ -319,7 +318,7 @@ class DescribePart(object):
         assert part.blob is load_blob
 
     def it_can_change_its_blob(self):
-        part, new_blob = Part(None, None, 'xyz', None), 'foobar'
+        part, new_blob = Part(None, None, "xyz", None), "foobar"
         part.blob = new_blob
         assert part.blob == new_blob
 
@@ -332,14 +331,12 @@ class DescribePart(object):
 
     @pytest.fixture
     def content_type_fixture(self):
-        content_type = 'content/type'
+        content_type = "content/type"
         part = Part(None, content_type, None, None)
         return part, content_type
 
     @pytest.fixture
-    def load_fixture(
-            self, request, partname_, content_type_, blob_, package_,
-            __init_):
+    def load_fixture(self, request, partname_, content_type_, blob_, package_, __init_):
         return (partname_, content_type_, blob_, package_, __init_)
 
     @pytest.fixture
@@ -354,14 +351,14 @@ class DescribePart(object):
 
     @pytest.fixture
     def partname_get_fixture(self):
-        partname = PackURI('/part/name')
+        partname = PackURI("/part/name")
         part = Part(partname, None, None, None)
         return part, partname
 
     @pytest.fixture
     def partname_set_fixture(self):
-        old_partname = PackURI('/old/part/name')
-        new_partname = PackURI('/new/part/name')
+        old_partname = PackURI("/old/part/name")
+        new_partname = PackURI("/new/part/name")
         part = Part(old_partname, None, None, None)
         return part, new_partname
 
@@ -389,7 +386,6 @@ class DescribePart(object):
 
 
 class DescribePartRelationshipManagementInterface(object):
-
     def it_provides_access_to_its_relationships(self, rels_fixture):
         part, Relationships_, partname_, rels_ = rels_fixture
         rels = part.rels
@@ -399,19 +395,15 @@ class DescribePartRelationshipManagementInterface(object):
     def it_can_load_a_relationship(self, load_rel_fixture):
         part, rels_, reltype_, target_, rId_ = load_rel_fixture
         part.load_rel(reltype_, target_, rId_)
-        rels_.add_relationship.assert_called_once_with(
-            reltype_, target_, rId_, False
-        )
+        rels_.add_relationship.assert_called_once_with(reltype_, target_, rId_, False)
 
-    def it_can_establish_a_relationship_to_another_part(
-            self, relate_to_part_fixture):
+    def it_can_establish_a_relationship_to_another_part(self, relate_to_part_fixture):
         part, target_, reltype_, rId_ = relate_to_part_fixture
         rId = part.relate_to(target_, reltype_)
         part.rels.get_or_add.assert_called_once_with(reltype_, target_)
         assert rId is rId_
 
-    def it_can_establish_an_external_relationship(
-            self, relate_to_url_fixture):
+    def it_can_establish_an_external_relationship(self, relate_to_url_fixture):
         part, url_, reltype_, rId_ = relate_to_url_fixture
         rId = part.relate_to(url_, reltype_, is_external=True)
         part.rels.get_or_add_ext_rel.assert_called_once_with(reltype_, url_)
@@ -435,22 +427,23 @@ class DescribePartRelationshipManagementInterface(object):
         part, related_parts_ = related_parts_fixture
         assert part.related_parts is related_parts_
 
-    def it_can_find_the_uri_of_an_external_relationship(
-            self, target_ref_fixture):
+    def it_can_find_the_uri_of_an_external_relationship(self, target_ref_fixture):
         part, rId_, url_ = target_ref_fixture
         url = part.target_ref(rId_)
         assert url == url_
 
     # fixtures ---------------------------------------------
 
-    @pytest.fixture(params=[
-        ('p:sp', True),
-        ('p:sp/r:a{r:id=rId42}', True),
-        ('p:sp/r:a{r:id=rId42}/r:b{r:id=rId42}', False),
-    ])
+    @pytest.fixture(
+        params=[
+            ("p:sp", True),
+            ("p:sp/r:a{r:id=rId42}", True),
+            ("p:sp/r:a{r:id=rId42}/r:b{r:id=rId42}", False),
+        ]
+    )
     def drop_rel_fixture(self, request, part):
         part_cxml, rel_should_be_dropped = request.param
-        rId = 'rId42'
+        rId = "rId42"
         part._element = element(part_cxml)
         part._rels = {rId: None}
         return part, rId, rel_should_be_dropped
@@ -461,15 +454,13 @@ class DescribePartRelationshipManagementInterface(object):
         return part, rels_, reltype_, part_, rId_
 
     @pytest.fixture
-    def relate_to_part_fixture(
-            self, request, part, reltype_, part_, rels_, rId_):
+    def relate_to_part_fixture(self, request, part, reltype_, part_, rels_, rId_):
         part._rels = rels_
         target_ = part_
         return part, target_, reltype_, rId_
 
     @pytest.fixture
-    def relate_to_url_fixture(
-            self, request, part, rels_, url_, reltype_, rId_):
+    def relate_to_url_fixture(self, request, part, rels_, url_, reltype_, rId_):
         part._rels = rels_
         return part, url_, reltype_, rId_
 
@@ -510,15 +501,12 @@ class DescribePartRelationshipManagementInterface(object):
     @pytest.fixture
     def Relationships_(self, request, rels_):
         return class_mock(
-            request, 'pptx.opc.package.RelationshipCollection',
-            return_value=rels_
+            request, "pptx.opc.package.RelationshipCollection", return_value=rels_
         )
 
     @pytest.fixture
     def rel_(self, request, rId_, url_):
-        return instance_mock(
-            request, _Relationship, rId=rId_, target_ref=url_
-        )
+        return instance_mock(request, _Relationship, rId=rId_, target_ref=url_)
 
     @pytest.fixture
     def rels_(self, request, part_, rel_, rId_, related_parts_):
@@ -547,7 +535,6 @@ class DescribePartRelationshipManagementInterface(object):
 
 
 class DescribeXmlPart(object):
-
     def it_can_be_constructed_by_PartFactory(self, load_fixture):
         partname_, content_type_, blob_, package_ = load_fixture[:4]
         element_, parse_xml_, __init_ = load_fixture[4:]
@@ -555,9 +542,7 @@ class DescribeXmlPart(object):
         part = XmlPart.load(partname_, content_type_, blob_, package_)
         # verify -----------------------
         parse_xml_.assert_called_once_with(blob_)
-        __init_.assert_called_once_with(
-            partname_, content_type_, element_, package_
-        )
+        __init_.assert_called_once_with(partname_, content_type_, element_, package_)
         assert isinstance(part, XmlPart)
 
     def it_can_serialize_to_xml(self, blob_fixture):
@@ -579,11 +564,24 @@ class DescribeXmlPart(object):
 
     @pytest.fixture
     def load_fixture(
-            self, request, partname_, content_type_, blob_, package_,
-            element_, parse_xml_, __init_):
+        self,
+        request,
+        partname_,
+        content_type_,
+        blob_,
+        package_,
+        element_,
+        parse_xml_,
+        __init_,
+    ):
         return (
-            partname_, content_type_, blob_, package_, element_, parse_xml_,
-            __init_
+            partname_,
+            content_type_,
+            blob_,
+            package_,
+            element_,
+            parse_xml_,
+            __init_,
         )
 
     @pytest.fixture
@@ -615,7 +613,7 @@ class DescribeXmlPart(object):
     @pytest.fixture
     def parse_xml_(self, request, element_):
         return function_mock(
-            request, 'pptx.opc.package.parse_xml', return_value=element_
+            request, "pptx.opc.package.parse_xml", return_value=element_
         )
 
     @pytest.fixture
@@ -624,28 +622,25 @@ class DescribeXmlPart(object):
 
     @pytest.fixture
     def serialize_part_xml_(self, request):
-        return function_mock(
-            request, 'pptx.opc.package.serialize_part_xml'
-        )
+        return function_mock(request, "pptx.opc.package.serialize_part_xml")
 
 
 class DescribePartFactory(object):
-
     def it_constructs_custom_part_type_for_registered_content_types(
-            self, part_args_, CustomPartClass_, part_of_custom_type_):
+        self, part_args_, CustomPartClass_, part_of_custom_type_
+    ):
         # fixture ----------------------
         partname, content_type, pkg, blob = part_args_
         # exercise ---------------------
         PartFactory.part_type_for[content_type] = CustomPartClass_
         part = PartFactory(partname, content_type, pkg, blob)
         # verify -----------------------
-        CustomPartClass_.load.assert_called_once_with(
-            partname, content_type, pkg, blob
-        )
+        CustomPartClass_.load.assert_called_once_with(partname, content_type, pkg, blob)
         assert part is part_of_custom_type_
 
     def it_constructs_part_using_default_class_when_no_custom_registered(
-            self, part_args_2_, DefaultPartClass_, part_of_default_type_):
+        self, part_args_2_, DefaultPartClass_, part_of_default_type_
+    ):
         partname, content_type, pkg, blob = part_args_2_
         part = PartFactory(partname, content_type, pkg, blob)
         DefaultPartClass_.load.assert_called_once_with(
@@ -661,7 +656,7 @@ class DescribePartFactory(object):
 
     @pytest.fixture
     def CustomPartClass_(self, request, part_of_custom_type_):
-        CustomPartClass_ = Mock(name='CustomPartClass', spec=Part)
+        CustomPartClass_ = Mock(name="CustomPartClass", spec=Part)
         CustomPartClass_.load.return_value = part_of_custom_type_
         return CustomPartClass_
 
@@ -671,36 +666,33 @@ class DescribePartFactory(object):
 
     @pytest.fixture
     def DefaultPartClass_(self, request, part_of_default_type_):
-        DefaultPartClass_ = cls_attr_mock(
-            request, PartFactory, 'default_part_type'
-        )
+        DefaultPartClass_ = cls_attr_mock(request, PartFactory, "default_part_type")
         DefaultPartClass_.load.return_value = part_of_default_type_
         return DefaultPartClass_
 
     @pytest.fixture
     def part_args_(self, request):
-        partname_ = PackURI('/foo/bar.xml')
-        content_type_ = 'content/type'
+        partname_ = PackURI("/foo/bar.xml")
+        content_type_ = "content/type"
         pkg_ = instance_mock(request, Package, name="pkg_")
-        blob_ = b'blob_'
+        blob_ = b"blob_"
         return partname_, content_type_, pkg_, blob_
 
     @pytest.fixture
     def part_args_2_(self, request):
-        partname_2_ = PackURI('/bar/foo.xml')
-        content_type_2_ = 'foobar/type'
+        partname_2_ = PackURI("/bar/foo.xml")
+        content_type_2_ = "foobar/type"
         pkg_2_ = instance_mock(request, Package, name="pkg_2_")
-        blob_2_ = b'blob_2_'
+        blob_2_ = b"blob_2_"
         return partname_2_, content_type_2_, pkg_2_, blob_2_
 
 
 class Describe_Relationship(object):
-
     def it_remembers_construction_values(self):
         # test data --------------------
-        rId = 'rId9'
-        reltype = 'reltype'
-        target = Mock(name='target_part')
+        rId = "rId9"
+        reltype = "reltype"
+        target = Mock(name="target_part")
         external = False
         # exercise ---------------------
         rel = _Relationship(rId, reltype, target, None, external)
@@ -716,8 +708,8 @@ class Describe_Relationship(object):
             rel.target_part
 
     def it_should_have_target_ref_for_external_rel(self):
-        rel = _Relationship(None, None, 'target', None, external=True)
-        assert rel.target_ref == 'target'
+        rel = _Relationship(None, None, "target", None, external=True)
+        assert rel.target_ref == "target"
 
     def it_should_have_relative_ref_for_internal_rel(self):
         """
@@ -725,38 +717,39 @@ class Describe_Relationship(object):
         have a relative ref, e.g. '../slideLayouts/slideLayout1.xml', for
         the target_ref attribute.
         """
-        part = Mock(name='part', partname=PackURI('/ppt/media/image1.png'))
-        baseURI = '/ppt/slides'
+        part = Mock(name="part", partname=PackURI("/ppt/media/image1.png"))
+        baseURI = "/ppt/slides"
         rel = _Relationship(None, None, part, baseURI)  # external=False
-        assert rel.target_ref == '../media/image1.png'
+        assert rel.target_ref == "../media/image1.png"
 
 
 class DescribeRelationshipCollection(object):
-
     def it_has_a_len(self):
         rels = RelationshipCollection(None)
         assert len(rels) == 0
 
     def it_has_dict_style_lookup_of_rel_by_rId(self):
-        rel = Mock(name='rel', rId='foobar')
+        rel = Mock(name="rel", rId="foobar")
         rels = RelationshipCollection(None)
-        rels['foobar'] = rel
-        assert rels['foobar'] == rel
+        rels["foobar"] = rel
+        assert rels["foobar"] == rel
 
     def it_should_raise_on_failed_lookup_by_rId(self):
         rels = RelationshipCollection(None)
         with pytest.raises(KeyError):
-            rels['barfoo']
+            rels["barfoo"]
 
     def it_can_add_a_relationship(self, _Relationship_):
         baseURI, rId, reltype, target, external = (
-            'baseURI', 'rId9', 'reltype', 'target', False
+            "baseURI",
+            "rId9",
+            "reltype",
+            "target",
+            False,
         )
         rels = RelationshipCollection(baseURI)
         rel = rels.add_relationship(reltype, target, rId, external)
-        _Relationship_.assert_called_once_with(
-            rId, reltype, target, baseURI, external
-        )
+        _Relationship_.assert_called_once_with(rId, reltype, target, baseURI, external)
         assert rels[rId] == rel
         assert rel == _Relationship_.return_value
 
@@ -769,7 +762,8 @@ class DescribeRelationshipCollection(object):
         assert rel.reltype == reltype
 
     def it_should_return_an_existing_one_if_it_matches(
-            self, add_matching_ext_rel_fixture_):
+        self, add_matching_ext_rel_fixture_
+    ):
         rels, reltype, url, rId = add_matching_ext_rel_fixture_
         _rId = rels.get_or_add_ext_rel(reltype, url)
         assert _rId == rId
@@ -781,15 +775,11 @@ class DescribeRelationshipCollection(object):
         # verify -----------------------
         rels_elm.assert_has_calls(
             [
-                call.add_rel(
-                    'rId1', 'http://rt-hyperlink', 'http://some/link', True
-                ),
-                call.add_rel(
-                    'rId2', 'http://rt-image', '../media/image1.png', False
-                ),
-                call.xml()
+                call.add_rel("rId1", "http://rt-hyperlink", "http://some/link", True),
+                call.add_rel("rId2", "http://rt-image", "../media/image1.png", False),
+                call.xml(),
             ],
-            any_order=True
+            any_order=True,
         )
 
     # fixtures ---------------------------------------------
@@ -801,14 +791,14 @@ class DescribeRelationshipCollection(object):
 
     @pytest.fixture
     def add_matching_ext_rel_fixture_(self, request, reltype, url):
-        rId = 'rId369'
+        rId = "rId369"
         rels = RelationshipCollection(None)
         rels.add_relationship(reltype, url, rId, is_external=True)
         return rels, reltype, url, rId
 
     @pytest.fixture
     def _Relationship_(self, request):
-        return class_mock(request, 'pptx.opc.package._Relationship')
+        return class_mock(request, "pptx.opc.package._Relationship")
 
     @pytest.fixture
     def rels(self):
@@ -816,15 +806,16 @@ class DescribeRelationshipCollection(object):
         Populated RelationshipCollection instance that will exercise the
         rels.xml property.
         """
-        rels = RelationshipCollection('/baseURI')
+        rels = RelationshipCollection("/baseURI")
         rels.add_relationship(
-            reltype='http://rt-hyperlink', target='http://some/link',
-            rId='rId1', is_external=True
+            reltype="http://rt-hyperlink",
+            target="http://some/link",
+            rId="rId1",
+            is_external=True,
         )
-        part = Mock(name='part')
-        part.partname.relative_ref.return_value = '../media/image1.png'
-        rels.add_relationship(reltype='http://rt-image', target=part,
-                              rId='rId2')
+        part = Mock(name="part")
+        part.partname.relative_ref.return_value = "../media/image1.png"
+        rels.add_relationship(reltype="http://rt-image", target=part, rId="rId2")
         return rels
 
     @pytest.fixture
@@ -834,94 +825,130 @@ class DescribeRelationshipCollection(object):
         CT_Relationships.new()
         """
         # create rels_elm mock with a .xml property
-        rels_elm = Mock(name='rels_elm')
-        xml = PropertyMock(name='xml')
+        rels_elm = Mock(name="rels_elm")
+        xml = PropertyMock(name="xml")
         type(rels_elm).xml = xml
-        rels_elm.attach_mock(xml, 'xml')
+        rels_elm.attach_mock(xml, "xml")
         rels_elm.reset_mock()  # to clear attach_mock call
         # patch CT_Relationships to return that rels_elm
-        patch_ = patch.object(CT_Relationships, 'new', return_value=rels_elm)
+        patch_ = patch.object(CT_Relationships, "new", return_value=rels_elm)
         patch_.start()
         request.addfinalizer(patch_.stop)
         return rels_elm
 
     @pytest.fixture
     def reltype(self):
-        return 'http://rel/type'
+        return "http://rel/type"
 
     @pytest.fixture
     def url(self):
-        return 'https://github.com/scanny/python-pptx'
+        return "https://github.com/scanny/python-pptx"
 
 
 class DescribeUnmarshaller(object):
-
     def it_can_unmarshal_from_a_pkg_reader(
-            self, pkg_reader_, pkg_, part_factory_, _unmarshal_parts,
-            _unmarshal_relationships, parts_dict_):
+        self,
+        pkg_reader_,
+        pkg_,
+        part_factory_,
+        _unmarshal_parts,
+        _unmarshal_relationships,
+        parts_dict_,
+    ):
         # exercise ---------------------
         Unmarshaller.unmarshal(pkg_reader_, pkg_, part_factory_)
         # verify -----------------------
-        _unmarshal_parts.assert_called_once_with(
-            pkg_reader_, pkg_, part_factory_
-        )
-        _unmarshal_relationships.assert_called_once_with(
-            pkg_reader_, pkg_, parts_dict_
-        )
+        _unmarshal_parts.assert_called_once_with(pkg_reader_, pkg_, part_factory_)
+        _unmarshal_relationships.assert_called_once_with(pkg_reader_, pkg_, parts_dict_)
         for part in parts_dict_.values():
             part.after_unmarshal.assert_called_once_with()
         pkg_.after_unmarshal.assert_called_once_with()
 
     def it_can_unmarshal_parts(
-            self, pkg_reader_, pkg_, part_factory_, parts_dict_, partnames_,
-            content_types_, blobs_):
+        self,
+        pkg_reader_,
+        pkg_,
+        part_factory_,
+        parts_dict_,
+        partnames_,
+        content_types_,
+        blobs_,
+    ):
         # fixture ----------------------
         partname_, partname_2_ = partnames_
         content_type_, content_type_2_ = content_types_
         blob_, blob_2_ = blobs_
         # exercise ---------------------
-        parts = Unmarshaller._unmarshal_parts(
-            pkg_reader_, pkg_, part_factory_
-        )
+        parts = Unmarshaller._unmarshal_parts(pkg_reader_, pkg_, part_factory_)
         # verify -----------------------
-        assert (
-            part_factory_.call_args_list == [
-                call(partname_, content_type_, blob_, pkg_),
-                call(partname_2_, content_type_2_, blob_2_, pkg_)
-            ]
-        )
+        assert part_factory_.call_args_list == [
+            call(partname_, content_type_, blob_, pkg_),
+            call(partname_2_, content_type_2_, blob_2_, pkg_),
+        ]
         assert parts == parts_dict_
 
     def it_can_unmarshal_relationships(self):
         # test data --------------------
-        reltype = 'http://reltype'
+        reltype = "http://reltype"
         # mockery ----------------------
-        pkg_reader = Mock(name='pkg_reader')
+        pkg_reader = Mock(name="pkg_reader")
         pkg_reader.iter_srels.return_value = (
-            ('/',         Mock(name='srel1', rId='rId1', reltype=reltype,
-             target_partname='partname1', is_external=False)),
-            ('/',         Mock(name='srel2', rId='rId2', reltype=reltype,
-             target_ref='target_ref_1',   is_external=True)),
-            ('partname1', Mock(name='srel3', rId='rId3', reltype=reltype,
-             target_partname='partname2', is_external=False)),
-            ('partname2', Mock(name='srel4', rId='rId4', reltype=reltype,
-             target_ref='target_ref_2',   is_external=True)),
+            (
+                "/",
+                Mock(
+                    name="srel1",
+                    rId="rId1",
+                    reltype=reltype,
+                    target_partname="partname1",
+                    is_external=False,
+                ),
+            ),
+            (
+                "/",
+                Mock(
+                    name="srel2",
+                    rId="rId2",
+                    reltype=reltype,
+                    target_ref="target_ref_1",
+                    is_external=True,
+                ),
+            ),
+            (
+                "partname1",
+                Mock(
+                    name="srel3",
+                    rId="rId3",
+                    reltype=reltype,
+                    target_partname="partname2",
+                    is_external=False,
+                ),
+            ),
+            (
+                "partname2",
+                Mock(
+                    name="srel4",
+                    rId="rId4",
+                    reltype=reltype,
+                    target_ref="target_ref_2",
+                    is_external=True,
+                ),
+            ),
         )
-        pkg = Mock(name='pkg')
+        pkg = Mock(name="pkg")
         parts = {}
         for num in range(1, 3):
-            name = 'part%d' % num
+            name = "part%d" % num
             part = Mock(name=name)
-            parts['partname%d' % num] = part
+            parts["partname%d" % num] = part
             pkg.attach_mock(part, name)
         # exercise ---------------------
         Unmarshaller._unmarshal_relationships(pkg_reader, pkg, parts)
         # verify -----------------------
         expected_pkg_calls = [
-            call.load_rel(reltype, parts['partname1'], 'rId1', False),
-            call.load_rel(reltype, 'target_ref_1', 'rId2', True),
-            call.part1.load_rel(reltype, parts['partname2'], 'rId3', False),
-            call.part2.load_rel(reltype, 'target_ref_2', 'rId4', True),
+            call.load_rel(reltype, parts["partname1"], "rId1", False),
+            call.load_rel(reltype, "target_ref_1", "rId2", True),
+            call.part1.load_rel(reltype, parts["partname2"], "rId3", False),
+            call.part2.load_rel(reltype, "target_ref_2", "rId4", True),
         ]
         assert pkg.mock_calls == expected_pkg_calls
 
@@ -929,14 +956,14 @@ class DescribeUnmarshaller(object):
 
     @pytest.fixture
     def blobs_(self, request):
-        blob_ = loose_mock(request, spec=str, name='blob_')
-        blob_2_ = loose_mock(request, spec=str, name='blob_2_')
+        blob_ = loose_mock(request, spec=str, name="blob_")
+        blob_2_ = loose_mock(request, spec=str, name="blob_2_")
         return blob_, blob_2_
 
     @pytest.fixture
     def content_types_(self, request):
-        content_type_ = loose_mock(request, spec=str, name='content_type_')
-        content_type_2_ = loose_mock(request, spec=str, name='content_type_2_')
+        content_type_ = loose_mock(request, spec=str, name="content_type_")
+        content_type_2_ = loose_mock(request, spec=str, name="content_type_2_")
         return content_type_, content_type_2_
 
     @pytest.fixture
@@ -947,14 +974,14 @@ class DescribeUnmarshaller(object):
 
     @pytest.fixture
     def partnames_(self, request):
-        partname_ = loose_mock(request, spec=str, name='partname_')
-        partname_2_ = loose_mock(request, spec=str, name='partname_2_')
+        partname_ = loose_mock(request, spec=str, name="partname_")
+        partname_2_ = loose_mock(request, spec=str, name="partname_2_")
         return partname_, partname_2_
 
     @pytest.fixture
     def parts_(self, request):
-        part_ = instance_mock(request, Part, name='part_')
-        part_2_ = instance_mock(request, Part, name='part_2')
+        part_ = instance_mock(request, Part, name="part_")
+        part_2_ = instance_mock(request, Part, name="part_2")
         return part_, part_2_
 
     @pytest.fixture
@@ -983,10 +1010,9 @@ class DescribeUnmarshaller(object):
     @pytest.fixture
     def _unmarshal_parts(self, request, parts_dict_):
         return method_mock(
-            request, Unmarshaller, '_unmarshal_parts',
-            return_value=parts_dict_
+            request, Unmarshaller, "_unmarshal_parts", return_value=parts_dict_
         )
 
     @pytest.fixture
     def _unmarshal_relationships(self, request):
-        return method_mock(request, Unmarshaller, '_unmarshal_relationships')
+        return method_mock(request, Unmarshaller, "_unmarshal_relationships")

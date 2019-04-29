@@ -9,8 +9,12 @@ from __future__ import absolute_import, print_function, unicode_literals
 from .datalabel import CT_DLbls
 from ..simpletypes import XsdUnsignedInt
 from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OxmlElement, RequiredAttribute,
-    ZeroOrMore, ZeroOrOne
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    OxmlElement,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
 )
 
 
@@ -19,7 +23,8 @@ class CT_AxDataSource(BaseOxmlElement):
     ``<c:cat>`` custom element class used in category charts to specify
     category labels and hierarchy.
     """
-    multiLvlStrRef = ZeroOrOne('c:multiLvlStrRef', successors=())
+
+    multiLvlStrRef = ZeroOrOne("c:multiLvlStrRef", successors=())
 
     @property
     def lvls(self):
@@ -29,7 +34,7 @@ class CT_AxDataSource(BaseOxmlElement):
         is a `c:multiLvlStrRef` element. Returns an empty list when no
         `c:lvl` descendent elements are present.
         """
-        return self.xpath('.//c:lvl')
+        return self.xpath(".//c:lvl")
 
 
 class CT_DPt(BaseOxmlElement):
@@ -37,13 +42,20 @@ class CT_DPt(BaseOxmlElement):
     ``<c:dPt>`` custom element class, containing visual properties for a data
     point.
     """
+
     _tag_seq = (
-        'c:idx', 'c:invertIfNegative', 'c:marker', 'c:bubble3D',
-        'c:explosion', 'c:spPr', 'c:pictureOptions', 'c:extLst'
+        "c:idx",
+        "c:invertIfNegative",
+        "c:marker",
+        "c:bubble3D",
+        "c:explosion",
+        "c:spPr",
+        "c:pictureOptions",
+        "c:extLst",
     )
-    idx = OneAndOnlyOne('c:idx')
-    marker = ZeroOrOne('c:marker', successors=_tag_seq[3:])
-    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[6:])
+    idx = OneAndOnlyOne("c:idx")
+    marker = ZeroOrOne("c:marker", successors=_tag_seq[3:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[6:])
     del _tag_seq
 
     @classmethod
@@ -52,8 +64,8 @@ class CT_DPt(BaseOxmlElement):
         Return a newly created "loose" `c:dPt` element containing its default
         subtree.
         """
-        dPt = OxmlElement('c:dPt')
-        dPt.append(OxmlElement('c:idx'))
+        dPt = OxmlElement("c:dPt")
+        dPt.append(OxmlElement("c:idx"))
         return dPt
 
 
@@ -62,7 +74,8 @@ class CT_Lvl(BaseOxmlElement):
     ``<c:lvl>`` custom element class used in multi-level categories to
     specify a level of hierarchy.
     """
-    pt = ZeroOrMore('c:pt', successors=())
+
+    pt = ZeroOrMore("c:pt", successors=())
 
 
 class CT_NumDataSource(BaseOxmlElement):
@@ -70,7 +83,8 @@ class CT_NumDataSource(BaseOxmlElement):
     ``<c:yVal>`` custom element class used in XY and bubble charts, and
     perhaps others.
     """
-    numRef = OneAndOnlyOne('c:numRef')
+
+    numRef = OneAndOnlyOne("c:numRef")
 
     @property
     def ptCount_val(self):
@@ -81,7 +95,7 @@ class CT_NumDataSource(BaseOxmlElement):
         disruptive way to degrade when no cached point data is available.
         This situation is not expected, but is valid according to the schema.
         """
-        results = self.xpath('.//c:ptCount/@val')
+        results = self.xpath(".//c:ptCount/@val")
         return int(results[0]) if results else 0
 
     def pt_v(self, idx):
@@ -89,7 +103,7 @@ class CT_NumDataSource(BaseOxmlElement):
         Return the Y value for data point *idx* in this cache, or None if no
         value is present for that data point.
         """
-        results = self.xpath('.//c:pt[@idx=%d]' % idx)
+        results = self.xpath(".//c:pt[@idx=%d]" % idx)
         return results[0].value if results else None
 
 
@@ -101,28 +115,44 @@ class CT_SeriesComposite(BaseOxmlElement):
     depends on the caller not to do anything invalid for a series belonging
     to a particular plot type.
     """
+
     _tag_seq = (
-        'c:idx', 'c:order', 'c:tx', 'c:spPr', 'c:invertIfNegative',
-        'c:pictureOptions', 'c:marker', 'c:explosion', 'c:dPt', 'c:dLbls',
-        'c:trendline', 'c:errBars', 'c:cat', 'c:val', 'c:xVal', 'c:yVal',
-        'c:shape', 'c:smooth', 'c:bubbleSize', 'c:bubble3D', 'c:extLst'
+        "c:idx",
+        "c:order",
+        "c:tx",
+        "c:spPr",
+        "c:invertIfNegative",
+        "c:pictureOptions",
+        "c:marker",
+        "c:explosion",
+        "c:dPt",
+        "c:dLbls",
+        "c:trendline",
+        "c:errBars",
+        "c:cat",
+        "c:val",
+        "c:xVal",
+        "c:yVal",
+        "c:shape",
+        "c:smooth",
+        "c:bubbleSize",
+        "c:bubble3D",
+        "c:extLst",
     )
-    idx = OneAndOnlyOne('c:idx')
-    order = OneAndOnlyOne('c:order')
-    tx = ZeroOrOne('c:tx', successors=_tag_seq[3:])
-    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[4:])
-    invertIfNegative = ZeroOrOne(
-        'c:invertIfNegative', successors=_tag_seq[5:]
-    )
-    marker = ZeroOrOne('c:marker', successors=_tag_seq[7:])
-    dPt = ZeroOrMore('c:dPt', successors=_tag_seq[9:])
-    dLbls = ZeroOrOne('c:dLbls', successors=_tag_seq[10:])
-    cat = ZeroOrOne('c:cat', successors=_tag_seq[13:])
-    val = ZeroOrOne('c:val', successors=_tag_seq[14:])
-    xVal = ZeroOrOne('c:xVal', successors=_tag_seq[15:])
-    yVal = ZeroOrOne('c:yVal', successors=_tag_seq[16:])
-    smooth = ZeroOrOne('c:smooth', successors=_tag_seq[18:])
-    bubbleSize = ZeroOrOne('c:bubbleSize', successors=_tag_seq[19:])
+    idx = OneAndOnlyOne("c:idx")
+    order = OneAndOnlyOne("c:order")
+    tx = ZeroOrOne("c:tx", successors=_tag_seq[3:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[4:])
+    invertIfNegative = ZeroOrOne("c:invertIfNegative", successors=_tag_seq[5:])
+    marker = ZeroOrOne("c:marker", successors=_tag_seq[7:])
+    dPt = ZeroOrMore("c:dPt", successors=_tag_seq[9:])
+    dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[10:])
+    cat = ZeroOrOne("c:cat", successors=_tag_seq[13:])
+    val = ZeroOrOne("c:val", successors=_tag_seq[14:])
+    xVal = ZeroOrOne("c:xVal", successors=_tag_seq[15:])
+    yVal = ZeroOrOne("c:yVal", successors=_tag_seq[16:])
+    smooth = ZeroOrOne("c:smooth", successors=_tag_seq[18:])
+    bubbleSize = ZeroOrOne("c:bubbleSize", successors=_tag_seq[19:])
     del _tag_seq
 
     @property
@@ -131,7 +161,7 @@ class CT_SeriesComposite(BaseOxmlElement):
         Return the number of bubble size values as reflected in the `val`
         attribute of `./c:bubbleSize//c:ptCount`, or 0 if not present.
         """
-        vals = self.xpath('./c:bubbleSize//c:ptCount/@val')
+        vals = self.xpath("./c:bubbleSize//c:ptCount/@val")
         if not vals:
             return 0
         return int(vals[0])
@@ -142,7 +172,7 @@ class CT_SeriesComposite(BaseOxmlElement):
         Return the number of categories as reflected in the `val` attribute
         of `./c:cat//c:ptCount`, or 0 if not present.
         """
-        vals = self.xpath('./c:cat//c:ptCount/@val')
+        vals = self.xpath("./c:cat//c:ptCount/@val")
         if not vals:
             return 0
         return int(vals[0])
@@ -183,7 +213,7 @@ class CT_SeriesComposite(BaseOxmlElement):
         Return the number of X values as reflected in the `val` attribute of
         `./c:xVal//c:ptCount`, or 0 if not present.
         """
-        vals = self.xpath('./c:xVal//c:ptCount/@val')
+        vals = self.xpath("./c:xVal//c:ptCount/@val")
         if not vals:
             return 0
         return int(vals[0])
@@ -194,7 +224,7 @@ class CT_SeriesComposite(BaseOxmlElement):
         Return the number of Y values as reflected in the `val` attribute of
         `./c:yVal//c:ptCount`, or 0 if not present.
         """
-        vals = self.xpath('./c:yVal//c:ptCount/@val')
+        vals = self.xpath("./c:yVal//c:ptCount/@val")
         if not vals:
             return 0
         return int(vals[0])
@@ -216,8 +246,9 @@ class CT_StrVal_NumVal_Composite(BaseOxmlElement):
     ``<c:pt>`` element, can be either CT_StrVal or CT_NumVal complex type.
     Using this class for both, differentiating as needed.
     """
-    v = OneAndOnlyOne('c:v')
-    idx = RequiredAttribute('idx', XsdUnsignedInt)
+
+    v = OneAndOnlyOne("c:v")
+    idx = RequiredAttribute("idx", XsdUnsignedInt)
 
     @property
     def value(self):
