@@ -1,21 +1,10 @@
-Feature: Get and set AutoShape properties
-  In order to identify and adjust AutoShapes
+Feature: Shape properties and methods
+  In order to identify and adjust autoshapes
   As a developer using python-pptx
-  I need a set of properties on Shape
+  I need properties and methods on Shape
 
 
-  Scenario: Get AutoShape text
-     Given an autoshape having text
-      Then shape.text is the text in the shape
-
-
-  Scenario: Set AutoShape text
-     Given an autoshape having text
-      When I assign a string to shape.text
-      Then shape.text is the string I assigned
-
-
-  Scenario: Set AutoShape adjustment value
+  Scenario: Shape.adjustments setter
      Given a chevron shape
       When I assign 0.15 to shape.adjustments[0]
       Then shape.adjustments[0] is 0.15
@@ -24,3 +13,14 @@ Feature: Get and set AutoShape properties
   Scenario: Shape.line
      Given a Shape object as shape
       Then shape.line is a LineFormat object
+
+
+  Scenario: Shape.text getter
+     Given a Shape object having text as shape
+      Then shape.text == "Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium"
+
+
+  Scenario: Shape.text setter
+     Given a Shape object having text as shape
+      When I assign shape.text = "F\xf8o\nBar\nBaz"
+      Then shape.text == "F\xf8o\nBar\nBaz"

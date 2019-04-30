@@ -330,17 +330,16 @@ class CT_TextFont(BaseOxmlElement):
 
 
 class CT_TextLineBreak(BaseOxmlElement):
-    """
-    <a:br> line break element
-    """
+    """`a:br` line break element"""
 
     rPr = ZeroOrOne("a:rPr", successors=())
 
     @property
     def text(self):
-        """
-        Unconditionally a single line feed character. A line break element
-        can contain no text other than the implicit line feed it represents.
+        """Unconditionally a single line feed character.
+
+        A line break element can contain no text other than the implicit line feed it
+        represents.
         """
         return "\n"
 
@@ -394,9 +393,9 @@ class CT_TextParagraph(BaseOxmlElement):
 
     @property
     def content_children(self):
-        """
-        A sequence containing the text-container child elements of this
-        ``<a:p>`` element, i.e. (a:r|a:br|a:fld).
+        """Sequence containing text-container child elements of this `a:p` element.
+
+        These include `a:r`, `a:br`, and `a:fld`.
         """
         text_types = {CT_RegularTextRun, CT_TextLineBreak, CT_TextField}
         return tuple(elm for elm in self if type(elm) in text_types)

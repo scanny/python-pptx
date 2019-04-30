@@ -1,36 +1,32 @@
 # encoding: utf-8
 
-"""
-Gherkin step implementations for text-related features.
-"""
+"""Gherkin step implementations for text-related features."""
 
-from __future__ import absolute_import
-
-import os
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from behave import given, when, then
 
 from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
-from pptx.util import Emu, Inches
+from pptx.util import Emu
 
-from helpers import saved_pptx_path, test_pptx
+from helpers import test_pptx
 
 
 # given ===================================================
 
 
-@given("a paragraph")
-def given_a_paragraph(context):
+@given("a _Paragraph object as paragraph")
+def given_a_Paragraph_object_as_paragraph(context):
     prs = Presentation(test_pptx("txt-text"))
-    context.prs = prs
     context.paragraph = prs.slides[0].shapes[0].text_frame.paragraphs[0]
 
 
-@given("a paragraph containing text")
-def given_a_paragraph_containing_text(context):
+@given("a _Paragraph object containing {value} as paragraph")
+def given_a_Paragraph_object_containing_value_as_paragraph(context, value):
     prs = Presentation(test_pptx("txt-text"))
-    context.paragraph = prs.slides[0].shapes[0].text_frame.paragraphs[0]
+    paragraph_idx = {"abc": 0, "a\nb\nc": 1}[eval(value)]
+    context.paragraph = prs.slides[0].shapes[1].text_frame.paragraphs[paragraph_idx]
 
 
 @given("a paragraph having line spacing of {setting}")
@@ -58,8 +54,8 @@ def given_a_run(context):
     context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
 
-@given("a run containing text")
-def given_a_run_containing_text(context):
+@given("a _Run object containing text as run")
+def given_a_Run_object_containing_text_as_run(context):
     prs = Presentation(test_pptx("txt-text"))
     context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
@@ -86,16 +82,6 @@ def given_a_text_run_having_a_hyperlink(context):
 # when ====================================================
 
 
-@when("I assign a string to paragraph.text")
-def when_I_assign_a_string_to_paragraph_text(context):
-    context.paragraph.text = " Boo Far \n Faz Foo "
-
-
-@when("I assign a string to run.text")
-def when_I_assign_a_string_to_run_text(context):
-    context.run.text = " Boo Far "
-
-
 @when("I assign a typeface name to the font")
 def when_assign_typeface_name_to_font(context):
     context.font.name = "Verdana"
@@ -104,6 +90,26 @@ def when_assign_typeface_name_to_font(context):
 @when("I assign None to hyperlink.address")
 def when_assign_None_to_hyperlink_address(context):
     context.run.hyperlink.address = None
+
+
+@when("I assign paragraph.alignment = PP_ALIGN.CENTER")
+def when_I_assign_paragraph_alignment_eq_center(context):
+    context.paragraph.alignment = PP_ALIGN.CENTER
+
+
+@when("I assign paragraph.level = 1")
+def when_I_assign_paragraph_leve_eq_1(context):
+    context.paragraph.level = 1
+
+
+@when("I assign paragraph.text = {value}")
+def when_I_assign_paragraph_text_eq_value(context, value):
+    context.paragraph.text = eval(value)
+
+
+@when("I assign run.text = {value}")
+def when_I_assign_run_text_eq_value(context, value):
+    context.run.text = eval(value)
 
 
 @when("I assign {value_str} to paragraph.line_spacing")
@@ -129,32 +135,6 @@ def when_I_assign_value_to_paragraph_space_before_after(
     setattr(paragraph, attr_name, value)
 
 
-@when("I reload the presentation")
-def when_reload_presentation(context):
-    if os.path.isfile(saved_pptx_path):
-        os.remove(saved_pptx_path)
-    context.prs.save(saved_pptx_path)
-    context.prs = Presentation(saved_pptx_path)
-
-
-@when('I set the {side} margin to {inches}"')
-def when_set_margin_to_value(context, side, inches):
-    emu = Inches(float(inches))
-    if side == "left":
-        context.text_frame.margin_left = emu
-    elif side == "top":
-        context.text_frame.margin_top = emu
-    elif side == "right":
-        context.text_frame.margin_right = emu
-    elif side == "bottom":
-        context.text_frame.margin_bottom = emu
-
-
-@when("I indent the paragraph")
-def when_indent_first_paragraph(context):
-    context.paragraph.level = 1
-
-
 @when("I set the hyperlink address")
 def when_set_hyperlink_address(context):
     context.run_text = "python-pptx @ GitHub"
@@ -166,12 +146,19 @@ def when_set_hyperlink_address(context):
     hlink.address = context.address
 
 
-@when("I set the paragraph alignment to centered")
-def when_set_paragraph_alignment_to_centered(context):
-    context.paragraph.alignment = PP_ALIGN.CENTER
-
-
 # then ====================================================
+
+
+@then("paragraph.alignment == PP_ALIGN.CENTER")
+def then_paragraph_alignment_eq_center(context):
+    actual, expected = context.paragraph.alignment, PP_ALIGN.CENTER
+    assert actual == expected, "paragraph.alignment == %s" % actual
+
+
+@then("paragraph.level == 1")
+def then_paragraph_level_eq_1(context):
+    actual, expected = context.paragraph.level, 1
+    assert actual == expected, "paragraph.level == %s" % actual
 
 
 @then("paragraph.line_spacing is {value_str}")
@@ -232,16 +219,22 @@ def then_paragraph_space_before_pt_is_value(context, before_after, result):
             pass
 
 
-@then("paragraph.text is the text in the paragraph")
-def then_paragraph_text_is_the_text_in_the_paragraph(context):
-    paragraph = context.paragraph
-    assert paragraph.text == " Foo Bar \n Baz Zoo \n1"
+@then("paragraph.text == {value}")
+def then_paragraph_text_eq_value(context, value):
+    actual, expected = context.paragraph.text, eval(value)
+    assert actual == expected, 'paragraph.text == "%s"' % actual
 
 
 @then("paragraph.text matches the assigned string")
 def then_paragraph_text_matches_the_assigned_string(context):
     paragraph = context.paragraph
     assert paragraph.text == " Boo Far \n Faz Foo "
+
+
+@then("run.text == {value}")
+def then_run_text_is_value(context, value):
+    actual, expected = context.run.text, eval(value)
+    assert actual == expected, "run.text == %s" % (actual,)
 
 
 @then("run.text is a hyperlink")
@@ -258,30 +251,6 @@ def then_run_text_is_not_a_hyperlink(context):
     assert hlink.address is None
 
 
-@then("run.text is the text in the run")
-def then_run_text_is_the_text_in_the_run(context):
-    run = context.run
-    assert run.text == " Foo Bar "
-
-
-@then("run.text matches the assigned string")
-def then_run_text_matches_the_assigned_string(context):
-    run = context.run
-    assert run.text == " Boo Far "
-
-
 @then("the font name matches the typeface I set")
 def then_font_name_matches_typeface_I_set(context):
     assert context.font.name == "Verdana"
-
-
-@then("the paragraph is aligned centered")
-def then_paragraph_is_aligned_centered(context):
-    p = context.prs.slides[0].shapes[0].text_frame.paragraphs[0]
-    assert p.alignment == PP_ALIGN.CENTER
-
-
-@then("the paragraph is indented to the second level")
-def then_paragraph_indented_to_second_level(context):
-    p = context.prs.slides[0].shapes[0].text_frame.paragraphs[0]
-    assert p.level == 1

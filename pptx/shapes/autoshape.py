@@ -1,20 +1,18 @@
 # encoding: utf-8
 
-"""
-Autoshape-related objects such as Shape and Adjustment.
-"""
+"""Autoshape-related objects such as Shape and Adjustment."""
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from numbers import Number
 
-from .base import BaseShape
-from ..dml.fill import FillFormat
-from ..dml.line import LineFormat
-from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
-from ..spec import autoshape_types
-from ..text.text import TextFrame
-from ..util import lazyproperty
+from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
+from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
+from pptx.shapes.base import BaseShape
+from pptx.spec import autoshape_types
+from pptx.text.text import TextFrame
+from pptx.util import lazyproperty
 
 
 class Adjustment(object):
@@ -274,10 +272,10 @@ class AutoShapeType(object):
 
 
 class Shape(BaseShape):
-    """
-    A shape that can appear on a slide. Corresponds to the ``<p:sp>`` element
-    that can appear in any of the slide-type parts (slide, slideLayout,
-    slideMaster, notesPage, notesMaster, handoutMaster).
+    """A shape that can appear on a slide.
+
+    Corresponds to the ``<p:sp>`` element that can appear in any of the slide-type parts
+    (slide, slideLayout, slideMaster, notesPage, notesMaster, handoutMaster).
     """
 
     def __init__(self, sp, parent):
@@ -382,9 +380,10 @@ class Shape(BaseShape):
 
     @property
     def text_frame(self):
-        """
-        |TextFrame| instance for this shape, containing the text of the shape
-        and providing access to text formatting properties.
+        """|TextFrame| instance for this shape.
+
+        Contains the text of the shape and provides access to text formatting
+        properties.
         """
         txBody = self._element.get_or_add_txBody()
         return TextFrame(txBody, self)

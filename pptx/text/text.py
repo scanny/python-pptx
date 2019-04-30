@@ -1,22 +1,20 @@
 # encoding: utf-8
 
-"""
-Text-related objects such as TextFrame and Paragraph.
-"""
+"""Text-related objects such as TextFrame and Paragraph."""
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..compat import to_unicode
-from ..dml.fill import FillFormat
-from ..enum.dml import MSO_FILL
-from ..enum.lang import MSO_LANGUAGE_ID
-from ..enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
-from .fonts import FontFiles
-from .layout import TextFitter
-from ..opc.constants import RELATIONSHIP_TYPE as RT
-from ..oxml.simpletypes import ST_TextWrappingType
-from ..shapes import Subshape
-from ..util import Centipoints, Emu, lazyproperty, Pt
+from pptx.compat import to_unicode
+from pptx.dml.fill import FillFormat
+from pptx.enum.dml import MSO_FILL
+from pptx.enum.lang import MSO_LANGUAGE_ID
+from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.oxml.simpletypes import ST_TextWrappingType
+from pptx.shapes import Subshape
+from pptx.text.fonts import FontFiles
+from pptx.text.layout import TextFitter
+from pptx.util import Centipoints, Emu, lazyproperty, Pt
 
 
 class TextFrame(Subshape):
@@ -472,9 +470,7 @@ class _Hyperlink(Subshape):
 
 
 class _Paragraph(Subshape):
-    """
-    Paragraph object. Not intended to be constructed directly.
-    """
+    """Paragraph object. Not intended to be constructed directly."""
 
     def __init__(self, p, parent):
         super(_Paragraph, self).__init__(parent)
@@ -650,9 +646,7 @@ class _Paragraph(Subshape):
 
 
 class _Run(Subshape):
-    """
-    Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
-    """
+    """Text run object. Corresponds to ``<a:r>`` child element in a paragraph."""
 
     def __init__(self, r, parent):
         super(_Run, self).__init__(parent)
@@ -684,17 +678,14 @@ class _Run(Subshape):
 
     @property
     def text(self):
-        """
-        Read/write. A unicode string containing the text in this run.
-        Assignment replaces all text in the run. The assigned value can be
-        a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
-        String values are converted to unicode assuming UTF-8 encoding.
+        """Read/write. A unicode string containing the text in this run.
+
+        Assignment replaces all text in the run. The assigned value can be a 7-bit ASCII
+        string, a UTF-8 encoded 8-bit string, or unicode. String values are converted to
+        unicode assuming UTF-8 encoding.
         """
         return self._r.text
 
     @text.setter
     def text(self, str):
-        """
-        Set the text of this run to *str*.
-        """
         self._r.t.text = to_unicode(str)

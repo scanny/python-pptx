@@ -195,11 +195,10 @@ def then_cell_is_spanned_is(context, cell_ref, bool_lit):
     assert actual is expected, "%s.is_spanned is %s" % (cell_ref, actual)
 
 
-@then("{cell_ref}.text == {value}")
-def then_cell_ref_text_eq_value(context, cell_ref, value):
-    actual = getattr(context, cell_ref).text
-    expected = eval(value)
-    assert actual == expected, "%s.text == %s" % (cell_ref, actual)
+@then("cell.text == {value}")
+def then_cell_text_eq_value(context, value):
+    actual, expected = context.cell.text, eval(value)
+    assert actual == expected, 'cell.text == "%s"' % actual
 
 
 @then("cell.span_height == {int_lit}")
@@ -235,6 +234,18 @@ def then_len_list_table_iter_cells_eq(context, int_lit):
     actual = len(list(context.table_.iter_cells()))
     expected = int(int_lit)
     assert actual is expected, "len(list(table.iter_cells())) == %s" % actual
+
+
+@then("origin_cell.text == {value}")
+def then_origin_cell_text_eq_value(context, value):
+    actual, expected = context.origin_cell.text, eval(value)
+    assert actual == expected, 'origin_cell.text == "%s"' % actual
+
+
+@then("other_cell.text == {value}")
+def then_other_cell_text_eq_value(context, value):
+    actual, expected = context.other_cell.text, eval(value)
+    assert actual == expected, 'other_cell.text == "%s"' % actual
 
 
 @then("table.cell(0, 0) is a {type_name} object")

@@ -29,7 +29,7 @@ def to_unicode(text):
     """
     # both str and unicode inherit from basestring
     if not isinstance(text, basestring):
-        tmpl = "expected UTF-8 encoded string or unicode, got %s value %s"
+        tmpl = "expected unicode or UTF-8 (or ASCII) encoded str, got %s value %s"
         raise TypeError(tmpl % (type(text), text))
     # return unicode strings unchanged
     if isinstance(text, unicode):

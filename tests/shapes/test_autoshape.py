@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.autoshape module
-"""
+"""Test suite for pptx.shapes.autoshape module."""
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -317,18 +315,7 @@ class DescribeAutoShapeType(object):
 
 
 class DescribeShape(object):
-    def it_knows_it_has_a_text_frame(self):
-        shape = Shape(None, None)
-        assert shape.has_text_frame is True
-
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        shape, expected_value = text_get_fixture
-        assert shape.text == expected_value
-
-    def it_can_change_its_text(self, text_set_fixture):
-        shape, new_value, expected_xml = text_set_fixture
-        shape.text = new_value
-        assert shape._element.xml == expected_xml
+    """Unit-test suite for `pptx.shapes.autoshape.Shape` object."""
 
     def it_initializes_adjustments_on_first_ref(self, init_adjs_fixture_):
         shape, adjs_, AdjustmentCollection_, sp_ = init_adjs_fixture_
@@ -339,7 +326,7 @@ class DescribeShape(object):
         shape, expected_auto_shape_type = autoshape_type_fixture_
         assert shape.auto_shape_type == expected_auto_shape_type
 
-    def it_raises_when_auto_shape_type_called_on_non_autoshape(
+    def but_it_raises_when_auto_shape_type_called_on_non_autoshape(
         self, non_autoshape_shape_
     ):
         with pytest.raises(ValueError):
@@ -348,13 +335,17 @@ class DescribeShape(object):
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 
+    def it_knows_it_has_a_text_frame(self):
+        shape = Shape(None, None)
+        assert shape.has_text_frame is True
+
     def it_has_a_line(self, shape):
         assert isinstance(shape.line, LineFormat)
 
     def it_knows_its_shape_type_when_its_a_placeholder(self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
 
-    def it_knows_its_shape_type_when_its_not_a_placeholder(
+    def and_it_knows_its_shape_type_when_its_not_a_placeholder(
         self, non_placeholder_shapes_
     ):
         autoshape_shape_, textbox_shape_, freeform_ = non_placeholder_shapes_
@@ -362,7 +353,7 @@ class DescribeShape(object):
         assert textbox_shape_.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
         assert freeform_.shape_type == MSO_SHAPE_TYPE.FREEFORM
 
-    def it_raises_when_shape_type_called_on_unrecognized_shape(self):
+    def but_it_raises_when_shape_type_called_on_unrecognized_shape(self):
         xml_ = (
             '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/'
             '2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/'
@@ -375,13 +366,22 @@ class DescribeShape(object):
         with pytest.raises(NotImplementedError):
             shape.shape_type
 
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        shape, expected_value = text_get_fixture
+        assert shape.text == expected_value
+
+    def it_can_change_its_text(self, text_set_fixture):
+        shape, new_value, expected_xml = text_set_fixture
+        shape.text = new_value
+        assert shape._element.xml == expected_xml
+
     def it_provides_access_to_its_text_frame(self, text_frame_fixture):
         shape, text_frame_, TextFrame_, txBody = text_frame_fixture
         text_frame = shape.text_frame
         TextFrame_.assert_called_once_with(txBody, shape)
         assert text_frame is text_frame_
 
-    def it_creates_a_txBody_if_needed(self, txBody_fixture):
+    def and_it_creates_a_txBody_if_needed(self, txBody_fixture):
         shape, expected_xml = txBody_fixture
         text_frame = shape.text_frame
         assert text_frame._txBody.xml == expected_xml
@@ -412,14 +412,14 @@ class DescribeShape(object):
         shape = Shape(sp, None)
         return shape, text_frame_, TextFrame_, txBody
 
-    @pytest.fixture(params=[(u'p:sp/p:txBody/a:p/a:r/a:t"føøbår"', u"føøbår")])
+    @pytest.fixture(params=[('p:sp/p:txBody/a:p/a:r/a:t"føøbår"', "føøbår")])
     def text_get_fixture(self, request):
         sp_cxml, expected_value = request.param
         shape = Shape(element(sp_cxml), None)
         return shape, expected_value
 
     @pytest.fixture(
-        params=[("p:sp/p:txBody/a:p", "føøbår", u'p:sp/p:txBody/a:p/a:r/a:t"føøbår"')]
+        params=[("p:sp/p:txBody/a:p", "føøbår", 'p:sp/p:txBody/a:p/a:r/a:t"føøbår"')]
     )
     def text_set_fixture(self, request):
         sp_cxml, new_value, expected_sp_cxml = request.param

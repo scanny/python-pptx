@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.text.text module
-"""
+"""Test suite for pptx.text.text module."""
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -31,6 +29,13 @@ from ..unitutil.mock import (
 
 
 class DescribeTextFrame(object):
+    """Unit-test suite for `pptx.text.text.TextFrame` object."""
+
+    def it_can_add_a_paragraph_to_itself(self, add_paragraph_fixture):
+        text_frame, expected_xml = add_paragraph_fixture
+        text_frame.add_paragraph()
+        assert text_frame._txBody.xml == expected_xml
+
     def it_knows_its_autosize_setting(self, autosize_get_fixture):
         text_frame, expected_value = autosize_get_fixture
         assert text_frame.auto_size == expected_value
@@ -76,20 +81,6 @@ class DescribeTextFrame(object):
             assert isinstance(paragraph, _Paragraph)
             assert paragraph._element is ps[idx]
 
-    def it_can_add_a_paragraph_to_itself(self, add_paragraph_fixture):
-        text_frame, expected_xml = add_paragraph_fixture
-        text_frame.add_paragraph()
-        assert text_frame._txBody.xml == expected_xml
-
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        text_frame, expected_value = text_get_fixture
-        assert text_frame.text == expected_value
-
-    def it_can_replace_the_text_it_contains(self, text_set_fixture):
-        text_frame, text, expected_xml = text_set_fixture
-        text_frame.text = text
-        assert text_frame._element.xml == expected_xml
-
     def it_raises_on_attempt_to_set_margin_to_non_int(self):
         text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
         with pytest.raises(TypeError):
@@ -99,6 +90,15 @@ class DescribeTextFrame(object):
         text_frame, parent_ = text_frame_with_parent_
         part = text_frame.part
         assert part is parent_.part
+
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        text_frame, expected_value = text_get_fixture
+        assert text_frame.text == expected_value
+
+    def it_can_replace_the_text_it_contains(self, text_set_fixture):
+        text_frame, text, expected_xml = text_set_fixture
+        text_frame.text = text
+        assert text_frame._element.xml == expected_xml
 
     def it_can_resize_its_text_to_best_fit(
         self, text_prop_, _best_fit_font_size_, _apply_fit_
@@ -794,6 +794,18 @@ class Describe_Hyperlink(object):
 
 
 class Describe_Paragraph(object):
+    """Unit test suite for pptx.text.text._Paragraph object."""
+
+    def it_can_add_a_line_break(self, line_break_fixture):
+        paragraph, expected_xml = line_break_fixture
+        paragraph.add_line_break()
+        assert paragraph._p.xml == expected_xml
+
+    def it_can_add_a_run(self, paragraph, p_with_r_xml):
+        run = paragraph.add_run()
+        assert paragraph._p.xml == p_with_r_xml
+        assert isinstance(run, _Run)
+
     def it_knows_its_horizontal_alignment(self, alignment_get_fixture):
         paragraph, expected_value = alignment_get_fixture
         assert paragraph.alignment == expected_value
@@ -802,61 +814,6 @@ class Describe_Paragraph(object):
         paragraph, new_value, expected_xml = alignment_set_fixture
         paragraph.alignment = new_value
         assert paragraph._element.xml == expected_xml
-
-    def it_knows_its_indentation_level(self, level_get_fixture):
-        paragraph, expected_value = level_get_fixture
-        assert paragraph.level == expected_value
-
-    def it_can_change_its_indentation_level(self, level_set_fixture):
-        paragraph, new_value, expected_xml = level_set_fixture
-        paragraph.level = new_value
-        assert paragraph._element.xml == expected_xml
-
-    def it_knows_its_space_before(self, before_get_fixture):
-        paragraph, expected_value = before_get_fixture
-        assert paragraph.space_before == expected_value
-
-    def it_can_change_its_space_before(self, before_set_fixture):
-        paragraph, new_value, expected_xml = before_set_fixture
-        paragraph.space_before = new_value
-        assert paragraph._element.xml == expected_xml
-
-    def it_knows_its_space_after(self, after_get_fixture):
-        paragraph, expected_value = after_get_fixture
-        assert paragraph.space_after == expected_value
-
-    def it_can_change_its_space_after(self, after_set_fixture):
-        paragraph, new_value, expected_xml = after_set_fixture
-        paragraph.space_after = new_value
-        assert paragraph._element.xml == expected_xml
-
-    def it_knows_its_line_spacing(self, spacing_get_fixture):
-        paragraph, expected_value = spacing_get_fixture
-        assert paragraph.line_spacing == expected_value
-
-    def it_can_change_its_line_spacing(self, spacing_set_fixture):
-        paragraph, new_value, expected_xml = spacing_set_fixture
-        paragraph.line_spacing = new_value
-        assert paragraph._element.xml == expected_xml
-
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        paragraph, expected_value = text_get_fixture
-        text = paragraph.text
-        assert text == expected_value
-        assert is_unicode(text)
-
-    def it_can_change_its_text(self, text_set_fixture):
-        paragraph, new_value, expected_xml = text_set_fixture
-        paragraph.text = new_value
-        assert paragraph._element.xml == expected_xml
-
-    def it_provides_access_to_its_runs(self, runs_fixture):
-        paragraph, expected_text = runs_fixture
-        runs = paragraph.runs
-        assert tuple(r.text for r in runs) == expected_text
-        for r in runs:
-            assert isinstance(r, _Run)
-            assert r._parent == paragraph
 
     def it_can_clear_itself_of_content(self, clear_fixture):
         paragraph, expected_xml = clear_fixture
@@ -868,15 +825,63 @@ class Describe_Paragraph(object):
         Font_.assert_called_once_with(paragraph._defRPr)
         assert font == Font_.return_value
 
-    def it_can_add_a_run(self, paragraph, p_with_r_xml):
-        run = paragraph.add_run()
-        assert paragraph._p.xml == p_with_r_xml
-        assert isinstance(run, _Run)
+    def it_knows_its_indentation_level(self, level_get_fixture):
+        paragraph, expected_value = level_get_fixture
+        assert paragraph.level == expected_value
 
-    def it_can_add_a_line_break(self, line_break_fixture):
-        paragraph, expected_xml = line_break_fixture
-        paragraph.add_line_break()
-        assert paragraph._p.xml == expected_xml
+    def it_can_change_its_indentation_level(self, level_set_fixture):
+        paragraph, new_value, expected_xml = level_set_fixture
+        paragraph.level = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_line_spacing(self, spacing_get_fixture):
+        paragraph, expected_value = spacing_get_fixture
+        assert paragraph.line_spacing == expected_value
+
+    def it_can_change_its_line_spacing(self, spacing_set_fixture):
+        paragraph, new_value, expected_xml = spacing_set_fixture
+        paragraph.line_spacing = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_provides_access_to_its_runs(self, runs_fixture):
+        paragraph, expected_text = runs_fixture
+        runs = paragraph.runs
+        assert tuple(r.text for r in runs) == expected_text
+        for r in runs:
+            assert isinstance(r, _Run)
+            assert r._parent == paragraph
+
+    def it_knows_its_space_after(self, after_get_fixture):
+        paragraph, expected_value = after_get_fixture
+        assert paragraph.space_after == expected_value
+
+    def it_can_change_its_space_after(self, after_set_fixture):
+        paragraph, new_value, expected_xml = after_set_fixture
+        paragraph.space_after = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_space_before(self, before_get_fixture):
+        paragraph, expected_value = before_get_fixture
+        assert paragraph.space_before == expected_value
+
+    def it_can_change_its_space_before(self, before_set_fixture):
+        paragraph, new_value, expected_xml = before_set_fixture
+        paragraph.space_before = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_what_text_it_contains(self, text_get_fixture):
+        p, expected_value = text_get_fixture
+        paragraph = _Paragraph(p, None)
+
+        text = paragraph.text
+
+        assert text == expected_value
+        assert is_unicode(text)
+
+    def it_can_change_its_text(self, text_set_fixture):
+        paragraph, new_value, expected_xml = text_set_fixture
+        paragraph.text = new_value
+        assert paragraph._element.xml == expected_xml
 
     # fixtures ---------------------------------------------
 
@@ -1077,20 +1082,28 @@ class Describe_Paragraph(object):
 
     @pytest.fixture(
         params=[
+            # ---single-run---
             ('a:p/a:r/a:t"foobar"', "foobar"),
-            ('a:p/(a:r/a:t"foo", a:r/a:t"bar")', "foobar"),
-            ('a:p/(a:r/a:t"foo", a:br, a:r/a:t"bar")', "foo\nbar"),
-            ('a:p/(a:r/a:t"foo ", a:fld/a:t"42", a:r/a:t" bar")', "foo 42 bar"),
-            ('a:p/(a:r/a:t" foo", a:br, a:fld/a:t"42")', " foo\n42"),
+            # ---multiple-runs---
+            ('a:p/(a:r/a:t"foo",a:r/a:t"bar")', "foobar"),
+            # ---line-break between runs---
+            ('a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")', "foo\nbar"),
+            # ---field between runs---
+            ('a:p/(a:r/a:t"foo ",a:fld/a:t"42",a:r/a:t" bar")', "foo 42 bar"),
+            # ---line-break and field---
+            ('a:p/(a:r/a:t" foo",a:br,a:fld/a:t"42")', " foo\n42"),
+            # ---other common p child elements included---
             ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)', "foobar"),
+            # ---field by itself---
             ('a:p/a:fld/a:t"42"', "42"),
+            # ---line-break by itself---
             ("a:p/a:br", "\n"),
         ]
     )
     def text_get_fixture(self, request):
         p_cxml, expected_value = request.param
-        paragraph = _Paragraph(element(p_cxml), None)
-        return paragraph, expected_value
+        p = element(p_cxml)
+        return p, expected_value
 
     @pytest.fixture(
         params=[
@@ -1101,13 +1114,13 @@ class Describe_Paragraph(object):
             ("a:p", "\nfoo\n", 'a:p/(a:br,a:r/a:t"foo",a:br)'),
             ("a:p", "\n\nfoo", 'a:p/(a:br,a:br,a:r/a:t"foo")'),
             ("a:p", "foo\n", 'a:p/(a:r/a:t"foo",a:br)'),
-            ("a:p", "7-bit str", 'a:p/a:r/a:t"7-bit str"'),
-            ("a:p", "8-ɓïȶ str", u'a:p/a:r/a:t"8-ɓïȶ str"'),
-            ("a:p", u"ŮŦƑ literal", u'a:p/a:r/a:t"ŮŦƑ literal"'),
+            ("a:p", b"7-bit str", 'a:p/a:r/a:t"7-bit str"'),
+            ("a:p", b"8-ɓïȶ str", 'a:p/a:r/a:t"8-ɓïȶ str"'),
+            ("a:p", "ŮŦƑ-8 literal", 'a:p/a:r/a:t"ŮŦƑ-8 literal"'),
             (
                 "a:p",
-                u"utf-8 unicode: Hér er texti",
-                u'a:p/a:r/a:t"utf-8 unicode: Hér er texti"',
+                "utf-8 unicode: Hér er texti",
+                'a:p/a:r/a:t"utf-8 unicode: Hér er texti"',
             ),
         ]
     )

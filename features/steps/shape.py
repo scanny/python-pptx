@@ -25,12 +25,6 @@ def given_an_autoshape(context):
     context.shape = prs.slides[0].shapes[0]
 
 
-@given("an autoshape having text")
-def given_an_autoshape_having_text(context):
-    prs = Presentation(test_pptx("shp-autoshape-props"))
-    context.shape = prs.slides[0].shapes[0]
-
-
 @given("(builder._start_x, builder._start_y) is ({x_str}, {y_str})")
 def given_builder_start_x_builder_start_y_is_x_y(context, x_str, y_str):
     builder = context.builder
@@ -174,6 +168,12 @@ def given_a_Shape_object_as_shape(context):
     context.shape = sld.shapes[0]
 
 
+@given("a Shape object having text as shape")
+def given_a_Shape_object_having_text_as_shape(context):
+    prs = Presentation(test_pptx("shp-autoshape-props"))
+    context.shape = prs.slides[0].shapes[0]
+
+
 @given("a {shape_type} object on a slide as shape")
 def given_a_shape_on_a_slide(context, shape_type):
     shape_idx = {
@@ -217,11 +217,6 @@ def when_I_assign_to_shape_adjustments(context):
     context.shape.adjustments[0] = 0.15
 
 
-@when("I assign a string to shape.text")
-def when_I_assign_a_string_to_shape_text(context):
-    context.shape.text = "F\xf8o\nBar"
-
-
 @when("I assign builder.convert_to_shape() to shape")
 def when_I_assign_builder_convert_to_shape_to_shape(context):
     builder = context.builder
@@ -233,6 +228,11 @@ def when_I_assign_builder_convert_to_shape_origin_x_y(context, x_str, y_str):
     builder = context.builder
     origin_x, origin_y = int(x_str), int(y_str)
     context.shape = builder.convert_to_shape(origin_x, origin_y)
+
+
+@when("I assign shape.text = {value}")
+def when_I_assign_shape_text_eq_value(context, value):
+    context.shape.text = eval(value)
 
 
 @when("I assign {value} to connector.begin_x")
@@ -608,16 +608,10 @@ def then_shape_shape_type_is_MSO_SHAPE_TYPE_member(context, member_name):
     )
 
 
-@then("shape.text is the string I assigned")
-def then_shape_text_is_the_string_I_assigned(context):
-    shape = context.shape
-    assert shape.text == "F\xf8o\nBar"
-
-
-@then("shape.text is the text in the shape")
-def then_shape_text_is_the_text_in_the_shape(context):
-    shape = context.shape
-    assert shape.text == "Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium"
+@then("shape.text == {value}")
+def then_shape_text_eq_value(context, value):
+    actual, expected = context.shape.text, eval(value)
+    assert actual == expected, 'shape.text == "%s"' % actual
 
 
 @then("shape.top == {value}")

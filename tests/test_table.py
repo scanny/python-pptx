@@ -321,8 +321,11 @@ class Describe_Cell(object):
         assert "not a merge-origin cell" in str(e.value)
 
     def it_knows_what_text_it_contains(self, text_get_fixture):
-        cell, expected_value = text_get_fixture
+        tc, expected_value = text_get_fixture
+        cell = _Cell(tc, None)
+
         text = cell.text
+
         assert text == expected_value
 
     def it_can_replace_its_text_with_a_string(self, text_set_fixture):
@@ -496,21 +499,21 @@ class Describe_Cell(object):
     )
     def text_get_fixture(self, request):
         tc_cxml, expected_value = request.param
-        cell = _Cell(element(tc_cxml), None)
-        return cell, expected_value
+        tc = element(tc_cxml)
+        return tc, expected_value
 
     @pytest.fixture(
         params=[
-            ("a:tc", "foobar", 'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")'),
+            ("a:tc", "foobar", 'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")'),
             (
-                'a:tc/a:txBody/(a:bodyPr, a:p/a:r/(a:br,a:t"bar"))',
+                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/(a:br,a:t"bar"))',
                 "foobar",
-                'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")',
+                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
             ),
             (
-                'a:tc/a:txBody/(a:bodyPr, a:p/a:r/a:t"foobar")',
+                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
                 "bar\nfoo",
-                'a:tc/a:txBody/(a:bodyPr, a:p/(a:r/a:t"bar",a:br,a:r/a:t"foo"))',
+                'a:tc/a:txBody/(a:bodyPr,a:p/(a:r/a:t"bar",a:br,a:r/a:t"foo"))',
             ),
         ]
     )
