@@ -683,6 +683,11 @@ class _Run(Subshape):
         Assignment replaces all text in the run. The assigned value can be a 7-bit ASCII
         string, a UTF-8 encoded 8-bit string, or unicode. String values are converted to
         unicode assuming UTF-8 encoding.
+
+        Any other control characters in the assigned string other than tab or newline
+        are escaped as a hex representation. For example, ESC (ASCII 27) is escaped as
+        "_x001B_". Contrast the behavior of `TextFrame.text` and `_Paragraph.text` with
+        respect to line-feed and vertical-tab characters.
         """
         return self._r.text
 
