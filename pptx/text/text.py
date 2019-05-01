@@ -147,24 +147,35 @@ class TextFrame(Subshape):
 
     @property
     def text(self):
-        """
-        Read/write. All the text in this text frame as a single unicode
-        string. A line feed character ('\\\\n') appears in the string for
-        each paragraph and line break in the shape, except the last
-        paragraph. A shape containing a single paragraph with no line breaks
-        will produce a string having no line feed characters. Assignment
-        replaces all text in the text frame with a single paragraph
-        containing the assigned text. The assigned value can be a 7-bit ASCII
-        string, a UTF-8 encoded 8-bit string, or unicode. String values are
-        converted to unicode assuming UTF-8 encoding. Each line feed
-        character in the assigned string is translated to a line break.
+        """Unicode/str containing all text in this text-frame.
+
+        Read/write. The return value is a str (unicode) containing all text in this
+        text-frame. A line-feed character (``"\\n"``) separates the text for each
+        paragraph. A vertical-tab character (``"\\v"``) appears for each line break
+        (aka. soft carriage-return) encountered.
+
+        The vertical-tab character is how PowerPoint represents a soft carriage return
+        in clipboard text, which is why that encoding was chosen.
+
+        Assignment replaces all text in the text frame. The assigned value can be
+        a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. A bytes value
+        (such as a Python 2 ``str``) is converted to unicode assuming UTF-8 encoding.
+        A new paragraph is added for each line-feed character (``"\\n"``) encountered.
+        A line-break (soft carriage-return) is inserted for each vertical-tab character
+        (``"\\v"``) encountered.
+
+        Any control character other than newline, tab, or vertical-tab are escaped as
+        plain-text like "_x001B_" (for ESC (ASCII 32) in this example).
         """
         return "\n".join(paragraph.text for paragraph in self.paragraphs)
 
     @text.setter
     def text(self, text):
-        self.clear()
-        self.paragraphs[0].text = to_unicode(text)
+        txBody = self._txBody
+        txBody.clear_content()
+        for p_text in to_unicode(text).split("\n"):
+            p = txBody.add_p()
+            p.append_text(p_text)
 
     @property
     def vertical_anchor(self):

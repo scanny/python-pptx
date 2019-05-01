@@ -91,13 +91,25 @@ class DescribeTextFrame(object):
         part = text_frame.part
         assert part is parent_.part
 
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        text_frame, expected_value = text_get_fixture
-        assert text_frame.text == expected_value
+    def it_knows_what_text_it_contains(
+        self, request, text_get_fixture, paragraphs_prop_
+    ):
+        paragraph_texts, expected_value = text_get_fixture
+        paragraphs_prop_.return_value = tuple(
+            instance_mock(request, _Paragraph, text=text) for text in paragraph_texts
+        )
+        text_frame = TextFrame(None, None)
+
+        text = text_frame.text
+
+        assert text == expected_value
 
     def it_can_replace_the_text_it_contains(self, text_set_fixture):
-        text_frame, text, expected_xml = text_set_fixture
+        txBody, text, expected_xml = text_set_fixture
+        text_frame = TextFrame(txBody, None)
+
         text_frame.text = text
+
         assert text_frame._element.xml == expected_xml
 
     def it_can_resize_its_text_to_best_fit(
@@ -366,41 +378,39 @@ class DescribeTextFrame(object):
         )
 
     @pytest.fixture(
-        params=[
-            ('p:txBody/a:p/a:r/a:t"foobar"', "foobar"),
-            ('p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', "foo\nbar"),
-            ('p:txBody/(a:p,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', "\nfoo\nbar"),
-        ]
+        params=[(["foobar"], "foobar"), (["foo", "bar", "baz"], "foo\nbar\nbaz")]
     )
     def text_get_fixture(self, request):
-        txBody_cxml, expected_value = request.param
-        text_frame = TextFrame(element(txBody_cxml), None)
-        return text_frame, expected_value
+        paragraph_texts, expected_value = request.param
+        return paragraph_texts, expected_value
 
     @pytest.fixture(
         params=[
+            # ---empty to something---
+            ("p:txBody/a:p", "foobar", 'p:txBody/a:p/a:r/a:t"foobar"'),
+            # ---something to something else---
+            ('p:txBody/a:p/a:r/a:t"foobar"', "barfoo", 'p:txBody/a:p/a:r/a:t"barfoo"'),
+            # ---single paragraph to multiple---
             (
-                "p:txBody/(a:bodyPr,a:p)",
-                "foobar",
-                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
+                'p:txBody/a:p/a:r/a:t"barfoo"',
+                "foo\nbar",
+                'p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
             ),
+            # ---multiple paragraphs to single---
             (
-                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
+                'p:txBody/(a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
                 "barfoo",
-                'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")',
+                'p:txBody/a:p/a:r/a:t"barfoo"',
             ),
-            (
-                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
-                "barfoo",
-                'p:txBody/(a:bodyPr,a:p/a:r/a:t"barfoo")',
-            ),
+            # ---something to empty---
+            ('p:txBody/a:p/a:r/a:t"foobar"', "", "p:txBody/a:p"),
         ]
     )
     def text_set_fixture(self, request):
         txBody_cxml, text, expected_cxml = request.param
-        text_frame = TextFrame(element(txBody_cxml), None)
+        txBody = element(txBody_cxml)
         expected_xml = xml(expected_cxml)
-        return text_frame, text, expected_xml
+        return txBody, text, expected_xml
 
     @pytest.fixture(
         params=[
@@ -444,6 +454,10 @@ class DescribeTextFrame(object):
     @pytest.fixture
     def FontFiles_(self, request):
         return class_mock(request, "pptx.text.text.FontFiles")
+
+    @pytest.fixture
+    def paragraphs_prop_(self, request):
+        return property_mock(request, TextFrame, "paragraphs")
 
     @pytest.fixture
     def _set_font_(self, request):
@@ -1115,7 +1129,7 @@ class Describe_Paragraph(object):
             ("a:p", "\n\nfoo", 'a:p/(a:br,a:br,a:r/a:t"foo")'),
             ("a:p", "foo\n", 'a:p/(a:r/a:t"foo",a:br)'),
             ("a:p", b"7-bit str", 'a:p/a:r/a:t"7-bit str"'),
-            ("a:p", b"8-ɓïȶ str", 'a:p/a:r/a:t"8-ɓïȶ str"'),
+            ("a:p", b"8-\xc9\x93\xc3\xaf\xc8\xb6 str", 'a:p/a:r/a:t"8-ɓïȶ str"'),
             ("a:p", "ŮŦƑ-8 literal", 'a:p/a:r/a:t"ŮŦƑ-8 literal"'),
             (
                 "a:p",
@@ -1203,11 +1217,13 @@ class Describe_Run(object):
         run = _Run(r, None)
         return run, "foobar"
 
-    @pytest.fixture(params=[
-        ("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"'),
-        ("a:r/a:t", "bar\x1bfoo", 'a:r/a:t"bar_x001B_foo"'),
-        ("a:r/a:t", "bar\tfoo", 'a:r/a:t"bar\tfoo"'),
-    ])
+    @pytest.fixture(
+        params=[
+            ("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"'),
+            ("a:r/a:t", "bar\x1bfoo", 'a:r/a:t"bar_x001B_foo"'),
+            ("a:r/a:t", "bar\tfoo", 'a:r/a:t"bar\tfoo"'),
+        ]
+    )
     def text_set_fixture(self, request):
         r_cxml, new_value, expected_r_cxml = request.param
         r = element(r_cxml)

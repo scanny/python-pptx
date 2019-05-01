@@ -513,7 +513,7 @@ class Describe_Cell(object):
             (
                 'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
                 "bar\nfoo",
-                'a:tc/a:txBody/(a:bodyPr,a:p/(a:r/a:t"bar",a:br,a:r/a:t"foo"))',
+                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"bar",a:p/a:r/a:t"foo")',
             ),
         ]
     )
