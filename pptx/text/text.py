@@ -610,14 +610,26 @@ class _Paragraph(Subshape):
     def text(self):
         """str (unicode) representation of paragraph contents.
 
-        Read/write. This value is formed by concatenating the text in each
-        run and field making up the paragraph, adding a line feed character
-        ('\\\\n') for each line break element encountered. Assignment causes
-        all content in the paragraph to be replaced, with each line feed
-        character in the assigned text replaced with a line break. The
-        assigned value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit
-        string, or unicode. String values are converted to unicode assuming
-        UTF-8 encoding.
+        Read/write. This value is formed by concatenating the text in each run and field
+        making up the paragraph, adding a vertical-tab character (``"\\v"``) for each
+        line-break element (`<a:br>`, soft carriage-return) encountered.
+
+        While the encoding of line-breaks as a vertical tab might be surprising at
+        first, doing so is consistent with PowerPoint's clipboard copy behavior and
+        allows a line-break to be distinguished from a paragraph boundary within the str
+        return value.
+
+        Assignment causes all content in the paragraph to be replaced. Each vertical-tab
+        character (``"\\v"``) in the assigned str is translated to a line-break, as is
+        each line-feed character (``"\\n"``). Contrast behavior of line-feed character
+        in `TextFrame.text` setter. If line-feed characters are intended to produce new
+        paragraphs, use `TextFrame.text` instead. Any other control characters in the
+        assigned string are escaped as a hex representation like "_x001B_" (for ESC
+        (ASCII 27) in this example).
+
+        The assigned value can be a 7-bit ASCII byte string (Python 2 str), a UTF-8
+        encoded 8-bit byte string (Python 2 str), or unicode. Bytes values are converted
+        to unicode assuming UTF-8 encoding.
         """
         return "".join(elm.text for elm in self._element.content_children)
 

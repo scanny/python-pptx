@@ -72,7 +72,6 @@ Feature: Change paragraph properties
       | after        | 6 pt                |   None    | None  |
 
 
-  @wip
   Scenario Outline: _Paragraph.text getter
     Given a _Paragraph object containing <value> as paragraph
      Then paragraph.text == <value>

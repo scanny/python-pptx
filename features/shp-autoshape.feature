@@ -17,9 +17,10 @@ Feature: Shape properties and methods
 
   Scenario: Shape.text getter
      Given a Shape object having text as shape
-      Then shape.text == "Fee Fi\nF\xf8\xf8 Fum\nI am a shape\nwith textium"
+      Then shape.text == "Fee Fi\vF\xf8\xf8 Fum\nI am a shape\vwith textium"
 
 
+  @wip
   Scenario: Shape.text setter
      Given a Shape object having text as shape
       When I assign shape.text = "F\xf8o\nBar\nBaz"

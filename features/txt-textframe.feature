@@ -52,6 +52,7 @@ Feature: Get and change properties of shape text frame
       | "a\nb\nc" |
 
 
+  @wip
   Scenario Outline: TextFrame.text setter
     Given a TextFrame object as text_frame
      When I assign text_frame.text = <value>

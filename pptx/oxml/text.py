@@ -355,12 +355,12 @@ class CT_TextLineBreak(BaseOxmlElement):
 
     @property
     def text(self):
-        """Unconditionally a single line feed character.
+        """Unconditionally a single vertical-tab character.
 
         A line break element can contain no text other than the implicit line feed it
         represents.
         """
-        return "\n"
+        return "\v"
 
 
 class CT_TextNormalAutofit(BaseOxmlElement):

@@ -1087,17 +1087,17 @@ class Describe_Paragraph(object):
             # ---multiple-runs---
             ('a:p/(a:r/a:t"foo",a:r/a:t"bar")', "foobar"),
             # ---line-break between runs---
-            ('a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")', "foo\nbar"),
+            ('a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")', "foo\vbar"),
             # ---field between runs---
             ('a:p/(a:r/a:t"foo ",a:fld/a:t"42",a:r/a:t" bar")', "foo 42 bar"),
             # ---line-break and field---
-            ('a:p/(a:r/a:t" foo",a:br,a:fld/a:t"42")', " foo\n42"),
+            ('a:p/(a:r/a:t" foo",a:br,a:fld/a:t"42")', " foo\v42"),
             # ---other common p child elements included---
             ('a:p/(a:pPr,a:r/a:t"foobar",a:endParaRPr)', "foobar"),
             # ---field by itself---
             ('a:p/a:fld/a:t"42"', "42"),
             # ---line-break by itself---
-            ("a:p/a:br", "\n"),
+            ("a:p/a:br", "\v"),
         ]
     )
     def text_get_fixture(self, request):
