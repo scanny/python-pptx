@@ -25,7 +25,7 @@ def given_a_Paragraph_object_as_paragraph(context):
 @given("a _Paragraph object containing {value} as paragraph")
 def given_a_Paragraph_object_containing_value_as_paragraph(context, value):
     prs = Presentation(test_pptx("txt-text"))
-    paragraph_idx = {"abc": 0, "a\nb\nc": 1}[eval(value)]
+    paragraph_idx = {"abc": 0, "a\vb\vc": 1}[eval(value)]
     context.paragraph = prs.slides[0].shapes[1].text_frame.paragraphs[paragraph_idx]
 
 

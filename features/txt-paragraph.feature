@@ -72,6 +72,7 @@ Feature: Change paragraph properties
       | after        | 6 pt                |   None    | None  |
 
 
+  @wip
   Scenario Outline: _Paragraph.text getter
     Given a _Paragraph object containing <value> as paragraph
      Then paragraph.text == <value>
@@ -79,8 +80,10 @@ Feature: Change paragraph properties
     Examples: _Paragraph line break combinations
       | value     |
       | "abc"     |
-      | "a\nb\nc" |
+      | "a\vb\vc" |
 
+
+  @wip
   Scenario Outline: _Paragraph.text setter
     Given a _Paragraph object as paragraph
      When I assign paragraph.text = <value>
@@ -89,4 +92,6 @@ Feature: Change paragraph properties
     Examples: _Paragraph assigned text replacement cases
       | value     | expected-value |
       | "abc"     | "abc"          |
-      | "a\nb\nc" | "a\nb\nc"      |
+      | "a\vb\vc" | "a\vb\vc"      |
+      | "a\nb\vc" | "a\vb\vc"      |
+      | "a\x1Bc"  | "a_x001B_c"    |
