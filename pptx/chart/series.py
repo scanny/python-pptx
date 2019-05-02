@@ -4,11 +4,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
-
 from pptx.chart.datalabel import DataLabels
 from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
+from pptx.compat import Sequence
 from pptx.dml.chtfmt import ChartFormat
 from pptx.oxml.ns import qn
 from pptx.util import lazyproperty

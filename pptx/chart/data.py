@@ -7,12 +7,16 @@ ChartData and related objects.
 from __future__ import absolute_import, print_function, unicode_literals
 
 import datetime
-from collections import Sequence
 from numbers import Number
 
-from ..util import lazyproperty
-from .xlsx import BubbleWorkbookWriter, CategoryWorkbookWriter, XyWorkbookWriter
-from .xmlwriter import ChartXmlWriter
+from pptx.chart.xlsx import (
+    BubbleWorkbookWriter,
+    CategoryWorkbookWriter,
+    XyWorkbookWriter,
+)
+from pptx.chart.xmlwriter import ChartXmlWriter
+from pptx.compat import Sequence
+from pptx.util import lazyproperty
 
 
 class _BaseChartData(Sequence):

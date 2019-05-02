@@ -4,13 +4,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
-
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
+from pptx.compat import Sequence
 from pptx.dml.chtfmt import ChartFormat
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame

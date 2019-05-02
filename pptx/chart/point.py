@@ -1,17 +1,14 @@
 # encoding: utf-8
 
-"""
-Data point-related objects.
-"""
+"""Data point-related objects."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
-
-from .datalabel import DataLabel
-from ..dml.chtfmt import ChartFormat
-from .marker import Marker
-from ..util import lazyproperty
+from pptx.chart.datalabel import DataLabel
+from pptx.chart.marker import Marker
+from pptx.compat import Sequence
+from pptx.dml.chtfmt import ChartFormat
+from pptx.util import lazyproperty
 
 
 class _BasePoints(Sequence):

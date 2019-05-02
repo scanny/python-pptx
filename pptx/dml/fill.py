@@ -4,8 +4,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
-
+from pptx.compat import Sequence
 from pptx.dml.color import ColorFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.oxml.dml.fill import (

@@ -8,6 +8,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 
+import collections
+
+try:
+    Sequence = collections.abc.Sequence
+except AttributeError:
+    Sequence = collections.Sequence
+
 if sys.version_info >= (3, 0):
     from .python3 import (  # noqa
         BytesIO,

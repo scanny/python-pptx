@@ -1,16 +1,16 @@
 # encoding: utf-8
 
-"""
-Category-related objects. The |category.Categories| object is returned by
-``Plot.categories`` and contains zero or more |category.Category| objects,
-each representing one of the category labels associated with the plot.
-Categories can be hierarchical, so there are members allowing discovery of
-the depth of that hierarchy and providing means to navigate it.
+"""Category-related objects.
+
+The |category.Categories| object is returned by ``Plot.categories`` and contains zero or
+more |category.Category| objects, each representing one of the category labels
+associated with the plot. Categories can be hierarchical, so there are members allowing
+discovery of the depth of that hierarchy and providing means to navigate it.
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
+from pptx.compat import Sequence
 
 
 class Categories(Sequence):
