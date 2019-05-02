@@ -1151,6 +1151,8 @@ class Describe_Paragraph(object):
 
 
 class Describe_Run(object):
+    """Unit-test suite for `pptx.text.text._Run` object."""
+
     def it_provides_access_to_its_font(self, font_fixture):
         run, rPr, Font_, font_ = font_fixture
         font = run.font
@@ -1170,8 +1172,13 @@ class Describe_Run(object):
         assert is_unicode(text)
 
     def it_can_change_its_text(self, text_set_fixture):
-        run, new_value, expected_xml = text_set_fixture
+        r, new_value, expected_xml = text_set_fixture
+        run = _Run(r, None)
+
         run.text = new_value
+
+        print("run._r.xml == %s" % repr(run._r.xml))
+        print("expected_xml == %s" % repr(expected_xml))
         assert run._r.xml == expected_xml
 
     # fixtures ---------------------------------------------
@@ -1196,12 +1203,16 @@ class Describe_Run(object):
         run = _Run(r, None)
         return run, "foobar"
 
-    @pytest.fixture(params=[("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"')])
+    @pytest.fixture(params=[
+        ("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"'),
+        ("a:r/a:t", "bar\x1bfoo", 'a:r/a:t"bar_x001B_foo"'),
+        ("a:r/a:t", "bar\tfoo", 'a:r/a:t"bar\tfoo"'),
+    ])
     def text_set_fixture(self, request):
         r_cxml, new_value, expected_r_cxml = request.param
-        run = _Run(element(r_cxml), None)
+        r = element(r_cxml)
         expected_xml = xml(expected_r_cxml)
-        return run, new_value, expected_xml
+        return r, new_value, expected_xml
 
     # fixture components -----------------------------------
 

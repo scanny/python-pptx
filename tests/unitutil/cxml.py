@@ -42,9 +42,8 @@ def element(cxel_str):
 
 
 def xml(cxel_str):
-    """
-    Return the XML generated from *cxel_str*.
-    """
+    """Return the XML generated from *cxel_str*."""
+    root_node.parseWithTabs()
     root_token = root_node.parseString(cxel_str)
     xml = root_token.element.xml
     return xml

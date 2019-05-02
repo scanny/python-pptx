@@ -9,9 +9,8 @@ Feature: Access and mutate text in a shape
      Then run.text == " Foo Bar "
 
 
-  @wip
   Scenario Outline: _Run.text setter
-    Given a run
+    Given a _Run object as run
      When I assign run.text = <value>
      Then run.text == <expected-value>
 
@@ -19,6 +18,6 @@ Feature: Access and mutate text in a shape
       | value     | expected-value |
       | "abc"     | "abc"          |
       | "a\tb\nc" | "a\tb\nc"      |
-      | "a\x1bbc" | "a_x001b_bc"   |
-      | "a\vbc"   | "a_x000b_bc"   |
-      | "a\nb\vc" | "a_x000b_b\nc" |
+      | "a\x1bbc" | "a_x001B_bc"   |
+      | "a\vbc"   | "a_x000B_bc"   |
+      | "a\nb\vc" | "a\nb_x000B_c" |

@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import re
+
 from pptx.compat import to_unicode
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import (
@@ -53,6 +55,23 @@ class CT_RegularTextRun(BaseOxmlElement):
         text = self.t.text
         # t.text is None when t element is empty, e.g. '<a:t/>'
         return to_unicode(text) if text is not None else ""
+
+    @text.setter
+    def text(self, str):
+        """*str* is unicode value to replace run text."""
+        self.t.text = self._escape_ctrl_chars(str)
+
+    @staticmethod
+    def _escape_ctrl_chars(s):
+        """Return str after replacing each control character with a plain-text escape.
+
+        For example, a BEL character (x07) would appear as "_x0007_". Horizontal-tab
+        (x09) and line-feed (x0A) are not escaped. All other characters in the range
+        x00-x1F are escaped.
+        """
+        return re.sub(
+            r"([\x00-\x08\x0B-\x1F])", lambda match: "_x%04X_" % ord(match.group(1)), s
+        )
 
 
 class CT_TextBody(BaseOxmlElement):

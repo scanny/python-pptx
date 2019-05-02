@@ -48,8 +48,8 @@ def given_a_paragraph_having_space_before_after_of_setting(
     context.paragraph = text_frame.paragraphs[paragraph_idx]
 
 
-@given("a run")
-def given_a_run(context):
+@given("a _Run object as run")
+def given_a_Run_object_as_run(context):
     prs = Presentation(test_pptx("txt-text"))
     context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 

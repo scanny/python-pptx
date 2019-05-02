@@ -693,4 +693,4 @@ class _Run(Subshape):
 
     @text.setter
     def text(self, str):
-        self._r.t.text = to_unicode(str)
+        self._r.text = to_unicode(str)
