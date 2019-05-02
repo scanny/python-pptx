@@ -323,8 +323,9 @@ class DescribeShape(object):
         AdjustmentCollection_.assert_called_once_with(sp_.prstGeom)
 
     def it_knows_its_autoshape_type(self, autoshape_type_fixture_):
-        shape, expected_auto_shape_type = autoshape_type_fixture_
-        assert shape.auto_shape_type == expected_auto_shape_type
+        shape, expected_value = autoshape_type_fixture_
+        auto_shape_type = shape.auto_shape_type
+        assert auto_shape_type == expected_value
 
     def but_it_raises_when_auto_shape_type_called_on_non_autoshape(
         self, non_autoshape_shape_
@@ -366,14 +367,22 @@ class DescribeShape(object):
         with pytest.raises(NotImplementedError):
             shape.shape_type
 
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        shape, expected_value = text_get_fixture
-        assert shape.text == expected_value
+    def it_knows_what_text_it_contains(self, text_frame_prop_, text_frame_):
+        text_frame_prop_.return_value = text_frame_
+        text_frame_.text = "foobar"
+        shape = Shape(None, None)
 
-    def it_can_change_its_text(self, text_set_fixture):
-        shape, new_value, expected_xml = text_set_fixture
-        shape.text = new_value
-        assert shape._element.xml == expected_xml
+        text = shape.text
+
+        assert text == "foobar"
+
+    def it_can_change_its_text(self, text_frame_prop_, text_frame_):
+        text_frame_prop_.return_value = text_frame_
+        shape = Shape(None, None)
+
+        shape.text = "føøbår"
+
+        assert text_frame_.text == "føøbår"
 
     def it_provides_access_to_its_text_frame(self, text_frame_fixture):
         shape, text_frame_, TextFrame_, txBody = text_frame_fixture
@@ -411,21 +420,6 @@ class DescribeShape(object):
         txBody = sp[0]
         shape = Shape(sp, None)
         return shape, text_frame_, TextFrame_, txBody
-
-    @pytest.fixture(params=[('p:sp/p:txBody/a:p/a:r/a:t"føøbår"', "føøbår")])
-    def text_get_fixture(self, request):
-        sp_cxml, expected_value = request.param
-        shape = Shape(element(sp_cxml), None)
-        return shape, expected_value
-
-    @pytest.fixture(
-        params=[("p:sp/p:txBody/a:p", "føøbår", 'p:sp/p:txBody/a:p/a:r/a:t"føøbår"')]
-    )
-    def text_set_fixture(self, request):
-        sp_cxml, new_value, expected_sp_cxml = request.param
-        shape = Shape(element(sp_cxml), None)
-        expected_xml = xml(expected_sp_cxml)
-        return shape, new_value, expected_xml
 
     @pytest.fixture
     def txBody_fixture(self, request):
@@ -513,3 +507,7 @@ class DescribeShape(object):
     @pytest.fixture
     def text_frame_(self, request):
         return instance_mock(request, TextFrame)
+
+    @pytest.fixture
+    def text_frame_prop_(self, request):
+        return property_mock(request, Shape, "text_frame")

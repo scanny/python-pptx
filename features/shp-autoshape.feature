@@ -22,5 +22,5 @@ Feature: Shape properties and methods
 
   Scenario: Shape.text setter
      Given a Shape object having text as shape
-      When I assign shape.text = "F\xf8o\nBar\nBaz"
-      Then shape.text == "F\xf8o\nBar\nBaz"
+      When I assign shape.text = "F\xf8o\vBar\nBaz\x1b"
+      Then shape.text == "F\xf8o\vBar\nBaz_x001B_"

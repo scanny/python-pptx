@@ -359,18 +359,22 @@ class Shape(BaseShape):
 
     @property
     def text(self):
-        """
-        Read/write. All the text in this shape as a single string. A line
-        feed character ('\\\\n') appears in the string for each paragraph and
-        line break in the shape, except the last paragraph. A shape
-        containing a single paragraph with no line breaks will produce
-        a string having no line feed characters. Assigning a string to this
-        property replaces all text in the shape with a single paragraph
-        containing the assigned text. The assigned value can be a 7-bit ASCII
-        string, a UTF-8 encoded 8-bit string, or unicode. String values are
-        converted to unicode assuming UTF-8 encoding. Each line feed
-        character in an assigned string is translated into a line break
-        within the single resulting paragraph.
+        """Read/write. Unicode (str in Python 3) representation of shape text.
+
+        The returned string will contain a newline character (``"\\n"``) separating each
+        paragraph and a vertical-tab (``"\\v"``) character for each line break (soft
+        carriage return) in the shape's text.
+
+        Assignment to *text* replaces all text previously contained in the shape, along
+        with any paragraph or font formatting applied to it. A newline character
+        (``"\\n"``) in the assigned text causes a new paragraph to be started.
+        A vertical-tab (``"\\v"``) character in the assigned text causes a line-break
+        (soft carriage-return) to be inserted. (The vertical-tab character appears in
+        clipboard text copied from PowerPoint as its encoding of line-breaks.)
+
+        Either bytes (Python 2 str) or unicode (Python 3 str) can be assigned. Bytes can
+        be 7-bit ASCII or UTF-8 encoded 8-bit bytes. Bytes values are converted to
+        unicode assuming UTF-8 encoding (which also works for ASCII).
         """
         return self.text_frame.text
 
