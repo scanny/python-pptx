@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from pptx.compat import is_integer, to_unicode
+from pptx.compat import is_integer
 from pptx.dml.fill import FillFormat
 from pptx.oxml.table import TcRange
 from pptx.shapes import Subshape
@@ -333,24 +333,28 @@ class _Cell(Subshape):
 
     @property
     def text(self):
-        """str representation of cell contents.
+        """Unicode (str in Python 3) representation of cell contents.
 
-        The returned string will contain a newline character (``'\\n'``) for
-        each new paragraph (after the first) and line break in the cell.
+        The returned string will contain a newline character (``"\\n"``) separating each
+        paragraph and a vertical-tab (``"\\v"``) character for each line break (soft
+        carriage return) in the cell's text.
 
-        Assignment to *text* replaces all text currently contained in the
-        cell, resulting in a text frame containing exactly one paragraph.
-        Each newline character in an assigned string will be
-        replaced with a line break in the resulting paragraph. The assigned
-        value can be a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or
-        unicode. String values are converted to unicode assuming UTF-8
-        encoding.
+        Assignment to *text* replaces all text currently contained in the cell. A
+        newline character (``"\\n"``) in the assigned text causes a new paragraph to be
+        started. A vertical-tab (``"\\v"``) character in the assigned text causes
+        a line-break (soft carriage-return) to be inserted. (The vertical-tab character
+        appears in clipboard text copied from PowerPoint as its encoding of
+        line-breaks.)
+
+        Either bytes (Python 2 str) or unicode (Python 3 str) can be assigned. Bytes can
+        be 7-bit ASCII or UTF-8 encoded 8-bit bytes. Bytes values are converted to
+        unicode assuming UTF-8 encoding (which correctly decodes ASCII).
         """
         return self.text_frame.text
 
     @text.setter
     def text(self, text):
-        self.text_frame.text = to_unicode(text)
+        self.text_frame.text = text
 
     @property
     def text_frame(self):

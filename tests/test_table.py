@@ -20,10 +20,11 @@ from pptx.table import (
     _RowCollection,
     Table,
 )
+from pptx.text.text import TextFrame
 from pptx.util import Inches, Length, Pt
 
 from .unitutil.cxml import element, xml
-from .unitutil.mock import call, class_mock, instance_mock
+from .unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
 class DescribeTable(object):
@@ -198,6 +199,8 @@ class DescribeTableBooleanProperties(object):
 
 
 class Describe_Cell(object):
+    """Unit-test suite for `pptx.table._Cell` object."""
+
     def it_is_equal_to_other_instance_having_same_tc(self):
         tc = element("a:tc")
         other_tc = element("a:tc")
@@ -320,18 +323,22 @@ class Describe_Cell(object):
             cell.split()
         assert "not a merge-origin cell" in str(e.value)
 
-    def it_knows_what_text_it_contains(self, text_get_fixture):
-        tc, expected_value = text_get_fixture
-        cell = _Cell(tc, None)
+    def it_knows_what_text_it_contains(self, text_frame_prop_, text_frame_):
+        text_frame_prop_.return_value = text_frame_
+        text_frame_.text = "foobar"
+        cell = _Cell(None, None)
 
         text = cell.text
 
-        assert text == expected_value
+        assert text == "foobar"
 
-    def it_can_replace_its_text_with_a_string(self, text_set_fixture):
-        cell, text, expected_xml = text_set_fixture
-        cell.text = text
-        assert cell._tc.xml == expected_xml
+    def it_can_change_its_text(self, text_frame_prop_, text_frame_):
+        text_frame_prop_.return_value = text_frame_
+        cell = _Cell(None, None)
+
+        cell.text = "føøbår"
+
+        assert text_frame_.text == "føøbår"
 
     def it_knows_its_vertical_anchor_setting(self, anchor_get_fixture):
         cell, expected_value = anchor_get_fixture
@@ -487,43 +494,6 @@ class Describe_Cell(object):
         return origin_tc, range_tcs
 
     @pytest.fixture(
-        params=[
-            ("a:tc", ""),
-            ('a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")', "foobar"),
-            (
-                'a:tc/a:txBody/(a:bodyPr,a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar"))',
-                "foo\vbar",
-            ),
-            ('a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")', "foo\nbar"),
-        ]
-    )
-    def text_get_fixture(self, request):
-        tc_cxml, expected_value = request.param
-        tc = element(tc_cxml)
-        return tc, expected_value
-
-    @pytest.fixture(
-        params=[
-            ("a:tc", "foobar", 'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")'),
-            (
-                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/(a:br,a:t"bar"))',
-                "foobar",
-                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
-            ),
-            (
-                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"foobar")',
-                "bar\nfoo",
-                'a:tc/a:txBody/(a:bodyPr,a:p/a:r/a:t"bar",a:p/a:r/a:t"foo")',
-            ),
-        ]
-    )
-    def text_set_fixture(self, request):
-        tc_cxml, new_text, expected_cxml = request.param
-        cell = _Cell(element(tc_cxml), None)
-        expected_xml = xml(expected_cxml)
-        return cell, new_text, expected_xml
-
-    @pytest.fixture(
         params=[("a:tc", 1), ("a:tc{rowSpan=2}", 1), ("a:tc{gridSpan=24}", 24)]
     )
     def width_fixture(self, request):
@@ -544,6 +514,14 @@ class Describe_Cell(object):
     @pytest.fixture
     def tc_range_(self, request):
         return instance_mock(request, TcRange)
+
+    @pytest.fixture
+    def text_frame_(self, request):
+        return instance_mock(request, TextFrame)
+
+    @pytest.fixture
+    def text_frame_prop_(self, request):
+        return property_mock(request, _Cell, "text_frame")
 
 
 class Describe_CellCollection(object):
