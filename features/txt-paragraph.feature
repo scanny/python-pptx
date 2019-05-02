@@ -82,7 +82,6 @@ Feature: Change paragraph properties
       | "a\vb\vc" |
 
 
-  @wip
   Scenario Outline: _Paragraph.text setter
     Given a _Paragraph object as paragraph
      When I assign paragraph.text = <value>

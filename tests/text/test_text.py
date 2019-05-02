@@ -404,6 +404,8 @@ class DescribeTextFrame(object):
             ),
             # ---something to empty---
             ('p:txBody/a:p/a:r/a:t"foobar"', "", "p:txBody/a:p"),
+            # ---vertical-tab becomes line-break---
+            ("p:txBody/a:p", "a\vb", 'p:txBody/a:p/(a:r/a:t"a",a:br,a:r/a:t"b")'),
         ]
     )
     def text_set_fixture(self, request):
@@ -893,8 +895,11 @@ class Describe_Paragraph(object):
         assert is_unicode(text)
 
     def it_can_change_its_text(self, text_set_fixture):
-        paragraph, new_value, expected_xml = text_set_fixture
-        paragraph.text = new_value
+        p, value, expected_xml = text_set_fixture
+        paragraph = _Paragraph(p, None)
+
+        paragraph.text = value
+
         assert paragraph._element.xml == expected_xml
 
     # fixtures ---------------------------------------------
@@ -1125,12 +1130,13 @@ class Describe_Paragraph(object):
             ("a:p", "", "a:p"),
             ("a:p", "foobar", 'a:p/a:r/a:t"foobar"'),
             ("a:p", "foo\nbar", 'a:p/(a:r/a:t"foo",a:br,a:r/a:t"bar")'),
-            ("a:p", "\nfoo\n", 'a:p/(a:br,a:r/a:t"foo",a:br)'),
+            ("a:p", "\vfoo\n", 'a:p/(a:br,a:r/a:t"foo",a:br)'),
             ("a:p", "\n\nfoo", 'a:p/(a:br,a:br,a:r/a:t"foo")'),
             ("a:p", "foo\n", 'a:p/(a:r/a:t"foo",a:br)'),
+            ("a:p", b"foo\x07\n", 'a:p/(a:r/a:t"foo_x0007_",a:br)'),
             ("a:p", b"7-bit str", 'a:p/a:r/a:t"7-bit str"'),
             ("a:p", b"8-\xc9\x93\xc3\xaf\xc8\xb6 str", 'a:p/a:r/a:t"8-ɓïȶ str"'),
-            ("a:p", "ŮŦƑ-8 literal", 'a:p/a:r/a:t"ŮŦƑ-8 literal"'),
+            ("a:p", "ŮŦƑ-8\x1bliteral", 'a:p/a:r/a:t"ŮŦƑ-8_x001B_literal"'),
             (
                 "a:p",
                 "utf-8 unicode: Hér er texti",
@@ -1139,10 +1145,10 @@ class Describe_Paragraph(object):
         ]
     )
     def text_set_fixture(self, request):
-        p_cxml, new_value, expected_p_cxml = request.param
-        paragraph = _Paragraph(element(p_cxml), None)
-        expected_xml = xml(expected_p_cxml)
-        return paragraph, new_value, expected_xml
+        p_cxml, value, expected_cxml = request.param
+        p = element(p_cxml)
+        expected_xml = xml(expected_cxml)
+        return p, value, expected_xml
 
     # fixture components -----------------------------------
 

@@ -393,16 +393,18 @@ class CT_TextParagraph(BaseOxmlElement):
         """
         r = self._add_r()
         if text:
-            r.t.text = text
+            r.text = text
         return r
 
     def append_text(self, text):
         """Append `a:r` and `a:br` elements to *p* based on *text*.
 
-        Any `\n` characters in *text* delimit `a:r` (run) elements and
-        themselves are translated to `a:br` (line-break) elements.
+        Any `\n` or `\v` (vertical-tab) characters in *text* delimit `a:r` (run)
+        elements and themselves are translated to `a:br` (line-break) elements. The
+        vertical-tab character appears in clipboard text from PowerPoint at "soft"
+        line-breaks (new-line, but not new paragraph).
         """
-        for idx, r_str in enumerate(text.split("\n")):
+        for idx, r_str in enumerate(re.split("\n|\v", text)):
             # ---breaks are only added *between* items, not at start---
             if idx > 0:
                 self.add_br()
