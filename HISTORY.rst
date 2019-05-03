@@ -3,6 +3,26 @@
 Release History
 ---------------
 
+0.6.18 (2019-05-02)
++++++++++++++++++++
+
+- .text property getters encode line-break as a vertical-tab (VT, '\v', ASCII 11/x0B).
+  This is consistent with PowerPoint's copy/paste behavior and allows like-breaks (soft
+  carriage-return) to be distinguished from paragraph boundary. Previously, a line-break
+  was encoded as a newline ('\n') and was not distinguishable from a paragraph boundary.
+
+  .text properties include Shape.text, _Cell.text, TextFrame.text, _Paragraph.text and
+  _Run.text.
+
+- .text property setters accept vertical-tab character and place a line-break element in
+  that location. All other control characters other than horizontal-tab ('\t') and
+  newline ('\n') in range \x00-\x1F are accepted and escaped with plain-text like
+  "_x001B" for ESC (ASCII 27).
+
+  Previously a control character other than tab or newline in an assigned string would
+  trigger an exception related to invalid XML character.
+
+
 0.6.17 (2018-12-16)
 +++++++++++++++++++
 
