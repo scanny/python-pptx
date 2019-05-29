@@ -52,7 +52,7 @@ class _BaseColorElement(BaseOxmlElement):
 
 
 class CT_Color(BaseOxmlElement):
-    """Custom element class for `a:fgClr`, `a:bgClr` and perhaps others."""
+    """Custom element class for `a:fgClr`, `a:bgClr`, `a:buClr` and perhaps others."""
 
     eg_colorChoice = ZeroOrOneChoice(
         (

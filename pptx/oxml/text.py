@@ -462,6 +462,7 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
     spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
     buClrTx = ZeroOrOne("a:buClrTx", successors=_tag_seq[4:])
+    buClr = ZeroOrOne("a:buClr", successors=_tag_seq[5:])
     buNone = ZeroOrOne("a:buNone", successors=_tag_seq[11:])
     buAutoNum = ZeroOrOne("a:buAutoNum", successors=_tag_seq[12:])
     buChar = ZeroOrOne("a:buChar", successors=_tag_seq[13:])
