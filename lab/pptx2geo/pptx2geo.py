@@ -233,23 +233,6 @@ class SvgExtract(object):
 
 #===============================================================================
 
-'''
-For generating GeoJSON...
-
-https://simoncozens.github.io/beziers.py/index.html
-
-b1 = CubicBezier(Point(0, 22361),
-            Point(66977, -8289),
-            Point(204903, -1762),
-            Point(296286, 8739))
-b2 = CubicBezier(Point(296286, 8739),
-            Point(387669, 19240),
-            Point(566463, 131908),
-            Point(538083, 126232))
-'''
-#===============================================================================
-
-
 if __name__ == '__main__':
     import argparse
 
@@ -264,8 +247,6 @@ if __name__ == '__main__':
     parser.add_argument('powerpoint', metavar='POWERPOINT_FILE',
                         help='the name of a Powerpoint file')
 
-    ## specify range of slides...
-    ## specify format
 
     args = parser.parse_args()
 
@@ -279,8 +260,3 @@ if __name__ == '__main__':
         svg_extract.slide_to_svg(args.slide)
 
 #===============================================================================
-
-
-
-
-
