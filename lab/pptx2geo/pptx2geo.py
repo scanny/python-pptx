@@ -228,7 +228,7 @@ class SvgExtract(object):
         svg_maker = SvgMaker(self._slides[slide_number-1], slide_number, self._slide_size, self._args)
 
     def slides_to_svg(self):
-        for n in range(len(self._slides)):
+        for n in range(1, len(self._slides)+1):
             self.slide_to_svg(n)
 
 #===============================================================================
