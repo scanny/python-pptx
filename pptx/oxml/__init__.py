@@ -230,12 +230,14 @@ from .dml.color import (  # noqa: E402
     CT_ScRgbColor,
     CT_SRgbColor,
     CT_SystemColor,
+    CT_PositiveFixedPercentage
 )
 
 register_element_cls("a:bgClr", CT_Color)
 register_element_cls("a:fgClr", CT_Color)
 register_element_cls("a:buClr", CT_Color)
 register_element_cls("a:hslClr", CT_HslColor)
+register_element_cls("a:alpha", CT_PositiveFixedPercentage)
 register_element_cls("a:lumMod", CT_Percentage)
 register_element_cls("a:lumOff", CT_Percentage)
 register_element_cls("a:prstClr", CT_PresetColor)
