@@ -6,6 +6,7 @@ lxml custom element classes for core properties-related XML elements.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import sys
 import re
 
 from datetime import datetime, timedelta
@@ -279,7 +280,8 @@ class CT_CoreProperties(BaseOxmlElement):
         """
         Set string value of *name* property to *value*.
         """
-        value = str(value)
+        if sys.version_info.major >= 3 or not isinstance(value, unicode):
+            value = str(value)
         if len(value) > 255:
             tmpl = "exceeded 255 char limit for property, got:\n\n'%s'"
             raise ValueError(tmpl % value)
