@@ -4,7 +4,7 @@ Table-related objects
 =====================
 
 
-.. currentmodule:: pptx.shapes.table
+.. currentmodule:: pptx.table
 
 
 |Table| objects
@@ -17,7 +17,7 @@ A |Table| object is added to a slide using the
    :members:
    :inherited-members:
    :exclude-members:
-      element, notify_height_changed, notify_width_changed, part, text
+      notify_height_changed, notify_width_changed, part
    :undoc-members:
 
 
@@ -45,7 +45,8 @@ A |Table| object is added to a slide using the
 A |_Cell| object represents a single table cell at a particular row/column
 location in the table. |_Cell| objects are not constructed directly. A
 reference to a |_Cell| object is obtained using the :meth:`Table.cell` method,
-specifying the cell's row/column location.
+specifying the cell's row/column location. A cell object can also be obtained
+using the :attr:`_Row.cells` collection.
 
 .. autoclass:: _Cell
    :members:

@@ -11,29 +11,34 @@ from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.simpletypes import (
-    ST_Coordinate, ST_PositiveCoordinate, XsdBoolean, XsdString
+    ST_Coordinate,
+    ST_PositiveCoordinate,
+    XsdBoolean,
+    XsdString,
 )
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, OptionalAttribute, RequiredAttribute,
-    ZeroOrOne, ZeroOrMore
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    OptionalAttribute,
+    RequiredAttribute,
+    ZeroOrOne,
+    ZeroOrMore,
 )
 
 
 class CT_AdjPoint2D(BaseOxmlElement):
     """`a:pt` custom element class."""
 
-    x = RequiredAttribute('x', ST_Coordinate)
-    y = RequiredAttribute('y', ST_Coordinate)
+    x = RequiredAttribute("x", ST_Coordinate)
+    y = RequiredAttribute("y", ST_Coordinate)
 
 
 class CT_CustomGeometry2D(BaseOxmlElement):
     """`a:custGeom` custom element class."""
 
-    _tag_seq = (
-        'a:avLst', 'a:gdLst', 'a:ahLst', 'a:cxnLst', 'a:rect', 'a:pathLst'
-    )
-    pathLst = ZeroOrOne('a:pathLst', successors=_tag_seq[6:])
+    _tag_seq = ("a:avLst", "a:gdLst", "a:ahLst", "a:cxnLst", "a:rect", "a:pathLst")
+    pathLst = ZeroOrOne("a:pathLst", successors=_tag_seq[6:])
 
 
 class CT_GeomGuide(BaseOxmlElement):
@@ -41,33 +46,36 @@ class CT_GeomGuide(BaseOxmlElement):
     ``<a:gd>`` custom element class, defining a "guide", corresponding to
     a yellow diamond-shaped handle on an autoshape.
     """
-    name = RequiredAttribute('name', XsdString)
-    fmla = RequiredAttribute('fmla', XsdString)
+
+    name = RequiredAttribute("name", XsdString)
+    fmla = RequiredAttribute("fmla", XsdString)
 
 
 class CT_GeomGuideList(BaseOxmlElement):
     """
     ``<a:avLst>`` custom element class
     """
-    gd = ZeroOrMore('a:gd')
+
+    gd = ZeroOrMore("a:gd")
 
 
 class CT_NonVisualDrawingShapeProps(BaseShapeElement):
     """
     ``<p:cNvSpPr>`` custom element class
     """
-    spLocks = ZeroOrOne('a:spLocks')
-    txBox = OptionalAttribute('txBox', XsdBoolean)
+
+    spLocks = ZeroOrOne("a:spLocks")
+    txBox = OptionalAttribute("txBox", XsdBoolean)
 
 
 class CT_Path2D(BaseOxmlElement):
     """`a:path` custom element class."""
 
-    close = ZeroOrMore('a:close', successors=())
-    lnTo = ZeroOrMore('a:lnTo', successors=())
-    moveTo = ZeroOrMore('a:moveTo', successors=())
-    w = OptionalAttribute('w', ST_PositiveCoordinate)
-    h = OptionalAttribute('h', ST_PositiveCoordinate)
+    close = ZeroOrMore("a:close", successors=())
+    lnTo = ZeroOrMore("a:lnTo", successors=())
+    moveTo = ZeroOrMore("a:moveTo", successors=())
+    w = OptionalAttribute("w", ST_PositiveCoordinate)
+    h = OptionalAttribute("h", ST_PositiveCoordinate)
 
     def add_close(self):
         """Return a newly created `a:close` element.
@@ -104,13 +112,13 @@ class CT_Path2DClose(BaseOxmlElement):
 class CT_Path2DLineTo(BaseOxmlElement):
     """`a:lnTo` custom element class."""
 
-    pt = ZeroOrOne('a:pt', successors=())
+    pt = ZeroOrOne("a:pt", successors=())
 
 
 class CT_Path2DList(BaseOxmlElement):
     """`a:pathLst` custom element class."""
 
-    path = ZeroOrMore('a:path', successors=())
+    path = ZeroOrMore("a:path", successors=())
 
     def add_path(self, w, h):
         """Return a newly created `a:path` child element."""
@@ -122,15 +130,16 @@ class CT_Path2DList(BaseOxmlElement):
 class CT_Path2DMoveTo(BaseOxmlElement):
     """`a:moveTo` custom element class."""
 
-    pt = ZeroOrOne('a:pt', successors=())
+    pt = ZeroOrOne("a:pt", successors=())
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):
     """
     <a:prstGeom> custom element class
     """
-    avLst = ZeroOrOne('a:avLst')
-    prst = RequiredAttribute('prst', MSO_AUTO_SHAPE_TYPE)
+
+    avLst = ZeroOrOne("a:avLst")
+    prst = RequiredAttribute("prst", MSO_AUTO_SHAPE_TYPE)
 
     @property
     def gd_lst(self):
@@ -153,22 +162,23 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         for name, val in guides:
             gd = avLst._add_gd()
             gd.name = name
-            gd.fmla = 'val %d' % val
+            gd.fmla = "val %d" % val
 
 
 class CT_Shape(BaseShapeElement):
     """
     ``<p:sp>`` custom element class
     """
-    nvSpPr = OneAndOnlyOne('p:nvSpPr')
-    spPr = OneAndOnlyOne('p:spPr')
-    txBody = ZeroOrOne('p:txBody', successors=('p:extLst',))
+
+    nvSpPr = OneAndOnlyOne("p:nvSpPr")
+    spPr = OneAndOnlyOne("p:spPr")
+    txBody = ZeroOrOne("p:txBody", successors=("p:extLst",))
 
     def add_path(self, w, h):
         """Reference to `a:custGeom` descendant or |None| if not present."""
         custGeom = self.spPr.custGeom
         if custGeom is None:
-            raise ValueError('shape must be freeform')
+            raise ValueError("shape must be freeform")
         pathLst = custGeom.get_or_add_pathLst()
         return pathLst.add_path(w=w, h=h)
 
@@ -258,9 +268,11 @@ class CT_Shape(BaseShapeElement):
         ph.sz = sz
 
         placeholder_types_that_have_a_text_frame = (
-            PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.CENTER_TITLE,
-            PP_PLACEHOLDER.SUBTITLE, PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.OBJECT
+            PP_PLACEHOLDER.TITLE,
+            PP_PLACEHOLDER.CENTER_TITLE,
+            PP_PLACEHOLDER.SUBTITLE,
+            PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.OBJECT,
         )
 
         if ph_type in placeholder_types_that_have_a_text_frame:
@@ -301,92 +313,90 @@ class CT_Shape(BaseShapeElement):
     @staticmethod
     def _autoshape_sp_tmpl():
         return (
-            '<p:sp %s>\n'
-            '  <p:nvSpPr>\n'
+            "<p:sp %s>\n"
+            "  <p:nvSpPr>\n"
             '    <p:cNvPr id="%s" name="%s"/>\n'
-            '    <p:cNvSpPr/>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvSpPr>\n'
-            '  <p:spPr>\n'
-            '    <a:xfrm>\n'
+            "    <p:cNvSpPr/>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvSpPr>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
             '      <a:off x="%s" y="%s"/>\n'
             '      <a:ext cx="%s" cy="%s"/>\n'
-            '    </a:xfrm>\n'
+            "    </a:xfrm>\n"
             '    <a:prstGeom prst="%s">\n'
-            '      <a:avLst/>\n'
-            '    </a:prstGeom>\n'
-            '  </p:spPr>\n'
-            '  <p:style>\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "  <p:style>\n"
             '    <a:lnRef idx="1">\n'
             '      <a:schemeClr val="accent1"/>\n'
-            '    </a:lnRef>\n'
+            "    </a:lnRef>\n"
             '    <a:fillRef idx="3">\n'
             '      <a:schemeClr val="accent1"/>\n'
-            '    </a:fillRef>\n'
+            "    </a:fillRef>\n"
             '    <a:effectRef idx="2">\n'
             '      <a:schemeClr val="accent1"/>\n'
-            '    </a:effectRef>\n'
+            "    </a:effectRef>\n"
             '    <a:fontRef idx="minor">\n'
             '      <a:schemeClr val="lt1"/>\n'
-            '    </a:fontRef>\n'
-            '  </p:style>\n'
-            '  <p:txBody>\n'
+            "    </a:fontRef>\n"
+            "  </p:style>\n"
+            "  <p:txBody>\n"
             '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
-            '    <a:lstStyle/>\n'
-            '    <a:p>\n'
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
             '      <a:pPr algn="ctr"/>\n'
-            '    </a:p>\n'
-            '  </p:txBody>\n'
-            '</p:sp>' %
-            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d', '%s')
+            "    </a:p>\n"
+            "  </p:txBody>\n"
+            "</p:sp>" % (nsdecls("a", "p"), "%d", "%s", "%d", "%d", "%d", "%d", "%s")
         )
 
     @staticmethod
     def _freeform_sp_tmpl():
         return (
-            '<p:sp %s>\n'
-            '  <p:nvSpPr>\n'
+            "<p:sp %s>\n"
+            "  <p:nvSpPr>\n"
             '    <p:cNvPr id="%s" name="%s"/>\n'
-            '    <p:cNvSpPr/>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvSpPr>\n'
-            '  <p:spPr>\n'
-            '    <a:xfrm>\n'
+            "    <p:cNvSpPr/>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvSpPr>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
             '      <a:off x="%s" y="%s"/>\n'
             '      <a:ext cx="%s" cy="%s"/>\n'
-            '    </a:xfrm>\n'
-            '    <a:custGeom>\n'
-            '      <a:avLst/>\n'
-            '      <a:gdLst/>\n'
-            '      <a:ahLst/>\n'
-            '      <a:cxnLst/>\n'
+            "    </a:xfrm>\n"
+            "    <a:custGeom>\n"
+            "      <a:avLst/>\n"
+            "      <a:gdLst/>\n"
+            "      <a:ahLst/>\n"
+            "      <a:cxnLst/>\n"
             '      <a:rect l="l" t="t" r="r" b="b"/>\n'
-            '      <a:pathLst/>\n'
-            '    </a:custGeom>\n'
-            '  </p:spPr>\n'
-            '  <p:style>\n'
+            "      <a:pathLst/>\n"
+            "    </a:custGeom>\n"
+            "  </p:spPr>\n"
+            "  <p:style>\n"
             '    <a:lnRef idx="1">\n'
             '      <a:schemeClr val="accent1"/>\n'
-            '    </a:lnRef>\n'
+            "    </a:lnRef>\n"
             '    <a:fillRef idx="3">\n'
             '      <a:schemeClr val="accent1"/>\n'
-            '    </a:fillRef>\n'
+            "    </a:fillRef>\n"
             '    <a:effectRef idx="2">\n'
             '      <a:schemeClr val="accent1"/>\n'
-            '    </a:effectRef>\n'
+            "    </a:effectRef>\n"
             '    <a:fontRef idx="minor">\n'
             '      <a:schemeClr val="lt1"/>\n'
-            '    </a:fontRef>\n'
-            '  </p:style>\n'
-            '  <p:txBody>\n'
+            "    </a:fontRef>\n"
+            "  </p:style>\n"
+            "  <p:txBody>\n"
             '    <a:bodyPr rtlCol="0" anchor="ctr"/>\n'
-            '    <a:lstStyle/>\n'
-            '    <a:p>\n'
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
             '      <a:pPr algn="ctr"/>\n'
-            '    </a:p>\n'
-            '  </p:txBody>\n'
-            '</p:sp>' %
-            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+            "    </a:p>\n"
+            "  </p:txBody>\n"
+            "</p:sp>" % (nsdecls("a", "p"), "%d", "%s", "%d", "%d", "%d", "%d")
         )
 
     def _new_txBody(self):
@@ -395,46 +405,45 @@ class CT_Shape(BaseShapeElement):
     @staticmethod
     def _ph_sp_tmpl():
         return (
-            '<p:sp %s>\n'
-            '  <p:nvSpPr>\n'
+            "<p:sp %s>\n"
+            "  <p:nvSpPr>\n"
             '    <p:cNvPr id="%s" name="%s"/>\n'
-            '    <p:cNvSpPr>\n'
+            "    <p:cNvSpPr>\n"
             '      <a:spLocks noGrp="1"/>\n'
-            '    </p:cNvSpPr>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvSpPr>\n'
-            '  <p:spPr/>\n'
-            '</p:sp>' % (nsdecls('a', 'p'), '%d', '%s')
+            "    </p:cNvSpPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvSpPr>\n"
+            "  <p:spPr/>\n"
+            "</p:sp>" % (nsdecls("a", "p"), "%d", "%s")
         )
 
     @staticmethod
     def _textbox_sp_tmpl():
         return (
-            '<p:sp %s>\n'
-            '  <p:nvSpPr>\n'
+            "<p:sp %s>\n"
+            "  <p:nvSpPr>\n"
             '    <p:cNvPr id="%s" name="%s"/>\n'
             '    <p:cNvSpPr txBox="1"/>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvSpPr>\n'
-            '  <p:spPr>\n'
-            '    <a:xfrm>\n'
+            "    <p:nvPr/>\n"
+            "  </p:nvSpPr>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
             '      <a:off x="%s" y="%s"/>\n'
             '      <a:ext cx="%s" cy="%s"/>\n'
-            '    </a:xfrm>\n'
+            "    </a:xfrm>\n"
             '    <a:prstGeom prst="rect">\n'
-            '      <a:avLst/>\n'
-            '    </a:prstGeom>\n'
-            '    <a:noFill/>\n'
-            '  </p:spPr>\n'
-            '  <p:txBody>\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "    <a:noFill/>\n"
+            "  </p:spPr>\n"
+            "  <p:txBody>\n"
             '    <a:bodyPr wrap="none">\n'
-            '      <a:spAutoFit/>\n'
-            '    </a:bodyPr>\n'
-            '    <a:lstStyle/>\n'
-            '    <a:p/>\n'
-            '  </p:txBody>\n'
-            '</p:sp>' %
-            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+            "      <a:spAutoFit/>\n"
+            "    </a:bodyPr>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p/>\n"
+            "  </p:txBody>\n"
+            "</p:sp>" % (nsdecls("a", "p"), "%d", "%s", "%d", "%d", "%d", "%d")
         )
 
 
@@ -442,6 +451,7 @@ class CT_ShapeNonVisual(BaseShapeElement):
     """
     ``<p:nvSpPr>`` custom element class
     """
-    cNvPr = OneAndOnlyOne('p:cNvPr')
-    cNvSpPr = OneAndOnlyOne('p:cNvSpPr')
-    nvPr = OneAndOnlyOne('p:nvPr')
+
+    cNvPr = OneAndOnlyOne("p:cNvPr")
+    cNvSpPr = OneAndOnlyOne("p:cNvSpPr")
+    nvPr = OneAndOnlyOne("p:nvPr")

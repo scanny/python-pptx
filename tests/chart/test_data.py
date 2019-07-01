@@ -11,10 +11,21 @@ from datetime import date, datetime
 import pytest
 
 from pptx.chart.data import (
-    _BaseChartData, _BaseDataPoint, _BaseSeriesData, BubbleChartData,
-    BubbleDataPoint, BubbleSeriesData, Categories, Category,
-    CategoryChartData, CategoryDataPoint, CategorySeriesData, ChartData,
-    XyChartData, XyDataPoint, XySeriesData
+    _BaseChartData,
+    _BaseDataPoint,
+    _BaseSeriesData,
+    BubbleChartData,
+    BubbleDataPoint,
+    BubbleSeriesData,
+    Categories,
+    Category,
+    CategoryChartData,
+    CategoryDataPoint,
+    CategorySeriesData,
+    ChartData,
+    XyChartData,
+    XyDataPoint,
+    XySeriesData,
 )
 from pptx.chart.xlsx import CategoryWorkbookWriter
 from pptx.enum.base import EnumValue
@@ -23,17 +34,13 @@ from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
 
 class DescribeChartData(object):
-
     def it_is_a_CategoryChartData_object(self):
         assert isinstance(ChartData(), CategoryChartData)
 
 
 class Describe_BaseChartData(object):
-
     def it_can_generate_chart_part_XML_for_its_data(self, xml_bytes_fixture):
-        chart_data, chart_type_, ChartXmlWriter_, expected_bytes = (
-            xml_bytes_fixture
-        )
+        chart_data, chart_type_, ChartXmlWriter_, expected_bytes = xml_bytes_fixture
         xml_bytes = chart_data.xml_bytes(chart_type_)
 
         ChartXmlWriter_.assert_called_once_with(chart_type_, chart_data)
@@ -45,10 +52,7 @@ class Describe_BaseChartData(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        (None, 'General'),
-        (42,   42),
-    ])
+    @pytest.fixture(params=[(None, "General"), (42, 42)])
     def number_format_fixture(self, request):
         number_format, expected_value = request.param
         argv = [] if number_format is None else [number_format]
@@ -58,17 +62,15 @@ class Describe_BaseChartData(object):
     @pytest.fixture
     def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_):
         chart_data = _BaseChartData()
-        expected_bytes = 'ƒøØßår'.encode('utf-8')
+        expected_bytes = "ƒøØßår".encode("utf-8")
         return chart_data, chart_type_, ChartXmlWriter_, expected_bytes
 
     # fixture components ---------------------------------------------
 
     @pytest.fixture
     def ChartXmlWriter_(self, request):
-        ChartXmlWriter_ = class_mock(
-            request, 'pptx.chart.data.ChartXmlWriter'
-        )
-        ChartXmlWriter_.return_value.xml = 'ƒøØßår'
+        ChartXmlWriter_ = class_mock(request, "pptx.chart.data.ChartXmlWriter")
+        ChartXmlWriter_.return_value.xml = "ƒøØßår"
         return ChartXmlWriter_
 
     @pytest.fixture
@@ -77,6 +79,13 @@ class Describe_BaseChartData(object):
 
 
 class Describe_BaseSeriesData(object):
+    def it_knows_its_name(self, name_fixture):
+        name_arg, expected_value = name_fixture
+        series_data = _BaseSeriesData(None, name_arg, None)
+
+        name = series_data.name
+
+        assert name == expected_value
 
     def it_knows_its_number_format(self, number_format_fixture):
         series_data, expected_value = number_format_fixture
@@ -84,14 +93,16 @@ class Describe_BaseSeriesData(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('General', 42,   42),
-        ('General', None, 'General'),
-    ])
+    @pytest.fixture(params=[("Tincture of Foo", "Tincture of Foo"), (None, "")])
+    def name_fixture(self, request):
+        name, expected_value = request.param
+        return name, expected_value
+
+    @pytest.fixture(params=[("General", 42, 42), ("General", None, "General")])
     def number_format_fixture(self, request, chart_data_):
         parent_number_format, number_format, expected_value = request.param
         chart_data_.number_format = parent_number_format
-        series_data = _BaseSeriesData(chart_data_, 'Foobar', number_format)
+        series_data = _BaseSeriesData(chart_data_, "Foobar", number_format)
         return series_data, expected_value
 
     # fixture components ---------------------------------------------
@@ -102,17 +113,13 @@ class Describe_BaseSeriesData(object):
 
 
 class Describe_BaseDataPoint(object):
-
     def it_knows_its_number_format(self, number_format_fixture):
         data_point, expected_value = number_format_fixture
         assert data_point.number_format == expected_value
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        (42, 24,   24),
-        (42, None, 42),
-    ])
+    @pytest.fixture(params=[(42, 24, 24), (42, None, 42)])
     def number_format_fixture(self, request, series_data_):
         parent_number_format, number_format, expected_value = request.param
         series_data_.number_format = parent_number_format
@@ -127,7 +134,6 @@ class Describe_BaseDataPoint(object):
 
 
 class DescribeCategoryChartData(object):
-
     def it_is_a__BaseChartData_object(self):
         assert isinstance(CategoryChartData(), _BaseChartData)
 
@@ -136,9 +142,7 @@ class DescribeCategoryChartData(object):
         assert chart_data.categories_ref == expected_value
 
     def it_knows_the_values_range_ref_for_a_series(self, values_ref_fixture):
-        chart_data, workbook_writer_, series_, values_ref_ = (
-            values_ref_fixture
-        )
+        chart_data, workbook_writer_, series_, values_ref_ = values_ref_fixture
         values_ref = chart_data.values_ref(series_)
         workbook_writer_.values_ref.assert_called_once_with(series_)
         assert values_ref is values_ref_
@@ -159,17 +163,13 @@ class DescribeCategoryChartData(object):
         chart_data, name, values, number_format = add_ser_fixture[:4]
         CategorySeriesData_, calls, series_ = add_ser_fixture[4:]
         series = chart_data.add_series(name, values, number_format)
-        CategorySeriesData_.assert_called_once_with(
-            chart_data, name, number_format
-        )
+        CategorySeriesData_.assert_called_once_with(chart_data, name, number_format)
         assert chart_data[-1] is series
         assert series.add_data_point.call_args_list == calls
         assert series is series_
 
     def it_can_set_its_categories(self, categories_set_fixture):
-        chart_data, names, Categories_, categories_, calls = (
-            categories_set_fixture
-        )
+        chart_data, names, Categories_, categories_, calls = categories_set_fixture
         chart_data.categories = names
         Categories_.assert_called_once_with()
         assert categories_.add_category.call_args_list == calls
@@ -180,18 +180,23 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def add_cat_fixture(self, categories_prop_, categories_, category_):
         chart_data = CategoryChartData()
-        name = 'foobar'
+        name = "foobar"
         categories_.add_category.return_value = category_
         return chart_data, name, categories_, category_
 
     @pytest.fixture
     def add_ser_fixture(self, CategorySeriesData_, series_):
         chart_data = CategoryChartData()
-        name, values, number_format = 'foobar', iter((1, 2, 3)), '0.0'
+        name, values, number_format = "foobar", iter((1, 2, 3)), "0.0"
         calls = [call(1), call(2), call(3)]
         return (
-            chart_data, name, values, number_format, CategorySeriesData_,
-            calls, series_
+            chart_data,
+            name,
+            values,
+            number_format,
+            CategorySeriesData_,
+            calls,
+            series_,
         )
 
     @pytest.fixture
@@ -200,25 +205,23 @@ class DescribeCategoryChartData(object):
         return chart_data, Categories_, categories_
 
     @pytest.fixture
-    def categories_ref_fixture(
-            self, _workbook_writer_prop_, workbook_writer_):
+    def categories_ref_fixture(self, _workbook_writer_prop_, workbook_writer_):
         chart_data = CategoryChartData()
-        expected_value = categories_ref = 'Sheet42!$G$24'
+        expected_value = categories_ref = "Sheet42!$G$24"
         workbook_writer_.categories_ref = categories_ref
         return chart_data, expected_value
 
     @pytest.fixture
     def categories_set_fixture(self, Categories_, categories_):
         chart_data = CategoryChartData()
-        names = iter(('a', 'b', 'c'))
-        calls = [call('a'), call('b'), call('c')]
+        names = iter(("a", "b", "c"))
+        calls = [call("a"), call("b"), call("c")]
         return chart_data, names, Categories_, categories_, calls
 
     @pytest.fixture
-    def values_ref_fixture(
-            self, _workbook_writer_prop_, workbook_writer_, series_):
+    def values_ref_fixture(self, _workbook_writer_prop_, workbook_writer_, series_):
         chart_data = CategoryChartData()
-        values_ref_ = 'Sheet1!$V$24'
+        values_ref_ = "Sheet1!$V$24"
         workbook_writer_.values_ref.return_value = values_ref_
         return chart_data, workbook_writer_, series_, values_ref_
 
@@ -227,14 +230,13 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def Categories_(self, request, categories_):
         return class_mock(
-            request, 'pptx.chart.data.Categories', return_value=categories_
+            request, "pptx.chart.data.Categories", return_value=categories_
         )
 
     @pytest.fixture
     def CategorySeriesData_(self, request, series_):
         return class_mock(
-            request, 'pptx.chart.data.CategorySeriesData',
-            return_value=series_
+            request, "pptx.chart.data.CategorySeriesData", return_value=series_
         )
 
     @pytest.fixture
@@ -244,8 +246,7 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def categories_prop_(self, request, categories_):
         return property_mock(
-            request, CategoryChartData, 'categories',
-            return_value=categories_
+            request, CategoryChartData, "categories", return_value=categories_
         )
 
     @pytest.fixture
@@ -263,13 +264,14 @@ class DescribeCategoryChartData(object):
     @pytest.fixture
     def _workbook_writer_prop_(self, request, workbook_writer_):
         return property_mock(
-            request, CategoryChartData, '_workbook_writer',
-            return_value=workbook_writer_
+            request,
+            CategoryChartData,
+            "_workbook_writer",
+            return_value=workbook_writer_,
         )
 
 
 class DescribeCategories(object):
-
     def it_knows_when_its_categories_are_numeric(self, are_numeric_fixture):
         categories, expected_value = are_numeric_fixture
         assert categories.are_numeric == expected_value
@@ -320,16 +322,18 @@ class DescribeCategories(object):
     @pytest.fixture
     def add_fixture(self, Category_, category_):
         categories = Categories()
-        name = 'foobar'
+        name = "foobar"
         return categories, name, Category_, category_
 
-    @pytest.fixture(params=[
-        ((),                    False),
-        (('foo', 'bar'),        False),
-        ((1, 2),                False),
-        ((1.2, 2.3),            False),
-        ((date(2016, 12, 21),), True),
-    ])
+    @pytest.fixture(
+        params=[
+            ((), False),
+            (("foo", "bar"), False),
+            ((1, 2), False),
+            ((1.2, 2.3), False),
+            ((date(2016, 12, 21),), True),
+        ]
+    )
     def are_dates_fixture(self, request):
         labels, expected_value = request.param
         categories = Categories()
@@ -337,13 +341,15 @@ class DescribeCategories(object):
             categories.add_category(label)
         return categories, expected_value
 
-    @pytest.fixture(params=[
-        ((),                    False),
-        (('foo', 'bar'),        False),
-        ((1, 2),                True),
-        ((1.2, 2.3),            True),
-        ((date(2016, 12, 21),), True),
-    ])
+    @pytest.fixture(
+        params=[
+            ((), False),
+            (("foo", "bar"), False),
+            ((1, 2), True),
+            ((1.2, 2.3), True),
+            ((date(2016, 12, 21),), True),
+        ]
+    )
     def are_numeric_fixture(self, request):
         labels, expected_value = request.param
         categories = Categories()
@@ -351,29 +357,21 @@ class DescribeCategories(object):
             categories.add_category(label)
         return categories, expected_value
 
-    @pytest.fixture(params=[
-        ((),        0),
-        ((1,),      1),
-        ((3,),      3),
-        ((1, 1, 1), 1),
-        ((3, 3, 3), 3),
-    ])
+    @pytest.fixture(
+        params=[((), 0), ((1,), 1), ((3,), 3), ((1, 1, 1), 1), ((3, 3, 3), 3)]
+    )
     def depth_fixture(self, request):
         depths, expected_value = request.param
         categories = Categories()
         for depth in depths:
-            categories._categories.append(
-                instance_mock(request, Category, depth=depth)
-            )
+            categories._categories.append(instance_mock(request, Category, depth=depth))
         return categories, expected_value
 
     @pytest.fixture
     def depth_raises_fixture(self, request):
         categories = Categories()
         for depth in (1, 2, 1):
-            categories._categories.append(
-                instance_mock(request, Category, depth=depth)
-            )
+            categories._categories.append(instance_mock(request, Category, depth=depth))
         return categories
 
     @pytest.fixture
@@ -389,11 +387,7 @@ class DescribeCategories(object):
         categories._categories = categories_
         return categories, category_, expected_value
 
-    @pytest.fixture(params=[
-        ((),        0),
-        ((1,),      1),
-        ((1, 2, 3), 6),
-    ])
+    @pytest.fixture(params=[((), 0), ((1,), 1), ((1, 2, 3), 6)])
     def leaf_fixture(self, request):
         leaf_counts, expected_value = request.param
         categories = Categories()
@@ -403,14 +397,21 @@ class DescribeCategories(object):
             )
         return categories, expected_value
 
-    @pytest.fixture(params=[
-        ([(0, 'a', ()), (1, 'b', ())],
-         [[(0, 'a'), (1, 'b')]]),
-        ([(0, 'WEST', ((0, 'CA', ()), (1, 'LA', ()))),
-          (2, 'EAST', ((2, 'NY', ()), (3, 'NJ', ())))],
-         [[(0, 'CA'), (1, 'LA'), (2, 'NY'), (3, 'NJ')],
-          [(0, 'WEST'), (2, 'EAST')]]),
-    ])
+    @pytest.fixture(
+        params=[
+            ([(0, "a", ()), (1, "b", ())], [[(0, "a"), (1, "b")]]),
+            (
+                [
+                    (0, "WEST", ((0, "CA", ()), (1, "LA", ()))),
+                    (2, "EAST", ((2, "NY", ()), (3, "NJ", ()))),
+                ],
+                [
+                    [(0, "CA"), (1, "LA"), (2, "NY"), (3, "NJ")],
+                    [(0, "WEST"), (2, "EAST")],
+                ],
+            ),
+        ]
+    )
     def levels_fixture(self, request):
         cat_data, expected_value = request.param
         categories = Categories()
@@ -426,14 +427,16 @@ class DescribeCategories(object):
 
         return categories, expected_value
 
-    @pytest.fixture(params=[
-        (None, None,                None,  'General'),
-        (None, 'foo',               None,  'General'),
-        (None, 'foo',               'bar', 'General'),
-        (None, date(2016, 12, 22),  None,  'yyyy\-mm\-dd'),
-        (None, date(2016, 12, 22),  'foo', 'General'),
-        ('#0', 42.24,               None,  '#0'),
-    ])
+    @pytest.fixture(
+        params=[
+            (None, None, None, "General"),
+            (None, "foo", None, "General"),
+            (None, "foo", "bar", "General"),
+            (None, date(2016, 12, 22), None, r"yyyy\-mm\-dd"),
+            (None, date(2016, 12, 22), "foo", "General"),
+            ("#0", 42.24, None, "#0"),
+        ]
+    )
     def number_format_get_fixture(self, request):
         number_format, cat, subcat, expected_value = request.param
         categories = Categories()
@@ -445,10 +448,7 @@ class DescribeCategories(object):
             categories._number_format = number_format
         return categories, expected_value
 
-    @pytest.fixture(params=[
-        ('0.0', '0.0'),
-        (None,  'General'),
-    ])
+    @pytest.fixture(params=[("0.0", "0.0"), (None, "General")])
     def number_format_set_fixture(self, request):
         new_value, expected_value = request.param
         categories = Categories()
@@ -458,9 +458,7 @@ class DescribeCategories(object):
 
     @pytest.fixture
     def Category_(self, request, category_):
-        return class_mock(
-            request, 'pptx.chart.data.Category', return_value=category_
-        )
+        return class_mock(request, "pptx.chart.data.Category", return_value=category_)
 
     @pytest.fixture
     def category_(self, request):
@@ -468,7 +466,6 @@ class DescribeCategories(object):
 
 
 class DescribeCategory(object):
-
     def it_knows_its_depth(self, depth_fixture):
         category, expected_value = depth_fixture
         assert category.depth == expected_value
@@ -495,8 +492,12 @@ class DescribeCategory(object):
             category.depth
 
     def it_knows_its_label(self, label_fixture):
-        category, expected_value = label_fixture
-        assert category.label == expected_value
+        label_arg, expected_value = label_fixture
+        category = Category(label_arg, None)
+
+        label = category.label
+
+        assert label == expected_value
 
     def it_knows_its_numeric_string_value(self, num_str_fixture):
         category, date_1904, expected_value = num_str_fixture
@@ -523,18 +524,13 @@ class DescribeCategory(object):
     @pytest.fixture
     def add_sub_fixture(self, request, category_):
         category = Category(None, None)
-        name = 'foobar'
+        name = "foobar"
         Category_ = class_mock(
-            request, 'pptx.chart.data.Category', return_value=category_
+            request, "pptx.chart.data.Category", return_value=category_
         )
         return category, name, Category_, category_
 
-    @pytest.fixture(params=[
-        ((),        1),
-        ((1,),      2),
-        ((1, 1, 1), 2),
-        ((2, 2, 2), 3),
-    ])
+    @pytest.fixture(params=[((), 1), ((1,), 2), ((1, 1, 1), 2), ((2, 2, 2), 3)])
     def depth_fixture(self, request):
         depths, expected_value = request.param
         category = Category(None, None)
@@ -553,12 +549,14 @@ class DescribeCategory(object):
             )
         return category
 
-    @pytest.fixture(params=[
-        (date(2016, 12, 22),    False, 42726),
-        (date(1999, 12, 31),    True,  35063),
-        (datetime(1900, 2, 28), False,    59),
-        (datetime(1990, 9, 1),  True,  31655),
-    ])
+    @pytest.fixture(
+        params=[
+            (date(2016, 12, 22), False, 42726),
+            (date(1999, 12, 31), True, 35063),
+            (datetime(1900, 2, 28), False, 59),
+            (datetime(1990, 9, 1), True, 31655),
+        ]
+    )
     def excel_date_fixture(self, request):
         label, date_1904, expected_value = request.param
         category = Category(label, None)
@@ -586,17 +584,12 @@ class DescribeCategory(object):
         category._sub_categories = sub_categories_
         return category, sub_category_, expected_value
 
-    @pytest.fixture
-    def label_fixture(self):
-        label = 'foobar'
-        category = Category(label, None)
-        return category, label
+    @pytest.fixture(params=[("Able the Label", "Able the Label"), (None, "")])
+    def label_fixture(self, request):
+        label, expected_value = request.param
+        return label, expected_value
 
-    @pytest.fixture(params=[
-        ((),        1),
-        ((1,),      1),
-        ((1, 2, 3), 6),
-    ])
+    @pytest.fixture(params=[((), 1), ((1,), 1), ((1, 2, 3), 6)])
     def leaf_fixture(self, request):
         leaf_counts, expected_value = request.param
         category = Category(None, None)
@@ -606,12 +599,14 @@ class DescribeCategory(object):
             )
         return category, expected_value
 
-    @pytest.fixture(params=[
-        (date(2016, 12, 23), False, '42727.0'),
-        (42.24,              False, '42.24'),
-        (42,                 False, '42'),
-        ('foobar',           False, 'foobar'),
-    ])
+    @pytest.fixture(
+        params=[
+            (date(2016, 12, 23), False, "42727.0"),
+            (42.24, False, "42.24"),
+            (42, False, "42"),
+            ("foobar", False, "foobar"),
+        ]
+    )
     def num_str_fixture(self, request):
         label, date_1904, expected_value = request.param
         category = Category(label, None)
@@ -636,7 +631,6 @@ class DescribeCategory(object):
 
 
 class DescribeCategorySeriesData(object):
-
     def it_knows_the_categories_range_ref(self, categories_ref_fixture):
         series_data, expected_value = categories_ref_fixture
         assert series_data.categories_ref == expected_value
@@ -659,9 +653,7 @@ class DescribeCategorySeriesData(object):
         series_data, value, number_format = add_fixture[:3]
         CategoryDataPoint_, data_point_ = add_fixture[3:]
         data_point = series_data.add_data_point(value, number_format)
-        CategoryDataPoint_.assert_called_once_with(
-            series_data, value, number_format
-        )
+        CategoryDataPoint_.assert_called_once_with(series_data, value, number_format)
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 
@@ -670,11 +662,8 @@ class DescribeCategorySeriesData(object):
     @pytest.fixture
     def add_fixture(self, request, CategoryDataPoint_, data_point_):
         series_data = CategorySeriesData(None, None, None)
-        value, number_format = 42, '0.0'
-        return (
-            series_data, value, number_format, CategoryDataPoint_,
-            data_point_
-        )
+        value, number_format = 42, "0.0"
+        return (series_data, value, number_format, CategoryDataPoint_, data_point_)
 
     @pytest.fixture
     def categories_fixture(self, chart_data_, categories_):
@@ -685,7 +674,7 @@ class DescribeCategorySeriesData(object):
     @pytest.fixture
     def categories_ref_fixture(self, chart_data_):
         series_data = CategorySeriesData(chart_data_, None, None)
-        expected_value = categories_ref = 'Sheet1!$F$42'
+        expected_value = categories_ref = "Sheet1!$F$42"
         chart_data_.categories_ref = categories_ref
         return series_data, expected_value
 
@@ -702,7 +691,7 @@ class DescribeCategorySeriesData(object):
     @pytest.fixture
     def values_ref_fixture(self, chart_data_):
         series_data = CategorySeriesData(chart_data_, None, None)
-        values_ref_ = 'Sheet1!$V$42'
+        values_ref_ = "Sheet1!$V$42"
         chart_data_.values_ref.return_value = values_ref_
         return series_data, chart_data_, values_ref_
 
@@ -711,8 +700,7 @@ class DescribeCategorySeriesData(object):
     @pytest.fixture
     def CategoryDataPoint_(self, request, data_point_):
         return class_mock(
-            request, 'pptx.chart.data.CategoryDataPoint',
-            return_value=data_point_
+            request, "pptx.chart.data.CategoryDataPoint", return_value=data_point_
         )
 
     @pytest.fixture
@@ -729,7 +717,6 @@ class DescribeCategorySeriesData(object):
 
 
 class DescribeBubbleChartData(object):
-
     def it_can_add_a_series(self, add_series_fixture):
         chart_data, name, BubbleSeriesData_, series_data_ = add_series_fixture
         series_data = chart_data.add_series(name)
@@ -742,7 +729,7 @@ class DescribeBubbleChartData(object):
     @pytest.fixture
     def add_series_fixture(self, request, BubbleSeriesData_, series_data_):
         chart_data = BubbleChartData()
-        name = 'Series Name'
+        name = "Series Name"
         return chart_data, name, BubbleSeriesData_, series_data_
 
     # fixture components ---------------------------------------------
@@ -750,8 +737,7 @@ class DescribeBubbleChartData(object):
     @pytest.fixture
     def BubbleSeriesData_(self, request, series_data_):
         return class_mock(
-            request, 'pptx.chart.data.BubbleSeriesData',
-            return_value=series_data_
+            request, "pptx.chart.data.BubbleSeriesData", return_value=series_data_
         )
 
     @pytest.fixture
@@ -760,7 +746,6 @@ class DescribeBubbleChartData(object):
 
 
 class DescribeXyChartData(object):
-
     def it_is_a__BaseChartData_object(self):
         assert isinstance(XyChartData(), _BaseChartData)
 
@@ -776,7 +761,7 @@ class DescribeXyChartData(object):
     @pytest.fixture
     def add_series_fixture(self, request, XySeriesData_, series_data_):
         chart_data = XyChartData()
-        label = 'Series Label'
+        label = "Series Label"
         return chart_data, label, XySeriesData_, series_data_
 
     # fixture components ---------------------------------------------
@@ -784,8 +769,7 @@ class DescribeXyChartData(object):
     @pytest.fixture
     def XySeriesData_(self, request, series_data_):
         return class_mock(
-            request, 'pptx.chart.data.XySeriesData',
-            return_value=series_data_
+            request, "pptx.chart.data.XySeriesData", return_value=series_data_
         )
 
     @pytest.fixture
@@ -794,15 +778,10 @@ class DescribeXyChartData(object):
 
 
 class DescribeBubbleSeriesData(object):
-
     def it_can_add_a_data_point(self, add_data_point_fixture):
-        series_data, x, y, size, BubbleDataPoint_, data_point_ = (
-            add_data_point_fixture
-        )
+        series_data, x, y, size, BubbleDataPoint_, data_point_ = add_data_point_fixture
         data_point = series_data.add_data_point(x, y, size)
-        BubbleDataPoint_.assert_called_once_with(
-            series_data, x, y, size, None
-        )
+        BubbleDataPoint_.assert_called_once_with(series_data, x, y, size, None)
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 
@@ -819,8 +798,7 @@ class DescribeBubbleSeriesData(object):
     @pytest.fixture
     def BubbleDataPoint_(self, request, data_point_):
         return class_mock(
-            request, 'pptx.chart.data.BubbleDataPoint',
-            return_value=data_point_
+            request, "pptx.chart.data.BubbleDataPoint", return_value=data_point_
         )
 
     @pytest.fixture
@@ -829,9 +807,8 @@ class DescribeBubbleSeriesData(object):
 
 
 class DescribeXySeriesData(object):
-
     def it_is_a__BaseSeriesData_object(self, chart_data_):
-        name, number_format = 'Series 42', '#0.0'
+        name, number_format = "Series 42", "#0.0"
         series_data = XySeriesData(chart_data_, name, number_format)
         assert isinstance(series_data, _BaseSeriesData)
         assert series_data._chart_data is chart_data_
@@ -866,16 +843,15 @@ class DescribeXySeriesData(object):
     @pytest.fixture
     def XyDataPoint_(self, request, data_point_):
         return class_mock(
-            request, 'pptx.chart.data.XyDataPoint', return_value=data_point_
+            request, "pptx.chart.data.XyDataPoint", return_value=data_point_
         )
 
 
 class DescribeCategoryDataPoint(object):
-
     def it_is_a__BaseDataPoint_object(self, series_data_):
-        data_point = CategoryDataPoint(series_data_, 42, '#,##0.0')
+        data_point = CategoryDataPoint(series_data_, 42, "#,##0.0")
         assert isinstance(data_point, _BaseDataPoint)
-        assert data_point.number_format == '#,##0.0'
+        assert data_point.number_format == "#,##0.0"
         assert data_point._series_data is series_data_
 
     def it_knows_its_value(self, value_fixture):
@@ -898,12 +874,11 @@ class DescribeCategoryDataPoint(object):
 
 
 class DescribeXyDataPoint(object):
-
     def it_is_a__BaseDataPoint_object(self, series_data_):
-        data_point = XyDataPoint(series_data_, 42, 24, '00.0')
+        data_point = XyDataPoint(series_data_, 42, 24, "00.0")
         assert isinstance(data_point, _BaseDataPoint)
         assert data_point._series_data is series_data_
-        assert data_point.number_format == '00.0'
+        assert data_point.number_format == "00.0"
 
     def it_knows_its_x_y_values(self, value_fixture):
         data_point, x, y = value_fixture
@@ -926,9 +901,8 @@ class DescribeXyDataPoint(object):
 
 
 class DescribeBubbleDataPoint(object):
-
     def it_is_an_XyDataPoint_subclass(self, series_data_):
-        x, y, size, number_format = 1, 2, 10, '#00.0'
+        x, y, size, number_format = 1, 2, 10, "#00.0"
         data_point = BubbleDataPoint(series_data_, x, y, size, number_format)
         assert isinstance(data_point, XyDataPoint)
         assert data_point._series_data is series_data_

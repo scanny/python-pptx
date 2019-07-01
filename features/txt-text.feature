@@ -3,29 +3,21 @@ Feature: Access and mutate text in a shape
   As a developer using python-pptx
   I need a way to access and mutate the text in a shape
 
-  Scenario: Access the text of a run
-    Given a run containing text
-     Then run.text is the text in the run
 
-  Scenario: Change the text of a run
-    Given a run
-     When I assign a string to run.text
-     Then run.text matches the assigned string
+  Scenario: _Run.text getter
+    Given a _Run object containing text as run
+     Then run.text == " Foo Bar "
 
-  Scenario: Access the text of a paragraph
-    Given a paragraph containing text
-     Then paragraph.text is the text in the paragraph
 
-  Scenario: Change the text of a paragraph
-    Given a paragraph
-     When I assign a string to paragraph.text
-     Then paragraph.text matches the assigned string
+  Scenario Outline: _Run.text setter
+    Given a _Run object as run
+     When I assign run.text = <value>
+     Then run.text == <expected-value>
 
-  Scenario: Access the text of a shape
-    Given a text frame containing text
-     Then text_frame.text is the text in the shape
-
-  Scenario: Change the text of a shape
-    Given a text frame
-     When I assign a string to text_frame.text
-     Then text_frame.text matches the assigned string
+    Examples: _Paragraph assigned text replacement cases
+      | value     | expected-value |
+      | "abc"     | "abc"          |
+      | "a\tb\nc" | "a\tb\nc"      |
+      | "a\x1bbc" | "a_x001B_bc"   |
+      | "a\vbc"   | "a_x000B_bc"   |
+      | "a\nb\vc" | "a\nb_x000B_c" |

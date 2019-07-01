@@ -1,25 +1,27 @@
 # encoding: utf-8
 
-"""
-Connector (line) shape and related objects. A connector is a line shape
-having end-points that can be connected to other objects (but not to other
-connectors). A line can be straight, have elbows, or can be curved.
+"""Connector (line) shape and related objects.
+
+A connector is a line shape having end-points that can be connected to other
+objects (but not to other connectors). A connector can be straight, have
+elbows, or can be curved.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .base import BaseShape
-from ..util import Emu
+from pptx.dml.line import LineFormat
+from pptx.shapes.base import BaseShape
+from pptx.util import Emu, lazyproperty
 
 
 class Connector(BaseShape):
+    """Connector (line) shape.
+
+    A connector is a linear shape having end-points that can be connected to
+    other objects (but not to other connectors). A connector can be straight,
+    have elbows, or can be curved.
     """
-    Connector (line) shape. A connector is a linear shape having end-points
-    that can be connected to other objects (but not to other connectors).
-    A line can be straight, have elbows, or can be curved.
-    """
+
     def begin_connect(self, shape, cxn_pt_idx):
         """
         **EXPERIMENTAL** - *The current implementation only works properly
@@ -49,7 +51,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
-        begin_x = x+cx if flipH else x
+        begin_x = x + cx if flipH else x
         return Emu(begin_x)
 
     @begin_x.setter
@@ -89,7 +91,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
-        begin_y = y+cy if flipV else y
+        begin_y = y + cy if flipV else y
         return Emu(begin_y)
 
     @begin_y.setter
@@ -145,7 +147,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         x, cx, flipH = cxnSp.x, cxnSp.cx, cxnSp.flipH
-        end_x = x if flipH else x+cx
+        end_x = x if flipH else x + cx
         return Emu(end_x)
 
     @end_x.setter
@@ -185,7 +187,7 @@ class Connector(BaseShape):
         """
         cxnSp = self._element
         y, cy, flipV = cxnSp.y, cxnSp.cy, cxnSp.flipV
-        end_y = y if flipV else y+cy
+        end_y = y if flipV else y + cy
         return Emu(end_y)
 
     @end_y.setter
@@ -217,6 +219,28 @@ class Connector(BaseShape):
                 cxnSp.y = new_y
                 cxnSp.cy = dy - cy
 
+    def get_or_add_ln(self):
+        """Helper method required by |LineFormat|."""
+        return self._element.spPr.get_or_add_ln()
+
+    @lazyproperty
+    def line(self):
+        """|LineFormat| instance for this connector.
+
+        Provides access to line properties such as line color, width, and
+        line style.
+        """
+        return LineFormat(self)
+
+    @property
+    def ln(self):
+        """Helper method required by |LineFormat|.
+
+        The ``<a:ln>`` element containing the line format properties such as
+        line color and width. |None| if no `<a:ln>` element is present.
+        """
+        return self._element.spPr.ln
+
     def _connect_begin_to(self, shape, cxn_pt_idx):
         """
         Add or update a stCxn element for this connector that connects its
@@ -246,10 +270,10 @@ class Connector(BaseShape):
         """
         x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
         self.begin_x, self.begin_y = {
-            0: (int(x + cx/2), y),
-            1: (x, int(y + cy/2)),
-            2: (int(x + cx/2), y + cy),
-            3: (x + cx, int(y + cy/2)),
+            0: (int(x + cx / 2), y),
+            1: (x, int(y + cy / 2)),
+            2: (int(x + cx / 2), y + cy),
+            3: (x + cx, int(y + cy / 2)),
         }[cxn_pt_idx]
 
     def _move_end_to_cxn(self, shape, cxn_pt_idx):
@@ -259,8 +283,8 @@ class Connector(BaseShape):
         """
         x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
         self.end_x, self.end_y = {
-            0: (int(x + cx/2), y),
-            1: (x, int(y + cy/2)),
-            2: (int(x + cx/2), y + cy),
-            3: (x + cx, int(y + cy/2)),
+            0: (int(x + cx / 2), y),
+            1: (x, int(y + cy / 2)),
+            2: (int(x + cx / 2), y + cy),
+            3: (x + cx, int(y + cy / 2)),
         }[cxn_pt_idx]

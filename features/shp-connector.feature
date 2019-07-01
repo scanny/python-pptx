@@ -76,3 +76,8 @@ Feature: Connector properties and methods
     Examples: Connector end point assignment results
       |   x     |   y     | value  |
       | 1828800 | 1828800 | 914400 |
+
+
+  Scenario: Connector.line
+    Given a Connector object as shape
+     Then shape.line is a LineFormat object

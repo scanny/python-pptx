@@ -4,19 +4,21 @@
 Data label-related objects.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ..text.text import Font, TextFrame
 from ..util import lazyproperty
 
 
 class DataLabels(object):
+    """Provides access to properties of data labels for a plot or a series.
+
+    This is not a collection and does not provide access to individual data
+    labels. Access to individual labels is via the |Point| object. The
+    properties this object provides control formatting of *all* the data
+    labels in its scope.
     """
-    Collection of data labels associated with a plot, and perhaps with
-    a series or data point, although the latter two are not yet implemented.
-    """
+
     def __init__(self, dLbls):
         super(DataLabels, self).__init__()
         self._element = dLbls
@@ -43,7 +45,7 @@ class DataLabels(object):
         """
         numFmt = self._element.numFmt
         if numFmt is None:
-            return 'General'
+            return "General"
         return numFmt.formatCode
 
     @number_format.setter
@@ -92,11 +94,61 @@ class DataLabels(object):
             return
         self._element.get_or_add_dLblPos().val = value
 
+    @property
+    def show_category_name(self):
+        """Read/write. True when name of category should appear in label."""
+        return self._element.get_or_add_showCatName().val
+
+    @show_category_name.setter
+    def show_category_name(self, value):
+        self._element.get_or_add_showCatName().val = bool(value)
+
+    @property
+    def show_legend_key(self):
+        """Read/write. True when data label displays legend-color swatch."""
+        return self._element.get_or_add_showLegendKey().val
+
+    @show_legend_key.setter
+    def show_legend_key(self, value):
+        self._element.get_or_add_showLegendKey().val = bool(value)
+
+    @property
+    def show_percentage(self):
+        """Read/write. True when data label displays percentage.
+
+        This option is not operative on all chart types. Percentage appears
+        on polar charts such as pie and donut.
+        """
+        return self._element.get_or_add_showPercent().val
+
+    @show_percentage.setter
+    def show_percentage(self, value):
+        self._element.get_or_add_showPercent().val = bool(value)
+
+    @property
+    def show_series_name(self):
+        """Read/write. True when data label displays series name."""
+        return self._element.get_or_add_showSerName().val
+
+    @show_series_name.setter
+    def show_series_name(self, value):
+        self._element.get_or_add_showSerName().val = bool(value)
+
+    @property
+    def show_value(self):
+        """Read/write. True when label displays numeric value of datapoint."""
+        return self._element.get_or_add_showVal().val
+
+    @show_value.setter
+    def show_value(self, value):
+        self._element.get_or_add_showVal().val = bool(value)
+
 
 class DataLabel(object):
     """
     The data label associated with an individual data point.
     """
+
     def __init__(self, ser, idx):
         super(DataLabel, self).__init__()
         self._ser = self._element = ser
@@ -129,7 +181,7 @@ class DataLabel(object):
         dLbl = self._dLbl
         if dLbl is None:
             return False
-        if dLbl.xpath('c:tx/c:rich'):
+        if dLbl.xpath("c:tx/c:rich"):
             return True
         return False
 

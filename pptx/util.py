@@ -1,11 +1,8 @@
 # encoding: utf-8
 
-"""
-Utility functions and classes that come in handy when working with PowerPoint
-and Open XML.
-"""
+"""Utility functions and classes."""
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 class Length(int):
@@ -71,6 +68,7 @@ class Inches(Length):
     """
     Convenience constructor for length in inches
     """
+
     def __new__(cls, inches):
         emu = int(inches * Length._EMUS_PER_INCH)
         return Length.__new__(cls, emu)
@@ -80,6 +78,7 @@ class Centipoints(Length):
     """
     Convenience constructor for length in hundredths of a point
     """
+
     def __new__(cls, centipoints):
         emu = int(centipoints * Length._EMUS_PER_CENTIPOINT)
         return Length.__new__(cls, emu)
@@ -89,6 +88,7 @@ class Cm(Length):
     """
     Convenience constructor for length in centimeters
     """
+
     def __new__(cls, cm):
         emu = int(cm * Length._EMUS_PER_CM)
         return Length.__new__(cls, emu)
@@ -98,6 +98,7 @@ class Emu(Length):
     """
     Convenience constructor for length in english metric units
     """
+
     def __new__(cls, emu):
         return Length.__new__(cls, int(emu))
 
@@ -106,6 +107,7 @@ class Mm(Length):
     """
     Convenience constructor for length in millimeters
     """
+
     def __new__(cls, mm):
         emu = int(mm * Length._EMUS_PER_MM)
         return Length.__new__(cls, emu)
@@ -115,6 +117,7 @@ class Pt(Length):
     """
     Convenience value class for specifying a length in points
     """
+
     def __new__(cls, points):
         emu = int(points * Length._EMUS_PER_PT)
         return Length.__new__(cls, emu)
@@ -126,7 +129,7 @@ def lazyproperty(f):
     to calculate a cached property value. After that, the cached value is
     returned.
     """
-    cache_attr_name = '_%s' % f.__name__  # like '_foobar' for prop 'foobar'
+    cache_attr_name = "_%s" % f.__name__  # like '_foobar' for prop 'foobar'
     docstring = f.__doc__
 
     def get_prop_value(obj):

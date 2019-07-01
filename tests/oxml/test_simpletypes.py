@@ -12,14 +12,17 @@ from __future__ import absolute_import, print_function
 import pytest
 
 from pptx.oxml.simpletypes import (
-    BaseIntType, BaseSimpleType, ST_Coordinate, ST_HexColorRGB, ST_Percentage
+    BaseIntType,
+    BaseSimpleType,
+    ST_Coordinate,
+    ST_HexColorRGB,
+    ST_Percentage,
 )
 
 from ..unitutil.mock import method_mock, instance_mock
 
 
 class DescribeBaseSimpleType(object):
-
     def it_can_convert_attr_value_to_python_type(self, from_xml_fixture):
         SimpleType, str_value_, py_value_ = from_xml_fixture
         py_value = SimpleType.from_xml(str_value_)
@@ -52,37 +55,40 @@ class DescribeBaseSimpleType(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def from_xml_fixture(
-            self, request, str_value_, py_value_, convert_from_xml_):
+    def from_xml_fixture(self, request, str_value_, py_value_, convert_from_xml_):
         return ST_SimpleType, str_value_, py_value_
 
     @pytest.fixture
     def to_xml_fixture(
-            self, request, py_value_, str_value_, convert_to_xml_,
-            validate_):
+        self, request, py_value_, str_value_, convert_to_xml_, validate_
+    ):
         return ST_SimpleType, py_value_, str_value_
 
-    @pytest.fixture(params=[
-        (42,    None),
-        (0,     None),
-        (-42,   None),
-        ('42',  TypeError),
-        (None,  TypeError),
-        (42.42, TypeError),
-    ])
+    @pytest.fixture(
+        params=[
+            (42, None),
+            (0, None),
+            (-42, None),
+            ("42", TypeError),
+            (None, TypeError),
+            (42.42, TypeError),
+        ]
+    )
     def valid_int_fixture(self, request):
         value, expected_exception = request.param
         return value, expected_exception
 
-    @pytest.fixture(params=[
-        ('foobar', None),
-        ('',       None),
-        (' foo ',  None),
-        (('foo',), TypeError),
-        (42,       TypeError),
-        (None,     TypeError),
-        (42.42,    TypeError),
-    ])
+    @pytest.fixture(
+        params=[
+            ("foobar", None),
+            ("", None),
+            (" foo ", None),
+            (("foo",), TypeError),
+            (42, TypeError),
+            (None, TypeError),
+            (42.42, TypeError),
+        ]
+    )
     def valid_str_fixture(self, request):
         value, expected_exception = request.param
         return value, expected_exception
@@ -92,15 +98,13 @@ class DescribeBaseSimpleType(object):
     @pytest.fixture
     def convert_from_xml_(self, request, py_value_):
         return method_mock(
-            request, ST_SimpleType, 'convert_from_xml',
-            return_value=py_value_
+            request, ST_SimpleType, "convert_from_xml", return_value=py_value_
         )
 
     @pytest.fixture
     def convert_to_xml_(self, request, str_value_):
         return method_mock(
-            request, ST_SimpleType, 'convert_to_xml',
-            return_value=str_value_
+            request, ST_SimpleType, "convert_to_xml", return_value=str_value_
         )
 
     @pytest.fixture
@@ -113,11 +117,10 @@ class DescribeBaseSimpleType(object):
 
     @pytest.fixture
     def validate_(self, request):
-        return method_mock(request, ST_SimpleType, 'validate')
+        return method_mock(request, ST_SimpleType, "validate")
 
 
 class DescribeBaseIntType(object):
-
     def it_can_convert_a_string_to_an_int(self, from_xml_fixture):
         str_value, expected_value, expected_exception = from_xml_fixture
         if expected_exception is None:
@@ -134,32 +137,29 @@ class DescribeBaseIntType(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('42',      42, None),
-        ('-42',    -42, None),
-        ('-0042',  -42, None),
-        ('',      None, ValueError),
-        ('foo',   None, ValueError),
-        ('42.42', None, ValueError),
-        ('0x0a3', None, ValueError),
-        (None,    None, TypeError),
-    ])
+    @pytest.fixture(
+        params=[
+            ("42", 42, None),
+            ("-42", -42, None),
+            ("-0042", -42, None),
+            ("", None, ValueError),
+            ("foo", None, ValueError),
+            ("42.42", None, ValueError),
+            ("0x0a3", None, ValueError),
+            (None, None, TypeError),
+        ]
+    )
     def from_xml_fixture(self, request):
         str_value, expected_value, expected_exception = request.param
         return str_value, expected_value, expected_exception
 
-    @pytest.fixture(params=[
-        (42,   '42'),
-        (-42, '-42'),
-        (0x2A, '42'),
-    ])
+    @pytest.fixture(params=[(42, "42"), (-42, "-42"), (0x2A, "42")])
     def to_xml_fixture(self, request):
         value, expected_str_value = request.param
         return value, expected_str_value
 
 
 class DescribeST_Coordinate(object):
-
     def it_can_convert_from_ST_UniversalMeasure(self, univ_meas_fixture):
         """
         ST_UniversalMeasure allows strings line '-034.56pt'.
@@ -169,30 +169,29 @@ class DescribeST_Coordinate(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('1.2in',       1097280),
-        ('42mm',        1512000),
-        ('0024cm',      8640000),
-        ('-42pt',       -533400),
-        ('-036.214pc', -5519014),
-        ('0pi',               0),
-    ])
+    @pytest.fixture(
+        params=[
+            ("1.2in", 1097280),
+            ("42mm", 1512000),
+            ("0024cm", 8640000),
+            ("-42pt", -533400),
+            ("-036.214pc", -5519014),
+            ("0pi", 0),
+        ]
+    )
     def univ_meas_fixture(self, request):
         str_value, expected_value = request.param
         return str_value, expected_value
 
 
 class DescribeST_HexColorRGB(object):
-
     def it_can_validate_a_hex_RGB_string(self, valid_fixture):
         str_value, exception = valid_fixture
         if exception is None:
             try:
                 ST_HexColorRGB.validate(str_value)
             except ValueError:
-                raise AssertionError(
-                    "string '%s' did not validate" % str_value
-                )
+                raise AssertionError("string '%s' did not validate" % str_value)
         else:
             with pytest.raises(exception):
                 ST_HexColorRGB.validate(str_value)
@@ -204,32 +203,31 @@ class DescribeST_HexColorRGB(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('deadbf', 'DEADBF'),
-        ('012345', '012345'),
-        ('0a1b3c', '0A1B3C'),
-    ])
+    @pytest.fixture(
+        params=[("deadbf", "DEADBF"), ("012345", "012345"), ("0a1b3c", "0A1B3C")]
+    )
     def to_xml_fixture(self, request):
         value, expected_value = request.param
         return value, expected_value
 
-    @pytest.fixture(params=[
-        ('012345', None),
-        ('ABCDEF', None),
-        ('deadbf', None),
-        ('0A1B3C', None),
-        (None,     TypeError),   # must be string
-        (123456,   TypeError),   # must be string
-        ('F00BAR', ValueError),  # includes non-hex character 'R'
-        ('F00b',   ValueError),  # too short, must be 6 characters
-    ])
+    @pytest.fixture(
+        params=[
+            ("012345", None),
+            ("ABCDEF", None),
+            ("deadbf", None),
+            ("0A1B3C", None),
+            (None, TypeError),  # must be string
+            (123456, TypeError),  # must be string
+            ("F00BAR", ValueError),  # includes non-hex character 'R'
+            ("F00b", ValueError),  # too short, must be 6 characters
+        ]
+    )
     def valid_fixture(self, request):
         str_value, exception = request.param
         return str_value, exception
 
 
 class DescribeST_Percentage(object):
-
     def it_can_convert_from_xml_percent_literals(self, percent_fixture):
         str_value, expected_value = percent_fixture
         value = ST_Percentage.convert_from_xml(str_value)
@@ -237,14 +235,16 @@ class DescribeST_Percentage(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(params=[
-        ('12.34%',     0.1234),
-        ('42%',        0.42),
-        ('024%',       0.24),
-        ('-42%',      -0.42),
-        ('-036.214%', -0.36214),
-        ('0%',         0.0),
-    ])
+    @pytest.fixture(
+        params=[
+            ("12.34%", 0.1234),
+            ("42%", 0.42),
+            ("024%", 0.24),
+            ("-42%", -0.42),
+            ("-036.214%", -0.36214),
+            ("0%", 0.0),
+        ]
+    )
     def percent_fixture(self, request):
         str_value, expected_value = request.param
         return str_value, expected_value
@@ -254,15 +254,15 @@ class DescribeST_Percentage(object):
 # static fixture
 # --------------------------------------------------------------------
 
-class ST_SimpleType(BaseSimpleType):
 
+class ST_SimpleType(BaseSimpleType):
     @classmethod
     def convert_from_xml(cls, str_value):
         return 666
 
     @classmethod
     def convert_to_xml(cls, value):
-        return '666'
+        return "666"
 
     @classmethod
     def validate(cls, value):

@@ -21,7 +21,6 @@ from ..unitutil.mock import instance_mock, property_mock
 
 
 class DescribeGraphicFrame(object):
-
     def it_knows_if_it_contains_a_chart(self, has_chart_fixture):
         graphic_frame, expected_value = has_chart_fixture
         assert graphic_frame.has_chart is expected_value
@@ -58,9 +57,7 @@ class DescribeGraphicFrame(object):
 
     @pytest.fixture
     def chart_fixture(self, request, chart_part_, graphicFrame_, chart_):
-        property_mock(
-            request, GraphicFrame, 'chart_part', return_value=chart_part_
-        )
+        property_mock(request, GraphicFrame, "chart_part", return_value=chart_part_)
         graphic_frame = GraphicFrame(graphicFrame_, None)
         return graphic_frame, chart_
 
@@ -72,46 +69,38 @@ class DescribeGraphicFrame(object):
 
     @pytest.fixture
     def chart_part_fixture(self, parent_, chart_part_):
-        graphicFrame_cxml = (
-            'p:graphicFrame/a:graphic/a:graphicData/c:chart{r:id=rId42}'
-        )
+        graphicFrame_cxml = "p:graphicFrame/a:graphic/a:graphicData/c:chart{r:id=rId42}"
         graphic_frame = GraphicFrame(element(graphicFrame_cxml), parent_)
         return graphic_frame, chart_part_
 
-    @pytest.fixture(params=[
-        (GRAPHIC_DATA_URI_CHART, True),
-        (GRAPHIC_DATA_URI_TABLE, False),
-    ])
+    @pytest.fixture(
+        params=[(GRAPHIC_DATA_URI_CHART, True), (GRAPHIC_DATA_URI_TABLE, False)]
+    )
     def has_chart_fixture(self, request):
         uri, expected_value = request.param
-        graphicFrame = element(
-            'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri
-        )
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
         graphic_frame = GraphicFrame(graphicFrame, None)
         return graphic_frame, expected_value
 
-    @pytest.fixture(params=[
-        (GRAPHIC_DATA_URI_CHART, False),
-        (GRAPHIC_DATA_URI_TABLE, True),
-    ])
+    @pytest.fixture(
+        params=[(GRAPHIC_DATA_URI_CHART, False), (GRAPHIC_DATA_URI_TABLE, True)]
+    )
     def has_table_fixture(self, request):
         uri, expected_value = request.param
-        graphicFrame = element(
-            'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri
-        )
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
         graphic_frame = GraphicFrame(graphicFrame, None)
         return graphic_frame, expected_value
 
-    @pytest.fixture(params=[
-        (GRAPHIC_DATA_URI_CHART, MSO_SHAPE_TYPE.CHART),
-        (GRAPHIC_DATA_URI_TABLE, MSO_SHAPE_TYPE.TABLE),
-        ('foobar',               None),
-    ])
+    @pytest.fixture(
+        params=[
+            (GRAPHIC_DATA_URI_CHART, MSO_SHAPE_TYPE.CHART),
+            (GRAPHIC_DATA_URI_TABLE, MSO_SHAPE_TYPE.TABLE),
+            ("foobar", None),
+        ]
+    )
     def type_fixture(self, request):
         uri, expected_value = request.param
-        graphicFrame = element(
-            'p:graphicFrame/a:graphic/a:graphicData{uri=%s}' % uri
-        )
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
         graphic_frame = GraphicFrame(graphicFrame, None)
         return graphic_frame, expected_value
 
@@ -127,12 +116,10 @@ class DescribeGraphicFrame(object):
 
     @pytest.fixture
     def graphicFrame_(self, request):
-        return instance_mock(
-            request, CT_GraphicalObjectFrame, has_chart=True
-        )
+        return instance_mock(request, CT_GraphicalObjectFrame, has_chart=True)
 
     @pytest.fixture
     def parent_(self, request, chart_part_):
         parent_ = instance_mock(request, SlideShapes)
-        parent_.part.related_parts = {'rId42': chart_part_}
+        parent_.part.related_parts = {"rId42": chart_part_}
         return parent_

@@ -14,8 +14,9 @@ class CT_Hyperlink(BaseOxmlElement):
     """
     Custom element class for <a:hlinkClick> elements.
     """
-    rId = OptionalAttribute('r:id', XsdString)
-    action = OptionalAttribute('action', XsdString)
+
+    rId = OptionalAttribute("r:id", XsdString)
+    action = OptionalAttribute("action", XsdString)
 
     @property
     def action_fields(self):
@@ -32,12 +33,12 @@ class CT_Hyperlink(BaseOxmlElement):
         if url is None:
             return {}
 
-        halves = url.split('?')
+        halves = url.split("?")
         if len(halves) == 1:
             return {}
 
-        key_value_pairs = halves[1].split('&')
-        return dict([pair.split('=') for pair in key_value_pairs])
+        key_value_pairs = halves[1].split("&")
+        return dict([pair.split("=") for pair in key_value_pairs])
 
     @property
     def action_verb(self):
@@ -52,7 +53,7 @@ class CT_Hyperlink(BaseOxmlElement):
         if url is None:
             return None
 
-        protocol_and_host = url.split('?')[0]
+        protocol_and_host = url.split("?")[0]
         host = protocol_and_host[11:]
 
         return host

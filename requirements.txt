@@ -1,8 +1,8 @@
-behave>=1.2.3
+behave>=1.2.5
 flake8>=2.0
 lxml>=3.1.0
 mock>=1.0.1
-Pillow==2.6.1
+Pillow>=3.3.2
 pyparsing>=2.0.1
 pytest>=2.5
 XlsxWriter>=0.5.7

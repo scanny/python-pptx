@@ -7,9 +7,7 @@ provides some insulation so not so many classes in the other modules need to
 be named as internal (leading underscore).
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
@@ -41,7 +39,7 @@ def _default_pptx_path():
     Return the path to the built-in default .pptx package.
     """
     _thisdir = os.path.split(__file__)[0]
-    return os.path.join(_thisdir, 'templates', 'default.pptx')
+    return os.path.join(_thisdir, "templates", "default.pptx")
 
 
 def _is_pptx_package(prs_part):
@@ -49,8 +47,5 @@ def _is_pptx_package(prs_part):
     Return |True| if *prs_part* is a valid main document part, |False|
     otherwise.
     """
-    valid_content_types = (
-        CT.PML_PRESENTATION_MAIN,
-        CT.PML_PRES_MACRO_MAIN,
-    )
+    valid_content_types = (CT.PML_PRESENTATION_MAIN, CT.PML_PRES_MACRO_MAIN)
     return prs_part.content_type in valid_content_types

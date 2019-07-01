@@ -20,6 +20,7 @@ class PhysPkgReader(object):
     """
     Factory for physical package reader objects.
     """
+
     def __new__(cls, pkg_file):
         # if *pkg_file* is a string, treat it as a path
         if is_string(pkg_file):
@@ -28,9 +29,7 @@ class PhysPkgReader(object):
             elif is_zipfile(pkg_file):
                 reader_cls = _ZipPkgReader
             else:
-                raise PackageNotFoundError(
-                    "Package not found at '%s'" % pkg_file
-                )
+                raise PackageNotFoundError("Package not found at '%s'" % pkg_file)
         else:  # assume it's a stream and pass it to Zip reader to sort out
             reader_cls = _ZipPkgReader
 
@@ -41,6 +40,7 @@ class PhysPkgWriter(object):
     """
     Factory for physical package writer objects.
     """
+
     def __new__(cls, pkg_file):
         return super(PhysPkgWriter, cls).__new__(_ZipPkgWriter)
 
@@ -50,6 +50,7 @@ class _DirPkgReader(PhysPkgReader):
     Implements |PhysPkgReader| interface for an OPC package extracted into a
     directory.
     """
+
     def __init__(self, path):
         """
         *path* is the path to a directory containing an expanded package.
@@ -63,7 +64,7 @@ class _DirPkgReader(PhysPkgReader):
         directory.
         """
         path = os.path.join(self._path, pack_uri.membername)
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             blob = f.read()
         return blob
 
@@ -97,9 +98,10 @@ class _ZipPkgReader(PhysPkgReader):
     """
     Implements |PhysPkgReader| interface for a zip file OPC package.
     """
+
     def __init__(self, pkg_file):
         super(_ZipPkgReader, self).__init__()
-        self._zipf = ZipFile(pkg_file, 'r')
+        self._zipf = ZipFile(pkg_file, "r")
 
     def blob_for(self, pack_uri):
         """
@@ -137,9 +139,10 @@ class _ZipPkgWriter(PhysPkgWriter):
     """
     Implements |PhysPkgWriter| interface for a zip file OPC package.
     """
+
     def __init__(self, pkg_file):
         super(_ZipPkgWriter, self).__init__()
-        self._zipf = ZipFile(pkg_file, 'w', compression=ZIP_DEFLATED)
+        self._zipf = ZipFile(pkg_file, "w", compression=ZIP_DEFLATED)
 
     def close(self):
         """

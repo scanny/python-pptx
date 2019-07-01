@@ -33,18 +33,34 @@ Feature: Access an individual slide
 
 
   Scenario: SlideLayouts.__getitem__()
-    Given a SlideLayouts object containing 2 layouts
+    Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then slide_layouts[1] is a SlideLayout object
 
 
   Scenario: SlideLayouts.__iter__()
-    Given a SlideLayouts object containing 2 layouts
+    Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then iterating slide_layouts produces 2 SlideLayout objects
 
 
   Scenario: SlideLayouts.__len__()
-    Given a SlideLayouts object containing 2 layouts
+    Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then len(slide_layouts) is 2
+
+
+  Scenario: SlideLayouts.get_by_name()
+    Given a SlideLayouts object containing 2 layouts as slide_layouts
+     Then slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]
+
+
+  Scenario: SlideLayouts.index()
+    Given a SlideLayouts object containing 2 layouts as slide_layouts
+     Then slide_layouts.index(slide_layouts[1]) == 1
+
+
+  Scenario: SlideLayouts.remove()
+    Given a SlideLayouts object containing 2 layouts as slide_layouts
+     When I call slide_layouts.remove(slide_layouts[1])
+     Then len(slide_layouts) is 1
 
 
   Scenario: SlideMasters.__getitem__()

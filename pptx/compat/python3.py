@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-Provides Python 3 compatibility objects
-"""
+"""Provides Python 3 compatibility objects."""
 
 from io import BytesIO  # noqa
 
@@ -29,14 +27,17 @@ def is_unicode(obj):
 
 
 def to_unicode(text):
+    """Return *text* as a (unicode) str.
+
+    *text* can be str or bytes. A bytes object is assumed to be encoded as UTF-8.
+    If *text* is a str object it is returned unchanged.
     """
-    Return *text* as a unicode string. All text in Python 3 is unicode, so
-    this just returns *text* unchanged.
-    """
-    if not isinstance(text, str):
-        tmpl = 'expected unicode string, got %s value %s'
-        raise TypeError(tmpl % (type(text), text))
-    return text
+    if isinstance(text, str):
+        return text
+    try:
+        return text.decode("utf-8")
+    except AttributeError:
+        raise TypeError("expected unicode string, got %s value %s" % (type(text), text))
 
 
 Unicode = str

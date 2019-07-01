@@ -19,6 +19,7 @@ class PresentationPart(XmlPart):
     Top level class in object model, represents the contents of the /ppt
     directory of a .pptx file.
     """
+
     def add_slide(self, slide_layout):
         """
         Return an (rId, slide) pair of a newly created blank slide that
@@ -105,9 +106,7 @@ class PresentationPart(XmlPart):
         """
         for idx, rId in enumerate(rIds):
             slide_part = self.related_parts[rId]
-            slide_part.partname = PackURI(
-                '/ppt/slides/slide%d.xml' % (idx+1)
-            )
+            slide_part.partname = PackURI("/ppt/slides/slide%d.xml" % (idx + 1))
 
     def save(self, path_or_stream):
         """
@@ -125,7 +124,7 @@ class PresentationPart(XmlPart):
         for sldId in self._element.sldIdLst:
             if self.related_parts[sldId.rId] is slide_part:
                 return sldId.id
-        raise ValueError('matching slide_part not found')
+        raise ValueError("matching slide_part not found")
 
     @property
     def _next_slide_partname(self):
@@ -135,5 +134,5 @@ class PresentationPart(XmlPart):
         for a slide collection containing 8 slides.
         """
         sldIdLst = self._element.get_or_add_sldIdLst()
-        partname_str = '/ppt/slides/slide%d.xml' % (len(sldIdLst)+1)
+        partname_str = "/ppt/slides/slide%d.xml" % (len(sldIdLst) + 1)
         return PackURI(partname_str)

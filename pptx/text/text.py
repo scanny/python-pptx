@@ -1,22 +1,20 @@
 # encoding: utf-8
 
-"""
-Text-related objects such as TextFrame and Paragraph.
-"""
+"""Text-related objects such as TextFrame and Paragraph."""
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..compat import to_unicode
-from ..dml.fill import FillFormat
-from ..enum.dml import MSO_FILL
-from ..enum.lang import MSO_LANGUAGE_ID
-from ..enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
-from .fonts import FontFiles
-from .layout import TextFitter
-from ..opc.constants import RELATIONSHIP_TYPE as RT
-from ..oxml.simpletypes import ST_TextWrappingType
-from ..shapes import Subshape
-from ..util import Centipoints, Emu, lazyproperty, Pt
+from pptx.compat import to_unicode
+from pptx.dml.fill import FillFormat
+from pptx.enum.dml import MSO_FILL
+from pptx.enum.lang import MSO_LANGUAGE_ID
+from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.oxml.simpletypes import ST_TextWrappingType
+from pptx.shapes import Subshape
+from pptx.text.fonts import FontFiles
+from pptx.text.layout import TextFitter
+from pptx.util import Centipoints, Emu, lazyproperty, Pt
 
 
 class TextFrame(Subshape):
@@ -25,6 +23,7 @@ class TextFrame(Subshape):
     frame. Corresponds to the ``<p:txBody>`` element that can appear as a
     child element of ``<p:sp>``. Not intended to be constructed directly.
     """
+
     def __init__(self, txBody, parent):
         super(TextFrame, self).__init__(parent)
         self._element = self._txBody = txBody
@@ -61,9 +60,16 @@ class TextFrame(Subshape):
         p = self.paragraphs[0]
         p.clear()
 
-    def fit_text(self, font_family='Calibri', max_size=18, bold=False,
-                 italic=False, font_file=None):
-        """
+    def fit_text(
+        self,
+        font_family="Calibri",
+        max_size=18,
+        bold=False,
+        italic=False,
+        font_file=None,
+    ):
+        """Fit text-frame text entirely within bounds of its shape.
+
         Make the text in this text frame fit entirely within the bounds of
         its shape by setting word wrap on and applying the "best-fit" font
         size to all the text it contains. :attr:`TextFrame.auto_size` is set
@@ -75,6 +81,10 @@ class TextFrame(Subshape):
         installed on the current system (usually succeeds if the font is
         installed).
         """
+        # ---no-op when empty as fit behavior not defined for that case---
+        if self.text == "":
+            return
+
         font_size = self._best_fit_font_size(
             font_family, max_size, bold, italic, font_file
         )
@@ -137,24 +147,35 @@ class TextFrame(Subshape):
 
     @property
     def text(self):
+        """Unicode/str containing all text in this text-frame.
+
+        Read/write. The return value is a str (unicode) containing all text in this
+        text-frame. A line-feed character (``"\\n"``) separates the text for each
+        paragraph. A vertical-tab character (``"\\v"``) appears for each line break
+        (aka. soft carriage-return) encountered.
+
+        The vertical-tab character is how PowerPoint represents a soft carriage return
+        in clipboard text, which is why that encoding was chosen.
+
+        Assignment replaces all text in the text frame. The assigned value can be
+        a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode. A bytes value
+        (such as a Python 2 ``str``) is converted to unicode assuming UTF-8 encoding.
+        A new paragraph is added for each line-feed character (``"\\n"``) encountered.
+        A line-break (soft carriage-return) is inserted for each vertical-tab character
+        (``"\\v"``) encountered.
+
+        Any control character other than newline, tab, or vertical-tab are escaped as
+        plain-text like "_x001B_" (for ESC (ASCII 32) in this example).
         """
-        Read/write. All the text in this text frame as a single unicode
-        string. A line feed character ('\\\\n') appears in the string for
-        each paragraph and line break in the shape, except the last
-        paragraph. A shape containing a single paragraph with no line breaks
-        will produce a string having no line feed characters. Assignment
-        replaces all text in the text frame with a single paragraph
-        containing the assigned text. The assigned value can be a 7-bit ASCII
-        string, a UTF-8 encoded 8-bit string, or unicode. String values are
-        converted to unicode assuming UTF-8 encoding. Each line feed
-        character in the assigned string is translated to a line break.
-        """
-        return '\n'.join(paragraph.text for paragraph in self.paragraphs)
+        return "\n".join(paragraph.text for paragraph in self.paragraphs)
 
     @text.setter
     def text(self, text):
-        self.clear()
-        self.paragraphs[0].text = to_unicode(text)
+        txBody = self._txBody
+        txBody.clear_content()
+        for p_text in to_unicode(text).split("\n"):
+            p = txBody.add_p()
+            p.append_text(p_text)
 
     @property
     def vertical_anchor(self):
@@ -183,8 +204,8 @@ class TextFrame(Subshape):
         """
         return {
             ST_TextWrappingType.SQUARE: True,
-            ST_TextWrappingType.NONE:   False,
-            None:                       None
+            ST_TextWrappingType.NONE: False,
+            None: None,
         }[self._txBody.bodyPr.wrap]
 
     @word_wrap.setter
@@ -194,9 +215,9 @@ class TextFrame(Subshape):
                 "assigned value must be True, False, or None, got %s" % value
             )
         self._txBody.bodyPr.wrap = {
-            True:  ST_TextWrappingType.SQUARE,
+            True: ST_TextWrappingType.SQUARE,
             False: ST_TextWrappingType.NONE,
-            None:  None
+            None: None,
         }[value]
 
     def _apply_fit(self, font_family, font_size, is_bold, is_italic):
@@ -235,7 +256,7 @@ class TextFrame(Subshape):
         """
         return (
             self._parent.width - self.margin_left - self.margin_right,
-            self._parent.height - self.margin_top - self.margin_bottom
+            self._parent.height - self.margin_top - self.margin_bottom,
         )
 
     def _set_font(self, family, size, bold, italic):
@@ -243,6 +264,7 @@ class TextFrame(Subshape):
         Set the font properties of all the text in this text frame to
         *family*, *size*, *bold*, and *italic*.
         """
+
         def iter_rPrs(txBody):
             for p in txBody.p_lst:
                 for elm in p.content_children:
@@ -266,6 +288,7 @@ class Font(object):
     appears as ``<a:defRPr>`` and ``<a:endParaRPr>`` in paragraph and
     ``<a:defRPr>`` in list style elements.
     """
+
     def __init__(self, rPr):
         super(Font, self).__init__()
         self._element = self._rPr = rPr
@@ -420,6 +443,7 @@ class _Hyperlink(Subshape):
     Text run hyperlink object. Corresponds to ``<a:hlinkClick>`` child
     element of the run's properties element (``<a:rPr>``).
     """
+
     def __init__(self, rPr, parent):
         super(_Hyperlink, self).__init__(parent)
         self._rPr = rPr
@@ -457,12 +481,15 @@ class _Hyperlink(Subshape):
 
 
 class _Paragraph(Subshape):
-    """
-    Paragraph object. Not intended to be constructed directly.
-    """
+    """Paragraph object. Not intended to be constructed directly."""
+
     def __init__(self, p, parent):
         super(_Paragraph, self).__init__(parent)
         self._element = self._p = p
+
+    def add_line_break(self):
+        """Add line break at end of this paragraph."""
+        self._p.add_br()
 
     def add_run(self):
         """
@@ -592,18 +619,30 @@ class _Paragraph(Subshape):
 
     @property
     def text(self):
-        """
-        Read/write. A single unicode string containing all the text in this
-        paragraph. Formed by concatenating the text in each run and field
-        making up the paragraph, adding a line feed character ('\\\\n') for
-        each line break element encountered. Assignment causes all content in
-        the paragraph to be replaced by a single run containing the assigned
-        text. Each line feed character in the assigned text is replaced
-        with a line break. The assigned value can be a 7-bit ASCII string,
-        a UTF-8 encoded 8-bit string, or unicode. String values are converted
+        """str (unicode) representation of paragraph contents.
+
+        Read/write. This value is formed by concatenating the text in each run and field
+        making up the paragraph, adding a vertical-tab character (``"\\v"``) for each
+        line-break element (`<a:br>`, soft carriage-return) encountered.
+
+        While the encoding of line-breaks as a vertical tab might be surprising at
+        first, doing so is consistent with PowerPoint's clipboard copy behavior and
+        allows a line-break to be distinguished from a paragraph boundary within the str
+        return value.
+
+        Assignment causes all content in the paragraph to be replaced. Each vertical-tab
+        character (``"\\v"``) in the assigned str is translated to a line-break, as is
+        each line-feed character (``"\\n"``). Contrast behavior of line-feed character
+        in `TextFrame.text` setter. If line-feed characters are intended to produce new
+        paragraphs, use `TextFrame.text` instead. Any other control characters in the
+        assigned string are escaped as a hex representation like "_x001B_" (for ESC
+        (ASCII 27) in this example).
+
+        The assigned value can be a 7-bit ASCII byte string (Python 2 str), a UTF-8
+        encoded 8-bit byte string (Python 2 str), or unicode. Bytes values are converted
         to unicode assuming UTF-8 encoding.
         """
-        return ''.join(elm.text for elm in self._element.content_children)
+        return "".join(elm.text for elm in self._element.content_children)
 
     @text.setter
     def text(self, text):
@@ -630,9 +669,8 @@ class _Paragraph(Subshape):
 
 
 class _Run(Subshape):
-    """
-    Text run object. Corresponds to ``<a:r>`` child element in a paragraph.
-    """
+    """Text run object. Corresponds to ``<a:r>`` child element in a paragraph."""
+
     def __init__(self, r, parent):
         super(_Run, self).__init__(parent)
         self._r = r
@@ -663,17 +701,19 @@ class _Run(Subshape):
 
     @property
     def text(self):
-        """
-        Read/write. A unicode string containing the text in this run.
-        Assignment replaces all text in the run. The assigned value can be
-        a 7-bit ASCII string, a UTF-8 encoded 8-bit string, or unicode.
-        String values are converted to unicode assuming UTF-8 encoding.
+        """Read/write. A unicode string containing the text in this run.
+
+        Assignment replaces all text in the run. The assigned value can be a 7-bit ASCII
+        string, a UTF-8 encoded 8-bit string, or unicode. String values are converted to
+        unicode assuming UTF-8 encoding.
+
+        Any other control characters in the assigned string other than tab or newline
+        are escaped as a hex representation. For example, ESC (ASCII 27) is escaped as
+        "_x001B_". Contrast the behavior of `TextFrame.text` and `_Paragraph.text` with
+        respect to line-feed and vertical-tab characters.
         """
         return self._r.text
 
     @text.setter
     def text(self, str):
-        """
-        Set the text of this run to *str*.
-        """
-        self._r.t.text = to_unicode(str)
+        self._r.text = to_unicode(str)

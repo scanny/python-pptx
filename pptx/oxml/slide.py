@@ -1,20 +1,22 @@
 # encoding: utf-8
 
-"""
-lxml custom element classes for slide-related XML elements, including all
-masters.
-"""
+"""Slide-related custom element classes, including those for masters."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from . import parse_from_template, parse_xml
-from .ns import nsdecls
-from .simpletypes import XsdString
-from .xmlchemy import (
-    BaseOxmlElement, Choice, OneAndOnlyOne, OptionalAttribute,
-    RequiredAttribute, ZeroOrMore, ZeroOrOne, ZeroOrOneChoice
+from pptx.oxml import parse_from_template, parse_xml
+from pptx.oxml.dml.fill import CT_GradientFillProperties
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement,
+    Choice,
+    OneAndOnlyOne,
+    OptionalAttribute,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
+    ZeroOrOneChoice,
 )
 
 
@@ -22,6 +24,7 @@ class _BaseSlideElement(BaseOxmlElement):
     """
     Base class for the six slide types, providing common methods.
     """
+
     @property
     def spTree(self):
         """
@@ -35,20 +38,18 @@ class CT_Background(BaseOxmlElement):
 
     # ---these two are actually a choice, not a sequence, but simpler for
     # ---present purposes this way.
-    _tag_seq = (
-        'p:bgPr', 'p:bgRef'
-    )
-    bgPr = ZeroOrOne('p:bgPr', successors=())
-    bgRef = ZeroOrOne('p:bgRef', successors=())
+    _tag_seq = ("p:bgPr", "p:bgRef")
+    bgPr = ZeroOrOne("p:bgPr", successors=())
+    bgRef = ZeroOrOne("p:bgRef", successors=())
     del _tag_seq
 
     def add_noFill_bgPr(self):
         """Return a new `p:bgPr` element with noFill properties."""
         xml = (
-            '<p:bgPr %s>\n'
-            '  <a:noFill/>\n'
-            '  <a:effectLst/>\n'
-            '</p:bgPr>' % nsdecls('a', 'p')
+            "<p:bgPr %s>\n"
+            "  <a:noFill/>\n"
+            "  <a:effectLst/>\n"
+            "</p:bgPr>" % nsdecls("a", "p")
         )
         bgPr = parse_xml(xml)
         self._insert_bgPr(bgPr)
@@ -59,29 +60,42 @@ class CT_BackgroundProperties(BaseOxmlElement):
     """`p:bgPr` element."""
 
     _tag_seq = (
-        'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill', 'a:pattFill',
-        'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:extLst',
+        "a:noFill",
+        "a:solidFill",
+        "a:gradFill",
+        "a:blipFill",
+        "a:pattFill",
+        "a:grpFill",
+        "a:effectLst",
+        "a:effectDag",
+        "a:extLst",
     )
     eg_fillProperties = ZeroOrOneChoice(
         (
-            Choice('a:noFill'), Choice('a:solidFill'), Choice('a:gradFill'),
-            Choice('a:blipFill'), Choice('a:pattFill'), Choice('a:grpFill')
+            Choice("a:noFill"),
+            Choice("a:solidFill"),
+            Choice("a:gradFill"),
+            Choice("a:blipFill"),
+            Choice("a:pattFill"),
+            Choice("a:grpFill"),
         ),
-        successors=_tag_seq[6:]
+        successors=_tag_seq[6:],
     )
     del _tag_seq
+
+    def _new_gradFill(self):
+        """Override default to add default gradient subtree."""
+        return CT_GradientFillProperties.new_gradFill()
 
 
 class CT_CommonSlideData(BaseOxmlElement):
     """`p:cSld` element."""
 
-    _tag_seq = (
-        'p:bg', 'p:spTree', 'p:custDataLst', 'p:controls', 'p:extLst'
-    )
-    bg = ZeroOrOne('p:bg', successors=_tag_seq[1:])
-    spTree = OneAndOnlyOne('p:spTree')
+    _tag_seq = ("p:bg", "p:spTree", "p:custDataLst", "p:controls", "p:extLst")
+    bg = ZeroOrOne("p:bg", successors=_tag_seq[1:])
+    spTree = OneAndOnlyOne("p:spTree")
     del _tag_seq
-    name = OptionalAttribute('name', XsdString, default='')
+    name = OptionalAttribute("name", XsdString, default="")
 
     def get_or_add_bgPr(self):
         """Return `p:bg/p:bgPr` grandchild.
@@ -109,8 +123,9 @@ class CT_NotesMaster(_BaseSlideElement):
     """
     ``<p:notesMaster>`` element, root of a notes master part
     """
-    _tag_seq = ('p:cSld', 'p:clrMap', 'p:hf', 'p:notesStyle', 'p:extLst')
-    cSld = OneAndOnlyOne('p:cSld')
+
+    _tag_seq = ("p:cSld", "p:clrMap", "p:hf", "p:notesStyle", "p:extLst")
+    cSld = OneAndOnlyOne("p:cSld")
     del _tag_seq
 
     @classmethod
@@ -119,15 +134,16 @@ class CT_NotesMaster(_BaseSlideElement):
         Return a new ``<p:notesMaster>`` element based on the built-in
         default template.
         """
-        return parse_from_template('notesMaster')
+        return parse_from_template("notesMaster")
 
 
 class CT_NotesSlide(_BaseSlideElement):
     """
     ``<p:notes>`` element, root of a notes slide part
     """
-    _tag_seq = ('p:cSld', 'p:clrMapOvr', 'p:extLst')
-    cSld = OneAndOnlyOne('p:cSld')
+
+    _tag_seq = ("p:cSld", "p:clrMapOvr", "p:extLst")
+    cSld = OneAndOnlyOne("p:cSld")
     del _tag_seq
 
     @classmethod
@@ -137,18 +153,16 @@ class CT_NotesSlide(_BaseSlideElement):
         Note that the template does not include placeholders, which must be
         subsequently cloned from the notes master.
         """
-        return parse_from_template('notes')
+        return parse_from_template("notes")
 
 
 class CT_Slide(_BaseSlideElement):
     """`p:sld` element, root element of a slide part (XML document)."""
 
-    _tag_seq = (
-        'p:cSld', 'p:clrMapOvr', 'p:transition', 'p:timing', 'p:extLst'
-    )
-    cSld = OneAndOnlyOne('p:cSld')
-    clrMapOvr = ZeroOrOne('p:clrMapOvr', successors=_tag_seq[2:])
-    timing = ZeroOrOne('p:timing', successors=_tag_seq[4:])
+    _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:extLst")
+    cSld = OneAndOnlyOne("p:cSld")
+    clrMapOvr = ZeroOrOne("p:clrMapOvr", successors=_tag_seq[2:])
+    timing = ZeroOrOne("p:timing", successors=_tag_seq[4:])
     del _tag_seq
 
     @classmethod
@@ -188,7 +202,7 @@ class CT_Slide(_BaseSlideElement):
         self.remove(self.get_or_add_timing())
         timing = parse_xml(self._childTnLst_timing_xml())
         self._insert_timing(timing)
-        return timing.xpath('./p:tnLst/p:par/p:cTn/p:childTnLst')[0]
+        return timing.xpath("./p:tnLst/p:par/p:cTn/p:childTnLst")[0]
 
     @property
     def _childTnLst(self):
@@ -196,9 +210,7 @@ class CT_Slide(_BaseSlideElement):
 
         Return None if that element is not present.
         """
-        childTnLsts = self.xpath(
-            './p:timing/p:tnLst/p:par/p:cTn/p:childTnLst'
-        )
+        childTnLsts = self.xpath("./p:timing/p:tnLst/p:par/p:cTn/p:childTnLst")
         if not childTnLsts:
             return None
         return childTnLsts[0]
@@ -206,36 +218,36 @@ class CT_Slide(_BaseSlideElement):
     @staticmethod
     def _childTnLst_timing_xml():
         return (
-            '<p:timing %s>\n'
-            '  <p:tnLst>\n'
-            '    <p:par>\n'
+            "<p:timing %s>\n"
+            "  <p:tnLst>\n"
+            "    <p:par>\n"
             '      <p:cTn id="1" dur="indefinite" restart="never" nodeType="'
             'tmRoot">\n'
-            '        <p:childTnLst/>\n'
-            '      </p:cTn>\n'
-            '    </p:par>\n'
-            '  </p:tnLst>\n'
-            '</p:timing>' % nsdecls('p')
+            "        <p:childTnLst/>\n"
+            "      </p:cTn>\n"
+            "    </p:par>\n"
+            "  </p:tnLst>\n"
+            "</p:timing>" % nsdecls("p")
         )
 
     @staticmethod
     def _sld_xml():
         return (
-            '<p:sld %s>\n'
-            '  <p:cSld>\n'
-            '    <p:spTree>\n'
-            '      <p:nvGrpSpPr>\n'
+            "<p:sld %s>\n"
+            "  <p:cSld>\n"
+            "    <p:spTree>\n"
+            "      <p:nvGrpSpPr>\n"
             '        <p:cNvPr id="1" name=""/>\n'
-            '        <p:cNvGrpSpPr/>\n'
-            '        <p:nvPr/>\n'
-            '      </p:nvGrpSpPr>\n'
-            '      <p:grpSpPr/>\n'
-            '    </p:spTree>\n'
-            '  </p:cSld>\n'
-            '  <p:clrMapOvr>\n'
-            '    <a:masterClrMapping/>\n'
-            '  </p:clrMapOvr>\n'
-            '</p:sld>' % nsdecls('a', 'p', 'r')
+            "        <p:cNvGrpSpPr/>\n"
+            "        <p:nvPr/>\n"
+            "      </p:nvGrpSpPr>\n"
+            "      <p:grpSpPr/>\n"
+            "    </p:spTree>\n"
+            "  </p:cSld>\n"
+            "  <p:clrMapOvr>\n"
+            "    <a:masterClrMapping/>\n"
+            "  </p:clrMapOvr>\n"
+            "</p:sld>" % nsdecls("a", "p", "r")
         )
 
 
@@ -243,11 +255,9 @@ class CT_SlideLayout(_BaseSlideElement):
     """
     ``<p:sldLayout>`` element, root of a slide layout part
     """
-    _tag_seq = (
-        'p:cSld', 'p:clrMapOvr', 'p:transition', 'p:timing', 'p:hf',
-        'p:extLst'
-    )
-    cSld = OneAndOnlyOne('p:cSld')
+
+    _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:hf", "p:extLst")
+    cSld = OneAndOnlyOne("p:cSld")
     del _tag_seq
 
 
@@ -256,7 +266,8 @@ class CT_SlideLayoutIdList(BaseOxmlElement):
     ``<p:sldLayoutIdLst>`` element, child of ``<p:sldMaster>`` containing
     references to the slide layouts that inherit from the slide master.
     """
-    sldLayoutId = ZeroOrMore('p:sldLayoutId')
+
+    sldLayoutId = ZeroOrMore("p:sldLayoutId")
 
 
 class CT_SlideLayoutIdListEntry(BaseOxmlElement):
@@ -264,27 +275,35 @@ class CT_SlideLayoutIdListEntry(BaseOxmlElement):
     ``<p:sldLayoutId>`` element, child of ``<p:sldLayoutIdLst>`` containing
     a reference to a slide layout.
     """
-    rId = RequiredAttribute('r:id', XsdString)
+
+    rId = RequiredAttribute("r:id", XsdString)
 
 
 class CT_SlideMaster(_BaseSlideElement):
     """
     ``<p:sldMaster>`` element, root of a slide master part
     """
+
     _tag_seq = (
-        'p:cSld', 'p:clrMap', 'p:sldLayoutIdLst', 'p:transition', 'p:timing',
-        'p:hf', 'p:txStyles', 'p:extLst'
+        "p:cSld",
+        "p:clrMap",
+        "p:sldLayoutIdLst",
+        "p:transition",
+        "p:timing",
+        "p:hf",
+        "p:txStyles",
+        "p:extLst",
     )
-    cSld = OneAndOnlyOne('p:cSld')
-    sldLayoutIdLst = ZeroOrOne('p:sldLayoutIdLst', successors=_tag_seq[3:])
+    cSld = OneAndOnlyOne("p:cSld")
+    sldLayoutIdLst = ZeroOrOne("p:sldLayoutIdLst", successors=_tag_seq[3:])
     del _tag_seq
 
 
 class CT_SlideTiming(BaseOxmlElement):
     """`p:timing` element, specifying animations and timed behaviors."""
 
-    _tag_seq = ('p:tnLst', 'p:bldLst', 'p:extLst')
-    tnLst = ZeroOrOne('p:tnLst', successors=_tag_seq[1:])
+    _tag_seq = ("p:tnLst", "p:bldLst", "p:extLst")
+    tnLst = ZeroOrOne("p:tnLst", successors=_tag_seq[1:])
     del _tag_seq
 
 
@@ -294,18 +313,18 @@ class CT_TimeNodeList(BaseOxmlElement):
     def add_video(self, shape_id):
         """Add a new `p:video` child element for movie having *shape_id*."""
         video_xml = (
-            '<p:video %s>\n'
+            "<p:video %s>\n"
             '  <p:cMediaNode vol="80000">\n'
             '    <p:cTn id="%d" fill="hold" display="0">\n'
-            '      <p:stCondLst>\n'
+            "      <p:stCondLst>\n"
             '        <p:cond delay="indefinite"/>\n'
-            '      </p:stCondLst>\n'
-            '    </p:cTn>\n'
-            '    <p:tgtEl>\n'
+            "      </p:stCondLst>\n"
+            "    </p:cTn>\n"
+            "    <p:tgtEl>\n"
             '      <p:spTgt spid="%d"/>\n'
-            '    </p:tgtEl>\n'
-            '  </p:cMediaNode>\n'
-            '</p:video>\n' % (nsdecls('p'), self._next_cTn_id, shape_id)
+            "    </p:tgtEl>\n"
+            "  </p:cMediaNode>\n"
+            "</p:video>\n" % (nsdecls("p"), self._next_cTn_id, shape_id)
         )
         video = parse_xml(video_xml)
         self.append(video)
@@ -313,7 +332,7 @@ class CT_TimeNodeList(BaseOxmlElement):
     @property
     def _next_cTn_id(self):
         """Return the next available unique ID (int) for p:cTn element."""
-        cTn_id_strs = self.xpath('/p:sld/p:timing//p:cTn/@id')
+        cTn_id_strs = self.xpath("/p:sld/p:timing//p:cTn/@id")
         ids = [int(id_str) for id_str in cTn_id_strs]
         return max(ids) + 1
 
@@ -321,6 +340,6 @@ class CT_TimeNodeList(BaseOxmlElement):
 class CT_TLMediaNodeVideo(BaseOxmlElement):
     """`p:video` element, specifying video media details."""
 
-    _tag_seq = ('p:cMediaNode',)
-    cMediaNode = OneAndOnlyOne('p:cMediaNode')
+    _tag_seq = ("p:cMediaNode",)
+    cMediaNode = OneAndOnlyOne("p:cMediaNode")
     del _tag_seq

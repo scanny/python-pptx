@@ -12,6 +12,7 @@ class Subshape(object):
     such as add or drop a relationship. Provides ``self._parent`` attribute
     to subclasses.
     """
+
     def __init__(self, parent):
         super(Subshape, self).__init__()
         self._parent = parent

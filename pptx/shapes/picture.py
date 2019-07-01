@@ -2,15 +2,13 @@
 
 """Shapes based on the `p:pic` element, including Picture and Movie."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .base import BaseShape
-from ..dml.line import LineFormat
-from ..enum.shapes import MSO_SHAPE_TYPE, PP_MEDIA_TYPE
-from ..shared import ParentedElementProxy
-from ..util import lazyproperty
+from pptx.dml.line import LineFormat
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.shapes.base import BaseShape
+from pptx.shared import ParentedElementProxy
+from pptx.util import lazyproperty
 
 
 class _BasePicture(BaseShape):
@@ -148,6 +146,44 @@ class Picture(_BasePicture):
     """
 
     @property
+    def auto_shape_type(self):
+        """Member of MSO_SHAPE indicating masking shape.
+
+        A picture can be masked by any of the so-called "auto-shapes"
+        available in PowerPoint, such as an ellipse or triangle. When
+        a picture is masked by a shape, the shape assumes the same dimensions
+        as the picture and the portion of the picture outside the shape
+        boundaries does not appear. Note the default value for
+        a newly-inserted picture is `MSO_AUTO_SHAPE_TYPE.RECTANGLE`, which
+        performs no cropping because the extents of the rectangle exactly
+        correspond to the extents of the picture.
+
+        The available shapes correspond to the members of
+        :ref:`MsoAutoShapeType`.
+
+        The return value can also be |None|, indicating the picture either
+        has no geometry (not expected) or has custom geometry, like
+        a freeform shape. A picture with no geometry will have no visible
+        representation on the slide, although it can be selected. This is
+        because without geometry, there is no "inside-the-shape" for it to
+        appear in.
+        """
+        prstGeom = self._pic.spPr.prstGeom
+        if prstGeom is None:  # ---generally means cropped with freeform---
+            return None
+        return prstGeom.prst
+
+    @auto_shape_type.setter
+    def auto_shape_type(self, member):
+        MSO_SHAPE.validate(member)
+        spPr = self._pic.spPr
+        prstGeom = spPr.prstGeom
+        if prstGeom is None:
+            spPr._remove_custGeom()
+            prstGeom = spPr._add_prstGeom()
+        prstGeom.prst = member
+
+    @property
     def image(self):
         """
         An |Image| object providing access to the properties and bytes of the
@@ -155,7 +191,7 @@ class Picture(_BasePicture):
         """
         slide_part, rId = self.part, self._element.blip_rId
         if rId is None:
-            raise ValueError('no embedded image')
+            raise ValueError("no embedded image")
         return slide_part.get_image(rId)
 
     @property

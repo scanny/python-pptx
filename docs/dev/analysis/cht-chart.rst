@@ -1,6 +1,41 @@
+.. _Chart:
 
-Charts - Main Chart Object
-==========================
+Chart - Main Chart Object
+=========================
+
+Each chart is contained in its own part like `chart1.xml`.
+
+
+`Chart.font`
+------------
+
+By default, a new chart appears with an 18-point font that is applied to its
+axes, the legend, tick labels, etc. The size, color, etc. can be specified
+for the chart as a whole by settings attributes on
+`/c:chartSpace/c:txPr/a:p/a:pPr/a:defRPr`.
+
+.. highlight:: xml
+
+
+XML Specimens
+-------------
+
+Default `c:txPr` element::
+
+  <c:chartSpace>
+    <!-- ... -->
+    <c:txPr>
+      <a:bodyPr/>
+      <a:lstStyle/>
+      <a:p>
+        <a:pPr>
+          <a:defRPr sz="1800"/>
+        </a:pPr>
+        <a:endParaRPr lang="en-US/>  <!-- may be locale dependent -->
+      </a:p>
+    </c:txPr>
+    <!-- ... -->
+  </c:chartSpace>
 
 
 Related Schema Definitions
@@ -62,6 +97,14 @@ Related Schema Definitions
 
   <xsd:complexType name="CT_Style">
     <xsd:attribute name="val" type="ST_Style" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="CT_TextBody">  <!-- text frame -->
+    <xsd:sequence>
+      <xsd:element name="bodyPr"   type="CT_TextBodyProperties"/>
+      <xsd:element name="lstStyle" type="CT_TextListStyle"      minOccurs="0"/>
+      <xsd:element name="p"        type="CT_TextParagraph"      maxOccurs="unbounded"/>
+    </xsd:sequence>
   </xsd:complexType>
 
   <xsd:simpleType name="ST_Style">

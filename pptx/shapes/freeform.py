@@ -2,12 +2,9 @@
 
 """Objects related to construction of freeform shapes."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
-
+from pptx.compat import Sequence
 from pptx.util import lazyproperty
 
 
@@ -49,10 +46,7 @@ class FreeformBuilder(Sequence):
         The initial pen location is specified (in local coordinates) by
         (*start_x*, *start_y*).
         """
-        return cls(
-            shapes, int(round(start_x)), int(round(start_y)),
-            x_scale, y_scale
-        )
+        return cls(shapes, int(round(start_x)), int(round(start_y)), x_scale, y_scale)
 
     def add_line_segments(self, vertices, close=True):
         """Add a straight line segment to each point in *vertices*.
@@ -106,7 +100,7 @@ class FreeformBuilder(Sequence):
         """
         min_x = self._start_x
         for drawing_operation in self:
-            if hasattr(drawing_operation, 'x'):
+            if hasattr(drawing_operation, "x"):
                 min_x = min(min_x, drawing_operation.x)
         return min_x
 
@@ -120,7 +114,7 @@ class FreeformBuilder(Sequence):
         """
         min_y = self._start_y
         for drawing_operation in self:
-            if hasattr(drawing_operation, 'y'):
+            if hasattr(drawing_operation, "y"):
                 min_y = min(min_y, drawing_operation.y)
         return min_y
 
@@ -136,10 +130,7 @@ class FreeformBuilder(Sequence):
         """
         spTree = self._shapes._spTree
         return spTree.add_freeform_sp(
-            origin_x + self._left,
-            origin_y + self._top,
-            self._width,
-            self._height
+            origin_x + self._left, origin_y + self._top, self._width, self._height
         )
 
     def _add_line_segment(self, x, y):
@@ -156,7 +147,7 @@ class FreeformBuilder(Sequence):
         """Return integer width of this shape's path in local units."""
         min_x = max_x = self._start_x
         for drawing_operation in self:
-            if hasattr(drawing_operation, 'x'):
+            if hasattr(drawing_operation, "x"):
                 min_x = min(min_x, drawing_operation.x)
                 max_x = max(max_x, drawing_operation.x)
         return max_x - min_x
@@ -166,7 +157,7 @@ class FreeformBuilder(Sequence):
         """Return integer height of this shape's path in local units."""
         min_y = max_y = self._start_y
         for drawing_operation in self:
-            if hasattr(drawing_operation, 'y'):
+            if hasattr(drawing_operation, "y"):
                 min_y = min(min_y, drawing_operation.y)
                 max_y = max(max_y, drawing_operation.y)
         return max_y - min_y
@@ -197,10 +188,7 @@ class FreeformBuilder(Sequence):
         offset such that the origin of the shape coordinate system (0, 0) is
         located at the top-left corner of the shape bounding box.
         """
-        return (
-            local_x - self.shape_offset_x,
-            local_y - self.shape_offset_y
-        )
+        return (local_x - self.shape_offset_x, local_y - self.shape_offset_y)
 
     def _start_path(self, sp):
         """Return a newly created `a:path` element added to *sp*.
@@ -209,11 +197,7 @@ class FreeformBuilder(Sequence):
         the shape starting point as its only child.
         """
         path = sp.add_path(w=self._dx, h=self._dy)
-        path.add_moveTo(
-            *self._local_to_shape(
-                self._start_x, self._start_y
-            )
-        )
+        path.add_moveTo(*self._local_to_shape(self._start_x, self._start_y))
         return path
 
     @property
@@ -254,7 +238,7 @@ class _BaseDrawingOperation(object):
 
         Must be implemented by each subclass.
         """
-        raise NotImplementedError('must be implemented by each subclass')
+        raise NotImplementedError("must be implemented by each subclass")
 
     @property
     def x(self):
@@ -304,7 +288,7 @@ class _LineSegment(_BaseDrawingOperation):
         """
         return path.add_lnTo(
             self._x - self._freeform_builder.shape_offset_x,
-            self._y - self._freeform_builder.shape_offset_y
+            self._y - self._freeform_builder.shape_offset_y,
         )
 
 
@@ -323,5 +307,5 @@ class _MoveTo(_BaseDrawingOperation):
         """Add `a:moveTo` element to *path* for this line segment."""
         return path.add_moveTo(
             self._x - self._freeform_builder.shape_offset_x,
-            self._y - self._freeform_builder.shape_offset_y
+            self._y - self._freeform_builder.shape_offset_y,
         )

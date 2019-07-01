@@ -3,8 +3,93 @@
 Release History
 ---------------
 
+0.6.18 (2019-05-02)
++++++++++++++++++++
+
+- .text property getters encode line-break as a vertical-tab (VT, '\v', ASCII 11/x0B).
+  This is consistent with PowerPoint's copy/paste behavior and allows like-breaks (soft
+  carriage-return) to be distinguished from paragraph boundary. Previously, a line-break
+  was encoded as a newline ('\n') and was not distinguishable from a paragraph boundary.
+
+  .text properties include Shape.text, _Cell.text, TextFrame.text, _Paragraph.text and
+  _Run.text.
+
+- .text property setters accept vertical-tab character and place a line-break element in
+  that location. All other control characters other than horizontal-tab ('\t') and
+  newline ('\n') in range \x00-\x1F are accepted and escaped with plain-text like
+  "_x001B" for ESC (ASCII 27).
+
+  Previously a control character other than tab or newline in an assigned string would
+  trigger an exception related to invalid XML character.
+
+
+0.6.17 (2018-12-16)
++++++++++++++++++++
+
+- Add SlideLayouts.remove() - Delete unused slide-layout
+- Add SlideLayout.used_by_slides - Get slides based on this slide-layout
+- Add SlideLayouts.index() - Get index of slide-layout in master
+- Add SlideLayouts.get_by_name() - Get slide-layout by its str name
+
+
+0.6.16 (2018-11-09)
++++++++++++++++++++
+
+- Feature #395 DataLabels.show_* properties, e.g. .show_percentage
+- Feature #453 Chart data tolerates None for labels
+
+
+0.6.15 (2018-09-24)
++++++++++++++++++++
+
+- Fix #436 ValueAxis._cross_xAx fails on c:dateAxis
+
+
+0.6.14 (2018-09-24)
++++++++++++++++++++
+
+- Add _Cell.merge()
+- Add _Cell.split()
+- Add _Cell.__eq__()
+- Add _Cell.is_merge_origin
+- Add _Cell.is_spanned
+- Add _Cell.span_height
+- Add _Cell.span_width
+- Add _Cell.text getter
+- Add Table.iter_cells()
+- Move pptx.shapes.table module to pptx.table
+- Add user documentation 'Working with tables'
+
+
+0.6.13 (2018-09-10)
++++++++++++++++++++
+
+- Add Chart.font
+- Fix #293 Can't hide title of single-series Chart
+- Fix shape.width value is not type Emu
+- Fix add a:defRPr with c:rich (fixes some font inheritance breakage)
+
+
+0.6.12 (2018-08-11)
++++++++++++++++++++
+
+- Add Picture.auto_shape_type
+- Remove Python 2.6 testing from build
+- Update dependencies to avoid vulnerable Pillow version
+- Fix #260, #301, #382, #401
+- Add _Paragraph.add_line_break()
+- Add Connector.line
+
+
+0.6.11 (2018-07-25)
++++++++++++++++++++
+
+- Add gradient fill.
+- Add experimental "turbo-add" option for producing large shape-count slides.
+
+
 0.6.10 (2018-06-11)
-++++++++++++++++++
++++++++++++++++++++
 
 - Add `shape.shadow` property to autoshape, connector, picture, and group
   shape, returning a `ShadowFormat` object.

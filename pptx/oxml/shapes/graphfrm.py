@@ -12,10 +12,8 @@ from ..ns import nsdecls
 from .shared import BaseShapeElement
 from ..simpletypes import XsdString
 from ...spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
-from .table import CT_Table
-from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
-)
+from ..table import CT_Table
+from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
 
 
 class CT_GraphicalObject(BaseOxmlElement):
@@ -23,7 +21,8 @@ class CT_GraphicalObject(BaseOxmlElement):
     ``<a:graphic>`` element, which is the container for the reference to or
     definition of the framed graphical object (table, chart, etc.).
     """
-    graphicData = OneAndOnlyOne('a:graphicData')
+
+    graphicData = OneAndOnlyOne("a:graphicData")
 
     @property
     def chart(self):
@@ -38,9 +37,10 @@ class CT_GraphicalObjectData(BaseShapeElement):
     ``<p:graphicData>`` element, the direct container for a table, a chart,
     or another graphical object.
     """
-    chart = ZeroOrOne('c:chart')
-    tbl = ZeroOrOne('a:tbl')
-    uri = RequiredAttribute('uri', XsdString)
+
+    chart = ZeroOrOne("c:chart")
+    tbl = ZeroOrOne("a:tbl")
+    uri = RequiredAttribute("uri", XsdString)
 
 
 class CT_GraphicalObjectFrame(BaseShapeElement):
@@ -48,9 +48,10 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
     ``<p:graphicFrame>`` element, which is a container for a table, a chart,
     or another graphical object.
     """
-    nvGraphicFramePr = OneAndOnlyOne('p:nvGraphicFramePr')
-    xfrm = OneAndOnlyOne('p:xfrm')
-    graphic = OneAndOnlyOne('a:graphic')
+
+    nvGraphicFramePr = OneAndOnlyOne("p:nvGraphicFramePr")
+    xfrm = OneAndOnlyOne("p:xfrm")
+    graphic = OneAndOnlyOne("a:graphic")
 
     @property
     def chart(self):
@@ -97,9 +98,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         Return a ``<p:graphicFrame>`` element tree populated with a chart
         element.
         """
-        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(
-            id_, name, x, y, cx, cy
-        )
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(id_, name, x, y, cx, cy)
         graphicData = graphicFrame.graphic.graphicData
         graphicData.uri = GRAPHIC_DATA_URI_CHART
         graphicData.append(CT_Chart.new_chart(rId))
@@ -124,31 +123,29 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         """
         graphicFrame = cls.new_graphicFrame(id_, name, x, y, cx, cy)
         graphicFrame.graphic.graphicData.uri = GRAPHIC_DATA_URI_TABLE
-        graphicFrame.graphic.graphicData.append(
-            CT_Table.new_tbl(rows, cols, cx, cy)
-        )
+        graphicFrame.graphic.graphicData.append(CT_Table.new_tbl(rows, cols, cx, cy))
         return graphicFrame
 
     @classmethod
     def _graphicFrame_tmpl(cls):
         return (
-            '<p:graphicFrame %s>\n'
-            '  <p:nvGraphicFramePr>\n'
+            "<p:graphicFrame %s>\n"
+            "  <p:nvGraphicFramePr>\n"
             '    <p:cNvPr id="%s" name="%s"/>\n'
-            '    <p:cNvGraphicFramePr>\n'
+            "    <p:cNvGraphicFramePr>\n"
             '      <a:graphicFrameLocks noGrp="1"/>\n'
-            '    </p:cNvGraphicFramePr>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvGraphicFramePr>\n'
-            '  <p:xfrm>\n'
+            "    </p:cNvGraphicFramePr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvGraphicFramePr>\n"
+            "  <p:xfrm>\n"
             '    <a:off x="%s" y="%s"/>\n'
             '    <a:ext cx="%s" cy="%s"/>\n'
-            '  </p:xfrm>\n'
-            '  <a:graphic>\n'
-            '    <a:graphicData/>\n'
-            '  </a:graphic>\n'
-            '</p:graphicFrame>' %
-            (nsdecls('a', 'p'), '%d', '%s', '%d', '%d', '%d', '%d')
+            "  </p:xfrm>\n"
+            "  <a:graphic>\n"
+            "    <a:graphicData/>\n"
+            "  </a:graphic>\n"
+            "</p:graphicFrame>"
+            % (nsdecls("a", "p"), "%d", "%s", "%d", "%d", "%d", "%d")
         )
 
 
@@ -157,5 +154,6 @@ class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
     ``<p:nvGraphicFramePr>`` element, container for the non-visual properties
     of a graphic frame, such as name, id, etc.
     """
-    cNvPr = OneAndOnlyOne('p:cNvPr')
-    nvPr = OneAndOnlyOne('p:nvPr')
+
+    cNvPr = OneAndOnlyOne("p:cNvPr")
+    nvPr = OneAndOnlyOne("p:nvPr")

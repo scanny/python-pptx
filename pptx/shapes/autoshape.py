@@ -1,20 +1,18 @@
 # encoding: utf-8
 
-"""
-Autoshape-related objects such as Shape and Adjustment.
-"""
+"""Autoshape-related objects such as Shape and Adjustment."""
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from numbers import Number
 
-from .base import BaseShape
-from ..dml.fill import FillFormat
-from ..dml.line import LineFormat
-from ..enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
-from ..spec import autoshape_types
-from ..text.text import TextFrame
-from ..util import lazyproperty
+from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
+from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
+from pptx.shapes.base import BaseShape
+from pptx.spec import autoshape_types
+from pptx.text.text import TextFrame
+from pptx.util import lazyproperty
 
 
 class Adjustment(object):
@@ -30,6 +28,7 @@ class Adjustment(object):
     Values are |float| and generally range from 0.0 to 1.0, although the value
     can be negative or greater than 1.0 in certain circumstances.
     """
+
     def __init__(self, name, def_val, actual=None):
         super(Adjustment, self).__init__()
         self.name = name
@@ -95,6 +94,7 @@ class AdjustmentCollection(object):
     an available adjustment for a shape of its type. Supports ``len()`` and
     indexed access, e.g. ``shape.adjustments[1] = 0.15``.
     """
+
     def __init__(self, prstGeom):
         super(AdjustmentCollection, self).__init__()
         self._adjustments_ = self._initialized_adjustments(prstGeom)
@@ -193,6 +193,7 @@ class AutoShapeType(object):
        Informal string description of auto shape.
 
     """
+
     _instances = {}
 
     def __new__(cls, autoshape_type_id):
@@ -210,7 +211,7 @@ class AutoShapeType(object):
     def __init__(self, autoshape_type_id):
         """Initialize attributes from constant values in pptx.spec"""
         # skip loading if this instance is from the cache
-        if hasattr(self, '_loaded'):
+        if hasattr(self, "_loaded"):
             return
         # raise on bad autoshape_type_id
         if autoshape_type_id not in autoshape_types:
@@ -221,7 +222,7 @@ class AutoShapeType(object):
         # otherwise initialize new instance
         autoshape_type = autoshape_types[autoshape_type_id]
         self._autoshape_type_id = autoshape_type_id
-        self._basename = autoshape_type['basename']
+        self._basename = autoshape_type["basename"]
         self._loaded = True
 
     @property
@@ -245,7 +246,7 @@ class AutoShapeType(object):
         Return sequence of name, value tuples representing the adjustment
         value defaults for the auto shape type identified by *prst*.
         """
-        return autoshape_types[prst]['avLst']
+        return autoshape_types[prst]["avLst"]
 
     @property
     def desc(self):
@@ -271,11 +272,12 @@ class AutoShapeType(object):
 
 
 class Shape(BaseShape):
+    """A shape that can appear on a slide.
+
+    Corresponds to the ``<p:sp>`` element that can appear in any of the slide-type parts
+    (slide, slideLayout, slideMaster, notesPage, notesMaster, handoutMaster).
     """
-    A shape that can appear on a slide. Corresponds to the ``<p:sp>`` element
-    that can appear in any of the slide-type parts (slide, slideLayout,
-    slideMaster, notesPage, notesMaster, handoutMaster).
-    """
+
     def __init__(self, sp, parent):
         super(Shape, self).__init__(sp, parent)
         self._sp = sp
@@ -352,23 +354,27 @@ class Shape(BaseShape):
             return MSO_SHAPE_TYPE.AUTO_SHAPE
         if self._sp.is_textbox:
             return MSO_SHAPE_TYPE.TEXT_BOX
-        msg = 'Shape instance of unrecognized shape type'
+        msg = "Shape instance of unrecognized shape type"
         raise NotImplementedError(msg)
 
     @property
     def text(self):
-        """
-        Read/write. All the text in this shape as a single string. A line
-        feed character ('\\\\n') appears in the string for each paragraph and
-        line break in the shape, except the last paragraph. A shape
-        containing a single paragraph with no line breaks will produce
-        a string having no line feed characters. Assigning a string to this
-        property replaces all text in the shape with a single paragraph
-        containing the assigned text. The assigned value can be a 7-bit ASCII
-        string, a UTF-8 encoded 8-bit string, or unicode. String values are
-        converted to unicode assuming UTF-8 encoding. Each line feed
-        character in an assigned string is translated into a line break
-        within the single resulting paragraph.
+        """Read/write. Unicode (str in Python 3) representation of shape text.
+
+        The returned string will contain a newline character (``"\\n"``) separating each
+        paragraph and a vertical-tab (``"\\v"``) character for each line break (soft
+        carriage return) in the shape's text.
+
+        Assignment to *text* replaces all text previously contained in the shape, along
+        with any paragraph or font formatting applied to it. A newline character
+        (``"\\n"``) in the assigned text causes a new paragraph to be started.
+        A vertical-tab (``"\\v"``) character in the assigned text causes a line-break
+        (soft carriage-return) to be inserted. (The vertical-tab character appears in
+        clipboard text copied from PowerPoint as its encoding of line-breaks.)
+
+        Either bytes (Python 2 str) or unicode (Python 3 str) can be assigned. Bytes can
+        be 7-bit ASCII or UTF-8 encoded 8-bit bytes. Bytes values are converted to
+        unicode assuming UTF-8 encoding (which also works for ASCII).
         """
         return self.text_frame.text
 
@@ -378,9 +384,10 @@ class Shape(BaseShape):
 
     @property
     def text_frame(self):
-        """
-        |TextFrame| instance for this shape, containing the text of the shape
-        and providing access to text formatting properties.
+        """|TextFrame| instance for this shape.
+
+        Contains the text of the shape and provides access to text formatting
+        properties.
         """
         txBody = self._element.get_or_add_txBody()
         return TextFrame(txBody, self)

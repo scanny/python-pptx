@@ -2,9 +2,7 @@
 
 """GroupShape and related objects."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
@@ -21,7 +19,7 @@ class GroupShape(BaseShape):
 
         A group shape cannot have a click action or hover action.
         """
-        raise TypeError('a group shape cannot have a click action')
+        raise TypeError("a group shape cannot have a click action")
 
     @property
     def has_text_frame(self):
@@ -59,4 +57,5 @@ class GroupShape(BaseShape):
         and provides methods for adding new ones.
         """
         from pptx.shapes.shapetree import GroupShapes
+
         return GroupShapes(self._element, self)

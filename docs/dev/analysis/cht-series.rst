@@ -89,7 +89,7 @@ Protocol
     >>> series = plot.series[0]
     >>> series
     <pptx.chart.series.BarSeries instance at 0x...>
-    >>> fill = series.fill
+    >>> fill = series.format.fill
     >>> fill
     <pptx.dml.fill.FillFormat instance at 0x...>
     >>> fill.type

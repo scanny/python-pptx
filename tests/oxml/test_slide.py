@@ -4,9 +4,7 @@
 Test suite for pptx.oxml.slide module
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -16,7 +14,6 @@ from ..unitutil.file import snippet_text
 
 
 class DescribeCT_NotesMaster(object):
-
     def it_can_create_a_default_notesMaster_element(self, new_fixture):
         expected_xml = new_fixture
         notesMaster = CT_NotesMaster.new_default()
@@ -26,12 +23,11 @@ class DescribeCT_NotesMaster(object):
 
     @pytest.fixture
     def new_fixture(self):
-        expected_xml = snippet_text('default-notesMaster')
+        expected_xml = snippet_text("default-notesMaster")
         return expected_xml
 
 
 class DescribeCT_NotesSlide(object):
-
     def it_can_create_a_new_notes_element(self, new_fixture):
         expected_xml = new_fixture
         notes = CT_NotesSlide.new()
@@ -41,5 +37,5 @@ class DescribeCT_NotesSlide(object):
 
     @pytest.fixture
     def new_fixture(self):
-        expected_xml = snippet_text('default-notes')
+        expected_xml = snippet_text("default-notes")
         return expected_xml

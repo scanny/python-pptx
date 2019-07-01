@@ -1,20 +1,22 @@
 # encoding: utf-8
 
-"""
-DrawingML objects related to fill, FillFormat being the top-most.
-"""
+"""DrawingML objects related to fill."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..enum.dml import MSO_FILL
-from ..oxml.dml.fill import (
-    CT_BlipFillProperties, CT_GradientFillProperties, CT_GroupFillProperties,
-    CT_NoFillProperties, CT_PatternFillProperties,
+from pptx.compat import Sequence
+from pptx.dml.color import ColorFormat
+from pptx.enum.dml import MSO_FILL
+from pptx.oxml.dml.fill import (
+    CT_BlipFillProperties,
+    CT_GradientFillProperties,
+    CT_GroupFillProperties,
+    CT_NoFillProperties,
+    CT_PatternFillProperties,
     CT_SolidColorFillProperties,
 )
+from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
-
-from .color import ColorFormat
 
 
 class FillFormat(object):
@@ -22,10 +24,23 @@ class FillFormat(object):
     Provides access to the current fill properties object and provides
     methods to change the fill type.
     """
+
     def __init__(self, eg_fill_properties_parent, fill_obj):
         super(FillFormat, self).__init__()
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
+
+    @classmethod
+    def from_fill_parent(cls, eg_fillProperties_parent):
+        """
+        Return a |FillFormat| instance initialized to the settings contained
+        in *eg_fillProperties_parent*, which must be an element having
+        EG_FillProperties in its child element sequence in the XML schema.
+        """
+        fill_elm = eg_fillProperties_parent.eg_fillProperties
+        fill = _Fill(fill_elm)
+        fill_format = cls(eg_fillProperties_parent, fill)
+        return fill_format
 
     @property
     def back_color(self):
@@ -50,17 +65,52 @@ class FillFormat(object):
         """
         return self._fill.fore_color
 
-    @classmethod
-    def from_fill_parent(cls, eg_fillProperties_parent):
+    def gradient(self):
+        """Sets the fill type to gradient.
+
+        If the fill is not already a gradient, a default gradient is added.
+        The default gradient corresponds to the default in the built-in
+        PowerPoint "White" template. This gradient is linear at angle
+        90-degrees (upward), with two stops. The first stop is Accent-1 with
+        tint 100%, shade 100%, and satMod 130%. The second stop is Accent-1
+        with tint 50%, shade 100%, and satMod 350%.
         """
-        Return a |FillFormat| instance initialized to the settings contained
-        in *eg_fillProperties_parent*, which must be an element having
-        EG_FillProperties in its child element sequence in the XML schema.
+        gradFill = self._xPr.get_or_change_to_gradFill()
+        self._fill = _GradFill(gradFill)
+
+    @property
+    def gradient_angle(self):
+        """Angle in float degrees of line of a linear gradient.
+
+        Read/Write. May be |None|, indicating the angle should be inherited
+        from the style hierarchy. An angle of 0.0 corresponds to
+        a left-to-right gradient. Increasing angles represent
+        counter-clockwise rotation of the line, for example 90.0 represents
+        a bottom-to-top gradient. Raises |TypeError| when the fill type is
+        not MSO_FILL_TYPE.GRADIENT. Raises |ValueError| for a non-linear
+        gradient (e.g. a radial gradient).
         """
-        fill_elm = eg_fillProperties_parent.eg_fillProperties
-        fill = _Fill(fill_elm)
-        fill_format = cls(eg_fillProperties_parent, fill)
-        return fill_format
+        if self.type != MSO_FILL.GRADIENT:
+            raise TypeError("Fill is not of type MSO_FILL_TYPE.GRADIENT")
+        return self._fill.gradient_angle
+
+    @gradient_angle.setter
+    def gradient_angle(self, value):
+        if self.type != MSO_FILL.GRADIENT:
+            raise TypeError("Fill is not of type MSO_FILL_TYPE.GRADIENT")
+        self._fill.gradient_angle = value
+
+    @property
+    def gradient_stops(self):
+        """|GradientStops| object providing access to stops of this gradient.
+
+        Raises |TypeError| when fill is not gradient (call `fill.gradient()`
+        first). Each stop represents a color between which the gradient
+        smoothly transitions.
+        """
+        if self.type != MSO_FILL.GRADIENT:
+            raise TypeError("Fill is not of type MSO_FILL_TYPE.GRADIENT")
+        return self._fill.gradient_stops
 
     @property
     def pattern(self):
@@ -115,6 +165,7 @@ class _Fill(object):
     _SolidFill for ``<a:solidFill>``; also serves as the base class for all
     fill classes
     """
+
     def __new__(cls, xFill):
         if xFill is None:
             fill_cls = _NoneFill
@@ -137,24 +188,22 @@ class _Fill(object):
     @property
     def back_color(self):
         """Raise TypeError for types that do not override this property."""
-        tmpl = (
-            'fill type %s has no background color, call .patterned() first'
-        )
+        tmpl = "fill type %s has no background color, call .patterned() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
     def fore_color(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            'fill type %s has no foreground color, call .solid() or .pattern'
-            'ed() first'
+            "fill type %s has no foreground color, call .solid() or .pattern"
+            "ed() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
     def pattern(self):
         """Raise TypeError for fills that do not override this property."""
-        tmpl = 'fill type %s has no pattern, call .patterned() first'
+        tmpl = "fill type %s has no pattern, call .patterned() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
@@ -164,13 +213,64 @@ class _Fill(object):
 
 
 class _BlipFill(_Fill):
-
     @property
     def type(self):
         return MSO_FILL.PICTURE
 
 
 class _GradFill(_Fill):
+    """Proxies an `a:gradFill` element."""
+
+    def __init__(self, gradFill):
+        self._element = self._gradFill = gradFill
+
+    @property
+    def gradient_angle(self):
+        """Angle in float degrees of line of a linear gradient.
+
+        Read/Write. May be |None|, indicating the angle is inherited from the
+        style hierarchy. An angle of 0.0 corresponds to a left-to-right
+        gradient. Increasing angles represent clockwise rotation of the line,
+        for example 90.0 represents a top-to-bottom gradient. Raises
+        |TypeError| when the fill type is not MSO_FILL_TYPE.GRADIENT. Raises
+        |ValueError| for a non-linear gradient (e.g. a radial gradient).
+        """
+        # ---case 1: gradient path is explicit, but not linear---
+        path = self._gradFill.path
+        if path is not None:
+            raise ValueError("not a linear gradient")
+
+        # ---case 2: gradient path is inherited (no a:lin OR a:path)---
+        lin = self._gradFill.lin
+        if lin is None:
+            return None
+
+        # ---case 3: gradient path is explicitly linear---
+        # angle is stored in XML as a clockwise angle, whereas the UI
+        # reports it as counter-clockwise from horizontal-pointing-right.
+        # Since the UI is consistent with trigonometry conventions, we
+        # respect that in the API.
+        clockwise_angle = lin.ang
+        counter_clockwise_angle = (
+            0.0 if clockwise_angle == 0.0 else (360.0 - clockwise_angle)
+        )
+        return counter_clockwise_angle
+
+    @gradient_angle.setter
+    def gradient_angle(self, value):
+        lin = self._gradFill.lin
+        if lin is None:
+            raise ValueError("not a linear gradient")
+        lin.ang = 360.0 - value
+
+    @lazyproperty
+    def gradient_stops(self):
+        """|_GradientStops| object providing access to gradient colors.
+
+        Each stop represents a color between which the gradient smoothly
+        transitions.
+        """
+        return _GradientStops(self._gradFill.get_or_add_gsLst())
 
     @property
     def type(self):
@@ -178,21 +278,18 @@ class _GradFill(_Fill):
 
 
 class _GrpFill(_Fill):
-
     @property
     def type(self):
         return MSO_FILL.GROUP
 
 
 class _NoFill(_Fill):
-
     @property
     def type(self):
         return MSO_FILL.BACKGROUND
 
 
 class _NoneFill(_Fill):
-
     @property
     def type(self):
         return None
@@ -251,3 +348,55 @@ class _SolidFill(_Fill):
     @property
     def type(self):
         return MSO_FILL.SOLID
+
+
+class _GradientStops(Sequence):
+    """Collection of |GradientStop| objects defining gradient colors.
+
+    A gradient must have a minimum of two stops, but can have as many more
+    than that as required to achieve the desired effect (three is perhaps
+    most common). Stops are sequenced in the order they are transitioned
+    through.
+    """
+
+    def __init__(self, gsLst):
+        self._gsLst = gsLst
+
+    def __getitem__(self, idx):
+        return _GradientStop(self._gsLst[idx])
+
+    def __len__(self):
+        return len(self._gsLst)
+
+
+class _GradientStop(ElementProxy):
+    """A single gradient stop.
+
+    A gradient stop defines a color and a position.
+    """
+
+    __slots__ = ("_gs", "_color")
+
+    def __init__(self, gs):
+        super(_GradientStop, self).__init__(gs)
+        self._gs = gs
+
+    @lazyproperty
+    def color(self):
+        """Return |ColorFormat| object controlling stop color."""
+        return ColorFormat.from_colorchoice_parent(self._gs)
+
+    @property
+    def position(self):
+        """Location of stop in gradient path as float between 0.0 and 1.0.
+
+        The value represents a percentage, where 0.0 (0%) represents the
+        start of the path and 1.0 (100%) represents the end of the path. For
+        a linear gradient, these would represent opposing extents of the
+        filled area.
+        """
+        return self._gs.pos
+
+    @position.setter
+    def position(self, value):
+        self._gs.pos = float(value)

@@ -29,6 +29,31 @@ return value of :meth:`add_slide`.
    :undoc-members:
 
 
+|SlideLayouts| objects
+----------------------
+
+The |SlideLayouts| object is accessed using the
+:attr:`~pptx.slide.SlideMaster.slide_layouts` property of |SlideMaster|, typically::
+
+    >>> from pptx import Presentation
+    >>> prs = Presentation()
+    >>> slide_layouts = prs.slide_master.slide_layouts
+
+As a convenience, since most presentations have only a single slide master, the
+|SlideLayouts| collection for the first master may be accessed directly from the
+|Presentation| object::
+
+    >>> slide_layouts = prs.slide_layouts
+
+This class is not intended to be constructed directly.
+
+.. autoclass:: pptx.slide.SlideLayouts()
+   :members:
+   :exclude-members: element, parent
+   :inherited-members:
+   :undoc-members:
+
+
 |SlideLayout| objects
 ---------------------
 
@@ -36,6 +61,30 @@ return value of :meth:`add_slide`.
    :members:
    :exclude-members: iter_cloneable_placeholders
 
+
+|SlideMasters| objects
+----------------------
+
+The |SlideMasters| object is accessed using the
+:attr:`~pptx.presentation.slide_masters` property of |Presentation|, typically::
+
+    >>> from pptx import Presentation
+    >>> prs = Presentation()
+    >>> slide_masters = prs.slide_masters
+
+As a convenience, since most presentations have only a single slide master, the
+first master may be accessed directly from the |Presentation| object without indexing
+the collection::
+
+    >>> slide_master = prs.slide_master
+
+This class is not intended to be constructed directly.
+
+.. autoclass:: pptx.slide.SlideMasters()
+   :members:
+   :exclude-members: element, parent
+   :inherited-members:
+   :undoc-members:
 
 |SlideMaster| objects
 ---------------------

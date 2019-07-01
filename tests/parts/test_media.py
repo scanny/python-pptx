@@ -2,9 +2,7 @@
 
 """Unit test suite for pptx.parts.image module."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -16,7 +14,6 @@ from ..unitutil.mock import initializer_mock, instance_mock
 
 
 class DescribeMediaPart(object):
-
     def it_can_construct_from_a_media_object(self, new_fixture):
         package_, media_, _init_, partname_ = new_fixture
 
@@ -37,15 +34,15 @@ class DescribeMediaPart(object):
 
     @pytest.fixture
     def new_fixture(self, request, package_, media_, _init_):
-        partname_ = package_.next_media_partname.return_value = 'media42.mp4'
-        media_.blob, media_.content_type = b'blob-bytes', 'video/mp4'
+        partname_ = package_.next_media_partname.return_value = "media42.mp4"
+        media_.blob, media_.content_type = b"blob-bytes", "video/mp4"
         return package_, media_, _init_, partname_
 
     @pytest.fixture
     def sha1_fixture(self):
-        blob = b'blobish-bytes'
+        blob = b"blobish-bytes"
         media_part = MediaPart(None, None, blob, None)
-        expected_value = '61efc464c21e54cfc1382fb5b6ef7512e141ceae'
+        expected_value = "61efc464c21e54cfc1382fb5b6ef7512e141ceae"
         return media_part, expected_value
 
     # fixture components ---------------------------------------------

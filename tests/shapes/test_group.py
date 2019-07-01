@@ -2,9 +2,7 @@
 
 """Test suite for pptx.shapes.group module."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import pytest
 
@@ -18,15 +16,14 @@ from ..unitutil.mock import class_mock, initializer_mock, instance_mock
 
 
 class DescribeGroupShape(object):
-
     def it_raises_on_access_click_action(self, click_action_fixture):
         group = click_action_fixture
         with pytest.raises(TypeError):
             group.click_action
 
     def it_provides_access_to_its_shadow(self, ShadowFormat_, shadow_):
-        grpSp = element('p:grpSp/p:grpSpPr')
-        grpSpPr = grpSp.xpath('//p:grpSpPr')[0]
+        grpSp = element("p:grpSp/p:grpSpPr")
+        grpSpPr = grpSp.xpath("//p:grpSpPr")[0]
         ShadowFormat_.return_value = shadow_
         group_shape = GroupShape(grpSp, None)
 
@@ -59,7 +56,7 @@ class DescribeGroupShape(object):
 
     @pytest.fixture
     def shapes_fixture(self, GroupShapes_init_):
-        grpSp = element('p:grpSp')
+        grpSp = element("p:grpSp")
         group = GroupShape(grpSp, None)
         return group, GroupShapes_init_, grpSp
 
@@ -75,4 +72,4 @@ class DescribeGroupShape(object):
 
     @pytest.fixture
     def ShadowFormat_(self, request):
-        return class_mock(request, 'pptx.shapes.group.ShadowFormat')
+        return class_mock(request, "pptx.shapes.group.ShadowFormat")

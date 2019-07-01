@@ -4,9 +4,7 @@
 Main presentation object.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .shared import PartElementProxy
 from .slide import SlideMasters, Slides
@@ -19,7 +17,7 @@ class Presentation(PartElementProxy):
     directly. Use :func:`pptx.Presentation` to open or create a presentation.
     """
 
-    __slots__ = ('_slide_masters', '_slides')
+    __slots__ = ("_slide_masters", "_slides")
 
     @property
     def core_properties(self):

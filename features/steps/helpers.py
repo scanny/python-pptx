@@ -12,17 +12,17 @@ def absjoin(*paths):
 
 
 thisdir = os.path.split(__file__)[0]
-scratch_dir = absjoin(thisdir, '../_scratch')
+scratch_dir = absjoin(thisdir, "../_scratch")
 # new ones should go here instead, others should be moved over
-test_pptx_dir = absjoin(thisdir, 'test_files')
+test_pptx_dir = absjoin(thisdir, "test_files")
 
 # legacy test pptx files ---------------
 no_core_props_pptx_path = absjoin(
-    thisdir, '../../tests/test_files', 'no-core-props.pptx'
+    thisdir, "../../tests/test_files", "no-core-props.pptx"
 )
 
 # scratch test pptx file ---------------
-saved_pptx_path = absjoin(scratch_dir, 'test_out.pptx')
+saved_pptx_path = absjoin(scratch_dir, "test_out.pptx")
 
 test_text = "python-pptx was here!"
 
@@ -30,7 +30,7 @@ test_text = "python-pptx was here!"
 def cls_qname(obj):
     module_name = obj.__module__
     cls_name = obj.__class__.__name__
-    qname = '%s.%s' % (module_name, cls_name)
+    qname = "%s.%s" % (module_name, cls_name)
     return qname
 
 
@@ -49,7 +49,7 @@ def test_file(filename):
     Return the absolute path to the file having *filename* in acceptance
     test_files directory.
     """
-    return absjoin(thisdir, 'test_files', filename)
+    return absjoin(thisdir, "test_files", filename)
 
 
 def test_image(filename):
@@ -57,11 +57,11 @@ def test_image(filename):
     Return the absolute path to image file having *filename* in test_files
     directory.
     """
-    return absjoin(thisdir, 'test_files', filename)
+    return absjoin(thisdir, "test_files", filename)
 
 
 def test_pptx(name):
     """
     Return the absolute path to test .pptx file with root name *name*.
     """
-    return absjoin(thisdir, 'test_files', '%s.pptx' % name)
+    return absjoin(thisdir, "test_files", "%s.pptx" % name)

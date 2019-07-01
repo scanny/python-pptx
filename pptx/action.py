@@ -4,9 +4,7 @@
 Objects related to mouse click and hover actions on a shape or text.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .enum.action import PP_ACTION
 from .opc.constants import RELATIONSHIP_TYPE as RT
@@ -41,26 +39,26 @@ class ActionSetting(Subshape):
 
         action_verb = hlink.action_verb
 
-        if action_verb == 'hlinkshowjump':
-            relative_target = hlink.action_fields['jump']
+        if action_verb == "hlinkshowjump":
+            relative_target = hlink.action_fields["jump"]
             return {
-                'firstslide':      PP_ACTION.FIRST_SLIDE,
-                'lastslide':       PP_ACTION.LAST_SLIDE,
-                'lastslideviewed': PP_ACTION.LAST_SLIDE_VIEWED,
-                'nextslide':       PP_ACTION.NEXT_SLIDE,
-                'previousslide':   PP_ACTION.PREVIOUS_SLIDE,
-                'endshow':         PP_ACTION.END_SHOW,
+                "firstslide": PP_ACTION.FIRST_SLIDE,
+                "lastslide": PP_ACTION.LAST_SLIDE,
+                "lastslideviewed": PP_ACTION.LAST_SLIDE_VIEWED,
+                "nextslide": PP_ACTION.NEXT_SLIDE,
+                "previousslide": PP_ACTION.PREVIOUS_SLIDE,
+                "endshow": PP_ACTION.END_SHOW,
             }[relative_target]
 
         return {
-            None:           PP_ACTION.HYPERLINK,
-            'hlinksldjump': PP_ACTION.NAMED_SLIDE,
-            'hlinkpres':    PP_ACTION.PLAY,
-            'hlinkfile':    PP_ACTION.OPEN_FILE,
-            'customshow':   PP_ACTION.NAMED_SLIDE_SHOW,
-            'ole':          PP_ACTION.OLE_VERB,
-            'macro':        PP_ACTION.RUN_MACRO,
-            'program':      PP_ACTION.RUN_PROGRAM,
+            None: PP_ACTION.HYPERLINK,
+            "hlinksldjump": PP_ACTION.NAMED_SLIDE,
+            "hlinkpres": PP_ACTION.PLAY,
+            "hlinkfile": PP_ACTION.OPEN_FILE,
+            "customshow": PP_ACTION.NAMED_SLIDE_SHOW,
+            "ole": PP_ACTION.OLE_VERB,
+            "macro": PP_ACTION.RUN_MACRO,
+            "program": PP_ACTION.RUN_PROGRAM,
         }[action_verb]
 
     @lazyproperty
@@ -111,12 +109,12 @@ class ActionSetting(Subshape):
         elif self.action == PP_ACTION.NEXT_SLIDE:
             next_slide_idx = self._slide_index + 1
             if next_slide_idx >= len(self._slides):
-                raise ValueError('no next slide')
+                raise ValueError("no next slide")
             return self._slides[next_slide_idx]
         elif self.action == PP_ACTION.PREVIOUS_SLIDE:
             prev_slide_idx = self._slide_index - 1
             if prev_slide_idx < 0:
-                raise ValueError('no previous slide')
+                raise ValueError("no previous slide")
             return self._slides[prev_slide_idx]
         elif self.action == PP_ACTION.NAMED_SLIDE:
             rId = self._hlink.rId
@@ -179,6 +177,7 @@ class Hyperlink(Subshape):
     """
     Represents a hyperlink action on a shape or text run.
     """
+
     def __init__(self, xPr, parent, hover=False):
         super(Hyperlink, self).__init__(parent)
         # xPr is either a cNvPr or rPr element

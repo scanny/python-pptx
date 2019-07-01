@@ -2,9 +2,7 @@
 
 """ImagePart and related objects."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import hashlib
 import os
@@ -25,10 +23,9 @@ class ImagePart(Part):
     An image part, generally having a partname matching the regex
     ``ppt/media/image[1-9][0-9]*.*``.
     """
+
     def __init__(self, partname, content_type, blob, package, filename=None):
-        super(ImagePart, self).__init__(
-            partname, content_type, blob, package
-        )
+        super(ImagePart, self).__init__(partname, content_type, blob, package)
         self._filename = filename
 
     @classmethod
@@ -42,9 +39,7 @@ class ImagePart(Part):
         |Image| object.
         """
         partname = package.next_image_partname(image.ext)
-        return cls(
-            partname, image.content_type, image.blob, package, image.filename
-        )
+        return cls(partname, image.content_type, image.blob, package, image.filename)
 
     @property
     def desc(self):
@@ -57,7 +52,7 @@ class ImagePart(Part):
         """
         # return generic filename if original filename is unknown
         if self._filename is None:
-            return 'image.%s' % self.ext
+            return "image.%s" % self.ext
         return self._filename
 
     @property
@@ -145,6 +140,7 @@ class Image(object):
     """
     Immutable value object representing an image such as a JPEG, PNG, or GIF.
     """
+
     def __init__(self, blob, filename):
         super(Image, self).__init__()
         self._blob = blob
@@ -165,11 +161,14 @@ class Image(object):
         """
         if is_string(image_file):
             # treat image_file as a path
-            with open(image_file, 'rb') as f:
+            with open(image_file, "rb") as f:
                 blob = f.read()
             filename = os.path.basename(image_file)
         else:
             # assume image_file is a file-like object
+            # ---reposition file cursor if it has one---
+            if callable(getattr(image_file, "seek")):
+                image_file.seek(0)
             blob = image_file.read()
             filename = None
 
@@ -196,6 +195,7 @@ class Image(object):
         resolution of this image. A default value of (72, 72) is used if the
         dpi is not specified in the image file.
         """
+
         def int_dpi(dpi):
             """
             Return an integer dots-per-inch value corresponding to *dpi*. If
@@ -232,8 +232,12 @@ class Image(object):
         been used in its filename, if any.
         """
         ext_map = {
-            'BMP': 'bmp', 'GIF': 'gif', 'JPEG': 'jpg', 'PNG': 'png',
-            'TIFF': 'tiff', 'WMF': 'wmf'
+            "BMP": "bmp",
+            "GIF": "gif",
+            "JPEG": "jpg",
+            "PNG": "png",
+            "TIFF": "tiff",
+            "WMF": "wmf",
         }
         format = self._format
         if format not in ext_map:
@@ -282,6 +286,6 @@ class Image(object):
         pil_image = PIL_Image.open(stream)
         format = pil_image.format
         width_px, height_px = pil_image.size
-        dpi = pil_image.info.get('dpi')
+        dpi = pil_image.info.get("dpi")
         stream.close()
         return (format, (width_px, height_px), dpi)

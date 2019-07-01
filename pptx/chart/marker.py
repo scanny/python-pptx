@@ -5,9 +5,7 @@ Marker-related objects. Only the line-type charts Line, XY, and Radar have
 markers.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ..dml.chtfmt import ChartFormat
 from ..shared import ElementProxy
@@ -20,7 +18,7 @@ class Marker(ElementProxy):
     a line-type chart.
     """
 
-    __slots__ = ('_format',)
+    __slots__ = ("_format",)
 
     @lazyproperty
     def format(self):

@@ -15,14 +15,20 @@ class CT_Legend(BaseOxmlElement):
     """
     ``<c:legend>`` custom element class
     """
+
     _tag_seq = (
-        'c:legendPos', 'c:legendEntry', 'c:layout', 'c:overlay', 'c:spPr',
-        'c:txPr', 'c:extLst'
+        "c:legendPos",
+        "c:legendEntry",
+        "c:layout",
+        "c:overlay",
+        "c:spPr",
+        "c:txPr",
+        "c:extLst",
     )
-    legendPos = ZeroOrOne('c:legendPos', successors=_tag_seq[1:])
-    layout = ZeroOrOne('c:layout', successors=_tag_seq[3:])
-    overlay = ZeroOrOne('c:overlay', successors=_tag_seq[4:])
-    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[6:])
+    legendPos = ZeroOrOne("c:legendPos", successors=_tag_seq[1:])
+    layout = ZeroOrOne("c:layout", successors=_tag_seq[3:])
+    overlay = ZeroOrOne("c:overlay", successors=_tag_seq[4:])
+    txPr = ZeroOrOne("c:txPr", successors=_tag_seq[6:])
     del _tag_seq
 
     @property
@@ -66,6 +72,5 @@ class CT_LegendPos(BaseOxmlElement):
     ``<c:legendPos>`` element specifying position of legend with respect to
     chart as a member of ST_LegendPos.
     """
-    val = OptionalAttribute(
-        'val', XL_LEGEND_POSITION, default=XL_LEGEND_POSITION.RIGHT
-    )
+
+    val = OptionalAttribute("val", XL_LEGEND_POSITION, default=XL_LEGEND_POSITION.RIGHT)

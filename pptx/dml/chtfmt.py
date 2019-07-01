@@ -6,9 +6,7 @@ element, which provides visual shape properties such as line and fill for
 chart elements.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .fill import FillFormat
 from .line import LineFormat
@@ -25,7 +23,7 @@ class ChartFormat(ElementProxy):
     provided by the :attr:`format` property on the target axis, series, etc.
     """
 
-    __slots__ = ('_fill', '_line')
+    __slots__ = ("_fill", "_line")
 
     @lazyproperty
     def fill(self):

@@ -17,6 +17,7 @@ class _BaseWorkbookWriter(object):
     """
     Base class for workbook writers, providing shared members.
     """
+
     def __init__(self, chart_data):
         super(_BaseWorkbookWriter, self).__init__()
         self._chart_data = chart_data
@@ -40,7 +41,7 @@ class _BaseWorkbookWriter(object):
         stream object (such as a ``BytesIO`` instance) is expected as
         *xlsx_file*.
         """
-        workbook = Workbook(xlsx_file, {'in_memory': True})
+        workbook = Workbook(xlsx_file, {"in_memory": True})
         worksheet = workbook.add_worksheet()
         yield workbook, worksheet
         workbook.close()
@@ -50,7 +51,7 @@ class _BaseWorkbookWriter(object):
         Must be overridden by each subclass to provide the particulars of
         writing the spreadsheet data.
         """
-        raise NotImplementedError('must be provided by each subclass')
+        raise NotImplementedError("must be provided by each subclass")
 
 
 class CategoryWorkbookWriter(_BaseWorkbookWriter):
@@ -59,6 +60,7 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
     a CategoryChartData object. Serves as the authority for Excel worksheet
     ranges.
     """
+
     @property
     def categories_ref(self):
         """
@@ -67,8 +69,8 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         """
         categories = self._chart_data.categories
         if categories.depth == 0:
-            raise ValueError('chart data contains no categories')
-        right_col = chr(ord('A') + categories.depth - 1)
+            raise ValueError("chart data contains no categories")
+        right_col = chr(ord("A") + categories.depth - 1)
         bottom_row = categories.leaf_count + 1
         return "Sheet1!$A$2:$%s$%d" % (right_col, bottom_row)
 
@@ -85,10 +87,12 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         The Excel worksheet reference to the values for this series (not
         including the column heading).
         """
-        return 'Sheet1!${col_letter}$2:${col_letter}${bottom_row}'.format(**{
-            'col_letter': self._series_col_letter(series),
-            'bottom_row': len(series)+1
-        })
+        return "Sheet1!${col_letter}$2:${col_letter}${bottom_row}".format(
+            **{
+                "col_letter": self._series_col_letter(series),
+                "bottom_row": len(series) + 1,
+            }
+        )
 
     @staticmethod
     def _column_reference(column_number):
@@ -98,19 +102,19 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         1 maps to column 'A'.
         """
         if column_number < 1 or column_number > 16384:
-            raise ValueError('column_number must be in range 1-16384')
+            raise ValueError("column_number must be in range 1-16384")
 
         # ---Work right-to-left, one order of magnitude at a time. Note there
         #    is no zero representation in Excel address scheme, so this is
         #    not just a conversion to base-26---
 
-        col_ref = ''
+        col_ref = ""
         while column_number:
             remainder = column_number % 26
             if remainder == 0:
                 remainder = 26
 
-            col_letter = chr(ord('A') + remainder - 1)
+            col_letter = chr(ord("A") + remainder - 1)
             col_ref = col_letter + col_ref
 
             # ---Advance to next order of magnitude or terminate loop. The
@@ -151,9 +155,7 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         `General`.
         """
         categories = self._chart_data.categories
-        num_format = workbook.add_format({
-            'num_format': categories.number_format,
-        })
+        num_format = workbook.add_format({"num_format": categories.number_format})
         depth = categories.depth
         for idx, level in enumerate(categories.levels):
             col = depth - idx - 1
@@ -177,9 +179,7 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         """
         col_offset = self._chart_data.categories.depth
         for idx, series in enumerate(self._chart_data):
-            num_format = (
-                workbook.add_format({'num_format': series.number_format})
-            )
+            num_format = workbook.add_format({"num_format": series.number_format})
             series_col = idx + col_offset
             worksheet.write(0, series_col, series.name)
             worksheet.write_column(1, series_col, series.values, num_format)
@@ -190,6 +190,7 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
     Determines Excel worksheet layout and can write an Excel workbook from XY
     chart data. Serves as the authority for Excel worksheet ranges.
     """
+
     def series_name_ref(self, series):
         """
         Return the Excel worksheet reference to the cell containing the name
@@ -197,7 +198,7 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
         Y values.
         """
         row = self.series_table_row_offset(series) + 1
-        return 'Sheet1!$B$%d' % row
+        return "Sheet1!$B$%d" % row
 
     def series_table_row_offset(self, series):
         """
@@ -234,22 +235,18 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
         series label in the first (heading) cell of the column.
         """
         chart_num_format = workbook.add_format(
-            {'num_format': self._chart_data.number_format}
+            {"num_format": self._chart_data.number_format}
         )
         for series in self._chart_data:
-            series_num_format = (
-                workbook.add_format({'num_format': series.number_format})
+            series_num_format = workbook.add_format(
+                {"num_format": series.number_format}
             )
             offset = self.series_table_row_offset(series)
             # write X values
-            worksheet.write_column(
-                offset+1, 0, series.x_values, chart_num_format
-            )
+            worksheet.write_column(offset + 1, 0, series.x_values, chart_num_format)
             # write Y values
             worksheet.write(offset, 1, series.name)
-            worksheet.write_column(
-                offset+1, 1, series.y_values, series_num_format
-            )
+            worksheet.write_column(offset + 1, 1, series.y_values, series_num_format)
 
 
 class BubbleWorkbookWriter(XyWorkbookWriter):
@@ -257,6 +254,7 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
     Service object that knows how to write an Excel workbook from bubble
     chart data.
     """
+
     def bubble_sizes_ref(self, series):
         """
         The Excel worksheet reference to the range containing the bubble
@@ -275,24 +273,18 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
         values column.
         """
         chart_num_format = workbook.add_format(
-            {'num_format': self._chart_data.number_format}
+            {"num_format": self._chart_data.number_format}
         )
         for series in self._chart_data:
-            series_num_format = (
-                workbook.add_format({'num_format': series.number_format})
+            series_num_format = workbook.add_format(
+                {"num_format": series.number_format}
             )
             offset = self.series_table_row_offset(series)
             # write X values
-            worksheet.write_column(
-                offset+1, 0, series.x_values, chart_num_format
-            )
+            worksheet.write_column(offset + 1, 0, series.x_values, chart_num_format)
             # write Y values
             worksheet.write(offset, 1, series.name)
-            worksheet.write_column(
-                offset+1, 1, series.y_values, series_num_format
-            )
+            worksheet.write_column(offset + 1, 1, series.y_values, series_num_format)
             # write bubble sizes
-            worksheet.write(offset, 2, 'Size')
-            worksheet.write_column(
-                offset+1, 2, series.bubble_sizes, chart_num_format
-            )
+            worksheet.write(offset, 2, "Size")
+            worksheet.write_column(offset + 1, 2, series.bubble_sizes, chart_num_format)

@@ -13,7 +13,7 @@ from pptx.oxml import oxml_parser
 
 
 _thisdir = os.path.split(__file__)[0]
-test_file_dir = os.path.abspath(os.path.join(_thisdir, '..', 'test_files'))
+test_file_dir = os.path.abspath(os.path.join(_thisdir, "..", "test_files"))
 
 
 def abspath(relpath):
@@ -29,7 +29,7 @@ def docx_path(name):
     """
     Return the absolute path to test .docx file with root name *name*.
     """
-    return absjoin(test_file_dir, '%s.docx' % name)
+    return absjoin(test_file_dir, "%s.docx" % name)
 
 
 def parse_xml_file(file_):
@@ -45,11 +45,11 @@ def snippet_seq(name, offset=0, count=sys.maxsize):
     file having *name*. Snippets are delimited by a blank line. If specified,
     *count* snippets starting at *offset* are returned.
     """
-    path = os.path.join(test_file_dir, 'snippets', '%s.txt' % name)
-    with open(path, 'rb') as f:
-        text = f.read().decode('utf-8')
-    snippets = text.split('\n\n')
-    start, end = offset, offset+count
+    path = os.path.join(test_file_dir, "snippets", "%s.txt" % name)
+    with open(path, "rb") as f:
+        text = f.read().decode("utf-8")
+    snippets = text.split("\n\n")
+    start, end = offset, offset + count
     return tuple(snippets[start:end])
 
 
@@ -59,11 +59,11 @@ def snippet_text(snippet_file_name):
     *snippet_file_name*.
     """
     snippet_file_path = os.path.join(
-        test_file_dir, 'snippets', '%s.txt' % snippet_file_name
+        test_file_dir, "snippets", "%s.txt" % snippet_file_name
     )
-    with open(snippet_file_path, 'rb') as f:
+    with open(snippet_file_path, "rb") as f:
         snippet_bytes = f.read()
-    return snippet_bytes.decode('utf-8')
+    return snippet_bytes.decode("utf-8")
 
 
 def testfile(name):

@@ -1,13 +1,10 @@
 language: python
 python:
-  - "3.4"
-  - "3.3"
+  - "3.6"
   - "2.7"
-  - "2.6"
 
 # ---command to install dependencies, e.g. pip install -r requirements.txt
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install importlib; fi
   - pip install -r requirements.txt
 
 # ---command to run tests, e.g. python setup.py test

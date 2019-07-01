@@ -10,20 +10,20 @@ from ...unitdata import BaseBuilder
 
 
 class CT_HslColorBuilder(BaseBuilder):
-    __tag__ = 'a:hslClr'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('hue', 'sat', 'lum')
+    __tag__ = "a:hslClr"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("hue", "sat", "lum")
 
 
 class CT_LinePropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:ln'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('w', 'cap', 'cmpd', 'algn')
+    __tag__ = "a:ln"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("w", "cap", "cmpd", "algn")
 
 
 class CT_PercentageBuilder(BaseBuilder):
-    __nspfxs__ = ('a',)
-    __attrs__ = ('val',)
+    __nspfxs__ = ("a",)
+    __attrs__ = ("val",)
 
     def __init__(self, tag):
         self.__tag__ = tag
@@ -31,47 +31,47 @@ class CT_PercentageBuilder(BaseBuilder):
 
 
 class CT_PresetColorBuilder(BaseBuilder):
-    __tag__ = 'a:prstClr'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('val',)
+    __tag__ = "a:prstClr"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("val",)
 
 
 class CT_SolidColorFillPropertiesBuilder(BaseBuilder):
-    __tag__ = 'a:solidFill'
-    __nspfxs__ = ('a',)
+    __tag__ = "a:solidFill"
+    __nspfxs__ = ("a",)
     __attrs__ = ()
 
 
 class CT_SchemeColorBuilder(BaseBuilder):
-    __tag__ = 'a:schemeClr'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('val',)
+    __tag__ = "a:schemeClr"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("val",)
 
 
 class CT_ScRgbColorBuilder(BaseBuilder):
-    __tag__ = 'a:scrgbClr'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('r', 'g', 'b')
+    __tag__ = "a:scrgbClr"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("r", "g", "b")
 
 
 class CT_SRgbColorBuilder(BaseBuilder):
-    __tag__ = 'a:srgbClr'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('val',)
+    __tag__ = "a:srgbClr"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("val",)
 
 
 class CT_SystemColorBuilder(BaseBuilder):
-    __tag__ = 'a:sysClr'
-    __nspfxs__ = ('a',)
-    __attrs__ = ('val', 'lastClr')
+    __tag__ = "a:sysClr"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("val", "lastClr")
 
 
 def a_lumMod():
-    return CT_PercentageBuilder('a:lumMod')
+    return CT_PercentageBuilder("a:lumMod")
 
 
 def a_lumOff():
-    return CT_PercentageBuilder('a:lumOff')
+    return CT_PercentageBuilder("a:lumOff")
 
 
 def a_prstClr():

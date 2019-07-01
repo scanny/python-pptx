@@ -7,9 +7,7 @@ a slide, layout, or master. Hence there is a non-trivial class inheritance
 structure.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .autoshape import Shape
 from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
@@ -29,6 +27,7 @@ class _InheritsDimensions(object):
     by all subclasses to provide lookup of the appropriate base placeholder
     to inherit from.
     """
+
     @property
     def height(self):
         """
@@ -36,7 +35,7 @@ class _InheritsDimensions(object):
         height if it has one, otherwise the height of its parent layout
         placeholder.
         """
-        return self._effective_value('height')
+        return self._effective_value("height")
 
     @height.setter
     def height(self, value):
@@ -49,7 +48,7 @@ class _InheritsDimensions(object):
         left if it has one, otherwise the left of its parent layout
         placeholder.
         """
-        return self._effective_value('left')
+        return self._effective_value("left")
 
     @left.setter
     def left(self, value):
@@ -71,7 +70,7 @@ class _InheritsDimensions(object):
         top if it has one, otherwise the top of its parent layout
         placeholder.
         """
-        return self._effective_value('top')
+        return self._effective_value("top")
 
     @top.setter
     def top(self, value):
@@ -84,7 +83,7 @@ class _InheritsDimensions(object):
         width if it has one, otherwise the width of its parent layout
         placeholder.
         """
-        return self._effective_value('width')
+        return self._effective_value("width")
 
     @width.setter
     def width(self, value):
@@ -97,7 +96,7 @@ class _InheritsDimensions(object):
         inherits from. Not to be confused with an instance of
         |BasePlaceholder| (necessarily).
         """
-        raise NotImplementedError('Must be implemented by all subclasses.')
+        raise NotImplementedError("Must be implemented by all subclasses.")
 
     def _effective_value(self, attr_name):
         """
@@ -105,9 +104,7 @@ class _InheritsDimensions(object):
         directly-applied value if it has one, otherwise the value on the
         layout placeholder it inherits from.
         """
-        directly_applied_value = getattr(
-            super(_InheritsDimensions, self), attr_name
-        )
+        directly_applied_value = getattr(super(_InheritsDimensions, self), attr_name)
         if directly_applied_value is not None:
             return directly_applied_value
         return self._inherited_value(attr_name)
@@ -129,6 +126,7 @@ class _BaseSlidePlaceholder(_InheritsDimensions, Shape):
     Base class for placeholders on slides. Provides common behaviors such as
     inherited dimensions.
     """
+
     @property
     def is_placeholder(self):
         """
@@ -181,6 +179,7 @@ class BasePlaceholder(Shape):
     Base class for placeholder subclasses that differentiate the varying
     behaviors of placeholders on a master, layout, and slide.
     """
+
     @property
     def idx(self):
         """
@@ -217,26 +216,27 @@ class LayoutPlaceholder(_InheritsDimensions, Shape):
     from the master placeholder having the same type, when a matching one
     exists.
     """
+
     @property
     def _base_placeholder(self):
         """
         Return the master placeholder this layout placeholder inherits from.
         """
         base_ph_type = {
-            PP_PLACEHOLDER.BODY:         PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.CHART:        PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.BITMAP:       PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.BODY: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.CHART: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.BITMAP: PP_PLACEHOLDER.BODY,
             PP_PLACEHOLDER.CENTER_TITLE: PP_PLACEHOLDER.TITLE,
-            PP_PLACEHOLDER.ORG_CHART:    PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.DATE:         PP_PLACEHOLDER.DATE,
-            PP_PLACEHOLDER.FOOTER:       PP_PLACEHOLDER.FOOTER,
-            PP_PLACEHOLDER.MEDIA_CLIP:   PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.OBJECT:       PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.PICTURE:      PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.ORG_CHART: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.DATE: PP_PLACEHOLDER.DATE,
+            PP_PLACEHOLDER.FOOTER: PP_PLACEHOLDER.FOOTER,
+            PP_PLACEHOLDER.MEDIA_CLIP: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.OBJECT: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.PICTURE: PP_PLACEHOLDER.BODY,
             PP_PLACEHOLDER.SLIDE_NUMBER: PP_PLACEHOLDER.SLIDE_NUMBER,
-            PP_PLACEHOLDER.SUBTITLE:     PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.TABLE:        PP_PLACEHOLDER.BODY,
-            PP_PLACEHOLDER.TITLE:        PP_PLACEHOLDER.TITLE,
+            PP_PLACEHOLDER.SUBTITLE: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.TABLE: PP_PLACEHOLDER.BODY,
+            PP_PLACEHOLDER.TITLE: PP_PLACEHOLDER.TITLE,
         }[self._element.ph_type]
         slide_master = self.part.slide_master
         return slide_master.placeholders.get(base_ph_type, None)
@@ -253,6 +253,7 @@ class NotesSlidePlaceholder(_InheritsDimensions, Shape):
     Placeholder shape on a notes slide. Inherits shape properties from the
     placeholder on the notes master that has the same type (e.g. 'body').
     """
+
     @property
     def _base_placeholder(self):
         """
@@ -276,6 +277,7 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a chart.
     """
+
     def insert_chart(self, chart_type, chart_data):
         """
         Return a |PlaceholderGraphicFrame| object containing a new chart of
@@ -310,7 +312,8 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
-    def insert_picture(self, image_file, crop=True):
+
+    def insert_picture(self, image_file):
         """
         Return a |PlaceholderPicture| object depicting the image in
         *image_file*, which may be either a path (string) or a file-like
@@ -320,30 +323,21 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
-        pic = self._new_placeholder_pic(image_file, crop=crop)
+        pic = self._new_placeholder_pic(image_file)
         self._replace_placeholder_with(pic)
         return PlaceholderPicture(pic, self._parent)
 
-    def _new_placeholder_pic(self, image_file, crop=True):
+    def _new_placeholder_pic(self, image_file):
         """
         Return a new `p:pic` element depicting the image in *image_file*,
         suitable for use as a placeholder. In particular this means not
         having an `a:xfrm` element, allowing its extents to be inherited from
         its layout placeholder.
         """
-
         rId, desc, image_size = self._get_or_add_image(image_file)
         shape_id, name = self.shape_id, self.name
-
         pic = CT_Picture.new_ph_pic(shape_id, name, desc, rId)
-
-        if crop:
-            pic.crop_to_fit(image_size, (self.width, self.height))
-
-        # Adjusting image to placeholder size and replace placeholder.
-        else:
-            pic.fit_no_crop(image_size, (self.width, self.height))
-
+        pic.crop_to_fit(image_size, (self.width, self.height))
         return pic
 
     def _get_or_add_image(self, image_file):
@@ -360,6 +354,7 @@ class PlaceholderGraphicFrame(GraphicFrame):
     """
     Placeholder shape populated with a table, chart, or smart art.
     """
+
     @property
     def is_placeholder(self):
         """
@@ -373,6 +368,7 @@ class PlaceholderPicture(_InheritsDimensions, Picture):
     """
     Placeholder shape populated with a picture.
     """
+
     @property
     def _base_placeholder(self):
         """
@@ -386,6 +382,7 @@ class TablePlaceholder(_BaseSlidePlaceholder):
     """
     Placeholder shape that can only accept a picture.
     """
+
     def insert_table(self, rows, cols):
         """
         Return a |PlaceholderGraphicFrame| object containing a table of
@@ -411,8 +408,7 @@ class TablePlaceholder(_BaseSlidePlaceholder):
         of this placeholder and having its same width. The table's height is
         determined by the number of rows.
         """
-        shape_id, name, height = self.shape_id, self.name, Emu(rows*370840)
+        shape_id, name, height = self.shape_id, self.name, Emu(rows * 370840)
         return CT_GraphicalObjectFrame.new_table_graphicFrame(
-            shape_id, name, rows, cols, self.left, self.top, self.width,
-            height
+            shape_id, name, rows, cols, self.left, self.top, self.width, height
         )

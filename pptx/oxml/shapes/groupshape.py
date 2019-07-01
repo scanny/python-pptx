@@ -2,9 +2,7 @@
 
 """lxml custom element classes for shape-tree-related XML elements."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.enum.shapes import MSO_CONNECTOR_TYPE
 from pptx.oxml import parse_xml
@@ -23,12 +21,17 @@ class CT_GroupShape(BaseShapeElement):
     Used for the shape tree (``<p:spTree>``) element as well as the group
     shape (``<p:grpSp>``) element.
     """
-    nvGrpSpPr = OneAndOnlyOne('p:nvGrpSpPr')
-    grpSpPr = OneAndOnlyOne('p:grpSpPr')
+
+    nvGrpSpPr = OneAndOnlyOne("p:nvGrpSpPr")
+    grpSpPr = OneAndOnlyOne("p:grpSpPr")
 
     _shape_tags = (
-        qn('p:sp'), qn('p:grpSp'), qn('p:graphicFrame'), qn('p:cxnSp'),
-        qn('p:pic'), qn('p:contentPart')
+        qn("p:sp"),
+        qn("p:grpSp"),
+        qn("p:graphicFrame"),
+        qn("p:cxnSp"),
+        qn("p:pic"),
+        qn("p:contentPart"),
     )
 
     def add_autoshape(self, id_, name, prst, x, y, cx, cy):
@@ -37,7 +40,7 @@ class CT_GroupShape(BaseShapeElement):
         properties specified in call.
         """
         sp = CT_Shape.new_autoshape_sp(id_, name, prst, x, y, cx, cy)
-        self.insert_element_before(sp, 'p:extLst')
+        self.insert_element_before(sp, "p:extLst")
         return sp
 
     def add_cxnSp(self, id_, name, type_member, x, y, cx, cy, flipH, flipV):
@@ -46,18 +49,16 @@ class CT_GroupShape(BaseShapeElement):
         properties specified in call.
         """
         prst = MSO_CONNECTOR_TYPE.to_xml(type_member)
-        cxnSp = CT_Connector.new_cxnSp(
-            id_, name, prst, x, y, cx, cy, flipH, flipV
-        )
-        self.insert_element_before(cxnSp, 'p:extLst')
+        cxnSp = CT_Connector.new_cxnSp(id_, name, prst, x, y, cx, cy, flipH, flipV)
+        self.insert_element_before(cxnSp, "p:extLst")
         return cxnSp
 
     def add_freeform_sp(self, x, y, cx, cy):
         """Append a new freeform `p:sp` with specified position and size."""
         shape_id = self._next_shape_id
-        name = 'Freeform %d' % (shape_id-1,)
+        name = "Freeform %d" % (shape_id - 1,)
         sp = CT_Shape.new_freeform_sp(shape_id, name, x, y, cx, cy)
-        self.insert_element_before(sp, 'p:extLst')
+        self.insert_element_before(sp, "p:extLst")
         return sp
 
     def add_grpSp(self):
@@ -67,9 +68,9 @@ class CT_GroupShape(BaseShapeElement):
         width and height of zero.
         """
         shape_id = self._next_shape_id
-        name = 'Group %d' % (shape_id-1,)
+        name = "Group %d" % (shape_id - 1,)
         grpSp = CT_GroupShape.new_grpSp(shape_id, name)
-        self.insert_element_before(grpSp, 'p:extLst')
+        self.insert_element_before(grpSp, "p:extLst")
         return grpSp
 
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
@@ -78,7 +79,7 @@ class CT_GroupShape(BaseShapeElement):
         as specified in call.
         """
         pic = CT_Picture.new_pic(id_, name, desc, rId, x, y, cx, cy)
-        self.insert_element_before(pic, 'p:extLst')
+        self.insert_element_before(pic, "p:extLst")
         return pic
 
     def add_placeholder(self, id_, name, ph_type, orient, sz, idx):
@@ -86,10 +87,8 @@ class CT_GroupShape(BaseShapeElement):
         Append a newly-created placeholder ``<p:sp>`` shape having the
         specified placeholder properties.
         """
-        sp = CT_Shape.new_placeholder_sp(
-            id_, name, ph_type, orient, sz, idx
-        )
-        self.insert_element_before(sp, 'p:extLst')
+        sp = CT_Shape.new_placeholder_sp(id_, name, ph_type, orient, sz, idx)
+        self.insert_element_before(sp, "p:extLst")
         return sp
 
     def add_table(self, id_, name, rows, cols, x, y, cx, cy):
@@ -100,7 +99,7 @@ class CT_GroupShape(BaseShapeElement):
         graphicFrame = CT_GraphicalObjectFrame.new_table_graphicFrame(
             id_, name, rows, cols, x, y, cx, cy
         )
-        self.insert_element_before(graphicFrame, 'p:extLst')
+        self.insert_element_before(graphicFrame, "p:extLst")
         return graphicFrame
 
     def add_textbox(self, id_, name, x, y, cx, cy):
@@ -109,7 +108,7 @@ class CT_GroupShape(BaseShapeElement):
         position and size.
         """
         sp = CT_Shape.new_textbox_sp(id_, name, x, y, cx, cy)
-        self.insert_element_before(sp, 'p:extLst')
+        self.insert_element_before(sp, "p:extLst")
         return sp
 
     @property
@@ -146,25 +145,40 @@ class CT_GroupShape(BaseShapeElement):
             if elm.tag in self._shape_tags:
                 yield elm
 
+    @property
+    def max_shape_id(self):
+        """Maximum int value assigned as @id in this slide.
+
+        This is generally a shape-id, but ids can be assigned to other
+        objects so we just check all @id values anywhere in the document
+        (XML id-values have document scope).
+
+        In practice, its minimum value is 1 because the spTree element itself
+        is always assigned id="1".
+        """
+        id_str_lst = self.xpath("//@id")
+        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
+        return max(used_ids) if used_ids else 0
+
     @classmethod
     def new_grpSp(cls, id_, name):
         """Return new "loose" `p:grpSp` element having *id_* and *name*."""
         xml = (
-            '<p:grpSp %s>\n'
-            '  <p:nvGrpSpPr>\n'
+            "<p:grpSp %s>\n"
+            "  <p:nvGrpSpPr>\n"
             '    <p:cNvPr id="%%d" name="%%s"/>\n'
-            '    <p:cNvGrpSpPr/>\n'
-            '    <p:nvPr/>\n'
-            '  </p:nvGrpSpPr>\n'
-            '  <p:grpSpPr>\n'
-            '    <a:xfrm>\n'
+            "    <p:cNvGrpSpPr/>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvGrpSpPr>\n"
+            "  <p:grpSpPr>\n"
+            "    <a:xfrm>\n"
             '      <a:off x="0" y="0"/>\n'
             '      <a:ext cx="0" cy="0"/>\n'
             '      <a:chOff x="0" y="0"/>\n'
             '      <a:chExt cx="0" cy="0"/>\n'
-            '    </a:xfrm>\n'
-            '  </p:grpSpPr>\n'
-            '</p:grpSp>' % nsdecls('a', 'p', 'r')
+            "    </a:xfrm>\n"
+            "  </p:grpSpPr>\n"
+            "</p:grpSp>" % nsdecls("a", "p", "r")
         ) % (id_, name)
         grpSp = parse_xml(xml)
         return grpSp
@@ -178,7 +192,7 @@ class CT_GroupShape(BaseShapeElement):
         This method is recursive "upwards" since a change in a group shape
         can change the position and size of its containing group.
         """
-        if not self.tag == qn('p:grpSp'):
+        if not self.tag == qn("p:grpSp"):
             return
 
         x, y, cx, cy = self._child_extents
@@ -228,9 +242,9 @@ class CT_GroupShape(BaseShapeElement):
         numbering. In practice, the minimum id is 2 because the spTree
         element itself is always assigned id="1".
         """
-        id_str_lst = self.xpath('//@id')
+        id_str_lst = self.xpath("//@id")
         used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
-        for n in range(1, len(used_ids)+2):
+        for n in range(1, len(used_ids) + 2):
             if n not in used_ids:
                 return n
 
@@ -239,16 +253,26 @@ class CT_GroupShapeNonVisual(BaseShapeElement):
     """
     ``<p:nvGrpSpPr>`` element.
     """
-    cNvPr = OneAndOnlyOne('p:cNvPr')
+
+    cNvPr = OneAndOnlyOne("p:cNvPr")
 
 
 class CT_GroupShapeProperties(BaseOxmlElement):
     """p:grpSpPr element """
+
     _tag_seq = (
-        'a:xfrm', 'a:noFill', 'a:solidFill', 'a:gradFill', 'a:blipFill',
-        'a:pattFill', 'a:grpFill', 'a:effectLst', 'a:effectDag', 'a:scene3d',
-        'a:extLst',
+        "a:xfrm",
+        "a:noFill",
+        "a:solidFill",
+        "a:gradFill",
+        "a:blipFill",
+        "a:pattFill",
+        "a:grpFill",
+        "a:effectLst",
+        "a:effectDag",
+        "a:scene3d",
+        "a:extLst",
     )
-    xfrm = ZeroOrOne('a:xfrm', successors=_tag_seq[1:])
-    effectLst = ZeroOrOne('a:effectLst', successors=_tag_seq[8:])
+    xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
+    effectLst = ZeroOrOne("a:effectLst", successors=_tag_seq[8:])
     del _tag_seq

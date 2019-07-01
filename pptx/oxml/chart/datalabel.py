@@ -1,19 +1,19 @@
 # encoding: utf-8
 
-"""
-Data label-related oxml objects.
-"""
+"""Chart data-label related oxml objects."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .. import parse_xml
-from ...enum.chart import XL_DATA_LABEL_POSITION
-from ..ns import nsdecls
-from ..text import CT_TextBody
-from ..xmlchemy import (
-    BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrMore, ZeroOrOne
+from pptx.enum.chart import XL_DATA_LABEL_POSITION
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.text import CT_TextBody
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
 )
 
 
@@ -22,17 +22,29 @@ class CT_DLbl(BaseOxmlElement):
     ``<c:dLbl>`` element specifying the properties of the data label for an
     individual data point.
     """
+
     _tag_seq = (
-        'c:idx', 'c:layout', 'c:tx', 'c:numFmt', 'c:spPr', 'c:txPr',
-        'c:dLblPos', 'c:showLegendKey', 'c:showVal', 'c:showCatName',
-        'c:showSerName', 'c:showPercent', 'c:showBubbleSize', 'c:separator',
-        'c:extLst',
+        "c:idx",
+        "c:layout",
+        "c:tx",
+        "c:numFmt",
+        "c:spPr",
+        "c:txPr",
+        "c:dLblPos",
+        "c:showLegendKey",
+        "c:showVal",
+        "c:showCatName",
+        "c:showSerName",
+        "c:showPercent",
+        "c:showBubbleSize",
+        "c:separator",
+        "c:extLst",
     )
-    idx = OneAndOnlyOne('c:idx')
-    tx = ZeroOrOne('c:tx', successors=_tag_seq[3:])
-    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[5:])
-    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[6:])
-    dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[7:])
+    idx = OneAndOnlyOne("c:idx")
+    tx = ZeroOrOne("c:tx", successors=_tag_seq[3:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[5:])
+    txPr = ZeroOrOne("c:txPr", successors=_tag_seq[6:])
+    dLblPos = ZeroOrOne("c:dLblPos", successors=_tag_seq[7:])
     del _tag_seq
 
     def get_or_add_rich(self):
@@ -73,32 +85,32 @@ class CT_DLbl(BaseOxmlElement):
         changes not being visible and may result in a repair error on open.
         """
         return parse_xml(
-            '<c:dLbl %s>\n'
+            "<c:dLbl %s>\n"
             '  <c:idx val="666"/>\n'
-            '  <c:spPr/>\n'
-            '  <c:txPr>\n'
-            '    <a:bodyPr/>\n'
-            '    <a:lstStyle/>\n'
-            '    <a:p>\n'
-            '      <a:pPr>\n'
-            '        <a:defRPr/>\n'
-            '      </a:pPr>\n'
-            '    </a:p>\n'
-            '  </c:txPr>\n'
+            "  <c:spPr/>\n"
+            "  <c:txPr>\n"
+            "    <a:bodyPr/>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
+            "      <a:pPr>\n"
+            "        <a:defRPr/>\n"
+            "      </a:pPr>\n"
+            "    </a:p>\n"
+            "  </c:txPr>\n"
             '  <c:showLegendKey val="0"/>\n'
             '  <c:showVal val="1"/>\n'
             '  <c:showCatName val="0"/>\n'
             '  <c:showSerName val="0"/>\n'
             '  <c:showPercent val="0"/>\n'
             '  <c:showBubbleSize val="0"/>\n'
-            '</c:dLbl>' % nsdecls('c', 'a')
+            "</c:dLbl>" % nsdecls("c", "a")
         )
 
     def remove_tx_rich(self):
         """
         Remove any `c:tx[c:rich]` child, or do nothing if not present.
         """
-        matches = self.xpath('c:tx[c:rich]')
+        matches = self.xpath("c:tx[c:rich]")
         if not matches:
             return
         tx = matches[0]
@@ -113,24 +125,39 @@ class CT_DLblPos(BaseOxmlElement):
     ``<c:dLblPos>`` element specifying the positioning of a data label with
     respect to its data point.
     """
-    val = RequiredAttribute('val', XL_DATA_LABEL_POSITION)
+
+    val = RequiredAttribute("val", XL_DATA_LABEL_POSITION)
 
 
 class CT_DLbls(BaseOxmlElement):
-    """
-    ``<c:dLbls>`` element specifying the properties of a set of data labels.
-    """
+    """`c:dLbls` element specifying properties for a set of data labels."""
+
     _tag_seq = (
-        'c:dLbl', 'c:numFmt', 'c:spPr', 'c:txPr', 'c:dLblPos',
-        'c:showLegendKey', 'c:showVal', 'c:showCatName', 'c:showSerName',
-        'c:showPercent', 'c:showBubbleSize', 'c:separator',
-        'c:showLeaderLines', 'c:leaderLines', 'c:extLst'
+        "c:dLbl",
+        "c:numFmt",
+        "c:spPr",
+        "c:txPr",
+        "c:dLblPos",
+        "c:showLegendKey",
+        "c:showVal",
+        "c:showCatName",
+        "c:showSerName",
+        "c:showPercent",
+        "c:showBubbleSize",
+        "c:separator",
+        "c:showLeaderLines",
+        "c:leaderLines",
+        "c:extLst",
     )
-    dLbl = ZeroOrMore('c:dLbl', successors=_tag_seq[1:])
-    numFmt = ZeroOrOne('c:numFmt', successors=_tag_seq[2:])
-    txPr = ZeroOrOne('c:txPr', successors=_tag_seq[4:])
-    dLblPos = ZeroOrOne('c:dLblPos', successors=_tag_seq[5:])
-    showVal = ZeroOrOne('c:showVal', successors=_tag_seq[7:])
+    dLbl = ZeroOrMore("c:dLbl", successors=_tag_seq[1:])
+    numFmt = ZeroOrOne("c:numFmt", successors=_tag_seq[2:])
+    txPr = ZeroOrOne("c:txPr", successors=_tag_seq[4:])
+    dLblPos = ZeroOrOne("c:dLblPos", successors=_tag_seq[5:])
+    showLegendKey = ZeroOrOne("c:showLegendKey", successors=_tag_seq[6:])
+    showVal = ZeroOrOne("c:showVal", successors=_tag_seq[7:])
+    showCatName = ZeroOrOne("c:showCatName", successors=_tag_seq[8:])
+    showSerName = ZeroOrOne("c:showSerName", successors=_tag_seq[9:])
+    showPercent = ZeroOrOne("c:showPercent", successors=_tag_seq[10:])
     del _tag_seq
 
     @property
@@ -167,14 +194,15 @@ class CT_DLbls(BaseOxmlElement):
     def new_dLbls(cls):
         """Return a newly created "loose" `c:dLbls` element."""
         return parse_xml(
-            '<c:dLbls %s>\n'
+            "<c:dLbls %s>\n"
             '  <c:showLegendKey val="0"/>\n'
             '  <c:showVal val="0"/>\n'
             '  <c:showCatName val="0"/>\n'
             '  <c:showSerName val="0"/>\n'
             '  <c:showPercent val="0"/>\n'
             '  <c:showBubbleSize val="0"/>\n'
-            '</c:dLbls>' % nsdecls('c')
+            '  <c:showLeaderLines val="1"/>\n'
+            "</c:dLbls>" % nsdecls("c")
         )
 
     def _insert_dLbl_in_sequence(self, idx):
@@ -199,6 +227,28 @@ class CT_DLbls(BaseOxmlElement):
 
     def _new_dLbl(self):
         return CT_DLbl.new_dLbl()
+
+    def _new_showCatName(self):
+        """Return a new `c:showCatName` with value initialized.
+
+        This method is called by the metaclass-generated code whenever a new
+        `c:showCatName` element is required. In this case, it defaults to
+        `val=true`, which is not what we need so we override to make val
+        explicitly False.
+        """
+        return parse_xml('<c:showCatName %s val="0"/>' % nsdecls("c"))
+
+    def _new_showLegendKey(self):
+        return parse_xml('<c:showLegendKey %s val="0"/>' % nsdecls("c"))
+
+    def _new_showPercent(self):
+        return parse_xml('<c:showPercent %s val="0"/>' % nsdecls("c"))
+
+    def _new_showSerName(self):
+        return parse_xml('<c:showSerName %s val="0"/>' % nsdecls("c"))
+
+    def _new_showVal(self):
+        return parse_xml('<c:showVal %s val="0"/>' % nsdecls("c"))
 
     def _new_txPr(self):
         return CT_TextBody.new_txPr()

@@ -8,26 +8,26 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import pytest
 
-from pptx.text.layout import (
-    _BinarySearchTree, _Line, _LineSource, TextFitter
-)
+from pptx.text.layout import _BinarySearchTree, _Line, _LineSource, TextFitter
 
 from ..unitutil.mock import (
-    call, class_mock, function_mock, initializer_mock, instance_mock,
-    method_mock, property_mock
+    call,
+    class_mock,
+    function_mock,
+    initializer_mock,
+    instance_mock,
+    method_mock,
+    property_mock,
 )
 
 
 class DescribeTextFitter(object):
-
     def it_can_determine_the_best_fit_font_size(self, best_fit_fixture):
         text, extents, max_size, font_file = best_fit_fixture[:4]
         _LineSource_, _init_, line_source_ = best_fit_fixture[4:7]
         _best_fit_font_size_, font_size_ = best_fit_fixture[7:]
 
-        font_size = TextFitter.best_fit_font_size(
-            text, extents, max_size, font_file
-        )
+        font_size = TextFitter.best_fit_font_size(text, extents, max_size, font_file)
 
         _LineSource_.assert_called_once_with(text)
         _init_.assert_called_once_with(line_source_, extents, font_file)
@@ -41,7 +41,7 @@ class DescribeTextFitter(object):
         font_size = text_fitter._best_fit_font_size(max_size)
 
         _BinarySearchTree_.from_ordered_sequence.assert_called_once_with(
-            range(1, max_size+1)
+            range(1, max_size + 1)
         )
         sizes_.find_max.assert_called_once_with(predicate_)
         assert font_size is font_size_
@@ -57,7 +57,7 @@ class DescribeTextFitter(object):
             text_fitter._line_source, point_size
         )
         _rendered_size_.assert_called_once_with(
-            'Ty', point_size, text_fitter._font_file
+            "Ty", point_size, text_fitter._font_file
         )
         assert result is expected_bool_value
 
@@ -80,7 +80,7 @@ class DescribeTextFitter(object):
 
         assert text_fitter._break_line.call_args_list == [
             call(line_source, point_size),
-            call(remainder, point_size)
+            call(remainder, point_size),
         ]
 
     def it_breaks_off_a_line_to_help_wrap(self, break_fixture):
@@ -90,12 +90,8 @@ class DescribeTextFitter(object):
 
         value = text_fitter._break_line(line_source_, point_size)
 
-        _BinarySearchTree_.from_ordered_sequence.assert_called_once_with(
-            line_source_
-        )
-        text_fitter._fits_in_width_predicate.assert_called_once_with(
-            point_size
-        )
+        _BinarySearchTree_.from_ordered_sequence.assert_called_once_with(line_source_)
+        text_fitter._fits_in_width_predicate.assert_called_once_with(point_size)
         bst_.find_max.assert_called_once_with(predicate_)
         assert value is max_value_
 
@@ -103,13 +99,20 @@ class DescribeTextFitter(object):
 
     @pytest.fixture
     def best_fit_fixture(self, _LineSource_, _init_, _best_fit_font_size_):
-        text, extents, max_size = 'Foobar', (19, 20), 42
-        font_file = 'foobar.ttf'
+        text, extents, max_size = "Foobar", (19, 20), 42
+        font_file = "foobar.ttf"
         line_source_ = _LineSource_.return_value
         font_size_ = _best_fit_font_size_.return_value
         return (
-            text, extents, max_size, font_file, _LineSource_,
-            _init_, line_source_, _best_fit_font_size_, font_size_
+            text,
+            extents,
+            max_size,
+            font_file,
+            _LineSource_,
+            _init_,
+            line_source_,
+            _best_fit_font_size_,
+            font_size_,
         )
 
     @pytest.fixture
@@ -120,43 +123,51 @@ class DescribeTextFitter(object):
         predicate_ = _fits_inside_predicate_.return_value
         font_size_ = sizes_.find_max.return_value
         return (
-            text_fitter, max_size, _BinarySearchTree_, sizes_, predicate_,
-            font_size_
+            text_fitter,
+            max_size,
+            _BinarySearchTree_,
+            sizes_,
+            predicate_,
+            font_size_,
         )
 
     @pytest.fixture
     def break_fixture(
-            self, line_source_, _BinarySearchTree_, bst_,
-            _fits_in_width_predicate_):
+        self, line_source_, _BinarySearchTree_, bst_, _fits_in_width_predicate_
+    ):
         text_fitter = TextFitter(None, (None, None), None)
         point_size = 21
         _BinarySearchTree_.from_ordered_sequence.return_value = bst_
         predicate_ = _fits_in_width_predicate_.return_value
         max_value_ = bst_.find_max.return_value
         return (
-            text_fitter, line_source_, point_size, _BinarySearchTree_, bst_,
-            predicate_, max_value_
+            text_fitter,
+            line_source_,
+            point_size,
+            _BinarySearchTree_,
+            bst_,
+            predicate_,
+            max_value_,
         )
 
     @pytest.fixture(params=[(49, True), (50, True), (51, False)])
     def fits_cx_pred_fixture(self, request, _rendered_size_):
         rendered_width, expected_value = request.param
-        text_fitter = TextFitter(None, (50, None), 'foobar.ttf')
-        point_size, line = 12, _Line('foobar', None)
+        text_fitter = TextFitter(None, (50, None), "foobar.ttf")
+        point_size, line = 12, _Line("foobar", None)
         _rendered_size_.return_value = (rendered_width, None)
-        return (
-            text_fitter, point_size, line, _rendered_size_, expected_value
-        )
+        return (text_fitter, point_size, line, _rendered_size_, expected_value)
 
-    @pytest.fixture(params=[
-        ((66,  99), 6, ('foo', 'bar'), False),
-        ((66, 100), 6, ('foo', 'bar'), True),
-        ((66, 101), 6, ('foo', 'bar'), True),
-    ])
-    def fits_pred_fixture(
-            self, request, line_source_, _wrap_lines_, _rendered_size_):
+    @pytest.fixture(
+        params=[
+            ((66, 99), 6, ("foo", "bar"), False),
+            ((66, 100), 6, ("foo", "bar"), True),
+            ((66, 101), 6, ("foo", "bar"), True),
+        ]
+    )
+    def fits_pred_fixture(self, request, line_source_, _wrap_lines_, _rendered_size_):
         extents, point_size, text_lines, expected_value = request.param
-        text_fitter = TextFitter(line_source_, extents, 'foobar.ttf')
+        text_fitter = TextFitter(line_source_, extents, "foobar.ttf")
         _wrap_lines_.return_value = text_lines
         _rendered_size_.return_value = (None, 50)
         return text_fitter, point_size, _rendered_size_, expected_value
@@ -165,26 +176,23 @@ class DescribeTextFitter(object):
     def wrap_fixture(self, _break_line_):
         text_fitter = TextFitter(None, (None, None), None)
         point_size = 21
-        line_source, remainder = _LineSource('foo bar'), _LineSource('bar')
-        _break_line_.side_effect = [
-            ('foo', remainder),
-            ('bar', _LineSource('')),
-        ]
+        line_source, remainder = _LineSource("foo bar"), _LineSource("bar")
+        _break_line_.side_effect = [("foo", remainder), ("bar", _LineSource(""))]
         return text_fitter, line_source, point_size, remainder
 
     # fixture components -----------------------------------
 
     @pytest.fixture
     def _best_fit_font_size_(self, request):
-        return method_mock(request, TextFitter, '_best_fit_font_size')
+        return method_mock(request, TextFitter, "_best_fit_font_size")
 
     @pytest.fixture
     def _BinarySearchTree_(self, request):
-        return class_mock(request, 'pptx.text.layout._BinarySearchTree')
+        return class_mock(request, "pptx.text.layout._BinarySearchTree")
 
     @pytest.fixture
     def _break_line_(self, request):
-        return method_mock(request, TextFitter, '_break_line')
+        return method_mock(request, TextFitter, "_break_line")
 
     @pytest.fixture
     def bst_(self, request):
@@ -192,11 +200,11 @@ class DescribeTextFitter(object):
 
     @pytest.fixture
     def _fits_in_width_predicate_(self, request):
-        return method_mock(request, TextFitter, '_fits_in_width_predicate')
+        return method_mock(request, TextFitter, "_fits_in_width_predicate")
 
     @pytest.fixture
     def _fits_inside_predicate_(self, request):
-        return property_mock(request, TextFitter, '_fits_inside_predicate')
+        return property_mock(request, TextFitter, "_fits_inside_predicate")
 
     @pytest.fixture
     def _init_(self, request):
@@ -205,8 +213,7 @@ class DescribeTextFitter(object):
     @pytest.fixture
     def _LineSource_(self, request, line_source_):
         return class_mock(
-            request, 'pptx.text.layout._LineSource',
-            return_value=line_source_
+            request, "pptx.text.layout._LineSource", return_value=line_source_
         )
 
     @pytest.fixture
@@ -215,15 +222,14 @@ class DescribeTextFitter(object):
 
     @pytest.fixture
     def _rendered_size_(self, request):
-        return function_mock(request, 'pptx.text.layout._rendered_size')
+        return function_mock(request, "pptx.text.layout._rendered_size")
 
     @pytest.fixture
     def _wrap_lines_(self, request):
-        return method_mock(request, TextFitter, '_wrap_lines')
+        return method_mock(request, TextFitter, "_wrap_lines")
 
 
 class Describe_BinarySearchTree(object):
-
     def it_can_construct_from_an_ordered_sequence(self):
         bst = _BinarySearchTree.from_ordered_sequence(range(10))
 
@@ -251,11 +257,13 @@ class Describe_BinarySearchTree(object):
 
     # fixtures ---------------------------------------------
 
-    @pytest.fixture(params=[
-        (range(10), lambda n: n < 6.5, 6),
-        (range(10), lambda n: n > 9.9, None),
-        (range(10), lambda n: n < 0.0, None),
-    ])
+    @pytest.fixture(
+        params=[
+            (range(10), lambda n: n < 6.5, 6),
+            (range(10), lambda n: n > 9.9, None),
+            (range(10), lambda n: n < 0.0, None),
+        ]
+    )
     def max_fixture(self, request):
         seq, predicate, expected_value = request.param
         bst = _BinarySearchTree.from_ordered_sequence(seq)
@@ -263,13 +271,12 @@ class Describe_BinarySearchTree(object):
 
 
 class Describe_LineSource(object):
-
     def it_generates_text_remainder_pairs(self):
-        line_source = _LineSource('foo bar baz')
+        line_source = _LineSource("foo bar baz")
         expected = (
-            ('foo',         _LineSource('bar baz')),
-            ('foo bar',     _LineSource('baz')),
-            ('foo bar baz', _LineSource('')),
+            ("foo", _LineSource("bar baz")),
+            ("foo bar", _LineSource("baz")),
+            ("foo bar baz", _LineSource("")),
         )
         assert all((a == b) for a, b in zip(expected, line_source))
 

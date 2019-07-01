@@ -196,13 +196,15 @@ rst_epilog = """
 
 .. |FreeformBuilder| replace:: :class:`.FreeformBuilder`
 
+.. |GradientStops| replace:: :class:`.GradientStops`
+
 .. |GraphicFrame| replace:: :class:`.GraphicFrame`
 
 .. |GroupShape| replace:: :class:`.GroupShape`
 
 .. |GroupShapes| replace:: :class:`.GroupShapes`
 
-.. |_Hyperlink| replace:: :class:`_Hyperlink`
+.. |_Hyperlink| replace:: :class:`._Hyperlink`
 
 .. |Hyperlink| replace:: :class:`.Hyperlink`
 
@@ -324,9 +326,13 @@ rst_epilog = """
 
 .. |SlideLayout| replace:: :class:`.SlideLayout`
 
+.. |SlideLayouts| replace:: :class:`.SlideLayouts`
+
 .. |SlideLayoutPart| replace:: :class:`.SlideLayoutPart`
 
 .. |SlideMaster| replace:: :class:`.SlideMaster`
+
+.. |SlideMasters| replace:: :class:`.SlideMasters`
 
 .. |SlideMasterPart| replace:: :class:`.SlideMasterPart`
 
@@ -559,4 +565,4 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+# intersphinx_mapping = {'https://docs.python.org/': None}

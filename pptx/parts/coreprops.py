@@ -4,9 +4,7 @@
 Core properties part, corresponds to ``/docProps/core.xml`` part in package.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from datetime import datetime
 
@@ -21,11 +19,12 @@ class CorePropertiesPart(XmlPart):
     Corresponds to part named ``/docProps/core.xml``, containing the core
     document properties for this document package.
     """
+
     @classmethod
     def default(cls):
         core_props = cls._new()
-        core_props.title = 'PowerPoint Presentation'
-        core_props.last_modified_by = 'python-pptx'
+        core_props.title = "PowerPoint Presentation"
+        core_props.last_modified_by = "python-pptx"
         core_props.revision = 1
         core_props.modified = datetime.utcnow()
         return core_props
@@ -152,7 +151,7 @@ class CorePropertiesPart(XmlPart):
 
     @classmethod
     def _new(cls):
-        partname = PackURI('/docProps/core.xml')
+        partname = PackURI("/docProps/core.xml")
         content_type = CT.OPC_CORE_PROPERTIES
         core_props_elm = CT_CoreProperties.new_coreProperties()
         return CorePropertiesPart(partname, content_type, core_props_elm)

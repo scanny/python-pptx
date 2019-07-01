@@ -4,9 +4,7 @@
 Objects shared by pptx modules.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 class ElementProxy(object):
@@ -17,7 +15,7 @@ class ElementProxy(object):
     type of class in python-pptx other than custom element (oxml) classes.
     """
 
-    __slots__ = ('_element',)
+    __slots__ = ("_element",)
 
     def __init__(self, element):
         self._element = element
@@ -55,7 +53,7 @@ class ParentedElementProxy(ElementProxy):
     attribute to subclasses and the public :attr:`parent` read-only property.
     """
 
-    __slots__ = ('_parent',)
+    __slots__ = ("_parent",)
 
     def __init__(self, element, parent):
         super(ParentedElementProxy, self).__init__(element)
@@ -83,7 +81,7 @@ class PartElementProxy(ElementProxy):
     a part such as `p:sld`.
     """
 
-    __slots__ = ('_part',)
+    __slots__ = ("_part",)
 
     def __init__(self, element, part):
         super(PartElementProxy, self).__init__(element)

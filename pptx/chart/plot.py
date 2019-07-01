@@ -23,6 +23,7 @@ class _BasePlot(object):
     have more than one plot, in which case they appear as superimposed
     layers, such as a line plot appearing on top of a bar chart.
     """
+
     def __init__(self, xChart, chart):
         super(_BasePlot, self).__init__()
         self._element = xChart
@@ -58,7 +59,7 @@ class _BasePlot(object):
         dLbls = self._element.dLbls
         if dLbls is None:
             raise ValueError(
-                'plot has no data labels, set has_data_labels = True first'
+                "plot has no data labels, set has_data_labels = True first"
             )
         return DataLabels(dLbls)
 
@@ -129,6 +130,7 @@ class BarPlot(_BasePlot):
     """
     A bar chart-style plot.
     """
+
     @property
     def gap_width(self):
         """
@@ -176,6 +178,7 @@ class BubblePlot(_BasePlot):
     """
     A bubble chart plot.
     """
+
     @property
     def bubble_scale(self):
         """
@@ -235,18 +238,18 @@ def PlotFactory(xChart, chart):
     """
     try:
         PlotCls = {
-            qn('c:areaChart'):     AreaPlot,
-            qn('c:area3DChart'):   Area3DPlot,
-            qn('c:barChart'):      BarPlot,
-            qn('c:bubbleChart'):   BubblePlot,
-            qn('c:doughnutChart'): DoughnutPlot,
-            qn('c:lineChart'):     LinePlot,
-            qn('c:pieChart'):      PiePlot,
-            qn('c:radarChart'):    RadarPlot,
-            qn('c:scatterChart'):  XyPlot,
+            qn("c:areaChart"): AreaPlot,
+            qn("c:area3DChart"): Area3DPlot,
+            qn("c:barChart"): BarPlot,
+            qn("c:bubbleChart"): BubblePlot,
+            qn("c:doughnutChart"): DoughnutPlot,
+            qn("c:lineChart"): LinePlot,
+            qn("c:pieChart"): PiePlot,
+            qn("c:radarChart"): RadarPlot,
+            qn("c:scatterChart"): XyPlot,
         }[xChart.tag]
     except KeyError:
-        raise ValueError('unsupported plot type %s' % xChart.tag)
+        raise ValueError("unsupported plot type %s" % xChart.tag)
 
     return PlotCls(xChart, chart)
 
@@ -256,6 +259,7 @@ class PlotTypeInspector(object):
     "One-shot" service object that knows how to identify the type of a plot
     as a member of the XL_CHART_TYPE enumeration.
     """
+
     @classmethod
     def chart_type(cls, plot):
         """
@@ -264,36 +268,35 @@ class PlotTypeInspector(object):
         """
         try:
             chart_type_method = {
-                'AreaPlot':     cls._differentiate_area_chart_type,
-                'Area3DPlot':   cls._differentiate_area_3d_chart_type,
-                'BarPlot':      cls._differentiate_bar_chart_type,
-                'BubblePlot':   cls._differentiate_bubble_chart_type,
-                'DoughnutPlot': cls._differentiate_doughnut_chart_type,
-                'LinePlot':     cls._differentiate_line_chart_type,
-                'PiePlot':      cls._differentiate_pie_chart_type,
-                'RadarPlot':    cls._differentiate_radar_chart_type,
-                'XyPlot':       cls._differentiate_xy_chart_type,
+                "AreaPlot": cls._differentiate_area_chart_type,
+                "Area3DPlot": cls._differentiate_area_3d_chart_type,
+                "BarPlot": cls._differentiate_bar_chart_type,
+                "BubblePlot": cls._differentiate_bubble_chart_type,
+                "DoughnutPlot": cls._differentiate_doughnut_chart_type,
+                "LinePlot": cls._differentiate_line_chart_type,
+                "PiePlot": cls._differentiate_pie_chart_type,
+                "RadarPlot": cls._differentiate_radar_chart_type,
+                "XyPlot": cls._differentiate_xy_chart_type,
             }[plot.__class__.__name__]
         except KeyError:
             raise NotImplementedError(
-                "chart_type() not implemented for %s" %
-                plot.__class__.__name__
+                "chart_type() not implemented for %s" % plot.__class__.__name__
             )
         return chart_type_method(plot)
 
     @classmethod
     def _differentiate_area_3d_chart_type(cls, plot):
         return {
-            ST_Grouping.STANDARD:        XL.THREE_D_AREA,
-            ST_Grouping.STACKED:         XL.THREE_D_AREA_STACKED,
+            ST_Grouping.STANDARD: XL.THREE_D_AREA,
+            ST_Grouping.STACKED: XL.THREE_D_AREA_STACKED,
             ST_Grouping.PERCENT_STACKED: XL.THREE_D_AREA_STACKED_100,
         }[plot._element.grouping_val]
 
     @classmethod
     def _differentiate_area_chart_type(cls, plot):
         return {
-            ST_Grouping.STANDARD:        XL.AREA,
-            ST_Grouping.STACKED:         XL.AREA_STACKED,
+            ST_Grouping.STANDARD: XL.AREA,
+            ST_Grouping.STACKED: XL.AREA_STACKED,
             ST_Grouping.PERCENT_STACKED: XL.AREA_STACKED_100,
         }[plot._element.grouping_val]
 
@@ -302,24 +305,22 @@ class PlotTypeInspector(object):
         barChart = plot._element
         if barChart.barDir.val == ST_BarDir.BAR:
             return {
-                ST_Grouping.CLUSTERED:       XL.BAR_CLUSTERED,
-                ST_Grouping.STACKED:         XL.BAR_STACKED,
+                ST_Grouping.CLUSTERED: XL.BAR_CLUSTERED,
+                ST_Grouping.STACKED: XL.BAR_STACKED,
                 ST_Grouping.PERCENT_STACKED: XL.BAR_STACKED_100,
             }[barChart.grouping_val]
         if barChart.barDir.val == ST_BarDir.COL:
             return {
-                ST_Grouping.CLUSTERED:       XL.COLUMN_CLUSTERED,
-                ST_Grouping.STACKED:         XL.COLUMN_STACKED,
+                ST_Grouping.CLUSTERED: XL.COLUMN_CLUSTERED,
+                ST_Grouping.STACKED: XL.COLUMN_STACKED,
                 ST_Grouping.PERCENT_STACKED: XL.COLUMN_STACKED_100,
             }[barChart.grouping_val]
-        raise ValueError(
-            "invalid barChart.barDir value '%s'" % barChart.barDir.val
-        )
+        raise ValueError("invalid barChart.barDir value '%s'" % barChart.barDir.val)
 
     @classmethod
     def _differentiate_bubble_chart_type(cls, plot):
         def first_bubble3D(bubbleChart):
-            results = bubbleChart.xpath('c:ser/c:bubble3D')
+            results = bubbleChart.xpath("c:ser/c:bubble3D")
             return results[0] if results else None
 
         bubbleChart = plot._element
@@ -334,7 +335,7 @@ class PlotTypeInspector(object):
     @classmethod
     def _differentiate_doughnut_chart_type(cls, plot):
         doughnutChart = plot._element
-        explosion = doughnutChart.xpath('./c:ser/c:explosion')
+        explosion = doughnutChart.xpath("./c:ser/c:explosion")
         return XL.DOUGHNUT_EXPLODED if explosion else XL.DOUGHNUT
 
     @classmethod
@@ -349,37 +350,37 @@ class PlotTypeInspector(object):
 
         if has_line_markers():
             return {
-                ST_Grouping.STANDARD:        XL.LINE_MARKERS,
-                ST_Grouping.STACKED:         XL.LINE_MARKERS_STACKED,
+                ST_Grouping.STANDARD: XL.LINE_MARKERS,
+                ST_Grouping.STACKED: XL.LINE_MARKERS_STACKED,
                 ST_Grouping.PERCENT_STACKED: XL.LINE_MARKERS_STACKED_100,
             }[plot._element.grouping_val]
         else:
             return {
-                ST_Grouping.STANDARD:        XL.LINE,
-                ST_Grouping.STACKED:         XL.LINE_STACKED,
+                ST_Grouping.STANDARD: XL.LINE,
+                ST_Grouping.STACKED: XL.LINE_STACKED,
                 ST_Grouping.PERCENT_STACKED: XL.LINE_STACKED_100,
             }[plot._element.grouping_val]
 
     @classmethod
     def _differentiate_pie_chart_type(cls, plot):
         pieChart = plot._element
-        explosion = pieChart.xpath('./c:ser/c:explosion')
+        explosion = pieChart.xpath("./c:ser/c:explosion")
         return XL.PIE_EXPLODED if explosion else XL.PIE
 
     @classmethod
     def _differentiate_radar_chart_type(cls, plot):
         radarChart = plot._element
-        radar_style = radarChart.xpath('c:radarStyle')[0].get('val')
+        radar_style = radarChart.xpath("c:radarStyle")[0].get("val")
 
         def noMarkers():
-            matches = radarChart.xpath('c:ser/c:marker/c:symbol')
-            if matches and matches[0].get('val') == 'none':
+            matches = radarChart.xpath("c:ser/c:marker/c:symbol")
+            if matches and matches[0].get("val") == "none":
                 return True
             return False
 
         if radar_style is None:
             return XL.RADAR
-        if radar_style == 'filled':
+        if radar_style == "filled":
             return XL.RADAR_FILLED
         if noMarkers():
             return XL.RADAR
@@ -390,24 +391,24 @@ class PlotTypeInspector(object):
         scatterChart = plot._element
 
         def noLine():
-            return bool(scatterChart.xpath('c:ser/c:spPr/a:ln/a:noFill'))
+            return bool(scatterChart.xpath("c:ser/c:spPr/a:ln/a:noFill"))
 
         def noMarkers():
-            symbols = scatterChart.xpath('c:ser/c:marker/c:symbol')
-            if symbols and symbols[0].get('val') == 'none':
+            symbols = scatterChart.xpath("c:ser/c:marker/c:symbol")
+            if symbols and symbols[0].get("val") == "none":
                 return True
             return False
 
-        scatter_style = scatterChart.xpath('c:scatterStyle')[0].get('val')
+        scatter_style = scatterChart.xpath("c:scatterStyle")[0].get("val")
 
-        if scatter_style == 'lineMarker':
+        if scatter_style == "lineMarker":
             if noLine():
                 return XL.XY_SCATTER
             if noMarkers():
                 return XL.XY_SCATTER_LINES_NO_MARKERS
             return XL.XY_SCATTER_LINES
 
-        if scatter_style == 'smoothMarker':
+        if scatter_style == "smoothMarker":
             if noMarkers():
                 return XL.XY_SCATTER_SMOOTH_NO_MARKERS
             return XL.XY_SCATTER_SMOOTH

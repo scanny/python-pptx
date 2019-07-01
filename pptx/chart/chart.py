@@ -1,28 +1,24 @@
 # encoding: utf-8
 
-"""
-Chart shape-related objects such as Chart.
-"""
+"""Chart-related objects such as Chart and ChartTitle."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import Sequence
-
-from .axis import CategoryAxis, DateAxis, ValueAxis
-from ..dml.chtfmt import ChartFormat
-from .legend import Legend
-from .plot import PlotFactory, PlotTypeInspector
-from .series import SeriesCollection
-from ..shared import ElementProxy, PartElementProxy
-from ..text.text import TextFrame
-from ..util import lazyproperty
-from .xmlwriter import SeriesXmlRewriterFactory
+from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
+from pptx.chart.legend import Legend
+from pptx.chart.plot import PlotFactory, PlotTypeInspector
+from pptx.chart.series import SeriesCollection
+from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
+from pptx.compat import Sequence
+from pptx.dml.chtfmt import ChartFormat
+from pptx.shared import ElementProxy, PartElementProxy
+from pptx.text.text import Font, TextFrame
+from pptx.util import lazyproperty
 
 
 class Chart(PartElementProxy):
-    """
-    A chart object.
-    """
+    """A chart object."""
+
     def __init__(self, chartSpace, chart_part):
         super(Chart, self).__init__(chartSpace, chart_part)
         self._chartSpace = chartSpace
@@ -46,7 +42,7 @@ class Chart(PartElementProxy):
         if valAx_lst:
             return ValueAxis(valAx_lst[0])
 
-        raise ValueError('chart has no category axis')
+        raise ValueError("chart has no category axis")
 
     @property
     def chart_style(self):
@@ -92,6 +88,17 @@ class Chart(PartElementProxy):
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)
 
+    @lazyproperty
+    def font(self):
+        """Font object controlling text format defaults for this chart."""
+        defRPr = (
+            self._chartSpace.get_or_add_txPr()
+            .p_lst[0]
+            .get_or_add_pPr()
+            .get_or_add_defRPr()
+        )
+        return Font(defRPr)
+
     @property
     def has_legend(self):
         """
@@ -124,6 +131,8 @@ class Chart(PartElementProxy):
         chart = self._chartSpace.chart
         if bool(value) is False:
             chart._remove_title()
+            autoTitleDeleted = chart.get_or_add_autoTitleDeleted()
+            autoTitleDeleted.val = True
             return
         chart.get_or_add_title()
 
@@ -183,7 +192,7 @@ class Chart(PartElementProxy):
         """
         valAx_lst = self._chartSpace.valAx_lst
         if not valAx_lst:
-            raise ValueError('chart has no value axis')
+            raise ValueError("chart has no value axis")
 
         idx = 1 if len(valAx_lst) > 1 else 0
         return ValueAxis(valAx_lst[idx])
@@ -205,7 +214,7 @@ class ChartTitle(ElementProxy):
     # actually differ in certain fuller behaviors, but at present they're
     # essentially identical.
 
-    __slots__ = ('_title', '_format')
+    __slots__ = ("_title", "_format")
 
     def __init__(self, title):
         super(ChartTitle, self).__init__(title)
@@ -261,6 +270,7 @@ class _Plots(Sequence):
     types are displayed in a single set of axes, like a bar plot with
     a superimposed line plot.
     """
+
     def __init__(self, plotArea, chart):
         super(_Plots, self).__init__()
         self._plotArea = plotArea

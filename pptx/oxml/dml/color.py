@@ -9,7 +9,11 @@ from __future__ import absolute_import
 from ...enum.dml import MSO_THEME_COLOR
 from ..simpletypes import ST_HexColorRGB, ST_Percentage
 from ..xmlchemy import (
-    BaseOxmlElement, Choice, RequiredAttribute, ZeroOrOne, ZeroOrOneChoice
+    BaseOxmlElement,
+    Choice,
+    RequiredAttribute,
+    ZeroOrOne,
+    ZeroOrOneChoice,
 )
 
 
@@ -17,8 +21,9 @@ class _BaseColorElement(BaseOxmlElement):
     """
     Base class for <a:srgbClr> and <a:schemeClr> elements.
     """
-    lumMod = ZeroOrOne('a:lumMod')
-    lumOff = ZeroOrOne('a:lumOff')
+
+    lumMod = ZeroOrOne("a:lumMod")
+    lumOff = ZeroOrOne("a:lumOff")
 
     def add_lumMod(self, value):
         """
@@ -48,10 +53,17 @@ class _BaseColorElement(BaseOxmlElement):
 
 class CT_Color(BaseOxmlElement):
     """Custom element class for `a:fgClr`, `a:bgClr` and perhaps others."""
-    eg_colorChoice = ZeroOrOneChoice((
-        Choice('a:scrgbClr'), Choice('a:srgbClr'), Choice('a:hslClr'),
-        Choice('a:sysClr'), Choice('a:schemeClr'), Choice('a:prstClr')),
-        successors=()
+
+    eg_colorChoice = ZeroOrOneChoice(
+        (
+            Choice("a:scrgbClr"),
+            Choice("a:srgbClr"),
+            Choice("a:hslClr"),
+            Choice("a:sysClr"),
+            Choice("a:schemeClr"),
+            Choice("a:prstClr"),
+        ),
+        successors=(),
     )
 
 
@@ -65,7 +77,8 @@ class CT_Percentage(BaseOxmlElement):
     """
     Custom element class for <a:lumMod> and <a:lumOff> elements.
     """
-    val = RequiredAttribute('val', ST_Percentage)
+
+    val = RequiredAttribute("val", ST_Percentage)
 
 
 class CT_PresetColor(_BaseColorElement):
@@ -78,7 +91,8 @@ class CT_SchemeColor(_BaseColorElement):
     """
     Custom element class for <a:schemeClr> element.
     """
-    val = RequiredAttribute('val', MSO_THEME_COLOR)
+
+    val = RequiredAttribute("val", MSO_THEME_COLOR)
 
 
 class CT_ScRgbColor(_BaseColorElement):
@@ -91,7 +105,8 @@ class CT_SRgbColor(_BaseColorElement):
     """
     Custom element class for <a:srgbClr> element.
     """
-    val = RequiredAttribute('val', ST_HexColorRGB)
+
+    val = RequiredAttribute("val", ST_HexColorRGB)
 
 
 class CT_SystemColor(_BaseColorElement):

@@ -5,9 +5,7 @@ API classes for dealing with presentations and other objects one typically
 encounters as an end-user of the PowerPoint user interface.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .opc.constants import RELATIONSHIP_TYPE as RT
 from .opc.package import OpcPackage
@@ -27,6 +25,7 @@ class Package(OpcPackage):
     a `.pptx` file. If *file* is |None|, the default presentation template is
     loaded.
     """
+
     @lazyproperty
     def core_properties(self):
         """
@@ -63,20 +62,24 @@ class Package(OpcPackage):
         partname, by sequence number. *ext* is used as the extention on the
         returned partname.
         """
+
         def first_available_image_idx():
-            image_idxs = sorted([
-                part.partname.idx for part in self.iter_parts()
-                if part.partname.startswith('/ppt/media/image')
-                and part.partname.idx is not None
-            ])
+            image_idxs = sorted(
+                [
+                    part.partname.idx
+                    for part in self.iter_parts()
+                    if part.partname.startswith("/ppt/media/image")
+                    and part.partname.idx is not None
+                ]
+            )
             for i, image_idx in enumerate(image_idxs):
                 idx = i + 1
                 if idx < image_idx:
                     return idx
-            return len(image_idxs)+1
+            return len(image_idxs) + 1
 
         idx = first_available_image_idx()
-        return PackURI('/ppt/media/image%d.%s' % (idx, ext))
+        return PackURI("/ppt/media/image%d.%s" % (idx, ext))
 
     def next_media_partname(self, ext):
         """Return |PackURI| instance for next available media partname.
@@ -85,19 +88,23 @@ class Package(OpcPackage):
         sequence numbers are reused. *ext* is used as the extension on the
         returned partname.
         """
+
         def first_available_media_idx():
-            media_idxs = sorted([
-                part.partname.idx for part in self.iter_parts()
-                if part.partname.startswith('/ppt/media/media')
-            ])
+            media_idxs = sorted(
+                [
+                    part.partname.idx
+                    for part in self.iter_parts()
+                    if part.partname.startswith("/ppt/media/media")
+                ]
+            )
             for i, media_idx in enumerate(media_idxs):
                 idx = i + 1
                 if idx < media_idx:
                     return idx
-            return len(media_idxs)+1
+            return len(media_idxs) + 1
 
         idx = first_available_media_idx()
-        return PackURI('/ppt/media/media%d.%s' % (idx, ext))
+        return PackURI("/ppt/media/media%d.%s" % (idx, ext))
 
     @property
     def presentation_part(self):
@@ -168,6 +175,9 @@ class _ImageParts(object):
         SHA1 hash digest of the image binary it contains.
         """
         for image_part in self:
+            # ---skip unknown/unsupported image types, like SVG---
+            if not hasattr(image_part, "sha1"):
+                continue
             if image_part.sha1 == sha1:
                 return image_part
         return None

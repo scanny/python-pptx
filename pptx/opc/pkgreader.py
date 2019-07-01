@@ -19,6 +19,7 @@ class PackageReader(object):
     Provides access to the contents of a zip-format OPC package via its
     :attr:`serialized_parts` and :attr:`pkg_srels` attributes.
     """
+
     def __init__(self, content_types, pkg_srels, sparts):
         super(PackageReader, self).__init__()
         self._pkg_srels = pkg_srels
@@ -80,7 +81,8 @@ class PackageReader(object):
         """
         rels_xml = phys_reader.rels_xml_for(source_uri)
         return _SerializedRelationshipCollection.load_from_xml(
-            source_uri.baseURI, rels_xml)
+            source_uri.baseURI, rels_xml
+        )
 
     @staticmethod
     def _walk_phys_parts(phys_reader, srels, visited_partnames=None):
@@ -101,7 +103,8 @@ class PackageReader(object):
             blob = phys_reader.blob_for(partname)
             yield (partname, blob, part_srels)
             for partname, blob, srels in PackageReader._walk_phys_parts(
-                    phys_reader, part_srels, visited_partnames):
+                phys_reader, part_srels, visited_partnames
+            ):
                 yield (partname, blob, srels)
 
 
@@ -110,6 +113,7 @@ class _ContentTypeMap(object):
     Value type providing dictionary semantics for looking up content type by
     part name, e.g. ``content_type = cti['/ppt/presentation.xml']``.
     """
+
     def __init__(self):
         super(_ContentTypeMap, self).__init__()
         self._overrides = CaseInsensitiveDict()
@@ -164,6 +168,7 @@ class _SerializedPart(object):
     Value object for an OPC package part. Provides access to the partname,
     content type, blob, and serialized relationships for the part.
     """
+
     def __init__(self, partname, content_type, blob, srels):
         super(_SerializedPart, self).__init__()
         self._partname = partname
@@ -194,6 +199,7 @@ class _SerializedRelationship(object):
     Serialized, in this case, means any target part is referred to via its
     partname rather than a direct link to an in-memory |Part| object.
     """
+
     def __init__(self, baseURI, rel_elm):
         super(_SerializedRelationship, self).__init__()
         self._baseURI = baseURI
@@ -247,13 +253,14 @@ class _SerializedRelationship(object):
         Use :attr:`target_mode` to check before referencing.
         """
         if self.is_external:
-            msg = ('target_partname attribute on Relationship is undefined w'
-                   'here TargetMode == "External"')
+            msg = (
+                "target_partname attribute on Relationship is undefined w"
+                'here TargetMode == "External"'
+            )
             raise ValueError(msg)
         # lazy-load _target_partname attribute
-        if not hasattr(self, '_target_partname'):
-            self._target_partname = PackURI.from_rel_ref(self._baseURI,
-                                                         self.target_ref)
+        if not hasattr(self, "_target_partname"):
+            self._target_partname = PackURI.from_rel_ref(self._baseURI, self.target_ref)
         return self._target_partname
 
 
@@ -262,6 +269,7 @@ class _SerializedRelationshipCollection(object):
     Read-only sequence of |_SerializedRelationship| instances corresponding
     to the relationships item XML passed to constructor.
     """
+
     def __init__(self):
         super(_SerializedRelationshipCollection, self).__init__()
         self._srels = []

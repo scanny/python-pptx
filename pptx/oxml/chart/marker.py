@@ -4,9 +4,7 @@
 Series-related oxml objects.
 """
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ...enum.chart import XL_MARKER_STYLE
 from ..simpletypes import ST_MarkerSize
@@ -18,12 +16,11 @@ class CT_Marker(BaseOxmlElement):
     `c:marker` custom element class, containing visual properties for a data
     point marker on line-type charts.
     """
-    _tag_seq = (
-        'c:symbol', 'c:size', 'c:spPr', 'c:extLst'
-    )
-    symbol = ZeroOrOne('c:symbol', successors=_tag_seq[1:])
-    size = ZeroOrOne('c:size', successors=_tag_seq[2:])
-    spPr = ZeroOrOne('c:spPr', successors=_tag_seq[3:])
+
+    _tag_seq = ("c:symbol", "c:size", "c:spPr", "c:extLst")
+    symbol = ZeroOrOne("c:symbol", successors=_tag_seq[1:])
+    size = ZeroOrOne("c:size", successors=_tag_seq[2:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[3:])
     del _tag_seq
 
     @property
@@ -55,7 +52,8 @@ class CT_MarkerSize(BaseOxmlElement):
     `c:size` custom element class, specifying the size (in points) of a data
     point marker for a line, XY, or radar chart.
     """
-    val = RequiredAttribute('val', ST_MarkerSize)
+
+    val = RequiredAttribute("val", ST_MarkerSize)
 
 
 class CT_MarkerStyle(BaseOxmlElement):
@@ -63,4 +61,5 @@ class CT_MarkerStyle(BaseOxmlElement):
     `c:symbol` custom element class, specifying the shape of a data point
     marker for a line, XY, or radar chart.
     """
-    val = RequiredAttribute('val', XL_MARKER_STYLE)
+
+    val = RequiredAttribute("val", XL_MARKER_STYLE)

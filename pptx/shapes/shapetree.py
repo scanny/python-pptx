@@ -2,9 +2,7 @@
 
 """The shape tree, the structure that holds a slide's shapes."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.compat import BytesIO
 from pptx.enum.shapes import PP_PLACEHOLDER
@@ -22,9 +20,15 @@ from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
-    ChartPlaceholder, LayoutPlaceholder, MasterPlaceholder,
-    NotesSlidePlaceholder, PicturePlaceholder, PlaceholderGraphicFrame,
-    PlaceholderPicture, SlidePlaceholder, TablePlaceholder
+    ChartPlaceholder,
+    LayoutPlaceholder,
+    MasterPlaceholder,
+    NotesSlidePlaceholder,
+    PicturePlaceholder,
+    PlaceholderGraphicFrame,
+    PlaceholderPicture,
+    SlidePlaceholder,
+    TablePlaceholder,
 )
 from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
@@ -63,6 +67,7 @@ class _BaseShapes(ParentedElementProxy):
     def __init__(self, spTree, parent):
         super(_BaseShapes, self).__init__(spTree, parent)
         self._spTree = spTree
+        self._cached_max_shape_id = None
 
     def __getitem__(self, idx):
         """
@@ -72,7 +77,7 @@ class _BaseShapes(ParentedElementProxy):
         try:
             shape_elm = shape_elms[idx]
         except IndexError:
-            raise IndexError('shape index out of range')
+            raise IndexError("shape index out of range")
         return self._shape_factory(shape_elm)
 
     def __iter__(self):
@@ -96,9 +101,7 @@ class _BaseShapes(ParentedElementProxy):
         Add a new placeholder shape based on *placeholder*.
         """
         sp = placeholder.element
-        ph_type, orient, sz, idx = (
-            sp.ph_type, sp.ph_orient, sp.ph_sz, sp.ph_idx
-        )
+        ph_type, orient, sz, idx = (sp.ph_type, sp.ph_orient, sp.ph_sz, sp.ph_idx)
         id_ = self._next_shape_id
         name = self._next_ph_name(ph_type, id_, orient)
         self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
@@ -111,22 +114,51 @@ class _BaseShapes(ParentedElementProxy):
         method can be overriden by subclasses.
         """
         return {
-            PP_PLACEHOLDER.BITMAP:       'ClipArt Placeholder',
-            PP_PLACEHOLDER.BODY:         'Text Placeholder',
-            PP_PLACEHOLDER.CENTER_TITLE: 'Title',
-            PP_PLACEHOLDER.CHART:        'Chart Placeholder',
-            PP_PLACEHOLDER.DATE:         'Date Placeholder',
-            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
-            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
-            PP_PLACEHOLDER.MEDIA_CLIP:   'Media Placeholder',
-            PP_PLACEHOLDER.OBJECT:       'Content Placeholder',
-            PP_PLACEHOLDER.ORG_CHART:    'SmartArt Placeholder',
-            PP_PLACEHOLDER.PICTURE:      'Picture Placeholder',
-            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
-            PP_PLACEHOLDER.SUBTITLE:     'Subtitle',
-            PP_PLACEHOLDER.TABLE:        'Table Placeholder',
-            PP_PLACEHOLDER.TITLE:        'Title',
+            PP_PLACEHOLDER.BITMAP: "ClipArt Placeholder",
+            PP_PLACEHOLDER.BODY: "Text Placeholder",
+            PP_PLACEHOLDER.CENTER_TITLE: "Title",
+            PP_PLACEHOLDER.CHART: "Chart Placeholder",
+            PP_PLACEHOLDER.DATE: "Date Placeholder",
+            PP_PLACEHOLDER.FOOTER: "Footer Placeholder",
+            PP_PLACEHOLDER.HEADER: "Header Placeholder",
+            PP_PLACEHOLDER.MEDIA_CLIP: "Media Placeholder",
+            PP_PLACEHOLDER.OBJECT: "Content Placeholder",
+            PP_PLACEHOLDER.ORG_CHART: "SmartArt Placeholder",
+            PP_PLACEHOLDER.PICTURE: "Picture Placeholder",
+            PP_PLACEHOLDER.SLIDE_NUMBER: "Slide Number Placeholder",
+            PP_PLACEHOLDER.SUBTITLE: "Subtitle",
+            PP_PLACEHOLDER.TABLE: "Table Placeholder",
+            PP_PLACEHOLDER.TITLE: "Title",
         }[ph_type]
+
+    @property
+    def turbo_add_enabled(self):
+        """True if "turbo-add" mode is enabled. Read/Write.
+
+        EXPERIMENTAL: This feature can radically improve performance when
+        adding large numbers (hundreds of shapes) to a slide. It works by
+        caching the last shape ID used and incrementing that value to assign
+        the next shape id. This avoids repeatedly searching all shape ids in
+        the slide each time a new ID is required.
+
+        Performance is not noticeably improved for a slide with a relatively
+        small number of shapes, but because the search time rises with the
+        square of the shape count, this option can be useful for optimizing
+        generation of a slide composed of many shapes.
+
+        Shape-id collisions can occur (causing a repair error on load) if
+        more than one |Slide| object is used to interact with the same slide
+        in the presentation. Note that the |Slides| collection creates a new
+        |Slide| object each time a slide is accessed
+        (e.g. `slide = prs.slides[0]`, so you must be careful to limit use to
+        a single |Slide| object.
+        """
+        return self._cached_max_shape_id is not None
+
+    @turbo_add_enabled.setter
+    def turbo_add_enabled(self, value):
+        enable = bool(value)
+        self._cached_max_shape_id = self._spTree.max_shape_id if enable else None
 
     @staticmethod
     def _is_member_elm(shape_elm):
@@ -159,13 +191,13 @@ class _BaseShapes(ParentedElementProxy):
 
         # prefix rootname with 'Vertical ' if orient is 'vert'
         if orient == ST_Direction.VERT:
-            basename = 'Vertical %s' % basename
+            basename = "Vertical %s" % basename
 
         # increment numpart as necessary to make name unique
         numpart = id - 1
-        names = self._spTree.xpath('//p:cNvPr/@name')
+        names = self._spTree.xpath("//p:cNvPr/@name")
         while True:
-            name = '%s %d' % (basename, numpart)
+            name = "%s %d" % (basename, numpart)
             if name not in names:
                 break
             numpart += 1
@@ -180,11 +212,12 @@ class _BaseShapes(ParentedElementProxy):
         In practice, the minimum id is 2 because the spTree element is always
         assigned id="1".
         """
-        id_str_lst = self._spTree.xpath('//@id')
-        used_ids = [int(id_str) for id_str in id_str_lst if id_str.isdigit()]
-        if not used_ids:
-            return 1
-        return max(used_ids) + 1
+        # ---presence of cached-max-shape-id indicates turbo mode is on---
+        if self._cached_max_shape_id is not None:
+            self._cached_max_shape_id += 1
+            return self._cached_max_shape_id
+
+        return self._spTree.max_shape_id + 1
 
     def _shape_factory(self, shape_elm):
         """
@@ -227,9 +260,7 @@ class _BaseGroupShapes(_BaseShapes):
         returned connector is of type *connector_type* and has begin and end
         points as specified.
         """
-        cxnSp = self._add_cxnSp(
-            connector_type, begin_x, begin_y, end_x, end_y
-        )
+        cxnSp = self._add_cxnSp(connector_type, begin_x, begin_y, end_x, end_y)
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
@@ -244,7 +275,7 @@ class _BaseGroupShapes(_BaseShapes):
         """
         grpSp = self._element.add_grpSp()
         for shape in shapes:
-            grpSp.insert_element_before(shape._element, 'p:extLst')
+            grpSp.insert_element_before(shape._element, "p:extLst")
         if shapes:
             grpSp.recalculate_extents()
         return self._shape_factory(grpSp)
@@ -261,17 +292,16 @@ class _BaseGroupShapes(_BaseShapes):
         without regard to its native aspect ratio.
         """
         image_part, rId = self.part.get_or_add_image_part(image_file)
-        pic = self._add_pic_from_image_part(
-            image_part, rId, left, top, width, height
-        )
+        pic = self._add_pic_from_image_part(image_part, rId, left, top, width, height)
         self._recalculate_extents()
         return self._shape_factory(pic)
 
     def add_shape(self, autoshape_type_id, left, top, width, height):
         """Return new |Shape| object appended to this shape tree.
 
-        Auto shape is of type specified by *autoshape_type_id* (like
-        ``MSO_SHAPE.RECTANGLE``) and of specified size at specified position.
+        *autoshape_type_id* is a member of :ref:`MsoAutoShapeType` e.g.
+        ``MSO_SHAPE.RECTANGLE`` specifying the type of shape to be added. The
+        remaining arguments specify the new shape's position and size.
         """
         autoshape_type = AutoShapeType(autoshape_type_id)
         sp = self._add_sp(autoshape_type, left, top, width, height)
@@ -329,7 +359,7 @@ class _BaseGroupShapes(_BaseShapes):
         refers to the chart part identified by *rId*.
         """
         shape_id = self._next_shape_id
-        name = 'Chart %d' % (shape_id-1)
+        name = "Chart %d" % (shape_id - 1)
         graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
             shape_id, name, rId, x, y, cx, cy
         )
@@ -344,7 +374,7 @@ class _BaseGroupShapes(_BaseShapes):
         (*end_x*, *end_y*).
         """
         id_ = self._next_shape_id
-        name = 'Connector %d' % (id_-1)
+        name = "Connector %d" % (id_ - 1)
 
         flipH, flipV = begin_x > end_x, begin_y > end_y
         x, y = min(begin_x, end_x), min(begin_y, end_y)
@@ -364,11 +394,9 @@ class _BaseGroupShapes(_BaseShapes):
         """
         id_ = self._next_shape_id
         scaled_cx, scaled_cy = image_part.scale(cx, cy)
-        name = 'Picture %d' % (id_-1)
+        name = "Picture %d" % (id_ - 1)
         desc = image_part.desc
-        pic = self._grpSp.add_pic(
-            id_, name, desc, rId, x, y, scaled_cx, scaled_cy
-        )
+        pic = self._grpSp.add_pic(id_, name, desc, rId, x, y, scaled_cx, scaled_cy)
         return pic
 
     def _add_sp(self, autoshape_type, x, y, cx, cy):
@@ -378,10 +406,8 @@ class _BaseGroupShapes(_BaseShapes):
         size (*cx*, *cy*).
         """
         id_ = self._next_shape_id
-        name = '%s %d' % (autoshape_type.basename, id_-1)
-        sp = self._grpSp.add_autoshape(
-            id_, name, autoshape_type.prst, x, y, cx, cy
-        )
+        name = "%s %d" % (autoshape_type.basename, id_ - 1)
+        sp = self._grpSp.add_autoshape(id_, name, autoshape_type.prst, x, y, cx, cy)
         return sp
 
     def _add_textbox_sp(self, x, y, cx, cy):
@@ -390,7 +416,7 @@ class _BaseGroupShapes(_BaseShapes):
         Element has position (*x*, *y*) and size (*cx*, *cy*).
         """
         id_ = self._next_shape_id
-        name = 'TextBox %d' % (id_-1)
+        name = "TextBox %d" % (id_ - 1)
         sp = self._spTree.add_textbox(id_, name, x, y, cx, cy)
         return sp
 
@@ -428,8 +454,16 @@ class SlideShapes(_BaseGroupShapes):
     shape is topmost. Supports indexed access, len(), index(), and iteration.
     """
 
-    def add_movie(self, movie_file, left, top, width, height,
-                  poster_frame_image=None, mime_type=CT.VIDEO):
+    def add_movie(
+        self,
+        movie_file,
+        left,
+        top,
+        width,
+        height,
+        poster_frame_image=None,
+        mime_type=CT.VIDEO,
+    ):
         """Return newly added movie shape displaying video in *movie_file*.
 
         **EXPERIMENTAL.** This method has important limitations:
@@ -450,8 +484,15 @@ class SlideShapes(_BaseGroupShapes):
         a placeholder for the video.
         """
         movie_pic = _MoviePicElementCreator.new_movie_pic(
-            self, self._next_shape_id, movie_file, left, top, width, height,
-            poster_frame_image, mime_type
+            self,
+            self._next_shape_id,
+            movie_file,
+            left,
+            top,
+            width,
+            height,
+            poster_frame_image,
+            mime_type,
         )
         self._spTree.append(movie_pic)
         self._add_video_timing(movie_pic)
@@ -506,10 +547,8 @@ class SlideShapes(_BaseGroupShapes):
         as specified by the parameters.
         """
         _id = self._next_shape_id
-        name = 'Table %d' % (_id-1)
-        graphicFrame = self._spTree.add_table(
-            _id, name, rows, cols, x, y, cx, cy
-        )
+        name = "Table %d" % (_id - 1)
+        graphicFrame = self._spTree.add_table(_id, name, rows, cols, x, y, cx, cy)
         return graphicFrame
 
     def _add_video_timing(self, pic):
@@ -518,7 +557,7 @@ class SlideShapes(_BaseGroupShapes):
         The element will refer to the specified *pic* element by its shape
         id, and cause the video play controls to appear for that video.
         """
-        sld = self._spTree.xpath('/p:sld')[0]
+        sld = self._spTree.xpath("/p:sld")[0]
         childTnLst = sld.get_or_add_childTnLst()
         childTnLst.add_video(pic.shape_id)
 
@@ -536,6 +575,7 @@ class LayoutShapes(_BaseShapes):
     sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), index(), and iteration.
     """
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for
@@ -550,6 +590,7 @@ class MasterShapes(_BaseShapes):
     sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), and iteration.
     """
+
     def _shape_factory(self, shape_elm):
         """
         Return an instance of the appropriate shape proxy class for
@@ -564,6 +605,7 @@ class NotesSlideShapes(_BaseShapes):
     sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), index(), and iteration.
     """
+
     def ph_basename(self, ph_type):
         """
         Return the base name for a placeholder of *ph_type* in this shape
@@ -572,12 +614,12 @@ class NotesSlideShapes(_BaseShapes):
         method overrides the default in the base class.
         """
         return {
-            PP_PLACEHOLDER.BODY:         'Notes Placeholder',
-            PP_PLACEHOLDER.DATE:         'Date Placeholder',
-            PP_PLACEHOLDER.FOOTER:       'Footer Placeholder',
-            PP_PLACEHOLDER.HEADER:       'Header Placeholder',
-            PP_PLACEHOLDER.SLIDE_IMAGE:  'Slide Image Placeholder',
-            PP_PLACEHOLDER.SLIDE_NUMBER: 'Slide Number Placeholder',
+            PP_PLACEHOLDER.BODY: "Notes Placeholder",
+            PP_PLACEHOLDER.DATE: "Date Placeholder",
+            PP_PLACEHOLDER.FOOTER: "Footer Placeholder",
+            PP_PLACEHOLDER.HEADER: "Header Placeholder",
+            PP_PLACEHOLDER.SLIDE_IMAGE: "Slide Image Placeholder",
+            PP_PLACEHOLDER.SLIDE_NUMBER: "Slide Number Placeholder",
         }[ph_type]
 
     def _shape_factory(self, shape_elm):
@@ -595,6 +637,7 @@ class BasePlaceholders(_BaseShapes):
     constructed using |BaseShapeFactory|. Subclasses should override
     :method:`_shape_factory` to use custom placeholder classes.
     """
+
     @staticmethod
     def _is_member_elm(shape_elm):
         """
@@ -608,6 +651,7 @@ class LayoutPlaceholders(BasePlaceholders):
     Sequence of |LayoutPlaceholder| instances representing the placeholder
     shapes on a slide layout.
     """
+
     def get(self, idx, default=None):
         """
         Return the first placeholder shape with matching *idx* value, or
@@ -631,6 +675,7 @@ class MasterPlaceholders(BasePlaceholders):
     Sequence of _MasterPlaceholder instances representing the placeholder
     shapes on a slide master.
     """
+
     def get(self, ph_type, default=None):
         """
         Return the first placeholder shape with type *ph_type* (e.g. 'body'),
@@ -654,6 +699,7 @@ class NotesSlidePlaceholders(MasterPlaceholders):
     """
     Sequence of placeholder shapes on a notes slide.
     """
+
     def _shape_factory(self, placeholder_elm):
         """
         Return an instance of the appropriate placeholder proxy class for
@@ -681,7 +727,7 @@ class SlidePlaceholders(ParentedElementProxy):
         for e in self._element.iter_ph_elms():
             if e.ph_idx == idx:
                 return SlideShapeFactory(e, self)
-        raise KeyError('no placeholder on this slide with idx == %d' % idx)
+        raise KeyError("no placeholder on this slide with idx == %d" % idx)
 
     def __iter__(self):
         """
@@ -705,17 +751,17 @@ def BaseShapeFactory(shape_elm, parent):
     """
     tag = shape_elm.tag
 
-    if tag == qn('p:pic'):
-        videoFiles = shape_elm.xpath('./p:nvPicPr/p:nvPr/a:videoFile')
+    if tag == qn("p:pic"):
+        videoFiles = shape_elm.xpath("./p:nvPicPr/p:nvPr/a:videoFile")
         if videoFiles:
             return Movie(shape_elm, parent)
         return Picture(shape_elm, parent)
 
     shape_cls = {
-        qn('p:cxnSp'):        Connector,
-        qn('p:grpSp'):        GroupShape,
-        qn('p:sp'):           Shape,
-        qn('p:graphicFrame'): GraphicFrame,
+        qn("p:cxnSp"): Connector,
+        qn("p:grpSp"): GroupShape,
+        qn("p:sp"): Shape,
+        qn("p:graphicFrame"): GraphicFrame,
     }.get(tag, BaseShape)
 
     return shape_cls(shape_elm, parent)
@@ -727,7 +773,7 @@ def _LayoutShapeFactory(shape_elm, parent):
     on a slide layout.
     """
     tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+    if tag_name == qn("p:sp") and shape_elm.has_ph_elm:
         return LayoutPlaceholder(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
 
@@ -738,7 +784,7 @@ def _MasterShapeFactory(shape_elm, parent):
     on a slide master.
     """
     tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+    if tag_name == qn("p:sp") and shape_elm.has_ph_elm:
         return MasterPlaceholder(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
 
@@ -749,7 +795,7 @@ def _NotesSlideShapeFactory(shape_elm, parent):
     on a notes slide.
     """
     tag_name = shape_elm.tag
-    if tag_name == qn('p:sp') and shape_elm.has_ph_elm:
+    if tag_name == qn("p:sp") and shape_elm.has_ph_elm:
         return NotesSlidePlaceholder(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
 
@@ -759,16 +805,16 @@ def _SlidePlaceholderFactory(shape_elm, parent):
     Return a placeholder shape of the appropriate type for *shape_elm*.
     """
     tag = shape_elm.tag
-    if tag == qn('p:sp'):
+    if tag == qn("p:sp"):
         Constructor = {
-            PP_PLACEHOLDER.BITMAP:  PicturePlaceholder,
-            PP_PLACEHOLDER.CHART:   ChartPlaceholder,
+            PP_PLACEHOLDER.BITMAP: PicturePlaceholder,
+            PP_PLACEHOLDER.CHART: ChartPlaceholder,
             PP_PLACEHOLDER.PICTURE: PicturePlaceholder,
-            PP_PLACEHOLDER.TABLE:   TablePlaceholder,
+            PP_PLACEHOLDER.TABLE: TablePlaceholder,
         }.get(shape_elm.ph_type, SlidePlaceholder)
-    elif tag == qn('p:graphicFrame'):
+    elif tag == qn("p:graphicFrame"):
         Constructor = PlaceholderGraphicFrame
-    elif tag == qn('p:pic'):
+    elif tag == qn("p:pic"):
         Constructor = PlaceholderPicture
     else:
         Constructor = BaseShapeFactory
@@ -795,8 +841,9 @@ class _MoviePicElementCreator(object):
     a object such that its helper methods can be organized here.
     """
 
-    def __init__(self, shapes, shape_id, movie_file, x, y, cx, cy,
-                 poster_frame_file, mime_type):
+    def __init__(
+        self, shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_file, mime_type
+    ):
         super(_MoviePicElementCreator, self).__init__()
         self._shapes = shapes
         self._shape_id = shape_id
@@ -806,8 +853,9 @@ class _MoviePicElementCreator(object):
         self._mime_type = mime_type
 
     @classmethod
-    def new_movie_pic(cls, shapes, shape_id, movie_file, x, y, cx, cy,
-                      poster_frame_image, mime_type):
+    def new_movie_pic(
+        cls, shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image, mime_type
+    ):
         """Return a new `p:pic` element containing video in *movie_file*.
 
         If *mime_type* is None, 'video/unknown' is used. If
@@ -815,8 +863,7 @@ class _MoviePicElementCreator(object):
         used.
         """
         return cls(
-            shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image,
-            mime_type
+            shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image, mime_type
         )._pic
         return
 
@@ -833,9 +880,15 @@ class _MoviePicElementCreator(object):
     def _pic(self):
         """Return the new `p:pic` element referencing the video."""
         return CT_Picture.new_video_pic(
-            self._shape_id, self._shape_name, self._video_rId,
-            self._media_rId, self._poster_frame_rId, self._x, self._y,
-            self._cx, self._cy
+            self._shape_id,
+            self._shape_name,
+            self._video_rId,
+            self._media_rId,
+            self._poster_frame_rId,
+            self._x,
+            self._y,
+            self._cx,
+            self._cy,
         )
 
     @lazyproperty
@@ -878,9 +931,7 @@ class _MoviePicElementCreator(object):
     @lazyproperty
     def _video(self):
         """Return a |Video| object containing the movie file."""
-        return Video.from_path_or_file_like(
-            self._movie_file, self._mime_type
-        )
+        return Video.from_path_or_file_like(self._movie_file, self._mime_type)
 
     @lazyproperty
     def _video_part_rIds(self):
@@ -889,9 +940,7 @@ class _MoviePicElementCreator(object):
         This is where the media part and its relationships to the slide are
         actually created.
         """
-        media_rId, video_rId = self._slide_part.get_or_add_video_media_part(
-            self._video
-        )
+        media_rId, video_rId = self._slide_part.get_or_add_video_media_part(self._video)
         return media_rId, video_rId
 
     @property

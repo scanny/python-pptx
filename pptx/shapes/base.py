@@ -2,9 +2,7 @@
 
 """Base shape-related objects such as BaseShape."""
 
-from __future__ import (
-    absolute_import, division, print_function, unicode_literals
-)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
@@ -152,7 +150,7 @@ class BaseShape(object):
         |ValueError| on access if the shape is not a placeholder.
         """
         if not self.is_placeholder:
-            raise ValueError('shape is not a placeholder')
+            raise ValueError("shape is not a placeholder")
         return _PlaceholderFormat(self._element.ph)
 
     @property
@@ -230,6 +228,7 @@ class _PlaceholderFormat(ElementProxy):
     a placeholder shape, provides properties specific to placeholders, such
     as the placeholder type.
     """
+
     @property
     def element(self):
         """
