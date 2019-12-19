@@ -38,6 +38,14 @@ class CT_Picture(BaseShapeElement):
         ratio is preserved.
         """
         self.blipFill.crop(self._fill_cropping(image_size, view_size))
+        
+    def resize_to_fit(self, image_size, view_size):
+        """
+        Set resizing values in `p:blipFill/a:srcRect` such that an image of
+        *image_size* will shrink to exactly fit *view_size* when its aspect
+        ratio is preserved.
+        """
+        self.blipFill.crop(self._fit_resizing(image_size, view_size))
 
     def get_or_add_ln(self):
         """
@@ -147,6 +155,28 @@ class CT_Picture(BaseShapeElement):
         if ar_view > ar_image:  # image too tall
             crop = (1.0 - (ar_image / ar_view)) / 2.0
             return (0.0, crop, 0.0, crop)
+        return (0.0, 0.0, 0.0, 0.0)
+        
+    def _fit_resizing(self, image_size, view_size):
+        """
+        Return a (left, top, right, bottom) 4-tuple containing the 
+        values required to display an image of *image_size* in *view_size*
+        when stretched proportionately. Each value is a percentage expressed
+        as a fraction of 1.0, e.g. 0.425 represents 42.5%. *image_size* and
+        *view_size* are each (width, height) pairs.
+        Modified to allow resizing of the picture instead of cropping
+        """
+        def aspect_ratio(width, height):
+            return width / height
+
+        ar_view = aspect_ratio(*view_size)
+        ar_image = aspect_ratio(*image_size)
+        if ar_view < ar_image:  # image too wide
+            crop = (ar_view/ar_image - 1.0) / 2.0
+            return (0.0, crop, 0.0, crop)
+        if ar_view > ar_image:  # image too tall
+            crop = (ar_image/ar_view - 1.0) / 2.0
+            return (crop, 0.0, crop, 0.0)
         return (0.0, 0.0, 0.0, 0.0)
 
     @classmethod
