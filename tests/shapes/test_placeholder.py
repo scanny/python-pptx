@@ -485,7 +485,7 @@ class DescribePicturePlaceholder(object):
         picture_ph, image_file, pic = insert_fixture[:3]
         PlaceholderPicture_, placeholder_picture_ = insert_fixture[3:]
 
-        placeholder_picture = picture_ph.insert_picture(image_file)
+        placeholder_picture = picture_ph.insert_picture(image_file,crop=True)
 
         picture_ph._new_placeholder_pic.assert_called_once_with(image_file,crop=True)
         picture_ph._replace_placeholder_with.assert_called_once_with(pic)
