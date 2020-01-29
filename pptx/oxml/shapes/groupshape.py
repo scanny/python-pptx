@@ -73,6 +73,69 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(grpSp, "p:extLst")
         return grpSp
 
+    def add_cloned_shape(
+        self, ids_, names, element, grouped, x=None, y=None, cx=None, cy=None
+    ):
+        """
+        Append a new ``<p:sp>`` shape whose element exactly mathces *element* to the group/shapetree.
+        """
+        sp = self.update_infos(ids_, names, element, grouped, x, y, cx, cy)
+        self.insert_element_before(sp, "p:extLst")
+        return sp
+
+    def update_infos(
+        self, ids_, names, element, grouped, x=None, y=None, cx=None, cy=None
+    ):
+        """
+        Update informations (including *id_*, *name*, position and sizes) from given (grouped) shape element.
+        """
+        if grouped:
+            prop_ = element.xpath("./p:nvGrpSpPr/p:cNvPr")[0]
+            prop_.id = ids_[0]
+            prop_.name = names[0]
+
+            pos_ = element.xpath("./p:grpSpPr/a:xfrm/a:off")[0]
+            if (x is not None) and (y is not None):
+                (pos_.x, pos_.y) = x, y
+            else:
+                (pos_.x, pos_.y) = pos_.x + 500, pos_.y + 500
+
+            if (cx is not None) and (cy is not None):
+                pos_ = element.xpath("./p:grpSpPr/a:xfrm/a:ext")[0]
+                (pos_.cx, pos_.cy) = cx, cy
+
+            for _, e in enumerate(element.xpath(".//p:nvSpPr/p:cNvPr[@id]")):
+                e.id = ids_[_ + 1]
+                e.name = names[_ + 1]
+
+        else:
+            _props = [
+                "./p:nvSpPr/p:cNvPr",
+                "./p:nvPicPr/p:cNvPr",
+                "./p:nvGraphicFramePr/p:cNvPr",
+            ]
+            for _prop in _props:
+                prop_ = element.xpath(_prop)
+                if prop_:
+                    prop_ = prop_[0]
+                    (prop_.id, prop_.name) = ids_[0], names[0]
+            _positions = ["./p:spPr/a:xfrm/", "./p:xfrm/"]
+            for _pos in _positions:
+                pos_ = element.xpath(_pos + "a:off")
+                if pos_:
+                    _res = pos_[0]
+                    if (x is not None) and (y is not None):
+                        (_res.x, _res.y) = x, y
+                    else:
+                        (_res.x, _res.y) = _res.x + 500, _res.y + 500
+                pos_ = element.xpath(_pos + "a:ext")
+                if pos_:
+                    _res = pos_[0]
+                    if (cx is not None) and (cy is not None):
+                        (_res.cx, _res.cy) = cx, cy
+
+        return element
+
     def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
         """
         Append a ``<p:pic>`` shape to the group/shapetree having properties

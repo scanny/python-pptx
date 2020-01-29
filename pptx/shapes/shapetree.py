@@ -3,6 +3,8 @@
 """The shape tree, the structure that holds a slide's shapes."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import copy
+
 
 from pptx.compat import BytesIO
 from pptx.enum.shapes import PP_PLACEHOLDER
@@ -410,6 +412,29 @@ class _BaseGroupShapes(_BaseShapes):
         sp = self._grpSp.add_autoshape(id_, name, autoshape_type.prst, x, y, cx, cy)
         return sp
 
+    def _add_sp_from_existing_shape(self, element, x=None, y=None, cx=None, cy=None):
+        """
+        Return a newly-added ``<p:sp>`` or ``<p:grpSp>`` element
+        whose content exactly matches an existing shape
+        *element* at position (x, y) and of size (cx, cy).
+        """
+        ids_ = []
+        names = []
+        grouped = False
+
+        ids_.append(self._next_shape_id)
+        names.append("Cloned shape %d" % (ids_[0] - 1))
+
+        if len(element.xpath("./p:nvGrpSpPr")) > 0:
+            grouped = True
+            num_shapes = len(element.xpath(".//p:nvSpPr/p:cNvPr[@id]"))
+            for i in range(num_shapes):
+                ids_.append(self._next_shape_id)
+                names.append("Cloned sub shape %d" % (ids_[i + 1] - 1))
+
+        sp = self._spTree.add_cloned_shape(ids_, names, element, grouped, x, y, cx, cy)
+        return sp
+
     def _add_textbox_sp(self, x, y, cx, cy):
         """Return newly-appended textbox `p:sp` element.
 
@@ -497,6 +522,16 @@ class SlideShapes(_BaseGroupShapes):
         self._spTree.append(movie_pic)
         self._add_video_timing(movie_pic)
         return self._shape_factory(movie_pic)
+
+    def clone_shape(self, shape, left=None, top=None, width=None, height=None):
+        """
+        Clone a *shape* of specified size at specified position.
+        *shape* doesn't need to come from the same slide.
+        """
+        _element = copy.deepcopy(shape.element)
+        sp = self._add_sp_from_existing_shape(_element, left, top, width, height)
+
+        return self._shape_factory(sp)
 
     def add_table(self, rows, cols, left, top, width, height):
         """
