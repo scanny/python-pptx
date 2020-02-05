@@ -10,7 +10,7 @@ position with the right font size, paragraph alignment, bullet style, etc.,
 etc. Basically you can just click and type in some text and you've got
 a slide.
 
-A placeholder can be also be used to place a rich-content object on a slide.
+A placeholder can also be used to place a rich-content object on a slide.
 A picture, table, or chart can each be inserted into a placeholder and so
 take on the position and size of the placeholder, as well as certain
 of its formatting attributes.
@@ -199,7 +199,7 @@ its second slide layout::
     >>> placeholder.name
     'Chart Placeholder 9'
     >>> placeholder.placeholder_format.type
-    CHART (12)
+    CHART (8)
 
     >>> chart_data = ChartData()
     >>> chart_data.categories = ['Yes', 'No']
