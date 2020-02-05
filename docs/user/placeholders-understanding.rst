@@ -110,7 +110,7 @@ having the same `idx` value.
 In general, all formatting properties are inherited from the "parent"
 placeholder. This includes position and size as well as fill, line, and font.
 Any directly applied formatting overrides the corresponding inherited value.
-Directly applied formatting can be removed be reapplying the layout.
+Directly applied formatting can be removed by reapplying the layout.
 
 
 Glossary
