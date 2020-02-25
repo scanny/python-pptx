@@ -865,7 +865,6 @@ class _MoviePicElementCreator(object):
         return cls(
             shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image, mime_type
         )._pic
-        return
 
     @property
     def _media_rId(self):
