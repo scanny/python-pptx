@@ -1,4 +1,3 @@
-
 Working with tables
 ===================
 
@@ -309,3 +308,10 @@ Use Case: Determine whether table contains merged cells::
             if cell.is_merge_origin:
                 return True
         return False
+
+Change a cell's font color
+Note that `text` must be set before changing the color::
+
+    cell.text = text
+    font = cell.text_frame.paragraphs[0].font
+    font.color.rgb = RGBColor.from_string('00FF00')
