@@ -27,6 +27,7 @@ from pptx.oxml.simpletypes import (
     ST_TextSpacingPoint,
     ST_TextTypeface,
     ST_TextWrappingType,
+    BaseIntType,
     XsdBoolean,
 )
 from pptx.oxml.xmlchemy import (
@@ -305,6 +306,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     sz = OptionalAttribute("sz", ST_TextFontSize)
     b = OptionalAttribute("b", XsdBoolean)
     i = OptionalAttribute("i", XsdBoolean)
+    baseline = OptionalAttribute("baseline", BaseIntType)
     u = OptionalAttribute("u", MSO_TEXT_UNDERLINE_TYPE)
 
     def _new_gradFill(self):

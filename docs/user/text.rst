@@ -168,6 +168,8 @@ the theme color Accent 1.
     font.bold = True
     font.italic = None  # cause value to be inherited from theme
     font.color.theme_color = MSO_THEME_COLOR.ACCENT_1
+    font.superscript = True # sets superscript (baseline 30000)
+    font.subscript = True # sets subscript (baseline -25000), removes superscript (only 1 allowed at a time)
 
 If you prefer, you can set the font color to an absolute RGB value. Note that
 this will not change color when the theme is changed::
