@@ -418,3 +418,4 @@ class ObjectPlaceholder(SlidePlaceholder, ChartPlaceholder, PicturePlaceholder, 
     """
     Placeholder shape that accept all objects.
     """
+
