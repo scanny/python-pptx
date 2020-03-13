@@ -414,7 +414,7 @@ class TablePlaceholder(_BaseSlidePlaceholder):
         )
 
 
-class ObjectPlaceholder(SlidePlaceholder, ChartPlaceholder, PicturePlaceholder, TablePlaceholder):
+class ContentPlaceholder(SlidePlaceholder, ChartPlaceholder, PicturePlaceholder, TablePlaceholder):
     """
     Placeholder shape that accept all objects.
     """
