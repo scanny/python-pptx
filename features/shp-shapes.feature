@@ -324,8 +324,8 @@ Feature: Access a shape on a slide
   Scenario: SlidePlaceholders is a sequence
     Given a SlidePlaceholders object of length 2 as shapes
      Then len(shapes) == 2
-      And shapes[10] is a SlidePlaceholder object
-      And iterating shapes produces 2 objects of type SlidePlaceholder
+      And shapes[0] is a SlidePlaceholder object
+      And shapes[10] is a ContentPlaceholder object
 
 
   Scenario Outline: Access unpopulated placeholder shape
