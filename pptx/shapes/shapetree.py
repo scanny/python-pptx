@@ -29,6 +29,7 @@ from pptx.shapes.placeholder import (
     PlaceholderPicture,
     SlidePlaceholder,
     TablePlaceholder,
+    ObjectPlaceholder
 )
 from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
@@ -811,6 +812,7 @@ def _SlidePlaceholderFactory(shape_elm, parent):
             PP_PLACEHOLDER.CHART: ChartPlaceholder,
             PP_PLACEHOLDER.PICTURE: PicturePlaceholder,
             PP_PLACEHOLDER.TABLE: TablePlaceholder,
+            PP_PLACEHOLDER.OBJECT: ObjectPlaceholder
         }.get(shape_elm.ph_type, SlidePlaceholder)
     elif tag == qn("p:graphicFrame"):
         Constructor = PlaceholderGraphicFrame
