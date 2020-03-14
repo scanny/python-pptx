@@ -35,7 +35,7 @@ def to_unicode(text):
     if isinstance(text, str):
         return text
     try:
-        return text.decode("utf-8")
+        return text.decode(eventual_encoding="utf-8")
     except AttributeError:
         raise TypeError("expected unicode string, got %s value %s" % (type(text), text))
 
