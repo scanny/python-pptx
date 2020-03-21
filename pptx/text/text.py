@@ -10,7 +10,7 @@ from pptx.enum.dml import MSO_FILL
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml.simpletypes import ST_TextWrappingType
+from pptx.oxml.simpletypes import ST_TextWrappingType, ST_TextFontStrike
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
@@ -308,6 +308,27 @@ class Font(object):
     @bold.setter
     def bold(self, value):
         self._rPr.b = value
+
+    @property
+    def strikethrough(self):
+        return {
+            ST_TextFontStrike.SINGLE_STRIKE: True,
+            ST_TextFontStrike.DOUBLE_STRIKE: True,
+            ST_TextFontStrike.NO_STRIKE: False,
+            None: None,
+        }[self._rPr.strike]
+
+    @strikethrough.setter
+    def strikethrough(self, value):
+        if value not in (True, False, None):
+            raise ValueError(
+                "assigned value must be True, False, or None, got %s" % value
+            )
+        self._rPr.strike = {
+            True: ST_TextFontStrike.SINGLE_STRIKE,
+            False: ST_TextFontStrike.NO_STRIKE,
+            None: None,
+        }[value]
 
     @lazyproperty
     def color(self):

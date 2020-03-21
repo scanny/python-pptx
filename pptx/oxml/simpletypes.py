@@ -727,6 +727,18 @@ class ST_TextWrappingType(XsdTokenEnumeration):
     _members = (NONE, SQUARE)
 
 
+class ST_TextFontStrike(XsdStringEnumeration):
+    """
+    Valid values for <a:bodyPr strike=""> attribute
+    """
+
+    NO_STRIKE = "noStrike"
+    SINGLE_STRIKE = "sngStrike"
+    DOUBLE_STRIKE = "dblStrike"
+	
+    _members = (NO_STRIKE, SINGLE_STRIKE, DOUBLE_STRIKE)
+
+	
 class ST_UniversalMeasure(BaseSimpleType):
     @classmethod
     def convert_from_xml(cls, str_value):

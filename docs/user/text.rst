@@ -168,6 +168,7 @@ the theme color Accent 1.
     font.bold = True
     font.italic = None  # cause value to be inherited from theme
     font.color.theme_color = MSO_THEME_COLOR.ACCENT_1
+    font.strikethrough = True
 
 If you prefer, you can set the font color to an absolute RGB value. Note that
 this will not change color when the theme is changed::
