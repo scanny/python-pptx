@@ -97,3 +97,12 @@ _PlaceholderFormat objects
    :members:
    :inherited-members:
    :undoc-members:
+
+
+ContentPlaceholder objects
+------------------------
+
+.. autoclass:: pptx.shapes.placeholder.ContentPlaceholder()
+   :members:
+   :inherited-members:
+   :undoc-members:
