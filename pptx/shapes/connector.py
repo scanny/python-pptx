@@ -268,23 +268,50 @@ class Connector(BaseShape):
         Move the begin point of this connector to coordinates of the
         connection point of *shape* specified by *cxn_pt_idx*.
         """
-        x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
-        self.begin_x, self.begin_y = {
-            0: (int(x + cx / 2), y),
-            1: (x, int(y + cy / 2)),
-            2: (int(x + cx / 2), y + cy),
-            3: (x + cx, int(y + cy / 2)),
-        }[cxn_pt_idx]
+        self.begin_x, self.begin_y = self._get_shp_cxn_pt(shape, cxn_pt_idx)
 
     def _move_end_to_cxn(self, shape, cxn_pt_idx):
         """
         Move the end point of this connector to the coordinates of the
         connection point of *shape* specified by *cxn_pt_idx*.
         """
-        x, y, cx, cy = shape.left, shape.top, shape.width, shape.height
-        self.end_x, self.end_y = {
-            0: (int(x + cx / 2), y),
-            1: (x, int(y + cy / 2)),
-            2: (int(x + cx / 2), y + cy),
-            3: (x + cx, int(y + cy / 2)),
-        }[cxn_pt_idx]
+        self.end_x, self.end_y = self._get_shp_cxn_pt(shape, cxn_pt_idx)
+
+    def _get_shp_cxn_pt(self, shape, cxn_pt_idx):
+        """
+        Function to compute approximate location of the connection points
+        for a given shape. 
+        """
+        name, x, y, cx, cy = shape.name, shape.left, shape.top, shape.width, shape.height
+        name = name.lower()
+        if 'parallelogram' in name:
+            buffer_x = 0.1477732794
+            connection_points = [
+                ((x + cx / 2), y),                                        # Top shape-midpoint
+                ((x + (buffer_x * cx) / 2), (y + cy / 2)),                # Left
+                ((x + ((1 - buffer_x) * cx / 2)), y + cy),                # Bottom parallelogram-midpoint
+                ((x + cx / 2), y + cy),                                   # Bottom shape-midpoint
+                (((x + cx) - buffer_x * cx / 2), (y + cy / 2)),           # Right
+                ((x + ((1 - buffer_x) * cx / 2) + + buffer_x * cx), y)    # Top parallelogram-midpoint
+                ]
+        elif 'oval' in name:
+            buffer_x = 0.1398963731
+            buffer_y = 0.1509433962
+            connection_points = [
+                ((x + cx / 2), y),                                        # Top
+                ((x + buffer_x * cx), (y + buffer_y * cy)),               # Top-left
+                (x, (y + cy / 2)),                                        # Left
+                ((x + buffer_x * cx), ((y + cy) - buffer_y * cy)),        # Bottom-left
+                ((x + cx / 2), y + cy),                                   # Bottom
+                (((x + cx) - buffer_x * cx), ((y + cy) - buffer_y * cy)), # Bottom-right
+                (x + cx, (y + cy / 2)),                                   # Right
+                (((x + cx) - buffer_x * cx), (y + buffer_y * cy))         # Top-right
+                ]
+        else:
+            connection_points = [
+                ((x + cx / 2), y),                                        # Top
+                (x, (y + cy / 2)),                                        # Left
+                ((x + cx / 2), y + cy),                                   # Bottom
+                (x + cx, (y + cy / 2))                                    # Right
+                ]
+        return connection_points[cxn_pt_idx]
