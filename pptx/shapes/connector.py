@@ -42,7 +42,16 @@ class Connector(BaseShape):
         """
         self._connect_begin_to(shape, cxn_pt_idx)
         self._move_begin_to_cxn(shape, cxn_pt_idx)
-
+    
+    @property
+    def shape_type(self):
+        """
+        Member of :ref:`MsoShapeType` specifying the type of this shape.
+        Unconditionally ``MSO_SHAPE_TYPE.LINE`` in this case.
+        Read-only.
+        """
+        return MSO_SHAPE_TYPE.LINE
+    
     @property
     def begin_x(self):
         """
