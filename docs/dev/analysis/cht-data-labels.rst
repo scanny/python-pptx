@@ -16,7 +16,7 @@ The `DataLabels` object is not a collection of `DataLabel` objects.
 so "global" settings in a way of thinking. An individual `DataLabel` object
 is accessed using it's associated `Point` object::
 
-    data_label = chart.plot[0].series[0].points[0].data_label
+    data_label = chart.plots[0].series[0].points[0].data_label
 
 The two object types share many attributes.
 
