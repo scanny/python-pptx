@@ -7,6 +7,9 @@ writing presentations to and from a .pptx file.
 
 from __future__ import absolute_import
 
+import os
+from collections import defaultdict
+
 from pptx.util import lazyproperty
 
 from .constants import RELATIONSHIP_TYPE as RT
@@ -26,6 +29,7 @@ class OpcPackage(object):
 
     def __init__(self):
         super(OpcPackage, self).__init__()
+        self.partnames = defaultdict(int)
 
     def after_unmarshal(self):
         """
@@ -104,17 +108,15 @@ class OpcPackage(object):
 
     def next_partname(self, tmpl):
         """
-        Return a |PackURI| instance representing the next available partname
+        Return a |PackURI| instance representing the next partname
         matching *tmpl*, which is a printf (%)-style template string
         containing a single replacement item, a '%d' to be used to insert the
         integer portion of the partname. Example: '/ppt/slides/slide%d.xml'
         """
-        partnames = [part.partname for part in self.iter_parts()]
-        for n in range(1, len(partnames) + 2):
-            candidate_partname = tmpl % n
-            if candidate_partname not in partnames:
-                return PackURI(candidate_partname)
-        raise Exception("ProgrammingError: ran out of candidate_partnames")
+        name = tmpl.split(os.sep)[2]
+        self.partnames[name] += 1
+        candidate_partname = tmpl % self.partnames[name]
+        return PackURI(candidate_partname)
 
     @classmethod
     def open(cls, pkg_file):
