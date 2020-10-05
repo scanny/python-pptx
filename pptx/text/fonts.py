@@ -54,7 +54,9 @@ class FontFiles(object):
             return cls._os_x_font_directories()
         if sys.platform.startswith("win32"):
             return cls._windows_font_directories()
-        raise OSError("unsupported operating system")
+        if sys.platform.startswith('linux'):
+            return cls._linux_font_directories()
+        raise OSError('unsupported operating system')
 
     @classmethod
     def _iter_font_files_in(cls, directory):
@@ -99,6 +101,23 @@ class FontFiles(object):
         """
         return [r"C:\Windows\Fonts"]
 
+    @classmethod
+    def _linux_font_directories(cls):
+        """
+        Return a sequence of directory paths on Linux in which fonts are
+        likely to be located.
+        """
+        linux_font_dirs = [
+            '/usr/share/fonts',
+            '/usr/local/share/fonts',
+        ]
+        home = os.environ.get('HOME')
+        if home is not None:
+            linux_font_dirs.extend([
+                os.path.join(home, '.fonts'),
+                os.path.join(home, '.local/share/fonts'),
+            ])
+        return linux_font_dirs
 
 class _Font(object):
     """
