@@ -118,7 +118,7 @@ class MSO_LINE_DASH_STYLE(XmlEnumeration):
 
         from pptx.enum.dml import MSO_LINE
 
-        shape.line.dash_style == MSO_LINE.DASH_DOT_DOT
+        shape.line.dash_style = MSO_LINE.DASH_DOT_DOT
     """
 
     __ms_name__ = "MsoLineDashStyle"
