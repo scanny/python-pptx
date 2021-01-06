@@ -361,6 +361,12 @@ class CT_TableCell(BaseOxmlElement):
 
 class CT_TableCellProperties(BaseOxmlElement):
     """`a:tcPr` custom element class"""
+    _property_seq = ("a:lnL", "a:lnR", "a:lnT", "a:lnB", "a:noFill", "a:solidFill", "a:gradFill", "a:blipFill", "a:pattFill", "a:grpFill", "a:headers", "a:extLst")
+
+    borL = ZeroOrOne("a:lnL", successors=_property_seq[1:])
+    borR = ZeroOrOne("a:lnR", successors=_property_seq[2:])
+    borT = ZeroOrOne("a:lnT", successors=_property_seq[3:])
+    borB = ZeroOrOne("a:lnB", successors=_property_seq[4:])
 
     eg_fillProperties = ZeroOrOneChoice(
         (
@@ -371,8 +377,10 @@ class CT_TableCellProperties(BaseOxmlElement):
             Choice("a:pattFill"),
             Choice("a:grpFill"),
         ),
-        successors=("a:headers", "a:extLst"),
+        successors=_property_seq[5:],
     )
+    del _property_seq
+
     anchor = OptionalAttribute("anchor", MSO_VERTICAL_ANCHOR)
     marL = OptionalAttribute("marL", ST_Coordinate32)
     marR = OptionalAttribute("marR", ST_Coordinate32)

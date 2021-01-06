@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from pptx.compat import is_integer
 from pptx.dml.fill import FillFormat
+from pptx.dml.border import BorderFormat
 from pptx.oxml.table import TcRange
 from pptx.shapes import Subshape
 from pptx.text.text import TextFrame
@@ -382,6 +383,74 @@ class _Cell(Subshape):
     @vertical_anchor.setter
     def vertical_anchor(self, mso_anchor_idx):
         self._tc.anchor = mso_anchor_idx
+
+    @property
+    def borL(self):
+        """
+        Get Left Border instance containing all the formatting options.
+        """
+        return self._tc.tcPr.borL
+
+    @lazyproperty
+    def border_left(self):
+        return BorderFormat(self, 'left')
+
+    def get_or_add_borL(self):
+        return self._tc.tcPr.get_or_add_borL()
+
+    @property
+    def borR(self):
+        """
+        Get Right Border instance containing all the formatting options.
+        """
+        return self._tc.tcPr.borR
+
+    @lazyproperty
+    def border_right(self):
+        return BorderFormat(self, 'right')
+
+    def get_or_add_borR(self):
+        return self._tc.tcPr.get_or_add_borR()
+
+    @property
+    def borT(self):
+        """
+        Get Top Border instance containing all the formatting options.
+        """
+        return self._tc.tcPr.borT
+
+    @lazyproperty
+    def border_top(self):
+        return BorderFormat(self, 'top')
+
+    def get_or_add_borT(self):
+        return self._tc.tcPr.get_or_add_borT()
+
+    @property
+    def borB(self):
+        """
+        Get Bottom Border instance containing all the formatting options.
+        """
+        return self._tc.tcPr.borB
+
+    @lazyproperty
+    def border_bottom(self):
+        return BorderFormat(self, 'bottom')
+
+    def get_or_add_borB(self):
+        return self._tc.tcPr.get_or_add_borB()
+
+    def get_border(self, side):
+        if side == "left":
+            return self.border_left
+        elif side == "right":
+            return self.border_right
+        elif side == "top":
+            return self.border_top
+        elif side == "bottom":
+            return self.border_bottom
+        else:
+            return None
 
     @staticmethod
     def _validate_margin_value(margin_value):
