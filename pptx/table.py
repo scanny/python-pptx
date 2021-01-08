@@ -440,6 +440,37 @@ class _Cell(Subshape):
     def get_or_add_borB(self):
         return self._tc.tcPr.get_or_add_borB()
 
+
+    @property
+    def borTlBr(self):
+        """
+        Get Diagonal Border instance from Top Left to Bottom Right containing all the formatting options.
+        """
+        return self._tc.tcPr.borB
+
+    @lazyproperty
+    def border_tl_br(self):
+        return BorderFormat(self, 'tl_br')
+
+    def get_or_add_borTlBr(self):
+        return self._tc.tcPr.get_or_add_borTlBr()
+
+
+    @property
+    def borBlTr(self):
+        """
+        Get Diagonal Border instance from Bottom Left to Top Right containing all the formatting options.
+        """
+        return self._tc.tcPr.borBlTr
+
+    @lazyproperty
+    def border_bl_tr(self):
+        return BorderFormat(self, 'bl_tr')
+
+    def get_or_add_borBlTr(self):
+        return self._tc.tcPr.get_or_add_borBlTr()
+
+
     def get_border(self, side):
         if side == "left":
             return self.border_left
@@ -449,6 +480,10 @@ class _Cell(Subshape):
             return self.border_top
         elif side == "bottom":
             return self.border_bottom
+        elif side == "tl_br":
+            return self.border_tlbr
+        elif side == "bl_tr":
+            return self.border_bl_tr
         else:
             return None
 

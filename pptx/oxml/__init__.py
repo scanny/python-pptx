@@ -447,6 +447,8 @@ register_element_cls("a:lnL", CT_LineProperties)
 register_element_cls("a:lnR", CT_LineProperties)
 register_element_cls("a:lnT", CT_LineProperties)
 register_element_cls("a:lnB", CT_LineProperties)
+register_element_cls("a:lnBlToTr", CT_LineProperties)
+register_element_cls("a:lnTlToBr", CT_LineProperties)
 
 
 from .text import (  # noqa: E402
