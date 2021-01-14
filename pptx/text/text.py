@@ -548,6 +548,47 @@ class _Paragraph(Subshape):
         self._pPr.lvl = level
 
     @property
+    def margin_left(self):
+        """
+        Read/write integer value of left margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return Emu(self._pPr.marL)
+
+    @margin_left.setter
+    def margin_left(self, value):
+        self._pPr.marL = value
+
+    @property
+    def margin_right(self):
+        """
+        Read/write integer value of right margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return Emu(self._pPr.marR)
+
+    @margin_right.setter
+    def margin_right(self, value):
+        self._pPr.marR = value
+
+    @property
+    def indent(self):
+        """
+        Read/write integer value of indentation of first line of a paragraph
+        as a |Length| value object.  This value is calculated from the left
+        margin of the paragraph.  If assigned |None|, the default value is
+        used, 0.  Negative values can also be used.
+        """
+        return self._pPr.indent
+
+    @indent.setter
+    def indent(self, value):
+        self._pPr.indent = value
+
+
+    @property
     def line_spacing(self):
         """
         Numeric or |Length| value specifying the space between baselines in

@@ -460,7 +460,10 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
     spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
     defRPr = ZeroOrOne("a:defRPr", successors=_tag_seq[16:])
+    marR = OptionalAttribute("marR", ST_Coordinate32)
+    marL = OptionalAttribute("marL", ST_Coordinate32)
     lvl = OptionalAttribute("lvl", ST_TextIndentLevelType, default=0)
+    indent = OptionalAttribute("indent", ST_Coordinate32)
     algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
     del _tag_seq
 
