@@ -33,6 +33,10 @@ class BorderFormat(LineFormat):
             return self._parent.borT
         elif self.side == "bottom":
             return self._parent.borB
+        elif self.side == "bl_tr":
+            return self._parent.borBlTr
+        elif self.side == "tl_br":
+            return self._parent.borTlBr
         else:
             return None
 
@@ -46,5 +50,9 @@ class BorderFormat(LineFormat):
             return self._parent.get_or_add_borT()
         elif self.side == "bottom":
             return self._parent.get_or_add_borB()
+        elif self.side == "bl_tr":
+            return self._parent.get_or_add_borBlTr()
+        elif self.side == "tl_br":
+            return self._parent.get_or_add_borTlBr()
         else:
             return None
