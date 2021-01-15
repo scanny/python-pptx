@@ -25,6 +25,11 @@ class BorderFormat(LineFormat):
 
     @property
     def _ln(self):
+        """
+        This function allows this single object to function for the
+        6 different sides/diagonals of a table cell and returns the 
+        correct one as provided by the string stored in self.side
+        """
         if self.side == "left":
             return self._parent.border_left
         elif self.side == "right":
@@ -42,6 +47,11 @@ class BorderFormat(LineFormat):
 
 
     def _get_or_add_ln(self):
+        """
+        This function allows this single object to function for the
+        6 different sides/diagonals of a table cell and returns the 
+        correct one as provided by the string stored in self.side
+        """
         if self.side == "left":
             return self._parent.get_or_add_borL()
         elif self.side == "right":
