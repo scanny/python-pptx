@@ -12,10 +12,10 @@ from ..util import Emu, lazyproperty
 
 class BorderFormat(LineFormat):
     """Provides access to line properties such as color, style, and width.
-    This simply inherits all of the standard Line objects but abstracts the
+    This simply inherits the standard |LineFormat| object but abstracts the
     _ln property and _get_or_add_ln method to allow for a side designation
 
-    A BorderFormat object is typically accessed via the ``.border_xxx`` property of
+    A |BorderFormat| object is typically accessed via the ``.border_xxx`` property of
     a Table Cell.
     """
 
