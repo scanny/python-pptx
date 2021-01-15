@@ -384,108 +384,31 @@ class _Cell(Subshape):
     def vertical_anchor(self, mso_anchor_idx):
         self._tc.anchor = mso_anchor_idx
 
-    @property
-    def borL(self):
-        """
-        Get Left Border instance containing all the formatting options.
-        """
-        return self._tc.tcPr.borL
 
-    @lazyproperty
+    @property
     def border_left(self):
-        return BorderFormat(self, 'left')
-
-    def get_or_add_borL(self):
-        return self._tc.tcPr.get_or_add_borL()
+        return BorderFormat(self._tc.tcPr, 'left')
 
     @property
-    def borR(self):
-        """
-        Get Right Border instance containing all the formatting options.
-        """
-        return self._tc.tcPr.borR
-
-    @lazyproperty
     def border_right(self):
-        return BorderFormat(self, 'right')
-
-    def get_or_add_borR(self):
-        return self._tc.tcPr.get_or_add_borR()
+        return BorderFormat(self._tc.tcPr, 'right')
 
     @property
-    def borT(self):
-        """
-        Get Top Border instance containing all the formatting options.
-        """
-        return self._tc.tcPr.borT
-
-    @lazyproperty
     def border_top(self):
-        return BorderFormat(self, 'top')
-
-    def get_or_add_borT(self):
-        return self._tc.tcPr.get_or_add_borT()
+        return BorderFormat(self._tc.tcPr, 'top')
 
     @property
-    def borB(self):
-        """
-        Get Bottom Border instance containing all the formatting options.
-        """
-        return self._tc.tcPr.borB
-
-    @lazyproperty
     def border_bottom(self):
-        return BorderFormat(self, 'bottom')
-
-    def get_or_add_borB(self):
-        return self._tc.tcPr.get_or_add_borB()
-
+        return BorderFormat(self._tc.tcPr, 'bottom')
 
     @property
-    def borTlBr(self):
-        """
-        Get Diagonal Border instance from Top Left to Bottom Right containing all the formatting options.
-        """
-        return self._tc.tcPr.borB
-
-    @lazyproperty
     def border_tl_br(self):
-        return BorderFormat(self, 'tl_br')
-
-    def get_or_add_borTlBr(self):
-        return self._tc.tcPr.get_or_add_borTlBr()
-
+        return BorderFormat(self._tc.tcPr, 'tl_br')
 
     @property
-    def borBlTr(self):
-        """
-        Get Diagonal Border instance from Bottom Left to Top Right containing all the formatting options.
-        """
-        return self._tc.tcPr.borBlTr
-
-    @lazyproperty
     def border_bl_tr(self):
-        return BorderFormat(self, 'bl_tr')
+        return BorderFormat(self._tc.tcPr, 'bl_tr')
 
-    def get_or_add_borBlTr(self):
-        return self._tc.tcPr.get_or_add_borBlTr()
-
-
-    def get_border(self, side):
-        if side == "left":
-            return self.border_left
-        elif side == "right":
-            return self.border_right
-        elif side == "top":
-            return self.border_top
-        elif side == "bottom":
-            return self.border_bottom
-        elif side == "tl_br":
-            return self.border_tlbr
-        elif side == "bl_tr":
-            return self.border_bl_tr
-        else:
-            return None
 
     @staticmethod
     def _validate_margin_value(margin_value):
