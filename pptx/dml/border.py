@@ -26,17 +26,17 @@ class BorderFormat(LineFormat):
     @property
     def _ln(self):
         if self.side == "left":
-            return self._parent.borL
+            return self._parent.border_left
         elif self.side == "right":
-            return self._parent.borR
+            return self._parent.border_right
         elif self.side == "top":
-            return self._parent.borT
+            return self._parent.border_top
         elif self.side == "bottom":
-            return self._parent.borB
+            return self._parent.border_bottom
         elif self.side == "bl_tr":
-            return self._parent.borBlTr
+            return self._parent.border_bl_tr
         elif self.side == "tl_br":
-            return self._parent.borTlBr
+            return self._parent.border_tl_br
         else:
             return None
 
