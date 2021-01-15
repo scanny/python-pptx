@@ -28,6 +28,11 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    ST_TextPanose,
+    ST_TextPitchFamily,
+    ST_TextCharset,
+    ST_TextCharacter,
+    ST_TextAutoNumType,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -459,6 +464,9 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     lnSpc = ZeroOrOne("a:lnSpc", successors=_tag_seq[1:])
     spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
     spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
+    buFont = ZeroOrOne("a:buFont", successors=_tag_seq[10:])
+    buAutoNum = ZeroOrOne("a:buAutoNum", successors=_tag_seq[12:])
+    buChar = ZeroOrOne("a:buChar", successors=_tag_seq[13:])
     defRPr = ZeroOrOne("a:defRPr", successors=_tag_seq[16:])
     marR = OptionalAttribute("marR", ST_Coordinate32)
     marL = OptionalAttribute("marL", ST_Coordinate32)
@@ -466,6 +474,12 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     indent = OptionalAttribute("indent", ST_Coordinate32)
     algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
     del _tag_seq
+
+    # @property
+    # def bullet_font(self):
+    #     return _BulletFont(self.buFont)
+        
+
 
     @property
     def line_spacing(self):
@@ -578,3 +592,25 @@ class CT_TextSpacingPoint(BaseOxmlElement):
     """
 
     val = RequiredAttribute("val", ST_TextSpacingPoint)
+
+class CT_TextBulletFont(BaseOxmlElement):
+    """
+    <a:buFont> element, specifing the font characteristics of a listed font
+    """
+    typeface = OptionalAttribute("typeface", ST_TextTypeface)
+    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
+    panose = OptionalAttribute("panose", ST_TextPanose)
+    charset = OptionalAttribute("charset", ST_TextCharset)
+
+class CT_TextBulletCharacter(BaseOxmlElement):
+    """
+    <a:buChar> element, specifing the character used in a bullet point
+    """
+    char = RequiredAttribute('char', ST_TextCharacter)
+
+
+class CT_TextBulletAutoNumber(BaseOxmlElement):
+    """
+    <a:buAutoNum> element, specifing the type used in a autonumbered list
+    """
+    char_type = RequiredAttribute('type', ST_TextAutoNumType)

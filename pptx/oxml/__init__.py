@@ -459,6 +459,9 @@ from .text import (  # noqa: E402
     CT_TextSpacing,
     CT_TextSpacingPercent,
     CT_TextSpacingPoint,
+    CT_TextBulletFont,
+    CT_TextBulletCharacter,
+    CT_TextBulletAutoNumber,
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -468,6 +471,9 @@ register_element_cls("a:endParaRPr", CT_TextCharacterProperties)
 register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:latin", CT_TextFont)
 register_element_cls("a:lnSpc", CT_TextSpacing)
+register_element_cls("a:buFont", CT_TextBulletFont)
+register_element_cls("a:buChar", CT_TextBulletCharacter)
+register_element_cls("a:buAutoNum", CT_TextBulletAutoNumber)
 register_element_cls("a:normAutofit", CT_TextNormalAutofit)
 register_element_cls("a:r", CT_RegularTextRun)
 register_element_cls("a:p", CT_TextParagraph)

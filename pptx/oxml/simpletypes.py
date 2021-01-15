@@ -742,3 +742,22 @@ class ST_UniversalMeasure(BaseSimpleType):
         }[units_part]
         emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value
+
+
+class ST_TextPanose(XsdString):
+    pass
+
+
+class ST_TextPitchFamily(XsdInt):
+    pass
+
+
+class ST_TextCharset(XsdInt):
+    pass
+
+
+class ST_TextCharacter(XsdString):
+    pass
+
+class ST_TextAutoNumType(XsdString):
+    pass

@@ -14,7 +14,7 @@ from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
-from pptx.util import Centipoints, Emu, lazyproperty, Pt
+from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
 
 
 class TextFrame(Subshape):
@@ -707,6 +707,78 @@ class _Paragraph(Subshape):
         element to be added if not present.
         """
         return self._p.get_or_add_pPr()
+    
+    @property
+    def bullet_font(self):
+        """
+        This is the property for the bullet font
+        """
+        pPr = self._p.get_or_add_pPr()
+        buFont = pPr.get_or_add_buFont()
+        return BulletFont(buFont, self)
+
+    
+    @property
+    def bullet_character(self):
+        """
+        This is the property for the character used by bullets
+        """
+        pPr = self._p.get_or_add_pPr()
+        buChar = pPr.get_or_add_buChar()
+        return BulletCharacter(buChar, self)
+
+    @property
+    def auto_number(self):
+        """
+        This is the propery used for auto numbered lists
+        """
+        pPr = self._p.get_or_add_pPr()
+        buAutoNum = pPr.get_or_add_buAutoNum()
+        return AutoNumber(buAutoNum, self)
+
+
+    def add_bullet(self, character="•"):
+        """
+        This is a lazy function to set a set of default values for a bullet
+        and use the passed char as the bullet character.
+        This sets the following fields which correspond to Powerpoint's defaults:
+            - p.margin_left = 5/16"
+            - p.indent = -5/16"
+            - bullet_font properties
+                - typeface = Arial
+                - pitch_family = 34
+                - panose = 020B0604020202020204
+                - charset = 0
+            - bullet_character properties
+                - character = passed value or "•"
+        """
+        buFont = self.bullet_font
+        buFont.typeface = "Arial"
+        buFont.pitch_family = 34
+        buFont.charset = 0
+        buFont.panose = "020B0604020202020204"
+
+        self.margin_left = Inches(5/16)
+        self.indent = Inches(-5/16)
+
+        self.bullet_character.character = character
+        
+    def add_numbered_list(self):
+        """
+        This is a lazy function to set a set of default values for a numbered list.
+        This sets the following fields which correspond to Powerpoint's defaults:
+            - p.margin_left = 5/16"
+            - p.indent = -5/16"
+            - bullet_font properties
+                - typeface = +mj-lt
+            - bullet_autonum properties
+                - type = "arabicPeriod"
+        """
+        self.bullet_font.typeface = "+mj-lt"
+        self.auto_number.char_type = "arabicPeriod"
+        self.margin_left = Inches(5/16)
+        self.indent = Inches(-5/16)
+
 
 
 class _Run(Subshape):
@@ -758,3 +830,79 @@ class _Run(Subshape):
     @text.setter
     def text(self, str):
         self._r.text = to_unicode(str)
+
+
+
+class BulletFont(object):
+    """
+    Bullet Font Property used by bullets and numbered lists
+    """
+    def __init__(self, buFont, parent):
+        super(BulletFont, self).__init__()
+        self._buFont = buFont
+
+    @property
+    def typeface(self):
+        return self._buFont.typeface
+
+    @typeface.setter
+    def typeface(self, value):
+        self._buFont.typeface = value
+
+    @property
+    def pitch_family(self):
+        return self._buFont.pitchFamily
+    
+    @pitch_family.setter
+    def pitch_family(self, value):
+        self._buFont.pitchFamily = value
+    
+    @property
+    def panose(self):
+        return self._buFont.panose
+
+    @panose.setter
+    def panose(self, value):
+        self._buFont.panose = value
+
+    @property
+    def charset(self):
+        return self._buFont.charset
+
+    @charset.setter
+    def charset(self, value):
+        self._buFont.charset = value
+
+class BulletCharacter(object):
+    """
+    Bullet Character Property
+    """
+    def __init__(self, buChar, parent):
+        super(BulletCharacter, self).__init__()
+        self._buChar = buChar
+
+    @property
+    def character(self):
+        return self._buChar.char
+
+    @character.setter
+    def character(self, value):
+        self._buChar.char = value
+
+
+class AutoNumber(object):
+    """
+    AutoNum Property
+    """
+    def __init__(self, buAutoNum, parent):
+        super(AutoNumber, self).__init__()
+        self._buAutoNum = buAutoNum
+
+    @property
+    def char_type(self):
+        return self._buAutoNum.char_type
+
+    @char_type.setter
+    def char_type(self, value):
+        self._buAutoNum.char_type = value
+
