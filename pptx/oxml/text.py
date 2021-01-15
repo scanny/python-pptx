@@ -475,11 +475,6 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
     del _tag_seq
 
-    # @property
-    # def bullet_font(self):
-    #     return _BulletFont(self.buFont)
-        
-
 
     @property
     def line_spacing(self):
@@ -596,6 +591,11 @@ class CT_TextSpacingPoint(BaseOxmlElement):
 class CT_TextBulletFont(BaseOxmlElement):
     """
     <a:buFont> element, specifing the font characteristics of a listed font
+        - typeface is generally set to Arial but can be anything
+        - pitchFamily defaults to 34 by powerpoint
+        - panose describes the font characteristics and defaults to "020B0604020202020204"
+            when used with the Arial typeface
+        - charset is generaly set to 0
     """
     typeface = OptionalAttribute("typeface", ST_TextTypeface)
     pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
@@ -605,6 +605,9 @@ class CT_TextBulletFont(BaseOxmlElement):
 class CT_TextBulletCharacter(BaseOxmlElement):
     """
     <a:buChar> element, specifing the character used in a bullet point
+        - char is the actual character that is used for a bullet point.
+            It is displayed as part of the font set through the properies
+            in |CT_TextBulletFont|
     """
     char = RequiredAttribute('char', ST_TextCharacter)
 
@@ -612,5 +615,14 @@ class CT_TextBulletCharacter(BaseOxmlElement):
 class CT_TextBulletAutoNumber(BaseOxmlElement):
     """
     <a:buAutoNum> element, specifing the type used in a autonumbered list
+        - char_type sets the character and punctuation type.  Options include:
+            - arabicPeriod - 1.
+            - arabicParenR - 1)
+            - romanUcPeriod - I.
+            - alphaUcPeriod - A.
+            - alphaLcParenR - a)
+            - alphaLcPeriod - a.
+            - romanLcPeriod - i.
+
     """
     char_type = RequiredAttribute('type', ST_TextAutoNumType)

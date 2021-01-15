@@ -763,7 +763,7 @@ class _Paragraph(Subshape):
 
         self.bullet_character.character = character
         
-    def add_numbered_list(self):
+    def add_numbered_list(self, char_type="arabicPeriod"):
         """
         This is a lazy function to set a set of default values for a numbered list.
         This sets the following fields which correspond to Powerpoint's defaults:
@@ -772,10 +772,18 @@ class _Paragraph(Subshape):
             - bullet_font properties
                 - typeface = +mj-lt
             - bullet_autonum properties
-                - type = "arabicPeriod"
+                - type = passed value or "arabicPeriod"
+                    options include:
+                        - arabicPeriod - 1.
+                        - arabicParenR - 1)
+                        - romanUcPeriod - I.
+                        - alphaUcPeriod - A.
+                        - alphaLcParenR - a)
+                        - alphaLcPeriod - a.
+                        - romanLcPeriod - i.
         """
         self.bullet_font.typeface = "+mj-lt"
-        self.auto_number.char_type = "arabicPeriod"
+        self.auto_number.char_type = char_type
         self.margin_left = Inches(5/16)
         self.indent = Inches(-5/16)
 

@@ -745,19 +745,24 @@ class ST_UniversalMeasure(BaseSimpleType):
 
 
 class ST_TextPanose(XsdString):
+    """ Panose is an alpha numeric string """
     pass
 
 
 class ST_TextPitchFamily(XsdInt):
+    """ Verification only as an integer """
     pass
 
 
 class ST_TextCharset(XsdInt):
+    """ Verification only as an integer """
     pass
 
 
 class ST_TextCharacter(XsdString):
+    """ Verification only as a string """
     pass
 
 class ST_TextAutoNumType(XsdString):
+    """ Verification only as a string """
     pass
