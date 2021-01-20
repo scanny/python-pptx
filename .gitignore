@@ -10,3 +10,5 @@ _scratch/
 /spec/gen_spec/spec*.db
 tags
 /tests/debug.py
+pyproject.toml
+pip-wheel-metadata/* 
