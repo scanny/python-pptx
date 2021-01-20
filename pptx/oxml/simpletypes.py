@@ -218,6 +218,10 @@ class XsdUnsignedShort(BaseIntType):
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 65535)
 
+class XsdHexBinary(BaseStringType):
+    """
+    Type for a Hexidecimal Value.
+    """
 
 class ST_Angle(XsdInt):
     """
@@ -744,8 +748,10 @@ class ST_UniversalMeasure(BaseSimpleType):
         return emu_value
 
 
-class ST_TextPanose(XsdString):
-    """ Panose is an alpha numeric string """
+class ST_TextPanose(XsdHexBinary):
+    """ Panose is an alpha numeric hexidecimal string 
+    Length of 10 bytes (20 characters).
+    """
     pass
 
 
@@ -759,10 +765,19 @@ class ST_TextCharset(XsdInt):
     pass
 
 
-class ST_TextCharacter(XsdString):
-    """ Verification only as a string """
-    pass
-
 class ST_TextAutoNumType(XsdString):
     """ Verification only as a string """
     pass
+
+class ST_TextBulletStartAtNum(XsdInt):
+    @classmethod
+    def validate(cls, value):
+        if not isinstance(value, numbers.Integral):
+            raise TypeError("value must be an integral type, got %s" % type(value))
+        cls.validate_int_in_range(value, 1, 32767)
+
+
+class ST_TextBulletSizePercent(ST_Percentage):
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, 25000, 400000)

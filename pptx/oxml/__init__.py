@@ -459,9 +459,15 @@ from .text import (  # noqa: E402
     CT_TextSpacing,
     CT_TextSpacingPercent,
     CT_TextSpacingPoint,
-    CT_TextBulletFont,
-    CT_TextBulletCharacter,
+    CT_TextCharBullet,
     CT_TextBulletAutoNumber,
+    CT_TextBulletTypefaceFollowText,
+    CT_TextBulletSizeFollowText,
+    CT_TextBulletSizePoints,
+    CT_TextBulletSizePercent,
+    CT_TextNoBullet,
+    CT_TextBulletTypefaceFollowText,
+    CT_TextBlipBullet,
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -471,9 +477,17 @@ register_element_cls("a:endParaRPr", CT_TextCharacterProperties)
 register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:latin", CT_TextFont)
 register_element_cls("a:lnSpc", CT_TextSpacing)
-register_element_cls("a:buFont", CT_TextBulletFont)
-register_element_cls("a:buChar", CT_TextBulletCharacter)
+register_element_cls("a:buClrTx", CT_TextBulletTypefaceFollowText)
+register_element_cls("a:buClr", CT_Color)
+register_element_cls("a:buSzTx", CT_TextBulletSizeFollowText)
+register_element_cls("a:buSzPct", CT_TextBulletSizePercent)
+register_element_cls("a:buSzPts", CT_TextBulletSizePoints)
+register_element_cls("a:buFontTx", CT_TextBulletTypefaceFollowText)
+register_element_cls("a:buFont", CT_TextFont)
+register_element_cls("a:buNone", CT_TextNoBullet)
+register_element_cls("a:buChar", CT_TextCharBullet)
 register_element_cls("a:buAutoNum", CT_TextBulletAutoNumber)
+register_element_cls("a:buBlip", CT_TextBlipBullet)
 register_element_cls("a:normAutofit", CT_TextNormalAutofit)
 register_element_cls("a:r", CT_RegularTextRun)
 register_element_cls("a:p", CT_TextParagraph)

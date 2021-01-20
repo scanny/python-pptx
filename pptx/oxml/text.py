@@ -28,11 +28,14 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    XsdString,
     ST_TextPanose,
     ST_TextPitchFamily,
     ST_TextCharset,
-    ST_TextCharacter,
     ST_TextAutoNumType,
+    ST_TextBulletStartAtNum,
+    ST_TextBulletSizePercent
+    
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -346,11 +349,14 @@ class CT_TextField(BaseOxmlElement):
 
 class CT_TextFont(BaseOxmlElement):
     """
-    Custom element class for <a:latin>, <a:ea>, <a:cs>, and <a:sym> child
+    Custom element class for <a:latin>, <a:ea>, <a:cs>, <a:buFont>, and <a:sym> child
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
     """
 
     typeface = RequiredAttribute("typeface", ST_TextTypeface)
+    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
+    panose = OptionalAttribute("panose", ST_TextPanose)
+    charset = OptionalAttribute("charset", ST_TextCharset)
 
 
 class CT_TextLineBreak(BaseOxmlElement):
@@ -464,12 +470,30 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     lnSpc = ZeroOrOne("a:lnSpc", successors=_tag_seq[1:])
     spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
     spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
-    buFont = ZeroOrOne("a:buFont", successors=_tag_seq[10:])
-    buAutoNum = ZeroOrOne("a:buAutoNum", successors=_tag_seq[12:])
-    buChar = ZeroOrOne("a:buChar", successors=_tag_seq[13:])
+    eg_textBulletColor = ZeroOrOneChoice(
+        (Choice("a:buClrTx"), Choice("a:buClr")),
+        successors=_tag_seq[5:]
+    )
+    eg_textBulletSize = ZeroOrOneChoice(
+        (Choice("a:buSzTx"), Choice("a:buSzPct"), Choice("a:buSzPts")),
+        successors=_tag_seq[8:]
+    )
+    eg_textBulletTypeface = ZeroOrOneChoice(
+        (Choice("a:buFontTx"), Choice("a:buFont")),
+        successors=_tag_seq[10:]
+    )
+    eg_textBullet = ZeroOrOneChoice(
+        (
+            Choice("a:buNone"),
+            Choice("a:buAutoNum"),
+            Choice("a:buChar"),
+            Choice("a:buBlip")
+        ),
+        successors=_tag_seq[14:]
+    )
     defRPr = ZeroOrOne("a:defRPr", successors=_tag_seq[16:])
-    marR = OptionalAttribute("marR", ST_Coordinate32)
     marL = OptionalAttribute("marL", ST_Coordinate32)
+    marR = OptionalAttribute("marR", ST_Coordinate32)
     lvl = OptionalAttribute("lvl", ST_TextIndentLevelType, default=0)
     indent = OptionalAttribute("indent", ST_Coordinate32)
     algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
@@ -588,28 +612,15 @@ class CT_TextSpacingPoint(BaseOxmlElement):
 
     val = RequiredAttribute("val", ST_TextSpacingPoint)
 
-class CT_TextBulletFont(BaseOxmlElement):
-    """
-    <a:buFont> element, specifing the font characteristics of a listed font
-        - typeface is generally set to Arial but can be anything
-        - pitchFamily defaults to 34 by powerpoint
-        - panose describes the font characteristics and defaults to "020B0604020202020204"
-            when used with the Arial typeface
-        - charset is generaly set to 0
-    """
-    typeface = OptionalAttribute("typeface", ST_TextTypeface)
-    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
-    panose = OptionalAttribute("panose", ST_TextPanose)
-    charset = OptionalAttribute("charset", ST_TextCharset)
 
-class CT_TextBulletCharacter(BaseOxmlElement):
+class CT_TextCharBullet(BaseOxmlElement):
     """
     <a:buChar> element, specifing the character used in a bullet point
         - char is the actual character that is used for a bullet point.
             It is displayed as part of the font set through the properies
             in |CT_TextBulletFont|
     """
-    char = RequiredAttribute('char', ST_TextCharacter)
+    char = RequiredAttribute('char', XsdString)
 
 
 class CT_TextBulletAutoNumber(BaseOxmlElement):
@@ -626,3 +637,49 @@ class CT_TextBulletAutoNumber(BaseOxmlElement):
 
     """
     char_type = RequiredAttribute('type', ST_TextAutoNumType)
+    startAt = OptionalAttribute('startAt', ST_TextBulletStartAtNum, default=1)
+
+class CT_TextNoBullet(BaseOxmlElement):
+    """`a:buNone` element, specifying if to disable a bullet"""
+
+
+class CT_TextBulletColorFollowText(BaseOxmlElement):
+    """`a:buyClrTx` element, specifying bullet formatting to follow text formatting
+    """
+
+class CT_TextBulletSizePercent(BaseOxmlElement):
+    """
+    <a:buSzPct> element, specifying bullet size in percent in its `val`
+    attribute.
+    """
+
+    val = OptionalAttribute("val", ST_TextBulletSizePercent)
+
+class CT_TextBulletSizePoints(BaseOxmlElement):
+    """
+    <a:buSzPts> element, specifying bullet size in points in its `val`
+    attribute.
+    """
+
+    val = OptionalAttribute("val", ST_TextFontSize)
+
+class CT_TextBulletSizeFollowText(BaseOxmlElement):
+    """
+    <a:buSzTx> element, specifying bullet to follow text size for 
+    bullet size
+    """
+
+
+class CT_TextBulletTypefaceFollowText(BaseOxmlElement):
+    """
+    <a:buFontTx> element, specifying bullet to follow the text formatting
+    for bullet typeface settings
+    """
+
+
+class CT_TextBlipBullet(BaseOxmlElement):
+    """
+    <a:buBlip> element, specifying a bullet as an image.
+    NOTE: Not fully Implemented yet
+    """
+    blip = OneAndOnlyOne("a:blip")

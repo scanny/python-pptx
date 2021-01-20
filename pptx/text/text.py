@@ -914,3 +914,11 @@ class AutoNumber(object):
     def char_type(self, value):
         self._buAutoNum.char_type = value
 
+    @property
+    def start_at(self):
+        return self._buAutoNum.startAt
+    
+    @start_at.setter
+    def start_at(self, value):
+        self._buAutoNum.startAt = value
+        
