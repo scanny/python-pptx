@@ -10,7 +10,7 @@ from pptx.oxml.text import CT_TextBulletAutoNumber, CT_TextNoBullet, \
 
 class TextBullet(object):
     """
-    Provides acess ot the current Text Bullet properties and provies
+    Provides acess to the current Text Bullet properties and provies
     methods to change the type
     """
 
@@ -194,3 +194,119 @@ class _PictureBullet(_Bullet):
     @property
     def type(self):
         return "PictureBullet"
+
+
+
+class BulletColor(object):
+    """
+    Provides access to the bullet color options
+    """
+    def __init__(self, parent, bullet_color_obj):
+        super(BulletColor, self).__init__()
+        self._parent = parent
+        self._bullet_color = bullet_color_obj
+    
+    @classmethod
+    def from_parent(cls, parent):
+        """
+        Return |BulletColor| object
+        """
+
+        bullet_color_elm = parent.eg_textBulletColor
+        bullet_color = _BulletColor(bullet_color_elm)
+        text_bullet_color = cls(parent, bullet_color)
+        return text_bullet_color
+
+
+class _BulletColor(object):
+    """
+    Object factory for BulletColor objects
+    """
+
+    def __new__(cls, xBulletColor):
+        if isinstance(xBulletColor, CT_TextBulletColorFollowText):
+            bullet_color_cls = _BulletColorFollowText
+        elif isinstance(xBulletColor, CT_Color):
+            bullet_color_cls = _BulletColorSpecific
+        else:
+            bullet_color_cls = None
+        
+        return super(_BulletColor, cls).__new__(bullet_color_cls)
+
+class _BulletColorFollowText(_BulletColor):
+    """
+    """
+    @property
+    def type(self):
+        return "BulletColorFollowText"
+
+class _BulletColorColorSpecific(_BulletColor):
+    """
+    """
+    @property
+    def type(self):
+        return "BulletColorSpecific"
+
+
+
+class BulletSize(object):
+    """
+    Provides access to the bullet size options
+    """
+    def __init__(self, parent, bullet_size_obj):
+        super(BulletSize, self).__init__()
+        self._parent = parent
+        self._bullet_size = bullet_size_obj
+    
+    @classmethod
+    def from_parent(cls, parent):
+        """
+        Return |BulletColor| object
+        """
+
+        bullet_size_elm = parent.eg_textBulletSize
+        bullet_size = _BulletSize(bullet_sizer_elm)
+        text_bullet_size = cls(parent, bullet_size)
+        return text_bullet_size
+
+
+class _BulletSize(object):
+    """
+    Object factory for BulletSize objects
+    """
+
+    def __new__(cls, xBulletSize):
+        if isinstance(xBulletSize, CT_TextBulletSizeFollowText):
+            bullet_size_cls = _BulletSizeFollowText
+        elif isinstance(xBulletSize, CT_TextBulletSizePercent):
+            bullet_size_cls = _BulletSizePercent
+        elif isinstance(xBulletSize, CT_TextBulletSizePoints):
+            bullet_size_cls = _BulletSizePoints
+        else:
+            bullet_size_cls = None
+        
+        return super(_BulletSize, cls).__new__(bullet_size_cls)
+
+class _BulletSizeFollowText(_BulletSize):
+    """
+    """
+    @property
+    def type(self):
+        return "BulletSizeFollowText"
+
+class _BulletSizePercent(_BulletSize):
+    """
+    """
+    @property
+    def type(self):
+        return "BulletSizePercent"
+
+class _BulletSizePoints(_BulletSize):
+    """
+    """
+    @property
+    def type(self):
+        return "BulletSizePoints"
+
+
+

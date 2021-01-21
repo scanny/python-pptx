@@ -713,9 +713,23 @@ class _Paragraph(Subshape):
     @property
     def text_bullet(self):
         """
-        The |TextBullet| Object that handles the formatting for bullets
+        The |TextBullet| Object that handles the formatting of bullets
         """
         return TextBullet.from_parent(self._pPr)
+       
+    @property
+    def bullet_color(self):
+        """
+        The |BulletColor| Object that handles the coloring of bullets
+        """
+        return BulletColor.from_parent(self._pPr)
+       
+    @property
+    def bullet_size(self):
+        """
+        The |BulletSize| Object that handles the sizing of bullets
+        """
+        return BulletSize.from_parent(self._pPr)
        
 
     # @property
@@ -851,84 +865,84 @@ class _Run(Subshape):
 
 
 
-class BulletFont(object):
-    """
-    Bullet Font Property used by bullets and numbered lists
-    """
-    def __init__(self, buFont, parent):
-        super(BulletFont, self).__init__()
-        self._buFont = buFont
+# class BulletFont(object):
+#     """
+#     Bullet Font Property used by bullets and numbered lists
+#     """
+#     def __init__(self, buFont, parent):
+#         super(BulletFont, self).__init__()
+#         self._buFont = buFont
 
-    @property
-    def typeface(self):
-        return self._buFont.typeface
+#     @property
+#     def typeface(self):
+#         return self._buFont.typeface
 
-    @typeface.setter
-    def typeface(self, value):
-        self._buFont.typeface = value
+#     @typeface.setter
+#     def typeface(self, value):
+#         self._buFont.typeface = value
 
-    @property
-    def pitch_family(self):
-        return self._buFont.pitchFamily
+#     @property
+#     def pitch_family(self):
+#         return self._buFont.pitchFamily
     
-    @pitch_family.setter
-    def pitch_family(self, value):
-        self._buFont.pitchFamily = value
+#     @pitch_family.setter
+#     def pitch_family(self, value):
+#         self._buFont.pitchFamily = value
     
-    @property
-    def panose(self):
-        return self._buFont.panose
+#     @property
+#     def panose(self):
+#         return self._buFont.panose
 
-    @panose.setter
-    def panose(self, value):
-        self._buFont.panose = value
+#     @panose.setter
+#     def panose(self, value):
+#         self._buFont.panose = value
 
-    @property
-    def charset(self):
-        return self._buFont.charset
+#     @property
+#     def charset(self):
+#         return self._buFont.charset
 
-    @charset.setter
-    def charset(self, value):
-        self._buFont.charset = value
+#     @charset.setter
+#     def charset(self, value):
+#         self._buFont.charset = value
 
-class BulletCharacter(object):
-    """
-    Bullet Character Property
-    """
-    def __init__(self, buChar, parent):
-        super(BulletCharacter, self).__init__()
-        self._buChar = buChar
+# class BulletCharacter(object):
+#     """
+#     Bullet Character Property
+#     """
+#     def __init__(self, buChar, parent):
+#         super(BulletCharacter, self).__init__()
+#         self._buChar = buChar
 
-    @property
-    def character(self):
-        return self._buChar.char
+#     @property
+#     def character(self):
+#         return self._buChar.char
 
-    @character.setter
-    def character(self, value):
-        self._buChar.char = value
+#     @character.setter
+#     def character(self, value):
+#         self._buChar.char = value
 
 
-class AutoNumber(object):
-    """
-    AutoNum Property
-    """
-    def __init__(self, buAutoNum, parent):
-        super(AutoNumber, self).__init__()
-        self._buAutoNum = buAutoNum
+# class AutoNumber(object):
+#     """
+#     AutoNum Property
+#     """
+#     def __init__(self, buAutoNum, parent):
+#         super(AutoNumber, self).__init__()
+#         self._buAutoNum = buAutoNum
 
-    @property
-    def char_type(self):
-        return self._buAutoNum.char_type
+#     @property
+#     def char_type(self):
+#         return self._buAutoNum.char_type
 
-    @char_type.setter
-    def char_type(self, value):
-        self._buAutoNum.char_type = value
+#     @char_type.setter
+#     def char_type(self, value):
+#         self._buAutoNum.char_type = value
 
-    @property
-    def start_at(self):
-        return self._buAutoNum.startAt
+#     @property
+#     def start_at(self):
+#         return self._buAutoNum.startAt
     
-    @start_at.setter
-    def start_at(self, value):
-        self._buAutoNum.startAt = value
+#     @start_at.setter
+#     def start_at(self, value):
+#         self._buAutoNum.startAt = value
         
