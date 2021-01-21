@@ -13,6 +13,7 @@ from pptx.enum.text import (
     MSO_TEXT_UNDERLINE_TYPE,
     MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT,
+    AUTO_NUMBER_SCHEME
 )
 from pptx.exc import InvalidXmlError
 from pptx.oxml import parse_xml
@@ -636,7 +637,7 @@ class CT_TextBulletAutoNumber(BaseOxmlElement):
             - romanLcPeriod - i.
 
     """
-    char_type = RequiredAttribute('type', ST_TextAutoNumType)
+    char_type = RequiredAttribute('type', AUTO_NUMBER_SCHEME)
     startAt = OptionalAttribute('startAt', ST_TextBulletStartAtNum, default=1)
 
 class CT_TextNoBullet(BaseOxmlElement):

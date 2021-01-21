@@ -14,6 +14,7 @@ from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
+from pptx.text.bullets import TextBullet
 from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
 
 
@@ -707,85 +708,94 @@ class _Paragraph(Subshape):
         element to be added if not present.
         """
         return self._p.get_or_add_pPr()
+
+
+    @property
+    def text_bullet(self):
+        """
+        The |TextBullet| Object that handles the formatting for bullets
+        """
+        return TextBullet.from_parent(self._pPr)
+       
+
+    # @property
+    # def bullet_font(self):
+    #     """
+    #     This is the property for the bullet font
+    #     """
+    #     pPr = self._p.get_or_add_pPr()
+    #     buFont = pPr.get_or_add_buFont()
+    #     return BulletFont(buFont, self)
+
     
-    @property
-    def bullet_font(self):
-        """
-        This is the property for the bullet font
-        """
-        pPr = self._p.get_or_add_pPr()
-        buFont = pPr.get_or_add_buFont()
-        return BulletFont(buFont, self)
+    # @property
+    # def bullet_character(self):
+    #     """
+    #     This is the property for the character used by bullets
+    #     """
+    #     pPr = self._p.get_or_add_pPr()
+    #     buChar = pPr.get_or_add_buChar()
+    #     return BulletCharacter(buChar, self)
 
-    
-    @property
-    def bullet_character(self):
-        """
-        This is the property for the character used by bullets
-        """
-        pPr = self._p.get_or_add_pPr()
-        buChar = pPr.get_or_add_buChar()
-        return BulletCharacter(buChar, self)
-
-    @property
-    def auto_number(self):
-        """
-        This is the propery used for auto numbered lists
-        """
-        pPr = self._p.get_or_add_pPr()
-        buAutoNum = pPr.get_or_add_buAutoNum()
-        return AutoNumber(buAutoNum, self)
+    # @property
+    # def auto_number(self):
+    #     """
+    #     This is the propery used for auto numbered lists
+    #     """
+    #     pPr = self._p.get_or_add_pPr()
+    #     buAutoNum = pPr.get_or_add_buAutoNum()
+    #     return AutoNumber(buAutoNum, self)
 
 
-    def add_bullet(self, character="•"):
-        """
-        This is a lazy function to set a set of default values for a bullet
-        and use the passed char as the bullet character.
-        This sets the following fields which correspond to Powerpoint's defaults:
-            - p.margin_left = 5/16"
-            - p.indent = -5/16"
-            - bullet_font properties
-                - typeface = Arial
-                - pitch_family = 34
-                - panose = 020B0604020202020204
-                - charset = 0
-            - bullet_character properties
-                - character = passed value or "•"
-        """
-        buFont = self.bullet_font
-        buFont.typeface = "Arial"
-        buFont.pitch_family = 34
-        buFont.charset = 0
-        buFont.panose = "020B0604020202020204"
+    # def add_bullet(self, character="•"):
+    #     """
+    #     This is a lazy function to set a set of default values for a bullet
+    #     and use the passed char as the bullet character.
+    #     This sets the following fields which correspond to Powerpoint's defaults:
+    #         - p.margin_left = 5/16"
+    #         - p.indent = -5/16"
+    #         - bullet_font properties
+    #             - typeface = Arial
+    #             - pitch_family = 34
+    #             - panose = 020B0604020202020204
+    #             - charset = 0
+    #         - bullet_character properties
+    #             - character = passed value or "•"
+    #     """
+    #     buFont = self.bullet_font
+    #     buFont.typeface = "Arial"
+    #     buFont.pitch_family = 34
+    #     buFont.charset = 0
+    #     buFont.panose = "020B0604020202020204"
 
-        self.margin_left = Inches(5/16)
-        self.indent = Inches(-5/16)
+    #     self.margin_left = Inches(5/16)
+    #     self.indent = Inches(-5/16)
 
-        self.bullet_character.character = character
+    #     self.bullet_character.character = character
         
-    def add_numbered_list(self, char_type="arabicPeriod"):
-        """
-        This is a lazy function to set a set of default values for a numbered list.
-        This sets the following fields which correspond to Powerpoint's defaults:
-            - p.margin_left = 5/16"
-            - p.indent = -5/16"
-            - bullet_font properties
-                - typeface = +mj-lt
-            - bullet_autonum properties
-                - type = passed value or "arabicPeriod"
-                    options include:
-                        - arabicPeriod - 1.
-                        - arabicParenR - 1)
-                        - romanUcPeriod - I.
-                        - alphaUcPeriod - A.
-                        - alphaLcParenR - a)
-                        - alphaLcPeriod - a.
-                        - romanLcPeriod - i.
-        """
-        self.bullet_font.typeface = "+mj-lt"
-        self.auto_number.char_type = char_type
-        self.margin_left = Inches(5/16)
-        self.indent = Inches(-5/16)
+    # def add_numbered_list(self, char_type="arabicPeriod"):
+    #     """
+    #     This is a lazy function to set a set of default values for a numbered list.
+    #     This sets the following fields which correspond to Powerpoint's defaults:
+    #         - p.margin_left = 5/16"
+    #         - p.indent = -5/16"
+    #         - bullet_font properties
+    #             - typeface = +mj-lt
+    #         - bullet_autonum properties
+    #             - type = passed value or "arabicPeriod"
+    #                 options include:
+    #                     - arabicPeriod - 1.
+    #                     - arabicParenR - 1)
+    #                     - romanUcPeriod - I.
+    #                     - alphaUcPeriod - A.
+    #                     - alphaLcParenR - a)
+    #                     - alphaLcPeriod - a.
+    #                     - romanLcPeriod - i.
+    #     """
+    #     self.bullet_font.typeface = "+mj-lt"
+    #     self.auto_number.char_type = char_type
+    #     self.margin_left = Inches(5/16)
+    #     self.indent = Inches(-5/16)
 
 
 
