@@ -14,7 +14,7 @@ from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
-from pptx.text.bullets import TextBullet, BulletColor, BulletSize
+from pptx.text.bullets import TextBullet, BulletColor, BulletSize, BulletFont
 from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
 
 
@@ -711,7 +711,7 @@ class _Paragraph(Subshape):
 
 
     @property
-    def text_bullet(self):
+    def bullet_text(self):
         """
         The |TextBullet| Object that handles the formatting of bullets
         """
@@ -732,7 +732,12 @@ class _Paragraph(Subshape):
         return BulletSize.from_parent(self._pPr)
        
 
-
+    @property
+    def bullet_font(self):
+        """
+        The |BulletFont| Object that handles the font typeface of bullets
+        """
+        return BulletFont.from_parent(self._pPr)
 
 
 class _Run(Subshape):
