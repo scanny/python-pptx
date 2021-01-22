@@ -14,7 +14,7 @@ from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
-from pptx.text.bullets import TextBullet
+from pptx.text.bullets import TextBullet, BulletColor, BulletSize
 from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
 
 

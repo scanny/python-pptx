@@ -5,8 +5,18 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.enum.text import AUTO_NUMBER_SCHEME
-from pptx.oxml.text import CT_TextBulletAutoNumber, CT_TextNoBullet, \
-    CT_TextBlipBullet, CT_TextCharBullet
+from pptx.oxml.text import (
+    CT_TextBulletAutoNumber,
+    CT_TextNoBullet, 
+    CT_TextBlipBullet, 
+    CT_TextCharBullet, 
+    CT_TextBulletColorFollowText,
+    CT_TextBulletSizeFollowText, 
+    CT_TextBulletSizePercent, 
+    CT_TextBulletSizePoints, 
+)
+from pptx.oxml.dml.color import CT_Color
+from pptx.dml.color import ColorFormat, _SchemeColor, RGBColor
 
 class TextBullet(object):
     """
@@ -50,7 +60,7 @@ class TextBullet(object):
     def character(self, char="•"):
         buChar = self._parent.get_or_change_to_buChar()
         self._bullet = _CharBullet(buChar)
-        self._bullet.character = char
+        self.char = char
 
     @property
     def char_type(self):
@@ -81,18 +91,18 @@ class TextBullet(object):
         self._bullet.start_at = value
     
     @property
-    def character(self):
+    def char(self):
         """ String used as the bullet for a CharBullet"""
         if self.type != "CharBullet":
             raise TypeError("TextBullet is not of type CharBullet")
         return self._bullet.character
 
-    @character.setter
-    def character(self, value):
+    @char.setter
+    def char(self, value):
         """ String used as the bullet for a CharBullet"""
         if self.type != "CharBullet":
             raise TypeError("TextBullet is not of type CharBullet")
-        self._bullet.character = value
+        self._bullet.char = value
 
 
     @property
@@ -185,7 +195,7 @@ class _CharBullet(_Bullet):
         return self._charBullet.char
     
     @char.setter
-    def character(self, value):
+    def char(self, value):
         self._charBullet.char = str(value)
 
 
@@ -211,12 +221,50 @@ class BulletColor(object):
         """
         Return |BulletColor| object
         """
-
         bullet_color_elm = parent.eg_textBulletColor
         bullet_color = _BulletColor(bullet_color_elm)
         text_bullet_color = cls(parent, bullet_color)
         return text_bullet_color
 
+    def follow_text(self):
+        """
+        Sets the BulletColor to _BulletColorFollowText
+        """
+        follow_text = self._parent.get_or_change_to_buClrTx()
+        self._bullet_color = _BulletColorFollowText(follow_text)
+
+    def set_color(self, color):
+        """
+        Sets the BulletColor to _BulletColorSpecific and sets the color
+        """
+        bullet_color = self._parent.get_or_change_to_buClr()
+        self._bullet_color = _BulletColorSpecific(bullet_color)
+        self.color = color
+
+    @property
+    def type(self):
+        """ Return a string type """
+        return self._bullet_color.type
+    
+    @property
+    def color(self):
+        """ Return the |ColorFormat| object """
+        return self._bullet_color.color
+    
+    @color.setter
+    def color(self, value):
+        """
+        """
+        if not isinstance(self._bullet_color, _BulletColorSpecific):
+            raise TypeError("BulletColor is not of type BulletColorSpecific")
+        color_obj = self._bullet_color.color
+        if isinstance(value, RGBColor):
+            color_obj.rgb = value
+        elif isinstance(value, _SchemeColor):
+            color_obj.theme_color = value
+        else:
+            raise TypeError("Provided color value is incorrect type")
+     
 
 class _BulletColor(object):
     """
@@ -229,23 +277,46 @@ class _BulletColor(object):
         elif isinstance(xBulletColor, CT_Color):
             bullet_color_cls = _BulletColorSpecific
         else:
-            bullet_color_cls = None
+            bullet_color_cls = _BulletColor
         
         return super(_BulletColor, cls).__new__(bullet_color_cls)
+        
+    @property
+    def type(self):
+        return "NoBulletColor"
+
+    @property
+    def color(self):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            "BulletColor type %s has no color, call .set_color() first"
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
 
 class _BulletColorFollowText(_BulletColor):
     """
+    Designates that the Bullet Color will match the accompanying paragraph text.
     """
     @property
     def type(self):
         return "BulletColorFollowText"
 
-class _BulletColorColorSpecific(_BulletColor):
+class _BulletColorSpecific(_BulletColor):
     """
     """
+    def __init__(self, bullet_color):
+        super(_BulletColorSpecific, self).__init__()
+        self._bullet_color = bullet_color
+
     @property
     def type(self):
         return "BulletColorSpecific"
+
+    @property
+    def color(self):
+        # buClr = self._bullet_color.get_or_add_buClr()
+        return ColorFormat.from_colorchoice_parent(self._bullet_color)
 
 
 
@@ -283,12 +354,13 @@ class _BulletSize(object):
         elif isinstance(xBulletSize, CT_TextBulletSizePoints):
             bullet_size_cls = _BulletSizePoints
         else:
-            bullet_size_cls = None
+            bullet_size_cls = _BulletSize
         
         return super(_BulletSize, cls).__new__(bullet_size_cls)
 
 class _BulletSizeFollowText(_BulletSize):
     """
+    Designates that the Bullet Size will match the accompanying paragraph text.
     """
     @property
     def type(self):

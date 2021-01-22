@@ -472,11 +472,18 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     spcBef = ZeroOrOne("a:spcBef", successors=_tag_seq[2:])
     spcAft = ZeroOrOne("a:spcAft", successors=_tag_seq[3:])
     eg_textBulletColor = ZeroOrOneChoice(
-        (Choice("a:buClrTx"), Choice("a:buClr")),
+        (
+            Choice("a:buClrTx"),
+            Choice("a:buClr")
+        ),
         successors=_tag_seq[5:]
     )
     eg_textBulletSize = ZeroOrOneChoice(
-        (Choice("a:buSzTx"), Choice("a:buSzPct"), Choice("a:buSzPts")),
+        (
+            Choice("a:buSzTx"),
+            Choice("a:buSzPct"),
+            Choice("a:buSzPts")
+        ),
         successors=_tag_seq[8:]
     )
     eg_textBulletTypeface = ZeroOrOneChoice(
