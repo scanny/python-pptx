@@ -17,6 +17,7 @@ from pptx.oxml.text import (
 )
 from pptx.oxml.dml.color import CT_Color
 from pptx.dml.color import ColorFormat, _SchemeColor, RGBColor
+from pptx.util import Pt, Centipoints, Emu
 
 class TextBullet(object):
     """
@@ -332,14 +333,59 @@ class BulletSize(object):
     @classmethod
     def from_parent(cls, parent):
         """
-        Return |BulletColor| object
+        Return |BulletSize| object
         """
-
         bullet_size_elm = parent.eg_textBulletSize
-        bullet_size = _BulletSize(bullet_sizer_elm)
+        bullet_size = _BulletSize(bullet_size_elm)
         text_bullet_size = cls(parent, bullet_size)
         return text_bullet_size
 
+    def follow_text(self):
+        """
+        Sets the BulletSize to _BulletSizeFollowText
+        """
+        follow_text = self._parent.get_or_change_to_buSzTx()
+        self._bullet_size = _BulletSizeFollowText(follow_text)
+
+    def set_points(self, value):
+        """
+        Sets the BulletSize to _BulletSizePoints and sets the points value
+        """
+        points = self._parent.get_or_change_to_buSzPts()
+        self._bullet_size = _BulletSizePoints(points)
+        self.points = value
+
+    def set_percentage(self, value):
+        """
+        Sets the BulletSize to _BulletSizePercentage and sets the percent value
+        """
+        percentage = self._parent.get_or_change_to_buSzPct()
+        self._bullet_size = _BulletSizePercent(percentage)
+        self.percentage = value
+
+    @property
+    def points(self):
+        """
+        Returns the points size
+        """
+        return self._bullet_size.points
+    
+    @points.setter
+    def points(self, value):
+        """ Sets the points size """
+        self._bullet_size.points = value    
+
+    @property
+    def percentage(self):
+        """
+        Returns the percentage size
+        """
+        return self._bullet_size.percentage
+    
+    @percentage.setter
+    def percentage(self, value):
+        """ Sets the percentage size """
+        self._bullet_size.percentage = value    
 
 class _BulletSize(object):
     """
@@ -358,6 +404,38 @@ class _BulletSize(object):
         
         return super(_BulletSize, cls).__new__(bullet_size_cls)
 
+    @property
+    def points(self):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            "BulletSize type %s has no points property, call .set_points() first"
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+    
+    @points.setter
+    def points(self, value):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            "BulletSize type %s has no points property, call .set_points() first"
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
+    def percentage(self):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            "BulletSize type %s has no percentage property, call .set_percentage() first"
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @percentage.setter
+    def percentage(self, value):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            "BulletSize type %s has no percentage property, call .set_percentage() first"
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
 class _BulletSizeFollowText(_BulletSize):
     """
     Designates that the Bullet Size will match the accompanying paragraph text.
@@ -367,18 +445,49 @@ class _BulletSizeFollowText(_BulletSize):
         return "BulletSizeFollowText"
 
 class _BulletSizePercent(_BulletSize):
-    """
-    """
+    """ Proxies a `a: buSzPct` element. """
+
+    def __init__(self, bullet_size):
+        super(_BulletSizePercent, self).__init__()
+        self._bullet_size = bullet_size
+
     @property
     def type(self):
         return "BulletSizePercent"
 
+    @property
+    def percentage(self):
+        """ Returns the percentage value for the bullet size """
+        return self._bullet_size.val
+            
+    @percentage.setter
+    def percentage(self, value):
+        """ Sets the percentage value for the bullet size """
+        self._bullet_size.val = value
+            
+
 class _BulletSizePoints(_BulletSize):
-    """
-    """
+    """ Proxies a `a: buSzPts` element. """
+    
+    def __init__(self, bullet_size):
+        super(_BulletSizePoints, self).__init__()
+        self._bullet_size = bullet_size
+
+
     @property
     def type(self):
         return "BulletSizePoints"
 
 
+    @property
+    def points(self):
+        """ Returns the point value for the bullet size """
+        return Centipoints(self._bullet_size.val)
+            
+    @points.setter
+    def points(self, value):
+        """ Sets the points value for the bullet size """
+        size = Emu(value).centipoints
+        self._bullet_size.val = size
+            
 

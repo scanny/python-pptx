@@ -780,4 +780,4 @@ class ST_TextBulletStartAtNum(XsdInt):
 class ST_TextBulletSizePercent(ST_Percentage):
     @classmethod
     def validate(cls, value):
-        cls.validate_float_in_range(value, 25000, 400000)
+        cls.validate_float_in_range(value, .25, 4)
