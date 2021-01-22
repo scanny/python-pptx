@@ -59,6 +59,9 @@ class TextBullet(object):
             self._bullet.start_at = start_at
 
     def character(self, char="•"):
+        """
+        Sets the Bullet to a specific character that is passed
+        """
         buChar = self._parent.get_or_change_to_buChar()
         self._bullet = _CharBullet(buChar)
         self.char = char
@@ -66,43 +69,31 @@ class TextBullet(object):
     @property
     def char_type(self):
         """ Format of the AutoNumber Bullets """
-        if self.type != "AutoNumBullet":
-            raise TypeError("TextBullet is not of type AutoNumber")
         return self._bullet.char_type
 
     @char_type.setter
     def char_type(self, value):
         """ Set's the Format of the AutoNumber Bullets """
-        if self.type != "AutoNumBullet":
-            raise TypeError("TextBullet is not of type AutoNumber")
         self._bullet.char_type = value
 
     @property
     def start_at(self):
         """ Starting Value for AutoNumber Bullets """
-        if self.type != "AutoNumBullet":
-            raise TypeError("TextBullet is not of type AutoNumber")
         return self._bullet.start_at
     
     @start_at.setter
     def start_at(self, value):
         """ Sets starting Value for AutoNumber Bullets """
-        if self.type != "AutoNumBullet":
-            raise TypeError("TextBullet is not of type AutoNumber")
         self._bullet.start_at = value
     
     @property
     def char(self):
         """ String used as the bullet for a CharBullet"""
-        if self.type != "CharBullet":
-            raise TypeError("TextBullet is not of type CharBullet")
         return self._bullet.character
 
     @char.setter
     def char(self, value):
         """ String used as the bullet for a CharBullet"""
-        if self.type != "CharBullet":
-            raise TypeError("TextBullet is not of type CharBullet")
         self._bullet.char = value
 
 
@@ -111,8 +102,6 @@ class TextBullet(object):
         """ Return a string type """
         return self._bullet.type
     
-
-
 
 class _Bullet(object):
     """
@@ -139,14 +128,32 @@ class _Bullet(object):
         tmpl = "TextBullet type %s has no char property. call .character() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
+    @char.setter
+    def char(self, value):
+        """ Raise TypeError for types that do not override this property"""
+        tmpl = "TextBullet type %s has no char property. call .character() first"
+        raise TypeError(tmpl % self.__class__.__name__)
+
     @property
     def char_type(self):
         """ Raise TypeError for types that do not override this property"""
         tmpl = "TextBullet type %s has no char_type property. call .auto_number() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
+    @char_type.setter
+    def char_type(self, value):
+        """ Raise TypeError for types that do not override this property"""
+        tmpl = "TextBullet type %s has no char_type property. call .auto_number() first"
+        raise TypeError(tmpl % self.__class__.__name__)
+
     @property
     def start_at(self):
+        """ Raise TypeError for types that do not override this property"""
+        tmpl = "TextBullet type %s has no start_at property. call .auto_number() first"
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @start_at.setter
+    def start_at(self, value):
         """ Raise TypeError for types that do not override this property"""
         tmpl = "TextBullet type %s has no start_at property. call .auto_number() first"
         raise TypeError(tmpl % self.__class__.__name__)
@@ -198,7 +205,6 @@ class _CharBullet(_Bullet):
     @char.setter
     def char(self, value):
         self._charBullet.char = str(value)
-
 
 class _PictureBullet(_Bullet):
     """ Picture Bullets are not fully implemented at this time """
@@ -255,6 +261,7 @@ class BulletColor(object):
     @color.setter
     def color(self, value):
         """
+        Set the value of the color as either an RGB or Theme Color
         """
         if not isinstance(self._bullet_color, _BulletColorSpecific):
             raise TypeError("BulletColor is not of type BulletColorSpecific")
@@ -288,6 +295,14 @@ class _BulletColor(object):
 
     @property
     def color(self):
+        """Raise TypeError for types that do not override this property."""
+        tmpl = (
+            "BulletColor type %s has no color, call .set_color() first"
+        )
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @color.setter
+    def color(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
             "BulletColor type %s has no color, call .set_color() first"
