@@ -334,6 +334,7 @@ class _TextBulletColorFollowText(_BulletColor):
 
 class _TextBulletColorSpecific(_BulletColor):
     """
+    Designates a specific color for the bullet through a |ColorFormat| object.
     """
     def __init__(self, bullet_color):
         super(_BulletColorSpecific, self).__init__()
@@ -685,7 +686,7 @@ class _BulletTypefaceFollowText(_BulletTypeface):
     def type(self):
         return "BulletTypefaceFollowText"
 
-class _BulletTypefaaceSpecific(_BulletTypeface):
+class _BulletTypefaceSpecific(_BulletTypeface):
     """
     Designates the specific BulletTypeface characteristics
     """
