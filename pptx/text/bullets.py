@@ -26,7 +26,7 @@ from pptx.util import Pt, Centipoints, Emu
 
 class TextBullet(object):
     """
-    Provides acess to the current Text Bullet properties and provies
+    Provides acess to the current Text Bullet properties and provides
     methods to change the type
     """
 
@@ -123,7 +123,7 @@ class _Bullet(object):
         elif isinstance(xBullet, CT_TextBlipBullet):
             bullet_cls = _PictureBullet
         else:
-            bullet_cls = _NoBullet
+            bullet_cls = _Bullet
         
         return super(_Bullet, cls).__new__(bullet_cls)
 
@@ -190,6 +190,15 @@ class _AutoNumBullet(_Bullet):
     @char_type.setter
     def char_type(self, value):
         self._autoNumBullet.char_type = value
+
+    @property
+    def start_at(self):
+        return self._autoNumBullet.startAt
+    
+    @start_at.setter
+    def start_at(self, value):
+        self._autoNumBullet.startAt = value
+
 
 class _CharBullet(_Bullet):
     def __init__(self, charBullet):
