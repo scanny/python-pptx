@@ -288,7 +288,7 @@ class TextBulletColor(object):
             raise TypeError("Provided color value is incorrect type")
      
 
-class _BulletColor(object):
+class _TextBulletColor(object):
     """
     Object factory for TextBulletColor objects
     """
@@ -305,7 +305,8 @@ class _BulletColor(object):
         
     @property
     def type(self):
-        return "NoBulletColor"
+        tmpl = ".type property must be implmented on %s"
+        raise NotImplementedError(tmpl % self.__class__.__name__)
 
     @property
     def color(self):
@@ -324,7 +325,7 @@ class _BulletColor(object):
         raise TypeError(tmpl % self.__class__.__name__)
 
 
-class _TextBulletColorFollowText(_BulletColor):
+class _TextBulletColorFollowText(_TextBulletColor):
     """
     Designates that the Bullet Color will match the accompanying paragraph text.
     """
@@ -332,12 +333,12 @@ class _TextBulletColorFollowText(_BulletColor):
     def type(self):
         return "TextBulletColorFollowText"
 
-class _TextBulletColorSpecific(_BulletColor):
+class _TextBulletColorSpecific(_TextBulletColor):
     """
     Designates a specific color for the bullet through a |ColorFormat| object.
     """
     def __init__(self, bullet_color):
-        super(_BulletColorSpecific, self).__init__()
+        super(_TextBulletColorSpecific, self).__init__()
         self._bullet_color = bullet_color
 
     @property
@@ -368,6 +369,11 @@ class TextBulletSize(object):
         bullet_size = _TextBulletSize(bullet_size_elm)
         text_bullet_size = cls(parent, bullet_size)
         return text_bullet_size
+
+    @property
+    def type(self):
+        """ Return a string type """
+        return self._bullet_size.type
 
     def follow_text(self):
         """
@@ -464,6 +470,11 @@ class _TextBulletSize(object):
             "TextBulletSize type %s has no percentage property, call .set_percentage() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
+    def type(self):
+        tmpl = ".type property must be implmented on %s"
+        raise NotImplementedError(tmpl % self.__class__.__name__)
 
 class _TextBulletSizeFollowText(_TextBulletSize):
     """
