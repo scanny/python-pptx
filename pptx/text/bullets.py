@@ -465,7 +465,7 @@ class _TextBulletSize(object):
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
-class _TextBulletSizeFollowText(_BulletSize):
+class _TextBulletSizeFollowText(_TextBulletSize):
     """
     Designates that the Bullet Size will match the accompanying paragraph text.
     """
@@ -473,7 +473,7 @@ class _TextBulletSizeFollowText(_BulletSize):
     def type(self):
         return "TextBulletSizeFollowText"
 
-class _TextBulletSizePercent(_BulletSize):
+class _TextBulletSizePercent(_TextBulletSize):
     """ Proxies a `a: buSzPct` element. """
 
     def __init__(self, bullet_size):
@@ -495,7 +495,7 @@ class _TextBulletSizePercent(_BulletSize):
         self._bullet_size.val = value
             
 
-class _TextBulletSizePoints(_BulletSize):
+class _TextBulletSizePoints(_TextBulletSize):
     """ Proxies a `a: buSzPts` element. """
     
     def __init__(self, bullet_size):
