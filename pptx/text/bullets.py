@@ -1,6 +1,9 @@
 # encoding: utf-8
 
-""" Bullet-related objects such as BulletFont and BulletChar."""
+""" 
+Bullet-related objects such as TextBullet,
+TextBulletTypeface, TextBulletColor, and TextBulletSize.
+"""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -216,38 +219,38 @@ class _PictureBullet(_Bullet):
 
 
 
-class BulletColor(object):
+class TextBulletColor(object):
     """
     Provides access to the bullet color options
     """
     def __init__(self, parent, bullet_color_obj):
-        super(BulletColor, self).__init__()
+        super(TextBulletColor, self).__init__()
         self._parent = parent
         self._bullet_color = bullet_color_obj
     
     @classmethod
     def from_parent(cls, parent):
         """
-        Return |BulletColor| object
+        Return |TextBulletColor| object
         """
         bullet_color_elm = parent.eg_textBulletColor
-        bullet_color = _BulletColor(bullet_color_elm)
+        bullet_color = _TextBulletColor(bullet_color_elm)
         text_bullet_color = cls(parent, bullet_color)
         return text_bullet_color
 
     def follow_text(self):
         """
-        Sets the BulletColor to _BulletColorFollowText
+        Sets the TextBulletColor to _TextBulletColorFollowText
         """
         follow_text = self._parent.get_or_change_to_buClrTx()
-        self._bullet_color = _BulletColorFollowText(follow_text)
+        self._bullet_color = _TextBulletColorFollowText(follow_text)
 
     def set_color(self, color):
         """
-        Sets the BulletColor to _BulletColorSpecific and sets the color
+        Sets the TextBulletColor to _TextBulletColorSpecific and sets the color
         """
         bullet_color = self._parent.get_or_change_to_buClr()
-        self._bullet_color = _BulletColorSpecific(bullet_color)
+        self._bullet_color = _TextBulletColorSpecific(bullet_color)
         self.color = color
 
     @property
@@ -265,8 +268,8 @@ class BulletColor(object):
         """
         Set the value of the color as either an RGB or Theme Color
         """
-        if not isinstance(self._bullet_color, _BulletColorSpecific):
-            raise TypeError("BulletColor is not of type BulletColorSpecific")
+        if not isinstance(self._bullet_color, _TextBulletColorSpecific):
+            raise TypeError("TextBulletColor is not of type +TextBulletColorSpecific")
         color_obj = self._bullet_color.color
         if isinstance(value, RGBColor):
             color_obj.rgb = value
@@ -278,18 +281,18 @@ class BulletColor(object):
 
 class _BulletColor(object):
     """
-    Object factory for BulletColor objects
+    Object factory for TextBulletColor objects
     """
 
-    def __new__(cls, xBulletColor):
-        if isinstance(xBulletColor, CT_TextBulletColorFollowText):
-            bullet_color_cls = _BulletColorFollowText
-        elif isinstance(xBulletColor, CT_Color):
-            bullet_color_cls = _BulletColorSpecific
+    def __new__(cls, xTextBulletColor):
+        if isinstance(xTextBulletColor, CT_TextBulletColorFollowText):
+            bullet_color_cls = _TextBulletColorFollowText
+        elif isinstance(xTextBulletColor, CT_Color):
+            bullet_color_cls = _TextBulletColorSpecific
         else:
-            bullet_color_cls = _BulletColor
+            bullet_color_cls = _TextBulletColor
         
-        return super(_BulletColor, cls).__new__(bullet_color_cls)
+        return super(_TextBulletColor, cls).__new__(bullet_color_cls)
         
     @property
     def type(self):
@@ -299,7 +302,7 @@ class _BulletColor(object):
     def color(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletColor type %s has no color, call .set_color() first"
+            "TextBulletColor type %s has no color, call .set_color() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
@@ -307,20 +310,20 @@ class _BulletColor(object):
     def color(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletColor type %s has no color, call .set_color() first"
+            "TextBulletColor type %s has no color, call .set_color() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
 
-class _BulletColorFollowText(_BulletColor):
+class _TextBulletColorFollowText(_BulletColor):
     """
     Designates that the Bullet Color will match the accompanying paragraph text.
     """
     @property
     def type(self):
-        return "BulletColorFollowText"
+        return "TextBulletColorFollowText"
 
-class _BulletColorSpecific(_BulletColor):
+class _TextBulletColorSpecific(_BulletColor):
     """
     """
     def __init__(self, bullet_color):
@@ -329,7 +332,7 @@ class _BulletColorSpecific(_BulletColor):
 
     @property
     def type(self):
-        return "BulletColorSpecific"
+        return "TextBulletColorSpecific"
 
     @property
     def color(self):
@@ -337,46 +340,46 @@ class _BulletColorSpecific(_BulletColor):
 
 
 
-class BulletSize(object):
+class TextBulletSize(object):
     """
     Provides access to the bullet size options
     """
     def __init__(self, parent, bullet_size_obj):
-        super(BulletSize, self).__init__()
+        super(TextBulletSize, self).__init__()
         self._parent = parent
         self._bullet_size = bullet_size_obj
     
     @classmethod
     def from_parent(cls, parent):
         """
-        Return |BulletSize| object
+        Return |TextBulletSize| object
         """
         bullet_size_elm = parent.eg_textBulletSize
-        bullet_size = _BulletSize(bullet_size_elm)
+        bullet_size = _TextBulletSize(bullet_size_elm)
         text_bullet_size = cls(parent, bullet_size)
         return text_bullet_size
 
     def follow_text(self):
         """
-        Sets the BulletSize to _BulletSizeFollowText
+        Sets the TextBulletSize to _TextBulletSizeFollowText
         """
         follow_text = self._parent.get_or_change_to_buSzTx()
-        self._bullet_size = _BulletSizeFollowText(follow_text)
+        self._bullet_size = _TextBulletSizeFollowText(follow_text)
 
     def set_points(self, value):
         """
-        Sets the BulletSize to _BulletSizePoints and sets the points value
+        Sets the TextBulletSize to _TextBulletSizePoints and sets the points value
         """
         points = self._parent.get_or_change_to_buSzPts()
-        self._bullet_size = _BulletSizePoints(points)
+        self._bullet_size = _TextBulletSizePoints(points)
         self.points = value
 
     def set_percentage(self, value):
         """
-        Sets the BulletSize to _BulletSizePercentage and sets the percent value
+        Sets the textBulletSize to _TextBulletSizePercentage and sets the percent value
         """
         percentage = self._parent.get_or_change_to_buSzPct()
-        self._bullet_size = _BulletSizePercent(percentage)
+        self._bullet_size = _TextBulletSizePercent(percentage)
         self.percentage = value
 
     @property
@@ -403,28 +406,28 @@ class BulletSize(object):
         """ Sets the percentage size """
         self._bullet_size.percentage = value    
 
-class _BulletSize(object):
+class _TextBulletSize(object):
     """
-    Object factory for BulletSize objects
+    Object factory for TextBulletSize objects
     """
 
     def __new__(cls, xBulletSize):
         if isinstance(xBulletSize, CT_TextBulletSizeFollowText):
-            bullet_size_cls = _BulletSizeFollowText
+            bullet_size_cls = _TextBulletSizeFollowText
         elif isinstance(xBulletSize, CT_TextBulletSizePercent):
-            bullet_size_cls = _BulletSizePercent
+            bullet_size_cls = _TextBulletSizePercent
         elif isinstance(xBulletSize, CT_TextBulletSizePoints):
-            bullet_size_cls = _BulletSizePoints
+            bullet_size_cls = _TextBulletSizePoints
         else:
-            bullet_size_cls = _BulletSize
+            bullet_size_cls = _TextBulletSize
         
-        return super(_BulletSize, cls).__new__(bullet_size_cls)
+        return super(_TextBulletSize, cls).__new__(bullet_size_cls)
 
     @property
     def points(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletSize type %s has no points property, call .set_points() first"
+            "TextBulletSize type %s has no points property, call .set_points() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
     
@@ -432,7 +435,7 @@ class _BulletSize(object):
     def points(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletSize type %s has no points property, call .set_points() first"
+            "TextBulletSize type %s has no points property, call .set_points() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
@@ -440,7 +443,7 @@ class _BulletSize(object):
     def percentage(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletSize type %s has no percentage property, call .set_percentage() first"
+            "TextBulletSize type %s has no percentage property, call .set_percentage() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
@@ -448,28 +451,28 @@ class _BulletSize(object):
     def percentage(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletSize type %s has no percentage property, call .set_percentage() first"
+            "TextBulletSize type %s has no percentage property, call .set_percentage() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
-class _BulletSizeFollowText(_BulletSize):
+class _TextBulletSizeFollowText(_BulletSize):
     """
     Designates that the Bullet Size will match the accompanying paragraph text.
     """
     @property
     def type(self):
-        return "BulletSizeFollowText"
+        return "TextBulletSizeFollowText"
 
-class _BulletSizePercent(_BulletSize):
+class _TextBulletSizePercent(_BulletSize):
     """ Proxies a `a: buSzPct` element. """
 
     def __init__(self, bullet_size):
-        super(_BulletSizePercent, self).__init__()
+        super(_TextBulletSizePercent, self).__init__()
         self._bullet_size = bullet_size
 
     @property
     def type(self):
-        return "BulletSizePercent"
+        return "TextBulletSizePercent"
 
     @property
     def percentage(self):
@@ -482,17 +485,17 @@ class _BulletSizePercent(_BulletSize):
         self._bullet_size.val = value
             
 
-class _BulletSizePoints(_BulletSize):
+class _TextBulletSizePoints(_BulletSize):
     """ Proxies a `a: buSzPts` element. """
     
     def __init__(self, bullet_size):
-        super(_BulletSizePoints, self).__init__()
+        super(_TextBulletSizePoints, self).__init__()
         self._bullet_size = bullet_size
 
 
     @property
     def type(self):
-        return "BulletSizePoints"
+        return "TextBulletSizePoints"
 
 
     @property
@@ -508,103 +511,103 @@ class _BulletSizePoints(_BulletSize):
             
 
 
-class BulletFont(object):
+class TextBulletTypeface(object):
     """
     Provides access to the bullet font typeface options
     """
-    def __init__(self, parent, bullet_font_obj):
-        super(BulletFont, self).__init__()
+    def __init__(self, parent, bullet_typeface_obj):
+        super(TextBulletTypeface, self).__init__()
         self._parent = parent
-        self._bullet_font = bullet_font_obj
+        self._bullet_typeface = bullet_typeface_obj
     
     @classmethod
     def from_parent(cls, parent):
         """
-        Return |BulletFont| object
+        Return |TextBulletTypeface| object
         """
-        bullet_font_elm = parent.eg_textBulletTypeface
-        bullet_font = _BulletFont(bullet_font_elm)
-        text_bullet_font = cls(parent, bullet_font)
-        return text_bullet_font
+        bullet_typeface_elm = parent.eg_textBulletTypeface
+        bullet_typeface = _BulletTypeFace(bullet_typeface_elm)
+        text_bullet_typeface = cls(parent, bullet_typeface)
+        return text_bullet_typeface
 
     def follow_text(self):
         """
-        Sets the BulletFont to _BulletFontFollowText
+        Sets the TextBulletTypeface to _BulletTypefaceFollowText
         """
         follow_text = self._parent.get_or_change_to_buFontTx()
-        self._bullet_font = _BulletFontFollowText(follow_text)
+        self._bullet_typeface = _BulletTypefaceollowText(follow_text)
 
     def set_typeface(self, typeface="Arial"):
         """
-        Sets the BulletFont to _BulletFontSpecific
+        Sets the TextBulletTypeface to _BulletTypefaceSpecific
         """
-        bullet_font = self._parent.get_or_change_to_buFont()
-        self._bullet_font = _BulletFontSpecific(bullet_font)
+        bullet_typeface = self._parent.get_or_change_to_buFont()
+        self._bullet_typeface = _BulletTypefaceSpecific(bullet_typeface)
         self.typeface = typeface
 
     @property
     def typeface(self):
-        return self._bullet_font.typeface
+        return self._bullet_typeface.typeface
 
     @typeface.setter
     def typeface(self, value):
-        self._bullet_font.typeface = value
+        self._bullet_typeface.typeface = value
     
     @property
     def pitch_family(self):
-        return self._bullet_font.pitchFamily
+        return self._bullet_typeface.pitchFamily
 
     @pitch_family.setter
     def pitch_family(self, value):
-        self._bullet_font.pitchFamily = value
+        self._bullet_typeface.pitchFamily = value
 
     @property
     def panose(self):
-        return self._bullet_font.panose
+        return self._bullet_typeface.panose
     
     @panose.setter
     def panose(self, value):
-        self._bullet_font.panose = value
+        self._bullet_typeface.panose = value
     
     @property
     def charset(self):
-        return self._bullet_font.charset
+        return self._bullet_typeface.charset
     
     @charset.setter
     def charset(self, value):
-        self._bullet_font.charset = value
+        self._bullet_typeface.charset = value
 
     @property
     def type(self):
         """ Return a string type """
-        return self._bullet_font.type
+        return self._bullet_typeface.type
     
      
 
-class _BulletFont(object):
+class _BulletTypeface(object):
     """
-    Object factory for BulletFont objects
+    Object factory for TextBulletTypeface objects
     """
 
-    def __new__(cls, xBulletFont):
-        if isinstance(xBulletFont, CT_TextBulletTypefaceFollowText):
-            bullet_font_cls = _BulletFontFollowText
-        elif isinstance(xBulletFont, CT_TextFont):
-            bullet_font_cls = _BulletFontSpecific
+    def __new__(cls, xBulletTypeface):
+        if isinstance(xBulletTypeface, CT_TextBulletTypefaceFollowText):
+            bullet_typeface_cls = _BulletTypefaceFollowText
+        elif isinstance(xBulletTypeface, CT_TextFont):
+            bullet_typeface_cls = _BulletTypefaceSpecific
         else:
-            bullet_font_cls = _BulletFont
+            bullet_typeface_cls = _BulletTypeface
         
-        return super(_BulletFont, cls).__new__(bullet_font_cls)
+        return super(_BulletTypeface, cls).__new__(bullet_typeface_cls)
         
     @property
     def type(self):
-        return "NoBulletFont"
+        return "NoBulletTypeface"
 
     @property
     def typeface(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no typeface property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no typeface property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
@@ -612,7 +615,7 @@ class _BulletFont(object):
     def typeface(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no typeface property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no typeface property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
     
@@ -620,7 +623,7 @@ class _BulletFont(object):
     def pitch_family(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no pitch_family property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no pitch_family property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
@@ -628,7 +631,7 @@ class _BulletFont(object):
     def pitch_family(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no pitch_family property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no pitch_family property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
@@ -636,7 +639,7 @@ class _BulletFont(object):
     def panose(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no panose property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no panose property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
     
@@ -644,7 +647,7 @@ class _BulletFont(object):
     def panose(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no panose property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no panose property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
     
@@ -652,7 +655,7 @@ class _BulletFont(object):
     def charset(self):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no charset property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no charset property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
     
@@ -660,61 +663,61 @@ class _BulletFont(object):
     def charset(self, value):
         """Raise TypeError for types that do not override this property."""
         tmpl = (
-            "BulletFont type %s has no charset property, call .set_typeface() first"
+            "TextBulletTypeface type %s has no charset property, call .set_typeface() first"
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
 
-class _BulletFontFollowText(_BulletFont):
+class _BulletTypefaceFollowText(_BulletTypeface):
     """
-    Designates that the Bullet Font will match the accompanying paragraph text.
+    Designates that the BulletTypeface will match the accompanying paragraph text.
     """
     @property
     def type(self):
-        return "BulletFontFollowText"
+        return "BulletTypefaceFollowText"
 
-class _BulletFontSpecific(_BulletFont):
+class _BulletTypefaaceSpecific(_BulletTypeface):
     """
-    Designates the specific Bullet font typeface characteristics
+    Designates the specific BulletTypeface characteristics
     """
-    def __init__(self, bullet_font):
-        super(_BulletFontSpecific, self).__init__()
-        self._bullet_font = bullet_font
+    def __init__(self, bullet_typeface):
+        super(_BulletTypefaceSpecific, self).__init__()
+        self._bullet_typeface = bullet_typeface
 
     @property
     def type(self):
-        return "BulletFontSpecific"
+        return "BulletTypefaceSpecific"
 
     @property
     def typeface(self):
-        return self._bullet_font.typeface
+        return self._bullet_typeface.typeface
 
     @typeface.setter
     def typeface(self, value):
-        self._bullet_font.typeface = value
+        self._bullet_typeface.typeface = value
     
     @property
     def pitch_family(self):
-        return self._bullet_font.pitchFamily
+        return self._bullet_typeface.pitchFamily
 
     @pitch_family.setter
     def pitch_family(self, value):
-        self._bullet_font.pitchFamily = value
+        self._bullet_typeface.pitchFamily = value
     
 
     @property
     def panose(self):
-        return self._bullet_font.panose
+        return self._bullet_typeface.panose
     
     @panose.setter
     def panose(self, value):
-        self._bullet_font.panose = value
+        self._bullet_typeface.panose = value
     
     @property
     def charset(self):
-        return self._bullet_font.charset
+        return self._bullet_typeface.charset
     
     @charset.setter
     def charset(self, value):
-        self._bullet_font.charset = value
+        self._bullet_typeface.charset = value
 
