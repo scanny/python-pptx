@@ -770,6 +770,7 @@ class ST_TextAutoNumType(XsdString):
     pass
 
 class ST_TextBulletStartAtNum(XsdInt):
+    """ Verification of StartAt value for Auto Numbers """
     @classmethod
     def validate(cls, value):
         if not isinstance(value, numbers.Integral):
@@ -778,6 +779,7 @@ class ST_TextBulletStartAtNum(XsdInt):
 
 
 class ST_TextBulletSizePercent(ST_Percentage):
+    """ Verification for Bullet Size Percentage Vales """
     @classmethod
     def validate(cls, value):
         cls.validate_float_in_range(value, .25, 4)

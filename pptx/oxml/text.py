@@ -634,14 +634,8 @@ class CT_TextCharBullet(BaseOxmlElement):
 class CT_TextBulletAutoNumber(BaseOxmlElement):
     """
     <a:buAutoNum> element, specifing the type used in a autonumbered list
-        - char_type sets the character and punctuation type.  Options include:
-            - arabicPeriod - 1.
-            - arabicParenR - 1)
-            - romanUcPeriod - I.
-            - alphaUcPeriod - A.
-            - alphaLcParenR - a)
-            - alphaLcPeriod - a.
-            - romanLcPeriod - i.
+        - char_type sets the character and punctuation type.  Options are found
+            in  AUTO_NUMBER_SCHEME in pptx.enum.text
 
     """
     char_type = RequiredAttribute('type', AUTO_NUMBER_SCHEME)
@@ -649,12 +643,12 @@ class CT_TextBulletAutoNumber(BaseOxmlElement):
 
 class CT_TextNoBullet(BaseOxmlElement):
     """`a:buNone` element, specifying if to disable a bullet"""
-
+    pass
 
 class CT_TextBulletColorFollowText(BaseOxmlElement):
     """`a:buyClrTx` element, specifying bullet formatting to follow text formatting
     """
-
+    pass
 class CT_TextBulletSizePercent(BaseOxmlElement):
     """
     <a:buSzPct> element, specifying bullet size in percent in its `val`
@@ -676,6 +670,7 @@ class CT_TextBulletSizeFollowText(BaseOxmlElement):
     <a:buSzTx> element, specifying bullet to follow text size for 
     bullet size
     """
+    pass
 
 
 class CT_TextBulletTypefaceFollowText(BaseOxmlElement):
@@ -683,7 +678,7 @@ class CT_TextBulletTypefaceFollowText(BaseOxmlElement):
     <a:buFontTx> element, specifying bullet to follow the text formatting
     for bullet typeface settings
     """
-
+    pass
 
 class CT_TextBlipBullet(BaseOxmlElement):
     """
