@@ -94,7 +94,7 @@ class TextBullet(object):
     @property
     def char(self):
         """ String used as the bullet for a CharBullet"""
-        return self._bullet.character
+        return self._bullet.char
 
     @char.setter
     def char(self, value):
@@ -536,7 +536,7 @@ class TextBulletTypeface(object):
         Return |TextBulletTypeface| object
         """
         bullet_typeface_elm = parent.eg_textBulletTypeface
-        bullet_typeface = _BulletTypeFace(bullet_typeface_elm)
+        bullet_typeface = _BulletTypeface(bullet_typeface_elm)
         text_bullet_typeface = cls(parent, bullet_typeface)
         return text_bullet_typeface
 
