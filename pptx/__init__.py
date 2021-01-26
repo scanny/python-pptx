@@ -74,3 +74,6 @@ del (
     CT,
     PartFactory,
 )
+
+def get_version():
+    print(f"Currently using version: {__version__}")
