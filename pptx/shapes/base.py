@@ -272,13 +272,14 @@ class _PlaceholderFormat(ElementProxy):
 
 class ShapeStyle(object):
     """
+    The `p:style` object that handles the references for the shape
+    to the theme's styles
     """
 
     def __init__(self, style_elm, parent):
         super(ShapeStyle, self).__init__()
         self._element = style_elm
         self._parent = parent
-        print("ShapeStyle object Init")
 
     @property
     def line_ref(self):
@@ -313,6 +314,7 @@ class ShapeStyle(object):
 
 class StyleMatrixReference(object):
     """
+    Object that is used by |ShapeStyle| to handle the four different references
     """
 
     def __init__(self, matrix_ref):
@@ -326,6 +328,7 @@ class StyleMatrixReference(object):
 
     @property
     def idx(self):
+        """ Read/Write the IDX of the referenced theme. """
         return self._reference.idx
 
     @idx.setter

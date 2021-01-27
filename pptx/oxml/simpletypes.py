@@ -616,6 +616,7 @@ class ST_Style(XsdUnsignedByte):
 
 
 class ST_StyleMatrixColumnIndex(XsdUnsignedInt):
+    """ style index integers """
     pass
 
 class ST_TargetMode(XsdString):
@@ -749,7 +750,7 @@ class ST_UniversalMeasure(BaseSimpleType):
 
 
 class ST_FontCollectionIndex(XsdTokenEnumeration):
-
+    """ Valid Values for Font Collections """
     MAJOR = "major"
     MINOR = "minor"
     NONE = "none"

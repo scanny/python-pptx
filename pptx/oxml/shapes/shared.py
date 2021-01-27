@@ -521,6 +521,8 @@ class CT_Transform2D(BaseOxmlElement):
 
 
 class CT_ShapeStyle(BaseOxmlElement):
+    """ `p:style` custom element class
+    """
     _tag_seq = ("a:lnRef", "a:fillRef", "a:effectRef", "a:fontRef")
 
     lnRef = OneAndOnlyOne("a:lnRef")
@@ -531,6 +533,7 @@ class CT_ShapeStyle(BaseOxmlElement):
     del _tag_seq
 
 class CT_StyleMatrixReference(BaseOxmlElement):
+    """ Reference class used by `a:lnRef`, `a:fillRef`, and `a:effectRef`"""
     eg_colorChoice = ZeroOrOneChoice((
         Choice("a:scrgbClr"),
         Choice("a:srgbClr"),
@@ -543,6 +546,7 @@ class CT_StyleMatrixReference(BaseOxmlElement):
 
 
 class CT_FontReference(BaseOxmlElement):
+    """ Reference class used by `a:fontRef` ""
     eg_colorChoice = ZeroOrOneChoice((
         Choice("a:scrgbClr"),
         Choice("a:srgbClr"),
