@@ -232,6 +232,11 @@ class BaseShape(object):
             return None
         return ShapeStyle(obj, self._element)
         
+    def remove_style(self):
+        """
+        Removes any Style formatting
+        """
+        self._element.remove_style()
 
 
 class _PlaceholderFormat(ElementProxy):

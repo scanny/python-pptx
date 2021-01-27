@@ -184,6 +184,13 @@ class BaseShapeElement(BaseOxmlElement):
         """
         return self.find(qn("p:style"))
 
+    def remove_style(self):
+        """
+        Removes all style formatting
+        """
+        self.remove_if_present("p:style")
+
+
     @property
     def x(self):
         return self._get_xfrm_attr("x")
