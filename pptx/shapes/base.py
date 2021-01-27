@@ -310,18 +310,20 @@ class StyleMatrixReference(object):
     """
     """
 
-    def __init__(self, colorRef):
+    def __init__(self, matrix_ref):
         super(StyleMatrixReference, self).__init__()
-        self._colorRef = colorRef
+        self._reference = matrix_ref
 
     @lazyproperty
     def color_reference(self):
         """Return |ColorFormat| object matching reference color."""
-        return ColorFormat.from_colorchoice_parent(self._colorRef)
+        return ColorFormat.from_colorchoice_parent(self._reference)
 
     @property
     def idx(self):
-        return self._colorRef.idx
+        return self._reference.idx
 
+    @idx.setter
+    def idx(self, value):
+        self._reference.idx = value
 
-    
