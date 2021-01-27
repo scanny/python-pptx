@@ -254,13 +254,14 @@ class TextBulletColor(object):
         follow_text = self._parent.get_or_change_to_buClrTx()
         self._bullet_color = _TextBulletColorFollowText(follow_text)
 
-    def set_color(self, color):
+    def set_color(self, color=None):
         """
         Sets the TextBulletColor to _TextBulletColorSpecific and sets the color
         """
         bullet_color = self._parent.get_or_change_to_buClr()
         self._bullet_color = _TextBulletColorSpecific(bullet_color)
-        self.color = color
+        if color:
+            self.color = color
 
     @property
     def type(self):
