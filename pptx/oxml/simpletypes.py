@@ -747,3 +747,11 @@ class ST_UniversalMeasure(BaseSimpleType):
         return emu_value
 
 
+
+class ST_FontCollectionIndex(XsdTokenEnumeration):
+
+    MAJOR = "major"
+    MINOR = "minor"
+    NONE = "none"
+
+    _members = (MAJOR, MINOR, NONE)

@@ -8,6 +8,7 @@ from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
+from pptx.dml.color import ColorFormat
 
 
 class BaseShape(object):
@@ -221,6 +222,17 @@ class BaseShape(object):
     def width(self, value):
         self._element.cx = value
 
+    @lazyproperty
+    def style(self):
+        """
+        Returns a |ShapeStyle| object or None if not available
+        """
+        obj = self._element.style
+        if obj is None:
+            return None
+        return ShapeStyle(obj, self._element)
+        
+
 
 class _PlaceholderFormat(ElementProxy):
     """
@@ -250,3 +262,66 @@ class _PlaceholderFormat(ElementProxy):
         enumeration, e.g. PP_PLACEHOLDER.CHART
         """
         return self._element.type
+
+
+
+class ShapeStyle(object):
+    """
+    """
+
+    def __init__(self, style_elm, parent):
+        super(ShapeStyle, self).__init__()
+        self._element = style_elm
+        self._parent = parent
+        print("ShapeStyle object Init")
+
+    @property
+    def line_ref(self):
+        """
+        A Line Reference
+        """
+        return StyleMatrixReference(self._element.lnRef)
+
+    @property
+    def fill_ref(self):
+        """
+        A Fill Reference
+        """
+        return StyleMatrixReference(self._element.fillRef)
+
+    @property
+    def effect_ref(self):
+        """
+        An Effect Reference
+        """
+        return StyleMatrixReference(self._element.effectRef)
+
+    @property
+    def font_ref(self):
+        """
+        A Font Reference
+        """
+        return StyleMatrixReference(self._element.fontRef)
+
+
+
+
+class StyleMatrixReference(object):
+    """
+    """
+
+    def __init__(self, colorRef):
+        super(StyleMatrixReference, self).__init__()
+        self._colorRef = colorRef
+
+    @lazyproperty
+    def color_reference(self):
+        """Return |ColorFormat| object matching reference color."""
+        return ColorFormat.from_colorchoice_parent(self._colorRef)
+
+    @property
+    def idx(self):
+        return self._colorRef.idx
+
+
+    

@@ -19,6 +19,7 @@ from pptx.oxml.simpletypes import (
     XsdString,
     XsdUnsignedInt,
     ST_StyleMatrixColumnIndex,
+    ST_FontCollectionIndex,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -175,6 +176,13 @@ class BaseShapeElement(BaseOxmlElement):
         Child ``<p:txBody>`` element, None if not present
         """
         return self.find(qn("p:txBody"))
+
+    @property
+    def style(self):
+        """
+        Child ``<p:style>`` element, None if not present
+        """
+        return self.find(qn("p:style"))
 
     @property
     def x(self):
@@ -508,7 +516,7 @@ class CT_Transform2D(BaseOxmlElement):
 class CT_ShapeStyle(BaseOxmlElement):
     _tag_seq = ("a:lnRef", "a:fillRef", "a:effectRef", "a:fontRef")
 
-    lnRef = OneAndOnlyOne("a:lnref")
+    lnRef = OneAndOnlyOne("a:lnRef")
     fillRef = OneAndOnlyOne("a:fillRef")
     effectRef = OneAndOnlyOne("a:effectRef")
     fontRef = OneAndOnlyOne("a:fontRef")
@@ -516,7 +524,7 @@ class CT_ShapeStyle(BaseOxmlElement):
     del _tag_seq
 
 class CT_StyleMatrixReference(BaseOxmlElement):
-    eg_ColorChoice = ZeroOrOneChoice((
+    eg_colorChoice = ZeroOrOneChoice((
         Choice("a:scrgbClr"),
         Choice("a:srgbClr"),
         Choice("a:hslClr"),
@@ -525,3 +533,15 @@ class CT_StyleMatrixReference(BaseOxmlElement):
         Choice("a:prstClr"),
     ))
     idx = RequiredAttribute("idx", ST_StyleMatrixColumnIndex)
+
+
+class CT_FontReference(BaseOxmlElement):
+    eg_colorChoice = ZeroOrOneChoice((
+        Choice("a:scrgbClr"),
+        Choice("a:srgbClr"),
+        Choice("a:hslClr"),
+        Choice("a:sysClr"),
+        Choice("a:schemeClr"),
+        Choice("a:prstClr"),
+    ))
+    idx = RequiredAttribute("idx", ST_FontCollectionIndex)
