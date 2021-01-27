@@ -546,7 +546,7 @@ class CT_StyleMatrixReference(BaseOxmlElement):
 
 
 class CT_FontReference(BaseOxmlElement):
-    """ Reference class used by `a:fontRef` ""
+    """ Reference class used by `a:fontRef` """
     eg_colorChoice = ZeroOrOneChoice((
         Choice("a:scrgbClr"),
         Choice("a:srgbClr"),
