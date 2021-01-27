@@ -59,3 +59,11 @@ class GroupShape(BaseShape):
         from pptx.shapes.shapetree import GroupShapes
 
         return GroupShapes(self._element, self)
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this shape, providing access to fill
+        properties such as fill color.
+        """
+        return FillFormat.from_fill_parent(self._element.grpSpPr)
