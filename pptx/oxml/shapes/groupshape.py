@@ -274,5 +274,24 @@ class CT_GroupShapeProperties(BaseOxmlElement):
         "a:extLst",
     )
     xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
+    eg_lineFillProperties = ZeroOrOneChoice(
+        (
+            Choice("a:noFill"),
+            Choice("a:solidFill"),
+            Choice("a:gradFill"),
+            Choice("a:blipFill"),
+            Choice("a:pattFill"),
+            Choice("a:grpFill"),
+        ),
+        successors=_tag_seq[7:],
+    )
+
     effectLst = ZeroOrOne("a:effectLst", successors=_tag_seq[8:])
     del _tag_seq
+    
+    @property
+    def eg_fillProperties(self):
+        """
+        Required to fulfill the interface used by dml.fill.
+        """
+        return self.eg_lineFillProperties
