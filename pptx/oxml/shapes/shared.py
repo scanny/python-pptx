@@ -18,6 +18,7 @@ from pptx.oxml.simpletypes import (
     XsdBoolean,
     XsdString,
     XsdUnsignedInt,
+    ST_StyleMatrixColumnIndex,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -27,6 +28,7 @@ from pptx.oxml.xmlchemy import (
     RequiredAttribute,
     ZeroOrOne,
     ZeroOrOneChoice,
+    OneAndOnlyOne,
 )
 from pptx.util import Emu
 
@@ -501,3 +503,25 @@ class CT_Transform2D(BaseOxmlElement):
         off.x = 0
         off.y = 0
         return off
+
+
+class CT_ShapeStyle(BaseOxmlElement):
+    _tag_seq = ("a:lnRef", "a:fillRef", "a:effectRef", "a:fontRef")
+
+    lnRef = OneAndOnlyOne("a:lnref")
+    fillRef = OneAndOnlyOne("a:fillRef")
+    effectRef = OneAndOnlyOne("a:effectRef")
+    fontRef = OneAndOnlyOne("a:fontRef")
+
+    del _tag_seq
+
+class CT_StyleMatrixReference(BaseOxmlElement):
+    eg_ColorChoice = ZeroOrOneChoice((
+        Choice("a:scrgbClr"),
+        Choice("a:srgbClr"),
+        Choice("a:hslClr"),
+        Choice("a:sysClr"),
+        Choice("a:schemeClr"),
+        Choice("a:prstClr"),
+    ))
+    idx = RequiredAttribute("idx", ST_StyleMatrixColumnIndex)
