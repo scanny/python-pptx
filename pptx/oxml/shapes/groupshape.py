@@ -12,7 +12,13 @@ from pptx.oxml.shapes.connector import CT_Connector
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement
-from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    ZeroOrOne,
+    ZeroOrOneChoice,
+    Choice,
+)
 from pptx.util import Emu
 
 
