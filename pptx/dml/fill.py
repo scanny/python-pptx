@@ -156,7 +156,7 @@ class FillFormat(object):
         the parent group shape.
         """
 
-        groupFill = self._+xPr.get_or_change_to_grpFill
+        groupFill = self._xPr.get_or_change_to_grpFill()
         self._fill = _GrpFill(groupFill)
 
 
