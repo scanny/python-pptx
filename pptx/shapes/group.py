@@ -59,3 +59,18 @@ class GroupShape(BaseShape):
         from pptx.shapes.shapetree import GroupShapes
 
         return GroupShapes(self._element, self)
+
+    @lazyproperty
+    def style(self):
+        """Unconditionally raises `TypeError`.
+
+        A group shape cannot have a style.
+        """
+        raise TypeError("a group shape cannot have a style")
+
+    def remove_style(self):
+        """Unconditionally raises `TypeError`.
+
+        A group shape cannot have a style.
+        """
+        raise TypeError("a group shape cannot have a style")
