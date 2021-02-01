@@ -253,3 +253,61 @@ class PP_PARAGRAPH_ALIGNMENT(XmlEnumeration):
             "ignments are present in a set of paragraphs.",
         ),
     )
+
+
+class AUTO_NUMBER_SCHEME(XmlEnumeration):
+    """
+    Specifiies the formatting of AutoNumbered lists
+    Descriptions came from this url:
+        https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppnumberedbulletstyle
+    """
+    __ms_name__ = "TextAutoNumberSchemeValues "
+    __url__ = (
+        "https://docs.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.textautonumberschemevalues?view=openxml-2.8.1"
+    )
+
+    __members__ = (
+        XmlMappedEnumMember("ALPHA_LOWER_CHARACTER_PAREN_BOTH", 0, "alphaLcParenBoth", "Lowercase alphabetical characters with both parentheses."),
+        XmlMappedEnumMember("ALPHA_LOWER_CHARACTER_PAREN_R", 2, "alphaLcParenR", "Lowercase alphabetical characters with closing parenthesis."),
+        XmlMappedEnumMember("ALPHA_LOWER_CHARACTER_PERIOD", 4, "alphaLcPeriod", "Lowercase alphabetical characters with a period."),
+        XmlMappedEnumMember("ALPHA_UPPER_CHARACTER_PAREN_BOTH", 1, "alphaUcParenBoth", "Uppercase alphabetical characters with both parentheses."),
+        XmlMappedEnumMember("ALPHA_UPPER_CHARACTER_PAREN_R", 3, "alphaUcParenR", "Uppercase alphabetical characters with closing parenthesis."),
+        XmlMappedEnumMember("ALPHA_UPPER_CHARACTER_PERIOD", 0, "alphaUcPeriod", "Uppercase alphabetical characters with a period."),
+        XmlMappedEnumMember("ARABIC_1_MINUS", 28, "arabic1Minus", "Arabic Abjad alphabets with a dash."),
+        XmlMappedEnumMember("ARABIC_2_MINUS", 29, "arabic2Minus", "Arabic language alphabetical characters with a dash."),
+        XmlMappedEnumMember("ARABIC_DOUBLE_BYTE_PERIOD", 19, "arabicDbPeriod", "Double-byte Arabic numbering scheme with double-byte period."),
+        XmlMappedEnumMember("ARABIC_DOUBLE_BYTE_PLAIN", 20, "arabicDbPlain", "Double-byte Arabic numbering scheme (no punctuation)."),
+        XmlMappedEnumMember("ARABIC_PAREN_BOTH", 6, "arabicParenBoth", "Arabic numerals with both parentheses."),
+        XmlMappedEnumMember("ARABIC_PAREN_R", 7, "arabicParenR", "Arabic numerals with closing parenthesis."),
+        XmlMappedEnumMember("ARABIC_PERIOD", 8, "arabicPeriod", "Arabic numerals with a period."),
+        XmlMappedEnumMember("ARABIC_PLAIN", 9, "arabicPlain", "Arabic numerals."),
+        XmlMappedEnumMember("ROMAN_LOWER_CHARACTER_PAREN_BOTH", 10, "romanLcParenBoth", "Lowercase Roman numerals with both parentheses."),
+        XmlMappedEnumMember("ROMAN_LOWER_CHARACTER_PAREN_R", 12, "romanLcParenR", "Lowercase Roman numerals with closing parenthesis."),
+        XmlMappedEnumMember("ROMAN_LOWER_CHARACTER_PERIOD", 14, "romanLcPeriod", "Lowercase Roman numerals with period."),
+        XmlMappedEnumMember("ROMAN_UPPER_CHARACTER_PAREN_BOTH", 11, "romanUcParenBoth", "Uppercase Roman numerals with both parentheses."),
+        XmlMappedEnumMember("ROMAN_UPPER_CHARACTER_PAREN_R", 13, "romanUcParenR", "Uppercase Roman numerals with closing parenthesis."),
+        XmlMappedEnumMember("ROMAN_UPPER_CHARACTER_PERIOD", 15, "romanUcPeriod", "	Uppercase Roman numerals with period."),
+        XmlMappedEnumMember("CIRCLE_NUMBER_DOUBLE_BYTE_PLAIN", 16, "circleNumDbPlain", "Double-byte circled number for values up to 10."),
+        XmlMappedEnumMember("CIRCLE_NUMBER_WINGDINGS_BLACK_PLAIN", 17, "circleNumWdBlackPlain", "Shadow color number with circular background of normal text color."),
+        XmlMappedEnumMember("CIRCLE_NUMBER_WINGDINGS_WHITE_PLAIN", 18, "circleNumWdWhitePlain", "Text colored number with same color circle drawn around it."),
+        XmlMappedEnumMember("EAST_ASIAN_JAPANESE_DOUBLE_BYTE_PERIOD", 25, "ea1JpnChsDbPeriod", "Kanji Simple Chinese DBPeriod"),
+        XmlMappedEnumMember("EAST_ASIAN_JAPANESE_KOREAN_PERIOD", 27, "ea1JpnKorPeriod", "Japanese/Korean numbers with a period."),
+        XmlMappedEnumMember("EAST_ASIAN_JAPANESE_KOREAN_PLAIN", 26, "ea1JpnKorPlain", "Japanese/Korean numbers without a period."),
+        XmlMappedEnumMember("EAST_ASIAN_SIMPLIFIED_CHINESE_PERIOD", 21, "ea1ChsPeriod", "Simplified Chinese with a period."),
+        XmlMappedEnumMember("EAST_ASIAN_SIMPLIFIED_CHINESE_PLAIN", 22, "ea1ChsPlain", "Simplified Chinese without a period."),
+        XmlMappedEnumMember("EAST_ASIAN_TRADITIONAL_CHINESE_PERIOD", 23, "ea1ChtPeriod", "Traditional Chinese with a period."),
+        XmlMappedEnumMember("EAST_ASIAN_TRADITIONAL_CHINESE_PLAIN", 24, "ea1ChtPlain", "Traditional Chinese without a period."),
+        XmlMappedEnumMember("HEBREW_2_MINUS", 30, "hebrew2Minus", "Hebrew language alphabetical characters with a dash."),
+        XmlMappedEnumMember("HINDI_ALPHA_1_PERIOD", 40, "hindiAlpha1Period", "Hindi Alpha1 period."),
+        XmlMappedEnumMember("HINDI_ALPHA_PERIOD", 37, "hindiAlphaPeriod", "	Hindi Alpha period."),
+        XmlMappedEnumMember("HINDI_NUMBER_PARENTHESIS_RIGHT", 39, "hindiNumParenR", "Hindi Num Paren right."),
+        XmlMappedEnumMember("HINDI_NUM_PERIOD", 38, "hindiNumPeriod", "Hindi Num period."),
+        XmlMappedEnumMember("THAI_ALPHA_PARENTHESIS_BOTH", 33, "thaiAlphaParenBoth", "Thai Alpha Paren both."),
+        XmlMappedEnumMember("THAI_ALPHA_PARENTHESIS_RIGHT", 32, "thaiAlphaParenR", "Thai Alpha Paren right."),
+        XmlMappedEnumMember("THAI_ALPHA_PERIOD", 31, "thaiAlphaPeriod", "Thai Alpha period."),
+        XmlMappedEnumMember("THAI_NUMBER_PARENTHESIS_BOTH", 36, "thaiNumParenBoth", "Thai Num Paren both."),
+        XmlMappedEnumMember("THAI_NUMBER_PARENTHESIS_RIGHT", 35, "thaiNumParenR", "	Thai Num Paren right."),
+        XmlMappedEnumMember("THAI_NUMBER_PERIOD", 34, "thaiNumPeriod", "Thai Num period."),
+        ReturnValueOnlyEnumMember("MIXED", -2, "Return value only; indicates multiple numbered bullet styles or any other undefinied style."),
+    )
+

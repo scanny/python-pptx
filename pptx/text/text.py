@@ -14,7 +14,8 @@ from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
-from pptx.util import Centipoints, Emu, lazyproperty, Pt
+from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
+from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
 
 
 class TextFrame(Subshape):
@@ -548,6 +549,47 @@ class _Paragraph(Subshape):
         self._pPr.lvl = level
 
     @property
+    def margin_left(self):
+        """
+        Read/write integer value of left margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return Emu(self._pPr.marL)
+
+    @margin_left.setter
+    def margin_left(self, value):
+        self._pPr.marL = value
+
+    @property
+    def margin_right(self):
+        """
+        Read/write integer value of right margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return Emu(self._pPr.marR)
+
+    @margin_right.setter
+    def margin_right(self, value):
+        self._pPr.marR = value
+
+    @property
+    def indent(self):
+        """
+        Read/write integer value of indentation of first line of a paragraph
+        as a |Length| value object.  This value is calculated from the left
+        margin of the paragraph.  If assigned |None|, the default value is
+        used, 0.  Negative values can also be used.
+        """
+        return self._pPr.indent
+
+    @indent.setter
+    def indent(self, value):
+        self._pPr.indent = value
+
+
+    @property
     def line_spacing(self):
         """
         Numeric or |Length| value specifying the space between baselines in
@@ -666,6 +708,36 @@ class _Paragraph(Subshape):
         element to be added if not present.
         """
         return self._p.get_or_add_pPr()
+
+
+    @property
+    def bullet_text(self):
+        """
+        The |TextBullet| Object that handles the formatting of bullets
+        """
+        return TextBullet.from_parent(self._pPr)
+       
+    @property
+    def bullet_color(self):
+        """
+        The |TextBulletColor| Object that handles the coloring of bullets
+        """
+        return TextBulletColor.from_parent(self._pPr)
+       
+    @property
+    def bullet_size(self):
+        """
+        The |TextBulletSize| Object that handles the sizing of bullets
+        """
+        return TextBulletSize.from_parent(self._pPr)
+       
+
+    @property
+    def bullet_font(self):
+        """
+        The |TextBulletTypeface| Object that handles the font typeface of bullets
+        """
+        return TextBulletTypeface.from_parent(self._pPr)
 
 
 class _Run(Subshape):
