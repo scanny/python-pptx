@@ -264,6 +264,7 @@ class CT_LineProperties(BaseOxmlElement):
         ),
         successors=_tag_seq[4:],
     )
+    # TODO - the Dash options should actually be a ZeroOrOneChoice()
     prstDash = ZeroOrOne("a:prstDash", successors=_tag_seq[5:])
     custDash = ZeroOrOne("a:custDash", successors=_tag_seq[6:])
     del _tag_seq

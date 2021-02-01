@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from pptx.compat import is_integer
 from pptx.dml.fill import FillFormat
+from pptx.dml.border import BorderFormat
 from pptx.oxml.table import TcRange
 from pptx.shapes import Subshape
 from pptx.text.text import TextFrame
@@ -382,6 +383,32 @@ class _Cell(Subshape):
     @vertical_anchor.setter
     def vertical_anchor(self, mso_anchor_idx):
         self._tc.anchor = mso_anchor_idx
+
+
+    @property
+    def border_left(self):
+        return BorderFormat(self._tc.tcPr, 'left')
+
+    @property
+    def border_right(self):
+        return BorderFormat(self._tc.tcPr, 'right')
+
+    @property
+    def border_top(self):
+        return BorderFormat(self._tc.tcPr, 'top')
+
+    @property
+    def border_bottom(self):
+        return BorderFormat(self._tc.tcPr, 'bottom')
+
+    @property
+    def border_tl_br(self):
+        return BorderFormat(self._tc.tcPr, 'tl_br')
+
+    @property
+    def border_bl_tr(self):
+        return BorderFormat(self._tc.tcPr, 'bl_tr')
+
 
     @staticmethod
     def _validate_margin_value(margin_value):
