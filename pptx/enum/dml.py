@@ -143,6 +143,7 @@ class MSO_LINE_DASH_STYLE(XmlEnumeration):
         XmlMappedEnumMember(
             "SQUARE_DOT", 2, "sysDash", "Line is made up of square dots."
         ),
+        XmlMappedEnumMember("SYS_DOT", 2, "sysDot", "Line is solid."),
         ReturnValueOnlyEnumMember("DASH_STYLE_MIXED", -2, "Not supported."),
     )
 

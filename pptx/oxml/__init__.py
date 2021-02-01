@@ -379,6 +379,9 @@ from .shapes.shared import (  # noqa: E402
     CT_PositiveSize2D,
     CT_ShapeProperties,
     CT_Transform2D,
+    CT_ShapeStyle,
+    CT_StyleMatrixReference,
+    CT_FontReference,
 )
 
 register_element_cls("a:chExt", CT_PositiveSize2D)
@@ -393,6 +396,11 @@ register_element_cls("p:nvPr", CT_ApplicationNonVisualDrawingProps)
 register_element_cls("p:ph", CT_Placeholder)
 register_element_cls("p:spPr", CT_ShapeProperties)
 register_element_cls("p:xfrm", CT_Transform2D)
+register_element_cls("p:style", CT_ShapeStyle)
+register_element_cls("a:lnRef", CT_StyleMatrixReference)
+register_element_cls("a:fillRef", CT_StyleMatrixReference)
+register_element_cls("a:effectRef", CT_StyleMatrixReference)
+register_element_cls("a:fontRef", CT_FontReference)
 
 
 from .slide import (  # noqa: E402

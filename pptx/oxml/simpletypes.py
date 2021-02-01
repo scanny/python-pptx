@@ -619,6 +619,10 @@ class ST_Style(XsdUnsignedByte):
         cls.validate_int_in_range(value, 1, 48)
 
 
+class ST_StyleMatrixColumnIndex(XsdUnsignedInt):
+    """ style index integers """
+    pass
+
 class ST_TargetMode(XsdString):
     """
     The valid values for the ``TargetMode`` attribute in a Relationship
@@ -746,6 +750,16 @@ class ST_UniversalMeasure(BaseSimpleType):
         }[units_part]
         emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value
+
+
+
+class ST_FontCollectionIndex(XsdTokenEnumeration):
+    """ Valid Values for Font Collections """
+    MAJOR = "major"
+    MINOR = "minor"
+    NONE = "none"
+
+    _members = (MAJOR, MINOR, NONE)
 
 
 class ST_TextPanose(XsdHexBinary):
