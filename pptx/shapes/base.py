@@ -222,6 +222,31 @@ class BaseShape(object):
         self._element.cx = value
 
 
+    @property
+    def flip_h(self):
+        """
+        Read/Write.  Boolean for flipping a shape horizontally.
+        """
+        return self._element.flipH
+
+    @flip_h.setter
+    def flip_h(self, value):
+        self._element.flipH = value
+
+
+    @property
+    def flip_v(self):
+        """
+        Read/Write.  Boolean for flipping a shape horizontally.
+        """
+        return self._element.flipV
+
+    @flip_v.setter
+    def flip_v(self, value):
+        self._element.flipV = value
+        
+        
+
 class _PlaceholderFormat(ElementProxy):
     """
     Accessed via the :attr:`~.BaseShape.placeholder_format` property of
