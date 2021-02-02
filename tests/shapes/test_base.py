@@ -90,6 +90,24 @@ class DescribeBaseShape(object):
         shape.rotation = new_value
         assert shape._element.xml == expected_xml
 
+    def it_knows_its_horizontal_flip(self, flip_h_get_fixture):
+        shape, expected_value = flip_h_get_fixture
+        assert shape.flip_h == expected_value
+    
+    def it_can_change_its_horizontal_flip(self, flip_h_set_fixture):
+        shape, new_value, expected_xml = flip_h_set_fixture
+        shape.flip_h = new_value
+        assert shape._element.xml == expected_xml
+
+    def it_knows_its_vertical_flip(self, flip_v_get_fixture):
+        shape, expected_value = flip_v_get_fixture
+        assert shape.flip_v == expected_value
+    
+    def it_can_change_its_vertical_flip(self, flip_v_set_fixture):
+        shape, new_value, expected_xml = flip_v_set_fixture
+        shape.flip_v = new_value
+        assert shape._element.xml == expected_xml
+
     def it_provides_access_to_its_shadow(self, shadow_fixture):
         shape, ShadowFormat_, spPr, shadow_ = shadow_fixture
 
@@ -339,6 +357,60 @@ class DescribeBaseShape(object):
         ]
     )
     def rotation_set_fixture(self, request):
+        xSp_cxml, new_value, expected_xSp_cxml = request.param
+        shape = BaseShapeFactory(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
+        return shape, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:spPr", False),
+            ("p:sp/p:spPr/a:xfrm{flipH=1}", True),
+            ("p:sp/p:spPr/a:xfrm{flipH=0}", False),
+            ("p:sp/p:spPr/a:xfrm{flipH=true}", True),
+            ("p:sp/p:spPr/a:xfrm{flipH=false}", False),
+        ]
+    )
+    def flip_h_get_fixture(self, request):
+        xSp_cxml, expected_value = request.param
+        shape = BaseShapeFactory(element(xSp_cxml), None)
+        return shape, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:spPr/a:xfrm", True, "p:sp/p:spPr/a:xfrm{flipH=1}"),
+            ("p:sp/p:spPr/a:xfrm{flipH=1}", False, "p:sp/p:spPr/a:xfrm"),
+            ("p:grpSp/p:grpSpPr/a:xfrm", True, "p:grpSp/p:grpSpPr/a:xfrm{flipH=1}"),
+        ]
+    )
+    def flip_h_set_fixture(self, request):
+        xSp_cxml, new_value, expected_xSp_cxml = request.param
+        shape = BaseShapeFactory(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
+        return shape, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:spPr", False),
+            ("p:sp/p:spPr/a:xfrm{flipV=1}", True),
+            ("p:sp/p:spPr/a:xfrm{flipV=0}", False),
+            ("p:sp/p:spPr/a:xfrm{flipV=true}", True),
+            ("p:sp/p:spPr/a:xfrm{flipV=false}", False),
+        ]
+    )
+    def flip_v_get_fixture(self, request):
+        xSp_cxml, expected_value = request.param
+        shape = BaseShapeFactory(element(xSp_cxml), None)
+        return shape, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("p:sp/p:spPr/a:xfrm", True, "p:sp/p:spPr/a:xfrm{flipV=1}"),
+            ("p:sp/p:spPr/a:xfrm{flipV=1}", False, "p:sp/p:spPr/a:xfrm"),
+            ("p:grpSp/p:grpSpPr/a:xfrm", True, "p:grpSp/p:grpSpPr/a:xfrm{flipV=1}"),
+        ]
+    )
+    def flip_v_set_fixture(self, request):
         xSp_cxml, new_value, expected_xSp_cxml = request.param
         shape = BaseShapeFactory(element(xSp_cxml), None)
         expected_xml = xml(expected_xSp_cxml)
