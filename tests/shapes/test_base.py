@@ -123,6 +123,12 @@ class DescribeBaseShape(object):
         
         assert style is style_
 
+    def it_removes_its_style(self, style_fixture):
+        shape, StyleFormat_, spStyle, style_ = style_fixture
+        shape.remove_style()
+        style = shape.style
+
+        assert style is None
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
@@ -427,9 +433,8 @@ class DescribeBaseShape(object):
     @pytest.fixture(
         params=[
             "p:sp/p:style",
-            # "p:sp"
-            # "p:pic/p:style",
-            # ---group and graphic frame shapes override this property---
+            "p:pic/p:style",
+            # ---group shapes override this property---
         ]
     )
     def style_fixture(self, request, StyleFormat_, style_):
