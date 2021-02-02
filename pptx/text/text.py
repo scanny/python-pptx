@@ -555,7 +555,11 @@ class _Paragraph(Subshape):
         object. If assigned |None|, the default value is used, 0 inches for
         left and right margins.
         """
-        return Emu(self._pPr.marL)
+        marL = self._pPr.marL
+        if marL is None:
+            return 0
+
+        return Emu(marL)
 
     @margin_left.setter
     def margin_left(self, value):
@@ -568,7 +572,10 @@ class _Paragraph(Subshape):
         object. If assigned |None|, the default value is used, 0 inches for
         left and right margins.
         """
-        return Emu(self._pPr.marR)
+        marR = self._pPr.marR
+        if marR is None:
+            return 0
+        return Emu(marR)
 
     @margin_right.setter
     def margin_right(self, value):
@@ -582,7 +589,10 @@ class _Paragraph(Subshape):
         margin of the paragraph.  If assigned |None|, the default value is
         used, 0.  Negative values can also be used.
         """
-        return self._pPr.indent
+        indent = self._pPr.indent
+        if indent is None:
+            return 0
+        return indent
 
     @indent.setter
     def indent(self, value):

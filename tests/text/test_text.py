@@ -850,6 +850,33 @@ class Describe_Paragraph(object):
         paragraph.level = new_value
         assert paragraph._element.xml == expected_xml
 
+    def it_knows_its_left_margin(self, left_margin_get_fixture):
+        paragraph, expected_value = left_margin_get_fixture
+        assert paragraph.margin_left == expected_value
+
+    def it_can_change_its_left_margin(self, left_margin_set_fixture):
+        paragraph, new_value, expected_xml = left_margin_set_fixture
+        paragraph.margin_left = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_right_margin(self, right_margin_get_fixture):
+        paragraph, expected_value = right_margin_get_fixture
+        assert paragraph.margin_right == expected_value
+
+    def it_can_change_its_right_margin(self, right_margin_set_fixture):
+        paragraph, new_value, expected_xml = right_margin_set_fixture
+        paragraph.margin_right = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_indent(self, indent_get_fixture):
+        paragraph, expected_value = indent_get_fixture
+        assert paragraph.indent == expected_value
+
+    def it_can_change_its_indent(self, indent_set_fixture):
+        paragraph, new_value, expected_xml = indent_set_fixture
+        paragraph.indent = new_value
+        assert paragraph._element.xml == expected_xml
+
     def it_knows_its_line_spacing(self, spacing_get_fixture):
         paragraph, expected_value = spacing_get_fixture
         assert paragraph.line_spacing == expected_value
@@ -1026,6 +1053,63 @@ class Describe_Paragraph(object):
         ]
     )
     def level_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:p", 0), ("a:p/a:pPr{marL=10000}", 10000)])
+    def left_margin_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:p", 1, "a:p/a:pPr{marL=1}"),
+            ("a:p/a:pPr{marL=1}", 2, "a:p/a:pPr{marL=2}"),
+            ("a:p/a:pPr{marL=2}", 0, "a:p/a:pPr{marL=0}"),
+        ]
+    )
+    def left_margin_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:p", 0), ("a:p/a:pPr{indent=10000}", 10000)])
+    def indent_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:p", 1, "a:p/a:pPr{indent=1}"),
+            ("a:p/a:pPr{indent=1}", 2, "a:p/a:pPr{indent=2}"),
+            ("a:p/a:pPr{indent=2}", 0, "a:p/a:pPr{indent=0}"),
+        ]
+    )
+    def indent_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:p", 0), ("a:p/a:pPr{marR=10000}", 10000)])
+    def right_margin_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:p", 1, "a:p/a:pPr{marR=1}"),
+            ("a:p/a:pPr{marR=1}", 2, "a:p/a:pPr{marR=2}"),
+            ("a:p/a:pPr{marR=2}", 0, "a:p/a:pPr{marR=0}"),
+        ]
+    )
+    def right_margin_set_fixture(self, request):
         p_cxml, new_value, expected_p_cxml = request.param
         paragraph = _Paragraph(element(p_cxml), None)
         expected_xml = xml(expected_p_cxml)
