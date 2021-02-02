@@ -12,3 +12,4 @@ tags
 /tests/debug.py
 pyproject.toml
 pip-wheel-metadata/* 
+.vscode/*
