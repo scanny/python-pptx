@@ -9,13 +9,14 @@ from __future__ import absolute_import
 import pytest
 
 from pptx.action import ActionSetting
+from pptx.dml.color import ColorFormat
 from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
 from pptx.shapes.autoshape import Shape
-from pptx.shapes.base import BaseShape, _PlaceholderFormat
+from pptx.shapes.base import BaseShape, _PlaceholderFormat, ShapeStyle, StyleMatrixReference
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shapetree import BaseShapeFactory, SlideShapes
@@ -115,6 +116,13 @@ class DescribeBaseShape(object):
 
         ShadowFormat_.assert_called_once_with(spPr)
         assert shadow is shadow_
+
+    def it_provides_access_to_its_style(self, style_fixture):
+        shape, StyleFormat_, spStyle, style_ = style_fixture
+        style = shape.style
+        
+        assert style is style_
+
 
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
@@ -418,6 +426,23 @@ class DescribeBaseShape(object):
 
     @pytest.fixture(
         params=[
+            "p:sp/p:style",
+            # "p:sp"
+            # "p:pic/p:style",
+            # ---group and graphic frame shapes override this property---
+        ]
+    )
+    def style_fixture(self, request, StyleFormat_, style_):
+        sp_cxml = request.param
+        sp = element(sp_cxml)
+        spStyle = sp.xpath("//p:style")[0]
+        StyleFormat_.return_value = style_
+
+        shape = BaseShape(sp, style_)
+        return shape, StyleFormat_, spStyle, style_
+
+    @pytest.fixture(
+        params=[
             "p:sp/p:spPr",
             "p:cxnSp/p:spPr",
             "p:pic/p:spPr",
@@ -579,6 +604,14 @@ class DescribeBaseShape(object):
         return class_mock(request, "pptx.shapes.base.ShadowFormat")
 
     @pytest.fixture
+    def style_(self, request):
+        return instance_mock(request, ShapeStyle)
+
+    @pytest.fixture
+    def StyleFormat_(self, request, style_):
+        return class_mock(request, "pptx.shapes.base.ShapeStyle", return_value=style_)
+
+    @pytest.fixture
     def shape_elm_(self, request, shape_id, shape_name, txBody_):
         return instance_mock(
             request,
@@ -687,3 +720,42 @@ class Describe_PlaceholderFormat(object):
         ph_cxml, expected_value = request.param
         placeholder_format = _PlaceholderFormat(element(ph_cxml))
         return placeholder_format, expected_value
+
+
+
+class Describe_StyleMatrixReference(object):
+    def it_knows_its_idx(self, idx_get_fixture):
+        matrix_reference, expected_value = idx_get_fixture
+        assert matrix_reference.idx == expected_value
+    
+    def it_can_change_its_idx(self, idx_set_fixture):
+        matrix_reference, new_value, expected_xml = idx_set_fixture
+        matrix_reference.idx = new_value
+        assert matrix_reference._reference.xml == expected_xml
+
+    def it_has_a_color_reference(self, color_get_fixture):
+        assert isinstance(color_get_fixture.color_reference, ColorFormat)
+
+
+    @pytest.fixture(params=[("a:lnRef{idx=10}", 10),])
+    def idx_get_fixture(self, request):
+        ph_cxml, expected_value = request.param
+        matrix_reference = StyleMatrixReference(element(ph_cxml))
+        return matrix_reference, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:lnRef{idx=3}", 1, "a:lnRef{idx=1}"),
+        ]
+    )
+    def idx_set_fixture(self, request):
+        xSp_cxml, new_value, expected_xSp_cxml = request.param
+        matrix_refernce = StyleMatrixReference(element(xSp_cxml))
+        expected_xml = xml(expected_xSp_cxml)
+        return matrix_refernce, new_value, expected_xml
+
+    @pytest.fixture(params=["a:lnRef{idx=10}"])
+    def color_get_fixture(self, request):
+        matrix_reference = StyleMatrixReference(element(request.param))
+        return matrix_reference
+
