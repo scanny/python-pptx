@@ -15,6 +15,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.shapes.autoshape import Shape
 from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
+from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
 from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
@@ -928,6 +929,18 @@ class Describe_Paragraph(object):
         paragraph.text = value
 
         assert paragraph._element.xml == expected_xml
+
+    def it_provides_access_to_its_bullet_text(self, paragraph):
+        assert isinstance(paragraph.bullet_text, TextBullet)
+
+    def it_provides_access_to_its_bullet_color(self, paragraph):
+        assert isinstance(paragraph.bullet_color, TextBulletColor)
+
+    def it_provides_access_to_its_bullet_size(self, paragraph):
+        assert isinstance(paragraph.bullet_size, TextBulletSize)
+
+    def it_provides_access_to_its_bullet_font(self, paragraph):
+        assert isinstance(paragraph.bullet_font, TextBulletTypeface)
 
     # fixtures ---------------------------------------------
 
