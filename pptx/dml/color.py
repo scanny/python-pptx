@@ -120,7 +120,7 @@ class ColorFormat(object):
     def system_color(self, value):
         # Change to System color format if not already
         if not isinstance(self._color, _SysColor):
-            sysColor = self._xFill.get_or_change_to_sysColor()
+            sysColor = self._xFill.get_or_change_to_sysClr()
             self._color = _SysColor(sysColor)
         self._color.system_color = value
     
@@ -310,7 +310,7 @@ class _SysColor(_Color):
     def system_color(self, value):
         """
         """
-        self._sysClor.val = value
+        self._sysClr.val = value
 
 
 
