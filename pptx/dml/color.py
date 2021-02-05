@@ -109,7 +109,21 @@ class ColorFormat(object):
                 " or .theme_color first."
             )
             raise ValueError(msg)
-
+    
+    @property
+    def system_color(self):
+        """ System color value for this color.
+        """
+        return self._color.system_color
+    
+    @system_color.setter
+    def system_color(self, value):
+        # Change to System color format if not already
+        if not isinstance(self._color, _SysColor):
+            sysColor = self._xFill.get_or_change_to_sysClr()
+            self._color = _SysColor(sysColor)
+        self._color.system_color = value
+    
 
 class _Color(object):
     """
@@ -176,6 +190,13 @@ class _Color(object):
         Raises TypeError on access unless overridden by subclass.
         """
         return MSO_THEME_COLOR.NOT_THEME_COLOR
+
+    @property
+    def system_color(self):
+        """
+        Raises TypeError on access unless overridden by subclass.
+        """
+        return None
 
     def _shade(self, value):
         lumMod_val = 1.0 - abs(value)
@@ -271,9 +292,27 @@ class _SRgbColor(_Color):
 
 
 class _SysColor(_Color):
+    def __init__(self, sysClr):
+        super(_SysColor, self).__init__(sysClr)
+        self._sysClr = sysClr
+
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.SYSTEM
+    
+    @property
+    def system_color(self):
+        """
+        """
+        return self._sysClr.val
+    
+    @system_color.setter
+    def system_color(self, value):
+        """
+        """
+        self._sysClr.val = value
+
+
 
 
 class RGBColor(tuple):
