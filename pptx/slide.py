@@ -368,6 +368,19 @@ class SlideLayout(_BaseSlide):
         slides = self.part.package.presentation_part.presentation.slides
         return tuple(s for s in slides if s.slide_layout == self)
 
+    @property
+    def follow_master_background(self):
+        """|True| if this slide inherits the slide master background.
+
+        Assigning |False| causes background inheritance from the master to be
+        interrupted; if there is no custom background for this slide,
+        a default background is added. If a custom background already exists
+        for this slide, assigning |False| has no effect.
+
+        Assigning |True| causes any custom background for this slide to be
+        deleted and inheritance from the master restored.
+        """
+        return self._element.bg is None
 
 class SlideLayouts(ParentedElementProxy):
     """Sequence of slide layouts belonging to a slide-master.
