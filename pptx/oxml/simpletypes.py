@@ -218,6 +218,10 @@ class XsdUnsignedShort(BaseIntType):
     def validate(cls, value):
         cls.validate_int_in_range(value, 0, 65535)
 
+class XsdHexBinary(BaseStringType):
+    """
+    Type for a Hexidecimal Value.
+    """
 
 class ST_Angle(XsdInt):
     """
@@ -615,6 +619,10 @@ class ST_Style(XsdUnsignedByte):
         cls.validate_int_in_range(value, 1, 48)
 
 
+class ST_StyleMatrixColumnIndex(XsdUnsignedInt):
+    """ style index integers """
+    pass
+
 class ST_TargetMode(XsdString):
     """
     The valid values for the ``TargetMode`` attribute in a Relationship
@@ -742,3 +750,91 @@ class ST_UniversalMeasure(BaseSimpleType):
         }[units_part]
         emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value
+
+
+
+class ST_FontCollectionIndex(XsdTokenEnumeration):
+    """ Valid Values for Font Collections """
+    MAJOR = "major"
+    MINOR = "minor"
+    NONE = "none"
+
+    _members = (MAJOR, MINOR, NONE)
+
+
+class ST_TextPanose(XsdHexBinary):
+    """ Panose is an alpha numeric hexidecimal string 
+    Length of 10 bytes (20 characters).
+    """
+    pass
+
+
+class ST_TextPitchFamily(XsdInt):
+    """ Verification only as an integer """
+    pass
+
+
+class ST_TextCharset(XsdInt):
+    """ Verification only as an integer """
+    pass
+
+
+class ST_TextAutoNumType(XsdString):
+    """ Verification only as a string """
+    pass
+
+class ST_TextBulletStartAtNum(XsdInt):
+    """ Verification of StartAt value for Auto Numbers """
+    @classmethod
+    def validate(cls, value):
+        if not isinstance(value, numbers.Integral):
+            raise TypeError("value must be an integral type, got %s" % type(value))
+        cls.validate_int_in_range(value, 1, 32767)
+
+
+class ST_TextBulletSizePercent(ST_Percentage):
+    """ Verification for Bullet Size Percentage Vales """
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, .25, 4)
+
+
+class ST_SystemColorVal(XsdTokenEnumeration):
+    """
+    Valid values for system color attribute
+    """
+    color_values = (
+        "scrollBar",
+        "background",
+        "activeCaption",
+        "inactiveCaption",
+        "menu",
+        "window",
+        "windowFrame",
+        "menuText",
+        "windowText",
+        "captionText",
+        "activeBorder",
+        "inactiveBorder",
+        "appWorkspace",
+        "highlight",
+        "highlightText",
+        "btnFace",
+        "btnShadow",
+        "grayText",
+        "btnText",
+        "inactiveCaptionText",
+        "btnHighlight",
+        "3dDkShadow",
+        "3dLight",
+        "infoText",
+        "infoBk",
+        "hotLight",
+        "gradientActiveCaption",
+        "gradientInactiveCaption",
+        "menuHighlight",
+        "menuBar"
+    )
+
+    _members = color_values
+

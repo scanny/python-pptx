@@ -379,6 +379,9 @@ from .shapes.shared import (  # noqa: E402
     CT_PositiveSize2D,
     CT_ShapeProperties,
     CT_Transform2D,
+    CT_ShapeStyle,
+    CT_StyleMatrixReference,
+    CT_FontReference,
 )
 
 register_element_cls("a:chExt", CT_PositiveSize2D)
@@ -393,6 +396,11 @@ register_element_cls("p:nvPr", CT_ApplicationNonVisualDrawingProps)
 register_element_cls("p:ph", CT_Placeholder)
 register_element_cls("p:spPr", CT_ShapeProperties)
 register_element_cls("p:xfrm", CT_Transform2D)
+register_element_cls("p:style", CT_ShapeStyle)
+register_element_cls("a:lnRef", CT_StyleMatrixReference)
+register_element_cls("a:fillRef", CT_StyleMatrixReference)
+register_element_cls("a:effectRef", CT_StyleMatrixReference)
+register_element_cls("a:fontRef", CT_FontReference)
 
 
 from .slide import (  # noqa: E402
@@ -443,6 +451,12 @@ register_element_cls("a:tblPr", CT_TableProperties)
 register_element_cls("a:tc", CT_TableCell)
 register_element_cls("a:tcPr", CT_TableCellProperties)
 register_element_cls("a:tr", CT_TableRow)
+register_element_cls("a:lnL", CT_LineProperties)
+register_element_cls("a:lnR", CT_LineProperties)
+register_element_cls("a:lnT", CT_LineProperties)
+register_element_cls("a:lnB", CT_LineProperties)
+register_element_cls("a:lnBlToTr", CT_LineProperties)
+register_element_cls("a:lnTlToBr", CT_LineProperties)
 
 
 from .text import (  # noqa: E402
@@ -459,6 +473,15 @@ from .text import (  # noqa: E402
     CT_TextSpacing,
     CT_TextSpacingPercent,
     CT_TextSpacingPoint,
+    CT_TextCharBullet,
+    CT_TextBulletAutoNumber,
+    CT_TextBulletTypefaceFollowText,
+    CT_TextBulletSizeFollowText,
+    CT_TextBulletSizePoints,
+    CT_TextBulletSizePercent,
+    CT_TextNoBullet,
+    CT_TextBulletTypefaceFollowText,
+    CT_TextBlipBullet,
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -468,6 +491,17 @@ register_element_cls("a:endParaRPr", CT_TextCharacterProperties)
 register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:latin", CT_TextFont)
 register_element_cls("a:lnSpc", CT_TextSpacing)
+register_element_cls("a:buClrTx", CT_TextBulletTypefaceFollowText)
+register_element_cls("a:buClr", CT_Color)
+register_element_cls("a:buSzTx", CT_TextBulletSizeFollowText)
+register_element_cls("a:buSzPct", CT_TextBulletSizePercent)
+register_element_cls("a:buSzPts", CT_TextBulletSizePoints)
+register_element_cls("a:buFontTx", CT_TextBulletTypefaceFollowText)
+register_element_cls("a:buFont", CT_TextFont)
+register_element_cls("a:buNone", CT_TextNoBullet)
+register_element_cls("a:buChar", CT_TextCharBullet)
+register_element_cls("a:buAutoNum", CT_TextBulletAutoNumber)
+register_element_cls("a:buBlip", CT_TextBlipBullet)
 register_element_cls("a:normAutofit", CT_TextNormalAutofit)
 register_element_cls("a:r", CT_RegularTextRun)
 register_element_cls("a:p", CT_TextParagraph)

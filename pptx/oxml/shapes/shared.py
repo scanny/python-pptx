@@ -18,6 +18,8 @@ from pptx.oxml.simpletypes import (
     XsdBoolean,
     XsdString,
     XsdUnsignedInt,
+    ST_StyleMatrixColumnIndex,
+    ST_FontCollectionIndex,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -27,6 +29,7 @@ from pptx.oxml.xmlchemy import (
     RequiredAttribute,
     ZeroOrOne,
     ZeroOrOneChoice,
+    OneAndOnlyOne,
 )
 from pptx.util import Emu
 
@@ -175,6 +178,20 @@ class BaseShapeElement(BaseOxmlElement):
         return self.find(qn("p:txBody"))
 
     @property
+    def style(self):
+        """
+        Child ``<p:style>`` element, None if not present
+        """
+        return self.find(qn("p:style"))
+
+    def remove_style(self):
+        """
+        Removes all style formatting
+        """
+        self.remove_if_present("p:style")
+
+
+    @property
     def x(self):
         return self._get_xfrm_attr("x")
 
@@ -264,6 +281,7 @@ class CT_LineProperties(BaseOxmlElement):
         ),
         successors=_tag_seq[4:],
     )
+    # TODO - the Dash options should actually be a ZeroOrOneChoice()
     prstDash = ZeroOrOne("a:prstDash", successors=_tag_seq[5:])
     custDash = ZeroOrOne("a:custDash", successors=_tag_seq[6:])
     del _tag_seq
@@ -501,3 +519,41 @@ class CT_Transform2D(BaseOxmlElement):
         off.x = 0
         off.y = 0
         return off
+
+
+class CT_ShapeStyle(BaseOxmlElement):
+    """ `p:style` custom element class
+    """
+    _tag_seq = ("a:lnRef", "a:fillRef", "a:effectRef", "a:fontRef")
+
+    lnRef = OneAndOnlyOne("a:lnRef")
+    fillRef = OneAndOnlyOne("a:fillRef")
+    effectRef = OneAndOnlyOne("a:effectRef")
+    fontRef = OneAndOnlyOne("a:fontRef")
+
+    del _tag_seq
+
+class CT_StyleMatrixReference(BaseOxmlElement):
+    """ Reference class used by `a:lnRef`, `a:fillRef`, and `a:effectRef`"""
+    eg_colorChoice = ZeroOrOneChoice((
+        Choice("a:scrgbClr"),
+        Choice("a:srgbClr"),
+        Choice("a:hslClr"),
+        Choice("a:sysClr"),
+        Choice("a:schemeClr"),
+        Choice("a:prstClr"),
+    ))
+    idx = RequiredAttribute("idx", ST_StyleMatrixColumnIndex)
+
+
+class CT_FontReference(BaseOxmlElement):
+    """ Reference class used by `a:fontRef` """
+    eg_colorChoice = ZeroOrOneChoice((
+        Choice("a:scrgbClr"),
+        Choice("a:srgbClr"),
+        Choice("a:hslClr"),
+        Choice("a:sysClr"),
+        Choice("a:schemeClr"),
+        Choice("a:prstClr"),
+    ))
+    idx = RequiredAttribute("idx", ST_FontCollectionIndex)

@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from pptx.dml.fill import FillFormat
 from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
@@ -59,3 +60,26 @@ class GroupShape(BaseShape):
         from pptx.shapes.shapetree import GroupShapes
 
         return GroupShapes(self._element, self)
+
+    @lazyproperty
+    def style(self):
+        """Unconditionally raises `TypeError`.
+
+        A group shape cannot have a style.
+        """
+        raise TypeError("a group shape cannot have a style")
+
+    def remove_style(self):
+        """Unconditionally raises `TypeError`.
+
+        A group shape cannot have a style.
+        """
+        raise TypeError("a group shape cannot have a style")
+
+    @lazyproperty
+    def fill(self):
+        """
+        |FillFormat| instance for this shape, providing access to fill
+        properties such as fill color.
+        """
+        return FillFormat.from_fill_parent(self._element.grpSpPr)

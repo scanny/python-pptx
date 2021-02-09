@@ -8,6 +8,7 @@ from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
+from pptx.dml.color import ColorFormat
 
 
 class BaseShape(object):
@@ -221,6 +222,47 @@ class BaseShape(object):
     def width(self, value):
         self._element.cx = value
 
+    @lazyproperty
+    def style(self):
+        """
+        Returns a |ShapeStyle| object or None if not available
+        """
+        obj = self._element.style
+        if obj is None:
+            return None
+        return ShapeStyle(obj, self._element)
+        
+    def remove_style(self):
+        """
+        Removes any Style formatting
+        """
+        self._element.remove_style()
+
+
+    @property
+    def flip_h(self):
+        """
+        Read/Write.  Boolean for flipping a shape horizontally.
+        """
+        return self._element.flipH
+
+    @flip_h.setter
+    def flip_h(self, value):
+        self._element.flipH = value
+
+
+    @property
+    def flip_v(self):
+        """
+        Read/Write.  Boolean for flipping a shape horizontally.
+        """
+        return self._element.flipV
+
+    @flip_v.setter
+    def flip_v(self, value):
+        self._element.flipV = value
+        
+        
 
 class _PlaceholderFormat(ElementProxy):
     """
@@ -250,3 +292,71 @@ class _PlaceholderFormat(ElementProxy):
         enumeration, e.g. PP_PLACEHOLDER.CHART
         """
         return self._element.type
+
+
+
+class ShapeStyle(object):
+    """
+    The `p:style` object that handles the references for the shape
+    to the theme's styles
+    """
+
+    def __init__(self, style_elm, parent):
+        super(ShapeStyle, self).__init__()
+        self._element = style_elm
+        self._parent = parent
+
+    @property
+    def line_ref(self):
+        """
+        A Line Reference
+        """
+        return StyleMatrixReference(self._element.lnRef)
+
+    @property
+    def fill_ref(self):
+        """
+        A Fill Reference
+        """
+        return StyleMatrixReference(self._element.fillRef)
+
+    @property
+    def effect_ref(self):
+        """
+        An Effect Reference
+        """
+        return StyleMatrixReference(self._element.effectRef)
+
+    @property
+    def font_ref(self):
+        """
+        A Font Reference
+        """
+        return StyleMatrixReference(self._element.fontRef)
+
+
+
+
+class StyleMatrixReference(object):
+    """
+    Object that is used by |ShapeStyle| to handle the four different references
+    """
+
+    def __init__(self, matrix_ref):
+        super(StyleMatrixReference, self).__init__()
+        self._reference = matrix_ref
+
+    @lazyproperty
+    def color_reference(self):
+        """Return |ColorFormat| object matching reference color."""
+        return ColorFormat.from_colorchoice_parent(self._reference)
+
+    @property
+    def idx(self):
+        """ Read/Write the IDX of the referenced theme. """
+        return self._reference.idx
+
+    @idx.setter
+    def idx(self, value):
+        self._reference.idx = value
+
