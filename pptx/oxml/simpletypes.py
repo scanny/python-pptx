@@ -797,3 +797,44 @@ class ST_TextBulletSizePercent(ST_Percentage):
     @classmethod
     def validate(cls, value):
         cls.validate_float_in_range(value, .25, 4)
+
+
+class ST_SystemColorVal(XsdTokenEnumeration):
+    """
+    Valid values for system color attribute
+    """
+    color_values = (
+        "scrollBar",
+        "background",
+        "activeCaption",
+        "inactiveCaption",
+        "menu",
+        "window",
+        "windowFrame",
+        "menuText",
+        "windowText",
+        "captionText",
+        "activeBorder",
+        "inactiveBorder",
+        "appWorkspace",
+        "highlight",
+        "highlightText",
+        "btnFace",
+        "btnShadow",
+        "grayText",
+        "btnText",
+        "inactiveCaptionText",
+        "btnHighlight",
+        "3dDkShadow",
+        "3dLight",
+        "infoText",
+        "infoBk",
+        "hotLight",
+        "gradientActiveCaption",
+        "gradientInactiveCaption",
+        "menuHighlight",
+        "menuBar"
+    )
+
+    _members = color_values
+

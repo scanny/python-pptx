@@ -642,6 +642,12 @@ class DescribeSlideLayout(object):
         slide_master = slide_layout.slide_master
 
         assert slide_master is slide_master_
+    
+    def it_knows_whether_it_follows_the_mstr_bkgd(self, follow_get_fixture):
+        slide, expected_value = follow_get_fixture
+        follows = slide.follow_master_background
+        assert follows is expected_value
+
 
     def it_knows_which_slides_are_based_on_it(
         self,
@@ -694,6 +700,13 @@ class DescribeSlideLayout(object):
         presentation_.slides = slides
         expected_value = tuple(s for i, s in enumerate(slides) if i in used_by_idxs)
         return presentation_, slide_layout, expected_value
+
+    @pytest.fixture(params=[("p:sld/p:cSld", True), ("p:sld/p:cSld/p:bg", False)])
+    def follow_get_fixture(self, request):
+        pSld_cxml, expected_value = request.param
+        slide = Slide(element(pSld_cxml), None)
+        return slide, expected_value
+
 
     # fixture components -----------------------------------
 

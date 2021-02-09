@@ -42,6 +42,10 @@ class DescribeColorFormat(object):
         color_format, theme_color = get_theme_color_fixture_
         assert color_format.theme_color == theme_color
 
+    def it_knows_the_system_color_of_a_system_color(self, get_system_color_fixture):
+        color_format, system_color = get_system_color_fixture
+        assert color_format.system_color == system_color
+
     def it_raises_on_theme_color_get_for_NoneColor(self, _NoneColor_color_format):
         with pytest.raises(AttributeError):
             _NoneColor_color_format.theme_color
@@ -63,6 +67,11 @@ class DescribeColorFormat(object):
     def it_can_set_itself_to_a_theme_color(self, set_theme_color_fixture_):
         color_format, theme_color, expected_xml = set_theme_color_fixture_
         color_format.theme_color = theme_color
+        assert color_format._xFill.xml == expected_xml
+
+    def it_can_set_itself_to_a_system_color(self, set_system_color_fixture):
+        color_format, system_color, expected_xml = set_system_color_fixture
+        color_format.system_color = system_color
         assert color_format._xFill.xml == expected_xml
 
     def it_can_set_its_brightness_adjustment(self, set_brightness_fixture_):
@@ -272,6 +281,51 @@ class DescribeColorFormat(object):
         solidFill = a_solidFill().with_nsdecls().with_child(xClr_bldr).element
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
         return color_format, theme_color
+
+    @pytest.fixture(params=["none", "hsl", "prst", "scheme", "scrgb", "srgb", "sys"])
+    def set_system_color_fixture(self, request):
+        mapping = {
+            "none": None,
+            "hsl": an_hslClr,
+            "prst": a_prstClr,
+            "scheme": a_schemeClr,
+            "scrgb": an_scrgbClr,
+            "srgb": an_srgbClr,
+            "sys": a_sysClr,
+        }
+        xClr_bldr_fn = mapping[request.param]
+        solidFill_bldr = a_solidFill().with_nsdecls()
+        if xClr_bldr_fn is not None:
+            solidFill_bldr.with_child(xClr_bldr_fn())
+        solidFill = solidFill_bldr.element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        system_color = "window"
+        expected_xml = (
+            a_solidFill()
+            .with_nsdecls()
+            .with_child(a_sysClr().with_val("window"))
+            .xml()
+        )
+        return color_format, system_color, expected_xml
+
+    @pytest.fixture(params=["hsl", "prst", "scheme", "scrgb", "srgb", "sys"])
+    def get_system_color_fixture(self, request):
+        mapping = {
+            "hsl": (an_hslClr, None),
+            "prst": (a_prstClr, None),
+            "scheme": (a_schemeClr, None),
+            "scrgb": (an_scrgbClr, None),
+            "srgb": (an_srgbClr, None),
+            "sys": (a_sysClr, "window"),
+        }
+        xClr_bldr_fn, system_color = mapping[request.param]
+        xClr_bldr = xClr_bldr_fn()
+        if request.param == 'sys':
+            xClr_bldr.with_val(system_color)
+
+        solidFill = a_solidFill().with_nsdecls().with_child(xClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        return color_format, system_color
 
 
 class DescribeRGBColor(object):

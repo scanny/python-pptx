@@ -259,6 +259,12 @@ class CT_SlideLayout(_BaseSlideElement):
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:hf", "p:extLst")
     cSld = OneAndOnlyOne("p:cSld")
     del _tag_seq
+    
+    @property
+    def bg(self):
+        """Return `p:bg` grandchild or None if not present."""
+        return self.cSld.bg
+
 
 
 class CT_SlideLayoutIdList(BaseOxmlElement):
