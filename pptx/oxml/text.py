@@ -508,7 +508,6 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     del _tag_seq
 
 
-
     @property
     def line_spacing(self):
         """
