@@ -1081,7 +1081,7 @@ class Describe_Paragraph(object):
         params=[
             ("a:p", 1, "a:p/a:pPr{marL=1}"),
             ("a:p/a:pPr{marL=1}", 2, "a:p/a:pPr{marL=2}"),
-            ("a:p/a:pPr{marL=2}", 0, "a:p/a:pPr{marL=0}"),
+            ("a:p/a:pPr{marL=2}", 0, "a:p/a:pPr"),
         ]
     )
     def left_margin_set_fixture(self, request):
@@ -1100,7 +1100,7 @@ class Describe_Paragraph(object):
         params=[
             ("a:p", 1, "a:p/a:pPr{indent=1}"),
             ("a:p/a:pPr{indent=1}", 2, "a:p/a:pPr{indent=2}"),
-            ("a:p/a:pPr{indent=2}", 0, "a:p/a:pPr{indent=0}"),
+            ("a:p/a:pPr{indent=2}", 0, "a:p/a:pPr"),
         ]
     )
     def indent_set_fixture(self, request):
@@ -1119,7 +1119,7 @@ class Describe_Paragraph(object):
         params=[
             ("a:p", 1, "a:p/a:pPr{marR=1}"),
             ("a:p/a:pPr{marR=1}", 2, "a:p/a:pPr{marR=2}"),
-            ("a:p/a:pPr{marR=2}", 0, "a:p/a:pPr{marR=0}"),
+            ("a:p/a:pPr{marR=2}", 0, "a:p/a:pPr"),
         ]
     )
     def right_margin_set_fixture(self, request):
