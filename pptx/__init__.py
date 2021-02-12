@@ -2,7 +2,7 @@
 
 """Initialization module for python-pptx package."""
 
-__version__ = "0.6.18"
+__version__ = "0.7.0"
 
 
 import pptx.exc as exceptions
@@ -74,3 +74,6 @@ del (
     CT,
     PartFactory,
 )
+
+def get_version():
+    print(f"Currently using version: {__version__}")
