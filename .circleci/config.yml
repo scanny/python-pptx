@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.8.7
+    steps:
+      - checkout
+      - run:
+          command: |
+            sudo pip install pipenv
+      - run:
+          command: |
+            sudo apt-get update
+            pipenv install
+      - run:
+          command: |
+            pipenv run py.test
