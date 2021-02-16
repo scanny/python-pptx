@@ -106,7 +106,7 @@ class ColorFormat(object):
     def preset_color(self, mso_preset_color_val):
         # change to theme color format if not already
         if not isinstance(self._color, _PrstColor):
-            prstColor = self._xFill.get_or_change_to_prstColor()
+            prstColor = self._xFill.get_or_change_to_prstClr()
             self._color = _PrstColor(prstColor)
         self._color.preset_color = mso_preset_color_val
 
@@ -260,7 +260,7 @@ class _NoneColor(_Color):
 
 
 class _PrstColor(_Color):
-    def __init__(self, presetClr):
+    def __init__(self, prstClr):
         super(_PrstColor, self).__init__(prstClr)
         self._prstClr = prstClr
 
