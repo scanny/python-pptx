@@ -518,6 +518,15 @@ class DescribeFont(object):
         font.underline = new_value
         assert font._element.xml == expected_xml
 
+    def it_knows_its_strikethrough_setting(self, strikethrough_get_fixture):
+        font, expected_value = strikethrough_get_fixture
+        assert font.strikethrough == expected_value
+
+    def it_can_change_its_strikethrough_setting(self, strikethrough_set_fixture):
+        font, new_value, expected_xml = strikethrough_set_fixture
+        font.strikethrough = new_value
+        assert font._element.xml == expected_xml
+
     def it_knows_its_baseline(self, baseline_get_fixture):
         font, expected_value = baseline_get_fixture
         assert font.baseline == expected_value
@@ -702,6 +711,34 @@ class DescribeFont(object):
         ]
     )
     def underline_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", None),
+            ("a:rPr{strike=noStrike}", False),
+            ("a:rPr{strike=sngStrike}", True),
+            ("a:rPr{strike=dblStrike}", 'dblStrike'),
+        ]
+    )
+    def strikethrough_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{strike=sngStrike}"),
+            ("a:rPr{strike=sngStrike}", False, "a:rPr{strike=noStrike}"),
+            ("a:rPr{strike=noStrike}", 'dblStrike', "a:rPr{strike=dblStrike}"),
+            ("a:rPr{strike=dblStrike}", 'sngStrike', "a:rPr{strike=sngStrike}"),
+            ("a:rPr{strike=sngStrike}", None, "a:rPr"),
+        ]
+    )
+    def strikethrough_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)

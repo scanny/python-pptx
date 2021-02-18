@@ -440,6 +440,31 @@ class Font(object):
 
 
     @property
+    def strikethrough(self):
+        """
+        Read/write.  |True|, |False|, |None|, or a member of ST_TextStripeType
+        which incluides (noStrike, sngStrike, dblStrike).  |None| is the default
+        and indicates the strikethrough setting should be inherited from the style
+        hierarchy, such as a placeholder.  |True| indicates a single strikethrough.
+        |False| indicates no strikethrough.  Other settings indicate a double or
+        single strikethrough.  
+        """
+        strike = self._rPr.strike
+        if strike == 'sngStrike':
+            return True
+        if strike == 'noStrike':
+            return False
+        return strike
+    
+    @strikethrough.setter
+    def strikethrough(self, value):
+        if value is True:
+            value = 'sngStrike'
+        elif value is False:
+            value = 'noStrike'
+        self._rPr.strike = value
+
+    @property
     def baseline(self):
         """
         Read/Write percentage value or |None|, indicating the baseline height

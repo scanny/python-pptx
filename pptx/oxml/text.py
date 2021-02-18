@@ -36,7 +36,8 @@ from pptx.oxml.simpletypes import (
     ST_TextCharset,
     ST_TextAutoNumType,
     ST_TextBulletStartAtNum,
-    ST_TextBulletSizePercent
+    ST_TextBulletSizePercent,
+    ST_TextStrikeType,
     
 )
 from pptx.oxml.xmlchemy import (
@@ -317,7 +318,8 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     i = OptionalAttribute("i", XsdBoolean)
     u = OptionalAttribute("u", MSO_TEXT_UNDERLINE_TYPE)
     baseline = OptionalAttribute("baseline", ST_Percentage)
-
+    strike = OptionalAttribute("strike", ST_TextStrikeType)
+    
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()
 
