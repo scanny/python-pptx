@@ -95,9 +95,9 @@ class ColorFormat(object):
     def preset_color(self):
         """  Preset Color value of this color.
         
-        Pone of those defined in the MSO_PRESET_COLOR_INDEX enumeration.  
+        A list of specific strings defined in the simpletype ST_PreseteColorVal.
         None if no preset color is explicitly defined.  Setting this to
-        a value in MSO_PRESET_COLOR_INDEX causes the color's type to 
+        a value in causes the color's type to 
         change to ``MSO_COLOR_TYPE.PRESET``
         """
         return self._color.preset_color
