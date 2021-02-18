@@ -30,6 +30,7 @@ from pptx.oxml.simpletypes import (
     ST_TextWrappingType,
     XsdBoolean,
     XsdString,
+    ST_Percentage,
     ST_TextPanose,
     ST_TextPitchFamily,
     ST_TextCharset,
@@ -315,6 +316,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     b = OptionalAttribute("b", XsdBoolean)
     i = OptionalAttribute("i", XsdBoolean)
     u = OptionalAttribute("u", MSO_TEXT_UNDERLINE_TYPE)
+    baseline = OptionalAttribute("baseline", ST_Percentage)
 
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()

@@ -439,6 +439,22 @@ class Font(object):
         self._element.u = value
 
 
+    @property
+    def baseline(self):
+        """
+        Read/Write percentage value or |None|, indicating the baseline height
+        of the text.  Used to create superscripts or subscripts.
+        """
+        baseline = self._rPr.baseline
+        if baseline is None:
+            return None
+        return baseline
+
+    @baseline.setter
+    def baseline(self, value):
+        self._rPr.baseline = value
+
+
 class _Hyperlink(Subshape):
     """
     Text run hyperlink object. Corresponds to ``<a:hlinkClick>`` child
