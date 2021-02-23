@@ -92,6 +92,25 @@ class ColorFormat(object):
         self._color.theme_color = mso_theme_color_idx
 
     @property
+    def preset_color(self):
+        """  Preset Color value of this color.
+        
+        A list of specific strings defined in the simpletype ST_PreseteColorVal.
+        None if no preset color is explicitly defined.  Setting this to
+        a value in causes the color's type to 
+        change to ``MSO_COLOR_TYPE.PRESET``
+        """
+        return self._color.preset_color
+
+    @preset_color.setter
+    def preset_color(self, mso_preset_color_val):
+        # change to theme color format if not already
+        if not isinstance(self._color, _PrstColor):
+            prstColor = self._xFill.get_or_change_to_prstClr()
+            self._color = _PrstColor(prstColor)
+        self._color.preset_color = mso_preset_color_val
+
+    @property
     def type(self):
         """
         Read-only. A value from :ref:`MsoColorType`, either RGB or SCHEME,
@@ -198,6 +217,14 @@ class _Color(object):
         """
         return None
 
+    @property
+    def preset_color(self):
+        """
+        Rasises AttributeError on access unless overridden by subclass
+        """
+        tmpl = "no .preset_color property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
     def _shade(self, value):
         lumMod_val = 1.0 - abs(value)
         color_elm = self._xClr.clear_lum()
@@ -233,9 +260,27 @@ class _NoneColor(_Color):
 
 
 class _PrstColor(_Color):
+    def __init__(self, prstClr):
+        super(_PrstColor, self).__init__(prstClr)
+        self._prstClr = prstClr
+
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.PRESET
+
+    @property
+    def preset_color(self):
+        """
+        Preset Color value of this color, one of those defined in the 
+        MSO_PRESET_COLOR_INDEX enumeration.  None if no preset color is
+        explicitly defined.  Setting this to a value in MSO_PRESET_COLOR_INDEX
+        causes the color's type to change to ``MSO_COLOR_TYPE.PRESET``
+        """
+        return self._prstClr.val
+
+    @preset_color.setter
+    def preset_color(self, mso_preset_color_val):
+        self._prstClr.val = mso_preset_color_val
 
 
 class _SchemeColor(_Color):
