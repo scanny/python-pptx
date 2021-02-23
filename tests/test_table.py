@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 
 from pptx.dml.fill import FillFormat
+from pptx.dml.border import BorderFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
 from pptx.oxml.table import CT_Table, CT_TableCell, TcRange
@@ -349,6 +350,15 @@ class Describe_Cell(object):
         cell.vertical_anchor = new_value
         assert cell._tc.xml == expected_xml
 
+    def it_knows_it_has_border_settings(self, border_fixture):
+        cell = border_fixture
+        assert isinstance(cell.border_left, BorderFormat)
+        assert isinstance(cell.border_right, BorderFormat)
+        assert isinstance(cell.border_top, BorderFormat)
+        assert isinstance(cell.border_bottom, BorderFormat)
+        assert isinstance(cell.border_tl_br, BorderFormat)
+        assert isinstance(cell.border_bl_tr, BorderFormat)
+        
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -383,6 +393,10 @@ class Describe_Cell(object):
 
     @pytest.fixture
     def fill_fixture(self, cell):
+        return cell
+
+    @pytest.fixture
+    def border_fixture(self, cell):
         return cell
 
     @pytest.fixture(
