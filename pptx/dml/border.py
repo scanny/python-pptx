@@ -31,17 +31,17 @@ class BorderFormat(LineFormat):
         correct one as provided by the string stored in self.side
         """
         if self.side == "left":
-            return self._parent.border_left
+            return self._parent.borL
         elif self.side == "right":
-            return self._parent.border_right
+            return self._parent.borR
         elif self.side == "top":
-            return self._parent.border_top
+            return self._parent.borT
         elif self.side == "bottom":
-            return self._parent.border_bottom
+            return self._parent.borB
         elif self.side == "bl_tr":
-            return self._parent.border_bl_tr
+            return self._parent.borBlTr
         elif self.side == "tl_br":
-            return self._parent.border_tl_br
+            return self._parent.borTlBr
         else:
             return None
 
