@@ -838,6 +838,19 @@ class ST_SystemColorVal(XsdTokenEnumeration):
 
     _members = color_values
 
+class ST_TextStrikeType(XsdTokenEnumeration):
+    """
+    Valid values for text strikethrough attribute
+    """
+    color_values = (
+        "noStrike",
+        "sngStrike",
+        "dblStrike"
+
+    )
+
+    _members = color_values
+
 class ST_PresetColorVal(XsdTokenEnumeration):
     """
     Valid vlaues for preset color attribute
