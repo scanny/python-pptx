@@ -105,6 +105,20 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return graphicFrame
 
     @classmethod
+    def new_embedded_xlsx_graphicFrame(
+        cls, id_, name, xlsx_rId, icon_rId, x, y, cx, cy
+    ):
+        """Return newly-created `<p:graphicFrame>` for embedded XLSX with `xlsx_rId`.
+
+        `icon_rId` is the relationship-id of an icon part used to display the embedded
+        object.
+        """
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(id_, name, x, y, cx, cy)
+        graphic = parse_xml(cls._graphic_xml_for_embedded_xlsx(xlsx_rId, icon_rId))
+        graphicFrame.replace(graphicFrame.graphic, graphic)
+        return graphicFrame
+
+    @classmethod
     def new_graphicFrame(cls, id_, name, x, y, cx, cy):
         """
         Return a new ``<p:graphicFrame>`` element tree suitable for
@@ -125,6 +139,54 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         graphicFrame.graphic.graphicData.uri = GRAPHIC_DATA_URI_TABLE
         graphicFrame.graphic.graphicData.append(CT_Table.new_tbl(rows, cols, cx, cy))
         return graphicFrame
+
+    @classmethod
+    def _graphic_xml_for_embedded_xlsx(cls, xlsx_rId, icon_rId):
+        """str XML for <a:graphic> element of embedded XLSX shape."""
+        return (
+            "<a:graphic {nsdecls}>\n"
+            "  <a:graphicData"
+            '      uri="http://schemas.openxmlformats.org/presentationml/2006/ole">\n'
+            '    <mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/mar'
+            'kup-compatibility/2006">\n'
+            '      <mc:Choice xmlns:v="urn:schemas-microsoft-com:vml" Requires="v">\n'
+            '        <p:oleObj name="Worksheet" showAsIcon="1" r:id="{xlsx_rId}" '
+            'imgW="381148" imgH="792690" progId="Excel.Sheet.12">\n'
+            "          <p:embed/>\n"
+            "        </p:oleObj>\n"
+            "      </mc:Choice>\n"
+            "      <mc:Fallback>\n"
+            '        <p:oleObj name="Worksheet" showAsIcon="1" r:id="{xlsx_rId}" '
+            '                  imgW="381148" imgH="792690" progId="Excel.Sheet.12">\n'
+            "          <p:embed/>\n"
+            "          <p:pic>\n"
+            "            <p:nvPicPr>\n"
+            '              <p:cNvPr id="0" name=""/>\n'
+            "              <p:cNvPicPr/>\n"
+            "              <p:nvPr/>\n"
+            "            </p:nvPicPr>\n"
+            "            <p:blipFill>\n"
+            '              <a:blip r:embed="{icon_rId}"/>\n'
+            "              <a:stretch>\n"
+            "                <a:fillRect/>\n"
+            "              </a:stretch>\n"
+            "            </p:blipFill>\n"
+            "            <p:spPr>\n"
+            "              <a:xfrm>\n"
+            '                <a:off x="1792101" y="2202989"/>\n'
+            '                <a:ext cx="659686" cy="1371600"/>\n'
+            "              </a:xfrm>\n"
+            '              <a:prstGeom prst="rect">\n'
+            "                <a:avLst/>\n"
+            "              </a:prstGeom>\n"
+            "            </p:spPr>\n"
+            "          </p:pic>\n"
+            "        </p:oleObj>\n"
+            "      </mc:Fallback>\n"
+            "    </mc:AlternateContent>\n"
+            "  </a:graphicData>\n"
+            "</a:graphic>\n"
+        ).format(nsdecls=nsdecls("a", "p", "r"), xlsx_rId=xlsx_rId, icon_rId=icon_rId)
 
     @classmethod
     def _graphicFrame_tmpl(cls):

@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import io
+
 from pptx.compat import BytesIO
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
@@ -16,7 +18,7 @@ from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.shapes.freeform import FreeformBuilder
-from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.graphfrm import GraphicFrame, XLSX_ICON_BYTES
 from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Movie, Picture
 from pptx.shapes.placeholder import (
@@ -498,6 +500,21 @@ class SlideShapes(_BaseGroupShapes):
         self._add_video_timing(movie_pic)
         return self._shape_factory(movie_pic)
 
+    def add_embedded_xlsx(self, xlsx_file, left, top, width, height):
+        """Return newly-created GraphicFrame shape embedding `xlsx_file`.
+
+        The graphic-frame shape is positioned at `left`, `top` and has size `width`,
+        `height`. The Excel object appears as an icon and is embedded in the pptx file
+        (not linked). `xlsx_file` may either be a str path to the XLSX file or a
+        file-like object (such as `io.BytesIO`) containing the bytes of the XLSX file.
+        """
+        graphicFrame = _EmbeddedXlsxElementCreator.graphicFrame(
+            self, self._next_shape_id, xlsx_file, left, top, width, height
+        )
+        self._spTree.append(graphicFrame)
+        self._recalculate_extents()
+        return self._shape_factory(graphicFrame)
+
     def add_table(self, rows, cols, left, top, width, height):
         """
         Add a |GraphicFrame| object containing a table with the specified
@@ -829,6 +846,73 @@ def SlideShapeFactory(shape_elm, parent):
     if shape_elm.has_ph_elm:
         return _SlidePlaceholderFactory(shape_elm, parent)
     return BaseShapeFactory(shape_elm, parent)
+
+
+class _EmbeddedXlsxElementCreator(object):
+    """Functional service object for creating a new XLSX p:graphicFrame element.
+
+    It's entire external interface is its :meth:`graphicFrame` class method that returns
+    a new `p:graphicFrame` element containing the specified embedded XLSX shape. This
+    class is not intended to be constructed or an instance of it retained by the caller;
+    it is a "one-shot" object, really a function wrapped in a object such that its
+    helper methods can be organized here.
+    """
+
+    def __init__(self, shapes, shape_id, xlsx_file, x, y, cx, cy):
+        self._shapes = shapes
+        self._shape_id = shape_id
+        self._xlsx_file = xlsx_file
+        self._x = x
+        self._y = y
+        self._cx = cx
+        self._cy = cy
+
+    @classmethod
+    def graphicFrame(cls, shapes, shape_id, xlsx_file, x, y, cx, cy):
+        """Return a new `p:graphicFrame` element containing embedded `xlsx_file`."""
+        return cls(shapes, shape_id, xlsx_file, x, y, cx, cy)._graphicFrame
+
+    @lazyproperty
+    def _graphicFrame(self):
+        """Newly-created `p:graphicFrame` element referencing the embedded xlsx."""
+        return CT_GraphicalObjectFrame.new_embedded_xlsx_graphicFrame(
+            self._shape_id,
+            self._shape_name,
+            self._xlsx_rId,
+            self._icon_rId,
+            self._x,
+            self._y,
+            self._cx,
+            self._cy,
+        )
+
+    @lazyproperty
+    def _icon_rId(self):
+        """str rId like "rId7" of relationship to icon (EMF) representing XLSX part."""
+        _, rId = self._slide_part.get_or_add_image_part(io.BytesIO(XLSX_ICON_BYTES))
+        return rId
+
+    @lazyproperty
+    def _shape_name(self):
+        """str name like "Object 1" for the embedded xlsx shape.
+
+        The name is formed from the prefix "Object " and the shape-id decremented by 1.
+        """
+        return "Object %d" % (self._shape_id - 1)
+
+    @lazyproperty
+    def _slide_part(self):
+        """SlidePart object for this slide."""
+        return self._shapes.part
+
+    @lazyproperty
+    def _xlsx_rId(self):
+        """str rId like "rId6" of relationship to embedded XLSX part.
+
+        This is where the XLSX part and its relationship to the slide are actually
+        created.
+        """
+        return self._slide_part.add_embedded_xlsx_part(self._xlsx_file)
 
 
 class _MoviePicElementCreator(object):

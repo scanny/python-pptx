@@ -1,19 +1,18 @@
 # encoding: utf-8
 
-"""
-Slide and related objects.
-"""
+"""Slide and related objects."""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .chart import ChartPart
-from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from ..opc.package import XmlPart
-from ..opc.packuri import PackURI
-from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
-from ..oxml.theme import CT_OfficeStyleSheet
-from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
-from ..util import lazyproperty
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.package import XmlPart
+from pptx.opc.packuri import PackURI
+from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
+from pptx.oxml.theme import CT_OfficeStyleSheet
+from pptx.parts.chart import ChartPart
+from pptx.parts.embeddedpackage import EmbeddedXlsxPart
+from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
+from pptx.util import lazyproperty
 
 
 class BaseSlidePart(XmlPart):
@@ -174,6 +173,13 @@ class SlidePart(BaseSlidePart):
         chart_part = ChartPart.new(chart_type, chart_data, self.package)
         rId = self.relate_to(chart_part, RT.CHART)
         return rId
+
+    def add_embedded_xlsx_part(self, xlsx_file):
+        """Return the rId of a newly-added XLSX part formed from `xlsx_file`."""
+        return self.relate_to(
+            EmbeddedXlsxPart.new(self._blob_from_file(xlsx_file), self._package),
+            RT.PACKAGE,
+        )
 
     def get_or_add_video_media_part(self, video):
         """Return rIds for media and video relationships to media part.

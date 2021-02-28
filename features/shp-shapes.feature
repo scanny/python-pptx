@@ -208,6 +208,13 @@ Feature: Access a shape on a slide
       And connector.end_y == 4
 
 
+  Scenario: SlideShapes.add_embedded_xlsx()
+    Given a SlideShapes object as shapes
+     When I assign shapes.add_embedded_xlsx() to shape
+     Then shape is a GraphicFrame object
+      And shapes[-1] == shape
+
+
   Scenario: SlideShapes.add_group_shape()
     Given a SlideShapes object as shapes
      When I assign shapes.add_group_shape() to shape

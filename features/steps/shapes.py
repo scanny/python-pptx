@@ -143,6 +143,13 @@ def when_I_assign_shapes_add_connector_to_shape(context):
     context.shape = context.shapes.add_connector(MSO_CONNECTOR.CURVE, 4, 3, 2, 1)
 
 
+@when("I assign shapes.add_embedded_xlsx() to shape")
+def when_I_assign_shapes_add_embedded_xlsx_to_shape(context):
+    context.shape = context.shapes.add_embedded_xlsx(
+        test_file("embedded_xlsx.xlsx"), 4, 3, 2, 1
+    )
+
+
 @when("I assign shapes.add_group_shape() to shape")
 def when_I_assign_shapes_add_group_shape_to_shape(context):
     context.shape = context.shapes.add_group_shape()
