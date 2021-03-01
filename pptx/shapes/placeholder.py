@@ -380,7 +380,7 @@ class PlaceholderPicture(_InheritsDimensions, Picture):
 
 class TablePlaceholder(_BaseSlidePlaceholder):
     """
-    Placeholder shape that can only accept a picture.
+    Placeholder shape that can only accept a table.
     """
 
     def insert_table(self, rows, cols):
@@ -412,3 +412,10 @@ class TablePlaceholder(_BaseSlidePlaceholder):
         return CT_GraphicalObjectFrame.new_table_graphicFrame(
             shape_id, name, rows, cols, self.left, self.top, self.width, height
         )
+
+
+class ContentPlaceholder(SlidePlaceholder, ChartPlaceholder, PicturePlaceholder, TablePlaceholder):
+    """
+    Placeholder shape that accept all objects.
+    """
+

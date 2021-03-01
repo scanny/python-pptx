@@ -25,6 +25,7 @@ from pptx.shapes.placeholder import (
     PlaceholderGraphicFrame,
     PlaceholderPicture,
     TablePlaceholder,
+    ContentPlaceholder
 )
 from pptx.shapes.shapetree import NotesSlidePlaceholders
 from pptx.slide import NotesMaster, SlideLayout, SlideMaster
