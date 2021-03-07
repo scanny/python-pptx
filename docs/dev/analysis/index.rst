@@ -81,21 +81,22 @@ Shape
 .. toctree::
    :titlesonly:
 
+   sld-slide-shapes
+   shp-shapes
+   shp-pos-and-size
+   shp-autofit
    shp-group-shape
+   shp-autoshape
    shp-shadow
    shp-freeform
-   shp-movie
-   shp-shapes
-   sld-slide-shapes
-   shp-autoshape
-   shp-preset-geom
-   shp-hyperlink
-   shp-graphfrm
-   shp-picture
    shp-connector
-   shp-autofit
-   shp-pos-and-size
+   shp-picture
+   shp-graphfrm
+   shp-ole-object
+   shp-movie
+   shp-hyperlink
    placeholders/index
+   shp-preset-geom
 
 
 Text
