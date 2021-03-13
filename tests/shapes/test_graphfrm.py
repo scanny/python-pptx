@@ -8,11 +8,12 @@ from pptx.chart.chart import Chart
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.parts.chart import ChartPart
 from pptx.parts.slide import SlidePart
-from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
+from pptx.shapes.shapetree import SlideShapes
 from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import instance_mock, property_mock
+from ..unitutil.mock import class_mock, instance_mock, property_mock
 
 
 class DescribeGraphicFrame(object):
@@ -75,6 +76,35 @@ class DescribeGraphicFrame(object):
             "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri
         )
         assert GraphicFrame(graphicFrame, None).has_table is expected_value
+
+    def it_provides_access_to_the_OleFormat_object(self, request):
+        ole_format_ = instance_mock(request, _OleFormat)
+        _OleFormat_ = class_mock(
+            request, "pptx.shapes.graphfrm._OleFormat", return_value=ole_format_
+        )
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=http://schemas.openxmlformats"
+            ".org/presentationml/2006/ole}"
+        )
+        parent_ = instance_mock(request, SlideShapes)
+        graphic_frame = GraphicFrame(graphicFrame, parent_)
+
+        ole_format = graphic_frame.ole_format
+
+        _OleFormat_.assert_called_once_with(graphicFrame.graphicData, parent_)
+        assert ole_format is ole_format_
+
+    def but_it_raises_on_ole_format_when_this_is_not_an_OLE_object(self):
+        graphic_frame = GraphicFrame(
+            element(
+                "p:graphicFrame/a:graphic/a:graphicData{uri=http://schemas.openxmlfor"
+                "mats.org/drawingml/2006/table}"
+            ),
+            None,
+        )
+        with pytest.raises(ValueError) as e:
+            graphic_frame.ole_format
+        assert str(e.value) == "not an OLE-object shape"
 
     def it_raises_on_shadow(self):
         graphic_frame = GraphicFrame(None, None)

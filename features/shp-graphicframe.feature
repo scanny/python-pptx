@@ -19,7 +19,6 @@ Feature: GraphicFrame properties and methods
       | table            | False |
 
 
-  @wip
   Scenario: GraphicFrame.ole_format
     Given a GraphicFrame object containing an OLE object as shape
      Then shape.ole_format is an _OleFormat object

@@ -8,6 +8,7 @@ objects.
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
+from pptx.shared import ParentedElementProxy
 from pptx.table import Table
 
 
@@ -51,6 +52,20 @@ class GraphicFrame(BaseShape):
         return self._element.has_table
 
     @property
+    def ole_format(self):
+        """Optional _OleFormat object for this graphic-frame shape.
+
+        Raises `ValueError` on a GraphicFrame instance that does not contain an OLE
+        object.
+
+        An shape that contains an OLE object will have `.shape_type` of either
+        `EMBEDDED_OLE_OBJECT` or `LINKED_OLE_OBJECT`.
+        """
+        if not self._element.has_oleobj:
+            raise ValueError("not an OLE-object shape")
+        return _OleFormat(self._element.graphicData, self._parent)
+
+    @property
     def shadow(self):
         """Unconditionally raises |NotImplementedError|.
 
@@ -86,3 +101,7 @@ class GraphicFrame(BaseShape):
             raise ValueError("shape does not contain a table")
         tbl = self._element.graphic.graphicData.tbl
         return Table(tbl, self)
+
+
+class _OleFormat(ParentedElementProxy):
+    """Provides attributes on an embedded OLE object."""

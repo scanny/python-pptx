@@ -14,7 +14,11 @@ from pptx.oxml.xmlchemy import (
     RequiredAttribute,
     ZeroOrOne,
 )
-from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
+from pptx.spec import (
+    GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_TABLE,
+)
 
 
 class CT_GraphicalObject(BaseOxmlElement):
@@ -80,14 +84,24 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return self.xfrm
 
     @property
+    def graphicData(self):
+        """`<a:graphicData> grandchild of this graphic-frame element."""
+        return self.graphic.graphicData
+
+    @property
     def has_chart(self):
         """True if graphicFrame contains a chart, False otherwise."""
-        return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_CHART
+        return self.graphicData.uri == GRAPHIC_DATA_URI_CHART
+
+    @property
+    def has_oleobj(self):
+        """True for graphicFrame containing an OLE object, False otherwise."""
+        return self.graphicData.uri == GRAPHIC_DATA_URI_OLEOBJ
 
     @property
     def has_table(self):
         """True if graphicFrame contains a table, False otherwise."""
-        return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_TABLE
+        return self.graphicData.uri == GRAPHIC_DATA_URI_TABLE
 
     @classmethod
     def new_chart_graphicFrame(cls, id_, name, rId, x, y, cx, cy):
