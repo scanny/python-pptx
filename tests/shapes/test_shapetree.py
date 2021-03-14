@@ -7,7 +7,7 @@ import pytest
 from pptx.compat import BytesIO
 from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE
-from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
+from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER, PROG_ID
 from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.groupshape import CT_GroupShape
@@ -359,6 +359,30 @@ class Describe_BaseGroupShapes(object):
         spTree.add_grpSp.assert_called_once_with(spTree)
         shapes._shape_factory.assert_called_once_with(shapes, grpSp)
         assert group_shape is group_shape_
+
+    def it_can_add_an_ole_object(
+        self, request, _next_shape_id_prop_, _recalculate_extents_, _shape_factory_
+    ):
+        _next_shape_id_prop_.return_value = 42
+        graphicFrame = element("p:graphicFrame")
+        _OleObjectElementCreator_ = class_mock(
+            request, "pptx.shapes.shapetree._OleObjectElementCreator"
+        )
+        _OleObjectElementCreator_.graphicFrame.return_value = graphicFrame
+        ole_object_shape_ = instance_mock(request, GraphicFrame)
+        _shape_factory_.return_value = ole_object_shape_
+        x, y, cx, cy = 1, 2, 3, 4
+        shapes = _BaseGroupShapes(element("p:spTree"), None)
+
+        shape = shapes.add_ole_object("worksheet.xlsx", PROG_ID.XLSX, x, y, cx, cy)
+
+        _OleObjectElementCreator_.graphicFrame.assert_called_once_with(
+            shapes, 42, "worksheet.xlsx", PROG_ID.XLSX, x, y, cx, cy, None
+        )
+        assert shapes._spTree[-1] is graphicFrame
+        _recalculate_extents_.assert_called_once_with(shapes)
+        _shape_factory_.assert_called_once_with(shapes, graphicFrame)
+        assert shape is ole_object_shape_
 
     def it_can_add_a_picture(self, picture_fixture):
         shapes, image_file, x, y, cx, cy = picture_fixture[:6]

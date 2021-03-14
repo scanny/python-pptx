@@ -303,7 +303,20 @@ class _BaseGroupShapes(_BaseShapes):
         Those produced by PowerPoint itself are generally EMF and can be harvested from
         a PPTX package that embeds such an object. PNG and JPG also work fine.
         """
-        raise NotImplementedError
+        graphicFrame = _OleObjectElementCreator.graphicFrame(
+            self,
+            self._next_shape_id,
+            object_file,
+            prog_id,
+            left,
+            top,
+            width,
+            height,
+            icon_file,
+        )
+        self._spTree.append(graphicFrame)
+        self._recalculate_extents()
+        return self._shape_factory(graphicFrame)
 
     def add_picture(self, image_file, left, top, width=None, height=None):
         """Add picture shape displaying image in *image_file*.
@@ -976,3 +989,21 @@ class _MoviePicElementCreator(object):
         one is the video rId and the other is the media rId.
         """
         return self._video_part_rIds[1]
+
+
+class _OleObjectElementCreator(object):
+    """Functional service object for creating a new OLE-object p:graphicFrame element.
+
+    It's entire external interface is its :meth:`graphicFrame` class method that returns
+    a new `p:graphicFrame` element containing the specified embedded OLE-object shape.
+    This class is not intended to be constructed or an instance of it retained by the
+    caller; it is a "one-shot" object, really a function wrapped in a object such that
+    its helper methods can be organized here.
+    """
+
+    @classmethod
+    def graphicFrame(
+        cls, shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
+    ):
+        """Return new `p:graphicFrame` element containing embedded `ole_object_file`."""
+        raise NotImplementedError
