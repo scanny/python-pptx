@@ -486,6 +486,11 @@ def then_movie_width_movie_height_eq_cx_cy(context):
     assert size == (Emu(3962400), Emu(5715000)), "got %s" % size
 
 
+@then("ole_format.blob matches ole_object_file byte-for-byte")
+def then_ole_format_bytes_matches_ole_object_file_byte_for_byte(context):
+    assert context.ole_format.blob == context.ole_object_file.getvalue()
+
+
 @then('ole_format.prog_id == "{expected_value}"')
 def then_ole_format_prog_id_eq_value(context, expected_value):
     actual_value = context.ole_format.prog_id

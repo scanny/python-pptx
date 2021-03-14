@@ -10,6 +10,7 @@ from pptx.enum.base import (
     XmlEnumeration,
     XmlMappedEnumMember,
 )
+from pptx.util import lazyproperty
 
 
 @alias("MSO_SHAPE")
@@ -805,3 +806,80 @@ class PP_PLACEHOLDER_TYPE(XmlEnumeration):
             "Return value only; multiple placeholders of differ" "ing types.",
         ),
     )
+
+
+class _ProgIdEnum(object):
+    """One-off Enum-like object for progId values.
+
+    Indicates the type of an OLE object in terms of the program used to open it.
+
+    A member of this enumeration can be used in a `SlideShapes.add_ole_object()` call to
+    specify a Microsoft Office file-type (Excel, PowerPoint, or Word), which will
+    then not require several of the arguments required to embed other object types.
+
+    Example::
+
+        from pptx.enum.shapes import PROG_ID
+        from pptx.util import Inches
+
+        embedded_xlsx_shape = slide.shapes.add_ole_object(
+            "workbook.xlsx", PROG_ID.XLSX, left=Inches(1), top=Inches(1)
+        )
+        assert embedded_xlsx_shape.ole_format.prog_id == "Excel.Sheet.12"
+    """
+
+    class Member(object):
+        """A particular progID with its attributes."""
+
+        def __init__(self, name, progId, icon_filename, width, height):
+            self._name = name
+            self._progId = progId
+            self._icon_filename = icon_filename
+            self._width = width
+            self._height = height
+
+        def __repr__(self):
+            return "PROG_ID.%s" % self._name
+
+        @property
+        def height(self):
+            return self._height
+
+        @property
+        def icon_filename(self):
+            return self._icon_filename
+
+        @property
+        def progId(self):
+            return self._progId
+
+        @property
+        def width(self):
+            return self._width
+
+    def __contains__(self, item):
+        return item in (
+            self.DOCX,
+            self.PPTX,
+            self.XLSX,
+        )
+
+    def __repr__(self):
+        return "%s.PROG_ID" % __name__
+
+    @lazyproperty
+    def DOCX(self):
+        return self.Member("DOCX", "Word.Document.12", "docx-icon.emf", 965200, 609600)
+
+    @lazyproperty
+    def PPTX(self):
+        return self.Member(
+            "PPTX", "PowerPoint.Show.12", "pptx-icon.emf", 965200, 609600
+        )
+
+    @lazyproperty
+    def XLSX(self):
+        return self.Member("XLSX", "Excel.Sheet.12", "xlsx-icon.emf", 965200, 609600)
+
+
+PROG_ID = _ProgIdEnum()

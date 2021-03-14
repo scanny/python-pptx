@@ -2,12 +2,14 @@
 
 """Gherkin step implementations for shape collections."""
 
+import io
+
 from behave import given, then, when
 
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
-from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER
+from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER, PROG_ID
 from pptx.shapes.base import BaseShape
 from pptx.util import Emu, Inches
 
@@ -53,6 +55,18 @@ def given_a_MasterPlaceholders_object_of_length_2_as_shapes(context):
 def given_a_MasterShapes_object_of_length_2_as_shapes(context):
     prs = Presentation(test_pptx("mst-shapes"))
     context.shapes = prs.slide_masters[0].shapes
+
+
+@given("a {PROG_ID_member} file as ole_object_file")
+def given_a_PROG_ID_member_file_as_ole_object_file(context, PROG_ID_member):
+    filename = {
+        "DOCX": "shp-embedded-docx.docx",
+        "PPTX": "shp-embedded-pptx.pptx",
+        "XLSX": "shp-embedded-xlsx.xlsx",
+    }[PROG_ID_member]
+    with open(test_file(filename), "rb") as f:
+        context.ole_object_file = io.BytesIO(f.read())
+    context.PROG_ID_member = PROG_ID_member
 
 
 @given("a SlidePlaceholders object of length 2 as shapes")
@@ -119,6 +133,11 @@ def when_I_call_shapes_add_table(context):
     shapes.add_table(2, 2, x, y, cx, cy)
 
 
+@when("I assign shape.ole_format to ole_format")
+def when_I_assign_shape_ole_format_to_ole_format(context):
+    context.ole_format = context.shape.ole_format
+
+
 @when("I assign shapes.add_chart() to shape")
 def when_I_assign_shapes_add_chart_to_shape(context):
     chart_data = CategoryChartData()
@@ -144,6 +163,13 @@ def when_I_assign_shapes_add_connector_to_shape(context):
 @when("I assign shapes.add_group_shape() to shape")
 def when_I_assign_shapes_add_group_shape_to_shape(context):
     context.shape = context.shapes.add_group_shape()
+
+
+@when("I assign shapes.add_ole_object(ole_object_file) to shape")
+def when_I_assign_shapes_add_ole_object_to_shape(context):
+    context.shape = context.shapes.add_ole_object(
+        context.ole_object_file, getattr(PROG_ID, context.PROG_ID_member), 4, 3, 2, 1
+    )
 
 
 @when("I assign shapes.add_picture() to shape")

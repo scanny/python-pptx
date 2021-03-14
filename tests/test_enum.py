@@ -17,6 +17,8 @@ from pptx.enum.base import (
     XmlEnumeration,
     XmlMappedEnumMember,
 )
+from pptx.enum.shapes import PROG_ID, _ProgIdEnum
+from pptx.util import Emu
 
 
 @alias("BARFOO")
@@ -94,3 +96,25 @@ class DescribeXmlEnumeration(object):
         assert XMLFOO.from_xml(None) is None
         assert XMLFOO.from_xml("attrVal") == XMLFOO.XML_RW
         assert str(XMLFOO.from_xml("attrVal")) == "XML_RW (42)"
+
+
+class Describe_ProgIdEnum(object):
+    """Unit-test suite for `pptx.enum.shapes._ProgIdEnum."""
+
+    def it_provides_access_to_its_members(self):
+        assert type(PROG_ID.XLSX) == _ProgIdEnum.Member
+
+    def it_can_test_an_item_for_membership(self):
+        assert PROG_ID.XLSX in PROG_ID
+
+    def it_has_a_readable_representation_for_itself(self):
+        assert repr(PROG_ID) == "pptx.enum.shapes.PROG_ID"
+
+    def it_has_a_readable_representation_for_each_of_its_members(self):
+        assert repr(PROG_ID.XLSX) == "PROG_ID.XLSX"
+
+    def it_has_attributes_on_each_member(self):
+        assert PROG_ID.XLSX.height == Emu(609600)
+        assert PROG_ID.XLSX.icon_filename == "xlsx-icon.emf"
+        assert PROG_ID.XLSX.progId == "Excel.Sheet.12"
+        assert PROG_ID.XLSX.width == Emu(965200)
