@@ -6,7 +6,7 @@ from pptx.oxml import parse_xml
 from pptx.oxml.chart.chart import CT_Chart
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.shared import BaseShapeElement
-from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.simpletypes import XsdBoolean, XsdString
 from pptx.oxml.table import CT_Table
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -82,6 +82,16 @@ class CT_GraphicalObjectData(BaseShapeElement):
         objects we've encountered specify this value.
         """
         return None if self._oleObj is None else self._oleObj.progId
+
+    @property
+    def showAsIcon(self):
+        """Optional value of "showAsIcon" attribute value of `p:oleObj` descendent.
+
+        This value is `None` when this `p:graphicData` element does not enclose an OLE
+        object. It is False when the `showAsIcon` attribute is omitted on the `p:oleObj`
+        element.
+        """
+        return None if self._oleObj is None else self._oleObj.showAsIcon
 
     @property
     def _oleObj(self):
@@ -233,6 +243,7 @@ class CT_OleObject(BaseOxmlElement):
 
     progId = OptionalAttribute("progId", XsdString)
     rId = OptionalAttribute("r:id", XsdString)
+    showAsIcon = OptionalAttribute("showAsIcon", XsdBoolean, default=False)
 
     @property
     def is_embedded(self):

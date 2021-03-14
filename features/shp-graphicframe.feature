@@ -45,7 +45,6 @@ Feature: GraphicFrame properties and methods
      Then ole_format.prog_id == "Excel.Sheet.12"
 
 
-  @wip
   Scenario: _OleFormat.show_as_icon
     Given an _OleFormat object for an OLE object as ole_format
      Then ole_format.show_as_icon is True

@@ -138,3 +138,8 @@ class _OleFormat(ParentedElementProxy):
         OLE parlance) to be used to open this object.
         """
         return self._graphicData.progId
+
+    @property
+    def show_as_icon(self):
+        """True when OLE object should appear as an icon (rather than preview)."""
+        return self._graphicData.showAsIcon

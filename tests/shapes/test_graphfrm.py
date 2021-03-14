@@ -171,6 +171,10 @@ class Describe_OleFormat(object):
 
         assert _OleFormat(graphicData, None).blob == b"0123456789"
 
-    def it_knows_the_OLE_object_prog_id(self, request):
+    def it_knows_the_OLE_object_prog_id(self):
         graphicData = element("a:graphicData/p:oleObj{progId=Excel.Sheet.12}")
         assert _OleFormat(graphicData, None).prog_id == "Excel.Sheet.12"
+
+    def it_knows_whether_to_show_the_OLE_object_as_an_icon(self):
+        graphicData = element("a:graphicData/p:oleObj{showAsIcon=1}")
+        assert _OleFormat(graphicData, None).show_as_icon is True
