@@ -40,7 +40,6 @@ Feature: GraphicFrame properties and methods
      Then len(ole_format.blob) == 8287
 
 
-  @wip
   Scenario: _OleFormat.prog_id
     Given an _OleFormat object for an embedded XLSX as ole_format
      Then ole_format.prog_id == "Excel.Sheet.12"

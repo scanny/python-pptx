@@ -128,3 +128,13 @@ class _OleFormat(ParentedElementProxy):
         This value is None if the embedded object does not represent a "file".
         """
         return self.part.related_parts[self._graphicData.blob_rId].blob
+
+    @property
+    def prog_id(self):
+        """str "progId" attribute of this embedded OLE object.
+
+        The progId is a str like "Excel.Sheet.12" that identifies the "file-type" of the
+        embedded object, or perhaps more precisely, the application (aka. "server" in
+        OLE parlance) to be used to open this object.
+        """
+        return self._graphicData.progId

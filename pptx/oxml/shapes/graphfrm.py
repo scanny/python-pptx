@@ -70,6 +70,20 @@ class CT_GraphicalObjectData(BaseShapeElement):
         return None if self._oleObj is None else self._oleObj.is_embedded
 
     @property
+    def progId(self):
+        """Optional str value of "progId" attribute of `<p:oleObj>` descendent.
+
+        This value identifies the "type" of the embedded object in terms of the
+        application used to open it.
+
+        This value is `None` when this `p:graphicData` element does not enclose an OLE
+        object. This could also be `None` if an enclosed OLE object does not specify
+        this attribute (it is specified optional in the schema) but so far, all OLE
+        objects we've encountered specify this value.
+        """
+        return None if self._oleObj is None else self._oleObj.progId
+
+    @property
     def _oleObj(self):
         """Optional `<p:oleObj>` element contained in this `p:graphicData' element.
 
@@ -217,6 +231,7 @@ class CT_OleObject(BaseOxmlElement):
     An OLE object can be either linked or embedded (hence the name).
     """
 
+    progId = OptionalAttribute("progId", XsdString)
     rId = OptionalAttribute("r:id", XsdString)
 
     @property
