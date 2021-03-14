@@ -9,6 +9,11 @@ objects.
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 from pptx.shared import ParentedElementProxy
+from pptx.spec import (
+    GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_TABLE,
+)
 from pptx.table import Table
 
 
@@ -31,9 +36,7 @@ class GraphicFrame(BaseShape):
     @property
     def chart_part(self):
         """The |ChartPart| object containing the chart in this graphic frame."""
-        rId = self._element.chart_rId
-        chart_part = self.part.related_parts[rId]
-        return chart_part
+        return self.part.related_parts[self._element.chart_rId]
 
     @property
     def has_chart(self):
@@ -41,7 +44,7 @@ class GraphicFrame(BaseShape):
 
         When |True|, the chart object can be accessed using the ``.chart`` property.
         """
-        return self._element.has_chart
+        return self._element.graphicData_uri == GRAPHIC_DATA_URI_CHART
 
     @property
     def has_table(self):
@@ -49,7 +52,7 @@ class GraphicFrame(BaseShape):
 
         When |True|, the table object can be accessed using the `.table` property.
         """
-        return self._element.has_table
+        return self._element.graphicData_uri == GRAPHIC_DATA_URI_TABLE
 
     @property
     def ole_format(self):
@@ -79,15 +82,23 @@ class GraphicFrame(BaseShape):
     def shape_type(self):
         """Optional member of `MSO_SHAPE_TYPE` identifying the type of this shape.
 
-        Possible values are `MSO_SHAPE_TYPE.CHART`, and `MSO_SHAPE_TYPE.TABLE`.
+        Possible values are ``MSO_SHAPE_TYPE.CHART``, ``MSO_SHAPE_TYPE.TABLE``,
+        ``MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT``, ``MSO_SHAPE_TYPE.LINKED_OLE_OBJECT``.
 
-        This value is `None` when neither of these types apply, for example when the
+        This value is `None` when none of these four types apply, for example when the
         shape contains SmartArt.
         """
-        if self.has_chart:
+        graphicData_uri = self._element.graphicData_uri
+        if graphicData_uri == GRAPHIC_DATA_URI_CHART:
             return MSO_SHAPE_TYPE.CHART
-        elif self.has_table:
+        elif graphicData_uri == GRAPHIC_DATA_URI_TABLE:
             return MSO_SHAPE_TYPE.TABLE
+        elif graphicData_uri == GRAPHIC_DATA_URI_OLEOBJ:
+            return (
+                MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT
+                if self._element.is_embedded_ole_obj
+                else MSO_SHAPE_TYPE.LINKED_OLE_OBJECT
+            )
         else:
             return None
 

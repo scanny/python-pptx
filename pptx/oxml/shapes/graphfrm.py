@@ -47,6 +47,30 @@ class CT_GraphicalObjectData(BaseShapeElement):
     tbl = ZeroOrOne("a:tbl")
     uri = RequiredAttribute("uri", XsdString)
 
+    @property
+    def is_embedded_ole_obj(self):
+        """Optional boolean indicating an embedded OLE object.
+
+        Returns `None` when this `p:graphicData` element does not enclose an OLE object.
+        `True` indicates an embedded OLE object and `False` indicates a linked OLE
+        object.
+        """
+        return None if self._oleObj is None else self._oleObj.is_embedded
+
+    @property
+    def _oleObj(self):
+        """Optional `<p:oleObj>` element contained in this `p:graphicData' element.
+
+        Returns `None` when this graphic-data element does not enclose an OLE object.
+        Note that this returns the last `p:oleObj` element found. There can be more
+        than one `p:oleObj` element because an `<mc.AlternateContent>` element may
+        appear as the child of `p:graphicData` and that alternate-content subtree can
+        contain multiple compatibility choices. The last one should suit best for
+        reading purposes because it contains the lowest common denominator.
+        """
+        oleObjs = self.xpath(".//p:oleObj")
+        return oleObjs[-1] if oleObjs else None
+
 
 class CT_GraphicalObjectFrame(BaseShapeElement):
     """
@@ -89,9 +113,9 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return self.graphic.graphicData
 
     @property
-    def has_chart(self):
-        """True if graphicFrame contains a chart, False otherwise."""
-        return self.graphicData.uri == GRAPHIC_DATA_URI_CHART
+    def graphicData_uri(self):
+        """str value of `uri` attribute of `<a:graphicData> grandchild."""
+        return self.graphic.graphicData.uri
 
     @property
     def has_oleobj(self):
@@ -99,9 +123,14 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return self.graphicData.uri == GRAPHIC_DATA_URI_OLEOBJ
 
     @property
-    def has_table(self):
-        """True if graphicFrame contains a table, False otherwise."""
-        return self.graphicData.uri == GRAPHIC_DATA_URI_TABLE
+    def is_embedded_ole_obj(self):
+        """Optional boolean indicating an embedded OLE object.
+
+        Returns `None` when this `p:graphicFrame` element does not enclose an OLE
+        object. `True` indicates an embedded OLE object and `False` indicates a linked
+        OLE object.
+        """
+        return self.graphicData.is_embedded_ole_obj
 
     @classmethod
     def new_chart_graphicFrame(cls, id_, name, rId, x, y, cx, cy):
@@ -168,3 +197,15 @@ class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
 
     cNvPr = OneAndOnlyOne("p:cNvPr")
     nvPr = OneAndOnlyOne("p:nvPr")
+
+
+class CT_OleObject(BaseOxmlElement):
+    """`<p:oleObj>` element, container for an OLE object (e.g. Excel file).
+
+    An OLE object can be either linked or embedded (hence the name).
+    """
+
+    @property
+    def is_embedded(self):
+        """True when this OLE object is embedded, False when it is linked."""
+        return True if len(self.xpath("./p:embed")) > 0 else False

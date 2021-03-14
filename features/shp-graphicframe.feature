@@ -24,7 +24,6 @@ Feature: GraphicFrame properties and methods
      Then shape.ole_format is an _OleFormat object
 
 
-  @wip
   Scenario Outline: GraphicFrame.shape_type
     Given a GraphicFrame object containing <graphical-object> as shape
      Then shape.shape_type == <expected-value>

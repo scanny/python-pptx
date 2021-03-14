@@ -6,7 +6,7 @@ import pytest
 
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 
-from ...unitutil.cxml import element, xml
+from ...unitutil.cxml import xml
 
 
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
@@ -14,13 +14,7 @@ TABLE_URI = "http://schemas.openxmlformats.org/drawingml/2006/table"
 
 
 class DescribeCT_GraphicalObjectFrame(object):
-    def it_knows_whether_it_contains_a_chart(self, has_chart_fixture):
-        graphicFrame, expected_value = has_chart_fixture
-        assert graphicFrame.has_chart is expected_value
-
-    def it_knows_whether_it_contains_a_table(self, has_table_fixture):
-        graphicFrame, expected_value = has_table_fixture
-        assert graphicFrame.has_table is expected_value
+    """Unit-test suite for `pptx.oxml.shapes.graphfrm.CT_GraphicalObjectFrame."""
 
     def it_can_construct_a_new_graphicFrame(self, new_graphicFrame_fixture):
         id_, name, x, y, cx, cy, expected_xml = new_graphicFrame_fixture
@@ -35,29 +29,23 @@ class DescribeCT_GraphicalObjectFrame(object):
         assert graphicFrame.xml == expected_xml
 
     def it_can_construct_a_new_table_graphicFrame(self, new_table_graphicFrame_fixture):
-        id_, name, rows, cols, x, y, cx, cy, expected_xml = (
-            new_table_graphicFrame_fixture
-        )
+        (
+            id_,
+            name,
+            rows,
+            cols,
+            x,
+            y,
+            cx,
+            cy,
+            expected_xml,
+        ) = new_table_graphicFrame_fixture
         graphicFrame = CT_GraphicalObjectFrame.new_table_graphicFrame(
             id_, name, rows, cols, x, y, cx, cy
         )
         assert graphicFrame.xml == expected_xml
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture(params=[(CHART_URI, True), (TABLE_URI, False), ("Foobar", False)])
-    def has_chart_fixture(self, request):
-        uri, expected_value = request.param
-        graphicFrame_cxml = "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri
-        graphicFrame = element(graphicFrame_cxml)
-        return graphicFrame, expected_value
-
-    @pytest.fixture(params=[(CHART_URI, False), (TABLE_URI, True), ("Foobar", False)])
-    def has_table_fixture(self, request):
-        uri, expected_value = request.param
-        graphicFrame_cxml = "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri
-        graphicFrame = element(graphicFrame_cxml)
-        return graphicFrame, expected_value
 
     @pytest.fixture
     def new_chart_graphicFrame_fixture(self):

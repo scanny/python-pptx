@@ -10,7 +10,11 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
 from pptx.shapes.shapetree import SlideShapes
-from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
+from pptx.spec import (
+    GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_TABLE,
+)
 
 from ..unitutil.cxml import element
 from ..unitutil.mock import class_mock, instance_mock, property_mock
@@ -55,6 +59,7 @@ class DescribeGraphicFrame(object):
         "graphicData_uri, expected_value",
         (
             (GRAPHIC_DATA_URI_CHART, True),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
             (GRAPHIC_DATA_URI_TABLE, False),
         ),
     )
@@ -68,6 +73,7 @@ class DescribeGraphicFrame(object):
         "graphicData_uri, expected_value",
         (
             (GRAPHIC_DATA_URI_CHART, False),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
             (GRAPHIC_DATA_URI_TABLE, True),
         ),
     )
@@ -112,15 +118,24 @@ class DescribeGraphicFrame(object):
             graphic_frame.shadow
 
     @pytest.mark.parametrize(
-        "uri, expected_value",
+        "uri, oleObj_child, expected_value",
         (
-            (GRAPHIC_DATA_URI_CHART, MSO_SHAPE_TYPE.CHART),
-            (GRAPHIC_DATA_URI_TABLE, MSO_SHAPE_TYPE.TABLE),
-            ("foobar", None),
+            (GRAPHIC_DATA_URI_CHART, None, MSO_SHAPE_TYPE.CHART),
+            (GRAPHIC_DATA_URI_OLEOBJ, "embed", MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT),
+            (GRAPHIC_DATA_URI_OLEOBJ, "link", MSO_SHAPE_TYPE.LINKED_OLE_OBJECT),
+            (GRAPHIC_DATA_URI_TABLE, None, MSO_SHAPE_TYPE.TABLE),
+            ("foobar", None, None),
         ),
     )
-    def it_knows_its_shape_type(self, uri, expected_value):
-        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
+    def it_knows_its_shape_type(self, uri, oleObj_child, expected_value):
+        graphicFrame = element(
+            (
+                "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/p:oleObj/p:%s"
+                % (uri, oleObj_child)
+            )
+            if oleObj_child
+            else "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri
+        )
         assert GraphicFrame(graphicFrame, None).shape_type is expected_value
 
     # fixture components ---------------------------------------------
