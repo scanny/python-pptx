@@ -116,3 +116,15 @@ class GraphicFrame(BaseShape):
 
 class _OleFormat(ParentedElementProxy):
     """Provides attributes on an embedded OLE object."""
+
+    def __init__(self, graphicData, parent):
+        super(_OleFormat, self).__init__(graphicData, parent)
+        self._graphicData = graphicData
+
+    @property
+    def blob(self):
+        """Optional bytes of OLE object, suitable for loading or saving as a file.
+
+        This value is None if the embedded object does not represent a "file".
+        """
+        return self.part.related_parts[self._graphicData.blob_rId].blob

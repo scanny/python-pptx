@@ -35,7 +35,6 @@ Feature: GraphicFrame properties and methods
       | a table          | MSO_SHAPE_TYPE.TABLE               |
 
 
-  @wip
   Scenario: _OleFormat.blob
     Given an _OleFormat object for an embedded XLSX as ole_format
      Then len(ole_format.blob) == 8287

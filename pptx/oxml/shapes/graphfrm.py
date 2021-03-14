@@ -11,6 +11,7 @@ from pptx.oxml.table import CT_Table
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
+    OptionalAttribute,
     RequiredAttribute,
     ZeroOrOne,
 )
@@ -46,6 +47,17 @@ class CT_GraphicalObjectData(BaseShapeElement):
     chart = ZeroOrOne("c:chart")
     tbl = ZeroOrOne("a:tbl")
     uri = RequiredAttribute("uri", XsdString)
+
+    @property
+    def blob_rId(self):
+        """Optional "r:id" attribute value of `<p:oleObj>` descendent element.
+
+        This value is `None` when this `p:graphicData` element does not enclose an OLE
+        object. This value could also be `None` if an enclosed OLE object does not
+        specify this attribute (it is specified optional in the schema) but so far, all
+        OLE objects we've encountered specify this value.
+        """
+        return None if self._oleObj is None else self._oleObj.rId
 
     @property
     def is_embedded_ole_obj(self):
@@ -204,6 +216,8 @@ class CT_OleObject(BaseOxmlElement):
 
     An OLE object can be either linked or embedded (hence the name).
     """
+
+    rId = OptionalAttribute("r:id", XsdString)
 
     @property
     def is_embedded(self):

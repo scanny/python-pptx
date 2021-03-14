@@ -7,6 +7,7 @@ import pytest
 from pptx.chart.chart import Chart
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.parts.chart import ChartPart
+from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
 from pptx.shapes.shapetree import SlideShapes
@@ -151,3 +152,21 @@ class DescribeGraphicFrame(object):
     @pytest.fixture
     def has_chart_prop_(self, request):
         return property_mock(request, GraphicFrame, "has_chart")
+
+
+class Describe_OleFormat(object):
+    """Unit-test suite for `pptx.shapes.graphfrm._OleFormat` object."""
+
+    def it_provides_access_to_the_OLE_object_blob(self, request):
+        ole_obj_part_ = instance_mock(request, EmbeddedPackagePart, blob=b"0123456789")
+        property_mock(
+            request,
+            _OleFormat,
+            "part",
+            return_value=instance_mock(
+                request, SlidePart, related_parts={"rId7": ole_obj_part_}
+            ),
+        )
+        graphicData = element("a:graphicData/p:oleObj{r:id=rId7}")
+
+        assert _OleFormat(graphicData, None).blob == b"0123456789"
