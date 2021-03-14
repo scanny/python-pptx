@@ -1001,9 +1001,29 @@ class _OleObjectElementCreator(object):
     its helper methods can be organized here.
     """
 
+    def __init__(
+        self, shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
+    ):
+        self._shapes = shapes
+        self._shape_id = shape_id
+        self._ole_object_file = ole_object_file
+        self._prog_id_arg = prog_id
+        self._x = x
+        self._y = y
+        self._cx_arg = cx
+        self._cy_arg = cy
+        self._icon_file_arg = icon_file
+
     @classmethod
     def graphicFrame(
         cls, shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
     ):
         """Return new `p:graphicFrame` element containing embedded `ole_object_file`."""
+        return cls(
+            shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
+        )._graphicFrame
+
+    @lazyproperty
+    def _graphicFrame(self):
+        """Newly-created `p:graphicFrame` element referencing embedded OLE-object."""
         raise NotImplementedError

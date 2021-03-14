@@ -45,6 +45,7 @@ from pptx.shapes.shapetree import (
     NotesSlidePlaceholders,
     _NotesSlideShapeFactory,
     NotesSlideShapes,
+    _OleObjectElementCreator,
     _SlidePlaceholderFactory,
     SlidePlaceholders,
     SlideShapeFactory,
@@ -2079,6 +2080,37 @@ class Describe_MoviePicElementCreator(object):
     @pytest.fixture
     def _video_part_rIds_prop_(self, request):
         return property_mock(request, _MoviePicElementCreator, "_video_part_rIds")
+
+
+class Describe_OleObjectElementCreator(object):
+    """Unit-test suite for `pptx.shapes.shapetree._OleObjectElementCreator` objects."""
+
+    def it_provides_a_graphicFrame_interface_method(self, request, shapes_):
+        shape_id, x, y, cx, cy = 42, 1, 2, 3, 4
+        _init_ = initializer_mock(request, _OleObjectElementCreator, autospec=True)
+        graphicFrame_ = element("p:graphicFrame")
+        _graphicFrame_prop_ = property_mock(
+            request,
+            _OleObjectElementCreator,
+            "_graphicFrame",
+            return_value=graphicFrame_,
+        )
+
+        graphicFrame = _OleObjectElementCreator.graphicFrame(
+            shapes_, shape_id, "sheet.xlsx", PROG_ID.XLSX, x, y, cx, cy, "icon.png"
+        )
+
+        _init_.assert_called_once_with(
+            ANY, shapes_, shape_id, "sheet.xlsx", PROG_ID.XLSX, x, y, cx, cy, "icon.png"
+        )
+        _graphicFrame_prop_.assert_called_once_with()
+        assert graphicFrame is graphicFrame_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def shapes_(self, request):
+        return instance_mock(request, _BaseGroupShapes)
 
 
 class Describe_NotesSlideShapeFactory(object):
