@@ -1077,4 +1077,4 @@ class _OleObjectElementCreator(object):
 
         The name is formed from the prefix "Object " and the shape-id decremented by 1.
         """
-        raise NotImplementedError
+        return "Object %d" % (self._shape_id - 1)

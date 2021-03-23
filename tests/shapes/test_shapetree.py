@@ -2177,6 +2177,13 @@ class Describe_OleObjectElementCreator(object):
             '</p:graphicFrame>"\n'
         )
 
+    def it_computes_the_shape_name_to_help(self):
+        shape_id = 42
+        element_creator = _OleObjectElementCreator(
+            None, shape_id, None, None, None, None, None, None, None
+        )
+        assert element_creator._shape_name == "Object 41"
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
