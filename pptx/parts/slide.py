@@ -2,12 +2,14 @@
 
 """Slide and related objects."""
 
+from pptx.enum.shapes import PROG_ID
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.parts.chart import ChartPart
+from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from pptx.util import lazyproperty
 
@@ -172,7 +174,13 @@ class SlidePart(BaseSlidePart):
 
     def add_embedded_ole_object_part(self, prog_id, ole_object_file):
         """Return rId of newly-added OLE-object part formed from `ole_object_file`."""
-        raise NotImplementedError
+        relationship_type = RT.PACKAGE if prog_id in PROG_ID else RT.OLE_OBJECT
+        return self.relate_to(
+            EmbeddedPackagePart.factory(
+                prog_id, self._blob_from_file(ole_object_file), self._package
+            ),
+            relationship_type,
+        )
 
     def get_or_add_video_media_part(self, video):
         """Return rIds for media and video relationships to media part.

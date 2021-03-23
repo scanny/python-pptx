@@ -321,6 +321,10 @@ class Part(object):
         rel = self.rels[rId]
         return rel.target_ref
 
+    def _blob_from_file(self, file):
+        """Return bytes of `file`, which is either a str path or a file-like object."""
+        raise NotImplementedError
+
     def _rel_ref_count(self, rId):
         """
         Return the count of references in this part's XML to the relationship

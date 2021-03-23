@@ -15,6 +15,16 @@ class EmbeddedPackagePart(Part):
     Has a partname like: `ppt/embeddings/Microsoft_Excel_Sheet1.xlsx`.
     """
 
+    @classmethod
+    def factory(cls, prog_id, object_blob, package):
+        """Return a new |EmbeddedPackagePart| subclass instance added to *package*.
+
+        The subclass is determined by `prog_id` which corresponds to the "application"
+        used to open the "file-type" of `object_blob`. The returned part contains the
+        bytes of `object_blob` and has the content-type also determined by `prog_id`.
+        """
+        raise NotImplementedError
+
 
 class EmbeddedXlsxPart(EmbeddedPackagePart):
     """An Excel file stored in a part.

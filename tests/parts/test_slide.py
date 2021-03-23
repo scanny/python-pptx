@@ -6,6 +6,7 @@ import pytest
 
 from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
+from pptx.enum.shapes import PROG_ID
 from pptx.media import Video
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
@@ -14,6 +15,7 @@ from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
+from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
 from pptx.parts.presentation import PresentationPart
@@ -451,6 +453,38 @@ class DescribeSlidePart(object):
         ChartPart_.new.assert_called_once_with(chart_type_, chart_data_, package_)
         relate_to_.assert_called_once_with(slide_part, chart_part_, RT.CHART)
         assert _rId == "rId42"
+
+    @pytest.mark.parametrize(
+        "prog_id, rel_type",
+        (
+            (PROG_ID.DOCX, RT.PACKAGE),
+            (PROG_ID.PPTX, RT.PACKAGE),
+            (PROG_ID.XLSX, RT.PACKAGE),
+            ("Foo.Bar.18", RT.OLE_OBJECT),
+        ),
+    )
+    def it_can_add_an_embedded_ole_object_part(
+        self, request, package_, relate_to_, prog_id, rel_type
+    ):
+        _blob_from_file_ = method_mock(
+            request, SlidePart, "_blob_from_file", autospec=True, return_value=b"012345"
+        )
+        embedded_package_part_ = instance_mock(request, EmbeddedPackagePart)
+        EmbeddedPackagePart_ = class_mock(
+            request, "pptx.parts.slide.EmbeddedPackagePart"
+        )
+        EmbeddedPackagePart_.factory.return_value = embedded_package_part_
+        relate_to_.return_value = "rId9"
+        slide_part = SlidePart(None, None, None, package_)
+
+        _rId = slide_part.add_embedded_ole_object_part(prog_id, "workbook.xlsx")
+
+        _blob_from_file_.assert_called_once_with(slide_part, "workbook.xlsx")
+        EmbeddedPackagePart_.factory.assert_called_once_with(
+            prog_id, b"012345", package_
+        )
+        relate_to_.assert_called_once_with(slide_part, embedded_package_part_, rel_type)
+        assert _rId == "rId9"
 
     def it_can_get_or_add_a_video_part(self, package_, video_, relate_to_, media_part_):
         media_rId, video_rId = "rId1", "rId2"
