@@ -2,6 +2,8 @@
 
 """The shape tree, the structure that holds a slide's shapes."""
 
+import os
+
 from pptx.compat import BytesIO
 from pptx.enum.shapes import PP_PLACEHOLDER, PROG_ID
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
@@ -1054,7 +1056,20 @@ class _OleObjectElementCreator(object):
 
         This can be either a str path or a file-like object (io.BytesIO typically).
         """
-        raise NotImplementedError
+        # --- a user-specified icon overrides any default ---
+        if self._icon_file_arg is not None:
+            return self._icon_file_arg
+
+        # --- A prog_id belonging to PROG_ID gets its icon filename from there. A
+        # --- user-specified (str) prog_id gets the default icon.
+        icon_filename = (
+            self._prog_id_arg.icon_filename
+            if self._prog_id_arg in PROG_ID
+            else "generic-icon.emf"
+        )
+
+        _thisdir = os.path.split(__file__)[0]
+        return os.path.abspath(os.path.join(_thisdir, "..", "templates", icon_filename))
 
     @lazyproperty
     def _icon_rId(self):

@@ -2177,6 +2177,24 @@ class Describe_OleObjectElementCreator(object):
             '</p:graphicFrame>"\n'
         )
 
+    @pytest.mark.parametrize(
+        "icon_file_arg, prog_id, expected_value",
+        (
+            ("user-icon.png", PROG_ID.XLSX, "user-icon.png"),
+            (None, "Foo.Bar.18", "generic-icon.emf"),
+            (None, PROG_ID.DOCX, "docx-icon.emf"),
+            (None, PROG_ID.PPTX, "pptx-icon.emf"),
+            (None, PROG_ID.XLSX, "xlsx-icon.emf"),
+        ),
+    )
+    def it_resolves_the_icon_image_file_to_help(
+        self, icon_file_arg, prog_id, expected_value
+    ):
+        element_creator = _OleObjectElementCreator(
+            None, None, None, prog_id, None, None, None, None, icon_file_arg
+        )
+        assert element_creator._icon_image_file.endswith(expected_value)
+
     def it_adds_and_relates_the_icon_image_part_to_help(
         self, request, _slide_part_prop_, slide_part_
     ):
