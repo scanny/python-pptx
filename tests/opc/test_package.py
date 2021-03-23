@@ -2,6 +2,8 @@
 
 """Unit-test suite for `pptx.opc.package` module."""
 
+import io
+
 import pytest
 
 from pptx.opc.oxml import CT_Relationships
@@ -20,6 +22,7 @@ from pptx.oxml.xmlchemy import BaseOxmlElement
 from pptx.package import Package
 
 from ..unitutil.cxml import element
+from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
     call,
     class_mock,
@@ -280,6 +283,8 @@ class DescribeOpcPackage(object):
 
 
 class DescribePart(object):
+    """Unit-test suite for `pptx.opc.package.Part` objects."""
+
     def it_can_be_constructed_by_PartFactory(self, load_fixture):
         partname_, content_type_, blob_, package_, __init_ = load_fixture
         part = Part.load(partname_, content_type_, blob_, package_)
@@ -317,6 +322,18 @@ class DescribePart(object):
         part, new_blob = Part(None, None, "xyz", None), "foobar"
         part.blob = new_blob
         assert part.blob == new_blob
+
+    def it_can_load_a_blob_from_a_file_path_to_help(self):
+        path = absjoin(test_file_dir, "minimal.pptx")
+        with open(path, "rb") as f:
+            file_bytes = f.read()
+        part = Part(None, None, None, None)
+
+        assert part._blob_from_file(path) == file_bytes
+
+    def it_can_load_a_blob_from_a_file_like_object_to_help(self):
+        part = Part(None, None, None, None)
+        assert part._blob_from_file(io.BytesIO(b"012345")) == b"012345"
 
     # fixtures ---------------------------------------------
 

@@ -6,6 +6,7 @@ The :mod:`pptx.packaging` module coheres around the concerns of reading and writ
 presentations to and from a .pptx file.
 """
 
+from pptx.compat import is_string
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships, serialize_part_xml
 from pptx.opc.packuri import PACKAGE_URI, PackURI
@@ -323,7 +324,16 @@ class Part(object):
 
     def _blob_from_file(self, file):
         """Return bytes of `file`, which is either a str path or a file-like object."""
-        raise NotImplementedError
+        # --- a str `file` is assumed to be a path ---
+        if is_string(file):
+            with open(file, "rb") as f:
+                return f.read()
+
+        # --- otherwise, assume `file` is a file-like object
+        # --- reposition file cursor if it has one
+        if callable(getattr(file, "seek")):
+            file.seek(0)
+        return file.read()
 
     def _rel_ref_count(self, rId):
         """
