@@ -1049,9 +1049,18 @@ class _OleObjectElementCreator(object):
         raise NotImplementedError
 
     @lazyproperty
+    def _icon_image_file(self):
+        """Reference to image file containing icon to show in lieu of this object.
+
+        This can be either a str path or a file-like object (io.BytesIO typically).
+        """
+        raise NotImplementedError
+
+    @lazyproperty
     def _icon_rId(self):
         """str rId like "rId7" of rel to icon (image) representing OLE-object part."""
-        raise NotImplementedError
+        _, rId = self._slide_part.get_or_add_image_part(self._icon_image_file)
+        return rId
 
     @lazyproperty
     def _ole_object_rId(self):

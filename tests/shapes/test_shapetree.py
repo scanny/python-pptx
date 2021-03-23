@@ -2177,6 +2177,26 @@ class Describe_OleObjectElementCreator(object):
             '</p:graphicFrame>"\n'
         )
 
+    def it_adds_and_relates_the_icon_image_part_to_help(
+        self, request, _slide_part_prop_, slide_part_
+    ):
+        property_mock(
+            request,
+            _OleObjectElementCreator,
+            "_icon_image_file",
+            return_value="obj-icon.emf",
+        )
+        slide_part_.get_or_add_image_part.return_value = None, "rId16"
+        _slide_part_prop_.return_value = slide_part_
+        element_creator = _OleObjectElementCreator(
+            None, None, None, None, None, None, None, None, None
+        )
+
+        rId = element_creator._icon_rId
+
+        slide_part_.get_or_add_image_part.assert_called_once_with("obj-icon.emf")
+        assert rId == "rId16"
+
     def it_adds_and_relates_the_ole_object_part_to_help(
         self, request, _slide_part_prop_, slide_part_
     ):
