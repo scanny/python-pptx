@@ -2106,6 +2106,77 @@ class Describe_OleObjectElementCreator(object):
         _graphicFrame_prop_.assert_called_once_with()
         assert graphicFrame is graphicFrame_
 
+    def it_creates_the_graphicFrame_element(self, request):
+        shape_id, x, y, cx, cy = 7, 1, 2, 3, 4
+        property_mock(
+            request, _OleObjectElementCreator, "_shape_name", return_value="Object 42"
+        )
+        property_mock(
+            request, _OleObjectElementCreator, "_ole_object_rId", return_value="rId42"
+        )
+        property_mock(
+            request, _OleObjectElementCreator, "_progId", return_value="Excel.Sheet.42"
+        )
+        property_mock(
+            request, _OleObjectElementCreator, "_icon_rId", return_value="rId24"
+        )
+        property_mock(request, _OleObjectElementCreator, "_cx", return_value=cx)
+        property_mock(request, _OleObjectElementCreator, "_cy", return_value=cy)
+        element_creator = _OleObjectElementCreator(
+            None, shape_id, None, None, x, y, cx, cy, None
+        )
+
+        assert element_creator._graphicFrame.xml == (
+            "<p:graphicFrame "
+            'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationsh'
+            'ips">\n'
+            "  <p:nvGraphicFramePr>\n"
+            '    <p:cNvPr id="7" name="Object 42"/>\n'
+            "    <p:cNvGraphicFramePr>\n"
+            '      <a:graphicFrameLocks noGrp="1"/>\n'
+            "    </p:cNvGraphicFramePr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvGraphicFramePr>\n"
+            "  <p:xfrm>\n"
+            '    <a:off x="1" y="2"/>\n'
+            '    <a:ext cx="3" cy="4"/>\n'
+            "  </p:xfrm>\n"
+            "  <a:graphic>\n"
+            "    <a:graphicData "
+            'uri="http://schemas.openxmlformats.org/presentationml/2006/ole">\n'
+            '      <p:oleObj showAsIcon="1" r:id="rId42" imgW="965200" imgH="609600" '
+            'progId="Excel.Sheet.42">\n'
+            "        <p:embed/>\n"
+            "        <p:pic>\n"
+            "          <p:nvPicPr>\n"
+            '            <p:cNvPr id="0" name=""/>\n'
+            "            <p:cNvPicPr/>\n"
+            "            <p:nvPr/>\n"
+            "          </p:nvPicPr>\n"
+            "          <p:blipFill>\n"
+            '            <a:blip r:embed="rId24"/>\n'
+            "            <a:stretch>\n"
+            "              <a:fillRect/>\n"
+            "            </a:stretch>\n"
+            "          </p:blipFill>\n"
+            "          <p:spPr>\n"
+            "            <a:xfrm>\n"
+            '              <a:off x="1" y="2"/>\n'
+            '              <a:ext cx="3" cy="4"/>\n'
+            "            </a:xfrm>\n"
+            '            <a:prstGeom prst="rect">\n'
+            "              <a:avLst/>\n"
+            "            </a:prstGeom>\n"
+            "          </p:spPr>\n"
+            "        </p:pic>\n"
+            "      </p:oleObj>\n"
+            "    </a:graphicData>\n"
+            "  </a:graphic>\n"
+            '</p:graphicFrame>"\n'
+        )
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture

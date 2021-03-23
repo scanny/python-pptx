@@ -1026,4 +1026,55 @@ class _OleObjectElementCreator(object):
     @lazyproperty
     def _graphicFrame(self):
         """Newly-created `p:graphicFrame` element referencing embedded OLE-object."""
+        return CT_GraphicalObjectFrame.new_ole_object_graphicFrame(
+            self._shape_id,
+            self._shape_name,
+            self._ole_object_rId,
+            self._progId,
+            self._icon_rId,
+            self._x,
+            self._y,
+            self._cx,
+            self._cy,
+        )
+
+    @lazyproperty
+    def _cx(self):
+        """Emu object specifying width of "show-as-icon" image for OLE shape."""
+        raise NotImplementedError
+
+    @lazyproperty
+    def _cy(self):
+        """Emu object specifying height of "show-as-icon" image for OLE shape."""
+        raise NotImplementedError
+
+    @lazyproperty
+    def _icon_rId(self):
+        """str rId like "rId7" of rel to icon (image) representing OLE-object part."""
+        raise NotImplementedError
+
+    @lazyproperty
+    def _ole_object_rId(self):
+        """str rId like "rId6" of relationship to embedded ole_object part.
+
+        This is where the ole_object part and its relationship to the slide are actually
+        created.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def _progId(self):
+        """str like "Excel.Sheet.12" identifying program used to open object.
+
+        This value appears in the `progId` attribute of the `p:oleObj` element for the
+        object.
+        """
+        raise NotImplementedError
+
+    @lazyproperty
+    def _shape_name(self):
+        """str name like "Object 1" for the embedded ole_object shape.
+
+        The name is formed from the prefix "Object " and the shape-id decremented by 1.
+        """
         raise NotImplementedError

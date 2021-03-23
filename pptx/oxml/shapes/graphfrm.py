@@ -192,6 +192,27 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return graphicFrame
 
     @classmethod
+    def new_ole_object_graphicFrame(
+        cls, id_, name, ole_object_rId, progId, icon_rId, x, y, cx, cy
+    ):
+        """Return newly-created `<p:graphicFrame>` for embedded OLE-object.
+
+        `ole_object_rId` identifies the relationship to the OLE-object part.
+
+        `progId` is a str identifying the object-type in terms of the application
+        (program) used to open it. This becomes an attribute of the same name in the
+        `p:oleObj` element.
+
+        `icon_rId` identifies the relationship to an image part used to display the
+        OLE-object as an icon (vs. a preview).
+        """
+        return parse_xml(
+            cls._graphicFrame_xml_for_ole_object(
+                id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId
+            )
+        )
+
+    @classmethod
     def new_table_graphicFrame(cls, id_, name, rows, cols, x, y, cx, cy):
         """
         Return a ``<p:graphicFrame>`` element tree populated with a table
@@ -222,6 +243,72 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
             "  </a:graphic>\n"
             "</p:graphicFrame>"
             % (nsdecls("a", "p"), "%d", "%s", "%d", "%d", "%d", "%d")
+        )
+
+    @classmethod
+    def _graphicFrame_xml_for_ole_object(
+        cls, id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId
+    ):
+        """str XML for <a:graphic> element of an embedded OLE-object shape."""
+        return (
+            "<p:graphicFrame {nsdecls}>\n"
+            "  <p:nvGraphicFramePr>\n"
+            '    <p:cNvPr id="{id_}" name="{name}"/>\n'
+            "    <p:cNvGraphicFramePr>\n"
+            '      <a:graphicFrameLocks noGrp="1"/>\n'
+            "    </p:cNvGraphicFramePr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvGraphicFramePr>\n"
+            "  <p:xfrm>\n"
+            '    <a:off x="{x}" y="{y}"/>\n'
+            '    <a:ext cx="{cx}" cy="{cy}"/>\n'
+            "  </p:xfrm>\n"
+            "  <a:graphic>\n"
+            "    <a:graphicData"
+            '        uri="http://schemas.openxmlformats.org/presentationml/2006/ole">\n'
+            '      <p:oleObj showAsIcon="1"'
+            '                r:id="{ole_object_rId}"'
+            '                imgW="965200"'
+            '                imgH="609600"'
+            '                progId="{progId}">\n'
+            "        <p:embed/>\n"
+            "        <p:pic>\n"
+            "          <p:nvPicPr>\n"
+            '            <p:cNvPr id="0" name=""/>\n'
+            "            <p:cNvPicPr/>\n"
+            "            <p:nvPr/>\n"
+            "          </p:nvPicPr>\n"
+            "          <p:blipFill>\n"
+            '            <a:blip r:embed="{icon_rId}"/>\n'
+            "            <a:stretch>\n"
+            "              <a:fillRect/>\n"
+            "            </a:stretch>\n"
+            "          </p:blipFill>\n"
+            "          <p:spPr>\n"
+            "            <a:xfrm>\n"
+            '              <a:off x="{x}" y="{y}"/>\n'
+            '              <a:ext cx="{cx}" cy="{cy}"/>\n'
+            "            </a:xfrm>\n"
+            '            <a:prstGeom prst="rect">\n'
+            "              <a:avLst/>\n"
+            "            </a:prstGeom>\n"
+            "          </p:spPr>\n"
+            "        </p:pic>\n"
+            "      </p:oleObj>\n"
+            "    </a:graphicData>\n"
+            "  </a:graphic>\n"
+            "</p:graphicFrame>"
+        ).format(
+            nsdecls=nsdecls("a", "p", "r"),
+            id_=id_,
+            name=name,
+            x=x,
+            y=y,
+            cx=cx,
+            cy=cy,
+            ole_object_rId=ole_object_rId,
+            progId=progId,
+            icon_rId=icon_rId,
         )
 
 
