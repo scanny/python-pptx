@@ -1084,4 +1084,4 @@ class _OleObjectElementCreator(object):
     @lazyproperty
     def _slide_part(self):
         """SlidePart object for this slide."""
-        raise NotImplementedError
+        return self._shapes.part

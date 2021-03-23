@@ -2201,6 +2201,14 @@ class Describe_OleObjectElementCreator(object):
         )
         assert element_creator._shape_name == "Object 41"
 
+    def it_provides_access_to_the_slide_part_to_help(self, shapes_, slide_part_):
+        shapes_.part = slide_part_
+        element_creator = _OleObjectElementCreator(
+            shapes_, None, None, None, None, None, None, None, None
+        )
+
+        assert element_creator._slide_part is slide_part_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
