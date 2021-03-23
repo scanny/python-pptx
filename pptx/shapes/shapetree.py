@@ -3,7 +3,7 @@
 """The shape tree, the structure that holds a slide's shapes."""
 
 from pptx.compat import BytesIO
-from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.enum.shapes import PP_PLACEHOLDER, PROG_ID
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml.ns import qn
@@ -1071,7 +1071,11 @@ class _OleObjectElementCreator(object):
         This value appears in the `progId` attribute of the `p:oleObj` element for the
         object.
         """
-        raise NotImplementedError
+        prog_id_arg = self._prog_id_arg
+
+        # --- member of PROG_ID enumeration knows its progId keyphrase, otherwise caller
+        # --- has specified it explicitly (as str)
+        return prog_id_arg.progId if prog_id_arg in PROG_ID else prog_id_arg
 
     @lazyproperty
     def _shape_name(self):

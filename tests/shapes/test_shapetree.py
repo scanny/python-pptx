@@ -2194,6 +2194,21 @@ class Describe_OleObjectElementCreator(object):
         )
         assert rId == "rId14"
 
+    @pytest.mark.parametrize(
+        "prog_id_arg, expected_value",
+        (
+            (PROG_ID.DOCX, "Word.Document.12"),
+            (PROG_ID.PPTX, "PowerPoint.Show.12"),
+            (PROG_ID.XLSX, "Excel.Sheet.12"),
+            ("Something.Else.42", "Something.Else.42"),
+        ),
+    )
+    def it_resolves_the_progId_str_to_help(self, prog_id_arg, expected_value):
+        element_creator = _OleObjectElementCreator(
+            None, None, None, prog_id_arg, None, None, None, None, None
+        )
+        assert element_creator._progId == expected_value
+
     def it_computes_the_shape_name_to_help(self):
         shape_id = 42
         element_creator = _OleObjectElementCreator(
