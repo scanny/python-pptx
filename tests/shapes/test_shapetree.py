@@ -2177,6 +2177,23 @@ class Describe_OleObjectElementCreator(object):
             '</p:graphicFrame>"\n'
         )
 
+    def it_adds_and_relates_the_ole_object_part_to_help(
+        self, request, _slide_part_prop_, slide_part_
+    ):
+        ole_object_file = "workbook.xlsx"
+        slide_part_.add_embedded_ole_object_part.return_value = "rId14"
+        _slide_part_prop_.return_value = slide_part_
+        element_creator = _OleObjectElementCreator(
+            None, None, ole_object_file, PROG_ID.DOCX, None, None, None, None, None
+        )
+
+        rId = element_creator._ole_object_rId
+
+        slide_part_.add_embedded_ole_object_part.assert_called_once_with(
+            PROG_ID.DOCX, ole_object_file
+        )
+        assert rId == "rId14"
+
     def it_computes_the_shape_name_to_help(self):
         shape_id = 42
         element_creator = _OleObjectElementCreator(
@@ -2189,6 +2206,14 @@ class Describe_OleObjectElementCreator(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, _BaseGroupShapes)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
+    @pytest.fixture
+    def _slide_part_prop_(self, request):
+        return property_mock(request, _OleObjectElementCreator, "_slide_part")
 
 
 class Describe_NotesSlideShapeFactory(object):

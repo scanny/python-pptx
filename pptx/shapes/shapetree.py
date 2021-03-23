@@ -1060,7 +1060,9 @@ class _OleObjectElementCreator(object):
         This is where the ole_object part and its relationship to the slide are actually
         created.
         """
-        raise NotImplementedError
+        return self._slide_part.add_embedded_ole_object_part(
+            self._prog_id_arg, self._ole_object_file
+        )
 
     @lazyproperty
     def _progId(self):
@@ -1078,3 +1080,8 @@ class _OleObjectElementCreator(object):
         The name is formed from the prefix "Object " and the shape-id decremented by 1.
         """
         return "Object %d" % (self._shape_id - 1)
+
+    @lazyproperty
+    def _slide_part(self):
+        """SlidePart object for this slide."""
+        raise NotImplementedError

@@ -170,6 +170,10 @@ class SlidePart(BaseSlidePart):
         rId = self.relate_to(chart_part, RT.CHART)
         return rId
 
+    def add_embedded_ole_object_part(self, prog_id, ole_object_file):
+        """Return rId of newly-added OLE-object part formed from `ole_object_file`."""
+        raise NotImplementedError
+
     def get_or_add_video_media_part(self, video):
         """Return rIds for media and video relationships to media part.
 
