@@ -130,6 +130,21 @@ class DescribePoint(object):
         Marker_.assert_called_once_with(dPt)
         assert marker is marker_
 
+    def it_knows_whether_it_should_invert_if_negative(
+        self, invert_if_negative_get_fixture
+    ):
+        point, expected_value = invert_if_negative_get_fixture
+        assert point.invert_if_negative == expected_value
+
+    def it_can_change_whether_it_inverts_if_negative(
+        self, invert_if_negative_set_fixture
+    ):
+        point, new_value, expected_xml = invert_if_negative_set_fixture
+        point.invert_if_negative = new_value
+        assert point._element.xml == expected_xml
+
+
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -161,6 +176,37 @@ class DescribePoint(object):
         point = Point(ser, 42)
         dPt = ser[0]
         return point, Marker_, dPt, marker_
+
+    @pytest.fixture(
+        params=[
+            ("c:ser/c:dPt", True),
+            ("c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative)", True),
+            ("c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=1})", True),
+            ("c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=0})", False),
+        ]
+    )
+    def invert_if_negative_get_fixture(self, request):
+        ser_cxml, expected_value = request.param
+        ser = element(ser_cxml)
+        point = Point(ser, 45)
+
+        return point, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:ser/c:dPt/c:idx{val=45}", True, "c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=1})"),
+            ("c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative)", False, "c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=0})"),
+            ("c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=1})", False, "c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=0})"),
+            ("c:ser/c:dPt/c:idx{val=45}", False, "c:ser/c:dPt/(c:idx{val=45},c:invertIfNegative{val=0})"),
+        ]
+    )
+    def invert_if_negative_set_fixture(self, request):
+        ser_cxml, new_value, expected_ser_cxml = request.param
+        ser = element(ser_cxml)
+        point = Point(ser, 45)
+        expected_xml = xml(expected_ser_cxml)
+        return point, new_value, expected_xml
+
 
     # fixture components ---------------------------------------------
 
