@@ -557,7 +557,7 @@ class TextBulletTypeface(object):
         Sets the TextBulletTypeface to _BulletTypefaceFollowText
         """
         follow_text = self._parent.get_or_change_to_buFontTx()
-        self._bullet_typeface = _BulletTypefaceollowText(follow_text)
+        self._bullet_typeface = _BulletTypefaceFollowText(follow_text)
 
     def set_typeface(self, typeface="Arial"):
         """
