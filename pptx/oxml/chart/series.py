@@ -54,6 +54,7 @@ class CT_DPt(BaseOxmlElement):
         "c:extLst",
     )
     idx = OneAndOnlyOne("c:idx")
+    invertIfNegative = ZeroOrOne("c:invertIfNegative", successors=_tag_seq[1:])
     marker = ZeroOrOne("c:marker", successors=_tag_seq[3:])
     spPr = ZeroOrOne("c:spPr", successors=_tag_seq[6:])
     del _tag_seq

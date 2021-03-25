@@ -91,6 +91,33 @@ class Point(object):
         dPt = self._ser.get_or_add_dPt_for_point(self._idx)
         return Marker(dPt)
 
+    @property
+    def invert_if_negative(self):
+        """
+        |True| if a point having a value less than zero should appear with a
+        fill different than those with a positive value. |False| if the fill
+        should be the same regardless of the bar's value. When |True|, a bar
+        with a solid fill appears with white fill; in a bar with gradient
+        fill, the direction of the gradient is reversed, e.g. dark -> light
+        instead of light -> dark. The term "invert" here should be understood
+        to mean "invert the *direction* of the *fill gradient*".
+        """
+        dPt = self._ser.get_or_add_dPt_for_point(self._idx)
+
+        invertIfNegative = dPt.invertIfNegative
+        if invertIfNegative is None:
+            return True
+        return invertIfNegative.val
+
+    @invert_if_negative.setter
+    def invert_if_negative(self, value):
+        dPt = self._ser.get_or_add_dPt_for_point(self._idx)
+
+        invertIfNegative = dPt.get_or_add_invertIfNegative()
+        invertIfNegative.val = value
+
+
+
 
 class XyPoints(_BasePoints):
     """
