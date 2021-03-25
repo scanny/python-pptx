@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.opc.package module
-"""
-
-from __future__ import absolute_import
+"""Unit-test suite for `pptx.opc.package` module."""
 
 import pytest
 

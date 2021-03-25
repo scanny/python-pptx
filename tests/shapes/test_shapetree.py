@@ -2,12 +2,11 @@
 
 """Unit test suite for pptx.shapes.shapetree module"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import pytest
 
 from pptx.compat import BytesIO
 from pptx.chart.data import ChartData
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER
 from pptx.oxml import parse_xml
 from pptx.oxml.shapes.autoshape import CT_Shape
@@ -107,12 +106,14 @@ class DescribeBaseShapeFactory(object):
 
 
 class Describe_BaseShapes(object):
+    """Unit-test suite for `pptx.shapes.shapetree._BaseShapes` objects."""
+
     def it_knows_how_many_shapes_it_contains(self, len_fixture):
         shapes, expected_count = len_fixture
         assert len(shapes) == expected_count
 
     def it_can_iterate_over_the_shapes_it_contains(self, iter_fixture):
-        shapes, expected_shapes, BaseShapeFactory_, calls, = iter_fixture
+        shapes, expected_shapes, BaseShapeFactory_, calls = iter_fixture
         assert [s for s in shapes] == expected_shapes
         assert BaseShapeFactory_.call_args_list == calls
 
@@ -295,18 +296,34 @@ class Describe_BaseShapes(object):
 
 
 class Describe_BaseGroupShapes(object):
-    def it_can_add_a_chart(self, add_chart_fixture):
-        shapes, chart_type, x, y, cx, cy, chart_data_ = add_chart_fixture[:7]
-        rId_, graphicFrame, graphic_frame_ = add_chart_fixture[7:]
+    """Unit-test suite for `pptx.shapes.shapetree._BaseGroupShapes`."""
 
-        graphic_frame = shapes.add_chart(chart_type, x, y, cx, cy, chart_data_)
+    def it_can_add_a_chart(
+        self,
+        chart_data_,
+        part_prop_,
+        slide_part_,
+        graphic_frame_,
+        _add_chart_graphicFrame_,
+        _recalculate_extents_,
+        _shape_factory_,
+    ):
+        x, y, cx, cy = 1, 2, 3, 4
+        part_prop_.return_value = slide_part_
+        slide_part_.add_chart_part.return_value = "rId42"
+        graphicFrame = element("p:graphicFrame")
+        _add_chart_graphicFrame_.return_value = graphicFrame
+        _shape_factory_.return_value = graphic_frame_
+        shapes = _BaseGroupShapes(None, None)
 
-        shapes.part.add_chart_part.assert_called_once_with(chart_type, chart_data_)
-        shapes._add_chart_graphicFrame.assert_called_once_with(
-            shapes, rId_, x, y, cx, cy
+        graphic_frame = shapes.add_chart(XL_CHART_TYPE.PIE, x, y, cx, cy, chart_data_)
+
+        shapes.part.add_chart_part.assert_called_once_with(
+            XL_CHART_TYPE.PIE, chart_data_
         )
-        shapes._recalculate_extents.assert_called_once_with(shapes)
-        shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
+        _add_chart_graphicFrame_.assert_called_once_with(shapes, "rId42", x, y, cx, cy)
+        _recalculate_extents_.assert_called_once_with(shapes)
+        _shape_factory_.assert_called_once_with(shapes, graphicFrame)
         assert graphic_frame is graphic_frame_
 
     def it_can_add_a_connector_shape(self, connector_fixture):
@@ -432,40 +449,6 @@ class Describe_BaseGroupShapes(object):
         assert sp is shapes._element.xpath("p:sp")[0]
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_chart_fixture(
-        self,
-        chart_data_,
-        _add_chart_graphicFrame_,
-        graphic_frame_,
-        part_prop_,
-        slide_part_,
-        _recalculate_extents_,
-        _shape_factory_,
-    ):
-        shapes = _BaseGroupShapes(None, None)
-        chart_type = 0
-        rId, x, y, cx, cy = "rId42", 1, 2, 3, 4
-        graphicFrame = element("p:graphicFrame")
-
-        part_prop_.return_value = slide_part_
-        slide_part_.add_chart_part.return_value = rId
-        _add_chart_graphicFrame_.return_value = graphicFrame
-        _shape_factory_.return_value = graphic_frame_
-
-        return (
-            shapes,
-            chart_type,
-            x,
-            y,
-            cx,
-            cy,
-            chart_data_,
-            rId,
-            graphicFrame,
-            graphic_frame_,
-        )
 
     @pytest.fixture
     def add_cht_gr_frm_fixture(self):
@@ -1239,7 +1222,7 @@ class DescribeSlideShapes(object):
         _MoviePicElementCreator_.new_movie_pic.assert_called_once_with(
             shapes, shape_id_, movie_file, x, y, cx, cy, poster_frame_image, mime_type
         )
-        shapes._spTree[-1] is movie_pic
+        assert shapes._spTree[-1] is movie_pic
         _add_video_timing_.assert_called_once_with(shapes, movie_pic)
         _shape_factory_.assert_called_once_with(shapes, movie_pic)
         assert movie is movie_

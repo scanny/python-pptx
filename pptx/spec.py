@@ -1,11 +1,9 @@
 # encoding: utf-8
 
-"""
-Mappings from the ISO/IEC 29500 spec or inferred from PowerPoint application
-behavior
-"""
+"""Mappings from the ISO/IEC 29500 spec.
 
-from __future__ import absolute_import
+Some of these are inferred from PowerPoint application behavior
+"""
 
 from pptx.enum.shapes import MSO_SHAPE
 

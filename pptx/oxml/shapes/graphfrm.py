@@ -1,19 +1,20 @@
 # encoding: utf-8
 
-"""
-lxml custom element class for CT_GraphicalObjectFrame XML element.
-"""
+"""lxml custom element class for CT_GraphicalObjectFrame XML element."""
 
-from __future__ import absolute_import
-
-from .. import parse_xml
-from ..chart.chart import CT_Chart
-from ..ns import nsdecls
-from .shared import BaseShapeElement
-from ..simpletypes import XsdString
-from ...spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
-from ..table import CT_Table
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
+from pptx.oxml import parse_xml
+from pptx.oxml.chart.chart import CT_Chart
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.table import CT_Table
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    RequiredAttribute,
+    ZeroOrOne,
+)
+from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
 
 
 class CT_GraphicalObject(BaseOxmlElement):
@@ -80,16 +81,12 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
     @property
     def has_chart(self):
-        """
-        True if graphicFrame contains a chart, False otherwise.
-        """
+        """True if graphicFrame contains a chart, False otherwise."""
         return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_CHART
 
     @property
     def has_table(self):
-        """
-        True if graphicFrame contains a table, False otherwise.
-        """
+        """True if graphicFrame contains a table, False otherwise."""
         return self.graphic.graphicData.uri == GRAPHIC_DATA_URI_TABLE
 
     @classmethod
@@ -150,9 +147,9 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
 
 class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
-    """
-    ``<p:nvGraphicFramePr>`` element, container for the non-visual properties
-    of a graphic frame, such as name, id, etc.
+    """`<p:nvGraphicFramePr>` element.
+
+    This contains the non-visual properties of a graphic frame, such as name, id, etc.
     """
 
     cNvPr = OneAndOnlyOne("p:cNvPr")

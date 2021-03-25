@@ -2,8 +2,6 @@
 
 """The shape tree, the structure that holds a slide's shapes."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.compat import BytesIO
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.media import SPEAKER_IMAGE_BYTES, Video

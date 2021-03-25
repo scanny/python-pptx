@@ -1,12 +1,8 @@
 # encoding: utf-8
 
-"""
-Enumerations used by shapes and related objects
-"""
+"""Enumerations used by shapes and related objects."""
 
-from __future__ import absolute_import
-
-from .base import (
+from pptx.enum.base import (
     alias,
     Enumeration,
     EnumMember,

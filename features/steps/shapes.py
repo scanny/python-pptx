@@ -2,8 +2,6 @@
 
 """Gherkin step implementations for shape collections."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from behave import given, then, when
 
 from pptx import Presentation

@@ -1,20 +1,18 @@
 # encoding: utf-8
 
-"""
-The :mod:`pptx.packaging` module coheres around the concerns of reading and
-writing presentations to and from a .pptx file.
+"""Fundamental Open Packaging Convention (OPC) objects.
+
+The :mod:`pptx.packaging` module coheres around the concerns of reading and writing
+presentations to and from a .pptx file.
 """
 
-from __future__ import absolute_import
-
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.oxml import CT_Relationships, serialize_part_xml
+from pptx.opc.packuri import PACKAGE_URI, PackURI
+from pptx.opc.pkgreader import PackageReader
+from pptx.opc.pkgwriter import PackageWriter
+from pptx.oxml import parse_xml
 from pptx.util import lazyproperty
-
-from .constants import RELATIONSHIP_TYPE as RT
-from .oxml import CT_Relationships, serialize_part_xml
-from ..oxml import parse_xml
-from .packuri import PACKAGE_URI, PackURI
-from .pkgreader import PackageReader
-from .pkgwriter import PackageWriter
 
 
 class OpcPackage(object):

@@ -1,13 +1,11 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.enum module, focused on base classes. Configured a little
-differently because of the meta-programming, the two enumeration classes at
-the top constitute the entire fixture and the tests themselves just make
-assertions on those.
-"""
+"""Unit-test suite for `pptx.enum` subpackage, focused on base classes.
 
-from __future__ import absolute_import, print_function
+Configured a little differently because of the meta-programming, the two enumeration
+classes at the top constitute the entire fixture and most of the tests themselves just
+make assertions on those.
+"""
 
 import pytest
 

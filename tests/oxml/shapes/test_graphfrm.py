@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.oxml.graphfrm module.
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Unit-test suite for pptx.oxml.graphfrm module."""
 
 import pytest
 

@@ -1,25 +1,22 @@
 # encoding: utf-8
 
-"""
-Slide and related objects.
-"""
+"""Slide and related objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from .chart import ChartPart
-from ..opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from ..opc.package import XmlPart
-from ..opc.packuri import PackURI
-from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
-from ..oxml.theme import CT_OfficeStyleSheet
-from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
-from ..util import lazyproperty
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.package import XmlPart
+from pptx.opc.packuri import PackURI
+from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
+from pptx.oxml.theme import CT_OfficeStyleSheet
+from pptx.parts.chart import ChartPart
+from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
+from pptx.util import lazyproperty
 
 
 class BaseSlidePart(XmlPart):
-    """
-    Base class for slide parts, e.g. slide, slideLayout, slideMaster,
-    notesSlide, notesMaster, and handoutMaster.
+    """Base class for slide parts.
+
+    This includes slide, slide-layout, and slide-master parts, but also notes-slide,
+    notes-master, and handout-master parts.
     """
 
     def get_image(self, rId):
@@ -51,9 +48,9 @@ class BaseSlidePart(XmlPart):
 
 
 class NotesMasterPart(BaseSlidePart):
-    """
-    Notes master part. Corresponds to package file
-    `ppt/notesMasters/notesMaster1.xml`.
+    """Notes master part.
+
+    Corresponds to package file `ppt/notesMasters/notesMaster1.xml`.
     """
 
     @classmethod
@@ -98,10 +95,10 @@ class NotesMasterPart(BaseSlidePart):
 
 
 class NotesSlidePart(BaseSlidePart):
-    """
-    Notes slide part. Contains the slide notes content and the layout for the
-    slide handout page. Corresponds to package file
-    `ppt/notesSlides/notesSlide[1-9][0-9]*.xml`.
+    """Notes slide part.
+
+    Contains the slide notes content and the layout for the slide handout page.
+    Corresponds to package file `ppt/notesSlides/notesSlide[1-9][0-9]*.xml`.
     """
 
     @classmethod
@@ -150,9 +147,7 @@ class NotesSlidePart(BaseSlidePart):
 
 
 class SlidePart(BaseSlidePart):
-    """
-    Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml.
-    """
+    """Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml."""
 
     @classmethod
     def new(cls, partname, package, slide_layout_part):
@@ -253,9 +248,9 @@ class SlidePart(BaseSlidePart):
 
 
 class SlideLayoutPart(BaseSlidePart):
-    """
-    Slide layout part. Corresponds to package files
-    ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
+    """Slide layout part.
+
+    Corresponds to package files ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
 
     @lazyproperty
@@ -274,9 +269,9 @@ class SlideLayoutPart(BaseSlidePart):
 
 
 class SlideMasterPart(BaseSlidePart):
-    """
-    Slide master part. Corresponds to package files
-    ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
+    """Slide master part.
+
+    Corresponds to package files ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
 
     def related_slide_layout(self, rId):
