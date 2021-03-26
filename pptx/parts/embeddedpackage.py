@@ -48,7 +48,8 @@ class EmbeddedPackagePart(Part):
 
         The returned part object contains `blob` and is added to `package`.
         """
-        raise NotImplementedError
+        partname = package.next_partname(cls.partname_template)
+        return cls(partname, cls.content_type, blob, package)
 
 
 class EmbeddedDocxPart(EmbeddedPackagePart):
@@ -80,13 +81,4 @@ class EmbeddedXlsxPart(EmbeddedPackagePart):
     """
 
     partname_template = "/ppt/embeddings/Microsoft_Excel_Sheet%d.xlsx"
-
-    @classmethod
-    def new(cls, xlsx_blob, package):
-        """Return new |EmbeddedXlsxPart| object added to *package* from *xlsx_blob*."""
-        return cls(
-            package.next_partname(cls.partname_template),
-            CT.SML_SHEET,
-            xlsx_blob,
-            package,
-        )
+    content_type = CT.SML_SHEET

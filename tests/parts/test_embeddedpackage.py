@@ -62,23 +62,19 @@ class DescribeEmbeddedPackagePart(object):
         )
         assert isinstance(ole_object_part, EmbeddedPackagePart)
 
-
-class DescribeEmbeddedXlsxPart(object):
-    """Unit-test suite for `pptx.parts.embeddedpackage.EmbeddedXlsxPart` objects."""
-
-    def it_can_construct_from_an_xlsx_blob(self, request):
-        xlsx_blob_ = b"0123456789"
+    def it_provides_a_contructor_classmethod_for_subclasses(self, request):
+        blob_ = b"0123456789"
         package_ = instance_mock(request, OpcPackage)
         _init_ = initializer_mock(request, EmbeddedXlsxPart, autospec=True)
         partname_ = instance_mock(request, PackURI)
         package_.next_partname.return_value = partname_
 
-        xlsx_part = EmbeddedXlsxPart.new(xlsx_blob_, package_)
+        xlsx_part = EmbeddedXlsxPart.new(blob_, package_)
 
         package_.next_partname.assert_called_once_with(
             EmbeddedXlsxPart.partname_template
         )
         _init_.assert_called_once_with(
-            ANY, partname_, CT.SML_SHEET, xlsx_blob_, package_
+            ANY, partname_, EmbeddedXlsxPart.content_type, blob_, package_
         )
         assert isinstance(xlsx_part, EmbeddedXlsxPart)
