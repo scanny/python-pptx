@@ -1058,7 +1058,17 @@ class _OleObjectElementCreator(object):
     @lazyproperty
     def _cy(self):
         """Emu object specifying height of "show-as-icon" image for OLE shape."""
-        raise NotImplementedError
+        # --- a user-specified width overrides any default ---
+        if self._cy_arg is not None:
+            return self._cy_arg
+
+        # --- the default height is specified by the PROG_ID member if prog_id is one,
+        # --- otherwise it gets the default icon height.
+        return (
+            Emu(self._prog_id_arg.height)
+            if self._prog_id_arg in PROG_ID
+            else Emu(609600)
+        )
 
     @lazyproperty
     def _icon_image_file(self):

@@ -230,7 +230,6 @@ Feature: Access a shape on a slide
       | no          |
 
 
-  @wip
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file
