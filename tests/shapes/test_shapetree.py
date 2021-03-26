@@ -53,6 +53,7 @@ from pptx.shapes.shapetree import (
 )
 from pptx.slide import SlideLayout, SlideMaster
 from pptx.table import Table
+from pptx.util import Emu
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element, xml
@@ -2176,6 +2177,22 @@ class Describe_OleObjectElementCreator(object):
             "  </a:graphic>\n"
             '</p:graphicFrame>"\n'
         )
+
+    @pytest.mark.parametrize(
+        "cx_arg, prog_id, expected_value",
+        (
+            (Emu(999999), None, Emu(999999)),
+            (None, PROG_ID.DOCX, Emu(965200)),
+            (None, PROG_ID.PPTX, Emu(965200)),
+            (None, PROG_ID.XLSX, Emu(965200)),
+            (None, "Foo.Bar.6", Emu(965200)),
+        ),
+    )
+    def it_determines_the_icon_width_to_help(self, cx_arg, prog_id, expected_value):
+        element_creator = _OleObjectElementCreator(
+            None, None, None, prog_id, None, None, cx_arg, None, None
+        )
+        assert element_creator._cx == expected_value
 
     @pytest.mark.parametrize(
         "icon_file_arg, prog_id, expected_value",

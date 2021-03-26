@@ -31,7 +31,7 @@ from pptx.shapes.placeholder import (
     TablePlaceholder,
 )
 from pptx.shared import ParentedElementProxy
-from pptx.util import lazyproperty
+from pptx.util import Emu, lazyproperty
 
 # +-- _BaseShapes
 # |   |
@@ -1043,7 +1043,17 @@ class _OleObjectElementCreator(object):
     @lazyproperty
     def _cx(self):
         """Emu object specifying width of "show-as-icon" image for OLE shape."""
-        raise NotImplementedError
+        # --- a user-specified width overrides any default ---
+        if self._cx_arg is not None:
+            return self._cx_arg
+
+        # --- the default width is specified by the PROG_ID member if prog_id is one,
+        # --- otherwise it gets the default icon width.
+        return (
+            Emu(self._prog_id_arg.width)
+            if self._prog_id_arg in PROG_ID
+            else Emu(965200)
+        )
 
     @lazyproperty
     def _cy(self):
