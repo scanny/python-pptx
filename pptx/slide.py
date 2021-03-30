@@ -16,6 +16,7 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders,
     SlideShapes,
 )
+from pptx.theme import Theme
 from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
@@ -472,6 +473,11 @@ class SlideMaster(_BaseMaster):
     def slide_layouts(self):
         """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
+
+    @property
+    def theme(self):
+        """|Theme| object providing access to this slide-master's theme."""
+        return self.part.related_theme()
 
 
 class SlideMasters(ParentedElementProxy):

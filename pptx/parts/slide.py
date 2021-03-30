@@ -13,6 +13,7 @@ from ..opc.packuri import PackURI
 from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from ..oxml.theme import CT_OfficeStyleSheet
 from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
+from ..theme import Theme
 from ..util import lazyproperty
 
 
@@ -292,3 +293,26 @@ class SlideMasterPart(BaseSlidePart):
         The |SlideMaster| object representing this part.
         """
         return SlideMaster(self._element, self)
+    
+
+    def related_theme(self):
+        """
+        The |Theme| object representing this part.
+        """
+        return Theme(self.part_related_by(RT.THEME))
+    
+
+
+class ThemePart(XmlPart):
+    """
+    Theme part.  Corresponds to package files 
+    ppt/theme/theme[1-9][0-9]*.xml.
+    """
+    @property
+    def name(self):
+        return self._element.name
+
+    @property
+    def theme_elements(self):
+        return self._element.theme_elements
+
