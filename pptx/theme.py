@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from pptx.shared import ElementProxy
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat, _Fill
-from pptx.dml.line import LineFormat
+from pptx.dml.line import LineStyle
 from pptx.text.text import TextFont
 
 
@@ -135,7 +135,7 @@ class FormatScheme(ElementProxy):
         
     @property
     def line_style_list(self):
-        return []
+        return tuple([LineStyle(line) for line in self._element.lnStyleLst])
     
     @property
     def effect_style_list(self):
