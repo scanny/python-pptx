@@ -107,7 +107,7 @@ class LineStyle(object):
     """Provides access to line properties such as color, style, and width.
 
     While LineFormat is accessed from the parent, this is accessed directly
-    and LineFormat is read only.  It is used in the Themes
+    and LineStyle is read only.  It is used in the Themes
     """
 
     def __init__(self, ln):

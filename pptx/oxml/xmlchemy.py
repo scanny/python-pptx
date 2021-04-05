@@ -724,7 +724,7 @@ class ZeroOrMoreChoice(ZeroOrOneChoice):
     """
     Used in the Theme Style Lists.  
     Technically it should be ThreeOrMoreChoice but we are using it
-    in a readonly context so it doesnt' really matter.      
+    in a readonly context so it doesn't really matter.      
     """
 
     def populate_class_members(self, element_cls, prop_name):
