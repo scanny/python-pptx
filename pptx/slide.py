@@ -16,7 +16,6 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders,
     SlideShapes,
 )
-from pptx.theme import Theme
 from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
