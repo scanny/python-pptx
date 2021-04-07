@@ -13,6 +13,7 @@ from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 from pptx.presentation import Presentation
 from pptx.shapes.base import BaseShape
+from pptx.theme import Theme
 from pptx.shapes.placeholder import LayoutPlaceholder, NotesSlidePlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
@@ -953,6 +954,14 @@ class DescribeSlideMaster(object):
         SlideLayouts_.assert_called_once_with(sldLayoutIdLst, slide_master)
         assert slide_layouts is slide_layouts_
 
+    def it_provides_access_to_its_theme(self, theme_, part_prop_):
+        part_prop_.return_value.related_theme = theme_
+        slide_master = SlideMaster(None, None)
+
+        theme = slide_master.theme
+
+        assert theme is theme_
+    
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -977,6 +986,20 @@ class DescribeSlideMaster(object):
     @pytest.fixture
     def slide_layouts_(self, request):
         return instance_mock(request, SlideLayouts)
+
+    @pytest.fixture
+    def part_prop_(self, request, slide_master_part_):
+        return property_mock(
+            request, SlideMaster, "part", return_value=slide_master_part_
+        )
+
+    @pytest.fixture
+    def slide_master_part_(self, request):
+        return instance_mock(request, SlideMasterPart)
+
+    @pytest.fixture
+    def theme_(self, request):
+        return instance_mock(request, Theme)
 
 
 class DescribeSlideMasters(object):
