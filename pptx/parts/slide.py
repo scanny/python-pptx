@@ -299,9 +299,8 @@ class SlideMasterPart(BaseSlidePart):
         """
         The |Theme| object representing this part.
         """
-        return Theme(self.part_related_by(RT.THEME))
+        return self.part_related_by(RT.THEME).theme
     
-
 
 class ThemePart(XmlPart):
     """
@@ -312,7 +311,9 @@ class ThemePart(XmlPart):
     def name(self):
         return self._element.name
 
-    @property
-    def theme_elements(self):
-        return self._element.theme_elements
-
+    @lazyproperty
+    def theme(self):
+        """
+        The |Theme| object representing this part.
+        """
+        return Theme(self._element)

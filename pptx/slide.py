@@ -476,7 +476,7 @@ class SlideMaster(_BaseMaster):
     @property
     def theme(self):
         """|Theme| object providing access to this slide-master's theme."""
-        return self.part.related_theme()
+        return self.part.related_theme
 
 
 class SlideMasters(ParentedElementProxy):

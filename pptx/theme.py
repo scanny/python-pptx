@@ -60,7 +60,7 @@ class ThemeElements(ElementProxy):
     def format_scheme(self):
         """Read only access to theme's format scheme"""
         return FormatScheme(self._element.fmtScheme)
-    
+
 
 class ColorScheme(ElementProxy):
     @property
@@ -115,6 +115,7 @@ class ColorScheme(ElementProxy):
     def followed_hyperlink(self):
         return ColorFormat.from_colorchoice_parent(self._element.folHlink)
 
+
 class FontScheme(ElementProxy):
     @property
     def major_font(self):
@@ -123,6 +124,7 @@ class FontScheme(ElementProxy):
     @property
     def minor_font(self):
         return FontCollection(self._element.minorFont)
+
 
 class FormatScheme(ElementProxy):
     @property
