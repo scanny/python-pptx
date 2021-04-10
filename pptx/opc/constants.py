@@ -298,34 +298,30 @@ class RELATIONSHIP_TARGET_MODE(object):
 
 
 class RELATIONSHIP_TYPE(object):
-    AUDIO = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/audio"
-    )
+    AUDIO = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio"
     A_F_CHUNK = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/aFChunk"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/aFChunk"
     )
     CALC_CHAIN = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/calcChain"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/calcChain"
     )
     CERTIFICATE = (
-        "http://schemas.openxmlformats.org/package/2006/relationships/digita"
-        "l-signature/certificate"
+        "http://schemas.openxmlformats.org/package/2006/relationships/digital-signatu"
+        "re/certificate"
     )
-    CHART = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/chart"
-    )
+    CHART = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"
     CHARTSHEET = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/chartsheet"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet"
+    )
+    CHART_COLOR_STYLE = (
+        "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle"
     )
     CHART_USER_SHAPES = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/chartUserShapes"
     )
     COMMENTS = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/comments"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"
     )
     COMMENT_AUTHORS = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -336,11 +332,11 @@ class RELATIONSHIP_TYPE(object):
         "/connections"
     )
     CONTROL = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/control"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/control"
     )
     CORE_PROPERTIES = (
-        "http://schemas.openxmlformats.org/package/2006/relationships/metada"
-        "ta/core-properties"
+        "http://schemas.openxmlformats.org/package/2006/relationships/metadata"
+        "/core-properties"
     )
     CUSTOM_PROPERTIES = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -351,8 +347,7 @@ class RELATIONSHIP_TYPE(object):
         "/customProperty"
     )
     CUSTOM_XML = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/customXml"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml"
     )
     CUSTOM_XML_PROPS = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -379,11 +374,10 @@ class RELATIONSHIP_TYPE(object):
         "/dialogsheet"
     )
     DRAWING = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/drawing"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing"
     )
     ENDNOTES = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/endnotes"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes"
     )
     EXTENDED_PROPERTIES = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -393,17 +387,15 @@ class RELATIONSHIP_TYPE(object):
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/externalLink"
     )
-    FONT = "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/font"
+    FONT = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font"
     FONT_TABLE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/fontTable"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable"
     )
     FOOTER = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/footer"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
     )
     FOOTNOTES = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/footnotes"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes"
     )
     GLOSSARY_DOCUMENT = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -414,27 +406,22 @@ class RELATIONSHIP_TYPE(object):
         "/handoutMaster"
     )
     HEADER = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/header"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
     )
     HYPERLINK = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/hyperlink"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
     )
-    IMAGE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/image"
-    )
+    IMAGE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
     MEDIA = "http://schemas.microsoft.com/office/2007/relationships/media"
     NOTES_MASTER = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/notesMaster"
     )
     NOTES_SLIDE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/notesSlide"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"
     )
     NUMBERING = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/numbering"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"
     )
     OFFICE_DOCUMENT = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -449,7 +436,7 @@ class RELATIONSHIP_TYPE(object):
         "l-signature/origin"
     )
     PACKAGE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/package"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package"
     )
     PIVOT_CACHE_DEFINITION = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -460,20 +447,17 @@ class RELATIONSHIP_TYPE(object):
         "/spreadsheetml/pivotCacheRecords"
     )
     PIVOT_TABLE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/pivotTable"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotTable"
     )
     PRES_PROPS = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/presProps"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps"
     )
     PRINTER_SETTINGS = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/printerSettings"
     )
     QUERY_TABLE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/queryTable"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/queryTable"
     )
     REVISION_HEADERS = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -484,8 +468,7 @@ class RELATIONSHIP_TYPE(object):
         "/revisionLog"
     )
     SETTINGS = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/settings"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings"
     )
     SHARED_STRINGS = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -499,9 +482,7 @@ class RELATIONSHIP_TYPE(object):
         "http://schemas.openxmlformats.org/package/2006/relationships/digita"
         "l-signature/signature"
     )
-    SLIDE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/slide"
-    )
+    SLIDE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide"
     SLIDE_LAYOUT = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/slideLayout"
@@ -515,11 +496,9 @@ class RELATIONSHIP_TYPE(object):
         "/slideUpdateInfo"
     )
     STYLES = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/styles"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
     )
-    TABLE = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/table"
-    )
+    TABLE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/table"
     TABLE_SINGLE_CELLS = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/tableSingleCells"
@@ -528,32 +507,25 @@ class RELATIONSHIP_TYPE(object):
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/tableStyles"
     )
-    TAGS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/tags"
-    THEME = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/theme"
-    )
+    TAGS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags"
+    THEME = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"
     THEME_OVERRIDE = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         "/themeOverride"
     )
     THUMBNAIL = (
-        "http://schemas.openxmlformats.org/package/2006/relationships/metada"
-        "ta/thumbnail"
+        "http://schemas.openxmlformats.org/package/2006/relationships/metadata"
+        "/thumbnail"
     )
     USERNAMES = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/usernames"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/usernames"
     )
-    VIDEO = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/video"
-    )
+    VIDEO = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/video"
     VIEW_PROPS = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/viewProps"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps"
     )
     VML_DRAWING = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "/vmlDrawing"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing"
     )
     VOLATILE_DEPENDENCIES = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -568,5 +540,5 @@ class RELATIONSHIP_TYPE(object):
         "/worksheetSource"
     )
     XML_MAPS = (
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships" "/xmlMaps"
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/xmlMaps"
     )
