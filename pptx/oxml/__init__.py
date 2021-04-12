@@ -475,6 +475,7 @@ from .text import (  # noqa: E402
     CT_TextSpacingPoint,
     CT_TextCharBullet,
     CT_TextBulletAutoNumber,
+    CT_TextBulletColorFollowText,
     CT_TextBulletTypefaceFollowText,
     CT_TextBulletSizeFollowText,
     CT_TextBulletSizePoints,
@@ -491,7 +492,7 @@ register_element_cls("a:endParaRPr", CT_TextCharacterProperties)
 register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:latin", CT_TextFont)
 register_element_cls("a:lnSpc", CT_TextSpacing)
-register_element_cls("a:buClrTx", CT_TextBulletTypefaceFollowText)
+register_element_cls("a:buClrTx", CT_TextBulletColorFollowText)
 register_element_cls("a:buClr", CT_Color)
 register_element_cls("a:buSzTx", CT_TextBulletSizeFollowText)
 register_element_cls("a:buSzPct", CT_TextBulletSizePercent)

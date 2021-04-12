@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 
 from pptx.enum.text import AUTO_NUMBER_SCHEME
+from pptx.dml.color import ColorFormat
+
 from pptx.text.bullets import (
     TextBullet,
     _Bullet,
@@ -15,9 +17,11 @@ from pptx.text.bullets import (
     _CharBullet,
     _PictureBullet,
     TextBulletColor,
+    _TextBulletColor,
     _TextBulletColorFollowText,
     _TextBulletColorSpecific,
     TextBulletSize,
+    _TextBulletSize,
     _TextBulletSizeFollowText,
     _TextBulletSizePercent,
     _TextBulletSizePoints,
@@ -28,7 +32,7 @@ from pptx.text.bullets import (
 )
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock, property_mock
+from ..unitutil.mock import class_mock, instance_mock, property_mock, method_mock
 
 class DescribeTextBullet(object):
     """ Unit-test suite for `pptx.text.bullets.TextBullet` object. """
@@ -218,6 +222,7 @@ class Describe_Bullet(object):
 
 
 class DescribeNoBullet(object):
+    """ Unit-test suite for `pptx.text.bullets._NoBullet` object. """
     def it_knows_its_bullet_type(self, bullet_type_fixture):
         no_bullet, expected_value = bullet_type_fixture
         bullet_type = no_bullet.type
@@ -394,4 +399,177 @@ class DescribePictureBullet(object):
         picture_bullet = _PictureBullet(xBullet)
         expected_value = "PictureBullet"
         return picture_bullet, expected_value
+
+
+class DescribeTextBulletColor(object):
+    """ Unit-test suite for `pptx.text.bullets.TextBulletColor` object. """
+    def it_can_set_the_color_to_follow_text(self, follow_text_fixture):
+        text_bullet_color, _TextBulletColorFollowText_, expected_xml, text_bullet_color_follow_text_ = follow_text_fixture
+
+        text_bullet_color.follow_text()
+
+        assert text_bullet_color._parent.xml == expected_xml
+        _TextBulletColorFollowText_.assert_called_once_with(text_bullet_color._parent.eg_textBulletColor)
+        assert text_bullet_color._bullet_color is text_bullet_color_follow_text_
+
+    def it_can_set_the_color_to_a_specific_color(self, specific_color_fixture):
+        text_bullet_color, _TextBulletColorSpecific_, expected_xml, text_bullet_color_specific_ = specific_color_fixture
+
+        text_bullet_color.set_color()
+
+        assert text_bullet_color._parent.xml == expected_xml
+        _TextBulletColorSpecific_.assert_called_once_with(text_bullet_color._parent.eg_textBulletColor)
+        assert text_bullet_color._bullet_color is text_bullet_color_specific_
+
+    def it_knows_its_bullet_color_type(self, type_fixture):
+        text_bullet_color, expected_value = type_fixture
+        bullet_color_type = text_bullet_color.type
+        assert bullet_color_type == expected_value
+
+    def it_gives_access_to_its_color(self, color_fixture):
+        text_bullet_color, color_ = color_fixture
+        color = text_bullet_color.color
+        assert color is color_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(
+        params = [
+            ("a:pPr", "a:pPr/a:buClrTx"),
+            ("a:pPr/a:buClr", "a:pPr/a:buClrTx")
+        ]
+    )
+    def follow_text_fixture(self, request, text_bullet_color_follow_text_):
+        cxml, expected_cxml = request.param
+
+        text_color = TextBulletColor.from_parent(element(cxml))
+        _TextBulletColorFollowText_ = class_mock(request, "pptx.text.bullets._TextBulletColorFollowText", return_value=text_bullet_color_follow_text_, autospec=True)
+        expected_xml = xml(expected_cxml)
+        return text_color, _TextBulletColorFollowText_, expected_xml, text_bullet_color_follow_text_
+
+    @pytest.fixture(
+        params = [
+            ("a:pPr", "a:pPr/a:buClr"),
+            ("a:pPr/a:buClrTx", "a:pPr/a:buClr")
+        ]
+    )
+    def specific_color_fixture(self, request, text_bullet_color_specific_):
+        cxml, expected_cxml = request.param
+
+        text_color = TextBulletColor.from_parent(element(cxml))
+        _TextBulletColorSpecific_ = class_mock(request, "pptx.text.bullets._TextBulletColorSpecific", return_value=text_bullet_color_specific_, autospec=True)
+        expected_xml = xml(expected_cxml)
+        return text_color, _TextBulletColorSpecific_, expected_xml, text_bullet_color_specific_
+
+
+    @pytest.fixture
+    def type_fixture(self, text_bullet_color_):
+        expected_value = text_bullet_color_.type = 42
+        text_bullet_color = TextBulletColor(None, text_bullet_color_)
+        return text_bullet_color, expected_value
+
+    @pytest.fixture
+    def color_fixture(self, text_bullet_color_, color_):
+        text_bullet_color_.color = color_
+        text_bullet_color = TextBulletColor(None, text_bullet_color_)
+        return text_bullet_color, color_
+    
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def color_(self, request):
+        return instance_mock(request, ColorFormat)
+
+    @pytest.fixture
+    def text_bullet_color_(self, request):
+        return instance_mock(request, TextBulletColor)
+
+    @pytest.fixture
+    def text_bullet_color_follow_text_(self, request):
+        return instance_mock(request, _TextBulletColorFollowText)
+
+    @pytest.fixture
+    def text_bullet_color_specific_(self, request):
+        return instance_mock(request, _TextBulletColorSpecific)
+
+
+class Describe_TextBulletColor(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletColor` object. """
+
+    def it_raises_on_color_access(self, color_raise_fixture):
+        bullet_color, exception_type = color_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_color.color
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def color_raise_fixture(self):
+        bullet_color = _TextBulletColor("foobar")
+        exception_type = TypeError
+        return bullet_color, exception_type
+
+class DescribeTextBullerColorFollowText(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletColorFollowText` object. """
+
+    def it_knows_its_bullet_color_type(self, color_type_fixture):
+        follow_text_color, expected_value = color_type_fixture
+        color_type = follow_text_color.type
+        assert color_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def color_type_fixture(self):
+        xBulletColor = element("a:buClrTx")
+        follow_text_color = _TextBulletColorFollowText(xBulletColor)
+        expected_value = "TextBulletColorFollowText"
+        return follow_text_color, expected_value
+
+class DescribeTextBullerColorSpecific(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletColorSpecific` object. """
+
+    def it_knows_its_bullet_color_type(self, color_type_fixture):
+        specific_bullet_color, expected_value = color_type_fixture
+        color_type = specific_bullet_color.type
+        assert color_type == expected_value
+
+
+    def it_gives_access_to_its_color(self, color_fixture):
+        text_bullet_color_specific, textBulletColorSpecific, color_, ColorFormat_from_colorchoice_parent_ = color_fixture
+
+        color = text_bullet_color_specific.color
+
+        ColorFormat_from_colorchoice_parent_.assert_called_once_with(textBulletColorSpecific)
+        assert color is color_
+
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def color_type_fixture(self):
+        xBulletColor = element("a:buClr")
+        specific_bullet_color = _TextBulletColorSpecific(xBulletColor)
+        expected_value = "TextBulletColorSpecific"
+        return specific_bullet_color, expected_value
+
+    @pytest.fixture
+    def color_fixture(self, ColorFormat_from_colorchoice_parent_, color_):
+        ColorFormat_from_colorchoice_parent_.return_value = color_
+        textBulletColorSpecific = element("a:buClr")
+
+        text_bullet_color_specific = _TextBulletColorSpecific(textBulletColorSpecific)
+        return text_bullet_color_specific, textBulletColorSpecific, color_, ColorFormat_from_colorchoice_parent_
+        
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ColorFormat_from_colorchoice_parent_(self, request):
+        return method_mock(request, ColorFormat, "from_colorchoice_parent")
+
+    @pytest.fixture
+    def color_(self, request):
+        return instance_mock(request, ColorFormat)
 
