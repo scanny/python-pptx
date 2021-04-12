@@ -696,7 +696,158 @@ class DescribeTextBulletSize(object):
     def type_prop_(self, request):
         return property_mock(request, TextBulletSize, "type")
 
+class Describe_TextBulletSize(object):
+    def it_raises_on_points_access(self, points_raise_fixture):
+        bullet_size, exception_type = points_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_size.points
 
+    def it_raises_on_percentage_access(self, percentage_raise_fixture):
+        bullet_size, exception_type = percentage_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_size.percentage
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def points_raise_fixture(self):
+        bullet_size = _TextBulletSize("foobar")
+        exception_type = TypeError
+        return bullet_size, exception_type
+
+    @pytest.fixture
+    def percentage_raise_fixture(self):
+        bullet_size = _TextBulletSize("foobar")
+        exception_type = TypeError
+        return bullet_size, exception_type
+
+class DescribeTextBulletSizePercent(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletSizePercent` object. """
+
+    def it_knows_its_bullet_size_type(self, size_type_fixture):
+        percent_size, expected_value = size_type_fixture
+        size_type = percent_size.type
+        assert size_type == expected_value
+
+    def it_knows_its_percentage(self, get_percentage_fixture):
+        bullet_size_percent, expected_value = get_percentage_fixture
+        percentage = bullet_size_percent.percentage
+        assert percentage == expected_value
+
+    def it_can_change_its_percentage(self, set_percentage_fixture):
+        bullet_size_percent, percentage, percentageSize, expected_xml = set_percentage_fixture
+        bullet_size_percent.percentage = percentage
+        assert percentageSize.xml == expected_xml
+
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def size_type_fixture(self):
+        xBulletSize = element("a:buSzPct")
+        percent_size = _TextBulletSizePercent(xBulletSize)
+        expected_value = "TextBulletSizePercent"
+        return percent_size, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buSzPct", None),
+            ("a:buSzPct{val=150000}", 1.5),
+        ]
+    )
+    def get_percentage_fixture(self, request):
+        bulletSizePercent_cxml, expected_value = request.param
+        bulletSizePercent = element(bulletSizePercent_cxml)
+        bullset_size_percent = _TextBulletSizePercent(bulletSizePercent)
+        return bullset_size_percent, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buSzPct", 1.5, "a:buSzPct{val=150000}"),
+            ("a:buSzPct{val=4242}", .42, "a:buSzPct{val=42000}"),
+        ]
+    )
+    def set_percentage_fixture(self, request):
+        bulletSizePercent_cxml, percentage, expected_cxml = request.param
+        bulletSizePercent = element(bulletSizePercent_cxml)
+        expected_xml = xml(expected_cxml)
+
+        bullset_size_percent = _TextBulletSizePercent(bulletSizePercent)
+        return bullset_size_percent, percentage, bulletSizePercent, expected_xml
+
+    
+
+
+class DescribeTextBulletSizePoints(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletSizePoints` object. """
+
+    def it_knows_its_bullet_size_type(self, size_type_fixture):
+        points_size, expected_value = size_type_fixture
+        size_type = points_size.type
+        assert size_type == expected_value
+
+    def it_knows_its_points(self, get_points_fixture):
+        bullet_size_points, expected_value = get_points_fixture
+        points = bullet_size_points.points
+        assert points == expected_value
+
+    def it_can_change_its_points(self, set_points_fixture):
+        bullet_size_points, points, pointsSize, expected_xml = set_points_fixture
+        bullet_size_points.points = points
+        assert pointsSize.xml == expected_xml
+
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def size_type_fixture(self):
+        xBulletSize = element("a:buSzPts")
+        points_size = _TextBulletSizeFollowText(xBulletSize)
+        expected_value = "TextBulletSizePoints"
+        return points_size, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buSzPts", None),
+            ("a:buSzPts{val=16}", 2032),
+        ]
+    )
+    def get_points_fixture(self, request):
+        bulletSizePoints_cxml, expected_value = request.param
+        bulletSizePoints = element(bulletSizePoints_cxml)
+        bullset_size_points = _TextBulletSizePoints(bulletSizePoints)
+        return bullset_size_points, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buSzPts", Pt(16), "a:buSzPts{val=1600}"),
+            ("a:buSzPts{val=4242}", Pt(12), "a:buSzPts{val=1200}"),
+        ]
+    )
+    def set_points_fixture(self, request):
+        bulletSizePoints_cxml, points, expected_cxml = request.param
+        bulletSizePoints = element(bulletSizePoints_cxml)
+        expected_xml = xml(expected_cxml)
+
+        bullset_size_points = _TextBulletSizePoints(bulletSizePoints)
+        return bullset_size_points, points, bulletSizePoints, expected_xml
+
+class DescribeTextBulletSizeFollowText(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletSizeFollowText` object. """
+
+    def it_knows_its_bullet_size_type(self, size_type_fixture):
+        follow_text_size, expected_value = size_type_fixture
+        size_type = follow_text_size.type
+        assert size_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def size_type_fixture(self):
+        xBulletSize = element("a:buSzTx")
+        follow_text_size = _TextBulletSizeFollowText(xBulletSize)
+        expected_value = "TextBulletSizeFollowText"
+        return follow_text_size, expected_value
 
 class DescribeTextBulletTypeface(object):
     """ Unit-test suite for `pptx.text.bullets.TextBulletTypeface` object. """
@@ -827,4 +978,237 @@ class DescribeTextBulletTypeface(object):
     @pytest.fixture
     def type_prop_(self, request):
         return property_mock(request, TextBulletTypeface, "type")
+
+class Describe_BulletTypeface(object):
+    def it_raises_on_typeface_access(self, typeface_raise_fixture):
+        bullet_typeface, exception_type = typeface_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_typeface.typeface
+
+    def it_raises_on_pitch_family_access(self, pitch_family_raise_fixture):
+        bullet_typeface, exception_type = pitch_family_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_typeface.pitch_family
+
+    def it_raises_on_panose_access(self, panose_raise_fixture):
+        bullet_typeface, exception_type = panose_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_typeface.panose
+
+    def it_raises_on_charset_access(self, charset_raise_fixture):
+        bullet_typeface, exception_type = charset_raise_fixture
+        with pytest.raises(exception_type):
+            bullet_typeface.charset
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def typeface_raise_fixture(self):
+        bullet_typeface = _BulletTypeface("foobar")
+        exception_type = TypeError
+        return bullet_typeface, exception_type
+
+
+    @pytest.fixture
+    def pitch_family_raise_fixture(self):
+        bullet_typeface = _BulletTypeface("foobar")
+        exception_type = TypeError
+        return bullet_typeface, exception_type
+
+    @pytest.fixture
+    def panose_raise_fixture(self):
+        bullet_typeface = _BulletTypeface("foobar")
+        exception_type = TypeError
+        return bullet_typeface, exception_type
+
+    @pytest.fixture
+    def charset_raise_fixture(self):
+        bullet_typeface = _BulletTypeface("foobar")
+        exception_type = TypeError
+        return bullet_typeface, exception_type
+
+class DescribeBulletTypefaceFollowText(object):
+    """ Unit-test suite for `pptx.text.bullets._BulletTypefaceFollowText` object. """
+
+    def it_knows_its_bullet_typeface_type(self, typeface_type_fixture):
+        follow_text_typeface, expected_value = typeface_type_fixture
+        typeface_type = follow_text_typeface.type
+        assert typeface_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def typeface_type_fixture(self):
+        xBulletTypeface = element("a:buFontTx")
+        follow_text_typeface = _BulletTypefaceFollowText(xBulletTypeface)
+        expected_value = "BulletTypefaceFollowText"
+        return follow_text_typeface, expected_value
+
+class DescribeBulletTypefaceSpecific(object):
+    """ Unit-test suite for `pptx.text.bullets._BulletTypefaceSpecific` object. """
+
+    def it_knows_its_bullet_typeface_type(self, typeface_type_fixture):
+        specific_typeface, expected_value = typeface_type_fixture
+        typeface_type = specific_typeface.type
+        assert typeface_type == expected_value
+
+    def it_knows_its_typeface(self, get_typeface_fixture):
+        bullet_typeface, expected_value = get_typeface_fixture
+        typeface = bullet_typeface.typeface
+        assert typeface == expected_value
+    
+    def it_can_change_its_typeface(self, set_typeface_fixture):
+        bullet_typeface, typeface, typefaceSpecific, expected_xml = set_typeface_fixture
+        bullet_typeface.typeface = typeface
+        assert typefaceSpecific.xml == expected_xml
+
+    def it_knows_its_panose(self, get_panose_fixture):
+        bullet_typeface, expected_value = get_panose_fixture
+        panose = bullet_typeface.panose
+        assert panose == expected_value
+
+    def it_can_change_its_panose(self, set_panose_fixture):
+        bullet_typeface, panose, typefaceSpecific, expected_xml = set_panose_fixture
+        bullet_typeface.panose = panose
+        assert typefaceSpecific.xml == expected_xml
+
+    def it_knows_its_charset(self, get_charset_fixture):
+        bullet_typeface, expected_value = get_charset_fixture
+        charset = bullet_typeface.charset
+        assert charset == expected_value
+    
+    def it_can_change_its_charset(self, set_charset_fixture):
+        bullet_typeface, charset, typefaceSpecific, expected_xml = set_charset_fixture
+        bullet_typeface.charset = charset
+        assert typefaceSpecific.xml == expected_xml
+
+    def it_knows_its_pitch_family(self, get_pitch_family_fixture):
+        bullet_typeface, expected_value = get_pitch_family_fixture
+        pitch_family = bullet_typeface.pitch_family
+        assert pitch_family == expected_value
+
+    def it_can_change_its_pitch_family(self, set_pitch_family_fixture):
+        bullet_typeface, pitch_family, typefaceSpecific, expected_xml = set_pitch_family_fixture
+        bullet_typeface.pitch_family = pitch_family
+        assert typefaceSpecific.xml == expected_xml
+
+
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def typeface_type_fixture(self):
+        xBulletTypeface = element("a:buFont")
+        specific_typeface = _BulletTypefaceFollowText(xBulletTypeface)
+        expected_value = "BulletTypefaceSpecific"
+        return specific_typeface, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", None),
+            ("a:buFont{typeface=Arial}", "Arial"),
+     
+        ]
+    )
+    def get_typeface_fixture(self, request):
+        bulletTypeface_cxml, expected_value = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", "Arial", "a:buFont{typeface=Arial}"),
+            ("a:buFont{typeface=Calibri}", "Arial", "a:buFont{typeface=Arial}"),
+        ]
+    )
+    def set_typeface_fixture(self, request):
+        bulletTypeface_cxml, typeface, expected_cxml = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        expected_xml = xml(expected_cxml)
+
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, typeface, bulletTypeface, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", None),
+            ("a:buFont{panose=Foobar}", "Foobar"),
+        ]
+    )
+    def get_panose_fixture(self, request):
+        bulletTypeface_cxml, expected_value = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", "Foobar", "a:buFont{panose=Foobar}"),
+            ("a:buFont{panose=Foobar}", "Barfoo", "a:buFont{panose=Barfoo}"),
+            ("a:buFont{panose=Foobar}", None, "a:buFont"),
+        ]
+    )
+    def set_panose_fixture(self, request):
+        bulletTypeface_cxml, panose, expected_cxml = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        expected_xml = xml(expected_cxml)
+
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, panose, bulletTypeface, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", None),
+            ("a:buFont{charset=0}", 0),
+        ]
+    )
+    def get_charset_fixture(self, request):
+        bulletTypeface_cxml, expected_value = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", 1, "a:buFont{charset=1}"),
+            ("a:buFont{charset=0}", 1, "a:buFont{charset=1}"),
+            ("a:buFont{charset=1}", 0, "a:buFont{charset=0}"),
+        ]
+    )
+    def set_charset_fixture(self, request):
+        bulletTypeface_cxml, charset, expected_cxml = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        expected_xml = xml(expected_cxml)
+
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, charset, bulletTypeface, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", None),
+            ("a:buFont{pitchFamily=1}", 1),
+        ]
+    )
+    def get_pitch_family_fixture(self, request):
+        bulletTypeface_cxml, expected_value = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, expected_value
+
+
+    @pytest.fixture(
+        params=[
+            ("a:buFont", 1, "a:buFont{pitchFamily=1}"),
+            ("a:buFont{pitchFamily=0}", 1, "a:buFont{pitchFamily=1}"),
+            ("a:buFont{pitchFamily=1}", 0, "a:buFont{pitchFamily=0}"),
+        ]
+    )
+    def set_pitch_family_fixture(self, request):
+        bulletTypeface_cxml, pitch_family, expected_cxml = request.param
+        bulletTypeface = element(bulletTypeface_cxml)
+        expected_xml = xml(expected_cxml)
+
+        bullet_typeface_specific = _BulletTypefaceSpecific(bulletTypeface)
+        return bullet_typeface_specific, pitch_family, bulletTypeface, expected_xml
 

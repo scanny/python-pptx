@@ -500,6 +500,8 @@ class _TextBulletSizePoints(_TextBulletSize):
     @property
     def points(self):
         """ Returns the point value for the bullet size """
+        if self._bullet_size.val is None:
+            return None
         return Centipoints(self._bullet_size.val)
             
     @points.setter
