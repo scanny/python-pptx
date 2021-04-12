@@ -232,6 +232,7 @@ class DescribeNoBullet(object):
         expected_value = "NoBullet"
         return no_bullet, expected_value
 
+
 class DescribeAutoNumBullet(object):
     def it_knows_its_bullet_type(self, bullet_type_fixture):
         no_bullet, expected_value = bullet_type_fixture
@@ -330,6 +331,17 @@ class DescribeCharBullet(object):
         bullet_type = no_bullet.type
         assert bullet_type == expected_value
 
+    def it_knows_its_char(self, char_get_fixture):
+        char_bullet, expected_value = char_get_fixture
+        char = char_bullet.char
+        assert char == expected_value
+
+    def it_can_change_its_char(self, char_set_fixture):
+        char_bullet, char, charBullet, expected_xml = char_set_fixture
+        char_bullet.char = char
+        assert charBullet.xml == expected_xml
+    
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -338,4 +350,34 @@ class DescribeCharBullet(object):
         char_bullet = _NoBullet(xBullet)
         expected_value = "CharBullet"
         return char_bullet, expected_value
+
+    
+    @pytest.fixture(
+        params=[
+            ("a:buChar{char=-}", "-"),
+            ("a:buChar{char=_}", "_"),
+        ]
+    )
+    def char_get_fixture(self, request):
+        charBullet_cxml, expected_value = request.param
+        charBullet = element(charBullet_cxml)
+
+        char_bullet = _CharBullet(charBullet)
+        return char_bullet, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buChar{char=-}", "_", "a:buChar{char=_}"),
+            ("a:buChar{char=_}", "-", "a:buChar{char=-}"),
+        ]
+    )
+    def char_set_fixture(self, request):
+        charBullet_cxml, char, expected_cxml = request.param
+        charBullet = element(charBullet_cxml)
+        expected_xml = xml(expected_cxml)
+
+        char_bullet = _CharBullet(charBullet)
+        return char_bullet, char, charBullet, expected_xml
+
+
 
