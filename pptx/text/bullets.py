@@ -358,21 +358,23 @@ class TextBulletSize(object):
         follow_text = self._parent.get_or_change_to_buSzTx()
         self._bullet_size = _TextBulletSizeFollowText(follow_text)
 
-    def set_points(self, value):
+    def set_points(self, value=None):
         """
         Sets the TextBulletSize to _TextBulletSizePoints and sets the points value
         """
         points = self._parent.get_or_change_to_buSzPts()
         self._bullet_size = _TextBulletSizePoints(points)
-        self.points = value
+        if value:
+            self.points = value
 
-    def set_percentage(self, value):
+    def set_percentage(self, value=None):
         """
-        Sets the textBulletSize to _TextBulletSizePercentage and sets the percent value
+        Sets the textBulletSize to _TextBulletSizePercent and sets the percent value
         """
         percentage = self._parent.get_or_change_to_buSzPct()
         self._bullet_size = _TextBulletSizePercent(percentage)
-        self.percentage = value
+        if value:
+            self.percentage = value
 
     @property
     def points(self):
@@ -552,11 +554,11 @@ class TextBulletTypeface(object):
     
     @property
     def pitch_family(self):
-        return self._bullet_typeface.pitchFamily
+        return self._bullet_typeface.pitch_family
 
     @pitch_family.setter
     def pitch_family(self, value):
-        self._bullet_typeface.pitchFamily = value
+        self._bullet_typeface.pitch_family = value
 
     @property
     def panose(self):
