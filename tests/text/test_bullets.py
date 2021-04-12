@@ -178,3 +178,164 @@ class DescribeTextBullet(object):
     @pytest.fixture
     def type_prop_(self, request):
         return property_mock(request, TextBullet, "type")
+
+
+class Describe_Bullet(object):
+    def it_raises_on_char_access(self, char_raise_fixture):
+        bullet, exception_type = char_raise_fixture
+        with pytest.raises(exception_type):
+            bullet.char
+
+    def it_raises_on_char_type_access(self, char_type_raise_fixture):
+        bullet, exception_type = char_type_raise_fixture
+        with pytest.raises(exception_type):
+            bullet.char_type
+
+    def it_raises_on_start_at_access(self, start_at_raise_fixture):
+        bullet, exception_type = start_at_raise_fixture
+        with pytest.raises(exception_type):
+            bullet.start_at
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def char_raise_fixture(self):
+        bullet = _Bullet("foobar")
+        exception_type = TypeError
+        return bullet, exception_type
+
+    @pytest.fixture
+    def char_type_raise_fixture(self):
+        bullet = _Bullet("foobar")
+        exception_type = TypeError
+        return bullet, exception_type
+
+    @pytest.fixture
+    def start_at_raise_fixture(self):
+        bullet = _Bullet("foobar")
+        exception_type = TypeError
+        return bullet, exception_type
+
+
+class DescribeNoBullet(object):
+    def it_knows_its_bullet_type(self, bullet_type_fixture):
+        no_bullet, expected_value = bullet_type_fixture
+        bullet_type = no_bullet.type
+        assert bullet_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def bullet_type_fixture(self):
+        xBullet = element("a:buNone")
+        no_bullet = _NoBullet(xBullet)
+        expected_value = "NoBullet"
+        return no_bullet, expected_value
+
+class DescribeAutoNumBullet(object):
+    def it_knows_its_bullet_type(self, bullet_type_fixture):
+        no_bullet, expected_value = bullet_type_fixture
+        bullet_type = no_bullet.type
+        assert bullet_type == expected_value
+
+    def it_knows_its_start_at(self, start_at_get_fixture):
+        auto_num_bullet, expected_value = start_at_get_fixture
+        start_at = auto_num_bullet.start_at
+        assert start_at == expected_value
+
+    def it_can_change_its_start_at(self, start_at_set_fixture):
+        auto_num_bullet, start_at, autoNumBullet, expected_xml = start_at_set_fixture
+        auto_num_bullet.start_at = start_at
+        assert autoNumBullet.xml == expected_xml
+    
+    def it_knows_its_char_type(self, char_type_get_fixture):
+        auto_num_bullet, expected_value = char_type_get_fixture
+        char_type = auto_num_bullet.char_type
+        assert char_type == expected_value
+
+    def it_can_change_its_char_type(self, char_type_set_fixture):
+        auto_num_bullet, char_type, autoNumBullet, expected_xml = char_type_set_fixture
+        auto_num_bullet.char_type = char_type
+        assert autoNumBullet.xml == expected_xml
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def bullet_type_fixture(self):
+        xBullet = element("a:buAutoNum")
+        auto_num_bullet = _AutoNumBullet(xBullet)
+        expected_value = "AutoNumBullet"
+        return auto_num_bullet, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buAutoNum", 1),
+            ("a:buAutoNum{startAt=10}", 10)
+        ]
+    )
+    def start_at_get_fixture(self, request):
+        autoNumBullet_cxml, expected_value = request.param
+        autoNumBullet = element(autoNumBullet_cxml)
+
+        auto_number_bullet = _AutoNumBullet(autoNumBullet)
+        return auto_number_bullet, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buAutoNum" ,5, "a:buAutoNum{startAt=5}"),
+            ("a:buAutoNum{startAt=5}", 1, "a:buAutoNum"),
+            ("a:buAutoNum", 12, "a:buAutoNum{startAt=12}"),
+        ]
+    )
+    def start_at_set_fixture(self, request):
+        autoNumBullet_cxml, start_at, expected_cxml = request.param
+        autoNumBullet = element(autoNumBullet_cxml)
+        expected_xml = xml(expected_cxml)
+
+        auto_number_bullet = _AutoNumBullet(autoNumBullet)
+        return auto_number_bullet, start_at, autoNumBullet, expected_xml
+
+
+    @pytest.fixture(
+        params=[
+            ("a:buAutoNum{type=alphaLcParenBoth}", AUTO_NUMBER_SCHEME.ALPHA_LOWER_CHARACTER_PAREN_BOTH),
+            ("a:buAutoNum{type=arabicPeriod}", AUTO_NUMBER_SCHEME.ARABIC_PERIOD),
+        ]
+    )
+    def char_type_get_fixture(self, request):
+        autoNumBullet_cxml, expected_value = request.param
+        autoNumBullet = element(autoNumBullet_cxml)
+
+        auto_number_bullet = _AutoNumBullet(autoNumBullet)
+        return auto_number_bullet, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:buAutoNum{type=alphaLcParenBoth}", AUTO_NUMBER_SCHEME.ARABIC_1_MINUS, "a:buAutoNum{type=arabic1Minus}"),
+            ("a:buAutoNum{type=alphaLcParenBoth}", AUTO_NUMBER_SCHEME.ROMAN_UPPER_CHARACTER_PERIOD, "a:buAutoNum{type=romanUcPeriod}"),
+        ]
+    )
+    def char_type_set_fixture(self, request):
+        autoNumBullet_cxml, char_type, expected_cxml = request.param
+        autoNumBullet = element(autoNumBullet_cxml)
+        expected_xml = xml(expected_cxml)
+
+        auto_number_bullet = _AutoNumBullet(autoNumBullet)
+        return auto_number_bullet, char_type, autoNumBullet, expected_xml
+
+
+class DescribeCharBullet(object):
+    def it_knows_its_bullet_type(self, bullet_type_fixture):
+        no_bullet, expected_value = bullet_type_fixture
+        bullet_type = no_bullet.type
+        assert bullet_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def bullet_type_fixture(self):
+        xBullet = element("a:buChar")
+        char_bullet = _NoBullet(xBullet)
+        expected_value = "CharBullet"
+        return char_bullet, expected_value
+
