@@ -380,4 +380,18 @@ class DescribeCharBullet(object):
         return char_bullet, char, charBullet, expected_xml
 
 
+class DescribePictureBullet(object):
+    def it_knows_its_bullet_type(self, bullet_type_fixture):
+        picture_bullet, expected_value = bullet_type_fixture
+        bullet_type = picture_bullet.type
+        assert bullet_type == expected_value
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def bullet_type_fixture(self):
+        xBullet = element("a:buBlip")
+        picture_bullet = _PictureBullet(xBullet)
+        expected_value = "PictureBullet"
+        return picture_bullet, expected_value
 
