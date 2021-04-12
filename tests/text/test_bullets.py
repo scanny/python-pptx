@@ -186,6 +186,8 @@ class DescribeTextBullet(object):
 
 
 class Describe_Bullet(object):
+    """ Unit-test suite for `pptx.text.bullets._Bullet` object. """
+
     def it_raises_on_char_access(self, char_raise_fixture):
         bullet, exception_type = char_raise_fixture
         with pytest.raises(exception_type):
@@ -240,6 +242,7 @@ class DescribeNoBullet(object):
 
 
 class DescribeAutoNumBullet(object):
+    """ Unit-test suite for `pptx.text.bullets._AutoNumBullet` object. """
     def it_knows_its_bullet_type(self, bullet_type_fixture):
         no_bullet, expected_value = bullet_type_fixture
         bullet_type = no_bullet.type
@@ -332,6 +335,7 @@ class DescribeAutoNumBullet(object):
 
 
 class DescribeCharBullet(object):
+    """ Unit-test suite for `pptx.text.bullets._CharBullet` object. """
     def it_knows_its_bullet_type(self, bullet_type_fixture):
         no_bullet, expected_value = bullet_type_fixture
         bullet_type = no_bullet.type
@@ -387,6 +391,7 @@ class DescribeCharBullet(object):
 
 
 class DescribePictureBullet(object):
+    """ Unit-test suite for `pptx.text.bullets._CharBullet` object. """
     def it_knows_its_bullet_type(self, bullet_type_fixture):
         picture_bullet, expected_value = bullet_type_fixture
         bullet_type = picture_bullet.type
@@ -697,6 +702,7 @@ class DescribeTextBulletSize(object):
         return property_mock(request, TextBulletSize, "type")
 
 class Describe_TextBulletSize(object):
+    """ Unit-test suite for `pptx.text.bullets._TextBulletSize` object. """
     def it_raises_on_points_access(self, points_raise_fixture):
         bullet_size, exception_type = points_raise_fixture
         with pytest.raises(exception_type):
@@ -980,6 +986,7 @@ class DescribeTextBulletTypeface(object):
         return property_mock(request, TextBulletTypeface, "type")
 
 class Describe_BulletTypeface(object):
+    """ Unit-test suite for `pptx.text.bullets._BulletTypeface` object. """
     def it_raises_on_typeface_access(self, typeface_raise_fixture):
         bullet_typeface, exception_type = typeface_raise_fixture
         with pytest.raises(exception_type):
