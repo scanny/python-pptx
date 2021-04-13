@@ -13,7 +13,7 @@ from ..opc.packuri import PackURI
 from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from ..oxml.theme import CT_OfficeStyleSheet
 from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
-from ..theme import Theme
+from ..theme import Theme, ColorMap
 from ..util import lazyproperty
 
 
@@ -301,6 +301,13 @@ class SlideMasterPart(BaseSlidePart):
         """
         return self.part_related_by(RT.THEME).theme
     
+
+    @lazyproperty
+    def color_map(self):
+        """
+        The color mapping of the theme
+        """
+        return ColorMap(self._element.clrMap)
 
 class ThemePart(XmlPart):
     """

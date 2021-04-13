@@ -478,6 +478,10 @@ class SlideMaster(_BaseMaster):
         """|Theme| object providing access to this slide-master's theme."""
         return self.part.related_theme
 
+    @property
+    def color_map(self):
+        return self.part.color_map
+
 
 class SlideMasters(ParentedElementProxy):
     """Sequence of |SlideMaster| objects belonging to a presentation.

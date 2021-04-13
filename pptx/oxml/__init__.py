@@ -530,8 +530,9 @@ from .theme import (
     CT_ColorScheme,
     CT_FontScheme,
     CT_StyleMatrix,
+    CT_ColorMapping,
 )
-
+register_element_cls("p:clrMap", CT_ColorMapping)
 register_element_cls("a:theme", CT_OfficeStyleSheet)
 register_element_cls("a:themeElements", CT_BaseStyles)
 register_element_cls("a:clrScheme", CT_ColorScheme)
