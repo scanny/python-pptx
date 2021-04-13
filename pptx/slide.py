@@ -473,6 +473,11 @@ class SlideMaster(_BaseMaster):
         """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
 
+    @property
+    def theme(self):
+        """|Theme| object providing access to this slide-master's theme."""
+        return self.part.related_theme
+
 
 class SlideMasters(ParentedElementProxy):
     """Sequence of |SlideMaster| objects belonging to a presentation.

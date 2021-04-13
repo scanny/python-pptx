@@ -16,6 +16,7 @@ from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
+from pptx.shared import ElementProxy
 
 
 class TextFrame(Subshape):
@@ -831,3 +832,22 @@ class _Run(Subshape):
     @text.setter
     def text(self, str):
         self._r.text = to_unicode(str)
+
+
+class TextFont(ElementProxy):
+    @property
+    def typeface(self):
+        return self._element.typeface
+
+    @property
+    def pitch_family(self):
+        return self._element.pitchFamily
+
+    @property
+    def panose(self):
+        return self._element.panose
+    
+    @property
+    def charset(self):
+        return self._element.charset
+    

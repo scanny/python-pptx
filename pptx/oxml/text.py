@@ -359,9 +359,9 @@ class CT_TextFont(BaseOxmlElement):
     """
 
     typeface = OptionalAttribute("typeface", ST_TextTypeface)
-    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
+    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily, default=0)
     panose = OptionalAttribute("panose", ST_TextPanose)
-    charset = OptionalAttribute("charset", ST_TextCharset)
+    charset = OptionalAttribute("charset", ST_TextCharset, default=1)
 
 
 class CT_TextLineBreak(BaseOxmlElement):
@@ -690,3 +690,33 @@ class CT_TextBlipBullet(BaseOxmlElement):
     NOTE: Not fully Implemented yet
     """
     blip = OneAndOnlyOne("a:blip")
+
+
+
+class CT_FontCollection(BaseOxmlElement):
+    """
+    Custom element class for <a:font>, <a:majorFont>, <a:minorFont>
+    """
+
+    _tag_seq = (
+        "a:latin",
+        "a:ea",
+        "a:cs",
+        "a:font",
+        "a:extLst",
+    )
+
+    latin = OneAndOnlyOne("a:latin")
+    ea = OneAndOnlyOne("a:ea")
+    cs = OneAndOnlyOne("a:cs")
+    font = ZeroOrMore("a:font", successors=_tag_seq[4:])
+
+
+
+class CT_SupplementalFont(BaseOxmlElement):
+    """
+    Custom Element class for supplemental fonts
+    """
+    script = RequiredAttribute("script", XsdString)
+    typeface = RequiredAttribute("typeface", ST_TextTypeface)
+

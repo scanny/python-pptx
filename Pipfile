@@ -16,4 +16,4 @@ XlsxWriter = ">=0.5.7"
 [dev-packages]
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"

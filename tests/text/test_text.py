@@ -14,7 +14,7 @@ from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.shapes.autoshape import Shape
-from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame
+from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame, TextFont
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
@@ -1411,3 +1411,57 @@ class Describe_Run(object):
     @pytest.fixture
     def hlink_(self, request):
         return instance_mock(request, _Hyperlink)
+
+
+class Describe_TextFont(object):
+    def it_knows_its_typeface(self, typeface_get_fixture):
+        text_font, expected_value = typeface_get_fixture
+        assert text_font.typeface == expected_value
+
+    def it_knows_its_panose(self, panose_get_fixture):
+        text_font, expected_value = panose_get_fixture
+        assert text_font.panose == expected_value
+
+    def it_knows_its_pitch_family(self, pitch_get_fixture):
+        text_font, expected_value = pitch_get_fixture
+        assert text_font.pitch_family == expected_value
+
+    def it_knows_its_charset(self, charset_get_fixture):
+        text_font, expected_value = charset_get_fixture
+        assert text_font.charset == expected_value
+
+    # fixtures ---------------------------------------------
+
+
+    @pytest.fixture(
+        params=[("a:latin", None), ("a:latin{typeface=Foobar}", "Foobar")]
+    )
+    def typeface_get_fixture(self, request):
+        latin_cxml, expected_value = request.param
+        text_font = TextFont(element(latin_cxml))
+        return text_font, expected_value
+
+    @pytest.fixture(
+        params=[("a:latin", None), ("a:latin{panose=020F0502020204030204}", "020F0502020204030204")]
+    )
+    def panose_get_fixture(self, request):
+        latin_cxml, expected_value = request.param
+        text_font = TextFont(element(latin_cxml))
+        return text_font, expected_value
+
+    @pytest.fixture(
+        params=[("a:latin", 0), ("a:latin{pitchFamily=1}", 1), ("a:latin{pitchFamily=0}", 0)]
+    )
+    def pitch_get_fixture(self, request):
+        latin_cxml, expected_value = request.param
+        text_font = TextFont(element(latin_cxml))
+        return text_font, expected_value
+
+    @pytest.fixture(
+        params=[("a:latin", 1), ("a:latin{charset=0}", 0), ("a:latin{charset=1}", 1)]
+    )
+    def charset_get_fixture(self, request):
+        latin_cxml, expected_value = request.param
+        text_font = TextFont(element(latin_cxml))
+        return text_font, expected_value
+

@@ -4,10 +4,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ..enum.dml import MSO_FILL
-from .fill import FillFormat
 from .line import LineFormat
-from ..util import Emu, lazyproperty
 
 
 class BorderFormat(LineFormat):

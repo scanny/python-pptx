@@ -483,6 +483,8 @@ from .text import (  # noqa: E402
     CT_TextNoBullet,
     CT_TextBulletTypefaceFollowText,
     CT_TextBlipBullet,
+    CT_FontCollection,
+    CT_SupplementalFont,
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -516,8 +518,37 @@ register_element_cls("a:spcPts", CT_TextSpacingPoint)
 register_element_cls("a:txBody", CT_TextBody)
 register_element_cls("c:txPr", CT_TextBody)
 register_element_cls("p:txBody", CT_TextBody)
+register_element_cls("a:ea", CT_TextFont)
+register_element_cls("a:cs", CT_TextFont)
+register_element_cls("a:font", CT_SupplementalFont)
 
 
-from .theme import CT_OfficeStyleSheet  # noqa: E402
+
+from .theme import (
+    CT_OfficeStyleSheet,  # noqa: E402
+    CT_BaseStyles,
+    CT_ColorScheme,
+    CT_FontScheme,
+    CT_StyleMatrix,
+)
 
 register_element_cls("a:theme", CT_OfficeStyleSheet)
+register_element_cls("a:themeElements", CT_BaseStyles)
+register_element_cls("a:clrScheme", CT_ColorScheme)
+register_element_cls("a:fontScheme", CT_FontScheme)
+register_element_cls("a:fmtScheme", CT_StyleMatrix)
+register_element_cls("a:theme", CT_OfficeStyleSheet)
+register_element_cls("a:dk1", CT_Color)
+register_element_cls("a:lt1", CT_Color)
+register_element_cls("a:dk2", CT_Color)
+register_element_cls("a:lt2", CT_Color)
+register_element_cls("a:accent1", CT_Color)
+register_element_cls("a:accent2", CT_Color)
+register_element_cls("a:accent3", CT_Color)
+register_element_cls("a:accent4", CT_Color)
+register_element_cls("a:accent5", CT_Color)
+register_element_cls("a:accent6", CT_Color)
+register_element_cls("a:hlink", CT_Color)
+register_element_cls("a:folHlink", CT_Color)
+register_element_cls("a:majorFont", CT_FontCollection)
+register_element_cls("a:minorFont", CT_FontCollection)

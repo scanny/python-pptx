@@ -720,6 +720,25 @@ class ZeroOrOneChoice(_BaseChildElement):
         return "_remove_%s" % self._prop_name
 
 
+class ZeroOrMoreChoice(ZeroOrOneChoice):
+    """
+    Used in the Theme Style Lists.  
+    Technically it should be ThreeOrMoreChoice but we are using it
+    in a readonly context so it doesn't really matter.      
+    """
+
+    def populate_class_members(self, element_cls, prop_name):
+        """
+        Add the appropriate methods to *element_cls*.
+        """
+        super(ZeroOrMoreChoice, self).populate_class_members(element_cls, prop_name)
+        self._add_choice_getter()
+        for choice in self._choices:
+            choice.populate_class_members(
+                element_cls, self._prop_name, self._successors
+            )
+
+
 class _OxmlElementBase(etree.ElementBase):
     """
     Provides common behavior for oxml element classes

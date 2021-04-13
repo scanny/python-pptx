@@ -26,6 +26,7 @@ from pptx.parts.slide import (  # noqa: E402
     SlideLayoutPart,
     SlideMasterPart,
     SlidePart,
+    ThemePart,
 )
 
 content_type_to_part_class_map = {
@@ -39,6 +40,7 @@ content_type_to_part_class_map = {
     CT.PML_SLIDE: SlidePart,
     CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
     CT.PML_SLIDE_MASTER: SlideMasterPart,
+    CT.OFC_THEME: ThemePart,
     CT.DML_CHART: ChartPart,
     CT.BMP: ImagePart,
     CT.GIF: ImagePart,
