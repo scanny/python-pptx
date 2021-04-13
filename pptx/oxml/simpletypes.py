@@ -998,3 +998,24 @@ class ST_PresetColorVal(XsdTokenEnumeration):
         "yellowGreen"        
     )
     _members = color_values
+
+class ST_ColorSchemeIndex(XsdTokenEnumeration):
+    """
+    Valid vlaues for scheme color attribute
+    """
+    color_values = (
+        "dk1",
+        "lt1",
+        "dk2",
+        "lt2",
+        "accent1",
+        "accent2",
+        "accent3",
+        "accent4",
+        "accent5",
+        "accent6",
+        "hlink",
+        "folHlink",
+    )
+    _members = color_values
+
