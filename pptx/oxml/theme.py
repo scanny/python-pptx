@@ -173,3 +173,6 @@ class CT_ColorMapping(BaseOxmlElement):
     hlink = RequiredAttribute("hlink", ST_ColorSchemeIndex)
     folHlink = RequiredAttribute("folHlink", ST_ColorSchemeIndex)
     
+class CT_EmptyElement(BaseOxmlElement):
+    """ An Empty Element with no attributes or properties """
+    pass

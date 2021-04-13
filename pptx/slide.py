@@ -249,6 +249,11 @@ class Slide(_BaseSlide):
         |SlideLayout| object this slide inherits appearance from.
         """
         return self.part.slide_layout
+    
+    @property
+    def color_map_override(self):
+        """ A new |ColorMap| to override that from the Slide Master or None"""
+        return self.part.color_map_override
 
 
 class Slides(ParentedElementProxy):
@@ -381,6 +386,11 @@ class SlideLayout(_BaseSlide):
         deleted and inheritance from the master restored.
         """
         return self._element.bg is None
+
+    @property
+    def color_map_override(self):
+        """ A new |ColorMap| to override that from the Slide Master or None"""
+        return self.part.color_map_override
 
 class SlideLayouts(ParentedElementProxy):
     """Sequence of slide layouts belonging to a slide-master.

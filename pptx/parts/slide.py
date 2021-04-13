@@ -252,6 +252,16 @@ class SlidePart(BaseSlidePart):
         self.relate_to(notes_slide_part, RT.NOTES_SLIDE)
         return notes_slide_part
 
+    @property
+    def color_map_override(self):
+        """
+        Color Mapping object to override those in the slide master
+        """
+        override = self._element.clrMapOvr.color_map_override
+        if override is not None:
+            return ColorMap(override)
+        return None
+
 
 class SlideLayoutPart(BaseSlidePart):
     """
@@ -273,6 +283,15 @@ class SlideLayoutPart(BaseSlidePart):
         """
         return self.part_related_by(RT.SLIDE_MASTER).slide_master
 
+    @property
+    def color_map_override(self):
+        """
+        Color Mapping object to override those in the slide master
+        """
+        override = self._element.clrMapOvr.color_map_override
+        if override is not None:
+            return ColorMap(override)
+        return None
 
 class SlideMasterPart(BaseSlidePart):
     """
@@ -308,6 +327,7 @@ class SlideMasterPart(BaseSlidePart):
         The color mapping of the theme
         """
         return ColorMap(self._element.clrMap)
+
 
 class ThemePart(XmlPart):
     """

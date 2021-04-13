@@ -257,7 +257,9 @@ class CT_SlideLayout(_BaseSlideElement):
     """
 
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:hf", "p:extLst")
-    cSld = OneAndOnlyOne("p:cSld")
+    cSld = OneAndOnlyOne("p:cSld") 
+    clrMapOvr = ZeroOrOne("p:clrMapOvr", successors=_tag_seq[2:])
+
     del _tag_seq
     
     @property
@@ -283,6 +285,25 @@ class CT_SlideLayoutIdListEntry(BaseOxmlElement):
     """
 
     rId = RequiredAttribute("r:id", XsdString)
+
+class CT_ColorMappingOverride(BaseOxmlElement):
+    """
+    ``<p:clrMapOvr>`` element containing an optional overwritten color map
+    """
+    eg_colorMappingOverride = ZeroOrOneChoice(
+        (
+            Choice("a:masterClrMapping"),
+            Choice("a:overrideClrMapping")
+        )
+    )
+
+    @property
+    def color_map_override(self):
+        if self.overrideClrMapping is not None:
+            return self.overrideClrMapping
+        else:
+            return None
+
 
 
 class CT_SlideMaster(_BaseSlideElement):

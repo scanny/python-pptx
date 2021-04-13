@@ -417,6 +417,7 @@ from .slide import (  # noqa: E402
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLMediaNodeVideo,
+    CT_ColorMappingOverride,
 )
 
 register_element_cls("p:bg", CT_Background)
@@ -432,6 +433,7 @@ register_element_cls("p:sldLayoutIdLst", CT_SlideLayoutIdList)
 register_element_cls("p:sldMaster", CT_SlideMaster)
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
+register_element_cls("p:clrMapOvr", CT_ColorMappingOverride)
 
 
 from .table import (  # noqa: E402
@@ -531,8 +533,10 @@ from .theme import (
     CT_FontScheme,
     CT_StyleMatrix,
     CT_ColorMapping,
+    CT_EmptyElement,
 )
 register_element_cls("p:clrMap", CT_ColorMapping)
+register_element_cls("a:overrideClrMapping", CT_ColorMapping)
 register_element_cls("a:theme", CT_OfficeStyleSheet)
 register_element_cls("a:themeElements", CT_BaseStyles)
 register_element_cls("a:clrScheme", CT_ColorScheme)
@@ -553,3 +557,4 @@ register_element_cls("a:hlink", CT_Color)
 register_element_cls("a:folHlink", CT_Color)
 register_element_cls("a:majorFont", CT_FontCollection)
 register_element_cls("a:minorFont", CT_FontCollection)
+register_element_cls("a:masterClrMapping", CT_EmptyElement)
