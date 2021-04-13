@@ -1166,7 +1166,7 @@ class DescribeBulletTypefaceSpecific(object):
 
     @pytest.fixture(
         params=[
-            ("a:buFont", None),
+            ("a:buFont", 1),
             ("a:buFont{charset=0}", 0),
         ]
     )
@@ -1178,8 +1178,8 @@ class DescribeBulletTypefaceSpecific(object):
 
     @pytest.fixture(
         params=[
-            ("a:buFont", 1, "a:buFont{charset=1}"),
-            ("a:buFont{charset=0}", 1, "a:buFont{charset=1}"),
+            ("a:buFont", 1, "a:buFont"),
+            ("a:buFont{charset=0}", 1, "a:buFont"),
             ("a:buFont{charset=1}", 0, "a:buFont{charset=0}"),
         ]
     )
@@ -1193,7 +1193,7 @@ class DescribeBulletTypefaceSpecific(object):
 
     @pytest.fixture(
         params=[
-            ("a:buFont", None),
+            ("a:buFont", 0),
             ("a:buFont{pitchFamily=1}", 1),
         ]
     )
@@ -1208,7 +1208,7 @@ class DescribeBulletTypefaceSpecific(object):
         params=[
             ("a:buFont", 1, "a:buFont{pitchFamily=1}"),
             ("a:buFont{pitchFamily=0}", 1, "a:buFont{pitchFamily=1}"),
-            ("a:buFont{pitchFamily=1}", 0, "a:buFont{pitchFamily=0}"),
+            ("a:buFont{pitchFamily=1}", 0, "a:buFont"),
         ]
     )
     def set_pitch_family_fixture(self, request):
