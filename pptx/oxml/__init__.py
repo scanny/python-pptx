@@ -292,7 +292,6 @@ register_element_cls("p:sldMasterId", CT_SlideMasterIdListEntry)
 register_element_cls("p:sldMasterIdLst", CT_SlideMasterIdList)
 register_element_cls("p:sldSz", CT_SlideSize)
 
-
 from .shapes.autoshape import (  # noqa: E402
     CT_AdjPoint2D,
     CT_CustomGeometry2D,
@@ -418,6 +417,7 @@ from .slide import (  # noqa: E402
     CT_TimeNodeList,
     CT_TLMediaNodeVideo,
     CT_ColorMappingOverride,
+    CT_TextListStyle,
 )
 
 register_element_cls("p:bg", CT_Background)
@@ -434,6 +434,9 @@ register_element_cls("p:sldMaster", CT_SlideMaster)
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
 register_element_cls("p:clrMapOvr", CT_ColorMappingOverride)
+register_element_cls("p:titleStyle", CT_TextListStyle)
+register_element_cls("p:bodyStyle", CT_TextListStyle)
+register_element_cls("p:otherStyle", CT_TextListStyle)
 
 
 from .table import (  # noqa: E402
@@ -523,6 +526,16 @@ register_element_cls("p:txBody", CT_TextBody)
 register_element_cls("a:ea", CT_TextFont)
 register_element_cls("a:cs", CT_TextFont)
 register_element_cls("a:font", CT_SupplementalFont)
+register_element_cls("a:defPPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl1pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl2pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl3pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl4pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl5pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl6pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl7pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl8pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl9pPr", CT_TextParagraphProperties)
 
 
 
