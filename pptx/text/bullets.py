@@ -22,7 +22,7 @@ from pptx.oxml.text import (
 )
 from pptx.oxml.dml.color import CT_Color
 from pptx.dml.color import ColorFormat, _SchemeColor, RGBColor
-from pptx.util import Pt, Centipoints, Emu
+from pptx.util import Pt, Centipoints, Emu, lazyproperty
 
 class TextBullet(object):
     """
@@ -254,14 +254,12 @@ class TextBulletColor(object):
         follow_text = self._parent.get_or_change_to_buClrTx()
         self._bullet_color = _TextBulletColorFollowText(follow_text)
 
-    def set_color(self, color=None):
+    def set_color(self):
         """
-        Sets the TextBulletColor to _TextBulletColorSpecific and sets the color
+        Sets the TextBulletColor to _TextBulletColorSpecific
         """
         bullet_color = self._parent.get_or_change_to_buClr()
         self._bullet_color = _TextBulletColorSpecific(bullet_color)
-        if color:
-            self.color = color
 
     @property
     def type(self):
@@ -272,22 +270,6 @@ class TextBulletColor(object):
     def color(self):
         """ Return the |ColorFormat| object """
         return self._bullet_color.color
-    
-    @color.setter
-    def color(self, value):
-        """
-        Set the value of the color as either an RGB or Theme Color
-        """
-        if not isinstance(self._bullet_color, _TextBulletColorSpecific):
-            raise TypeError("TextBulletColor is not of type +TextBulletColorSpecific")
-        color_obj = self._bullet_color.color
-        if isinstance(value, RGBColor):
-            color_obj.rgb = value
-        elif isinstance(value, _SchemeColor):
-            color_obj.theme_color = value
-        else:
-            raise TypeError("Provided color value is incorrect type")
-     
 
 class _TextBulletColor(object):
     """
@@ -317,14 +299,6 @@ class _TextBulletColor(object):
         )
         raise TypeError(tmpl % self.__class__.__name__)
 
-    @color.setter
-    def color(self, value):
-        """Raise TypeError for types that do not override this property."""
-        tmpl = (
-            "TextBulletColor type %s has no color, call .set_color() first"
-        )
-        raise TypeError(tmpl % self.__class__.__name__)
-
 
 class _TextBulletColorFollowText(_TextBulletColor):
     """
@@ -348,6 +322,7 @@ class _TextBulletColorSpecific(_TextBulletColor):
 
     @property
     def color(self):
+        print("COLORS")
         return ColorFormat.from_colorchoice_parent(self._bullet_color)
 
 
@@ -383,21 +358,23 @@ class TextBulletSize(object):
         follow_text = self._parent.get_or_change_to_buSzTx()
         self._bullet_size = _TextBulletSizeFollowText(follow_text)
 
-    def set_points(self, value):
+    def set_points(self, value=None):
         """
         Sets the TextBulletSize to _TextBulletSizePoints and sets the points value
         """
         points = self._parent.get_or_change_to_buSzPts()
         self._bullet_size = _TextBulletSizePoints(points)
-        self.points = value
+        if value:
+            self.points = value
 
-    def set_percentage(self, value):
+    def set_percentage(self, value=None):
         """
-        Sets the textBulletSize to _TextBulletSizePercentage and sets the percent value
+        Sets the textBulletSize to _TextBulletSizePercent and sets the percent value
         """
         percentage = self._parent.get_or_change_to_buSzPct()
         self._bullet_size = _TextBulletSizePercent(percentage)
-        self.percentage = value
+        if value:
+            self.percentage = value
 
     @property
     def points(self):
@@ -523,6 +500,8 @@ class _TextBulletSizePoints(_TextBulletSize):
     @property
     def points(self):
         """ Returns the point value for the bullet size """
+        if self._bullet_size.val is None:
+            return None
         return Centipoints(self._bullet_size.val)
             
     @points.setter
@@ -577,11 +556,11 @@ class TextBulletTypeface(object):
     
     @property
     def pitch_family(self):
-        return self._bullet_typeface.pitchFamily
+        return self._bullet_typeface.pitch_family
 
     @pitch_family.setter
     def pitch_family(self, value):
-        self._bullet_typeface.pitchFamily = value
+        self._bullet_typeface.pitch_family = value
 
     @property
     def panose(self):

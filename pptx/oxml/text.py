@@ -358,7 +358,7 @@ class CT_TextFont(BaseOxmlElement):
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
     """
 
-    typeface = RequiredAttribute("typeface", ST_TextTypeface)
+    typeface = OptionalAttribute("typeface", ST_TextTypeface)
     pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
     panose = OptionalAttribute("panose", ST_TextPanose)
     charset = OptionalAttribute("charset", ST_TextCharset)
