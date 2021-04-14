@@ -143,6 +143,33 @@ class ColorFormat(object):
             self._color = _SysColor(sysColor)
         self._color.system_color = value
     
+    @property
+    def red(self):
+        """ SCRGB Red Value """
+        return self._color.red
+    
+    @red.setter
+    def red(self, percent):
+        self._color.red = percent
+
+    @property
+    def blue(self):
+        """ SCRGB Blue Value """
+        return self._color.reblued
+    
+    @blue.setter
+    def blue(self, percent):
+        self._color.blue = percent
+
+    @property
+    def green(self):
+        """ SCRGB Green Value """
+        return self._color.green
+    
+    @green.setter
+    def green(self, percent):
+        self._color.green = percent
+
 
 class _Color(object):
     """
@@ -224,6 +251,33 @@ class _Color(object):
         """
         tmpl = "no .preset_color property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
+
+    @property
+    def red(self):
+        """
+        Raises TypeError on access unless overridden by subclass.
+        """
+        tmpl = "no .red property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
+    @property
+    def green(self):
+        """
+        Raises TypeError on access unless overridden by subclass.
+        """
+        tmpl = "no .green property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
+    @property
+    def blue(self):
+        """
+        Raises TypeError on access unless overridden by subclass.
+        """
+        tmpl = "no .blue property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
+
+
 
     def _shade(self, value):
         lumMod_val = 1.0 - abs(value)
