@@ -155,7 +155,7 @@ class ColorFormat(object):
     @property
     def blue(self):
         """ SCRGB Blue Value """
-        return self._color.reblued
+        return self._color.blue
     
     @blue.setter
     def blue(self, percent):
@@ -363,9 +363,9 @@ class _SchemeColor(_Color):
 
 
 class _ScRgbColor(_Color):
-    def __init__(self, scrgbClrr):
+    def __init__(self, scrgbClr):
         super(_ScRgbColor, self).__init__(scrgbClr)
-        self._scrgbClr = scrgbClrr
+        self._scrgbClr = scrgbClr
 
     @property
     def color_type(self):
@@ -389,7 +389,7 @@ class _ScRgbColor(_Color):
 
     @property
     def blue(self):
-        return self_.scrgbClr.b
+        return self._scrgbClr.b
 
     @blue.setter
     def blue(self, percent):
