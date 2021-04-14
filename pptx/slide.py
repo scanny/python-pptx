@@ -492,6 +492,18 @@ class SlideMaster(_BaseMaster):
     def color_map(self):
         return self.part.color_map
 
+    @property
+    def title_style(self):
+        return self.part.title_style
+
+    @property
+    def body_style(self):
+        return self.part.body_style
+    
+    @property
+    def other_style(self):
+        return self.part.other_style
+
 
 class SlideMasters(ParentedElementProxy):
     """Sequence of |SlideMaster| objects belonging to a presentation.
@@ -572,3 +584,46 @@ class _Background(ElementProxy):
         """
         bgPr = self._cSld.get_or_add_bgPr()
         return FillFormat.from_fill_parent(bgPr)
+
+
+class TextListStyle(ElementProxy):
+    @property
+    def default(self):
+        return self._element.defPPr
+    
+    @property
+    def level_1(self):
+        return self._element.lvl1pPr
+
+    @property
+    def level_2(self):
+        return self._element.lvl2pPr
+
+    @property
+    def level_3(self):
+        return self._element.lvl3pPr
+
+    @property
+    def level_4(self):
+        return self._element.lvl4pPr
+
+    @property
+    def level_5(self):
+        return self._element.lvl5pPr
+
+    @property
+    def level_6(self):
+        return self._element.lvl6pPr
+
+    @property
+    def level_7(self):
+        return self._element.lvl7pPr
+
+    @property
+    def level_8(self):
+        return self._element.lvl8pPr
+
+    @property
+    def level_9(self):
+        return self._element.lvl9pPr
+

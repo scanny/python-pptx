@@ -324,6 +324,7 @@ class CT_SlideMaster(_BaseSlideElement):
     cSld = OneAndOnlyOne("p:cSld")
     clrMap = OneAndOnlyOne("p:clrMap")
     sldLayoutIdLst = ZeroOrOne("p:sldLayoutIdLst", successors=_tag_seq[3:])
+    txStyles = ZeroOrOne("p:txStyles", successors=_tag_seq[7:])
     del _tag_seq
 
 

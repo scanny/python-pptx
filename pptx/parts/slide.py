@@ -12,7 +12,7 @@ from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
 from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from ..oxml.theme import CT_OfficeStyleSheet
-from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
+from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster, TextListStyle
 from ..theme import Theme, ColorMap
 from ..util import lazyproperty
 
@@ -327,6 +327,18 @@ class SlideMasterPart(BaseSlidePart):
         The color mapping of the theme
         """
         return ColorMap(self._element.clrMap)
+
+    @lazyproperty
+    def title_style(self):
+        return TextListStyle(self._element.txStyles.titleStyle)
+
+    @lazyproperty
+    def body_style(self):
+        return TextListStyle(self._element.txStyles.bodyStyle)
+
+    @lazyproperty
+    def other_style(self):
+        return TextListStyle(self._element.tsStyles.otherStyle)
 
 
 class ThemePart(XmlPart):

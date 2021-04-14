@@ -417,6 +417,7 @@ from .slide import (  # noqa: E402
     CT_TimeNodeList,
     CT_TLMediaNodeVideo,
     CT_ColorMappingOverride,
+    CT_SlideMasterTextStyles,
     CT_TextListStyle,
 )
 
@@ -434,6 +435,7 @@ register_element_cls("p:sldMaster", CT_SlideMaster)
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
 register_element_cls("p:clrMapOvr", CT_ColorMappingOverride)
+register_element_cls("p:txStyles", CT_SlideMasterTextStyles)
 register_element_cls("p:titleStyle", CT_TextListStyle)
 register_element_cls("p:bodyStyle", CT_TextListStyle)
 register_element_cls("p:otherStyle", CT_TextListStyle)
