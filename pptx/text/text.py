@@ -550,11 +550,11 @@ class _Paragraph(Subshape):
         effective value from its style hierarchy. Assigning |None| removes
         any explicit setting, causing its inherited value to be used.
         """
-        return self._pPr.algn
+        return self._pPr.alignment
 
     @alignment.setter
     def alignment(self, value):
-        self._pPr.algn = value
+        self._pPr.alignment = value
 
     def clear(self):
         """
@@ -584,11 +584,11 @@ class _Paragraph(Subshape):
         default value. Indentation level is most commonly encountered in a
         bulleted list, as is found on a word bullet slide.
         """
-        return self._pPr.lvl
+        return self._pPr.level
 
     @level.setter
     def level(self, level):
-        self._pPr.lvl = level
+        self._pPr.level = level
 
     @property
     def margin_left(self):
@@ -597,12 +597,12 @@ class _Paragraph(Subshape):
         object. If assigned |None|, the default value is used, 0 inches for
         left and right margins.
         """
-        return self._pPr.marL
+        return self._pPr.margin_left
 
 
     @margin_left.setter
     def margin_left(self, value):
-        self._pPr.marL = value
+        self._pPr.margin_left = value
 
     @property
     def margin_right(self):
@@ -611,11 +611,11 @@ class _Paragraph(Subshape):
         object. If assigned |None|, the default value is used, 0 inches for
         left and right margins.
         """
-        return self._pPr.marR
+        return self._pPr.margin_right
 
     @margin_right.setter
     def margin_right(self, value):
-        self._pPr.marR = value
+        self._pPr.margin_right = value
 
     @property
     def indent(self):
@@ -741,7 +741,7 @@ class _Paragraph(Subshape):
         defines the default run properties for runs in this paragraph. Causes
         the element to be added if not present.
         """
-        return self._pPr.get_or_add_defRPr()
+        return self._pPr._defRPr
 
     @property
     def _pPr(self):
@@ -750,7 +750,7 @@ class _Paragraph(Subshape):
         <a:pPr> element containing its paragraph properties. Causes the
         element to be added if not present.
         """
-        return self._p.get_or_add_pPr()
+        return ParagraphProperties(self._p.get_or_add_pPr())
 
 
     @property
@@ -758,21 +758,21 @@ class _Paragraph(Subshape):
         """
         The |TextBullet| Object that handles the formatting of bullets
         """
-        return TextBullet.from_parent(self._pPr)
+        return self._pPr.bullet_text
        
     @property
     def bullet_color(self):
         """
         The |TextBulletColor| Object that handles the coloring of bullets
         """
-        return TextBulletColor.from_parent(self._pPr)
+        return self._pPr.bullet_color
        
     @property
     def bullet_size(self):
         """
         The |TextBulletSize| Object that handles the sizing of bullets
         """
-        return TextBulletSize.from_parent(self._pPr)
+        return self._pPr.bullet_size
        
 
     @property
@@ -780,7 +780,7 @@ class _Paragraph(Subshape):
         """
         The |TextBulletTypeface| Object that handles the font typeface of bullets
         """
-        return TextBulletTypeface.from_parent(self._pPr)
+        return self._pPr.bullet_font
 
 
 class _Run(Subshape):
