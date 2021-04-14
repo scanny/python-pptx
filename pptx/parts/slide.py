@@ -313,7 +313,7 @@ class SlideMasterPart(BaseSlidePart):
         """
         return SlideMaster(self._element, self)
     
-
+    @property
     def related_theme(self):
         """
         The |Theme| object representing this part.
