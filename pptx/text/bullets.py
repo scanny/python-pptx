@@ -322,7 +322,6 @@ class _TextBulletColorSpecific(_TextBulletColor):
 
     @property
     def color(self):
-        print("COLORS")
         return ColorFormat.from_colorchoice_parent(self._bullet_color)
 
 
