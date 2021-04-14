@@ -851,3 +851,164 @@ class TextFont(ElementProxy):
     def charset(self):
         return self._element.charset
     
+
+class ParagraphProperties(ElementProxy):
+    @property
+    def alignment(self):
+        """
+        Horizontal alignment of this paragraph, represented by either
+        a member of the enumeration :ref:`PpParagraphAlignment` or |None|.
+        The value |None| indicates the paragraph should 'inherit' its
+        effective value from its style hierarchy. Assigning |None| removes
+        any explicit setting, causing its inherited value to be used.
+        """
+        return self._element.algn
+
+    @alignment.setter
+    def alignment(self, value):
+        self._element.algn = value
+
+    @property
+    def level(self):
+        """
+        Read-write integer indentation level of this paragraph, having a
+        range of 0-8 inclusive. 0 represents a top-level paragraph and is the
+        default value. Indentation level is most commonly encountered in a
+        bulleted list, as is found on a word bullet slide.
+        """
+        return self._element.lvl
+
+    @level.setter
+    def level(self, level):
+        self._element.lvl = level
+
+    @property
+    def margin_left(self):
+        """
+        Read/write integer value of left margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return self._element.marL
+
+
+    @margin_left.setter
+    def margin_left(self, value):
+        self._element.marL = value
+
+    @property
+    def margin_right(self):
+        """
+        Read/write integer value of right margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return self._element.marR
+
+    @margin_right.setter
+    def margin_right(self, value):
+        self._element.marR = value
+
+    @property
+    def indent(self):
+        """
+        Read/write integer value of indentation of first line of a paragraph
+        as a |Length| value object.  This value is calculated from the left
+        margin of the paragraph.  If assigned |None|, the default value is
+        used, 0.  Negative values can also be used.
+        """
+        return self._element.indent
+
+    @indent.setter
+    def indent(self, value):
+        self._element.indent = value
+
+
+    @property
+    def line_spacing(self):
+        """
+        Numeric or |Length| value specifying the space between baselines in
+        successive lines of this paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. A numeric value, e.g. `2` or `1.5`,
+        indicates spacing is applied in multiples of line heights. A |Length|
+        value such as ``Pt(12)`` indicates spacing is a fixed height. The
+        |Pt| value class is a convenient way to apply line spacing in units
+        of points.
+        """
+        return self._element.line_spacing
+
+    @line_spacing.setter
+    def line_spacing(self, value):
+        self._element.line_spacing = value
+
+    @property
+    def space_after(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the subsequent paragraph. A value of |None| indicates
+        no explicit value is assigned and its effective value is inherited
+        from the paragraph's style hierarchy. |Length| objects provide
+        convenience properties, such as ``.pt`` and ``.inches``, that allow
+        easy conversion to various length units.
+        """
+        return self._element.space_after
+
+    @space_after.setter
+    def space_after(self, value):
+        self._element.space_after = value
+
+    @property
+    def space_before(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the prior paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. |Length| objects provide convenience
+        properties, such as ``.pt`` and ``.cm``, that allow easy conversion
+        to various length units.
+        """
+        return self._element.space_before
+
+    @space_before.setter
+    def space_before(self, value):
+        self._element.space_before = value
+
+    @property
+    def _defRPr(self):
+        """
+        The |CT_TextCharacterProperties| instance (<a:defRPr> element) that
+        defines the default run properties for runs in this paragraph. Causes
+        the element to be added if not present.
+        """
+        return self._element.get_or_add_defRPr()
+
+    @property
+    def bullet_text(self):
+        """
+        The |TextBullet| Object that handles the formatting of bullets
+        """
+        return TextBullet.from_parent(self._element)
+       
+    @property
+    def bullet_color(self):
+        """
+        The |TextBulletColor| Object that handles the coloring of bullets
+        """
+        return TextBulletColor.from_parent(self._element)
+       
+    @property
+    def bullet_size(self):
+        """
+        The |TextBulletSize| Object that handles the sizing of bullets
+        """
+        return TextBulletSize.from_parent(self._element)
+       
+
+    @property
+    def bullet_font(self):
+        """
+        The |TextBulletTypeface| Object that handles the font typeface of bullets
+        """
+        return TextBulletTypeface.from_parent(self._element)
+
