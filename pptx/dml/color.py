@@ -309,10 +309,37 @@ class _SchemeColor(_Color):
 
 
 class _ScRgbColor(_Color):
+    def __init__(self, scrgbClrr):
+        super(_ScRgbColor, self).__init__(scrgbClr)
+        self._scrgbClr = scrgbClrr
+
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.SCRGB
 
+    @property
+    def red(self):
+        return self._scrgbClr.r
+    
+    @red.setter
+    def red(self, percent):
+        self._srgbClr.r = percent
+
+    @property
+    def green(self):
+        return self._scrgbClr.g
+    
+    @green.setter
+    def green(self, percent):
+        self._srgbClr.g = percent
+
+    @property
+    def blue(self):
+        return self_.scrgbClr.b
+
+    @blue.setter
+    def blue(self, percent):
+        self._srgbClr.b = percent
 
 class _SRgbColor(_Color):
     def __init__(self, srgbClr):
