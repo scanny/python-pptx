@@ -329,7 +329,7 @@ class CT_NonVisualDrawingProps(BaseOxmlElement):
     hlinkHover = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
     id = RequiredAttribute("id", ST_DrawingElementId)
     name = RequiredAttribute("name", XsdString)
-    hidden = OptionalAttribute("hidden", XsdBoolean, default="false")
+    hidden = OptionalAttribute("hidden", XsdBoolean, default=False)
     del _tag_seq
 
 
