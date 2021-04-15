@@ -92,6 +92,7 @@ class CT_TextBody(BaseOxmlElement):
     """
 
     bodyPr = OneAndOnlyOne("a:bodyPr")
+    lstStyle = ZeroOrOne("a:lstStyle", successors=("p"))
     p = OneOrMore("a:p")
 
     def clear_content(self):

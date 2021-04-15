@@ -282,6 +282,12 @@ class TextFrame(Subshape):
         for rPr in iter_rPrs(txBody):
             set_rPr_font(rPr, family, size, bold, italic)
 
+    @property
+    def list_style(self):
+        return TextListStyle(self._txBody.lstStyle)
+
+    
+
 
 class Font(object):
     """
@@ -852,7 +858,13 @@ class TextFont(ElementProxy):
         return self._element.charset
     
 
-class ParagraphProperties(ElementProxy):
+class ParagraphProperties(object):
+
+    def __init__(self, _pPr):
+        super(ParagraphProperties, self).__init__()
+        self._element = self._pPr = _pPr
+
+    
     @property
     def alignment(self):
         """
@@ -1011,4 +1023,57 @@ class ParagraphProperties(ElementProxy):
         The |TextBulletTypeface| Object that handles the font typeface of bullets
         """
         return TextBulletTypeface.from_parent(self._element)
+
+    @property
+    def font(self):
+        """
+        |Font| object containing default character properties for the runs in
+        this paragraph. These character properties override default properties
+        inherited from parent objects such as the text frame the paragraph is
+        contained in and they may be overridden by character properties set at
+        the run level.
+        """
+        return Font(self._defRPr)
+
+
+class TextListStyle(ElementProxy):
+    @property
+    def default(self):
+        return ParagraphProperties(self._element.get_or_add_defPPr())
+    
+    @property
+    def level_1(self):
+        return ParagraphProperties(self._element.get_or_add_lvl1pPr())
+
+    @property
+    def level_2(self):
+        return ParagraphProperties(self._element.lvl2pPr)
+
+    @property
+    def level_3(self):
+        return ParagraphProperties(self._element.lvl3pPr)
+
+    @property
+    def level_4(self):
+        return ParagraphProperties(self._element.lvl4pPr)
+
+    @property
+    def level_5(self):
+        return ParagraphProperties(self._element.lvl5pPr)
+
+    @property
+    def level_6(self):
+        return ParagraphProperties(self._element.lvl6pPr)
+
+    @property
+    def level_7(self):
+        return ParagraphProperties(self._element.lvl7pPr)
+
+    @property
+    def level_8(self):
+        return ParagraphProperties(self._element.lvl8pPr)
+
+    @property
+    def level_9(self):
+        return ParagraphProperties(self._element.lvl9pPr)
 

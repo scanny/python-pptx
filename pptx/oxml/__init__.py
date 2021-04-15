@@ -439,6 +439,7 @@ register_element_cls("p:txStyles", CT_SlideMasterTextStyles)
 register_element_cls("p:titleStyle", CT_TextListStyle)
 register_element_cls("p:bodyStyle", CT_TextListStyle)
 register_element_cls("p:otherStyle", CT_TextListStyle)
+register_element_cls("a:lstStyle", CT_TextListStyle)
 
 
 from .table import (  # noqa: E402

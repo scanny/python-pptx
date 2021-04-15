@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.text.text import ParagraphProperties
+from pptx.text.text import TextListStyle
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
     LayoutShapes,
@@ -586,45 +586,4 @@ class _Background(ElementProxy):
         bgPr = self._cSld.get_or_add_bgPr()
         return FillFormat.from_fill_parent(bgPr)
 
-
-class TextListStyle(ElementProxy):
-    @property
-    def default(self):
-        return ParagraphProperties(self._element.defPPr)
-    
-    @property
-    def level_1(self):
-        return ParagraphProperties(self._element.lvl1pPr)
-
-    @property
-    def level_2(self):
-        return ParagraphProperties(self._element.lvl2pPr)
-
-    @property
-    def level_3(self):
-        return ParagraphProperties(self._element.lvl3pPr)
-
-    @property
-    def level_4(self):
-        return ParagraphProperties(self._element.lvl4pPr)
-
-    @property
-    def level_5(self):
-        return ParagraphProperties(self._element.lvl5pPr)
-
-    @property
-    def level_6(self):
-        return ParagraphProperties(self._element.lvl6pPr)
-
-    @property
-    def level_7(self):
-        return ParagraphProperties(self._element.lvl7pPr)
-
-    @property
-    def level_8(self):
-        return ParagraphProperties(self._element.lvl8pPr)
-
-    @property
-    def level_9(self):
-        return ParagraphProperties(self._element.lvl9pPr)
 
