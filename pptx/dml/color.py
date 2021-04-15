@@ -150,6 +150,11 @@ class ColorFormat(object):
     
     @red.setter
     def red(self, percent):
+        # change to scrgb color format if not already
+        if not isinstance(self._color, _ScRgbColor):
+            scrgbClr = self._xFill.get_or_change_to_scrgbClr()
+            self._color = _ScRgbColor(scrgbClr)
+        # call _ScRgbColor instance to do the setting
         self._color.red = percent
 
     @property
@@ -159,6 +164,11 @@ class ColorFormat(object):
     
     @blue.setter
     def blue(self, percent):
+        # change to scrgb color format if not already
+        if not isinstance(self._color, _ScRgbColor):
+            scrgbClr = self._xFill.get_or_change_to_scrgbClr()
+            self._color = _ScRgbColor(scrgbClr)
+        # call _ScRgbColor instance to do the setting
         self._color.blue = percent
 
     @property
@@ -168,6 +178,11 @@ class ColorFormat(object):
     
     @green.setter
     def green(self, percent):
+        # change to scrgb color format if not already
+        if not isinstance(self._color, _ScRgbColor):
+            scrgbClr = self._xFill.get_or_change_to_scrgbClr()
+            self._color = _ScRgbColor(scrgbClr)
+        # call _ScRgbColor instance to do the setting
         self._color.green = percent
 
 
@@ -377,7 +392,7 @@ class _ScRgbColor(_Color):
     
     @red.setter
     def red(self, percent):
-        self._srgbClr.r = percent
+        self._scrgbClr.r = percent
 
     @property
     def green(self):
@@ -385,7 +400,7 @@ class _ScRgbColor(_Color):
     
     @green.setter
     def green(self, percent):
-        self._srgbClr.g = percent
+        self._scrgbClr.g = percent
 
     @property
     def blue(self):
@@ -393,7 +408,7 @@ class _ScRgbColor(_Color):
 
     @blue.setter
     def blue(self, percent):
-        self._srgbClr.b = percent
+        self._scrgbClr.b = percent
 
 class _SRgbColor(_Color):
     def __init__(self, srgbClr):
