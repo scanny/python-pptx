@@ -31,7 +31,7 @@ from pptx.parts.slide import (
     ThemePart,
 )
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
-from pptx.theme import Theme
+from pptx.theme import Theme, ColorMap
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, test_file_dir
@@ -764,9 +764,15 @@ class DescribeSlideMasterPart(object):
 
     def it_provides_access_to_its_related_theme(self, theme_fixture):
         slide_master_part, part_related_by_, theme_ = theme_fixture
-        theme = slide_master_part.related_theme()
+        theme = slide_master_part.related_theme
         part_related_by_.assert_called_once_with(slide_master_part, RT.THEME)
         assert theme is theme_
+
+    # def it_provides_access_to_its_color_map(self, color_map_fixture):
+    #     slide_master_part, color_map_ = color_map_fixture
+    #     color_map = slide_master_part.color_map
+    #     assert color_map is color_map_
+
 
     # fixtures -------------------------------------------------------
 
@@ -791,6 +797,12 @@ class DescribeSlideMasterPart(object):
         theme_part_.theme = theme_
         return slide_master_part, part_related_by_, theme_
 
+    @pytest.fixture
+    def color_map_fixture(self, color_map_):
+        sldMaster = element("p:sldMaster/p:clrMap")
+        slide_master_part = SlideMasterPart(None, None, sldMaster)
+        return slide_master_part, color_map_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -804,6 +816,10 @@ class DescribeSlideMasterPart(object):
     @pytest.fixture
     def theme_(self, request):
         return instance_mock(request, Theme)
+
+    @pytest.fixture
+    def color_map_(self, request):
+        return instance_mock(request, ColorMap)
 
     @pytest.fixture
     def SlideMaster_(self, request, slide_master_):
