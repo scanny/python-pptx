@@ -15,8 +15,6 @@ class CT_OfficeArtExtensionList(BaseOxmlElement):
     """
     ext = ZeroOrMore("a:ext")
     
-    def add_extension(self, uri):
+    def add_extension(self):
         ext = self._add_ext()
-        ext.uri = uri
-        hyperlinkColor = ext.get_or_add_hyperlinkColor()
         return ext

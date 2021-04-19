@@ -52,10 +52,11 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
-from .action import CT_Hyperlink  # noqa: E402
+from .action import CT_Hyperlink, HyperlinkColorExtension  # noqa: E402
 
 register_element_cls("a:hlinkClick", CT_Hyperlink)
 register_element_cls("a:hlinkHover", CT_Hyperlink)
+register_element_cls("ahyp:hlinkClr", HyperlinkColorExtension)
 
 
 from .chart.axis import (  # noqa: E402

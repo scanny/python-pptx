@@ -536,7 +536,10 @@ class _Hyperlink(Subshape):
         in order to add the appropriate `ext` element and its `ahyp:hlinkClr` child
         """
         ext_list = self._rPr.hlinkClick.get_or_add_extLst()
-        ext = ext_list.add_extension("{A12FA001-AC4F-418D-AE19-62706E023703}")
+        ext = ext_list.add_extension()
+        ext.uri = "{A12FA001-AC4F-418D-AE19-62706E023703}"
+        hyperlinkColor = ext.get_or_add_hyperlinkColor()
+        hyperlinkColor.val = "tx"
         
 
 class _Paragraph(Subshape):
