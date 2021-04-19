@@ -574,3 +574,9 @@ register_element_cls("a:folHlink", CT_Color)
 register_element_cls("a:majorFont", CT_FontCollection)
 register_element_cls("a:minorFont", CT_FontCollection)
 register_element_cls("a:masterClrMapping", CT_EmptyElement)
+
+
+from .media import (
+    CT_OfficeArtExtensionList,  # noqa: E402
+)
+register_element_cls("a:extList", CT_OfficeArtExtensionList)

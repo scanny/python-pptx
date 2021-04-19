@@ -312,7 +312,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     hlinkClick = ZeroOrOne(
         "a:hlinkClick", successors=("a:hlinkMouseOver", "a:rtl", "a:extLst")
     )
-
+    extList = ZeroOrOne("a:extList", successors=())
     lang = OptionalAttribute("lang", MSO_LANGUAGE_ID)
     sz = OptionalAttribute("sz", ST_TextFontSize)
     b = OptionalAttribute("b", XsdBoolean)
@@ -320,7 +320,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     u = OptionalAttribute("u", MSO_TEXT_UNDERLINE_TYPE)
     baseline = OptionalAttribute("baseline", ST_Percentage)
     strike = OptionalAttribute("strike", ST_TextStrikeType)
-    
+
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()
 

@@ -30,6 +30,7 @@ from pptx.oxml.xmlchemy import (
     ZeroOrOne,
     ZeroOrOneChoice,
     OneAndOnlyOne,
+    ZeroOrMore,
 )
 from pptx.util import Emu
 
@@ -356,10 +357,17 @@ class CT_Point2D(BaseOxmlElement):
 class CT_PositiveSize2D(BaseOxmlElement):
     """
     Custom element class for <a:ext> element.
+
+    NOTE: this is a composite including `CT_OfficeArtExtension`, which appears
+    with the `a:extLst` tag in many different elements.  It currently only implements
+    the inclusion of the optional URI tag and a single `ext` element for hyperlink color.
     """
+
+    hyperlinkColor = ZeroOrOne("ahyp:hlinkClr")
 
     cx = RequiredAttribute("cx", ST_PositiveCoordinate)
     cy = RequiredAttribute("cy", ST_PositiveCoordinate)
+    uri = OptionalAttribute("uri", XsdString)
 
 
 class CT_ShapeProperties(BaseOxmlElement):

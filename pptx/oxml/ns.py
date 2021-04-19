@@ -11,6 +11,7 @@ from __future__ import absolute_import
 #: namespaces.
 _nsmap = {
     "a": ("http://schemas.openxmlformats.org/drawingml/2006/main"),
+    "ahyp": ("http://schemas.microsoft.com/office/drawing/2018/hyperlinkcolor"),
     "c": ("http://schemas.openxmlformats.org/drawingml/2006/chart"),
     "cp": (
         "http://schemas.openxmlformats.org/package/2006/metadata/core-pro" "perties"
