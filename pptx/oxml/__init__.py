@@ -579,4 +579,4 @@ register_element_cls("a:masterClrMapping", CT_EmptyElement)
 from .media import (
     CT_OfficeArtExtensionList,  # noqa: E402
 )
-register_element_cls("a:extList", CT_OfficeArtExtensionList)
+register_element_cls("a:extLst", CT_OfficeArtExtensionList)

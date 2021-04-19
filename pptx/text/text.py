@@ -535,7 +535,7 @@ class _Hyperlink(Subshape):
         is required, along with a fill color in the run.  This function must be called
         in order to add the appropriate `ext` element and its `ahyp:hlinkClr` child
         """
-        ext_list = self._rPr.get_or_add_extList()
+        ext_list = self._rPr.hlinkClick.get_or_add_extLst()
         ext = ext_list.add_extension("{A12FA001-AC4F-418D-AE19-62706E023703}")
         
 

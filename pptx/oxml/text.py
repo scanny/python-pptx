@@ -312,7 +312,6 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     hlinkClick = ZeroOrOne(
         "a:hlinkClick", successors=("a:hlinkMouseOver", "a:rtl", "a:extLst")
     )
-    extList = ZeroOrOne("a:extList", successors=())
     lang = OptionalAttribute("lang", MSO_LANGUAGE_ID)
     sz = OptionalAttribute("sz", ST_TextFontSize)
     b = OptionalAttribute("b", XsdBoolean)

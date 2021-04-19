@@ -6,7 +6,7 @@ lxml custom element classes for ext-related XML elements.
 
 from __future__ import absolute_import
 
-from .xmlchemy import ZeroOrMore
+from .xmlchemy import ZeroOrMore, BaseOxmlElement
 
 
 class CT_OfficeArtExtensionList(BaseOxmlElement):
