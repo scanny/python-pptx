@@ -240,7 +240,7 @@ class _Color(object):
     @property
     def rgb(self):
         """
-        Raises TypeError on access unless overridden by subclass.
+        Raises AttributeError on access unless overridden by subclass.
         """
         tmpl = "no .rgb property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
@@ -270,7 +270,7 @@ class _Color(object):
     @property
     def red(self):
         """
-        Raises TypeError on access unless overridden by subclass.
+        Raises AttributeError on access unless overridden by subclass.
         """
         tmpl = "no .red property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
@@ -278,7 +278,7 @@ class _Color(object):
     @property
     def green(self):
         """
-        Raises TypeError on access unless overridden by subclass.
+        Raises AttributeError on access unless overridden by subclass.
         """
         tmpl = "no .green property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
@@ -286,7 +286,7 @@ class _Color(object):
     @property
     def blue(self):
         """
-        Raises TypeError on access unless overridden by subclass.
+        Raises AttributeError on access unless overridden by subclass.
         """
         tmpl = "no .blue property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
