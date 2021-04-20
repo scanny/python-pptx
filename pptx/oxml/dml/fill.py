@@ -14,6 +14,7 @@ from pptx.oxml.simpletypes import (
     ST_PositiveFixedAngle,
     ST_PositiveFixedPercentage,
     ST_RelationshipId,
+    XsdBoolean,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -60,6 +61,8 @@ class CT_GradientFillProperties(BaseOxmlElement):
     lin = ZeroOrOne("a:lin", successors=_tag_seq[2:])
     path = ZeroOrOne("a:path", successors=_tag_seq[3:])
     del _tag_seq
+
+    rotWithShape = OptionalAttribute("rotWithShape", XsdBoolean)
 
     @classmethod
     def new_gradFill(cls):
