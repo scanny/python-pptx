@@ -109,10 +109,20 @@ class ColorScheme(ElementProxy):
 
     @property
     def hyperlink(self):
-        return ColorFormat.from_colorchoice_parent(self._element.hlink)
+        """ Plain English propery name for `hlink`"""
+        return self.hlink
 
     @property
     def followed_hyperlink(self):
+        """ Plain English propery name for `folHlink`"""
+        return self.folHlink
+
+    @property
+    def hlink(self):
+        return ColorFormat.from_colorchoice_parent(self._element.hlink)
+
+    @property
+    def folHlink(self):
         return ColorFormat.from_colorchoice_parent(self._element.folHlink)
 
 
