@@ -307,11 +307,18 @@ from .shapes.autoshape import (  # noqa: E402
     CT_PresetGeometry2D,
     CT_Shape,
     CT_ShapeNonVisual,
+    CT_ConnectionSiteList,
+    CT_GeomRect,
+    CT_ConnectionSite,
 )
 
 register_element_cls("a:avLst", CT_GeomGuideList)
+register_element_cls("a:gdLst", CT_GeomGuideList)
+register_element_cls("a:cxnLst", CT_ConnectionSiteList)
 register_element_cls("a:custGeom", CT_CustomGeometry2D)
+register_element_cls("a:rect", CT_GeomRect)
 register_element_cls("a:gd", CT_GeomGuide)
+register_element_cls("a:cxn", CT_ConnectionSite)
 register_element_cls("a:close", CT_Path2DClose)
 register_element_cls("a:lnTo", CT_Path2DLineTo)
 register_element_cls("a:moveTo", CT_Path2DMoveTo)
@@ -319,6 +326,7 @@ register_element_cls("a:path", CT_Path2D)
 register_element_cls("a:pathLst", CT_Path2DList)
 register_element_cls("a:prstGeom", CT_PresetGeometry2D)
 register_element_cls("a:pt", CT_AdjPoint2D)
+register_element_cls("a:pos", CT_AdjPoint2D)
 register_element_cls("p:cNvSpPr", CT_NonVisualDrawingShapeProps)
 register_element_cls("p:nvSpPr", CT_ShapeNonVisual)
 register_element_cls("p:sp", CT_Shape)

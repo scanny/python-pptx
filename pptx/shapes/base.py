@@ -274,6 +274,14 @@ class BaseShape(object):
     @flip_v.setter
     def flip_v(self, value):
         self._element.flipV = value
+
+    @property
+    def custom_geometry(self):
+        if not self._element.has_custom_geometry:
+            return None
+        else:
+            return CustomGeometry(self._element.custGeom)
+
         
         
 
@@ -372,4 +380,162 @@ class StyleMatrixReference(object):
     @idx.setter
     def idx(self, value):
         self._reference.idx = value
+
+
+class CustomGeometry(ElementProxy):
+    """
+    Class that proxies the ``<a:custGeom>`` tag used for
+    custom shape geometry.  
+    """
+
+    @property
+    def adjust_values(self):
+        return GeometryGuideList(self._element.avLst)
+
+    @property
+    def shape_guides(self):
+        return GeometryGuideList(self._element.gdLst)
+
+    # @property
+    # def shape_handles(self):
+    #     return self._element.ahLst
+
+    @property
+    def connection_sites(self):
+        return ConnectionSiteList(self._element.cxnLst)
+
+    @property
+    def rectangle(self):
+        return GeometricRectangle(self._element.rect)
+
+    @property
+    def paths(self):
+        return self._element.pathLst
+
+
+class GeometryGuideList(object):
+    """List of Shape Guides used by |CustomGeometry|.
+    """
+
+    def __init__(self, guide_list):
+        super(GeometryGuideList, self).__init__()
+        self._element = guide_list
+
+    @property
+    def guide_list(self):
+        gd = self._element.gd_lst
+        if gd is None:
+            return []
+        return [GeometryGuide(guide) for guide in gd]
+
+    def add_guide(self):
+        return GeometryGuide(self._element._add_gd())
+
+
+class GeometryGuide(object):
+    def __init__(self, guide):
+        super(GeometryGuide, self).__init__()
+        self._element = guide
+    
+    @property
+    def name(self):
+        return self._element.name
+
+    @name.setter
+    def name(self, value):
+        self._element.name = value
+
+    @property
+    def formula(self):
+        return self._element.fmla
+
+    @formula.setter
+    def formula(self, value):
+        self._element.fmla = value
+
+
+class ConnectionSiteList(object):
+    """List of Connection Sites used by |CustomGeometry|.
+    """
+
+    def __init__(self, cxn_site_list):
+        super(ConnectionSiteList, self).__init__()
+        self._element = cxn_site_list
+
+    @property
+    def sites_list(self):
+        sites = self._element.cxn_lst
+        if sites is None:
+            return []
+        return [ConnectionSite(site) for site in sites]
+
+    def add_site(self):
+        return ConnectionSite(self._element._add_cxn())
+
+
+class ConnectionSite(object):
+    def __init__(self, site):
+        super(ConnectionSite, self).__init__()
+        self._element = site
+    
+    @property
+    def angle(self):
+        return self._element.ang
+
+    @angle.setter
+    def angle(self, value):
+        self._element.ang = value
+
+    @property
+    def position(self):
+        pos = self._element.pos
+        return (pos.x, pos.y)
+
+    @position.setter
+    def position(self, coords):
+        pos = self._element.pos
+        pos.x = coords[0]
+        pos.y = coords[1]
+        
+
+class GeometricRectangle(object):
+    """ Object to define a rectangle for a textbox used by |CustomGeometry|
+    """
+
+    def __init__(self, rectangle):
+        super(GeometricRectangle, self).__init__()
+        self._element = rectangle
+    
+    @property
+    def left(self):
+        return self._element.l
+    
+    @left.setter
+    def left(self, value):
+        self._element.l = value
+
+    @property
+    def right(self):
+        return self._element.r
+    
+    @right.setter
+    def right(self, value):
+        self._element.r = value
+
+    @property
+    def top(self):
+        return self._element.t
+    
+    @top.setter
+    def top(self, value):
+        self._element.t = value
+
+    @property
+    def bottom(self):
+        return self._element.b
+    
+    @bottom.setter
+    def bottom(self, value):
+        self._element.b = value
+
 

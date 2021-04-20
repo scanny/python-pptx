@@ -1019,3 +1019,23 @@ class ST_ColorSchemeIndex(XsdTokenEnumeration):
     )
     _members = color_values
 
+class ST_AdjCoordinate(BaseSimpleType):
+    """
+    This techincally is a Union of ST_Coordinate and ST_GeomGuideName,
+    but I haven't figured out how to do that so I'm creating this for now
+    and we can add verification here if we need to
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return str_value
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return value
+
+    @classmethod
+    def validate(cls, value):
+        pass
+        # cls.validate_string(value)
+
+

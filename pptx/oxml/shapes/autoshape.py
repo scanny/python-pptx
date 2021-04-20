@@ -15,6 +15,8 @@ from pptx.oxml.simpletypes import (
     ST_PositiveCoordinate,
     XsdBoolean,
     XsdString,
+    ST_Angle,
+    ST_AdjCoordinate,
 )
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
@@ -30,15 +32,21 @@ from pptx.oxml.xmlchemy import (
 class CT_AdjPoint2D(BaseOxmlElement):
     """`a:pt` custom element class."""
 
-    x = RequiredAttribute("x", ST_Coordinate)
-    y = RequiredAttribute("y", ST_Coordinate)
+    x = RequiredAttribute("x", ST_AdjCoordinate)
+    y = RequiredAttribute("y", ST_AdjCoordinate)
 
 
 class CT_CustomGeometry2D(BaseOxmlElement):
     """`a:custGeom` custom element class."""
 
     _tag_seq = ("a:avLst", "a:gdLst", "a:ahLst", "a:cxnLst", "a:rect", "a:pathLst")
+    avLst = ZeroOrOne("a:avLst", successors=_tag_seq[1:])
+    gdLst = ZeroOrOne("a:gdLst", successors=_tag_seq[2:])
+    ahLst = ZeroOrOne("a:ahLst", successors=_tag_seq[3:])
+    cxnLst = ZeroOrOne("a:cxnLst", successors=_tag_seq[4:])
+    rect = ZeroOrOne("a:rect", successors=_tag_seq[5:])
     pathLst = ZeroOrOne("a:pathLst", successors=_tag_seq[6:])
+    del _tag_seq
 
 
 class CT_GeomGuide(BaseOxmlElement):
@@ -53,10 +61,36 @@ class CT_GeomGuide(BaseOxmlElement):
 
 class CT_GeomGuideList(BaseOxmlElement):
     """
-    ``<a:avLst>`` custom element class
+    ``<a:avLst>`` and ``<a:gdLst>`` custom element class
     """
 
     gd = ZeroOrMore("a:gd")
+
+
+class CT_ConnectionSiteList(BaseOxmlElement):
+    """
+    ``<a:cxnLst>`` custom element class
+    """
+    cxn = ZeroOrMore("a:cxn")
+
+class CT_ConnectionSite(BaseOxmlElement):
+    """
+    ``<a:cxn>`` custom element class
+    """
+    pos = OneAndOnlyOne("a:pos")
+
+    # This angle can actually be a value or a token but currently am 
+    # limiting to the angle until we find a reason to include the token
+    ang = RequiredAttribute("ang", ST_Angle)
+
+class CT_GeomRect(BaseOxmlElement):
+    """
+    ``<a:rect>`` custom element class
+    """
+    l = RequiredAttribute("l", ST_AdjCoordinate)
+    t = RequiredAttribute("t", ST_AdjCoordinate)
+    r = RequiredAttribute("r", ST_AdjCoordinate)
+    b = RequiredAttribute("b", ST_AdjCoordinate)
 
 
 class CT_NonVisualDrawingShapeProps(BaseShapeElement):
@@ -163,7 +197,6 @@ class CT_PresetGeometry2D(BaseOxmlElement):
             gd = avLst._add_gd()
             gd.name = name
             gd.fmla = "val %d" % val
-
 
 class CT_Shape(BaseShapeElement):
     """
@@ -309,6 +342,15 @@ class CT_Shape(BaseShapeElement):
         doesn't have one, for example, if it's a placeholder shape.
         """
         return self.spPr.prstGeom
+
+    @property
+    def custGeom(self):
+        """
+        Reference to ``<a:custGeom>`` child element or |None| if this shape 
+        doesn't have one.
+        """
+        return self.spPr.custGeom
+
 
     @staticmethod
     def _autoshape_sp_tmpl():
