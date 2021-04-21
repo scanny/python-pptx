@@ -52,10 +52,11 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
-from .action import CT_Hyperlink  # noqa: E402
+from .action import CT_Hyperlink, HyperlinkColorExtension  # noqa: E402
 
 register_element_cls("a:hlinkClick", CT_Hyperlink)
 register_element_cls("a:hlinkHover", CT_Hyperlink)
+register_element_cls("ahyp:hlinkClr", HyperlinkColorExtension)
 
 
 from .chart.axis import (  # noqa: E402
@@ -574,3 +575,9 @@ register_element_cls("a:folHlink", CT_Color)
 register_element_cls("a:majorFont", CT_FontCollection)
 register_element_cls("a:minorFont", CT_FontCollection)
 register_element_cls("a:masterClrMapping", CT_EmptyElement)
+
+
+from .media import (
+    CT_OfficeArtExtensionList,  # noqa: E402
+)
+register_element_cls("a:extLst", CT_OfficeArtExtensionList)

@@ -529,6 +529,19 @@ class _Hyperlink(Subshape):
         self._rPr._remove_hlinkClick()
 
 
+    def add_hyperlink_color(self):
+        """
+        In order to add a color to a single hyperlink, a entry in the extList element
+        is required, along with a fill color in the run.  This function must be called
+        in order to add the appropriate `ext` element and its `ahyp:hlinkClr` child
+        """
+        ext_list = self._rPr.hlinkClick.get_or_add_extLst()
+        ext = ext_list.add_extension()
+        ext.uri = "{A12FA001-AC4F-418D-AE19-62706E023703}"
+        hyperlinkColor = ext.get_or_add_hyperlinkColor()
+        hyperlinkColor.val = "tx"
+        
+
 class _Paragraph(Subshape):
     """Paragraph object. Not intended to be constructed directly."""
 
