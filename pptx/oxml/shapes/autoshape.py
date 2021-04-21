@@ -229,7 +229,7 @@ class CT_Path2DCubicBezierTo(BaseOxmlElement):
 class CT_Path2DMoveTo(BaseOxmlElement):
     """`a:moveTo` custom element class."""
     # Should be OneAndOnlyOne()
-    pt = ZeroOrOne("a:pt")
+    pt = ZeroOrOne("a:pt", successors=())
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):

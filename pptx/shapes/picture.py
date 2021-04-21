@@ -179,7 +179,7 @@ class Picture(_BasePicture):
         spPr = self._pic.spPr
         prstGeom = spPr.prstGeom
         if prstGeom is None:
-            spPr._remove_custGeom()
+            spPr._remove_eg_Geometry()
             prstGeom = spPr._add_prstGeom()
         prstGeom.prst = member
 

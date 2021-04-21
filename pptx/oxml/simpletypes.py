@@ -1031,7 +1031,7 @@ class ST_AdjCoordinate(BaseSimpleType):
 
     @classmethod
     def convert_to_xml(cls, value):
-        return value
+        return str(value)
 
     @classmethod
     def validate(cls, value):
@@ -1051,7 +1051,7 @@ class ST_AdjAngle(BaseSimpleType):
 
     @classmethod
     def convert_to_xml(cls, value):
-        return value
+        return str(value)
 
     @classmethod
     def validate(cls, value):
