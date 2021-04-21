@@ -282,7 +282,10 @@ class BaseShape(object):
         else:
             return CustomGeometry(self._element.custGeom)
 
-        
+    def add_custom_geometry(self):
+        if self._element.has_custom_geometry:
+            return CustomGeometry(self._element.custGeom)
+        return CustomGeometry(self._element.spPr._add_custGeom())
         
 
 class _PlaceholderFormat(ElementProxy):
@@ -390,11 +393,11 @@ class CustomGeometry(ElementProxy):
 
     @property
     def adjust_values(self):
-        return GeometryGuideList(self._element.avLst)
+        return GeometryGuideList(self._element.get_or_add_avLst())
 
     @property
     def shape_guides(self):
-        return GeometryGuideList(self._element.gdLst)
+        return GeometryGuideList(self._element.get_or_add_gdLst())
 
     # @property
     # def shape_handles(self):
@@ -402,15 +405,15 @@ class CustomGeometry(ElementProxy):
 
     @property
     def connection_sites(self):
-        return ConnectionSiteList(self._element.cxnLst)
+        return ConnectionSiteList(self._element.get_or_add_cxnLst())
 
     @property
     def rectangle(self):
-        return GeometricRectangle(self._element.rect)
+        return GeometricRectangle(self._element.get_or_add_rect())
 
     @property
     def paths(self):
-        return self._element.pathLst
+        return PathList(self._element.get_or_add_pathLst())
 
 
 class GeometryGuideList(object):
@@ -493,7 +496,7 @@ class ConnectionSite(object):
 
     @position.setter
     def position(self, coords):
-        pos = self._element.pos
+        pos = self._element.get_or_add_pos()
         pos.x = coords[0]
         pos.y = coords[1]
         
@@ -537,5 +540,98 @@ class GeometricRectangle(object):
     @bottom.setter
     def bottom(self, value):
         self._element.b = value
+
+
+class PathList(object):
+    """List of Shape Paths used by |CustomGeometry|.
+    """
+
+    def __init__(self, path_list):
+        super(PathList, self).__init__()
+        self._element = path_list
+
+    @property
+    def path_list(self):
+        paths = self._element.path_lst
+        if paths is None:
+            return []
+        return [ShapePath(path) for path in paths]
+
+    def add_path(self):
+        return ShapePath(self._element._add_path())
+
+
+class ShapePath(object):
+    def __init__(self, path):
+        super(ShapePath, self).__init__()
+        self._element = path
+    
+    @property
+    def width(self):
+        return self._element.w
+
+    @width.setter
+    def width(self, value):
+        self._element.w = value
+
+    @property
+    def height(self):
+        return self._element.h
+
+    @height.setter
+    def height(self, value):
+        self._element.h = value
+
+    @property
+    def fill_mode(self):
+        return self._element.fill
+
+    @fill_mode.setter
+    def fill_mode(self, value):
+        self._element.fill = value
+
+    @property
+    def stroke(self):
+        return self._element.stroke
+
+    @stroke.setter
+    def stroke(self, value):
+        self._element.stroke = value
+
+    @property
+    def extrusion(self):
+        return self._element.extrusionOk
+
+    @extrusion.setter
+    def extrusion(self, value):
+        self._element.extrusionOk = value
+
+    def add_close(self):
+        return self._element.add_close()
+
+    def add_line_to(self, x, y):
+        return self._element.add_lnTo(x,y)
+
+    def add_move_to(self, x, y):
+        return self._element.add_moveTo(x, y)
+
+    def add_arc_to(self, width_radius, height_radius, start_angle, swing_angle):
+        return self._element.add_arcTo(width_radius, height_radius, start_angle, swing_angle)
+    
+    def add_quad_bez_to(self, point1, point2):
+        return self._element.add_quadBezTo(point1, point2)
+
+    def add_cubic_bez_to(self, point1, point2, point3):
+        return self._element.add_cubicBezTo(point1, point2, point3)
+
+    @property
+    def xml(self):
+        return self._element.xml
+
+    @property
+    def path_sequence(self):
+        return list(self._element)
+            
+
 
 

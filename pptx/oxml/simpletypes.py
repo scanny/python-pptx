@@ -1001,7 +1001,7 @@ class ST_PresetColorVal(XsdTokenEnumeration):
 
 class ST_ColorSchemeIndex(XsdTokenEnumeration):
     """
-    Valid vlaues for scheme color attribute
+    Valid values for scheme color attribute
     """
     color_values = (
         "dk1",
@@ -1038,4 +1038,38 @@ class ST_AdjCoordinate(BaseSimpleType):
         pass
         # cls.validate_string(value)
 
+
+class ST_AdjAngle(BaseSimpleType):
+    """
+    This techincally is a Union of ST_Angle and ST_GeomGuideName,
+    but I haven't figured out how to do that so I'm creating this for now
+    and we can add verification here if we need to
+    """
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        return str_value
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return value
+
+    @classmethod
+    def validate(cls, value):
+        pass
+        # cls.validate_string(value)
+
+
+class ST_PathFillMode(XsdTokenEnumeration):
+    """
+    Valid values for path fill modes
+    """
+    fill_modes = (
+        "none",
+        "norm",
+        "lighten",
+        "lightenLess",
+        "darken",
+        "darkenLess",
+    )
+    _members = fill_modes
 

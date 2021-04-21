@@ -15,8 +15,9 @@ from pptx.oxml.simpletypes import (
     ST_PositiveCoordinate,
     XsdBoolean,
     XsdString,
-    ST_Angle,
     ST_AdjCoordinate,
+    ST_PathFillMode,
+    ST_AdjAngle,
 )
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
@@ -26,6 +27,7 @@ from pptx.oxml.xmlchemy import (
     RequiredAttribute,
     ZeroOrOne,
     ZeroOrMore,
+    OneOrMore,
 )
 
 
@@ -77,11 +79,10 @@ class CT_ConnectionSite(BaseOxmlElement):
     """
     ``<a:cxn>`` custom element class
     """
-    pos = OneAndOnlyOne("a:pos")
+    pos = ZeroOrOne("a:pos")
 
-    # This angle can actually be a value or a token but currently am 
-    # limiting to the angle until we find a reason to include the token
-    ang = RequiredAttribute("ang", ST_Angle)
+    ang = RequiredAttribute("ang", ST_AdjAngle)
+
 
 class CT_GeomRect(BaseOxmlElement):
     """
@@ -106,10 +107,17 @@ class CT_Path2D(BaseOxmlElement):
     """`a:path` custom element class."""
 
     close = ZeroOrMore("a:close", successors=())
-    lnTo = ZeroOrMore("a:lnTo", successors=())
     moveTo = ZeroOrMore("a:moveTo", successors=())
+    lnTo = ZeroOrMore("a:lnTo", successors=())
+    arcTo = ZeroOrMore("a:arcTo", successors=())
+    quadBezTo = ZeroOrMore("a:quadBezTo", successors=())
+    cubicBezTo = ZeroOrMore("a:cubicBezTo", successors=())
+
     w = OptionalAttribute("w", ST_PositiveCoordinate)
     h = OptionalAttribute("h", ST_PositiveCoordinate)
+    fill = OptionalAttribute("fill", ST_PathFillMode, default="norm")
+    stroke = OptionalAttribute("stroke", XsdBoolean, default=True)
+    extrusionOk = OptionalAttribute("extrusionOk", XsdBoolean, default=True)
 
     def add_close(self):
         """Return a newly created `a:close` element.
@@ -138,6 +146,45 @@ class CT_Path2D(BaseOxmlElement):
         pt.x, pt.y = x, y
         return moveTo
 
+    def add_arcTo(self, wR, hR, stAng, swAng):
+        """Return a newly created `a:moveTo` subtree with point *(x, y)*.
+
+        The new `a:moveTo` element is appended to this `a:path` element.
+        """
+        arcTo = self._add_arcTo()
+        arcTo.wR = wR
+        arcTo.hR = hR
+        arcTo.stAng = stAng
+        artTo.swAng = swAng
+        return arcTo
+
+    def add_quadBezTo(self, point1, point2):
+        """Return a newly created `a:quadBezTo` subtree with two  points *(x, y)*.
+
+        The new `a:quadBezTo` element is appended to this `a:path` element.
+        """
+        quadBezTo = self._add_quadBezTo()
+        pt1 = quadBezTo._add_pt()
+        pt1.x, pt1.y = point1[0], point1[1]
+        pt2 = quadBezTo._add_pt()
+        pt2.x, pt2.y = point2[0], point2[1]
+        return quadBezTo
+
+
+    def add_cubicBezTo(self, point1, point2, point3):
+        """Return a newly created `a:cubicBezTo` subtree with two  points *(x, y)*.
+
+        The new `a:cubicBezTo` element is appended to this `a:path` element.
+        """
+        cubicBezTo = self._add_cubicBezTo()
+        pt1 = cubicBezTo._add_pt()
+        pt1.x, pt1.y = point1[0], point1[1]
+        pt2 = cubicBezTo._add_pt()
+        pt2.x, pt2.y = point2[0], point2[1]
+        pt3 = cubicBezTo._add_pt()
+        pt3.x, pt3.y = point3[0], point3[1]
+        return cubicBezTo
+
 
 class CT_Path2DClose(BaseOxmlElement):
     """`a:close` custom element class."""
@@ -148,6 +195,14 @@ class CT_Path2DLineTo(BaseOxmlElement):
 
     pt = ZeroOrOne("a:pt", successors=())
 
+
+class CT_Path2DArcTo(BaseOxmlElement):
+    """`a:arcTo` custom element class."""
+
+    wR = RequiredAttribute("wR", ST_AdjCoordinate)
+    hR = RequiredAttribute("hR", ST_AdjCoordinate)
+    stAng = RequiredAttribute("stAng", ST_AdjAngle)
+    swAng = RequiredAttribute("swAng", ST_AdjAngle)
 
 class CT_Path2DList(BaseOxmlElement):
     """`a:pathLst` custom element class."""
@@ -161,10 +216,20 @@ class CT_Path2DList(BaseOxmlElement):
         return path
 
 
+class CT_Path2DQuadBezierTo(BaseOxmlElement):
+    """`a:quadBezTo` custom element class."""
+    # Technically this should be a TwoAndOnlyTwo()
+    pt = OneOrMore("a:pt")
+
+class CT_Path2DCubicBezierTo(BaseOxmlElement):
+    """`a:cubicBezTo` custom element class."""
+    # Technically this should be a ThreeAndOnlyThree()
+    pt = OneOrMore("a:pt")
+
 class CT_Path2DMoveTo(BaseOxmlElement):
     """`a:moveTo` custom element class."""
-
-    pt = ZeroOrOne("a:pt", successors=())
+    # Should be OneAndOnlyOne()
+    pt = ZeroOrOne("a:pt")
 
 
 class CT_PresetGeometry2D(BaseOxmlElement):

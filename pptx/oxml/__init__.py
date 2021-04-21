@@ -310,6 +310,9 @@ from .shapes.autoshape import (  # noqa: E402
     CT_ConnectionSiteList,
     CT_GeomRect,
     CT_ConnectionSite,
+    CT_Path2DArcTo,
+    CT_Path2DQuadBezierTo,
+    CT_Path2DCubicBezierTo,
 )
 
 register_element_cls("a:avLst", CT_GeomGuideList)
@@ -322,6 +325,9 @@ register_element_cls("a:cxn", CT_ConnectionSite)
 register_element_cls("a:close", CT_Path2DClose)
 register_element_cls("a:lnTo", CT_Path2DLineTo)
 register_element_cls("a:moveTo", CT_Path2DMoveTo)
+register_element_cls("a:arcTo", CT_Path2DArcTo)
+register_element_cls("a:quadBezTo", CT_Path2DQuadBezierTo)
+register_element_cls("a:cubicBezTo", CT_Path2DCubicBezierTo)
 register_element_cls("a:path", CT_Path2D)
 register_element_cls("a:pathLst", CT_Path2DList)
 register_element_cls("a:prstGeom", CT_PresetGeometry2D)
