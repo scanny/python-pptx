@@ -100,6 +100,9 @@ class CT_ScRgbColor(_BaseColorElement):
     """
     Custom element class for <a:scrgbClr> element.
     """
+    r = RequiredAttribute("r", ST_Percentage)
+    g = RequiredAttribute("g", ST_Percentage)
+    b = RequiredAttribute("b", ST_Percentage)
 
 
 class CT_SRgbColor(_BaseColorElement):

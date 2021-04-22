@@ -109,10 +109,20 @@ class ColorScheme(ElementProxy):
 
     @property
     def hyperlink(self):
-        return ColorFormat.from_colorchoice_parent(self._element.hlink)
+        """ Plain English propery name for `hlink`"""
+        return self.hlink
 
     @property
     def followed_hyperlink(self):
+        """ Plain English propery name for `folHlink`"""
+        return self.folHlink
+
+    @property
+    def hlink(self):
+        return ColorFormat.from_colorchoice_parent(self._element.hlink)
+
+    @property
+    def folHlink(self):
         return ColorFormat.from_colorchoice_parent(self._element.folHlink)
 
 
@@ -160,3 +170,53 @@ class FontCollection(ElementProxy):
     @property
     def complex_script(self): 
         return TextFont(self.element.cs)
+
+class ColorMap(ElementProxy):
+    @property
+    def bg1(self):
+        return self.element.bg1
+
+    @property
+    def tx1(self):
+        return self.element.tx1
+    
+    @property
+    def bg2(self):
+        return self.element.bg2
+    
+    @property
+    def tx2(self):
+        return self.element.tx2
+    
+    @property
+    def accent1(self):
+        return self.element.accent1
+
+    @property
+    def accent2(self):
+        return self.element.accent2
+
+    @property
+    def accent3(self):
+        return self.element.accent3
+
+    @property
+    def accent4(self):
+        return self.element.accent4
+
+    @property
+    def accent5(self):
+        return self.element.accent5
+
+    @property
+    def accent6(self):
+        return self.element.accent6
+
+    @property
+    def hyperlink(self):
+        return self.element.hlink
+
+    @property
+    def followed_hyperlink(self):
+        return self.element.folHlink
+

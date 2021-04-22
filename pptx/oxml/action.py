@@ -7,7 +7,7 @@ lxml custom element classes for text-related XML elements.
 from __future__ import absolute_import
 
 from .simpletypes import XsdString
-from .xmlchemy import BaseOxmlElement, OptionalAttribute
+from .xmlchemy import BaseOxmlElement, ZeroOrOne, OptionalAttribute, RequiredAttribute
 
 
 class CT_Hyperlink(BaseOxmlElement):
@@ -17,6 +17,7 @@ class CT_Hyperlink(BaseOxmlElement):
 
     rId = OptionalAttribute("r:id", XsdString)
     action = OptionalAttribute("action", XsdString)
+    extLst = ZeroOrOne("a:extLst", successors=())
 
     @property
     def action_fields(self):
@@ -57,3 +58,13 @@ class CT_Hyperlink(BaseOxmlElement):
         host = protocol_and_host[11:]
 
         return host
+
+
+
+class HyperlinkColorExtension(BaseOxmlElement):
+    """
+    Custom class to handle `ahyp:hlinkClr` child of `a:ext`
+    that is used for coloring individual hyperlinks
+    """
+    val = RequiredAttribute("val", XsdString)
+    

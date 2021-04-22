@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.text.text import TextListStyle
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
     LayoutShapes,
@@ -249,6 +250,11 @@ class Slide(_BaseSlide):
         |SlideLayout| object this slide inherits appearance from.
         """
         return self.part.slide_layout
+    
+    @property
+    def color_map_override(self):
+        """ A new |ColorMap| to override that from the Slide Master or None"""
+        return self.part.color_map_override
 
 
 class Slides(ParentedElementProxy):
@@ -382,6 +388,11 @@ class SlideLayout(_BaseSlide):
         """
         return self._element.bg is None
 
+    @property
+    def color_map_override(self):
+        """ A new |ColorMap| to override that from the Slide Master or None"""
+        return self.part.color_map_override
+
 class SlideLayouts(ParentedElementProxy):
     """Sequence of slide layouts belonging to a slide-master.
 
@@ -478,6 +489,22 @@ class SlideMaster(_BaseMaster):
         """|Theme| object providing access to this slide-master's theme."""
         return self.part.related_theme
 
+    @property
+    def color_map(self):
+        return self.part.color_map
+
+    @property
+    def title_style(self):
+        return self.part.title_style
+
+    @property
+    def body_style(self):
+        return self.part.body_style
+    
+    @property
+    def other_style(self):
+        return self.part.other_style
+
 
 class SlideMasters(ParentedElementProxy):
     """Sequence of |SlideMaster| objects belonging to a presentation.
@@ -558,3 +585,5 @@ class _Background(ElementProxy):
         """
         bgPr = self._cSld.get_or_add_bgPr()
         return FillFormat.from_fill_parent(bgPr)
+
+

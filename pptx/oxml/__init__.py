@@ -52,10 +52,11 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
-from .action import CT_Hyperlink  # noqa: E402
+from .action import CT_Hyperlink, HyperlinkColorExtension  # noqa: E402
 
 register_element_cls("a:hlinkClick", CT_Hyperlink)
 register_element_cls("a:hlinkHover", CT_Hyperlink)
+register_element_cls("ahyp:hlinkClr", HyperlinkColorExtension)
 
 
 from .chart.axis import (  # noqa: E402
@@ -292,7 +293,6 @@ register_element_cls("p:sldMasterId", CT_SlideMasterIdListEntry)
 register_element_cls("p:sldMasterIdLst", CT_SlideMasterIdList)
 register_element_cls("p:sldSz", CT_SlideSize)
 
-
 from .shapes.autoshape import (  # noqa: E402
     CT_AdjPoint2D,
     CT_CustomGeometry2D,
@@ -417,6 +417,9 @@ from .slide import (  # noqa: E402
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLMediaNodeVideo,
+    CT_ColorMappingOverride,
+    CT_SlideMasterTextStyles,
+    CT_TextListStyle,
 )
 
 register_element_cls("p:bg", CT_Background)
@@ -432,6 +435,12 @@ register_element_cls("p:sldLayoutIdLst", CT_SlideLayoutIdList)
 register_element_cls("p:sldMaster", CT_SlideMaster)
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
+register_element_cls("p:clrMapOvr", CT_ColorMappingOverride)
+register_element_cls("p:txStyles", CT_SlideMasterTextStyles)
+register_element_cls("p:titleStyle", CT_TextListStyle)
+register_element_cls("p:bodyStyle", CT_TextListStyle)
+register_element_cls("p:otherStyle", CT_TextListStyle)
+register_element_cls("a:lstStyle", CT_TextListStyle)
 
 
 from .table import (  # noqa: E402
@@ -521,6 +530,16 @@ register_element_cls("p:txBody", CT_TextBody)
 register_element_cls("a:ea", CT_TextFont)
 register_element_cls("a:cs", CT_TextFont)
 register_element_cls("a:font", CT_SupplementalFont)
+register_element_cls("a:defPPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl1pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl2pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl3pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl4pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl5pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl6pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl7pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl8pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl9pPr", CT_TextParagraphProperties)
 
 
 
@@ -530,8 +549,11 @@ from .theme import (
     CT_ColorScheme,
     CT_FontScheme,
     CT_StyleMatrix,
+    CT_ColorMapping,
+    CT_EmptyElement,
 )
-
+register_element_cls("p:clrMap", CT_ColorMapping)
+register_element_cls("a:overrideClrMapping", CT_ColorMapping)
 register_element_cls("a:theme", CT_OfficeStyleSheet)
 register_element_cls("a:themeElements", CT_BaseStyles)
 register_element_cls("a:clrScheme", CT_ColorScheme)
@@ -552,3 +574,10 @@ register_element_cls("a:hlink", CT_Color)
 register_element_cls("a:folHlink", CT_Color)
 register_element_cls("a:majorFont", CT_FontCollection)
 register_element_cls("a:minorFont", CT_FontCollection)
+register_element_cls("a:masterClrMapping", CT_EmptyElement)
+
+
+from .media import (
+    CT_OfficeArtExtensionList,  # noqa: E402
+)
+register_element_cls("a:extLst", CT_OfficeArtExtensionList)

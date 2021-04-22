@@ -12,8 +12,8 @@ from ..opc.package import XmlPart
 from ..opc.packuri import PackURI
 from ..oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from ..oxml.theme import CT_OfficeStyleSheet
-from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
-from ..theme import Theme
+from ..slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster, TextListStyle
+from ..theme import Theme, ColorMap
 from ..util import lazyproperty
 
 
@@ -252,6 +252,16 @@ class SlidePart(BaseSlidePart):
         self.relate_to(notes_slide_part, RT.NOTES_SLIDE)
         return notes_slide_part
 
+    @property
+    def color_map_override(self):
+        """
+        Color Mapping object to override those in the slide master
+        """
+        override = self._element.clrMapOvr.color_map_override
+        if override is not None:
+            return ColorMap(override)
+        return None
+
 
 class SlideLayoutPart(BaseSlidePart):
     """
@@ -273,6 +283,15 @@ class SlideLayoutPart(BaseSlidePart):
         """
         return self.part_related_by(RT.SLIDE_MASTER).slide_master
 
+    @property
+    def color_map_override(self):
+        """
+        Color Mapping object to override those in the slide master
+        """
+        override = self._element.clrMapOvr.color_map_override
+        if override is not None:
+            return ColorMap(override)
+        return None
 
 class SlideMasterPart(BaseSlidePart):
     """
@@ -294,13 +313,33 @@ class SlideMasterPart(BaseSlidePart):
         """
         return SlideMaster(self._element, self)
     
-
+    @property
     def related_theme(self):
         """
         The |Theme| object representing this part.
         """
         return self.part_related_by(RT.THEME).theme
     
+
+    @lazyproperty
+    def color_map(self):
+        """
+        The color mapping of the theme
+        """
+        return ColorMap(self._element.clrMap)
+
+    @lazyproperty
+    def title_style(self):
+        return TextListStyle(self._element.txStyles.titleStyle)
+
+    @lazyproperty
+    def body_style(self):
+        return TextListStyle(self._element.txStyles.bodyStyle)
+
+    @lazyproperty
+    def other_style(self):
+        return TextListStyle(self._element.tsStyles.otherStyle)
+
 
 class ThemePart(XmlPart):
     """

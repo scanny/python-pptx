@@ -18,7 +18,8 @@ from .xmlchemy import (
 )
 
 from pptx.oxml.simpletypes import (
-    XsdString
+    XsdString,
+    ST_ColorSchemeIndex
 )
 class CT_OfficeStyleSheet(BaseOxmlElement):
     """
@@ -156,3 +157,22 @@ class CT_BackgroundFillStyleList(BaseOxmlElement):
             Choice("a:grpFill"),
         )
     )
+
+
+class CT_ColorMapping(BaseOxmlElement):
+    bg1 = RequiredAttribute("bg1", ST_ColorSchemeIndex)
+    tx1 = RequiredAttribute("tx1", ST_ColorSchemeIndex)
+    bg2 = RequiredAttribute("bg2", ST_ColorSchemeIndex)
+    tx2 = RequiredAttribute("tx2", ST_ColorSchemeIndex)
+    accent1 = RequiredAttribute("accent1", ST_ColorSchemeIndex)
+    accent2 = RequiredAttribute("accent2", ST_ColorSchemeIndex)
+    accent3 = RequiredAttribute("accent3", ST_ColorSchemeIndex)
+    accent4 = RequiredAttribute("accent4", ST_ColorSchemeIndex)
+    accent5 = RequiredAttribute("accent5", ST_ColorSchemeIndex)
+    accent6 = RequiredAttribute("accent6", ST_ColorSchemeIndex)
+    hlink = RequiredAttribute("hlink", ST_ColorSchemeIndex)
+    folHlink = RequiredAttribute("folHlink", ST_ColorSchemeIndex)
+    
+class CT_EmptyElement(BaseOxmlElement):
+    """ An Empty Element with no attributes or properties """
+    pass

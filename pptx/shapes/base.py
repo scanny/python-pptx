@@ -133,6 +133,19 @@ class BaseShape(object):
     def name(self, value):
         self._element._nvXxPr.cNvPr.name = value
 
+    
+    @property
+    def hidden(self):
+        """
+        Read/write visiblity status of this shape.  Defaults to False
+        """
+        return self._element.hidden
+
+    @hidden.setter
+    def hidden(self, value):
+        self._element._nvXxPr.cNvPr.hidden = value
+
+    
     @property
     def part(self):
         """The package part containing this shape.
