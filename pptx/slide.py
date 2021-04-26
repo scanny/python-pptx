@@ -17,6 +17,7 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders,
     SlideShapes,
 )
+from pptx.theme import ColorMap
 from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
@@ -254,7 +255,10 @@ class Slide(_BaseSlide):
     @property
     def color_map_override(self):
         """ A new |ColorMap| to override that from the Slide Master or None"""
-        return self.part.color_map_override
+        color_map = self._element.clrMapOvr.color_map_override
+        if color_map is None:
+            return None
+        return ColorMap(color_map)
 
 
 class Slides(ParentedElementProxy):
@@ -391,7 +395,9 @@ class SlideLayout(_BaseSlide):
     @property
     def color_map_override(self):
         """ A new |ColorMap| to override that from the Slide Master or None"""
-        return self.part.color_map_override
+        if self._element.color_map_override is None:
+            return None
+        return ColorMap(self._element.color_map_override)
 
 class SlideLayouts(ParentedElementProxy):
     """Sequence of slide layouts belonging to a slide-master.
@@ -491,7 +497,7 @@ class SlideMaster(_BaseMaster):
 
     @property
     def color_map(self):
-        return self.part.color_map
+        return ColorMap(self._element.color_map)
 
     @property
     def title_style(self):

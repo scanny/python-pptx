@@ -768,10 +768,6 @@ class DescribeSlideMasterPart(object):
         part_related_by_.assert_called_once_with(slide_master_part, RT.THEME)
         assert theme is theme_
 
-    # def it_provides_access_to_its_color_map(self, color_map_fixture):
-    #     slide_master_part, color_map_ = color_map_fixture
-    #     color_map = slide_master_part.color_map
-    #     assert color_map is color_map_
 
 
     # fixtures -------------------------------------------------------
@@ -799,7 +795,7 @@ class DescribeSlideMasterPart(object):
 
     @pytest.fixture
     def color_map_fixture(self, color_map_):
-        sldMaster = element("p:sldMaster/p:clrMap")
+        sldMaster = element("p:sldMaster")
         slide_master_part = SlideMasterPart(None, None, sldMaster)
         return slide_master_part, color_map_
 

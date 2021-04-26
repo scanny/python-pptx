@@ -13,7 +13,7 @@ from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
 from pptx.presentation import Presentation
 from pptx.shapes.base import BaseShape
-from pptx.theme import Theme
+from pptx.theme import Theme, ColorMap
 from pptx.shapes.placeholder import LayoutPlaceholder, NotesSlidePlaceholder
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
