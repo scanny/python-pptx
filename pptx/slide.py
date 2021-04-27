@@ -497,19 +497,19 @@ class SlideMaster(_BaseMaster):
 
     @property
     def color_map(self):
-        return ColorMap(self._element.color_map)
+        return ColorMap(self._element.clrMap)
 
     @property
     def title_style(self):
-        return self.part.title_style
+        return TextListStyle(self._element.txStyles.titleStyle)
 
     @property
     def body_style(self):
-        return self.part.body_style
+        return TextListStyle(self._element.txStyles.bodyStyle)
     
     @property
     def other_style(self):
-        return self.part.other_style
+        return TextListStyle(self._element.txStyles.otherStyle)
 
 
 class SlideMasters(ParentedElementProxy):
