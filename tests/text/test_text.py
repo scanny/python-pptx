@@ -27,7 +27,7 @@ from pptx.text.text import (
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
-from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, a_pPr
+from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, a_pPr, an_extLst, an_ext, an_hlinkClr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
     class_mock,
@@ -811,6 +811,12 @@ class Describe_Hyperlink(object):
             new_url, RT.HYPERLINK, is_external=True
         )
 
+    def it_can_add_hyperlink_color_ext(self, add_hyperlink_color_fixture):
+        hyperlink, expected_xml = add_hyperlink_color_fixture
+        hyperlink.add_hyperlink_color()
+        assert hyperlink._rPr.xml == expected_xml
+
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -886,6 +892,25 @@ class Describe_Hyperlink(object):
     def url_2(self):
         return "https://pypi.python.org/pypi/python-pptx"
 
+    @pytest.fixture
+    def add_hyperlink_color_fixture(
+        self, request, hlink_with_hlinkClick, rId, part_, url_2
+    ):
+        hlinkClick_bldr = an_hlinkClick().with_rId(rId)
+        extList_bldr = an_extLst()
+        ext_bldr = an_ext()
+        uri = "{A12FA001-AC4F-418D-AE19-62706E023703}"
+        
+        new_rPr_with_extList = an_rPr().with_nsdecls("a", "r") \
+                                .with_child(hlinkClick_bldr \
+                                .with_child(extList_bldr \
+                                .with_child(an_ext().with_uri(uri) \
+                                .with_child(an_hlinkClr().with_nsdecls("ahyp").with_val("tx")))))
+        
+
+        part_.relate_to.return_value = rId
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+        return hlink_with_hlinkClick, new_rPr_with_extList.xml()
 
 class Describe_Paragraph(object):
     """Unit test suite for pptx.text.text._Paragraph object."""
