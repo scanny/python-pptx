@@ -14,7 +14,16 @@ from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.shapes.autoshape import Shape
-from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame, TextFont
+from pptx.text.text import (
+    Font,
+    _Hyperlink,
+    _Paragraph,
+    _Run,
+    TextFrame,
+    TextFont,
+    TextListStyle,
+    ParagraphProperties,
+)
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
@@ -167,6 +176,9 @@ class DescribeTextFrame(object):
         text_frame, family, size, bold, italic, expected_xml = set_font_fixture
         text_frame._set_font(family, size, bold, italic)
         assert text_frame._element.xml == expected_xml
+
+    def it_provides_access_to_its_text_list_style(self, text_frame):
+        assert isinstance(text_frame.list_style, TextListStyle)
 
     # fixtures ---------------------------------------------
 
@@ -480,6 +492,10 @@ class DescribeTextFrame(object):
     def text_prop_(self, request):
         return property_mock(request, TextFrame, "text")
 
+    @pytest.fixture
+    def text_frame(self, request):
+        parent_ = loose_mock(request, name="parent_")
+        return TextFrame(element("p:txBody"), parent_)
 
 class DescribeFont(object):
     def it_knows_its_bold_setting(self, bold_get_fixture):
@@ -1465,3 +1481,40 @@ class Describe_TextFont(object):
         text_font = TextFont(element(latin_cxml))
         return text_font, expected_value
 
+
+class Describe_TextListStyle:
+    def it_provides_access_to_its_default_style(self, text_list_style):
+        assert isinstance(text_list_style.default, ParagraphProperties)
+
+    def it_provides_access_to_its_level1_style(self, text_list_style):
+        assert isinstance(text_list_style.level_1, ParagraphProperties)
+
+    def it_provides_access_to_its_level2_style(self, text_list_style):
+        assert isinstance(text_list_style.level_2, ParagraphProperties)
+
+    def it_provides_access_to_its_level3_style(self, text_list_style):
+        assert isinstance(text_list_style.level_3, ParagraphProperties)
+
+    def it_provides_access_to_its_level4_style(self, text_list_style):
+        assert isinstance(text_list_style.level_4, ParagraphProperties)
+
+    def it_provides_access_to_its_level5_style(self, text_list_style):
+        assert isinstance(text_list_style.level_5, ParagraphProperties)
+
+    def it_provides_access_to_its_level6_style(self, text_list_style):
+        assert isinstance(text_list_style.level_6, ParagraphProperties)
+
+    def it_provides_access_to_its_level7_style(self, text_list_style):
+        assert isinstance(text_list_style.level_7, ParagraphProperties)
+
+    def it_provides_access_to_its_level8_style(self, text_list_style):
+        assert isinstance(text_list_style.level_8, ParagraphProperties)
+
+    def it_provides_access_to_its_level9_style(self, text_list_style):
+        assert isinstance(text_list_style.level_9, ParagraphProperties)
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def text_list_style(self, request):
+        return TextListStyle(element("a:lstStyle"))

@@ -286,8 +286,6 @@ class TextFrame(Subshape):
     def list_style(self):
         return TextListStyle(self._txBody.lstStyle)
 
-    
-
 
 class Font(object):
     """
