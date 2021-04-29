@@ -395,8 +395,13 @@ class CT_ShapeProperties(BaseOxmlElement):
         "a:extLst",
     )
     xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
-    custGeom = ZeroOrOne("a:custGeom", successors=_tag_seq[2:])
-    prstGeom = ZeroOrOne("a:prstGeom", successors=_tag_seq[3:])
+    eg_Geometry = ZeroOrOneChoice(
+        (
+            Choice("a:custGeom"),
+            Choice("a:prstGeom")
+        ),
+        successors=_tag_seq[3:]
+    )
     eg_fillProperties = ZeroOrOneChoice(
         (
             Choice("a:noFill"),

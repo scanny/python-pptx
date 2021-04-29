@@ -15,6 +15,9 @@ from pptx.oxml.simpletypes import (
     ST_PositiveCoordinate,
     XsdBoolean,
     XsdString,
+    ST_AdjCoordinate,
+    ST_PathFillMode,
+    ST_AdjAngle,
 )
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
@@ -24,21 +27,28 @@ from pptx.oxml.xmlchemy import (
     RequiredAttribute,
     ZeroOrOne,
     ZeroOrMore,
+    OneOrMore,
 )
 
 
 class CT_AdjPoint2D(BaseOxmlElement):
     """`a:pt` custom element class."""
 
-    x = RequiredAttribute("x", ST_Coordinate)
-    y = RequiredAttribute("y", ST_Coordinate)
+    x = RequiredAttribute("x", ST_AdjCoordinate)
+    y = RequiredAttribute("y", ST_AdjCoordinate)
 
 
 class CT_CustomGeometry2D(BaseOxmlElement):
     """`a:custGeom` custom element class."""
 
     _tag_seq = ("a:avLst", "a:gdLst", "a:ahLst", "a:cxnLst", "a:rect", "a:pathLst")
+    avLst = ZeroOrOne("a:avLst", successors=_tag_seq[1:])
+    gdLst = ZeroOrOne("a:gdLst", successors=_tag_seq[2:])
+    ahLst = ZeroOrOne("a:ahLst", successors=_tag_seq[3:])
+    cxnLst = ZeroOrOne("a:cxnLst", successors=_tag_seq[4:])
+    rect = ZeroOrOne("a:rect", successors=_tag_seq[5:])
     pathLst = ZeroOrOne("a:pathLst", successors=_tag_seq[6:])
+    del _tag_seq
 
 
 class CT_GeomGuide(BaseOxmlElement):
@@ -53,10 +63,35 @@ class CT_GeomGuide(BaseOxmlElement):
 
 class CT_GeomGuideList(BaseOxmlElement):
     """
-    ``<a:avLst>`` custom element class
+    ``<a:avLst>`` and ``<a:gdLst>`` custom element class
     """
 
     gd = ZeroOrMore("a:gd")
+
+
+class CT_ConnectionSiteList(BaseOxmlElement):
+    """
+    ``<a:cxnLst>`` custom element class
+    """
+    cxn = ZeroOrMore("a:cxn")
+
+class CT_ConnectionSite(BaseOxmlElement):
+    """
+    ``<a:cxn>`` custom element class
+    """
+    pos = ZeroOrOne("a:pos")
+
+    ang = RequiredAttribute("ang", ST_AdjAngle)
+
+
+class CT_GeomRect(BaseOxmlElement):
+    """
+    ``<a:rect>`` custom element class
+    """
+    l = RequiredAttribute("l", ST_AdjCoordinate)
+    t = RequiredAttribute("t", ST_AdjCoordinate)
+    r = RequiredAttribute("r", ST_AdjCoordinate)
+    b = RequiredAttribute("b", ST_AdjCoordinate)
 
 
 class CT_NonVisualDrawingShapeProps(BaseShapeElement):
@@ -72,10 +107,17 @@ class CT_Path2D(BaseOxmlElement):
     """`a:path` custom element class."""
 
     close = ZeroOrMore("a:close", successors=())
-    lnTo = ZeroOrMore("a:lnTo", successors=())
     moveTo = ZeroOrMore("a:moveTo", successors=())
+    lnTo = ZeroOrMore("a:lnTo", successors=())
+    arcTo = ZeroOrMore("a:arcTo", successors=())
+    quadBezTo = ZeroOrMore("a:quadBezTo", successors=())
+    cubicBezTo = ZeroOrMore("a:cubicBezTo", successors=())
+
     w = OptionalAttribute("w", ST_PositiveCoordinate)
     h = OptionalAttribute("h", ST_PositiveCoordinate)
+    fill = OptionalAttribute("fill", ST_PathFillMode, default="norm")
+    stroke = OptionalAttribute("stroke", XsdBoolean, default=True)
+    extrusionOk = OptionalAttribute("extrusionOk", XsdBoolean, default=True)
 
     def add_close(self):
         """Return a newly created `a:close` element.
@@ -104,6 +146,45 @@ class CT_Path2D(BaseOxmlElement):
         pt.x, pt.y = x, y
         return moveTo
 
+    def add_arcTo(self, wR, hR, stAng, swAng):
+        """Return a newly created `a:moveTo` subtree with point *(x, y)*.
+
+        The new `a:moveTo` element is appended to this `a:path` element.
+        """
+        arcTo = self._add_arcTo()
+        arcTo.wR = wR
+        arcTo.hR = hR
+        arcTo.stAng = stAng
+        artTo.swAng = swAng
+        return arcTo
+
+    def add_quadBezTo(self, point1, point2):
+        """Return a newly created `a:quadBezTo` subtree with two  points *(x, y)*.
+
+        The new `a:quadBezTo` element is appended to this `a:path` element.
+        """
+        quadBezTo = self._add_quadBezTo()
+        pt1 = quadBezTo._add_pt()
+        pt1.x, pt1.y = point1[0], point1[1]
+        pt2 = quadBezTo._add_pt()
+        pt2.x, pt2.y = point2[0], point2[1]
+        return quadBezTo
+
+
+    def add_cubicBezTo(self, point1, point2, point3):
+        """Return a newly created `a:cubicBezTo` subtree with two  points *(x, y)*.
+
+        The new `a:cubicBezTo` element is appended to this `a:path` element.
+        """
+        cubicBezTo = self._add_cubicBezTo()
+        pt1 = cubicBezTo._add_pt()
+        pt1.x, pt1.y = point1[0], point1[1]
+        pt2 = cubicBezTo._add_pt()
+        pt2.x, pt2.y = point2[0], point2[1]
+        pt3 = cubicBezTo._add_pt()
+        pt3.x, pt3.y = point3[0], point3[1]
+        return cubicBezTo
+
 
 class CT_Path2DClose(BaseOxmlElement):
     """`a:close` custom element class."""
@@ -114,6 +195,14 @@ class CT_Path2DLineTo(BaseOxmlElement):
 
     pt = ZeroOrOne("a:pt", successors=())
 
+
+class CT_Path2DArcTo(BaseOxmlElement):
+    """`a:arcTo` custom element class."""
+
+    wR = RequiredAttribute("wR", ST_AdjCoordinate)
+    hR = RequiredAttribute("hR", ST_AdjCoordinate)
+    stAng = RequiredAttribute("stAng", ST_AdjAngle)
+    swAng = RequiredAttribute("swAng", ST_AdjAngle)
 
 class CT_Path2DList(BaseOxmlElement):
     """`a:pathLst` custom element class."""
@@ -127,9 +216,19 @@ class CT_Path2DList(BaseOxmlElement):
         return path
 
 
+class CT_Path2DQuadBezierTo(BaseOxmlElement):
+    """`a:quadBezTo` custom element class."""
+    # Technically this should be a TwoAndOnlyTwo()
+    pt = OneOrMore("a:pt")
+
+class CT_Path2DCubicBezierTo(BaseOxmlElement):
+    """`a:cubicBezTo` custom element class."""
+    # Technically this should be a ThreeAndOnlyThree()
+    pt = OneOrMore("a:pt")
+
 class CT_Path2DMoveTo(BaseOxmlElement):
     """`a:moveTo` custom element class."""
-
+    # Should be OneAndOnlyOne()
     pt = ZeroOrOne("a:pt", successors=())
 
 
@@ -163,7 +262,6 @@ class CT_PresetGeometry2D(BaseOxmlElement):
             gd = avLst._add_gd()
             gd.name = name
             gd.fmla = "val %d" % val
-
 
 class CT_Shape(BaseShapeElement):
     """
@@ -309,6 +407,15 @@ class CT_Shape(BaseShapeElement):
         doesn't have one, for example, if it's a placeholder shape.
         """
         return self.spPr.prstGeom
+
+    @property
+    def custGeom(self):
+        """
+        Reference to ``<a:custGeom>`` child element or |None| if this shape 
+        doesn't have one.
+        """
+        return self.spPr.custGeom
+
 
     @staticmethod
     def _autoshape_sp_tmpl():
