@@ -145,6 +145,25 @@ class CT_GroupShape(BaseShapeElement):
             if elm.tag in self._shape_tags:
                 yield elm
 
+            if elm.tag == qn("ve:AlternateContent"):
+                choice = elm.find(qn("ve:Choice"))
+
+                if choice != None:
+                    for content in choice.iterchildren():
+                        #Choose first, among proper items
+                        if content.tag in self._shape_tags:
+                            yield content
+                            break
+                else:
+                    fallback = elm.find(qn("ve:Fallback"))
+
+                    if fallback != None:
+                        for content in fallback.iterchildren():
+                            # Choose first, among proper items
+                            if content.tag in self._shape_tags:
+                                yield content
+                                break
+
     @property
     def max_shape_id(self):
         """Maximum int value assigned as @id in this slide.
