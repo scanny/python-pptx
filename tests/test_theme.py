@@ -15,6 +15,7 @@ from pptx.theme import (
     FontScheme,
     FormatScheme,
     FontCollection,
+    ColorMap,
 )
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
@@ -116,10 +117,16 @@ class DescribeColorScheme:
         assert isinstance(color_scheme.accent6, ColorFormat)
 
     def it_gives_access_to_hyperlink_color(self, color_scheme):
+        assert isinstance(color_scheme.hlink, ColorFormat)
+
+    def it_gives_access_to_hyperlink_color_lazy(self, color_scheme):
         assert isinstance(color_scheme.hyperlink, ColorFormat)
 
-    def it_gives_access_to_followed_hyperlink_color(self, color_scheme):
+    def it_gives_access_to_followed_hyperlink_color_lazy(self, color_scheme):
         assert isinstance(color_scheme.followed_hyperlink, ColorFormat)
+
+    def it_gives_access_to_followed_hyperlink_color(self, color_scheme):
+        assert isinstance(color_scheme.folHlink, ColorFormat)
 
 
     # fixtures ---------------------------------------------

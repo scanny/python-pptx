@@ -14,11 +14,20 @@ from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.shapes.autoshape import Shape
-from pptx.text.text import Font, _Hyperlink, _Paragraph, _Run, TextFrame, TextFont
+from pptx.text.text import (
+    Font,
+    _Hyperlink,
+    _Paragraph,
+    _Run,
+    TextFrame,
+    TextFont,
+    TextListStyle,
+    ParagraphProperties,
+)
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
-from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
+from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, a_pPr, an_extLst, an_ext, an_hlinkClr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
     class_mock,
@@ -167,6 +176,9 @@ class DescribeTextFrame(object):
         text_frame, family, size, bold, italic, expected_xml = set_font_fixture
         text_frame._set_font(family, size, bold, italic)
         assert text_frame._element.xml == expected_xml
+
+    def it_provides_access_to_its_text_list_style(self, text_frame):
+        assert isinstance(text_frame.list_style, TextListStyle)
 
     # fixtures ---------------------------------------------
 
@@ -480,6 +492,10 @@ class DescribeTextFrame(object):
     def text_prop_(self, request):
         return property_mock(request, TextFrame, "text")
 
+    @pytest.fixture
+    def text_frame(self, request):
+        parent_ = loose_mock(request, name="parent_")
+        return TextFrame(element("p:txBody"), parent_)
 
 class DescribeFont(object):
     def it_knows_its_bold_setting(self, bold_get_fixture):
@@ -795,6 +811,12 @@ class Describe_Hyperlink(object):
             new_url, RT.HYPERLINK, is_external=True
         )
 
+    def it_can_add_hyperlink_color_ext(self, add_hyperlink_color_fixture):
+        hyperlink, expected_xml = add_hyperlink_color_fixture
+        hyperlink.add_hyperlink_color()
+        assert hyperlink._rPr.xml == expected_xml
+
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture
@@ -870,6 +892,25 @@ class Describe_Hyperlink(object):
     def url_2(self):
         return "https://pypi.python.org/pypi/python-pptx"
 
+    @pytest.fixture
+    def add_hyperlink_color_fixture(
+        self, request, hlink_with_hlinkClick, rId, part_, url_2
+    ):
+        hlinkClick_bldr = an_hlinkClick().with_rId(rId)
+        extList_bldr = an_extLst()
+        ext_bldr = an_ext()
+        uri = "{A12FA001-AC4F-418D-AE19-62706E023703}"
+        
+        new_rPr_with_extList = an_rPr().with_nsdecls("a", "r") \
+                                .with_child(hlinkClick_bldr \
+                                .with_child(extList_bldr \
+                                .with_child(an_ext().with_uri(uri) \
+                                .with_child(an_hlinkClr().with_nsdecls("ahyp").with_val("tx")))))
+        
+
+        part_.relate_to.return_value = rId
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+        return hlink_with_hlinkClick, new_rPr_with_extList.xml()
 
 class Describe_Paragraph(object):
     """Unit test suite for pptx.text.text._Paragraph object."""
@@ -1465,3 +1506,376 @@ class Describe_TextFont(object):
         text_font = TextFont(element(latin_cxml))
         return text_font, expected_value
 
+
+class Describe_TextListStyle:
+    def it_provides_access_to_its_default_style(self, text_list_style):
+        assert isinstance(text_list_style.default, ParagraphProperties)
+
+    def it_provides_access_to_its_level1_style(self, text_list_style):
+        assert isinstance(text_list_style.level_1, ParagraphProperties)
+
+    def it_provides_access_to_its_level2_style(self, text_list_style):
+        assert isinstance(text_list_style.level_2, ParagraphProperties)
+
+    def it_provides_access_to_its_level3_style(self, text_list_style):
+        assert isinstance(text_list_style.level_3, ParagraphProperties)
+
+    def it_provides_access_to_its_level4_style(self, text_list_style):
+        assert isinstance(text_list_style.level_4, ParagraphProperties)
+
+    def it_provides_access_to_its_level5_style(self, text_list_style):
+        assert isinstance(text_list_style.level_5, ParagraphProperties)
+
+    def it_provides_access_to_its_level6_style(self, text_list_style):
+        assert isinstance(text_list_style.level_6, ParagraphProperties)
+
+    def it_provides_access_to_its_level7_style(self, text_list_style):
+        assert isinstance(text_list_style.level_7, ParagraphProperties)
+
+    def it_provides_access_to_its_level8_style(self, text_list_style):
+        assert isinstance(text_list_style.level_8, ParagraphProperties)
+
+    def it_provides_access_to_its_level9_style(self, text_list_style):
+        assert isinstance(text_list_style.level_9, ParagraphProperties)
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def text_list_style(self, request):
+        return TextListStyle(element("a:lstStyle"))
+
+
+class Describe_ParagraphProperties(object):
+    """Unit test suite for pptx.text.text.ParagraphProperties object."""
+
+    def it_knows_its_horizontal_alignment(self, alignment_get_fixture):
+        paragraph, expected_value = alignment_get_fixture
+        assert paragraph.alignment == expected_value
+
+    def it_can_change_its_horizontal_alignment(self, alignment_set_fixture):
+        paragraph, new_value, expected_xml = alignment_set_fixture
+        paragraph.alignment = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_provides_access_to_the_default_paragraph_font(self, paragraph_properties, Font_):
+        font = paragraph_properties.font
+        Font_.assert_called_once_with(paragraph_properties._defRPr)
+        assert font == Font_.return_value
+
+    def it_knows_its_indentation_level(self, level_get_fixture):
+        paragraph, expected_value = level_get_fixture
+        assert paragraph.level == expected_value
+
+    def it_can_change_its_indentation_level(self, level_set_fixture):
+        paragraph, new_value, expected_xml = level_set_fixture
+        paragraph.level = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_left_margin(self, left_margin_get_fixture):
+        paragraph, expected_value = left_margin_get_fixture
+        assert paragraph.margin_left == expected_value
+
+    def it_can_change_its_left_margin(self, left_margin_set_fixture):
+        paragraph, new_value, expected_xml = left_margin_set_fixture
+        paragraph.margin_left = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_right_margin(self, right_margin_get_fixture):
+        paragraph, expected_value = right_margin_get_fixture
+        assert paragraph.margin_right == expected_value
+
+    def it_can_change_its_right_margin(self, right_margin_set_fixture):
+        paragraph, new_value, expected_xml = right_margin_set_fixture
+        paragraph.margin_right = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_indent(self, indent_get_fixture):
+        paragraph, expected_value = indent_get_fixture
+        assert paragraph.indent == expected_value
+
+    def it_can_change_its_indent(self, indent_set_fixture):
+        paragraph, new_value, expected_xml = indent_set_fixture
+        paragraph.indent = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_line_spacing(self, spacing_get_fixture):
+        paragraph, expected_value = spacing_get_fixture
+        assert paragraph.line_spacing == expected_value
+
+    def it_can_change_its_line_spacing(self, spacing_set_fixture):
+        paragraph, new_value, expected_xml = spacing_set_fixture
+        paragraph.line_spacing = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_space_after(self, after_get_fixture):
+        paragraph, expected_value = after_get_fixture
+        assert paragraph.space_after == expected_value
+
+    def it_can_change_its_space_after(self, after_set_fixture):
+        paragraph, new_value, expected_xml = after_set_fixture
+        paragraph.space_after = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_space_before(self, before_get_fixture):
+        paragraph, expected_value = before_get_fixture
+        assert paragraph.space_before == expected_value
+
+    def it_can_change_its_space_before(self, before_set_fixture):
+        paragraph, new_value, expected_xml = before_set_fixture
+        paragraph.space_before = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_provides_access_to_its_bullet_text(self, paragraph_properties):
+        assert isinstance(paragraph_properties.bullet_text, TextBullet)
+
+    def it_provides_access_to_its_bullet_color(self, paragraph_properties):
+        assert isinstance(paragraph_properties.bullet_color, TextBulletColor)
+
+    def it_provides_access_to_its_bullet_size(self, paragraph_properties):
+        assert isinstance(paragraph_properties.bullet_size, TextBulletSize)
+
+    def it_provides_access_to_its_bullet_font(self, paragraph_properties):
+        assert isinstance(paragraph_properties.bullet_font, TextBulletTypeface)
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", None),
+            ("a:pPr/a:spcAft/a:spcPct{val=150000}", None),
+            ("a:pPr/a:spcAft/a:spcPts{val=600}", 76200),
+        ]
+    )
+    def after_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            (
+                "a:pPr/a:spcAft/a:spcPts{val=600}",
+                Pt(42),
+                "a:pPr/a:spcAft/a:spcPts{val=4200}",
+            ),
+            (
+                "a:pPr/a:spcAft/a:spcPct{val=150000}",
+                Pt(24),
+                "a:pPr/a:spcAft/a:spcPts{val=2400}",
+            ),
+            ("a:pPr/a:spcAft/a:spcPts{val=600}", None, "a:pPr"),
+        ]
+    )
+    def after_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr{algn=ctr}", PP_ALIGN.CENTER),
+            ("a:pPr{algn=r}", PP_ALIGN.RIGHT),
+        ]
+    )
+    def alignment_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", PP_ALIGN.LEFT, "a:pPr{algn=l}"),
+            ("a:pPr{algn=l}", PP_ALIGN.JUSTIFY, "a:pPr{algn=just}"),
+            ("a:pPr{algn=just}", None, "a:pPr"),
+        ]
+    )
+    def alignment_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", None),
+            ("a:pPr/a:spcBef/a:spcPct{val=150000}", None),
+            ("a:pPr/a:spcBef/a:spcPts{val=600}", 76200),
+        ]
+    )
+    def before_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", Pt(8.333), "a:pPr/a:spcBef/a:spcPts{val=833}"),
+            (
+                "a:pPr/a:spcBef/a:spcPts{val=600}",
+                Pt(42),
+                "a:pPr/a:spcBef/a:spcPts{val=4200}",
+            ),
+            (
+                "a:pPr/a:spcBef/a:spcPct{val=150000}",
+                Pt(24),
+                "a:pPr/a:spcBef/a:spcPts{val=2400}",
+            ),
+            ("a:pPr/a:spcBef/a:spcPts{val=600}", None, "a:pPr"),
+        ]
+    )
+    def before_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:pPr", 0), ("a:pPr{lvl=2}", 2)])
+    def level_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", 1, "a:pPr{lvl=1}"),
+            ("a:pPr{lvl=1}", 2, "a:pPr{lvl=2}"),
+            ("a:pPr{lvl=2}", 0, "a:pPr"),
+        ]
+    )
+    def level_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:pPr", 0), ("a:pPr{marL=10000}", 10000)])
+    def left_margin_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", 1, "a:pPr{marL=1}"),
+            ("a:pPr{marL=1}", 2, "a:pPr{marL=2}"),
+            ("a:pPr{marL=2}", 0, "a:pPr"),
+        ]
+    )
+    def left_margin_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:pPr", 0), ("a:pPr{indent=10000}", 10000)])
+    def indent_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", 1, "a:pPr{indent=1}"),
+            ("a:pPr{indent=1}", 2, "a:pPr{indent=2}"),
+            ("a:pPr{indent=2}", 0, "a:pPr"),
+        ]
+    )
+    def indent_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(params=[("a:pPr", 0), ("a:pPr{marR=10000}", 10000)])
+    def right_margin_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", 1, "a:pPr{marR=1}"),
+            ("a:pPr{marR=1}", 2, "a:pPr{marR=2}"),
+            ("a:pPr{marR=2}", 0, "a:pPr"),
+        ]
+    )
+    def right_margin_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", "a:br"),
+            ("a:r", "(a:r,a:br)"),
+            ("a:br", "(a:br,a:br)"),
+        ]
+    )
+    def line_break_fixture(self, request):
+        cxml, expected_cxml = request.param
+        paragraph = ParagraphProperties(element(cxml), None)
+        expected_xml = xml(expected_cxml)
+        return paragraph, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", None),
+            ("a:pPr/a:lnSpc/a:spcPts{val=1800}", 228600),
+            ("a:pPr/a:lnSpc/a:spcPct{val=142000}", 1.42),
+            ("a:pPr/a:lnSpc/a:spcPct{val=124.64%}", 1.2464),
+        ]
+    )
+    def spacing_get_fixture(self, request):
+        p_cxml, expected_value = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        return paragraph, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:pPr", 1.42, "a:pPr/a:lnSpc/a:spcPct{val=142000}"),
+            ("a:pPr", Pt(42), "a:pPr/a:lnSpc/a:spcPts{val=4200}"),
+            (
+                "a:pPr/a:lnSpc/a:spcPct{val=110000}",
+                0.875,
+                "a:pPr/a:lnSpc/a:spcPct{val=87500}",
+            ),
+            (
+                "a:pPr/a:lnSpc/a:spcPts{val=600}",
+                Pt(42),
+                "a:pPr/a:lnSpc/a:spcPts{val=4200}",
+            ),
+            (
+                "a:pPr/a:lnSpc/a:spcPts{val=1900}",
+                0.925,
+                "a:pPr/a:lnSpc/a:spcPct{val=92500}",
+            ),
+            (
+                "a:pPr/a:lnSpc/a:spcPct{val=150000}",
+                Pt(24),
+                "a:pPr/a:lnSpc/a:spcPts{val=2400}",
+            ),
+            ("a:pPr/a:lnSpc/a:spcPts{val=600}", None, "a:pPr"),
+            ("a:pPr/a:lnSpc/a:spcPct{val=150000}", None, "a:pPr"),
+        ]
+    )
+    def spacing_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = ParagraphProperties(element(p_cxml))
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+
+    # fixture components -----------------------------------
+    @pytest.fixture
+    def pPr_bldr(self):
+        return a_pPr().with_nsdecls()
+
+    @pytest.fixture
+    def paragraph_properties(self, pPr_bldr):
+        return ParagraphProperties(pPr_bldr.element)
+
+    @pytest.fixture
+    def Font_(self, request):
+        return class_mock(request, "pptx.text.text.Font")
