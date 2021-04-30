@@ -416,7 +416,7 @@ class CustomGeometry(ElementProxy):
         return PathList(self._element.get_or_add_pathLst())
 
 
-class GeometryGuideList(object):
+class GeometryGuideList(ElementProxy):
     """List of Shape Guides used by |CustomGeometry|.
     """
 
@@ -435,7 +435,9 @@ class GeometryGuideList(object):
         return GeometryGuide(self._element._add_gd())
 
 
-class GeometryGuide(object):
+class GeometryGuide(ElementProxy):
+    """ Individual Geometry Guides for elements `a:gd`
+    """
     def __init__(self, guide):
         super(GeometryGuide, self).__init__()
         self._element = guide
@@ -457,7 +459,7 @@ class GeometryGuide(object):
         self._element.fmla = value
 
 
-class ConnectionSiteList(object):
+class ConnectionSiteList(ElementProxy):
     """List of Connection Sites used by |CustomGeometry|.
     """
 
@@ -476,7 +478,9 @@ class ConnectionSiteList(object):
         return ConnectionSite(self._element._add_cxn())
 
 
-class ConnectionSite(object):
+class ConnectionSite(ElementProxy):
+    """ Connection Sites represented by `a:cxn`
+    """
     def __init__(self, site):
         super(ConnectionSite, self).__init__()
         self._element = site
@@ -501,7 +505,7 @@ class ConnectionSite(object):
         pos.y = coords[1]
         
 
-class GeometricRectangle(object):
+class GeometricRectangle(ElementProxy):
     """ Object to define a rectangle for a textbox used by |CustomGeometry|
     """
 
@@ -542,7 +546,7 @@ class GeometricRectangle(object):
         self._element.b = value
 
 
-class PathList(object):
+class PathList(ElementProxy):
     """List of Shape Paths used by |CustomGeometry|.
     """
 
@@ -561,7 +565,9 @@ class PathList(object):
         return ShapePath(self._element._add_path())
 
 
-class ShapePath(object):
+class ShapePath(ElementProxy):
+    """ Individual Shape Paths contained in `a:path`
+    """
     def __init__(self, path):
         super(ShapePath, self).__init__()
         self._element = path
@@ -623,10 +629,6 @@ class ShapePath(object):
 
     def add_cubic_bez_to(self, point1, point2, point3):
         return self._element.add_cubicBezTo(point1, point2, point3)
-
-    @property
-    def xml(self):
-        return self._element.xml
 
     @property
     def path_sequence(self):
