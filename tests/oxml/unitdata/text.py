@@ -11,7 +11,7 @@ from ...unitdata import BaseBuilder
 
 class CT_Hyperlink(BaseBuilder):
     __tag__ = "a:hlinkClick"
-    __nspfxs__ = ("a", "r")
+    __nspfxs__ = ("a", "r", )
     __attrs__ = (
         "r:id",
         "invalidUrl",
@@ -33,6 +33,24 @@ class CT_OfficeArtExtensionList(BaseBuilder):
     __nspfxs__ = ("a",)
     __attrs__ = ()
 
+
+class CT_PositiveSize2D(BaseBuilder):
+    __tag__ = "a:ext"
+    __nspfxs__ = ("a",)
+    __attrs__ = ("uri")
+
+    def with_uri(self, uri):
+        self._set_xmlattr("uri", uri)
+        return self
+
+class HyperlinkColorExtension(BaseBuilder):
+    __tag__ = "ahyp:hlinkClr"
+    __nspfxs__ = ("ahyp",)
+    __attrs__ = ("val")
+
+    def with_val(self, val):
+        self._set_xmlattr("val", val)
+        return self
 
 class CT_RegularTextRunBuilder(BaseBuilder):
     __tag__ = "a:r"
@@ -198,10 +216,14 @@ def an_endParaRPr():
 def an_extLst():
     return CT_OfficeArtExtensionList()
 
+def an_ext():
+    return CT_PositiveSize2D()
+
+def an_hlinkClr():
+    return HyperlinkColorExtension()
 
 def an_hlinkClick():
     return CT_Hyperlink()
-
 
 def an_r():
     return CT_RegularTextRunBuilder()

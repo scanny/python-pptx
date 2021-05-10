@@ -676,6 +676,15 @@ class Describe_GradientStops(object):
             assert isinstance(stop, _GradientStop)
 
 
+    def it_can_add_a_new_stop(self):
+        stops = _GradientStops(CT_GradientStopList.new_gsLst())
+        assert len(stops) == 2
+        stops.add_gradient_stop()
+        assert len(stops) == 3
+        for stop in stops:
+            assert isinstance((stop), _GradientStop)
+
+
 class Describe_GradientStop(object):
     def it_provides_access_to_its_color(self, request):
         gs = element("a:gs")

@@ -10,10 +10,11 @@ import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.dml.line import LineFormat
+from pptx.dml.line import LineFormat, LineStyle
 from pptx.enum.dml import MSO_FILL, MSO_LINE
 from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
+from pptx.util import Emu
 
 from ..oxml.unitdata.dml import an_ln
 from ..unitutil.cxml import element, xml
@@ -175,3 +176,101 @@ class DescribeLineFormat(object):
         shape_ = instance_mock(request, Shape)
         shape_.get_or_add_ln.return_value = ln_
         return shape_
+
+
+class DescribeLineStyle(object):
+    def it_knows_its_dash_style(self, dash_style_get_fixture):
+        line, expected_value = dash_style_get_fixture
+        assert line.dash_style == expected_value
+
+    def it_knows_its_width(self, width_get_fixture):
+        line, expected_line_width = width_get_fixture
+        assert line.width == expected_line_width
+
+    def it_has_a_fill(self, fill_fixture):
+        line, FillFormat_, ln_, fill_ = fill_fixture
+        fill = line.fill
+        FillFormat_.from_fill_parent.assert_called_once_with(ln_)
+        assert fill is fill_
+
+    def it_has_a_color(self, color_fixture):
+        line, fill_, expected_solid_calls, color_ = color_fixture
+        color = line.color
+        assert fill_.solid.mock_calls == expected_solid_calls
+        assert color is color_
+    
+
+ 
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def fill_fixture(self, line, FillFormat_, ln_, fill_):
+        return line, FillFormat_, ln_, fill_
+
+    @pytest.fixture(
+        params=[(MSO_FILL.SOLID, False), (MSO_FILL.BACKGROUND, True), (None, True)]
+    )
+    def color_fixture(self, request, line, fill_prop_, fill_, color_):
+        pre_call_fill_type, solid_call_expected = request.param
+        fill_.type = pre_call_fill_type
+        expected_solid_calls = [call()] if solid_call_expected else []
+        return line, fill_, expected_solid_calls, color_
+
+    @pytest.fixture(
+        params=[
+            ("a:ln", 0),
+            ("a:ln{w=0}", 0),
+            ("a:ln{w=12700}", 12700),
+        ]
+    )
+    def width_get_fixture(self, request):
+        ln_cxml, expected_line_width = request.param
+        line = LineStyle(element(ln_cxml))
+        print(line.width)
+        return line, expected_line_width
+
+    @pytest.fixture(
+        params=[
+            ("a:ln", None),
+            ("a:ln/a:prstDash", None),
+            ("a:ln/a:prstDash{val=dash}", MSO_LINE.DASH),
+            ("a:ln/a:prstDash{val=solid}", MSO_LINE.SOLID),
+        ]
+    )
+    def dash_style_get_fixture(self, request):
+        ln_cxml, expected_value = request.param
+        line = LineStyle(element(ln_cxml))
+        return line, expected_value
+
+
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def color_(self, request):
+        return instance_mock(request, ColorFormat)
+
+    @pytest.fixture
+    def fill_(self, request, color_):
+        return instance_mock(request, FillFormat, fore_color=color_)
+
+    @pytest.fixture
+    def fill_prop_(self, request, fill_):
+        return property_mock(request, LineStyle, "fill", return_value=fill_)
+
+    @pytest.fixture
+    def FillFormat_(self, request, fill_):
+        FillFormat_ = class_mock(request, "pptx.dml.line.FillFormat")
+        FillFormat_.from_fill_parent.return_value = fill_
+        return FillFormat_
+
+    @pytest.fixture
+    def line(self, ln_):
+        return LineStyle(ln_)
+
+    @pytest.fixture
+    def ln_(self, request):
+        print(request)
+        return instance_mock(request, CT_LineProperties)
+

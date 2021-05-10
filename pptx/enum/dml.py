@@ -312,6 +312,7 @@ class MSO_THEME_COLOR_INDEX(XmlEnumeration):
         XmlMappedEnumMember("LIGHT_2", 4, "lt2", "Specifies the Light 2 theme color."),
         XmlMappedEnumMember("TEXT_1", 13, "tx1", "Specifies the Text 1 theme color."),
         XmlMappedEnumMember("TEXT_2", 15, "tx2", "Specifies the Text 2 theme color."),
+        XmlMappedEnumMember("PLACEHOLDER", 16, "phClr", "Specifies to use the Style Color."),
         ReturnValueOnlyEnumMember(
             "MIXED",
             -2,

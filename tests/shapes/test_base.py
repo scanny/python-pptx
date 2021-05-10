@@ -60,6 +60,15 @@ class DescribeBaseShape(object):
         shape.name = new_value
         assert shape._element.xml == expected_xml
 
+    def it_knows_its_hidden_status(self, hidden_get_fixture):
+        shape, hidden = hidden_get_fixture
+        assert shape.hidden == hidden
+
+    def it_can_change_its_hidden_status(self, hidden_set_fixture):
+        shape, new_value, expected_xml = hidden_set_fixture
+        shape.hidden = new_value
+        assert shape._element.xml == expected_xml
+
     def it_has_a_position(self, position_get_fixture):
         shape, expected_left, expected_top = position_get_fixture
         assert shape.left == expected_left
@@ -284,6 +293,62 @@ class DescribeBaseShape(object):
         ]
     )
     def name_set_fixture(self, request):
+        xSp_cxml, ShapeCls, new_value, expected_xSp_cxml = request.param
+        shape = ShapeCls(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
+        return shape, new_value, expected_xml
+
+    @pytest.fixture(
+        params = [
+            (True, "true"),
+            (False, 0)
+        ]
+    )
+    def hidden_get_fixture(self, request):
+        hidden_status, xml_value = request.param
+        shape_elm = (
+            an_sp()
+            .with_nsdecls()
+            .with_child(an_nvSpPr().with_child(a_cNvPr().with_hidden(xml_value)))
+        ).element
+        shape = BaseShape(shape_elm, None)
+        return shape, hidden_status
+
+    @pytest.fixture(
+        params=[
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,hidden=true}",
+                Shape,
+                False,
+                "p:sp/p:nvSpPr/p:cNvPr{id=1}",
+            ),
+            (
+                "p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2}",
+                BaseShape,
+                True,
+                "p:grpSp/p:nvGrpSpPr/p:cNvPr{id=2,hidden=1}",
+            ),
+            (
+                "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3,hidden=true}",
+                GraphicFrame,
+                False,
+                "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=3}",
+            ),
+            (
+                "p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4}",
+                BaseShape,
+                True,
+                "p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=4,hidden=1}",
+            ),
+            (
+                "p:pic/p:nvPicPr/p:cNvPr{id=5,hidden=true}",
+                Picture,
+                False,
+                "p:pic/p:nvPicPr/p:cNvPr{id=5}",
+            ),
+        ]
+    )
+    def hidden_set_fixture(self, request):
         xSp_cxml, ShapeCls, new_value, expected_xSp_cxml = request.param
         shape = ShapeCls(element(xSp_cxml), None)
         expected_xml = xml(expected_xSp_cxml)

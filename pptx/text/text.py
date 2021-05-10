@@ -16,6 +16,7 @@ from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Centipoints, Emu, lazyproperty, Pt, Inches
+from pptx.shared import ElementProxy
 
 
 class TextFrame(Subshape):
@@ -281,6 +282,10 @@ class TextFrame(Subshape):
         for rPr in iter_rPrs(txBody):
             set_rPr_font(rPr, family, size, bold, italic)
 
+    @property
+    def list_style(self):
+        return TextListStyle(self._txBody.lstStyle)
+
 
 class Font(object):
     """
@@ -522,6 +527,19 @@ class _Hyperlink(Subshape):
         self._rPr._remove_hlinkClick()
 
 
+    def add_hyperlink_color(self):
+        """
+        In order to add a color to a single hyperlink, a entry in the extList element
+        is required, along with a fill color in the run.  This function must be called
+        in order to add the appropriate `ext` element and its `ahyp:hlinkClr` child
+        """
+        ext_list = self._rPr.hlinkClick.get_or_add_extLst()
+        ext = ext_list.add_extension()
+        ext.uri = "{A12FA001-AC4F-418D-AE19-62706E023703}"
+        hyperlinkColor = ext.get_or_add_hyperlinkColor()
+        hyperlinkColor.val = "tx"
+        
+
 class _Paragraph(Subshape):
     """Paragraph object. Not intended to be constructed directly."""
 
@@ -549,11 +567,11 @@ class _Paragraph(Subshape):
         effective value from its style hierarchy. Assigning |None| removes
         any explicit setting, causing its inherited value to be used.
         """
-        return self._pPr.algn
+        return self._pPr.alignment
 
     @alignment.setter
     def alignment(self, value):
-        self._pPr.algn = value
+        self._pPr.alignment = value
 
     def clear(self):
         """
@@ -583,11 +601,11 @@ class _Paragraph(Subshape):
         default value. Indentation level is most commonly encountered in a
         bulleted list, as is found on a word bullet slide.
         """
-        return self._pPr.lvl
+        return self._pPr.level
 
     @level.setter
     def level(self, level):
-        self._pPr.lvl = level
+        self._pPr.level = level
 
     @property
     def margin_left(self):
@@ -596,12 +614,12 @@ class _Paragraph(Subshape):
         object. If assigned |None|, the default value is used, 0 inches for
         left and right margins.
         """
-        return self._pPr.marL
+        return self._pPr.margin_left
 
 
     @margin_left.setter
     def margin_left(self, value):
-        self._pPr.marL = value
+        self._pPr.margin_left = value
 
     @property
     def margin_right(self):
@@ -610,11 +628,11 @@ class _Paragraph(Subshape):
         object. If assigned |None|, the default value is used, 0 inches for
         left and right margins.
         """
-        return self._pPr.marR
+        return self._pPr.margin_right
 
     @margin_right.setter
     def margin_right(self, value):
-        self._pPr.marR = value
+        self._pPr.margin_right = value
 
     @property
     def indent(self):
@@ -740,7 +758,7 @@ class _Paragraph(Subshape):
         defines the default run properties for runs in this paragraph. Causes
         the element to be added if not present.
         """
-        return self._pPr.get_or_add_defRPr()
+        return self._pPr._defRPr
 
     @property
     def _pPr(self):
@@ -749,7 +767,7 @@ class _Paragraph(Subshape):
         <a:pPr> element containing its paragraph properties. Causes the
         element to be added if not present.
         """
-        return self._p.get_or_add_pPr()
+        return ParagraphProperties(self._p.get_or_add_pPr())
 
 
     @property
@@ -757,21 +775,21 @@ class _Paragraph(Subshape):
         """
         The |TextBullet| Object that handles the formatting of bullets
         """
-        return TextBullet.from_parent(self._pPr)
+        return self._pPr.bullet_text
        
     @property
     def bullet_color(self):
         """
         The |TextBulletColor| Object that handles the coloring of bullets
         """
-        return TextBulletColor.from_parent(self._pPr)
+        return self._pPr.bullet_color
        
     @property
     def bullet_size(self):
         """
         The |TextBulletSize| Object that handles the sizing of bullets
         """
-        return TextBulletSize.from_parent(self._pPr)
+        return self._pPr.bullet_size
        
 
     @property
@@ -779,7 +797,7 @@ class _Paragraph(Subshape):
         """
         The |TextBulletTypeface| Object that handles the font typeface of bullets
         """
-        return TextBulletTypeface.from_parent(self._pPr)
+        return self._pPr.bullet_font
 
 
 class _Run(Subshape):
@@ -831,3 +849,242 @@ class _Run(Subshape):
     @text.setter
     def text(self, str):
         self._r.text = to_unicode(str)
+
+
+class TextFont(ElementProxy):
+    @property
+    def typeface(self):
+        return self._element.typeface
+
+    @property
+    def pitch_family(self):
+        return self._element.pitchFamily
+
+    @property
+    def panose(self):
+        return self._element.panose
+    
+    @property
+    def charset(self):
+        return self._element.charset
+    
+
+class ParagraphProperties(object):
+
+    def __init__(self, _pPr):
+        super(ParagraphProperties, self).__init__()
+        self._element = self._pPr = _pPr
+
+    
+    @property
+    def alignment(self):
+        """
+        Horizontal alignment of this paragraph, represented by either
+        a member of the enumeration :ref:`PpParagraphAlignment` or |None|.
+        The value |None| indicates the paragraph should 'inherit' its
+        effective value from its style hierarchy. Assigning |None| removes
+        any explicit setting, causing its inherited value to be used.
+        """
+        return self._element.algn
+
+    @alignment.setter
+    def alignment(self, value):
+        self._element.algn = value
+
+    @property
+    def level(self):
+        """
+        Read-write integer indentation level of this paragraph, having a
+        range of 0-8 inclusive. 0 represents a top-level paragraph and is the
+        default value. Indentation level is most commonly encountered in a
+        bulleted list, as is found on a word bullet slide.
+        """
+        return self._element.lvl
+
+    @level.setter
+    def level(self, level):
+        self._element.lvl = level
+
+    @property
+    def margin_left(self):
+        """
+        Read/write integer value of left margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return self._element.marL
+
+
+    @margin_left.setter
+    def margin_left(self, value):
+        self._element.marL = value
+
+    @property
+    def margin_right(self):
+        """
+        Read/write integer value of right margin of paragraph as a |Length| value
+        object. If assigned |None|, the default value is used, 0 inches for
+        left and right margins.
+        """
+        return self._element.marR
+
+    @margin_right.setter
+    def margin_right(self, value):
+        self._element.marR = value
+
+    @property
+    def indent(self):
+        """
+        Read/write integer value of indentation of first line of a paragraph
+        as a |Length| value object.  This value is calculated from the left
+        margin of the paragraph.  If assigned |None|, the default value is
+        used, 0.  Negative values can also be used.
+        """
+        return self._element.indent
+
+    @indent.setter
+    def indent(self, value):
+        self._element.indent = value
+
+
+    @property
+    def line_spacing(self):
+        """
+        Numeric or |Length| value specifying the space between baselines in
+        successive lines of this paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. A numeric value, e.g. `2` or `1.5`,
+        indicates spacing is applied in multiples of line heights. A |Length|
+        value such as ``Pt(12)`` indicates spacing is a fixed height. The
+        |Pt| value class is a convenient way to apply line spacing in units
+        of points.
+        """
+        return self._element.line_spacing
+
+    @line_spacing.setter
+    def line_spacing(self, value):
+        self._element.line_spacing = value
+
+    @property
+    def space_after(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the subsequent paragraph. A value of |None| indicates
+        no explicit value is assigned and its effective value is inherited
+        from the paragraph's style hierarchy. |Length| objects provide
+        convenience properties, such as ``.pt`` and ``.inches``, that allow
+        easy conversion to various length units.
+        """
+        return self._element.space_after
+
+    @space_after.setter
+    def space_after(self, value):
+        self._element.space_after = value
+
+    @property
+    def space_before(self):
+        """
+        |Length| value specifying the spacing to appear between this
+        paragraph and the prior paragraph. A value of |None| indicates no
+        explicit value is assigned and its effective value is inherited from
+        the paragraph's style hierarchy. |Length| objects provide convenience
+        properties, such as ``.pt`` and ``.cm``, that allow easy conversion
+        to various length units.
+        """
+        return self._element.space_before
+
+    @space_before.setter
+    def space_before(self, value):
+        self._element.space_before = value
+
+    @property
+    def _defRPr(self):
+        """
+        The |CT_TextCharacterProperties| instance (<a:defRPr> element) that
+        defines the default run properties for runs in this paragraph. Causes
+        the element to be added if not present.
+        """
+        return self._element.get_or_add_defRPr()
+
+    @property
+    def bullet_text(self):
+        """
+        The |TextBullet| Object that handles the formatting of bullets
+        """
+        return TextBullet.from_parent(self._element)
+       
+    @property
+    def bullet_color(self):
+        """
+        The |TextBulletColor| Object that handles the coloring of bullets
+        """
+        return TextBulletColor.from_parent(self._element)
+       
+    @property
+    def bullet_size(self):
+        """
+        The |TextBulletSize| Object that handles the sizing of bullets
+        """
+        return TextBulletSize.from_parent(self._element)
+       
+
+    @property
+    def bullet_font(self):
+        """
+        The |TextBulletTypeface| Object that handles the font typeface of bullets
+        """
+        return TextBulletTypeface.from_parent(self._element)
+
+    @property
+    def font(self):
+        """
+        |Font| object containing default character properties for the runs in
+        this paragraph. These character properties override default properties
+        inherited from parent objects such as the text frame the paragraph is
+        contained in and they may be overridden by character properties set at
+        the run level.
+        """
+        return Font(self._defRPr)
+
+
+class TextListStyle(ElementProxy):
+    @property
+    def default(self):
+        return ParagraphProperties(self._element.get_or_add_defPPr())
+    
+    @property
+    def level_1(self):
+        return ParagraphProperties(self._element.get_or_add_lvl1pPr())
+
+    @property
+    def level_2(self):
+        return ParagraphProperties(self._element.lvl2pPr)
+
+    @property
+    def level_3(self):
+        return ParagraphProperties(self._element.lvl3pPr)
+
+    @property
+    def level_4(self):
+        return ParagraphProperties(self._element.lvl4pPr)
+
+    @property
+    def level_5(self):
+        return ParagraphProperties(self._element.lvl5pPr)
+
+    @property
+    def level_6(self):
+        return ParagraphProperties(self._element.lvl6pPr)
+
+    @property
+    def level_7(self):
+        return ParagraphProperties(self._element.lvl7pPr)
+
+    @property
+    def level_8(self):
+        return ParagraphProperties(self._element.lvl8pPr)
+
+    @property
+    def level_9(self):
+        return ParagraphProperties(self._element.lvl9pPr)
+

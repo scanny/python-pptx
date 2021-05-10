@@ -257,7 +257,9 @@ class CT_SlideLayout(_BaseSlideElement):
     """
 
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:hf", "p:extLst")
-    cSld = OneAndOnlyOne("p:cSld")
+    cSld = OneAndOnlyOne("p:cSld") 
+    clrMapOvr = ZeroOrOne("p:clrMapOvr", successors=_tag_seq[2:])
+
     del _tag_seq
     
     @property
@@ -284,6 +286,25 @@ class CT_SlideLayoutIdListEntry(BaseOxmlElement):
 
     rId = RequiredAttribute("r:id", XsdString)
 
+class CT_ColorMappingOverride(BaseOxmlElement):
+    """
+    ``<p:clrMapOvr>`` element containing an optional overwritten color map
+    """
+    eg_colorMappingOverride = ZeroOrOneChoice(
+        (
+            Choice("a:masterClrMapping"),
+            Choice("a:overrideClrMapping")
+        )
+    )
+
+    @property
+    def color_map_override(self):
+        if self.overrideClrMapping is not None:
+            return self.overrideClrMapping
+        else:
+            return None
+
+
 
 class CT_SlideMaster(_BaseSlideElement):
     """
@@ -301,7 +322,9 @@ class CT_SlideMaster(_BaseSlideElement):
         "p:extLst",
     )
     cSld = OneAndOnlyOne("p:cSld")
+    clrMap = OneAndOnlyOne("p:clrMap")
     sldLayoutIdLst = ZeroOrOne("p:sldLayoutIdLst", successors=_tag_seq[3:])
+    txStyles = ZeroOrOne("p:txStyles", successors=_tag_seq[7:])
     del _tag_seq
 
 
@@ -348,4 +371,47 @@ class CT_TLMediaNodeVideo(BaseOxmlElement):
 
     _tag_seq = ("p:cMediaNode",)
     cMediaNode = OneAndOnlyOne("p:cMediaNode")
+    del _tag_seq
+
+class CT_SlideMasterTextStyles(BaseOxmlElement):
+    """ `p:txStyles` element """
+
+    _tag_seq = (
+        "p:titleStyle",
+        "p:bodyStyle",
+        "p:otherStyle",
+        "p:extLst"
+    )
+    titleStyle = ZeroOrOne("p:titleStyle", successors=_tag_seq[1:])
+    bodyStyle = ZeroOrOne("p:bodyStyle", successors=_tag_seq[2:])
+    otherStyle = ZeroOrOne("p:otherStyle", successors=_tag_seq[3:])
+    del _tag_seq
+
+
+
+class CT_TextListStyle(BaseOxmlElement):
+    """ a element consisting of a list of paragraph styles used as templates """
+    _tag_seq = (
+        "a:defPPr",
+        "a:lvl1pPr",
+        "a:lvl2pPr",
+        "a:lvl3pPr",
+        "a:lvl4pPr",
+        "a:lvl5pPr",
+        "a:lvl6pPr",
+        "a:lvl7pPr",
+        "a:lvl8pPr",
+        "a:lvl9pPr",
+        "a:extLst",
+    )
+    defPPr = ZeroOrOne("a:defPPr", successors=_tag_seq[1:])
+    lvl1pPr = ZeroOrOne("a:lvl1pPr", successors=_tag_seq[2:])
+    lvl2pPr = ZeroOrOne("a:lvl2pPr", successors=_tag_seq[3:])
+    lvl3pPr = ZeroOrOne("a:lvl3pPr", successors=_tag_seq[4:])
+    lvl4pPr = ZeroOrOne("a:lvl4pPr", successors=_tag_seq[5:])
+    lvl5pPr = ZeroOrOne("a:lvl5pPr", successors=_tag_seq[6:])
+    lvl6pPr = ZeroOrOne("a:lvl6pPr", successors=_tag_seq[7:])
+    lvl7pPr = ZeroOrOne("a:lvl7pPr", successors=_tag_seq[8:])
+    lvl8pPr = ZeroOrOne("a:lvl8pPr", successors=_tag_seq[9:])
+    lvl9pPr = ZeroOrOne("a:lvl9pPr", successors=_tag_seq[10:])
     del _tag_seq

@@ -133,6 +133,19 @@ class BaseShape(object):
     def name(self, value):
         self._element._nvXxPr.cNvPr.name = value
 
+    
+    @property
+    def hidden(self):
+        """
+        Read/write visiblity status of this shape.  Defaults to False
+        """
+        return self._element.hidden
+
+    @hidden.setter
+    def hidden(self, value):
+        self._element._nvXxPr.cNvPr.hidden = value
+
+    
     @property
     def part(self):
         """The package part containing this shape.
@@ -261,7 +274,18 @@ class BaseShape(object):
     @flip_v.setter
     def flip_v(self, value):
         self._element.flipV = value
-        
+
+    @property
+    def custom_geometry(self):
+        if not self._element.has_custom_geometry:
+            return None
+        else:
+            return CustomGeometry(self._element.custGeom)
+
+    def add_custom_geometry(self):
+        if self._element.has_custom_geometry:
+            return CustomGeometry(self._element.custGeom)
+        return CustomGeometry(self._element.spPr._add_custGeom())
         
 
 class _PlaceholderFormat(ElementProxy):
@@ -359,4 +383,257 @@ class StyleMatrixReference(object):
     @idx.setter
     def idx(self, value):
         self._reference.idx = value
+
+
+class CustomGeometry(ElementProxy):
+    """
+    Class that proxies the ``<a:custGeom>`` tag used for
+    custom shape geometry.  
+    """
+
+    @property
+    def adjust_values(self):
+        return GeometryGuideList(self._element.get_or_add_avLst())
+
+    @property
+    def shape_guides(self):
+        return GeometryGuideList(self._element.get_or_add_gdLst())
+
+    # @property
+    # def shape_handles(self):
+    #     return self._element.ahLst
+
+    @property
+    def connection_sites(self):
+        return ConnectionSiteList(self._element.get_or_add_cxnLst())
+
+    @property
+    def rectangle(self):
+        return GeometricRectangle(self._element.get_or_add_rect())
+
+    @property
+    def paths(self):
+        return PathList(self._element.get_or_add_pathLst())
+
+
+class GeometryGuideList(ElementProxy):
+    """List of Shape Guides used by |CustomGeometry|.
+    """
+
+    def __init__(self, guide_list):
+        super(GeometryGuideList, self).__init__()
+        self._element = guide_list
+
+    @property
+    def guide_list(self):
+        gd = self._element.gd_lst
+        if gd is None:
+            return []
+        return [GeometryGuide(guide) for guide in gd]
+
+    def add_guide(self):
+        return GeometryGuide(self._element._add_gd())
+
+
+class GeometryGuide(ElementProxy):
+    """ Individual Geometry Guides for elements `a:gd`
+    """
+    def __init__(self, guide):
+        super(GeometryGuide, self).__init__()
+        self._element = guide
+    
+    @property
+    def name(self):
+        return self._element.name
+
+    @name.setter
+    def name(self, value):
+        self._element.name = value
+
+    @property
+    def formula(self):
+        return self._element.fmla
+
+    @formula.setter
+    def formula(self, value):
+        self._element.fmla = value
+
+
+class ConnectionSiteList(ElementProxy):
+    """List of Connection Sites used by |CustomGeometry|.
+    """
+
+    def __init__(self, cxn_site_list):
+        super(ConnectionSiteList, self).__init__()
+        self._element = cxn_site_list
+
+    @property
+    def sites_list(self):
+        sites = self._element.cxn_lst
+        if sites is None:
+            return []
+        return [ConnectionSite(site) for site in sites]
+
+    def add_site(self):
+        return ConnectionSite(self._element._add_cxn())
+
+
+class ConnectionSite(ElementProxy):
+    """ Connection Sites represented by `a:cxn`
+    """
+    def __init__(self, site):
+        super(ConnectionSite, self).__init__()
+        self._element = site
+    
+    @property
+    def angle(self):
+        return self._element.ang
+
+    @angle.setter
+    def angle(self, value):
+        self._element.ang = value
+
+    @property
+    def position(self):
+        pos = self._element.pos
+        return (pos.x, pos.y)
+
+    @position.setter
+    def position(self, coords):
+        pos = self._element.get_or_add_pos()
+        pos.x = coords[0]
+        pos.y = coords[1]
+        
+
+class GeometricRectangle(ElementProxy):
+    """ Object to define a rectangle for a textbox used by |CustomGeometry|
+    """
+
+    def __init__(self, rectangle):
+        super(GeometricRectangle, self).__init__()
+        self._element = rectangle
+    
+    @property
+    def left(self):
+        return self._element.l
+    
+    @left.setter
+    def left(self, value):
+        self._element.l = value
+
+    @property
+    def right(self):
+        return self._element.r
+    
+    @right.setter
+    def right(self, value):
+        self._element.r = value
+
+    @property
+    def top(self):
+        return self._element.t
+    
+    @top.setter
+    def top(self, value):
+        self._element.t = value
+
+    @property
+    def bottom(self):
+        return self._element.b
+    
+    @bottom.setter
+    def bottom(self, value):
+        self._element.b = value
+
+
+class PathList(ElementProxy):
+    """List of Shape Paths used by |CustomGeometry|.
+    """
+
+    def __init__(self, path_list):
+        super(PathList, self).__init__()
+        self._element = path_list
+
+    @property
+    def path_list(self):
+        paths = self._element.path_lst
+        if paths is None:
+            return []
+        return [ShapePath(path) for path in paths]
+
+    def add_path(self):
+        return ShapePath(self._element._add_path())
+
+
+class ShapePath(ElementProxy):
+    """ Individual Shape Paths contained in `a:path`
+    """
+    def __init__(self, path):
+        super(ShapePath, self).__init__()
+        self._element = path
+    
+    @property
+    def width(self):
+        return self._element.w
+
+    @width.setter
+    def width(self, value):
+        self._element.w = value
+
+    @property
+    def height(self):
+        return self._element.h
+
+    @height.setter
+    def height(self, value):
+        self._element.h = value
+
+    @property
+    def fill_mode(self):
+        return self._element.fill
+
+    @fill_mode.setter
+    def fill_mode(self, value):
+        self._element.fill = value
+
+    @property
+    def stroke(self):
+        return self._element.stroke
+
+    @stroke.setter
+    def stroke(self, value):
+        self._element.stroke = value
+
+    @property
+    def extrusion(self):
+        return self._element.extrusionOk
+
+    @extrusion.setter
+    def extrusion(self, value):
+        self._element.extrusionOk = value
+
+    def add_close(self):
+        return self._element.add_close()
+
+    def add_line_to(self, x, y):
+        return self._element.add_lnTo(x,y)
+
+    def add_move_to(self, x, y):
+        return self._element.add_moveTo(x, y)
+
+    def add_arc_to(self, width_radius, height_radius, start_angle, swing_angle):
+        return self._element.add_arcTo(width_radius, height_radius, start_angle, swing_angle)
+    
+    def add_quad_bez_to(self, point1, point2):
+        return self._element.add_quadBezTo(point1, point2)
+
+    def add_cubic_bez_to(self, point1, point2, point3):
+        return self._element.add_cubicBezTo(point1, point2, point3)
+
+    @property
+    def path_sequence(self):
+        return list(self._element)
+            
+
+
 

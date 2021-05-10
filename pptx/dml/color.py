@@ -143,6 +143,48 @@ class ColorFormat(object):
             self._color = _SysColor(sysColor)
         self._color.system_color = value
     
+    @property
+    def red(self):
+        """ SCRGB Red Value """
+        return self._color.red
+    
+    @red.setter
+    def red(self, percent):
+        # change to scrgb color format if not already
+        if not isinstance(self._color, _ScRgbColor):
+            scrgbClr = self._xFill.get_or_change_to_scrgbClr()
+            self._color = _ScRgbColor(scrgbClr)
+        # call _ScRgbColor instance to do the setting
+        self._color.red = percent
+
+    @property
+    def blue(self):
+        """ SCRGB Blue Value """
+        return self._color.blue
+    
+    @blue.setter
+    def blue(self, percent):
+        # change to scrgb color format if not already
+        if not isinstance(self._color, _ScRgbColor):
+            scrgbClr = self._xFill.get_or_change_to_scrgbClr()
+            self._color = _ScRgbColor(scrgbClr)
+        # call _ScRgbColor instance to do the setting
+        self._color.blue = percent
+
+    @property
+    def green(self):
+        """ SCRGB Green Value """
+        return self._color.green
+    
+    @green.setter
+    def green(self, percent):
+        # change to scrgb color format if not already
+        if not isinstance(self._color, _ScRgbColor):
+            scrgbClr = self._xFill.get_or_change_to_scrgbClr()
+            self._color = _ScRgbColor(scrgbClr)
+        # call _ScRgbColor instance to do the setting
+        self._color.green = percent
+
 
 class _Color(object):
     """
@@ -198,7 +240,7 @@ class _Color(object):
     @property
     def rgb(self):
         """
-        Raises TypeError on access unless overridden by subclass.
+        Raises AttributeError on access unless overridden by subclass.
         """
         tmpl = "no .rgb property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
@@ -224,6 +266,33 @@ class _Color(object):
         """
         tmpl = "no .preset_color property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
+
+    @property
+    def red(self):
+        """
+        Raises AttributeError on access unless overridden by subclass.
+        """
+        tmpl = "no .red property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
+    @property
+    def green(self):
+        """
+        Raises AttributeError on access unless overridden by subclass.
+        """
+        tmpl = "no .green property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
+    @property
+    def blue(self):
+        """
+        Raises AttributeError on access unless overridden by subclass.
+        """
+        tmpl = "no .blue property on color type '%s'"
+        raise AttributeError(tmpl % self.__class__.__name__)
+
+
+
 
     def _shade(self, value):
         lumMod_val = 1.0 - abs(value)
@@ -309,10 +378,37 @@ class _SchemeColor(_Color):
 
 
 class _ScRgbColor(_Color):
+    def __init__(self, scrgbClr):
+        super(_ScRgbColor, self).__init__(scrgbClr)
+        self._scrgbClr = scrgbClr
+
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.SCRGB
 
+    @property
+    def red(self):
+        return self._scrgbClr.r
+    
+    @red.setter
+    def red(self, percent):
+        self._scrgbClr.r = percent
+
+    @property
+    def green(self):
+        return self._scrgbClr.g
+    
+    @green.setter
+    def green(self, percent):
+        self._scrgbClr.g = percent
+
+    @property
+    def blue(self):
+        return self._scrgbClr.b
+
+    @blue.setter
+    def blue(self, percent):
+        self._scrgbClr.b = percent
 
 class _SRgbColor(_Color):
     def __init__(self, srgbClr):

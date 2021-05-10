@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.text.text import TextListStyle
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
     LayoutShapes,
@@ -16,6 +17,7 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders,
     SlideShapes,
 )
+from pptx.theme import ColorMap
 from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
@@ -249,6 +251,14 @@ class Slide(_BaseSlide):
         |SlideLayout| object this slide inherits appearance from.
         """
         return self.part.slide_layout
+    
+    @property
+    def color_map_override(self):
+        """ A new |ColorMap| to override that from the Slide Master or None"""
+        color_map = self._element.clrMapOvr.color_map_override
+        if color_map is None:
+            return None
+        return ColorMap(color_map)
 
 
 class Slides(ParentedElementProxy):
@@ -382,6 +392,13 @@ class SlideLayout(_BaseSlide):
         """
         return self._element.bg is None
 
+    @property
+    def color_map_override(self):
+        """ A new |ColorMap| to override that from the Slide Master or None"""
+        if self._element.color_map_override is None:
+            return None
+        return ColorMap(self._element.color_map_override)
+
 class SlideLayouts(ParentedElementProxy):
     """Sequence of slide layouts belonging to a slide-master.
 
@@ -473,6 +490,27 @@ class SlideMaster(_BaseMaster):
         """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
 
+    @property
+    def theme(self):
+        """|Theme| object providing access to this slide-master's theme."""
+        return self.part.related_theme
+
+    @property
+    def color_map(self):
+        return ColorMap(self._element.clrMap)
+
+    @property
+    def title_style(self):
+        return TextListStyle(self._element.txStyles.titleStyle)
+
+    @property
+    def body_style(self):
+        return TextListStyle(self._element.txStyles.bodyStyle)
+    
+    @property
+    def other_style(self):
+        return TextListStyle(self._element.txStyles.otherStyle)
+
 
 class SlideMasters(ParentedElementProxy):
     """Sequence of |SlideMaster| objects belonging to a presentation.
@@ -553,3 +591,5 @@ class _Background(ElementProxy):
         """
         bgPr = self._cSld.get_or_add_bgPr()
         return FillFormat.from_fill_parent(bgPr)
+
+

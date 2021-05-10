@@ -30,6 +30,7 @@ from pptx.oxml.xmlchemy import (
     ZeroOrOne,
     ZeroOrOneChoice,
     OneAndOnlyOne,
+    ZeroOrMore,
 )
 from pptx.util import Emu
 
@@ -169,6 +170,13 @@ class BaseShapeElement(BaseOxmlElement):
         Name of this shape
         """
         return self._nvXxPr.cNvPr.name
+
+    @property
+    def hidden(self):
+        """
+        Hidden Status
+        """
+        return self._nvXxPr.cNvPr.hidden
 
     @property
     def txBody(self):
@@ -322,6 +330,7 @@ class CT_NonVisualDrawingProps(BaseOxmlElement):
     hlinkHover = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
     id = RequiredAttribute("id", ST_DrawingElementId)
     name = RequiredAttribute("name", XsdString)
+    hidden = OptionalAttribute("hidden", XsdBoolean, default=False)
     del _tag_seq
 
 
@@ -348,10 +357,17 @@ class CT_Point2D(BaseOxmlElement):
 class CT_PositiveSize2D(BaseOxmlElement):
     """
     Custom element class for <a:ext> element.
+
+    NOTE: this is a composite including `CT_OfficeArtExtension`, which appears
+    with the `a:extLst` tag in many different elements.  It currently only implements
+    the inclusion of the optional URI tag and a single `ext` element for hyperlink color.
     """
+
+    hyperlinkColor = ZeroOrOne("ahyp:hlinkClr")
 
     cx = RequiredAttribute("cx", ST_PositiveCoordinate)
     cy = RequiredAttribute("cy", ST_PositiveCoordinate)
+    uri = OptionalAttribute("uri", XsdString)
 
 
 class CT_ShapeProperties(BaseOxmlElement):
@@ -379,8 +395,13 @@ class CT_ShapeProperties(BaseOxmlElement):
         "a:extLst",
     )
     xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
-    custGeom = ZeroOrOne("a:custGeom", successors=_tag_seq[2:])
-    prstGeom = ZeroOrOne("a:prstGeom", successors=_tag_seq[3:])
+    eg_Geometry = ZeroOrOneChoice(
+        (
+            Choice("a:custGeom"),
+            Choice("a:prstGeom")
+        ),
+        successors=_tag_seq[3:]
+    )
     eg_fillProperties = ZeroOrOneChoice(
         (
             Choice("a:noFill"),

@@ -380,6 +380,11 @@ class _GradientStops(Sequence):
         return len(self._gsLst)
 
 
+    def add_gradient_stop(self):
+        self._gsLst.add_gs()
+        return _GradientStop(self._gsLst[-1])
+
+
 class _GradientStop(ElementProxy):
     """A single gradient stop.
 

@@ -344,6 +344,18 @@ class _BaseGroupShapes(_BaseShapes):
 
         return FreeformBuilder.new(self, start_x, start_y, x_scale, y_scale)
 
+    def add_freeform(self, left, top, width, height):
+        """Return new |Shape| object appended to this shape tree.
+
+        *autoshape_type_id* is a member of :ref:`MsoAutoShapeType` e.g.
+        ``MSO_SHAPE.RECTANGLE`` specifying the type of shape to be added. The
+        remaining arguments specify the new shape's position and size.
+        """
+        sp = self._add_freeform(left, top, width, height)
+        self._recalculate_extents()
+        return self._shape_factory(sp)
+
+
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -408,6 +420,15 @@ class _BaseGroupShapes(_BaseShapes):
         id_ = self._next_shape_id
         name = "%s %d" % (autoshape_type.basename, id_ - 1)
         sp = self._grpSp.add_autoshape(id_, name, autoshape_type.prst, x, y, cx, cy)
+        return sp
+
+    def _add_freeform(self, x, y, cx, cy):
+        """Return newly-added `p:sp` element as specified.
+
+        `p:sp` element is of freeform type at position (*x*, *y*) and of
+        size (*cx*, *cy*).
+        """
+        sp = self._grpSp.add_freeform_sp(x, y, cx, cy)
         return sp
 
     def _add_textbox_sp(self, x, y, cx, cy):

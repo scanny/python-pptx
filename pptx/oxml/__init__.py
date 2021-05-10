@@ -52,10 +52,11 @@ def register_element_cls(nsptagname, cls):
     namespace[nsptag.local_part] = cls
 
 
-from .action import CT_Hyperlink  # noqa: E402
+from .action import CT_Hyperlink, HyperlinkColorExtension  # noqa: E402
 
 register_element_cls("a:hlinkClick", CT_Hyperlink)
 register_element_cls("a:hlinkHover", CT_Hyperlink)
+register_element_cls("ahyp:hlinkClr", HyperlinkColorExtension)
 
 
 from .chart.axis import (  # noqa: E402
@@ -292,7 +293,6 @@ register_element_cls("p:sldMasterId", CT_SlideMasterIdListEntry)
 register_element_cls("p:sldMasterIdLst", CT_SlideMasterIdList)
 register_element_cls("p:sldSz", CT_SlideSize)
 
-
 from .shapes.autoshape import (  # noqa: E402
     CT_AdjPoint2D,
     CT_CustomGeometry2D,
@@ -307,18 +307,32 @@ from .shapes.autoshape import (  # noqa: E402
     CT_PresetGeometry2D,
     CT_Shape,
     CT_ShapeNonVisual,
+    CT_ConnectionSiteList,
+    CT_GeomRect,
+    CT_ConnectionSite,
+    CT_Path2DArcTo,
+    CT_Path2DQuadBezierTo,
+    CT_Path2DCubicBezierTo,
 )
 
 register_element_cls("a:avLst", CT_GeomGuideList)
+register_element_cls("a:gdLst", CT_GeomGuideList)
+register_element_cls("a:cxnLst", CT_ConnectionSiteList)
 register_element_cls("a:custGeom", CT_CustomGeometry2D)
+register_element_cls("a:rect", CT_GeomRect)
 register_element_cls("a:gd", CT_GeomGuide)
+register_element_cls("a:cxn", CT_ConnectionSite)
 register_element_cls("a:close", CT_Path2DClose)
 register_element_cls("a:lnTo", CT_Path2DLineTo)
 register_element_cls("a:moveTo", CT_Path2DMoveTo)
+register_element_cls("a:arcTo", CT_Path2DArcTo)
+register_element_cls("a:quadBezTo", CT_Path2DQuadBezierTo)
+register_element_cls("a:cubicBezTo", CT_Path2DCubicBezierTo)
 register_element_cls("a:path", CT_Path2D)
 register_element_cls("a:pathLst", CT_Path2DList)
 register_element_cls("a:prstGeom", CT_PresetGeometry2D)
 register_element_cls("a:pt", CT_AdjPoint2D)
+register_element_cls("a:pos", CT_AdjPoint2D)
 register_element_cls("p:cNvSpPr", CT_NonVisualDrawingShapeProps)
 register_element_cls("p:nvSpPr", CT_ShapeNonVisual)
 register_element_cls("p:sp", CT_Shape)
@@ -417,6 +431,9 @@ from .slide import (  # noqa: E402
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLMediaNodeVideo,
+    CT_ColorMappingOverride,
+    CT_SlideMasterTextStyles,
+    CT_TextListStyle,
 )
 
 register_element_cls("p:bg", CT_Background)
@@ -432,6 +449,12 @@ register_element_cls("p:sldLayoutIdLst", CT_SlideLayoutIdList)
 register_element_cls("p:sldMaster", CT_SlideMaster)
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
+register_element_cls("p:clrMapOvr", CT_ColorMappingOverride)
+register_element_cls("p:txStyles", CT_SlideMasterTextStyles)
+register_element_cls("p:titleStyle", CT_TextListStyle)
+register_element_cls("p:bodyStyle", CT_TextListStyle)
+register_element_cls("p:otherStyle", CT_TextListStyle)
+register_element_cls("a:lstStyle", CT_TextListStyle)
 
 
 from .table import (  # noqa: E402
@@ -475,6 +498,7 @@ from .text import (  # noqa: E402
     CT_TextSpacingPoint,
     CT_TextCharBullet,
     CT_TextBulletAutoNumber,
+    CT_TextBulletColorFollowText,
     CT_TextBulletTypefaceFollowText,
     CT_TextBulletSizeFollowText,
     CT_TextBulletSizePoints,
@@ -482,6 +506,8 @@ from .text import (  # noqa: E402
     CT_TextNoBullet,
     CT_TextBulletTypefaceFollowText,
     CT_TextBlipBullet,
+    CT_FontCollection,
+    CT_SupplementalFont,
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -491,7 +517,7 @@ register_element_cls("a:endParaRPr", CT_TextCharacterProperties)
 register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:latin", CT_TextFont)
 register_element_cls("a:lnSpc", CT_TextSpacing)
-register_element_cls("a:buClrTx", CT_TextBulletTypefaceFollowText)
+register_element_cls("a:buClrTx", CT_TextBulletColorFollowText)
 register_element_cls("a:buClr", CT_Color)
 register_element_cls("a:buSzTx", CT_TextBulletSizeFollowText)
 register_element_cls("a:buSzPct", CT_TextBulletSizePercent)
@@ -515,8 +541,57 @@ register_element_cls("a:spcPts", CT_TextSpacingPoint)
 register_element_cls("a:txBody", CT_TextBody)
 register_element_cls("c:txPr", CT_TextBody)
 register_element_cls("p:txBody", CT_TextBody)
+register_element_cls("a:ea", CT_TextFont)
+register_element_cls("a:cs", CT_TextFont)
+register_element_cls("a:font", CT_SupplementalFont)
+register_element_cls("a:defPPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl1pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl2pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl3pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl4pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl5pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl6pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl7pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl8pPr", CT_TextParagraphProperties)
+register_element_cls("a:lvl9pPr", CT_TextParagraphProperties)
 
 
-from .theme import CT_OfficeStyleSheet  # noqa: E402
 
+from .theme import (
+    CT_OfficeStyleSheet,  # noqa: E402
+    CT_BaseStyles,
+    CT_ColorScheme,
+    CT_FontScheme,
+    CT_StyleMatrix,
+    CT_ColorMapping,
+    CT_EmptyElement,
+)
+register_element_cls("p:clrMap", CT_ColorMapping)
+register_element_cls("a:overrideClrMapping", CT_ColorMapping)
 register_element_cls("a:theme", CT_OfficeStyleSheet)
+register_element_cls("a:themeElements", CT_BaseStyles)
+register_element_cls("a:clrScheme", CT_ColorScheme)
+register_element_cls("a:fontScheme", CT_FontScheme)
+register_element_cls("a:fmtScheme", CT_StyleMatrix)
+register_element_cls("a:theme", CT_OfficeStyleSheet)
+register_element_cls("a:dk1", CT_Color)
+register_element_cls("a:lt1", CT_Color)
+register_element_cls("a:dk2", CT_Color)
+register_element_cls("a:lt2", CT_Color)
+register_element_cls("a:accent1", CT_Color)
+register_element_cls("a:accent2", CT_Color)
+register_element_cls("a:accent3", CT_Color)
+register_element_cls("a:accent4", CT_Color)
+register_element_cls("a:accent5", CT_Color)
+register_element_cls("a:accent6", CT_Color)
+register_element_cls("a:hlink", CT_Color)
+register_element_cls("a:folHlink", CT_Color)
+register_element_cls("a:majorFont", CT_FontCollection)
+register_element_cls("a:minorFont", CT_FontCollection)
+register_element_cls("a:masterClrMapping", CT_EmptyElement)
+
+
+from .media import (
+    CT_OfficeArtExtensionList,  # noqa: E402
+)
+register_element_cls("a:extLst", CT_OfficeArtExtensionList)

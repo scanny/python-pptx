@@ -92,6 +92,7 @@ class CT_TextBody(BaseOxmlElement):
     """
 
     bodyPr = OneAndOnlyOne("a:bodyPr")
+    lstStyle = ZeroOrOne("a:lstStyle", successors=("p"))
     p = OneOrMore("a:p")
 
     def clear_content(self):
@@ -311,7 +312,6 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     hlinkClick = ZeroOrOne(
         "a:hlinkClick", successors=("a:hlinkMouseOver", "a:rtl", "a:extLst")
     )
-
     lang = OptionalAttribute("lang", MSO_LANGUAGE_ID)
     sz = OptionalAttribute("sz", ST_TextFontSize)
     b = OptionalAttribute("b", XsdBoolean)
@@ -319,7 +319,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     u = OptionalAttribute("u", MSO_TEXT_UNDERLINE_TYPE)
     baseline = OptionalAttribute("baseline", ST_Percentage)
     strike = OptionalAttribute("strike", ST_TextStrikeType)
-    
+
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()
 
@@ -358,10 +358,10 @@ class CT_TextFont(BaseOxmlElement):
     elements of CT_TextCharacterProperties, e.g. <a:rPr>.
     """
 
-    typeface = RequiredAttribute("typeface", ST_TextTypeface)
-    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily)
+    typeface = OptionalAttribute("typeface", ST_TextTypeface)
+    pitchFamily = OptionalAttribute("pitchFamily", ST_TextPitchFamily, default=0)
     panose = OptionalAttribute("panose", ST_TextPanose)
-    charset = OptionalAttribute("charset", ST_TextCharset)
+    charset = OptionalAttribute("charset", ST_TextCharset, default=1)
 
 
 class CT_TextLineBreak(BaseOxmlElement):
@@ -690,3 +690,33 @@ class CT_TextBlipBullet(BaseOxmlElement):
     NOTE: Not fully Implemented yet
     """
     blip = OneAndOnlyOne("a:blip")
+
+
+
+class CT_FontCollection(BaseOxmlElement):
+    """
+    Custom element class for <a:font>, <a:majorFont>, <a:minorFont>
+    """
+
+    _tag_seq = (
+        "a:latin",
+        "a:ea",
+        "a:cs",
+        "a:font",
+        "a:extLst",
+    )
+
+    latin = OneAndOnlyOne("a:latin")
+    ea = OneAndOnlyOne("a:ea")
+    cs = OneAndOnlyOne("a:cs")
+    font = ZeroOrMore("a:font", successors=_tag_seq[4:])
+
+
+
+class CT_SupplementalFont(BaseOxmlElement):
+    """
+    Custom Element class for supplemental fonts
+    """
+    script = RequiredAttribute("script", XsdString)
+    typeface = RequiredAttribute("typeface", ST_TextTypeface)
+

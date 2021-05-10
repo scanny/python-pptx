@@ -50,9 +50,33 @@ class DescribeColorFormat(object):
         color_format, preset_color = get_preset_color_fixture_
         assert color_format.preset_color == preset_color
 
+    def it_knows_the_red_color_of_a_scrgb_color(self, scrgb_color_format):
+        color_format = scrgb_color_format
+        assert color_format.red == 0.50
+
+    def it_knows_the_green_color_of_a_scrgb_color(self, scrgb_color_format):
+        color_format = scrgb_color_format
+        assert color_format.green == 0.25
+
+    def it_knows_the_blue_color_of_a_scrgb_color(self, scrgb_color_format):
+        color_format = scrgb_color_format
+        assert color_format.blue == 0.42
+
     def it_raises_on_theme_color_get_for_NoneColor(self, _NoneColor_color_format):
         with pytest.raises(AttributeError):
             _NoneColor_color_format.theme_color
+
+    def it_raises_on_red_get_for_NoneColor(self, _NoneColor_color_format):
+        with pytest.raises(AttributeError):
+            _NoneColor_color_format.red
+
+    def it_raises_on_green_get_for_NoneColor(self, _NoneColor_color_format):
+        with pytest.raises(AttributeError):
+            _NoneColor_color_format.green
+
+    def it_raises_on_blue_get_for_NoneColor(self, _NoneColor_color_format):
+        with pytest.raises(AttributeError):
+            _NoneColor_color_format.blue
 
     def it_knows_its_brightness_adjustment(self, color_format_with_brightness):
         color_format, expected_brightness = color_format_with_brightness
@@ -61,6 +85,13 @@ class DescribeColorFormat(object):
     def it_can_set_itself_to_an_RGB_color(self, set_rgb_fixture_):
         color_format, rgb_color, expected_xml = set_rgb_fixture_
         color_format.rgb = rgb_color
+        assert color_format._xFill.xml == expected_xml
+
+    def it_can_set_itself_to_an_scRGB_color(self, set_scrgb_fixture_):
+        color_format, scrgb_colors, expected_xml = set_scrgb_fixture_
+        color_format.red = scrgb_colors[0]
+        color_format.green = scrgb_colors[1]
+        color_format.blue = scrgb_colors[2]
         assert color_format._xFill.xml == expected_xml
 
     def it_raises_on_assign_non_RGBColor_type_to_rgb(self, rgb_color_format):
@@ -248,6 +279,34 @@ class DescribeColorFormat(object):
         return color_format, rgb_color, expected_xml
 
     @pytest.fixture(params=["none", "hsl", "prst", "scheme", "scrgb", "srgb", "sys"])
+    def set_scrgb_fixture_(self, request):
+        mapping = {
+            "none": None,
+            "hsl": an_hslClr,
+            "prst": a_prstClr,
+            "scheme": a_schemeClr,
+            "scrgb": an_scrgbClr,
+            "srgb": an_srgbClr,
+            "sys": a_sysClr,
+        }
+        xClr_bldr_fn = mapping[request.param]
+        solidFill_bldr = a_solidFill().with_nsdecls()
+        if xClr_bldr_fn is not None:
+            solidFill_bldr.with_child(xClr_bldr_fn())
+        solidFill = solidFill_bldr.element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        red = 0.5
+        green = 0.25
+        blue = 0.42
+        expected_xml = (
+            a_solidFill()
+            .with_nsdecls()
+            .with_child(an_scrgbClr().with_r(50000).with_g(25000).with_b(42000))
+            .xml()
+        )
+        return color_format, (red, green, blue), expected_xml
+
+    @pytest.fixture(params=["none", "hsl", "prst", "scheme", "scrgb", "srgb", "sys"])
     def set_theme_color_fixture_(self, request):
         mapping = {
             "none": None,
@@ -290,6 +349,13 @@ class DescribeColorFormat(object):
         solidFill = a_solidFill().with_nsdecls().with_child(xClr_bldr).element
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
         return color_format, theme_color
+
+    @pytest.fixture
+    def scrgb_color_format(self):
+        scrgbClr_bldr = an_scrgbClr().with_r(50000).with_g(25000).with_b(42000)
+        solidFill = a_solidFill().with_nsdecls().with_child(scrgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        return color_format
 
     @pytest.fixture(params=["none", "hsl", "prst", "scheme", "scrgb", "srgb", "sys"])
     def set_preset_color_fixture_(self, request):
