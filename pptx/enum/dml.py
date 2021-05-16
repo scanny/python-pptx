@@ -118,7 +118,7 @@ class MSO_LINE_DASH_STYLE(XmlEnumeration):
 
         from pptx.enum.dml import MSO_LINE
 
-        shape.line.dash_style == MSO_LINE.DASH_DOT_DOT
+        shape.line.dash_style = MSO_LINE.DASH_DOT_DOT
     """
 
     __ms_name__ = "MsoLineDashStyle"
@@ -159,7 +159,7 @@ class MSO_PATTERN_TYPE(XmlEnumeration):
 
         fill = shape.fill
         fill.patterned()
-        fill.pattern == MSO_PATTERN.WAVE
+        fill.pattern = MSO_PATTERN.WAVE
     """
 
     __ms_name__ = "MsoPatternType"
@@ -261,7 +261,7 @@ class MSO_THEME_COLOR_INDEX(XmlEnumeration):
         from pptx.enum.dml import MSO_THEME_COLOR
 
         shape.fill.solid()
-        shape.fill.fore_color.theme_color == MSO_THEME_COLOR.ACCENT_1
+        shape.fill.fore_color.theme_color = MSO_THEME_COLOR.ACCENT_1
     """
 
     __ms_name__ = "MsoThemeColorIndex"

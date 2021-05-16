@@ -10,6 +10,7 @@ elbows, or can be curved.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from pptx.dml.line import LineFormat
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 from pptx.util import Emu, lazyproperty
 
@@ -240,6 +241,14 @@ class Connector(BaseShape):
         line color and width. |None| if no `<a:ln>` element is present.
         """
         return self._element.spPr.ln
+
+    @property
+    def shape_type(self):
+        """Member of `MSO_SHAPE_TYPE` identifying the type of this shape.
+
+        Unconditionally `MSO_SHAPE_TYPE.LINE` for a `Connector` object.
+        """
+        return MSO_SHAPE_TYPE.LINE
 
     def _connect_begin_to(self, shape, cxn_pt_idx):
         """
