@@ -421,8 +421,7 @@ class GeometryGuideList(ElementProxy):
     """
 
     def __init__(self, guide_list):
-        super(GeometryGuideList, self).__init__()
-        self._element = guide_list
+        super(GeometryGuideList, self).__init__(guide_list)
 
     @property
     def guide_list(self):
@@ -439,8 +438,7 @@ class GeometryGuide(ElementProxy):
     """ Individual Geometry Guides for elements `a:gd`
     """
     def __init__(self, guide):
-        super(GeometryGuide, self).__init__()
-        self._element = guide
+        super(GeometryGuide, self).__init__(guide)
     
     @property
     def name(self):
@@ -464,8 +462,7 @@ class ConnectionSiteList(ElementProxy):
     """
 
     def __init__(self, cxn_site_list):
-        super(ConnectionSiteList, self).__init__()
-        self._element = cxn_site_list
+        super(ConnectionSiteList, self).__init__(cxn_site_list)
 
     @property
     def sites_list(self):
@@ -482,8 +479,7 @@ class ConnectionSite(ElementProxy):
     """ Connection Sites represented by `a:cxn`
     """
     def __init__(self, site):
-        super(ConnectionSite, self).__init__()
-        self._element = site
+        super(ConnectionSite, self).__init__(site)
     
     @property
     def angle(self):
@@ -510,8 +506,7 @@ class GeometricRectangle(ElementProxy):
     """
 
     def __init__(self, rectangle):
-        super(GeometricRectangle, self).__init__()
-        self._element = rectangle
+        super(GeometricRectangle, self).__init__(rectangle)
     
     @property
     def left(self):
@@ -551,8 +546,7 @@ class PathList(ElementProxy):
     """
 
     def __init__(self, path_list):
-        super(PathList, self).__init__()
-        self._element = path_list
+        super(PathList, self).__init__(path_list)
 
     @property
     def path_list(self):
@@ -569,8 +563,7 @@ class ShapePath(ElementProxy):
     """ Individual Shape Paths contained in `a:path`
     """
     def __init__(self, path):
-        super(ShapePath, self).__init__()
-        self._element = path
+        super(ShapePath, self).__init__(path)
     
     @property
     def width(self):
