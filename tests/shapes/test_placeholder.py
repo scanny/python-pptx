@@ -487,7 +487,7 @@ class DescribePicturePlaceholder(object):
 
         placeholder_picture = picture_ph.insert_picture(image_file)
 
-        picture_ph._new_placeholder_pic.assert_called_once_with(image_file)
+        picture_ph._new_placeholder_pic.assert_called_once_with(image_file,True)
         picture_ph._replace_placeholder_with.assert_called_once_with(pic)
         PlaceholderPicture_.assert_called_once_with(pic, picture_ph._parent)
         assert placeholder_picture is placeholder_picture_
