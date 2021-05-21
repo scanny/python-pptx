@@ -395,9 +395,10 @@ class SlideLayout(_BaseSlide):
     @property
     def color_map_override(self):
         """ A new |ColorMap| to override that from the Slide Master or None"""
-        if self._element.color_map_override is None:
+        color_map = self._element.clrMapOvr.color_map_override
+        if color_map is None:
             return None
-        return ColorMap(self._element.color_map_override)
+        return ColorMap(color_map)
 
 class SlideLayouts(ParentedElementProxy):
     """Sequence of slide layouts belonging to a slide-master.

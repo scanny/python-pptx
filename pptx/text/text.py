@@ -1058,33 +1058,33 @@ class TextListStyle(ElementProxy):
 
     @property
     def level_2(self):
-        return ParagraphProperties(self._element.lvl2pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl2pPr())
 
     @property
     def level_3(self):
-        return ParagraphProperties(self._element.lvl3pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl3pPr())
 
     @property
     def level_4(self):
-        return ParagraphProperties(self._element.lvl4pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl4pPr())
 
     @property
     def level_5(self):
-        return ParagraphProperties(self._element.lvl5pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl5pPr())
 
     @property
     def level_6(self):
-        return ParagraphProperties(self._element.lvl6pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl6pPr())
 
     @property
     def level_7(self):
-        return ParagraphProperties(self._element.lvl7pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl7pPr())
 
     @property
     def level_8(self):
-        return ParagraphProperties(self._element.lvl8pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl8pPr())
 
     @property
     def level_9(self):
-        return ParagraphProperties(self._element.lvl9pPr)
+        return ParagraphProperties(self._element.get_or_add_lvl9pPr())
 
