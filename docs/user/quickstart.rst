@@ -125,6 +125,10 @@ before setting the text it contains.
 
 ``add_picture()`` example
 -------------------------
+Note that image paths containing the ampersand ``&`` 
+character will cause a 
+``lxml.etree.XMLSyntaxError: xmlParseEntityRef: no name, line 3, column 79``
+error.
 
 .. image:: /_static/img/add-picture.png
 
