@@ -472,6 +472,7 @@ class _BarChartXmlWriter(_BaseChartXmlWriter):
             'iceDocument/2006/relationships">\n'
             '  <c:date1904 val="0"/>\n'
             "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
             "    <c:plotArea>\n"
             "      <c:barChart>\n"
             "{barDir_xml}"
@@ -927,6 +928,7 @@ class _PieChartXmlWriter(_BaseChartXmlWriter):
             'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
             'iceDocument/2006/relationships">\n'
             "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
             "    <c:plotArea>\n"
             "      <c:pieChart>\n"
             '        <c:varyColors val="1"/>\n'
@@ -1003,6 +1005,7 @@ class _RadarChartXmlWriter(_BaseChartXmlWriter):
             "    </mc:Fallback>\n"
             "  </mc:AlternateContent>\n"
             "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
             "    <c:plotArea>\n"
             "      <c:layout/>\n"
             "      <c:radarChart>\n"

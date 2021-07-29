@@ -230,6 +230,26 @@ Feature: Access a shape on a slide
       | no          |
 
 
+  Scenario Outline: SlideShapes.add_ole_object()
+    Given a SlideShapes object as shapes
+      And a <prog-id> file as ole_object_file
+     When I assign shapes.add_ole_object(ole_object_file) to shape
+      And I assign shape.ole_format to ole_format
+     Then shapes[-1] == shape
+      And shape is a GraphicFrame object
+      And shape.ole_format is an _OleFormat object
+      And shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT
+      And ole_format.blob matches ole_object_file byte-for-byte
+      And ole_format.prog_id == <progId>
+      And ole_format.show_as_icon is True
+
+    Examples: add_ole_object() variations
+      | prog-id | progId               |
+      | DOCX    | "Word.Document.12"   |
+      | PPTX    | "PowerPoint.Show.12" |
+      | XLSX    | "Excel.Sheet.12"     |
+
+
   Scenario Outline: SlideShapes.add_picture() (using filename)
     Given a blank slide
      When I add the image <filename> using shapes.add_picture()
