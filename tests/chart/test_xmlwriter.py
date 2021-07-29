@@ -171,36 +171,11 @@ class Describe_AreaChartXmlWriter(object):
 
 
 class Describe_BarChartXmlWriter(object):
-    def it_can_generate_xml_for_bar_type_charts(self, xml_fixture):
-        xml_writer, expected_xml = xml_fixture
-        assert xml_writer.xml == expected_xml
+    """Unit-test suite for `pptx.chart.xmlwriter._BarChartXmlWriter`."""
 
-    def it_can_generate_xml_for_multi_level_cat_charts(self, multi_fixture):
-        xml_writer, expected_xml = multi_fixture
-        assert xml_writer.xml == expected_xml
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def multi_fixture(self):
-        chart_data = CategoryChartData()
-
-        WEST = chart_data.add_category("WEST")
-        WEST.add_sub_category("SF")
-        WEST.add_sub_category("LA")
-        EAST = chart_data.add_category("EAST")
-        EAST.add_sub_category("NY")
-        EAST.add_sub_category("NJ")
-
-        chart_data.add_series("Series 1", (1, 2, None, 4))
-        chart_data.add_series("Series 2", (5, None, 7, 8))
-
-        xml_writer = _BarChartXmlWriter(XL_CHART_TYPE.BAR_CLUSTERED, chart_data)
-        expected_xml = snippet_text("4x2-multi-cat-bar")
-        return xml_writer, expected_xml
-
-    @pytest.fixture(
-        params=[
+    @pytest.mark.parametrize(
+        "member, cat_count, ser_count, cat_type, snippet_name",
+        (
             ("BAR_CLUSTERED", 2, 2, str, "2x2-bar-clustered"),
             ("BAR_CLUSTERED", 2, 2, date, "2x2-bar-clustered-date"),
             ("BAR_CLUSTERED", 2, 2, float, "2x2-bar-clustered-float"),
@@ -209,15 +184,30 @@ class Describe_BarChartXmlWriter(object):
             ("COLUMN_CLUSTERED", 2, 2, str, "2x2-column-clustered"),
             ("COLUMN_STACKED", 2, 2, str, "2x2-column-stacked"),
             ("COLUMN_STACKED_100", 2, 2, str, "2x2-column-stacked-100"),
-        ]
+        ),
     )
-    def xml_fixture(self, request):
-        member, cat_count, ser_count, cat_type, snippet_name = request.param
+    def it_can_generate_xml_for_bar_type_charts(
+        self, member, cat_count, ser_count, cat_type, snippet_name
+    ):
         chart_type = getattr(XL_CHART_TYPE, member)
         chart_data = make_category_chart_data(cat_count, cat_type, ser_count)
         xml_writer = _BarChartXmlWriter(chart_type, chart_data)
-        expected_xml = snippet_text(snippet_name)
-        return xml_writer, expected_xml
+
+        assert xml_writer.xml == snippet_text(snippet_name)
+
+    def it_can_generate_xml_for_multi_level_cat_charts(self):
+        chart_data = CategoryChartData()
+        WEST = chart_data.add_category("WEST")
+        WEST.add_sub_category("SF")
+        WEST.add_sub_category("LA")
+        EAST = chart_data.add_category("EAST")
+        EAST.add_sub_category("NY")
+        EAST.add_sub_category("NJ")
+        chart_data.add_series("Series 1", (1, 2, None, 4))
+        chart_data.add_series("Series 2", (5, None, 7, 8))
+        xml_writer = _BarChartXmlWriter(XL_CHART_TYPE.BAR_CLUSTERED, chart_data)
+
+        assert xml_writer.xml == snippet_text("4x2-multi-cat-bar")
 
 
 class Describe_BubbleChartXmlWriter(object):
@@ -293,40 +283,35 @@ class Describe_LineChartXmlWriter(object):
 
 
 class Describe_PieChartXmlWriter(object):
-    def it_can_generate_xml_for_a_pie_chart(self, xml_fixture):
-        xml_writer, expected_xml = xml_fixture
-        assert xml_writer.xml == expected_xml
+    """Unit-test suite for `pptx.chart.xmlwriter._PieChartXmlWriter`."""
 
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture(
-        params=[("PIE", 3, 1, "3x1-pie"), ("PIE_EXPLODED", 3, 1, "3x1-pie-exploded")]
+    @pytest.mark.parametrize(
+        "enum_member, cat_count, ser_count, snippet_name",
+        (
+            ("PIE", 3, 1, "3x1-pie"),
+            ("PIE_EXPLODED", 3, 1, "3x1-pie-exploded"),
+        ),
     )
-    def xml_fixture(self, request):
-        enum_member, cat_count, ser_count, snippet_name = request.param
+    def it_can_generate_xml_for_a_pie_chart(
+        self, enum_member, cat_count, ser_count, snippet_name
+    ):
         chart_type = getattr(XL_CHART_TYPE, enum_member)
         chart_data = make_category_chart_data(cat_count, str, ser_count)
         xml_writer = _PieChartXmlWriter(chart_type, chart_data)
-        expected_xml = snippet_text(snippet_name)
-        return xml_writer, expected_xml
+
+        assert xml_writer.xml == snippet_text(snippet_name)
 
 
 class Describe_RadarChartXmlWriter(object):
-    def it_can_generate_xml_for_a_radar_chart(self, xml_fixture):
-        xml_writer, expected_xml = xml_fixture
-        print(xml_writer.xml)
-        assert xml_writer.xml == expected_xml
+    """Unit-test suite for `pptx.chart.xmlwriter._RadarChartXmlWriter`."""
 
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def xml_fixture(self, request):
+    def it_can_generate_xml_for_a_radar_chart(self):
         series_data_seq = make_category_chart_data(
             cat_count=5, cat_type=str, ser_count=2
         )
         xml_writer = _RadarChartXmlWriter(XL_CHART_TYPE.RADAR, series_data_seq)
-        expected_xml = snippet_text("2x5-radar")
-        return xml_writer, expected_xml
+
+        assert xml_writer.xml == snippet_text("2x5-radar")
 
 
 class Describe_XyChartXmlWriter(object):

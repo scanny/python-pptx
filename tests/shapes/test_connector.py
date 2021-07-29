@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 
 from pptx.dml.line import LineFormat
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
 from pptx.util import Emu
@@ -16,6 +17,8 @@ from ..unitutil.mock import instance_mock, method_mock
 
 
 class DescribeConnector(object):
+    """Unit-test suite for `pptx.shapes.connector.Connector`."""
+
     def it_knows_its_begin_point_x_location(self, begin_x_get_fixture):
         connector, expected_value = begin_x_get_fixture
         begin_x = connector.begin_x
@@ -68,16 +71,6 @@ class DescribeConnector(object):
         connector._connect_begin_to.assert_called_once_with(connector, shape, cxn_idx)
         connector._move_begin_to_cxn.assert_called_once_with(connector, shape, cxn_idx)
 
-    def it_connects_its_begin_point_to_help(self, connect_begin_fixture):
-        connector, shape, cxn_idx, expected_xml = connect_begin_fixture
-        connector._connect_begin_to(shape, cxn_idx)
-        assert connector._element.xml == expected_xml
-
-    def it_moves_its_begin_point_to_help(self, move_begin_fixture):
-        connector, shape, cxn_idx, expected_xml = move_begin_fixture
-        connector._move_begin_to_cxn(shape, cxn_idx)
-        assert connector._element.xml == expected_xml
-
     def it_can_connect_its_end_point_to_a_shape(self, end_conn_fixture):
         connector, shape, cxn_idx = end_conn_fixture
 
@@ -85,16 +78,6 @@ class DescribeConnector(object):
 
         connector._connect_end_to.assert_called_once_with(connector, shape, cxn_idx)
         connector._move_end_to_cxn.assert_called_once_with(connector, shape, cxn_idx)
-
-    def it_connects_its_end_point_to_help(self, connect_end_fixture):
-        connector, shape, cxn_idx, expected_xml = connect_end_fixture
-        connector._connect_end_to(shape, cxn_idx)
-        assert connector._element.xml == expected_xml
-
-    def it_moves_its_end_point_to_help(self, move_end_fixture):
-        connector, shape, cxn_idx, expected_xml = move_end_fixture
-        connector._move_end_to_cxn(shape, cxn_idx)
-        assert connector._element.xml == expected_xml
 
     def it_provides_access_to_its_line_format(self):
         connector = Connector(element("p:cxnSp/p:spPr"), None)
@@ -105,6 +88,29 @@ class DescribeConnector(object):
         # exercise line to test parent interface, .ln and .get_or_add_ln()
         line.width = 91440
         assert line.width == 91440
+
+    def it_knows_its_shape_type(self):
+        assert Connector(None, None).shape_type == MSO_SHAPE_TYPE.LINE
+
+    def it_connects_its_begin_point_to_help(self, connect_begin_fixture):
+        connector, shape, cxn_idx, expected_xml = connect_begin_fixture
+        connector._connect_begin_to(shape, cxn_idx)
+        assert connector._element.xml == expected_xml
+
+    def it_connects_its_end_point_to_help(self, connect_end_fixture):
+        connector, shape, cxn_idx, expected_xml = connect_end_fixture
+        connector._connect_end_to(shape, cxn_idx)
+        assert connector._element.xml == expected_xml
+
+    def it_moves_its_begin_point_to_help(self, move_begin_fixture):
+        connector, shape, cxn_idx, expected_xml = move_begin_fixture
+        connector._move_begin_to_cxn(shape, cxn_idx)
+        assert connector._element.xml == expected_xml
+
+    def it_moves_its_end_point_to_help(self, move_end_fixture):
+        connector, shape, cxn_idx, expected_xml = move_end_fixture
+        connector._move_end_to_cxn(shape, cxn_idx)
+        assert connector._element.xml == expected_xml
 
     # fixtures -------------------------------------------------------
 

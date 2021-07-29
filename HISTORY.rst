@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.6.19 (2021-05-17)
++++++++++++++++++++
+
+- Add shapes.add_ole_object(), allowing arbitrary Excel or other binary file to be
+  embedded as a shape on a slide. The OLE object is represented as an icon.
+
+
 0.6.18 (2019-05-02)
 +++++++++++++++++++
 

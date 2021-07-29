@@ -1,108 +1,143 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.graphfrm module.
-"""
-
-from __future__ import absolute_import, print_function
+"""Unit-test suite for pptx.shapes.graphfrm module."""
 
 import pytest
 
 from pptx.chart.chart import Chart
 from pptx.enum.shapes import MSO_SHAPE_TYPE
-from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.parts.chart import ChartPart
-from pptx.shapes.graphfrm import GraphicFrame
+from pptx.parts.embeddedpackage import EmbeddedPackagePart
+from pptx.parts.slide import SlidePart
+from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
 from pptx.shapes.shapetree import SlideShapes
-from pptx.spec import GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_TABLE
+from pptx.spec import (
+    GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_TABLE,
+)
 
 from ..unitutil.cxml import element
-from ..unitutil.mock import instance_mock, property_mock
+from ..unitutil.mock import class_mock, instance_mock, property_mock
 
 
 class DescribeGraphicFrame(object):
-    def it_knows_if_it_contains_a_chart(self, has_chart_fixture):
-        graphic_frame, expected_value = has_chart_fixture
-        assert graphic_frame.has_chart is expected_value
+    """Unit-test suite for `pptx.shapes.graphfrm.GraphicFrame` object."""
 
-    def it_knows_if_it_contains_a_table(self, has_table_fixture):
-        graphic_frame, expected_value = has_table_fixture
-        assert graphic_frame.has_table is expected_value
+    def it_provides_access_to_the_chart_it_contains(
+        self, request, has_chart_prop_, chart_part_, chart_
+    ):
+        has_chart_prop_.return_value = True
+        property_mock(request, GraphicFrame, "chart_part", return_value=chart_part_)
+        chart_part_.chart = chart_
+
+        assert GraphicFrame(None, None).chart is chart_
+
+    def but_it_raises_on_chart_if_there_isnt_one(self, has_chart_prop_):
+        has_chart_prop_.return_value = False
+
+        with pytest.raises(ValueError) as e:
+            GraphicFrame(None, None).chart
+        assert str(e.value) == "shape does not contain a chart"
+
+    def it_provides_access_to_its_chart_part(self, request, chart_part_):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData/c:chart{r:id=rId42}"
+        )
+        property_mock(
+            request,
+            GraphicFrame,
+            "part",
+            return_value=instance_mock(
+                request, SlidePart, related_parts={"rId42": chart_part_}
+            ),
+        )
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        assert graphic_frame.chart_part is chart_part_
+
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, True),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
+            (GRAPHIC_DATA_URI_TABLE, False),
+        ),
+    )
+    def it_knows_whether_it_contains_a_chart(self, graphicData_uri, expected_value):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri
+        )
+        assert GraphicFrame(graphicFrame, None).has_chart is expected_value
+
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, False),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
+            (GRAPHIC_DATA_URI_TABLE, True),
+        ),
+    )
+    def it_knows_whether_it_contains_a_table(self, graphicData_uri, expected_value):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri
+        )
+        assert GraphicFrame(graphicFrame, None).has_table is expected_value
+
+    def it_provides_access_to_the_OleFormat_object(self, request):
+        ole_format_ = instance_mock(request, _OleFormat)
+        _OleFormat_ = class_mock(
+            request, "pptx.shapes.graphfrm._OleFormat", return_value=ole_format_
+        )
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=http://schemas.openxmlformats"
+            ".org/presentationml/2006/ole}"
+        )
+        parent_ = instance_mock(request, SlideShapes)
+        graphic_frame = GraphicFrame(graphicFrame, parent_)
+
+        ole_format = graphic_frame.ole_format
+
+        _OleFormat_.assert_called_once_with(graphicFrame.graphicData, parent_)
+        assert ole_format is ole_format_
+
+    def but_it_raises_on_ole_format_when_this_is_not_an_OLE_object(self):
+        graphic_frame = GraphicFrame(
+            element(
+                "p:graphicFrame/a:graphic/a:graphicData{uri=http://schemas.openxmlfor"
+                "mats.org/drawingml/2006/table}"
+            ),
+            None,
+        )
+        with pytest.raises(ValueError) as e:
+            graphic_frame.ole_format
+        assert str(e.value) == "not an OLE-object shape"
 
     def it_raises_on_shadow(self):
         graphic_frame = GraphicFrame(None, None)
         with pytest.raises(NotImplementedError):
             graphic_frame.shadow
 
-    def it_knows_its_shape_type(self, type_fixture):
-        graphic_frame, expected_type = type_fixture
-        assert graphic_frame.shape_type is expected_type
-
-    def it_can_retrieve_a_linked_chart_part(self, chart_part_fixture):
-        graphic_frame, chart_part_ = chart_part_fixture
-        chart_part = graphic_frame.chart_part
-        assert chart_part is chart_part_
-
-    def it_provides_access_to_the_chart_it_contains(self, chart_fixture):
-        graphic_frame, chart_ = chart_fixture
-        chart = graphic_frame.chart
-        assert chart is chart_
-
-    def it_raises_on_chart_if_there_isnt_one(self, chart_raise_fixture):
-        graphic_frame = chart_raise_fixture
-        with pytest.raises(ValueError):
-            graphic_frame.chart
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def chart_fixture(self, request, chart_part_, graphicFrame_, chart_):
-        property_mock(request, GraphicFrame, "chart_part", return_value=chart_part_)
-        graphic_frame = GraphicFrame(graphicFrame_, None)
-        return graphic_frame, chart_
-
-    @pytest.fixture
-    def chart_raise_fixture(self, request, graphicFrame_):
-        graphicFrame_.has_chart = False
-        graphic_frame = GraphicFrame(graphicFrame_, None)
-        return graphic_frame
-
-    @pytest.fixture
-    def chart_part_fixture(self, parent_, chart_part_):
-        graphicFrame_cxml = "p:graphicFrame/a:graphic/a:graphicData/c:chart{r:id=rId42}"
-        graphic_frame = GraphicFrame(element(graphicFrame_cxml), parent_)
-        return graphic_frame, chart_part_
-
-    @pytest.fixture(
-        params=[(GRAPHIC_DATA_URI_CHART, True), (GRAPHIC_DATA_URI_TABLE, False)]
+    @pytest.mark.parametrize(
+        "uri, oleObj_child, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, None, MSO_SHAPE_TYPE.CHART),
+            (GRAPHIC_DATA_URI_OLEOBJ, "embed", MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT),
+            (GRAPHIC_DATA_URI_OLEOBJ, "link", MSO_SHAPE_TYPE.LINKED_OLE_OBJECT),
+            (GRAPHIC_DATA_URI_TABLE, None, MSO_SHAPE_TYPE.TABLE),
+            ("foobar", None, None),
+        ),
     )
-    def has_chart_fixture(self, request):
-        uri, expected_value = request.param
-        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
-        graphic_frame = GraphicFrame(graphicFrame, None)
-        return graphic_frame, expected_value
-
-    @pytest.fixture(
-        params=[(GRAPHIC_DATA_URI_CHART, False), (GRAPHIC_DATA_URI_TABLE, True)]
-    )
-    def has_table_fixture(self, request):
-        uri, expected_value = request.param
-        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
-        graphic_frame = GraphicFrame(graphicFrame, None)
-        return graphic_frame, expected_value
-
-    @pytest.fixture(
-        params=[
-            (GRAPHIC_DATA_URI_CHART, MSO_SHAPE_TYPE.CHART),
-            (GRAPHIC_DATA_URI_TABLE, MSO_SHAPE_TYPE.TABLE),
-            ("foobar", None),
-        ]
-    )
-    def type_fixture(self, request):
-        uri, expected_value = request.param
-        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri)
-        graphic_frame = GraphicFrame(graphicFrame, None)
-        return graphic_frame, expected_value
+    def it_knows_its_shape_type(self, uri, oleObj_child, expected_value):
+        graphicFrame = element(
+            (
+                "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/p:oleObj/p:%s"
+                % (uri, oleObj_child)
+            )
+            if oleObj_child
+            else "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri
+        )
+        assert GraphicFrame(graphicFrame, None).shape_type is expected_value
 
     # fixture components ---------------------------------------------
 
@@ -115,11 +150,31 @@ class DescribeGraphicFrame(object):
         return instance_mock(request, ChartPart, chart=chart_)
 
     @pytest.fixture
-    def graphicFrame_(self, request):
-        return instance_mock(request, CT_GraphicalObjectFrame, has_chart=True)
+    def has_chart_prop_(self, request):
+        return property_mock(request, GraphicFrame, "has_chart")
 
-    @pytest.fixture
-    def parent_(self, request, chart_part_):
-        parent_ = instance_mock(request, SlideShapes)
-        parent_.part.related_parts = {"rId42": chart_part_}
-        return parent_
+
+class Describe_OleFormat(object):
+    """Unit-test suite for `pptx.shapes.graphfrm._OleFormat` object."""
+
+    def it_provides_access_to_the_OLE_object_blob(self, request):
+        ole_obj_part_ = instance_mock(request, EmbeddedPackagePart, blob=b"0123456789")
+        property_mock(
+            request,
+            _OleFormat,
+            "part",
+            return_value=instance_mock(
+                request, SlidePart, related_parts={"rId7": ole_obj_part_}
+            ),
+        )
+        graphicData = element("a:graphicData/p:oleObj{r:id=rId7}")
+
+        assert _OleFormat(graphicData, None).blob == b"0123456789"
+
+    def it_knows_the_OLE_object_prog_id(self):
+        graphicData = element("a:graphicData/p:oleObj{progId=Excel.Sheet.12}")
+        assert _OleFormat(graphicData, None).prog_id == "Excel.Sheet.12"
+
+    def it_knows_whether_to_show_the_OLE_object_as_an_icon(self):
+        graphicData = element("a:graphicData/p:oleObj{showAsIcon=1}")
+        assert _OleFormat(graphicData, None).show_as_icon is True

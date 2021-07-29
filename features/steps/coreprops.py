@@ -48,7 +48,8 @@ def step_when_set_core_doc_props_to_valid_values(context):
         ("modified", datetime(2013, 6, 15, 12, 34, 56)),
         ("revision", 9),
         ("subject", "Subject"),
-        ("title", "Title"),
+        # --- exercise unicode-text case for Python 2.7 ---
+        ("title", u"åß∂Title°"),
         ("version", "Version"),
     )
     for name, value in context.propvals:

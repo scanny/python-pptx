@@ -7,17 +7,17 @@ from StringIO import StringIO as BytesIO  # noqa
 
 def is_integer(obj):
     """Return True if *obj* is an integer (int, long), False otherwise."""
-    return isinstance(obj, (int, long))
+    return isinstance(obj, (int, long))  # noqa F821
 
 
 def is_string(obj):
     """Return True if *obj* is a string, False otherwise."""
-    return isinstance(obj, basestring)
+    return isinstance(obj, basestring)  # noqa F821
 
 
 def is_unicode(obj):
     """Return True if *obj* is a unicode string, False otherwise."""
-    return isinstance(obj, unicode)
+    return isinstance(obj, unicode)  # noqa F821
 
 
 def to_unicode(text):
@@ -28,14 +28,14 @@ def to_unicode(text):
     unchanged.
     """
     # both str and unicode inherit from basestring
-    if not isinstance(text, basestring):
+    if not isinstance(text, basestring):  # noqa F821
         tmpl = "expected unicode or UTF-8 (or ASCII) encoded str, got %s value %s"
         raise TypeError(tmpl % (type(text), text))
     # return unicode strings unchanged
-    if isinstance(text, unicode):
+    if isinstance(text, unicode):  # noqa F821
         return text
     # otherwise assume UTF-8 encoding, which also works for ASCII
-    return unicode(text, "utf-8")
+    return unicode(text, "utf-8")  # noqa F821
 
 
-Unicode = unicode
+Unicode = unicode  # noqa F821

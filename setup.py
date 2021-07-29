@@ -64,6 +64,7 @@ CLASSIFIERS = [
 
 LONG_DESCRIPTION = readme + "\n\n" + history
 
+ZIP_SAFE = False
 
 params = {
     "name": NAME,
@@ -81,6 +82,7 @@ params = {
     "tests_require": TESTS_REQUIRE,
     "test_suite": TEST_SUITE,
     "classifiers": CLASSIFIERS,
+    "zip_safe": ZIP_SAFE,
 }
 
 setup(**params)

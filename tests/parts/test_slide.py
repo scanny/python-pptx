@@ -1,15 +1,12 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.parts.slide module
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.parts.slide` module."""
 
 import pytest
 
 from pptx.chart.data import ChartData
 from pptx.enum.base import EnumValue
+from pptx.enum.shapes import PROG_ID
 from pptx.media import Video
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
@@ -18,6 +15,7 @@ from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.package import Package
 from pptx.parts.chart import ChartPart
+from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
 from pptx.parts.presentation import PresentationPart
@@ -427,6 +425,8 @@ class DescribeNotesSlidePart(object):
 
 
 class DescribeSlidePart(object):
+    """Unit-test suite for `pptx.parts.slide.SlidePart` objects."""
+
     def it_knows_its_slide_id(self, slide_id_fixture):
         slide_part, presentation_part_, slide_id = slide_id_fixture
         _slide_id = slide_part.slide_id
@@ -439,35 +439,80 @@ class DescribeSlidePart(object):
         slide_part.part_related_by.assert_called_once_with(slide_part, RT.NOTES_SLIDE)
         assert value is expected_value
 
-    def it_can_add_a_chart_part(self, add_chart_part_fixture):
-        slide_part, chart_type_, chart_data_ = add_chart_part_fixture[:3]
-        ChartPart_, chart_part_, package_, rId = add_chart_part_fixture[3:]
+    def it_can_add_a_chart_part(self, request, package_, relate_to_):
+        chart_part_ = instance_mock(request, ChartPart)
+        ChartPart_ = class_mock(request, "pptx.parts.slide.ChartPart")
+        ChartPart_.new.return_value = chart_part_
+        chart_type_ = instance_mock(request, EnumValue)
+        chart_data_ = instance_mock(request, ChartData)
+        relate_to_.return_value = "rId42"
+        slide_part = SlidePart(None, None, None, package_)
 
         _rId = slide_part.add_chart_part(chart_type_, chart_data_)
 
         ChartPart_.new.assert_called_once_with(chart_type_, chart_data_, package_)
-        slide_part.relate_to.assert_called_once_with(chart_part_, RT.CHART)
-        assert _rId is rId
+        relate_to_.assert_called_once_with(slide_part, chart_part_, RT.CHART)
+        assert _rId == "rId42"
 
-    def it_can_get_or_add_a_video_part(self, goa_video_fixture):
-        slide_part, video_, package_, relate_to_ = goa_video_fixture[:4]
-        calls, media_rId, video_rId = goa_video_fixture[4:]
+    @pytest.mark.parametrize(
+        "prog_id, rel_type",
+        (
+            (PROG_ID.DOCX, RT.PACKAGE),
+            (PROG_ID.PPTX, RT.PACKAGE),
+            (PROG_ID.XLSX, RT.PACKAGE),
+            ("Foo.Bar.18", RT.OLE_OBJECT),
+        ),
+    )
+    def it_can_add_an_embedded_ole_object_part(
+        self, request, package_, relate_to_, prog_id, rel_type
+    ):
+        _blob_from_file_ = method_mock(
+            request, SlidePart, "_blob_from_file", autospec=True, return_value=b"012345"
+        )
+        embedded_package_part_ = instance_mock(request, EmbeddedPackagePart)
+        EmbeddedPackagePart_ = class_mock(
+            request, "pptx.parts.slide.EmbeddedPackagePart"
+        )
+        EmbeddedPackagePart_.factory.return_value = embedded_package_part_
+        relate_to_.return_value = "rId9"
+        slide_part = SlidePart(None, None, None, package_)
+
+        _rId = slide_part.add_embedded_ole_object_part(prog_id, "workbook.xlsx")
+
+        _blob_from_file_.assert_called_once_with(slide_part, "workbook.xlsx")
+        EmbeddedPackagePart_.factory.assert_called_once_with(
+            prog_id, b"012345", package_
+        )
+        relate_to_.assert_called_once_with(slide_part, embedded_package_part_, rel_type)
+        assert _rId == "rId9"
+
+    def it_can_get_or_add_a_video_part(self, package_, video_, relate_to_, media_part_):
+        media_rId, video_rId = "rId1", "rId2"
+        package_.get_or_add_media_part.return_value = media_part_
+        relate_to_.side_effect = [media_rId, video_rId]
+        slide_part = SlidePart(None, None, None, package_)
 
         result = slide_part.get_or_add_video_media_part(video_)
 
         package_.get_or_add_media_part.assert_called_once_with(video_)
-        assert relate_to_.call_args_list == calls
+        assert relate_to_.call_args_list == [
+            call(slide_part, media_part_, RT.MEDIA),
+            call(slide_part, media_part_, RT.VIDEO),
+        ]
         assert result == (media_rId, video_rId)
 
-    def it_can_create_a_new_slide_part(self, new_fixture):
-        slide_layout_part_, partname, package_ = new_fixture[:3]
-        SlidePart_init_, sld = new_fixture[3:]
+    def it_can_create_a_new_slide_part(self, request, package_, relate_to_):
+        partname = PackURI("/foobar.xml")
+        SlidePart_init_ = initializer_mock(request, SlidePart)
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+        CT_Slide_ = class_mock(request, "pptx.parts.slide.CT_Slide")
+        CT_Slide_.new.return_value = sld = element("c:sld")
 
         slide_part = SlidePart.new(partname, package_, slide_layout_part_)
 
         SlidePart_init_.assert_called_once_with(partname, CT.PML_SLIDE, sld, package_)
         slide_part.relate_to.assert_called_once_with(
-            slide_layout_part_, RT.SLIDE_LAYOUT
+            slide_part, slide_layout_part_, RT.SLIDE_LAYOUT
         )
         assert isinstance(slide_part, SlidePart)
 
@@ -499,51 +544,19 @@ class DescribeSlidePart(object):
         assert slide_part._add_notes_slide_part.call_args_list == calls
         assert notes_slide is notes_slide_
 
-    def it_adds_a_notes_slide_part_to_help(self, add_notes_part_fixture):
-        slide_part, NotesSlidePart_, package_, notes_slide_part_ = (
-            add_notes_part_fixture
-        )
+    def it_adds_a_notes_slide_part_to_help(
+        self, package_, NotesSlidePart_, notes_slide_part_, relate_to_
+    ):
+        NotesSlidePart_.new.return_value = notes_slide_part_
+        slide_part = SlidePart(None, None, None, package_)
+
         notes_slide_part = slide_part._add_notes_slide_part()
 
         assert notes_slide_part is notes_slide_part_
         NotesSlidePart_.new.assert_called_once_with(package_, slide_part)
-        slide_part.relate_to.assert_called_once_with(notes_slide_part, RT.NOTES_SLIDE)
+        relate_to_.assert_called_once_with(slide_part, notes_slide_part, RT.NOTES_SLIDE)
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_chart_part_fixture(
-        self, package_, chart_type_, chart_data_, ChartPart_, chart_part_, relate_to_
-    ):
-        slide_part = SlidePart(None, None, None, package_)
-        ChartPart_.new.return_value = chart_part_
-        relate_to_.return_value = rId = "rId42"
-        return (
-            slide_part,
-            chart_type_,
-            chart_data_,
-            ChartPart_,
-            chart_part_,
-            package_,
-            rId,
-        )
-
-    @pytest.fixture
-    def add_notes_part_fixture(
-        self, package_, NotesSlidePart_, notes_slide_part_, relate_to_
-    ):
-        slide_part = SlidePart(None, None, None, package_)
-        NotesSlidePart_.new.return_value = notes_slide_part_
-        return slide_part, NotesSlidePart_, package_, notes_slide_part_
-
-    @pytest.fixture
-    def goa_video_fixture(self, package_, video_, relate_to_, media_part_):
-        slide_part = SlidePart(None, None, None, package_)
-        calls = [call(media_part_, RT.MEDIA), call(media_part_, RT.VIDEO)]
-        media_rId, video_rId = "rId1", "rId2"
-        package_.get_or_add_media_part.return_value = media_part_
-        relate_to_.side_effect = [media_rId, video_rId]
-        return (slide_part, video_, package_, relate_to_, calls, media_rId, video_rId)
 
     @pytest.fixture(params=[True, False])
     def has_notes_slide_fixture(self, request, part_related_by_):
@@ -558,14 +571,6 @@ class DescribeSlidePart(object):
         slide_part = SlidePart(None, None, None, None)
         part_related_by_.return_value.slide_layout = slide_layout_
         return slide_part, slide_layout_
-
-    @pytest.fixture
-    def new_fixture(
-        self, slide_layout_part_, package_, SlidePart_init_, CT_Slide_, relate_to_
-    ):
-        partname = PackURI("/foobar.xml")
-        CT_Slide_.new.return_value = sld = element("c:sld")
-        return slide_layout_part_, partname, package_, SlidePart_init_, sld
 
     @pytest.fixture(params=[True, False])
     def notes_slide_fixture(
@@ -613,28 +618,6 @@ class DescribeSlidePart(object):
         )
 
     @pytest.fixture
-    def ChartPart_(self, request, chart_part_):
-        return class_mock(
-            request, "pptx.parts.slide.ChartPart", return_value=chart_part_
-        )
-
-    @pytest.fixture
-    def chart_data_(self, request):
-        return instance_mock(request, ChartData)
-
-    @pytest.fixture
-    def chart_part_(self, request):
-        return instance_mock(request, ChartPart)
-
-    @pytest.fixture
-    def chart_type_(self, request):
-        return instance_mock(request, EnumValue)
-
-    @pytest.fixture
-    def CT_Slide_(self, request):
-        return class_mock(request, "pptx.parts.slide.CT_Slide")
-
-    @pytest.fixture
     def media_part_(self, request):
         return instance_mock(request, MediaPart)
 
@@ -666,7 +649,7 @@ class DescribeSlidePart(object):
 
     @pytest.fixture
     def relate_to_(self, request):
-        return method_mock(request, SlidePart, "relate_to")
+        return method_mock(request, SlidePart, "relate_to", autospec=True)
 
     @pytest.fixture
     def Slide_(self, request, slide_):
@@ -679,14 +662,6 @@ class DescribeSlidePart(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
-
-    @pytest.fixture
-    def slide_layout_part_(self, request):
-        return instance_mock(request, SlideLayoutPart)
-
-    @pytest.fixture
-    def SlidePart_init_(self, request):
-        return initializer_mock(request, SlidePart)
 
     @pytest.fixture
     def video_(self, request):
