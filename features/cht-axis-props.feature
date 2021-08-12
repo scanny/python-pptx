@@ -70,6 +70,18 @@ Feature: Axis properties
       | automatic | None  |
 
 
+  Scenario Outline: Get Axis.format
+    Given a <axis-type> axis
+     Then axis.format is a ChartFormat object
+      And axis.format.fill is a FillFormat object
+      And axis.format.line is a LineFormat object
+
+    Examples: axis types
+      | axis-type |
+      | category  |
+      | value     |
+
+
   Scenario Outline: Get Axis.has_[major/minor]_gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>
@@ -150,15 +162,3 @@ Feature: Axis properties
   Scenario: Get Axis.major_gridlines
     Given an axis
      Then axis.major_gridlines is a MajorGridlines object
-
-
-  Scenario Outline: Get Axis.format
-    Given a <axis-type> axis
-     Then axis.format is a ChartFormat object
-      And axis.format.fill is a FillFormat object
-      And axis.format.line is a LineFormat object
-
-    Examples: axis types
-      | axis-type |
-      | category  |
-      | value     |

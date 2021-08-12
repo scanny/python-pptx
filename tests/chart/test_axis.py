@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.chart module
-"""
-
-from __future__ import absolute_import, print_function
+"""Unit-test suite for pptx.chart.axis module."""
 
 import pytest
 
@@ -31,6 +27,20 @@ from ..unitutil.mock import class_mock, instance_mock
 
 
 class Describe_BaseAxis(object):
+    """Unit-test suite for `pptx.chart.axis._BaseAxis` objects."""
+
+    def it_provides_access_to_its_title(self, title_fixture):
+        axis, AxisTitle_, axis_title_ = title_fixture
+        axis_title = axis.axis_title
+        AxisTitle_.assert_called_once_with(axis._element.title)
+        assert axis_title is axis_title_
+
+    def it_provides_access_to_its_format(self, format_fixture):
+        axis, ChartFormat_, format_ = format_fixture
+        format = axis.format
+        ChartFormat_.assert_called_once_with(axis._xAx)
+        assert format is format_
+
     def it_knows_whether_it_has_major_gridlines(self, major_gridlines_get_fixture):
         base_axis, expected_value = major_gridlines_get_fixture
         assert base_axis.has_major_gridlines is expected_value
@@ -58,37 +68,13 @@ class Describe_BaseAxis(object):
         axis.has_title = new_value
         assert axis._element.xml == expected_xml
 
-    def it_knows_whether_it_is_visible(self, visible_get_fixture):
-        axis, expected_bool_value = visible_get_fixture
-        assert axis.visible is expected_bool_value
+    def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
+        axis, MajorGridlines_, xAx, major_gridlines_ = maj_grdlns_fixture
 
-    def it_can_change_whether_it_is_visible(self, visible_set_fixture):
-        axis, new_value, expected_xml = visible_set_fixture
-        axis.visible = new_value
-        assert axis._element.xml == expected_xml
+        major_gridlines = axis.major_gridlines
 
-    def it_raises_on_assign_non_bool_to_visible(self):
-        axis = _BaseAxis(None)
-        with pytest.raises(ValueError):
-            axis.visible = "foobar"
-
-    def it_knows_the_scale_maximum(self, maximum_scale_get_fixture):
-        axis, expected_value = maximum_scale_get_fixture
-        assert axis.maximum_scale == expected_value
-
-    def it_can_change_the_scale_maximum(self, maximum_scale_set_fixture):
-        axis, new_value, expected_xml = maximum_scale_set_fixture
-        axis.maximum_scale = new_value
-        assert axis._element.xml == expected_xml
-
-    def it_knows_the_scale_minimum(self, minimum_scale_get_fixture):
-        axis, expected_value = minimum_scale_get_fixture
-        assert axis.minimum_scale == expected_value
-
-    def it_can_change_the_scale_minimum(self, minimum_scale_set_fixture):
-        axis, new_value, expected_xml = minimum_scale_set_fixture
-        axis.minimum_scale = new_value
-        assert axis._element.xml == expected_xml
+        MajorGridlines_.assert_called_once_with(xAx)
+        assert major_gridlines is major_gridlines_
 
     def it_knows_its_major_tick_setting(self, major_tick_get_fixture):
         axis, expected_value = major_tick_get_fixture
@@ -97,6 +83,24 @@ class Describe_BaseAxis(object):
     def it_can_change_its_major_tick_mark(self, major_tick_set_fixture):
         axis, new_value, expected_xml = major_tick_set_fixture
         axis.major_tick_mark = new_value
+        assert axis._element.xml == expected_xml
+
+    def it_knows_its_maximum_scale(self, maximum_scale_get_fixture):
+        axis, expected_value = maximum_scale_get_fixture
+        assert axis.maximum_scale == expected_value
+
+    def it_can_change_its_maximum_scale(self, maximum_scale_set_fixture):
+        axis, new_value, expected_xml = maximum_scale_set_fixture
+        axis.maximum_scale = new_value
+        assert axis._element.xml == expected_xml
+
+    def it_knows_its_minimum_scale(self, minimum_scale_get_fixture):
+        axis, expected_value = minimum_scale_get_fixture
+        assert axis.minimum_scale == expected_value
+
+    def it_can_change_its_minimum_scale(self, minimum_scale_set_fixture):
+        axis, new_value, expected_xml = minimum_scale_set_fixture
+        axis.minimum_scale = new_value
         assert axis._element.xml == expected_xml
 
     def it_knows_its_minor_tick_setting(self, minor_tick_get_fixture):
@@ -117,29 +121,25 @@ class Describe_BaseAxis(object):
         axis.tick_label_position = new_value
         assert axis._element.xml == expected_xml
 
-    def it_provides_access_to_its_title(self, title_fixture):
-        axis, AxisTitle_, axis_title_ = title_fixture
-        axis_title = axis.axis_title
-        AxisTitle_.assert_called_once_with(axis._element.title)
-        assert axis_title is axis_title_
-
-    def it_provides_access_to_its_format(self, format_fixture):
-        axis, ChartFormat_, format_ = format_fixture
-        format = axis.format
-        ChartFormat_.assert_called_once_with(axis._xAx)
-        assert format is format_
-
-    def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
-        axis, MajorGridlines_, xAx, major_gridlines_ = maj_grdlns_fixture
-        major_gridlines = axis.major_gridlines
-        MajorGridlines_.assert_called_once_with(xAx)
-        assert major_gridlines is major_gridlines_
-
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
         axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
         tick_labels = axis.tick_labels
         TickLabels_.assert_called_once_with(xAx)
         assert tick_labels is tick_labels_
+
+    def it_knows_whether_it_is_visible(self, visible_get_fixture):
+        axis, expected_bool_value = visible_get_fixture
+        assert axis.visible is expected_bool_value
+
+    def it_can_change_whether_it_is_visible(self, visible_set_fixture):
+        axis, new_value, expected_xml = visible_set_fixture
+        axis.visible = new_value
+        assert axis._element.xml == expected_xml
+
+    def but_it_raises_on_assign_non_bool_to_visible(self):
+        axis = _BaseAxis(None)
+        with pytest.raises(ValueError):
+            axis.visible = "foobar"
 
     # fixtures -------------------------------------------------------
 

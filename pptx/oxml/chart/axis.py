@@ -1,16 +1,14 @@
 # encoding: utf-8
 
-"""
-Axis-related oxml objects.
-"""
+"""Axis-related oxml objects."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import unicode_literals
 
-from ...enum.chart import XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
-from .shared import CT_Title
-from ..simpletypes import ST_AxisUnit, ST_LblOffset
-from ..text import CT_TextBody
-from ..xmlchemy import (
+from pptx.enum.chart import XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from pptx.oxml.chart.shared import CT_Title
+from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset
+from pptx.oxml.text import CT_TextBody
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
     OptionalAttribute,
@@ -20,9 +18,7 @@ from ..xmlchemy import (
 
 
 class BaseAxisElement(BaseOxmlElement):
-    """
-    Base class for catAx, valAx, and perhaps other axis elements.
-    """
+    """Base class for catAx, dateAx, valAx, and perhaps other axis elements."""
 
     @property
     def defRPr(self):
@@ -42,17 +38,13 @@ class BaseAxisElement(BaseOxmlElement):
 
 
 class CT_AxisUnit(BaseOxmlElement):
-    """
-    Used for ``<c:majorUnit>`` and ``<c:minorUnit>`` elements, and others.
-    """
+    """Used for `c:majorUnit` and `c:minorUnit` elements, and others."""
 
     val = RequiredAttribute("val", ST_AxisUnit)
 
 
 class CT_CatAx(BaseAxisElement):
-    """
-    ``<c:catAx>`` element, defining a category axis.
-    """
+    """`c:catAx` element, defining a category axis."""
 
     _tag_seq = (
         "c:axId",
@@ -97,27 +89,22 @@ class CT_CatAx(BaseAxisElement):
 
 
 class CT_ChartLines(BaseOxmlElement):
-    """
-    Used for c:majorGridlines and c:minorGridlines, specifies gridlines
-    visual properties such as color and width.
+    """Used for `c:majorGridlines` and `c:minorGridlines`.
+
+    Specifies gridlines visual properties such as color and width.
     """
 
     spPr = ZeroOrOne("c:spPr", successors=())
 
 
-class CT_Crosses(BaseAxisElement):
-    """
-    ``<c:crosses>`` element, specifying where the other axis crosses this
-    one.
-    """
+class CT_Crosses(BaseOxmlElement):
+    """`c:crosses` element, specifying where the other axis crosses this one."""
 
     val = RequiredAttribute("val", XL_AXIS_CROSSES)
 
 
 class CT_DateAx(BaseAxisElement):
-    """
-    ``<c:dateAx>`` element, defining a date (category) axis.
-    """
+    """`c:dateAx` element, defining a date (category) axis."""
 
     _tag_seq = (
         "c:axId",
@@ -163,21 +150,21 @@ class CT_DateAx(BaseAxisElement):
 
 
 class CT_LblOffset(BaseOxmlElement):
-    """
-    ``<c:lblOffset>`` custom element class
-    """
+    """`c:lblOffset` custom element class."""
 
     val = OptionalAttribute("val", ST_LblOffset, default=100)
 
 
 class CT_Scaling(BaseOxmlElement):
-    """
-    ``<c:scaling>`` element, defining axis scale characteristics such as
-    maximum value, log vs. linear, etc.
+    """`c:scaling` element.
+
+    Defines axis scale characteristics such as maximum value, log vs. linear, etc.
     """
 
-    max = ZeroOrOne("c:max", successors=("c:min", "c:extLst"))
-    min = ZeroOrOne("c:min", successors=("c:extLst",))
+    _tag_seq = ("c:logBase", "c:orientation", "c:max", "c:min", "c:extLst")
+    max = ZeroOrOne("c:max", successors=_tag_seq[3:])
+    min = ZeroOrOne("c:min", successors=_tag_seq[4:])
+    del _tag_seq
 
     @property
     def maximum(self):
@@ -225,25 +212,19 @@ class CT_Scaling(BaseOxmlElement):
 
 
 class CT_TickLblPos(BaseOxmlElement):
-    """
-    ``<c:tickLblPos>`` element.
-    """
+    """`c:tickLblPos` element."""
 
     val = OptionalAttribute("val", XL_TICK_LABEL_POSITION)
 
 
 class CT_TickMark(BaseOxmlElement):
-    """
-    Used for ``<c:minorTickMark>`` and ``<c:majorTickMark>``.
-    """
+    """Used for `c:minorTickMark` and `c:majorTickMark`."""
 
     val = OptionalAttribute("val", XL_TICK_MARK, default=XL_TICK_MARK.CROSS)
 
 
 class CT_ValAx(BaseAxisElement):
-    """
-    ``<c:valAx>`` element, defining a value axis.
-    """
+    """`c:valAx` element, defining a value axis."""
 
     _tag_seq = (
         "c:axId",
