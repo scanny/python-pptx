@@ -298,9 +298,16 @@ class JoinFormat(object):
         miterJoin = self._xPr.get_or_change_to_miter()
         self._join = _MiterJoin(miterJoin)
 
+    @property
     def limit(self):
         return self._join.limit
-        
+
+    @limit.setter
+    def limit(self, val):
+        join = self._xPr.get_or_change_to_miter()
+        self._join = _MiterJoin(join)
+        self._join.limit = val
+
     @property
     def type(self):
         """
