@@ -243,6 +243,11 @@ class CT_PresetGeometry2D(BaseOxmlElement):
 
     @property
     def prst(self):
+        """ 
+        Handles list of shapes for both AutoShapes and Connectors
+        If it is an autoshape, it returns a member of MSO_AUTO_SHAPE_TYPE while
+        connectors just receive the text string from the XML.
+        """
         connector_list = [
             "straightConnector1",
             "bentConnector2",

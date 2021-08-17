@@ -300,6 +300,9 @@ class JoinFormat(object):
 
     @property
     def limit(self):
+        """
+        The setting for the limit on a Miter Join. 
+        """
         return self._join.limit
 
     @limit.setter

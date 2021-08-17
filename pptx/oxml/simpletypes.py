@@ -1161,6 +1161,10 @@ class ST_PenAlignment(XsdTokenEnumeration):
     _members = alignments
 
 class ST_ShapeType(XsdTokenEnumeration):
+    """
+    List of Valid Values for Shape types.
+    This includes both connectors and Autoshapes
+    """
     shape_types = (
         "line",
         "lineInv",
