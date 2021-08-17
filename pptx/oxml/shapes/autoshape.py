@@ -262,7 +262,7 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         if self.preset in connector_list:
             return self.preset
         return MSO_AUTO_SHAPE_TYPE.from_xml(self.preset)
-        
+    
     @property
     def gd_lst(self):
         """
