@@ -13,6 +13,7 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.simpletypes import (
     ST_Coordinate,
     ST_PositiveCoordinate,
+    ST_ShapeType,
     XsdBoolean,
     XsdString,
     ST_AdjCoordinate,
@@ -155,7 +156,7 @@ class CT_Path2D(BaseOxmlElement):
         arcTo.wR = wR
         arcTo.hR = hR
         arcTo.stAng = stAng
-        artTo.swAng = swAng
+        arcTo.swAng = swAng
         return arcTo
 
     def add_quadBezTo(self, point1, point2):
@@ -238,8 +239,25 @@ class CT_PresetGeometry2D(BaseOxmlElement):
     """
 
     avLst = ZeroOrOne("a:avLst")
-    prst = RequiredAttribute("prst", MSO_AUTO_SHAPE_TYPE)
+    preset = RequiredAttribute("prst", ST_ShapeType)
 
+    @property
+    def prst(self):
+        connector_list = [
+            "straightConnector1",
+            "bentConnector2",
+            "bentConnector3",
+            "bentConnector4",
+            "bentConnector5",
+            "curvedConnector2",
+            "curvedConnector3",
+            "curvedConnector4",
+            "curvedConnector5",
+        ]
+        if self.preset in connector_list:
+            return self.preset
+        return MSO_AUTO_SHAPE_TYPE.from_xml(self.preset)
+        
     @property
     def gd_lst(self):
         """

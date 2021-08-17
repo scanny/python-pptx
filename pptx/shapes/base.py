@@ -286,7 +286,12 @@ class BaseShape(object):
         if self._element.has_custom_geometry:
             return CustomGeometry(self._element.custGeom)
         return CustomGeometry(self._element.spPr._add_custGeom())
-        
+    
+    @property
+    def preset_geometry(self):
+        if self._element.has_custom_geometry:
+            return None
+        return PresetGeometry(self._element.spPr.prstGeom)
 
 class _PlaceholderFormat(ElementProxy):
     """
@@ -414,6 +419,16 @@ class CustomGeometry(ElementProxy):
     @property
     def paths(self):
         return PathList(self._element.get_or_add_pathLst())
+
+class PresetGeometry(ElementProxy):
+    """
+    Class that proxies the ``<a:prstGeom>`` tag used for
+    preset shape geometry.  
+    """
+
+    @property
+    def adjust_values(self):
+        return GeometryGuideList(self._element.get_or_add_avLst())
 
 
 class GeometryGuideList(ElementProxy):

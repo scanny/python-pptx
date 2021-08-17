@@ -288,3 +288,11 @@ class Connector(BaseShape):
             2: (int(x + cx / 2), y + cy),
             3: (x + cx, int(y + cy / 2)),
         }[cxn_pt_idx]
+
+
+    @property
+    def connector_type(self):
+        prstGeom = self._element.spPr.prstGeom
+        if prstGeom is None:
+            return None
+        return prstGeom.prst

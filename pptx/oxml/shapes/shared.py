@@ -15,7 +15,7 @@ from pptx.oxml.simpletypes import (
     ST_LineWidth,
     ST_PlaceholderSize,
     ST_PositiveCoordinate,
-    ST_PositiveFixedPercentage,
+    ST_PositivePercentage,
     XsdBoolean,
     XsdString,
     XsdUnsignedInt,
@@ -349,7 +349,7 @@ class CT_LineEndProperties(BaseOxmlElement):
 
 class CT_LineJoinMiterProperties(BaseOxmlElement):
     """Custom Element class for ``<a:miter>``"""
-    lim = OptionalAttribute("lim", ST_PositiveFixedPercentage)
+    lim = OptionalAttribute("lim", ST_PositivePercentage)
 
 
 class CT_LineJoinRound(BaseOxmlElement):
