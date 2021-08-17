@@ -1073,3 +1073,75 @@ class ST_PathFillMode(XsdTokenEnumeration):
     )
     _members = fill_modes
 
+
+class ST_LineEndType(XsdTokenEnumeration):
+    """
+    Valid Values for line end types
+    """
+    line_end_types = (
+        "none",
+        "triangle",
+        "stealth",
+        "diamond",
+        "oval",
+        "arrow",
+    )
+    _members = line_end_types
+
+class ST_LineEndWidth(XsdTokenEnumeration):
+    """
+    Valid values for line end widths
+    """
+    line_end_widths = (
+        "sm",
+        "med",
+        "lg"
+    )
+    _members = line_end_widths
+
+class ST_LineEndLength(XsdTokenEnumeration):
+    """
+    Valid Values for line end lengths
+    """
+    line_end_lengths = (
+        "sm",
+        "med",
+        "lg"
+    )
+    _members = line_end_lengths
+
+
+class ST_LineCap(XsdTokenEnumeration):
+    """
+    Valid Values for Line Cap
+    """
+    line_caps = (
+        "rnd",
+        "sq",
+        "flat"
+    )
+    _members = line_caps
+
+class ST_CompoundLine(XsdTokenEnumeration):
+    """
+    Valid Values for Compound Line Types
+    """
+    compound_types = (
+        "sng",
+        "dbl",
+        "thickThin",
+        "thinThick",
+        "tri"
+    )
+    _members = compound_types
+
+class ST_PenAlignment(XsdTokenEnumeration):
+    """
+    Valid Values for Stroke Pen Alignment
+    """
+    alignments = (
+        "ctr",
+        "in",
+    )
+    _members = alignments
+

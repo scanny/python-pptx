@@ -15,11 +15,18 @@ from pptx.oxml.simpletypes import (
     ST_LineWidth,
     ST_PlaceholderSize,
     ST_PositiveCoordinate,
+    ST_PositiveFixedPercentage,
     XsdBoolean,
     XsdString,
     XsdUnsignedInt,
     ST_StyleMatrixColumnIndex,
     ST_FontCollectionIndex,
+    ST_LineEndType,
+    ST_LineEndWidth,
+    ST_LineEndLength,
+    ST_LineCap,
+    ST_CompoundLine,
+    ST_PenAlignment,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -292,8 +299,20 @@ class CT_LineProperties(BaseOxmlElement):
     # TODO - the Dash options should actually be a ZeroOrOneChoice()
     prstDash = ZeroOrOne("a:prstDash", successors=_tag_seq[5:])
     custDash = ZeroOrOne("a:custDash", successors=_tag_seq[6:])
+    eg_lineJoinProperties = ZeroOrOneChoice(
+        (Choice("a:round"),
+        Choice("a:bevel"),
+        Choice("a:miter")),
+        successors=_tag_seq[9:]
+    )
+    headEnd = ZeroOrOne("a:headEnd")
+    tailEnd = ZeroOrOne("a:tailEnd")
     del _tag_seq
     w = OptionalAttribute("w", ST_LineWidth, default=Emu(0))
+    cap = OptionalAttribute("cap", ST_LineCap)
+    cmpd = OptionalAttribute("cmpd", ST_CompoundLine)
+    algn = OptionalAttribute("algn", ST_PenAlignment)
+
 
     @property
     def eg_fillProperties(self):
@@ -318,6 +337,32 @@ class CT_LineProperties(BaseOxmlElement):
         self._remove_custDash()
         prstDash = self.get_or_add_prstDash()
         prstDash.val = val
+
+
+class CT_LineEndProperties(BaseOxmlElement):
+    """
+    Custom Element class for Line ends used by a:headEnd and a:tailEnd
+    """
+    endType = OptionalAttribute("type", ST_LineEndType)
+    w = OptionalAttribute("w", ST_LineEndWidth)
+    len = OptionalAttribute("len", ST_LineEndLength)
+
+class CT_LineJoinMiterProperties(BaseOxmlElement):
+    """Custom Element class for ``<a:miter>``"""
+    lim = OptionalAttribute("lim", ST_PositiveFixedPercentage)
+
+
+class CT_LineJoinRound(BaseOxmlElement):
+    """
+    Custom element class for ``<a:round>``
+    Empty element
+    """
+
+class CT_LineJoinBevel(BaseOxmlElement):
+    """
+    Custom element class for ``<a:bevel>``
+    Empty element
+    """
 
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):
