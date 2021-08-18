@@ -249,6 +249,7 @@ class CT_PresetGeometry2D(BaseOxmlElement):
         connectors just receive the text string from the XML.
         """
         connector_list = [
+            "line",
             "straightConnector1",
             "bentConnector2",
             "bentConnector3",
