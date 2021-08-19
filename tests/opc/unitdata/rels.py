@@ -25,8 +25,8 @@ class BaseBuilder(object):
         return self
 
 
-class RelationshipsBuilder(object):
-    """Builder class for test _Relationships"""
+class _RelationshipsBuilder(object):
+    """Builder class for test _Relationshipss"""
 
     partname_tmpls = {
         RT.SLIDE_MASTER: "/ppt/slideMasters/slideMaster%d.xml",
@@ -295,7 +295,7 @@ def a_Relationships():
 
 
 def a_rels():
-    return RelationshipsBuilder()
+    return _RelationshipsBuilder()
 
 
 def a_Types():

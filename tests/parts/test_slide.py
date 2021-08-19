@@ -5,7 +5,7 @@
 import pytest
 
 from pptx.chart.data import ChartData
-from pptx.enum.base import EnumValue
+from pptx.enum.chart import XL_CHART_TYPE as XCT
 from pptx.enum.shapes import PROG_ID
 from pptx.media import Video
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
@@ -122,13 +122,15 @@ class DescribeNotesMasterPart(object):
         )
         notesMaster = element("p:notesMaster")
         method_mock(request, CT_NotesMaster, "new_default", return_value=notesMaster)
-        partname = PackURI("/ppt/notesMasters/notesMaster1.xml")
 
         notes_master_part = NotesMasterPart._new(package_)
 
         CT_NotesMaster.new_default.assert_called_once_with()
         NotesMasterPart_.assert_called_once_with(
-            partname, CT.PML_NOTES_MASTER, package_, notesMaster
+            PackURI("/ppt/notesMasters/notesMaster1.xml"),
+            CT.PML_NOTES_MASTER,
+            package_,
+            notesMaster,
         )
         assert notes_master_part is notes_master_part_
 
@@ -231,8 +233,9 @@ class DescribeNotesSlidePart(object):
         )
         notes = element("p:notes")
         new_ = method_mock(request, CT_NotesSlide, "new", return_value=notes)
-        partname = PackURI("/ppt/notesSlides/notesSlide42.xml")
-        package_.next_partname.return_value = partname
+        package_.next_partname.return_value = PackURI(
+            "/ppt/notesSlides/notesSlide42.xml"
+        )
 
         notes_slide_part = NotesSlidePart._add_notes_slide_part(
             package_, slide_part_, notes_master_part_
@@ -243,7 +246,10 @@ class DescribeNotesSlidePart(object):
         )
         new_.assert_called_once_with()
         NotesSlidePart_.assert_called_once_with(
-            partname, CT.PML_NOTES_SLIDE, package_, notes
+            PackURI("/ppt/notesSlides/notesSlide42.xml"),
+            CT.PML_NOTES_SLIDE,
+            package_,
+            notes,
         )
         assert notes_slide_part_.relate_to.call_args_list == [
             call(notes_master_part_, RT.NOTES_MASTER),
@@ -294,19 +300,18 @@ class DescribeSlidePart(object):
         assert value is expected_value
 
     def it_can_add_a_chart_part(self, request, package_, relate_to_):
+        chart_data_ = instance_mock(request, ChartData)
         chart_part_ = instance_mock(request, ChartPart)
         ChartPart_ = class_mock(request, "pptx.parts.slide.ChartPart")
         ChartPart_.new.return_value = chart_part_
-        chart_type_ = instance_mock(request, EnumValue)
-        chart_data_ = instance_mock(request, ChartData)
         relate_to_.return_value = "rId42"
         slide_part = SlidePart(None, None, package_, None)
 
-        _rId = slide_part.add_chart_part(chart_type_, chart_data_)
+        rId = slide_part.add_chart_part(XCT.RADAR, chart_data_)
 
-        ChartPart_.new.assert_called_once_with(chart_type_, chart_data_, package_)
+        ChartPart_.new.assert_called_once_with(XCT.RADAR, chart_data_, package_)
         relate_to_.assert_called_once_with(slide_part, chart_part_, RT.CHART)
-        assert _rId == "rId42"
+        assert rId == "rId42"
 
     @pytest.mark.parametrize(
         "prog_id, rel_type",
@@ -321,7 +326,7 @@ class DescribeSlidePart(object):
         self, request, package_, relate_to_, prog_id, rel_type
     ):
         _blob_from_file_ = method_mock(
-            request, SlidePart, "_blob_from_file", autospec=True, return_value=b"012345"
+            request, SlidePart, "_blob_from_file", return_value=b"012345"
         )
         embedded_package_part_ = instance_mock(request, EmbeddedPackagePart)
         EmbeddedPackagePart_ = class_mock(
@@ -527,57 +532,33 @@ class DescribeSlidePart(object):
 class DescribeSlideLayoutPart(object):
     """Unit-test suite for `pptx.parts.slide.SlideLayoutPart` objects."""
 
-    def it_provides_access_to_its_slide_master(self, master_fixture):
-        slide_layout_part, part_related_by_, slide_master_ = master_fixture
+    def it_provides_access_to_its_slide_master(self, request):
+        slide_master_ = instance_mock(request, SlideMaster)
+        slide_master_part_ = instance_mock(
+            request, SlideMasterPart, slide_master=slide_master_
+        )
+        part_related_by_ = method_mock(
+            request, SlideLayoutPart, "part_related_by", return_value=slide_master_part_
+        )
+        slide_layout_part = SlideLayoutPart(None, None, None, None)
+
         slide_master = slide_layout_part.slide_master
+
         part_related_by_.assert_called_once_with(slide_layout_part, RT.SLIDE_MASTER)
         assert slide_master is slide_master_
 
-    def it_provides_access_to_its_slide_layout(self, layout_fixture):
-        slide_layout_part, SlideLayout_ = layout_fixture[:2]
-        sldLayout, slide_layout_ = layout_fixture[2:]
-        slide_layout = slide_layout_part.slide_layout
-        SlideLayout_.assert_called_once_with(sldLayout, slide_layout_part)
-        assert slide_layout is slide_layout_
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def layout_fixture(self, SlideLayout_, slide_layout_):
-        sldLayout = element("p:sldLayout")
-        slide_layout_part = SlideLayoutPart(None, None, None, sldLayout)
-        return slide_layout_part, SlideLayout_, sldLayout, slide_layout_
-
-    @pytest.fixture
-    def master_fixture(self, part_related_by_, slide_master_, slide_master_part_):
-        slide_layout_part = SlideLayoutPart(None, None, None, None)
-        part_related_by_.return_value = slide_master_part_
-        slide_master_part_.slide_master = slide_master_
-        return slide_layout_part, part_related_by_, slide_master_
-
-    # fixture components -----------------------------------
-
-    @pytest.fixture
-    def part_related_by_(self, request):
-        return method_mock(request, SlideLayoutPart, "part_related_by", autospec=True)
-
-    @pytest.fixture
-    def SlideLayout_(self, request, slide_layout_):
-        return class_mock(
+    def it_provides_access_to_its_slide_layout(self, request):
+        slide_layout_ = instance_mock(request, SlideLayout)
+        SlideLayout_ = class_mock(
             request, "pptx.parts.slide.SlideLayout", return_value=slide_layout_
         )
+        sldLayout = element("p:sldLayout")
+        slide_layout_part = SlideLayoutPart(None, None, None, sldLayout)
 
-    @pytest.fixture
-    def slide_layout_(self, request):
-        return instance_mock(request, SlideLayout)
+        slide_layout = slide_layout_part.slide_layout
 
-    @pytest.fixture
-    def slide_master_(self, request):
-        return instance_mock(request, SlideMaster)
-
-    @pytest.fixture
-    def slide_master_part_(self, request):
-        return instance_mock(request, SlideMasterPart)
+        SlideLayout_.assert_called_once_with(sldLayout, slide_layout_part)
+        assert slide_layout is slide_layout_
 
 
 class DescribeSlideMasterPart(object):

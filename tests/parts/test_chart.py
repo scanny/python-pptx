@@ -126,22 +126,19 @@ class DescribeChartWorkbook(object):
         EmbeddedXlsxPart_.new.assert_called_once_with(b"xlsx-blob", package_)
         xlsx_part_prop_.assert_called_with(xlsx_part_)
 
-    def but_replaces_xlsx_blob_when_part_exists(self, update_blob_fixture):
-        chart_data, xlsx_blob_ = update_blob_fixture
-        chart_data.update_from_xlsx_blob(xlsx_blob_)
-        assert chart_data.xlsx_part.blob is xlsx_blob_
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def update_blob_fixture(self, request, xlsx_blob_, xlsx_part_prop_):
+    def but_it_replaces_the_xlsx_blob_when_the_part_exists(
+        self, xlsx_part_prop_, xlsx_part_
+    ):
+        xlsx_part_prop_.return_value = xlsx_part_
         chart_data = ChartWorkbook(None, None)
-        return chart_data, xlsx_blob_
+        chart_data.update_from_xlsx_blob(b"xlsx-blob")
+
+        assert chart_data.xlsx_part.blob == b"xlsx-blob"
 
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def chart_part_(self, request):
+    def chart_part_(self, request, package_, xlsx_part_):
         return instance_mock(request, ChartPart)
 
     @pytest.fixture
@@ -149,13 +146,9 @@ class DescribeChartWorkbook(object):
         return instance_mock(request, OpcPackage)
 
     @pytest.fixture
-    def xlsx_blob_(self, request):
-        return instance_mock(request, bytes)
-
-    @pytest.fixture
     def xlsx_part_(self, request):
         return instance_mock(request, EmbeddedXlsxPart)
 
     @pytest.fixture
-    def xlsx_part_prop_(self, request, xlsx_part_):
+    def xlsx_part_prop_(self, request):
         return property_mock(request, ChartWorkbook, "xlsx_part")

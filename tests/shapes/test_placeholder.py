@@ -338,8 +338,12 @@ class DescribeChartPlaceholder(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def part_prop_(self, request):
-        return property_mock(request, ChartPlaceholder, "part")
+    def part_prop_(self, request, slide_):
+        return property_mock(request, ChartPlaceholder, "part", return_value=slide_)
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, SlidePart)
 
 
 class DescribeLayoutPlaceholder(object):
@@ -379,10 +383,8 @@ class DescribeLayoutPlaceholder(object):
         return instance_mock(request, MasterPlaceholder)
 
     @pytest.fixture
-    def part_prop_(self, request, slide_layout_part_):
-        return property_mock(
-            request, LayoutPlaceholder, "part", return_value=slide_layout_part_
-        )
+    def part_prop_(self, request):
+        return property_mock(request, LayoutPlaceholder, "part")
 
     @pytest.fixture
     def slide_layout_part_(self, request):
@@ -527,8 +529,12 @@ class DescribePicturePlaceholder(object):
         return instance_mock(request, ImagePart)
 
     @pytest.fixture
-    def part_prop_(self, request):
-        return property_mock(request, PicturePlaceholder, "part")
+    def part_prop_(self, request, slide_):
+        return property_mock(request, PicturePlaceholder, "part", return_value=slide_)
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, SlidePart)
 
 
 class DescribeTablePlaceholder(object):
@@ -560,20 +566,14 @@ class DescribeTablePlaceholder(object):
         PlaceholderGraphicFrame_.assert_called_once_with(graphicFrame, table_ph._parent)
         assert ph_graphic_frame is placeholder_graphic_frame_
 
-    def it_creates_a_graphicFrame_element_to_help(self, new_fixture):
-        table_ph, rows, cols, expected_xml = new_fixture
-        graphicFrame = table_ph._new_placeholder_table(rows, cols)
-        assert graphicFrame.xml == expected_xml
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def new_fixture(self):
-        sp_cxml = (
-            "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/(a:off{x=1,"
-            "y=2},a:ext{cx=3,cy=4}))"
+    def it_creates_a_graphicFrame_element_to_help(self):
+        table_ph = TablePlaceholder(
+            element(
+                "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/(a:off{x=1,y=2},"
+                "a:ext{cx=3,cy=4}))"
+            ),
+            None,
         )
-        table_ph = TablePlaceholder(element(sp_cxml), None)
-        rows, cols = 1, 1
-        expected_xml = snippet_seq("placeholders")[0]
-        return table_ph, rows, cols, expected_xml
+        graphicFrame = table_ph._new_placeholder_table(1, 1)
+
+        assert graphicFrame.xml == snippet_seq("placeholders")[0]

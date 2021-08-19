@@ -2,6 +2,8 @@
 
 """Unit-test suite for `pptx.action` module."""
 
+from __future__ import unicode_literals
+
 import pytest
 
 from pptx.action import ActionSetting, Hyperlink

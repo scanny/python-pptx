@@ -684,7 +684,6 @@ class Describe_ColumnCollection(object):
         tbl = element(tbl_cxml)
         columns = _ColumnCollection(tbl, None)
         expected_column_lst = tbl.xpath("//a:gridCol")
-        print(expected_column_lst)
         return columns, expected_column_lst
 
     @pytest.fixture(
