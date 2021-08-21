@@ -1,21 +1,19 @@
 # encoding: utf-8
 
-"""
-Placeholder-related objects, specific to shapes having a `p:ph` element.
-A placeholder has distinct behaviors depending on whether it appears on
-a slide, layout, or master. Hence there is a non-trivial class inheritance
-structure.
+"""Placeholder-related objects.
+
+Specific to shapes having a `p:ph` element. A placeholder has distinct behaviors
+depending on whether it appears on a slide, layout, or master. Hence there is a
+non-trivial class inheritance structure.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from .autoshape import Shape
-from ..enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
-from .graphfrm import GraphicFrame
-from ..oxml.shapes.graphfrm import CT_GraphicalObjectFrame
-from ..oxml.shapes.picture import CT_Picture
-from .picture import Picture
-from ..util import Emu
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.picture import CT_Picture
+from pptx.shapes.autoshape import Shape
+from pptx.shapes.graphfrm import GraphicFrame
+from pptx.shapes.picture import Picture
+from pptx.util import Emu
 
 
 class _InheritsDimensions(object):
@@ -122,9 +120,9 @@ class _InheritsDimensions(object):
 
 
 class _BaseSlidePlaceholder(_InheritsDimensions, Shape):
-    """
-    Base class for placeholders on slides. Provides common behaviors such as
-    inherited dimensions.
+    """Base class for placeholders on slides.
+
+    Provides common behaviors such as inherited dimensions.
     """
 
     @property
@@ -274,9 +272,7 @@ class SlidePlaceholder(_BaseSlidePlaceholder):
 
 
 class ChartPlaceholder(_BaseSlidePlaceholder):
-    """
-    Placeholder shape that can only accept a chart.
-    """
+    """Placeholder shape that can only accept a chart."""
 
     def insert_chart(self, chart_type, chart_data):
         """
@@ -309,18 +305,15 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
 
 
 class PicturePlaceholder(_BaseSlidePlaceholder):
-    """
-    Placeholder shape that can only accept a picture.
-    """
+    """Placeholder shape that can only accept a picture."""
 
     def insert_picture(self, image_file):
-        """
-        Return a |PlaceholderPicture| object depicting the image in
-        *image_file*, which may be either a path (string) or a file-like
-        object. The image is cropped to fill the entire space of the
-        placeholder. A |PlaceholderPicture| object has all the properties and
-        methods of a |Picture| shape except that the value of its
-        :attr:`~._BaseSlidePlaceholder.shape_type` property is
+        """Return a |PlaceholderPicture| object depicting the image in `image_file`.
+
+        `image_file` may be either a path (string) or a file-like object. The image is
+        cropped to fill the entire space of the placeholder. A |PlaceholderPicture|
+        object has all the properties and methods of a |Picture| shape except that the
+        value of its :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
         pic = self._new_placeholder_pic(image_file)
@@ -379,21 +372,17 @@ class PlaceholderPicture(_InheritsDimensions, Picture):
 
 
 class TablePlaceholder(_BaseSlidePlaceholder):
-    """
-    Placeholder shape that can only accept a picture.
-    """
+    """Placeholder shape that can only accept a table."""
 
     def insert_table(self, rows, cols):
-        """
-        Return a |PlaceholderGraphicFrame| object containing a table of
-        *rows* rows and *cols* columns. The position and width of the table
-        are those of the placeholder and its height is proportional to the
-        number of rows. A |PlaceholderGraphicFrame| object has all the
-        properties and methods of a |GraphicFrame| shape except that the
-        value of its :attr:`~._BaseSlidePlaceholder.shape_type` property is
-        unconditionally `MSO_SHAPE_TYPE.PLACEHOLDER`. Note that the return
-        value is not the new table but rather *contains* the new table. The
-        table can be accessed using the
+        """Return |PlaceholderGraphicFrame| object containing a `rows` by `cols` table.
+
+        The position and width of the table are those of the placeholder and its height
+        is proportional to the number of rows. A |PlaceholderGraphicFrame| object has
+        all the properties and methods of a |GraphicFrame| shape except that the value
+        of its :attr:`~._BaseSlidePlaceholder.shape_type` property is unconditionally
+        `MSO_SHAPE_TYPE.PLACEHOLDER`. Note that the return value is not the new table
+        but rather *contains* the new table. The table can be accessed using the
         :attr:`~.PlaceholderGraphicFrame.table` property of the returned
         |PlaceholderGraphicFrame| object.
         """

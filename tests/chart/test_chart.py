@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.chart.chart module"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.chart.chart` module."""
 
 import pytest
 
@@ -28,6 +26,8 @@ from ..unitutil.mock import (
 
 
 class DescribeChart(object):
+    """Unit-test suite for `pptx.chart.chart.Chart` objects."""
+
     def it_provides_access_to_its_font(self, font_fixture, Font_, font_):
         chartSpace, expected_xml = font_fixture
         Font_.return_value = font_
@@ -452,6 +452,8 @@ class DescribeChart(object):
 
 
 class DescribeChartTitle(object):
+    """Unit-test suite for `pptx.chart.chart.ChartTitle` objects."""
+
     def it_provides_access_to_its_format(self, format_fixture):
         chart_title, ChartFormat_, format_ = format_fixture
         format = chart_title.format
@@ -549,6 +551,8 @@ class DescribeChartTitle(object):
 
 
 class Describe_Plots(object):
+    """Unit-test suite for `pptx.chart.chart._Plots` objects."""
+
     def it_supports_indexed_access(self, getitem_fixture):
         plots, idx, PlotFactory_, plot_elm, chart_, plot_ = getitem_fixture
         plot = plots[idx]

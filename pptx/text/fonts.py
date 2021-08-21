@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Objects related to system font file lookup.
-"""
-
-from __future__ import absolute_import, print_function
+"""Objects related to system font file lookup."""
 
 import os
 import sys
@@ -156,9 +152,9 @@ class _Font(object):
 
     @lazyproperty
     def _fields(self):
-        """
-        A 5-tuple containing the fields read from the font file header, also
-        known as the offset table.
+        """5-tuple containing the fields read from the font file header.
+
+        Also known as the offset table.
         """
         # sfnt_version, tbl_count, search_range, entry_selector, range_shift
         return self._stream.read_fields(">4sHHHH", 0)
@@ -196,20 +192,14 @@ class _Font(object):
 
 
 class _Stream(object):
-    """
-    A thin wrapper around a file that facilitates reading C-struct values
-    from a binary file.
-    """
+    """A thin wrapper around a binary file that facilitates reading C-struct values."""
 
     def __init__(self, file):
         self._file = file
 
     @classmethod
     def open(cls, path):
-        """
-        Return a |_Stream| providing binary access to the contents of the
-        file at *path*.
-        """
+        """Return |_Stream| providing binary access to contents of file at `path`."""
         return cls(open(path, "rb"))
 
     def close(self):
@@ -328,9 +318,9 @@ class _NameTable(_BaseTable):
             return None
 
     def _iter_names(self):
-        """
-        Generate a key/value pair for each name in this table. The key is a
-        (platform_id, name_id) 2-tuple and the value is the unicode text
+        """Generate a key/value pair for each name in this table.
+
+        The key is a (platform_id, name_id) 2-tuple and the value is the unicode text
         corresponding to that key.
         """
         table_format, count, strings_offset = self._table_header
@@ -364,11 +354,11 @@ class _NameTable(_BaseTable):
         return unpack_from(tmpl, bufr, offset)[0]
 
     def _read_name(self, bufr, idx, strings_offset):
-        """
-        Return a (platform_id, name_id, name) 3-tuple like (0, 1, 'Arial')
-        for the name at *idx* position in *bufr*. *strings_offset* is the
-        index into *bufr* where actual name strings begin. The returned name
-        is a unicode string.
+        """Return a (platform_id, name_id, name) 3-tuple for name at `idx` in `bufr`.
+
+        The triple looks like (0, 1, 'Arial'). `strings_offset` is the for the name at
+        `idx` position in `bufr`. `strings_offset` is the index into `bufr` where actual
+        name strings begin. The returned name is a unicode string.
         """
         platform_id, enc_id, lang_id, name_id, length, str_offset = self._name_header(
             bufr, idx
@@ -405,10 +395,7 @@ class _NameTable(_BaseTable):
 
     @lazyproperty
     def _names(self):
-        """
-        A mapping of (platform_id, name_id) keys to string names for this
-        font.
-        """
+        """A mapping of (platform_id, name_id) keys to string names for this font."""
         return dict(self._iter_names())
 
 

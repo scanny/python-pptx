@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Chart builder and related objects.
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Chart builder and related objects."""
 
 from contextlib import contextmanager
 
@@ -14,9 +10,7 @@ from ..compat import BytesIO
 
 
 class _BaseWorkbookWriter(object):
-    """
-    Base class for workbook writers, providing shared members.
-    """
+    """Base class for workbook writers, providing shared members."""
 
     def __init__(self, chart_data):
         super(_BaseWorkbookWriter, self).__init__()
@@ -24,10 +18,7 @@ class _BaseWorkbookWriter(object):
 
     @property
     def xlsx_blob(self):
-        """
-        Return the byte stream of an Excel file formatted as chart data for
-        the category chart specified in the chart data object.
-        """
+        """bytes for Excel file containing chart_data."""
         xlsx_file = BytesIO()
         with self._open_worksheet(xlsx_file) as (workbook, worksheet):
             self._populate_worksheet(workbook, worksheet)

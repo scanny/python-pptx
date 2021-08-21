@@ -1,18 +1,16 @@
 # encoding: utf-8
 
-"""
-Provides the PackURI value type along with some useful known pack URI strings
-such as PACKAGE_URI.
-"""
+"""Provides the PackURI value type and known pack-URI strings such as PACKAGE_URI."""
 
 import posixpath
 import re
 
 
 class PackURI(str):
-    """
-    Provides access to pack URI components such as the baseURI and the
-    filename slice. Behaves as |str| otherwise.
+    """Proxy for a pack URI (partname).
+
+    Provides utility properties the baseURI and the filename slice. Behaves as |str|
+    otherwise.
     """
 
     _filename_re = re.compile("([a-zA-Z]+)([0-9][0-9]*)?")

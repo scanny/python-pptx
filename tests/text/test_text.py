@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.text.text module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.text.text` module."""
 
 import pytest
 
@@ -481,6 +479,8 @@ class DescribeTextFrame(object):
 
 
 class DescribeFont(object):
+    """Unit-test suite for `pptx.text.text.Font` object."""
+
     def it_knows_its_bold_setting(self, bold_get_fixture):
         font, expected_value = bold_get_fixture
         assert font.bold == expected_value
@@ -690,6 +690,8 @@ class DescribeFont(object):
 
 
 class Describe_Hyperlink(object):
+    """Unit-test suite for `pptx.text.text._Hyperlink` object."""
+
     def it_knows_the_target_url_of_the_hyperlink(self, hlink_with_url_):
         hlink, rId, url = hlink_with_url_
         assert hlink.address == url

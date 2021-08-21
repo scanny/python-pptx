@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.text.fonts module
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Unit-test suite for `pptx.text.fonts` module."""
 
 import io
 import pytest
@@ -37,6 +33,8 @@ from ..unitutil.mock import (
 
 
 class DescribeFontFiles(object):
+    """Unit-test suite for `pptx.text.fonts.FontFiles` object."""
+
     def it_can_find_a_system_font_file(self, find_fixture):
         family_name, is_bold, is_italic, expected_path = find_fixture
         path = FontFiles.find(family_name, is_bold, is_italic)
@@ -173,6 +171,8 @@ class DescribeFontFiles(object):
 
 
 class Describe_Font(object):
+    """Unit-test suite for `pptx.text.fonts._Font` object."""
+
     def it_can_construct_from_a_font_file_path(self, open_fixture):
         path, _Stream_, stream_ = open_fixture
         with _Font.open(path) as f:
@@ -342,6 +342,8 @@ class Describe_Font(object):
 
 
 class Describe_Stream(object):
+    """Unit-test suite for `pptx.text.fonts._Stream` object."""
+
     def it_can_construct_from_a_path(self, open_fixture):
         path, open_, _init_, file_ = open_fixture
         stream = _Stream.open(path)
@@ -413,6 +415,8 @@ class Describe_Stream(object):
 
 
 class Describe_TableFactory(object):
+    """Unit-test suite for `pptx.text.fonts._TableFactory` object."""
+
     def it_constructs_the_appropriate_table_object(self, fixture):
         tag, stream_, offset, length, TableClass_, TableClass = fixture
         table = _TableFactory(tag, stream_, offset, length)
@@ -441,6 +445,8 @@ class Describe_TableFactory(object):
 
 
 class Describe_HeadTable(object):
+    """Unit-test suite for `pptx.text.fonts._HeadTable` object."""
+
     def it_knows_whether_the_font_is_bold(self, bold_fixture):
         head_table, expected_value = bold_fixture
         assert head_table.is_bold is expected_value
@@ -486,6 +492,8 @@ class Describe_HeadTable(object):
 
 
 class Describe_NameTable(object):
+    """Unit-test suite for `pptx.text.fonts._NameTable` object."""
+
     def it_knows_the_font_family_name(self, family_fixture):
         name_table, expected_value = family_fixture
         family_name = name_table.family_name

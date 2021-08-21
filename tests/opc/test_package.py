@@ -39,6 +39,8 @@ from ..unitutil.mock import (
 
 
 class DescribeOpcPackage(object):
+    """Unit-test suite for `pptx.opc.package.OpcPackage` objects."""
+
     def it_can_open_a_pkg_file(self, PackageReader_, PartFactory_, Unmarshaller_):
         # mockery ----------------------
         pkg_file = Mock(name="pkg_file")
@@ -548,6 +550,8 @@ class DescribePartRelationshipManagementInterface(object):
 
 
 class DescribeXmlPart(object):
+    """Unit-test suite for `pptx.opc.package.XmlPart` objects."""
+
     def it_can_be_constructed_by_PartFactory(self, load_fixture):
         partname_, content_type_, blob_, package_ = load_fixture[:4]
         element_, parse_xml_, __init_ = load_fixture[4:]
@@ -639,6 +643,8 @@ class DescribeXmlPart(object):
 
 
 class DescribePartFactory(object):
+    """Unit-test suite for `pptx.opc.package.PartFactory` objects."""
+
     def it_constructs_custom_part_type_for_registered_content_types(
         self, part_args_, CustomPartClass_, part_of_custom_type_
     ):
@@ -701,6 +707,8 @@ class DescribePartFactory(object):
 
 
 class Describe_Relationship(object):
+    """Unit-test suite for `pptx.opc.package._Relationship` objects."""
+
     def it_remembers_construction_values(self):
         # test data --------------------
         rId = "rId9"
@@ -737,6 +745,8 @@ class Describe_Relationship(object):
 
 
 class DescribeRelationshipCollection(object):
+    """Unit-test suite for `pptx.opc.package._Relationships` objects."""
+
     def it_has_a_len(self):
         rels = RelationshipCollection(None)
         assert len(rels) == 0

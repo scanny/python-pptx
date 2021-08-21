@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.parts.chart module.
-"""
-
-from __future__ import absolute_import, print_function
+"""Unit-test suite for `pptx.parts.chart` module."""
 
 import pytest
 
@@ -23,6 +19,8 @@ from ..unitutil.mock import class_mock, instance_mock, method_mock, property_moc
 
 
 class DescribeChartPart(object):
+    """Unit-test suite for `pptx.parts.chart.ChartPart` objects."""
+
     def it_can_construct_from_chart_type_and_data(self, new_fixture):
         chart_type_, chart_data_, package_ = new_fixture[:3]
         partname_template, load_, partname_ = new_fixture[3:6]
@@ -153,6 +151,8 @@ class DescribeChartPart(object):
 
 
 class DescribeChartWorkbook(object):
+    """Unit-test suite for `pptx.parts.chart.ChartWorkbook` objects."""
+
     def it_can_get_the_chart_xlsx_part(self, xlsx_part_get_fixture):
         chart_data, expected_object = xlsx_part_get_fixture
         assert chart_data.xlsx_part is expected_object

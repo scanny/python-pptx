@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.package module
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.package` module."""
 
 import pytest
 
@@ -22,6 +18,8 @@ from .unitutil.mock import call, class_mock, instance_mock, method_mock, propert
 
 
 class DescribePackage(object):
+    """Unit-test suite for `pptx.package.Package` objects."""
+
     def it_provides_access_to_its_core_properties_part(self):
         pkg = Package.open("pptx/templates/default.pptx")
         assert isinstance(pkg.core_properties, CorePropertiesPart)
@@ -149,6 +147,8 @@ class DescribePackage(object):
 
 
 class Describe_ImageParts(object):
+    """Unit-test suite for `pptx.package._ImageParts` objects."""
+
     def it_can_iterate_over_the_package_image_parts(self, iter_fixture):
         image_parts, expected_parts = iter_fixture
         assert list(image_parts) == expected_parts
@@ -284,6 +284,8 @@ class Describe_ImageParts(object):
 
 
 class Describe_MediaParts(object):
+    """Unit-test suite for `pptx.package._MediaParts` objects."""
+
     def it_can_iterate_the_media_parts_in_the_package(self, iter_fixture):
         media_parts, expected_parts = iter_fixture
         assert list(media_parts) == expected_parts

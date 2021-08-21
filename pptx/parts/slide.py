@@ -30,12 +30,11 @@ class BaseSlidePart(XmlPart):
         return self.related_parts[rId].image
 
     def get_or_add_image_part(self, image_file):
-        """
-        Return an ``(image_part, rId)`` 2-tuple corresponding to an
-        |ImagePart| object containing the image in *image_file*, and related
-        to this slide with the key *rId*. If either the image part or
-        relationship already exists, they are reused, otherwise they are
-        newly created.
+        """Return `(image_part, rId)` pair corresponding to `image_file`.
+
+        The returned |ImagePart| object contains the image in `image_file` and is
+        related to this slide with the key `rId`. If either the image part or
+        relationship already exists, they are reused, otherwise they are newly created.
         """
         image_part = self._package.get_or_add_image_part(image_file)
         rId = self.relate_to(image_part, RT.IMAGE)
@@ -86,10 +85,7 @@ class NotesMasterPart(BaseSlidePart):
 
     @classmethod
     def _new_theme_part(cls, package):
-        """
-        Create and return a default theme part suitable for use with a notes
-        master.
-        """
+        """Return new default theme-part suitable for use with a notes master."""
         partname = package.next_partname("/ppt/theme/theme%d.xml")
         content_type = CT.OFC_THEME
         theme = CT_OfficeStyleSheet.new_default()
@@ -105,10 +101,11 @@ class NotesSlidePart(BaseSlidePart):
 
     @classmethod
     def new(cls, package, slide_part):
-        """
-        Create and return a new notes slide part based on the notes master
-        and related to both the notes master part and *slide_part*. If no
-        notes master is present, create one based on the default template.
+        """Return new |NotesSlidePart| for the slide in `slide_part`.
+
+        The new notes-slide part is based on the (singleton) notes master and related to
+        both the notes-master part and `slide_part`. If no notes-master is present,
+        one is created based on the default template.
         """
         notes_master_part = package.presentation_part.notes_master_part
         notes_slide_part = cls._add_notes_slide_part(
@@ -120,17 +117,13 @@ class NotesSlidePart(BaseSlidePart):
 
     @lazyproperty
     def notes_master(self):
-        """
-        Return the |NotesMaster| object this notes slide inherits from.
-        """
+        """Return the |NotesMaster| object this notes slide inherits from."""
         notes_master_part = self.part_related_by(RT.NOTES_MASTER)
         return notes_master_part.notes_master
 
     @lazyproperty
     def notes_slide(self):
-        """
-        Return the |NotesSlide| object that proxies this notes slide part.
-        """
+        """Return the |NotesSlide| object that proxies this notes slide part."""
         return NotesSlide(self._element, self)
 
     @classmethod
@@ -163,10 +156,10 @@ class SlidePart(BaseSlidePart):
         return slide_part
 
     def add_chart_part(self, chart_type, chart_data):
-        """
-        Return the rId of a new |ChartPart| object containing a chart of
-        *chart_type*, displaying *chart_data*, and related to the slide
-        contained in this part.
+        """Return str rId of new |ChartPart| object containing chart of `chart_type`.
+
+        The chart depicts `chart_data` and is related to the slide contained in this
+        part by `rId`.
         """
         chart_part = ChartPart.new(chart_type, chart_data, self.package)
         rId = self.relate_to(chart_part, RT.CHART)

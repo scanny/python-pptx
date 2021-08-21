@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.text.layout module
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Unit-test suite for `pptx.text.layout` module."""
 
 import pytest
 
@@ -22,6 +18,8 @@ from ..unitutil.mock import (
 
 
 class DescribeTextFitter(object):
+    """Unit-test suite for `pptx.text.layout.TextFitter` object."""
+
     def it_can_determine_the_best_fit_font_size(self, best_fit_fixture):
         text, extents, max_size, font_file = best_fit_fixture[:4]
         _LineSource_, _init_, line_source_ = best_fit_fixture[4:7]
@@ -230,6 +228,8 @@ class DescribeTextFitter(object):
 
 
 class Describe_BinarySearchTree(object):
+    """Unit-test suite for `pptx.text.layout._BinarySearchTree` object."""
+
     def it_can_construct_from_an_ordered_sequence(self):
         bst = _BinarySearchTree.from_ordered_sequence(range(10))
 
@@ -271,6 +271,8 @@ class Describe_BinarySearchTree(object):
 
 
 class Describe_LineSource(object):
+    """Unit-test suite for `pptx.text.layout._LineSource` object."""
+
     def it_generates_text_remainder_pairs(self):
         line_source = _LineSource("foo bar baz")
         expected = (

@@ -1,15 +1,11 @@
 # encoding: utf-8
 
-"""
-Objects related to mouse click and hover actions on a shape or text.
-"""
+"""Objects related to mouse click and hover actions on a shape or text."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from .enum.action import PP_ACTION
-from .opc.constants import RELATIONSHIP_TYPE as RT
-from .shapes import Subshape
-from .util import lazyproperty
+from pptx.enum.action import PP_ACTION
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.shapes import Subshape
+from pptx.util import lazyproperty
 
 
 class ActionSetting(Subshape):

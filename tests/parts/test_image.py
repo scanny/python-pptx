@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Unit test suite for pptx.parts.image module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.parts.image` module."""
 
 import pytest
 
@@ -29,6 +27,8 @@ new_image_path = absjoin(test_file_dir, "monty-truth.png")
 
 
 class DescribeImagePart(object):
+    """Unit-test suite for `pptx.parts.image.ImagePart` objects."""
+
     def it_can_construct_from_an_image_object(self, new_fixture):
         package_, image_, _init_, partname_ = new_fixture
 
@@ -109,6 +109,8 @@ class DescribeImagePart(object):
 
 
 class DescribeImage(object):
+    """Unit-test suite for `pptx.parts.image.Image` objects."""
+
     def it_can_construct_from_a_path(self, from_path_fixture):
         image_file, blob, filename, image_ = from_path_fixture
         image = Image.from_file(image_file)

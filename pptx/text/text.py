@@ -2,8 +2,6 @@
 
 """Text-related objects such as TextFrame and Paragraph."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.compat import to_unicode
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
@@ -18,10 +16,10 @@ from pptx.util import Centipoints, Emu, lazyproperty, Pt
 
 
 class TextFrame(Subshape):
-    """
-    The part of a shape that contains its text. Not all shapes have a text
-    frame. Corresponds to the ``<p:txBody>`` element that can appear as a
-    child element of ``<p:sp>``. Not intended to be constructed directly.
+    """The part of a shape that contains its text.
+
+    Not all shapes have a text frame. Corresponds to the ``<p:txBody>`` element that can
+    appear as a child element of ``<p:sp>``. Not intended to be constructed directly.
     """
 
     def __init__(self, txBody, parent):
@@ -221,10 +219,10 @@ class TextFrame(Subshape):
         }[value]
 
     def _apply_fit(self, font_family, font_size, is_bold, is_italic):
-        """
-        Arrange all the text in this text frame to fit inside its extents by
-        setting auto size off, wrap on, and setting the font of all its text
-        to *font_family*, *font_size*, *is_bold*, and *is_italic*.
+        """Arrange text in this text frame to fit inside its extents.
+
+        This is accomplished by setting auto size off, wrap on, and setting the font of
+        all its text to `font_family`, `font_size`, `is_bold`, and `is_italic`.
         """
         self.auto_size = MSO_AUTO_SIZE.NONE
         self.word_wrap = True

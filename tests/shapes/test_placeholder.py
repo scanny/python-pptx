@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.placeholder module
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Unit-test suite for `pptx.shapes.placeholder` module."""
 
 import pytest
 
@@ -44,6 +40,8 @@ from ..unitutil.mock import class_mock, instance_mock, method_mock, property_moc
 
 
 class Describe_BaseSlidePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder._BaseSlidePlaceholder` object."""
+
     def it_knows_its_shape_type(self):
         placeholder = _BaseSlidePlaceholder(None, None)
         assert placeholder.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
@@ -173,6 +171,8 @@ class Describe_BaseSlidePlaceholder(object):
 
 
 class DescribeBasePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.BasePlaceholder` object."""
+
     def it_knows_its_idx_value(self, idx_fixture):
         placeholder, idx = idx_fixture
         assert placeholder.idx == idx
@@ -291,6 +291,8 @@ class DescribeBasePlaceholder(object):
 
 
 class DescribeChartPlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.ChartPlaceholder` object."""
+
     def it_can_insert_a_chart_into_itself(self, insert_fixture):
         chart_ph, chart_type, chart_data_, graphicFrame = insert_fixture[:4]
         rId, PlaceholderGraphicFrame_, ph_graphic_frame_ = insert_fixture[4:]
@@ -381,6 +383,8 @@ class DescribeChartPlaceholder(object):
 
 
 class DescribeLayoutPlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.LayoutPlaceholder` object."""
+
     def it_uses_InheritsDimensions_mixin(self):
         layout_placeholder = LayoutPlaceholder(None, None)
         assert isinstance(layout_placeholder, _InheritsDimensions)
@@ -430,6 +434,8 @@ class DescribeLayoutPlaceholder(object):
 
 
 class DescribeNotesSlidePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.NotesSlidePlaceholder` object."""
+
     def it_finds_its_base_placeholder_to_help(self, base_ph_fixture):
         placeholder, notes_master_, ph_type, master_placeholder_ = base_ph_fixture
         base_placeholder = placeholder._base_placeholder
@@ -481,6 +487,8 @@ class DescribeNotesSlidePlaceholder(object):
 
 
 class DescribePicturePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.PicturePlaceholder` object."""
+
     def it_can_insert_a_picture_into_itself(self, insert_fixture):
         picture_ph, image_file, pic = insert_fixture[:3]
         PlaceholderPicture_, placeholder_picture_ = insert_fixture[3:]
@@ -585,6 +593,8 @@ class DescribePicturePlaceholder(object):
 
 
 class DescribeTablePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.TablePlaceholder` object."""
+
     def it_can_insert_a_table_into_itself(self, insert_fixture):
         table_ph, rows, cols, graphicFrame = insert_fixture[:4]
         PlaceholderGraphicFrame_, ph_graphic_frame_ = insert_fixture[4:]

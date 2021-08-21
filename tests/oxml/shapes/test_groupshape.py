@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.oxml.shapes.shapetree module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.oxml.shapes.groupshape` module."""
 
 import pytest
 
@@ -16,6 +14,8 @@ from ...unitutil.mock import call, class_mock, instance_mock, method_mock, prope
 
 
 class DescribeCT_GroupShape(object):
+    """Unit-test suite for `pptx.oxml.shapes.groupshape.CT_GroupShape` objects."""
+
     def it_can_add_a_graphicFrame_element_containing_a_table(self, add_table_fixt):
         spTree, id_, name, rows, cols, x, y, cx, cy = add_table_fixt[:9]
         new_table_graphicFrame_ = add_table_fixt[9]

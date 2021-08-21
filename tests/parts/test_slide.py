@@ -42,6 +42,8 @@ from ..unitutil.mock import (
 
 
 class DescribeBaseSlidePart(object):
+    """Unit-test suite for `pptx.parts.slide.BaseSlidePart` objects."""
+
     def it_knows_its_name(self, name_fixture):
         base_slide, expected_value = name_fixture
         assert base_slide.name == expected_value
@@ -113,6 +115,8 @@ class DescribeBaseSlidePart(object):
 
 
 class DescribeNotesMasterPart(object):
+    """Unit-test suite for `pptx.parts.slide.NotesMasterPart` objects."""
+
     def it_can_create_a_notes_master_part(self, create_fixture):
         package_, theme_part_, notes_master_part_ = create_fixture
 
@@ -253,6 +257,8 @@ class DescribeNotesMasterPart(object):
 
 
 class DescribeNotesSlidePart(object):
+    """Unit-test suite for `pptx.parts.slide.NotesSlidePart` objects."""
+
     def it_can_create_a_notes_slide_part(self, new_fixture):
         package_, slide_part_, notes_master_part_ = new_fixture[:3]
         notes_slide_, notes_master_, notes_slide_part_ = new_fixture[3:]
@@ -669,6 +675,8 @@ class DescribeSlidePart(object):
 
 
 class DescribeSlideLayoutPart(object):
+    """Unit-test suite for `pptx.parts.slide.SlideLayoutPart` objects."""
+
     def it_provides_access_to_its_slide_master(self, master_fixture):
         slide_layout_part, part_related_by_, slide_master_ = master_fixture
         slide_master = slide_layout_part.slide_master
@@ -723,6 +731,8 @@ class DescribeSlideLayoutPart(object):
 
 
 class DescribeSlideMasterPart(object):
+    """Unit-test suite for `pptx.parts.slide.SlideMasterPart` objects."""
+
     def it_provides_access_to_its_slide_master(self, master_fixture):
         slide_master_part, SlideMaster_, sldMaster, slide_master_ = master_fixture
         slide_master = slide_master_part.slide_master

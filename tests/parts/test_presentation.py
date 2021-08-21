@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.parts.presentation module
-"""
-
-from __future__ import absolute_import, print_function
+"""Unit-test suite for `pptx.parts.presentation` module."""
 
 import pytest
 
@@ -22,6 +18,8 @@ from ..unitutil.mock import call, class_mock, instance_mock, method_mock, proper
 
 
 class DescribePresentationPart(object):
+    """Unit-test suite for `pptx.parts.presentation.PresentationPart` objects."""
+
     def it_provides_access_to_its_presentation(self, prs_fixture):
         prs_part, Presentation_, prs_elm, prs_ = prs_fixture
         prs = prs_part.presentation

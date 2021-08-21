@@ -97,9 +97,7 @@ class _BaseShapes(ParentedElementProxy):
         return len(shape_elms)
 
     def clone_placeholder(self, placeholder):
-        """
-        Add a new placeholder shape based on *placeholder*.
-        """
+        """Add a new placeholder shape based on *placeholder*."""
         sp = placeholder.element
         ph_type, orient, sz, idx = (sp.ph_type, sp.ph_orient, sp.ph_sz, sp.ph_idx)
         id_ = self._next_shape_id

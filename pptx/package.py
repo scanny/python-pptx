@@ -1,30 +1,18 @@
 # encoding: utf-8
 
-"""
-API classes for dealing with presentations and other objects one typically
-encounters as an end-user of the PowerPoint user interface.
-"""
+"""Overall .pptx package."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from .opc.constants import RELATIONSHIP_TYPE as RT
-from .opc.package import OpcPackage
-from .opc.packuri import PackURI
-from .parts.coreprops import CorePropertiesPart
-from .parts.image import Image, ImagePart
-from .parts.media import MediaPart
-from .util import lazyproperty
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.package import OpcPackage
+from pptx.opc.packuri import PackURI
+from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.image import Image, ImagePart
+from pptx.parts.media import MediaPart
+from pptx.util import lazyproperty
 
 
 class Package(OpcPackage):
-    """
-    Return an instance of |Package| loaded from *file*, where *file* can be a
-    path (a string) or a file-like object. If *file* is a path, it can be
-    either a path to a PowerPoint `.pptx` file or a path to a directory
-    containing an expanded presentation file, as would result from unzipping
-    a `.pptx` file. If *file* is |None|, the default presentation template is
-    loaded.
-    """
+    """An overall .pptx package."""
 
     @lazyproperty
     def core_properties(self):

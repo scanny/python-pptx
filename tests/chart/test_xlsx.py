@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.chart.xlsx module
-"""
-
-from __future__ import absolute_import, print_function
+"""Unit-test suite for `pptx.chart.xlsx` module."""
 
 import pytest
 
@@ -30,10 +26,16 @@ from ..unitutil.mock import ANY, call, class_mock, instance_mock, method_mock
 
 
 class Describe_BaseWorkbookWriter(object):
+    """Unit-test suite for `pptx.chart.xlsx._BaseWorkbookWriter` objects."""
+
     def it_can_generate_a_chart_data_Excel_blob(self, xlsx_blob_fixture):
-        workbook_writer, xlsx_file_, workbook_, worksheet_, xlsx_blob = (
-            xlsx_blob_fixture
-        )
+        (
+            workbook_writer,
+            xlsx_file_,
+            workbook_,
+            worksheet_,
+            xlsx_blob,
+        ) = xlsx_blob_fixture
         _xlsx_blob = workbook_writer.xlsx_blob
 
         workbook_writer._open_worksheet.assert_called_once_with(xlsx_file_)
@@ -123,6 +125,8 @@ class Describe_BaseWorkbookWriter(object):
 
 
 class DescribeCategoryWorkbookWriter(object):
+    """Unit-test suite for `pptx.chart.xlsx.CategoryWorkbookWriter` objects."""
+
     def it_knows_the_categories_range_ref(self, categories_ref_fixture):
         workbook_writer, expected_value = categories_ref_fixture
         assert workbook_writer.categories_ref == expected_value
@@ -368,6 +372,8 @@ class DescribeCategoryWorkbookWriter(object):
 
 
 class DescribeBubbleWorkbookWriter(object):
+    """Unit-test suite for `pptx.chart.xlsx.BubbleWorkbookWriter` objects."""
+
     def it_can_populate_a_worksheet_with_chart_data(self, populate_fixture):
         workbook_writer, workbook_, worksheet_, expected_calls = populate_fixture
         workbook_writer._populate_worksheet(workbook_, worksheet_)
@@ -413,6 +419,8 @@ class DescribeBubbleWorkbookWriter(object):
 
 
 class DescribeXyWorkbookWriter(object):
+    """Unit-test suite for `pptx.chart.xlsx.XyWorkbookWriter` objects."""
+
     def it_can_generate_a_chart_data_Excel_blob(self, xlsx_blob_fixture):
         workbook_writer, _open_worksheet_, xlsx_file_ = xlsx_blob_fixture[:3]
         _populate_worksheet_, workbook_, worksheet_ = xlsx_blob_fixture[3:6]

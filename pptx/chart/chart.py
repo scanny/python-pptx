@@ -2,8 +2,6 @@
 
 """Chart-related objects such as Chart and ChartTitle."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
@@ -79,11 +77,10 @@ class Chart(PartElementProxy):
 
     @property
     def chart_type(self):
-        """
-        Read-only :ref:`XlChartType` enumeration value specifying the type of
-        this chart. If the chart has two plots, for example, a line plot
-        overlayed on a bar plot, the type reported is for the first
-        (back-most) plot.
+        """Member of :ref:`XlChartType` enumeration specifying type of this chart.
+
+        If the chart has two plots, for example, a line plot overlayed on a bar plot,
+        the type reported is for the first (back-most) plot. Read-only.
         """
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)

@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.slide module"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.slide` module."""
 
 import pytest
 
@@ -44,6 +42,8 @@ from .unitutil.mock import call, class_mock, instance_mock, method_mock, propert
 
 
 class Describe_BaseSlide(object):
+    """Unit-test suite for `pptx.slide._BaseSlide` objects."""
+
     def it_knows_its_name(self, name_get_fixture):
         base_slide, expected_value = name_get_fixture
         assert base_slide.name == expected_value
@@ -107,6 +107,8 @@ class Describe_BaseSlide(object):
 
 
 class Describe_BaseMaster(object):
+    """Unit-test suite for `pptx.slide._BaseMaster` objects."""
+
     def it_is_a_BaseSlide_subclass(self, subclass_fixture):
         base_master = subclass_fixture
         assert isinstance(base_master, _BaseSlide)
@@ -165,6 +167,8 @@ class Describe_BaseMaster(object):
 
 
 class DescribeNotesSlide(object):
+    """Unit-test suite for `pptx.slide.NotesSlide` objects."""
+
     def it_can_clone_the_notes_master_placeholders(self, clone_fixture):
         notes_slide, notes_master_, clone_placeholder_, calls = clone_fixture
         notes_slide.clone_master_placeholders(notes_master_)
@@ -177,9 +181,12 @@ class DescribeNotesSlide(object):
         assert shapes is shapes_
 
     def it_provides_access_to_its_placeholders(self, placeholders_fixture):
-        notes_slide, NotesSlidePlaceholders_, spTree, placeholders_ = (
-            placeholders_fixture
-        )
+        (
+            notes_slide,
+            NotesSlidePlaceholders_,
+            spTree,
+            placeholders_,
+        ) = placeholders_fixture
         placeholders = notes_slide.placeholders
         NotesSlidePlaceholders_.assert_called_once_with(spTree, notes_slide)
         assert placeholders is placeholders_
@@ -310,6 +317,8 @@ class DescribeNotesSlide(object):
 
 
 class DescribeSlide(object):
+    """Unit-test suite for `pptx.slide.Slide` objects."""
+
     def it_is_a_BaseSlide_subclass(self, subclass_fixture):
         slide = subclass_fixture
         assert isinstance(slide, _BaseSlide)
@@ -459,6 +468,8 @@ class DescribeSlide(object):
 
 
 class DescribeSlides(object):
+    """Unit-test suite for `pptx.slide.Slides` objects."""
+
     def it_supports_indexed_access(self, getitem_fixture):
         slides, prs_part_, rId, slide_ = getitem_fixture
         slide = slides[0]
@@ -604,6 +615,8 @@ class DescribeSlides(object):
 
 
 class DescribeSlideLayout(object):
+    """Unit-test suite for `pptx.slide.SlideLayout` objects."""
+
     def it_is_a_BaseSlide_subclass(self):
         slide_layout = SlideLayout(None, None)
         assert isinstance(slide_layout, _BaseSlide)
@@ -765,6 +778,8 @@ class DescribeSlideLayout(object):
 
 
 class DescribeSlideLayouts(object):
+    """Unit-test suite for `pptx.slide.SlideLayouts` objects."""
+
     def it_supports_len(self, len_fixture):
         slide_layouts, expected_value = len_fixture
         assert len(slide_layouts) == expected_value
@@ -930,6 +945,8 @@ class DescribeSlideLayouts(object):
 
 
 class DescribeSlideMaster(object):
+    """Unit-test suite for `pptx.slide.SlideMaster` objects."""
+
     def it_is_a_BaseMaster_subclass(self, subclass_fixture):
         slide_master = subclass_fixture
         assert isinstance(slide_master, _BaseMaster)
@@ -967,6 +984,8 @@ class DescribeSlideMaster(object):
 
 
 class DescribeSlideMasters(object):
+    """Unit-test suite for `pptx.slide.SlideMasters` objects."""
+
     def it_knows_how_many_masters_it_contains(self, len_fixture):
         slide_masters, expected_value = len_fixture
         assert len(slide_masters) == expected_value
@@ -1045,6 +1064,8 @@ class DescribeSlideMasters(object):
 
 
 class Describe_Background(object):
+    """Unit-test suite for `pptx.slide._Background` objects."""
+
     def it_provides_access_to_its_fill(self, fill_fixture):
         background, cSld, expected_xml = fill_fixture[:3]
         from_fill_parent_, fill_ = fill_fixture[3:]

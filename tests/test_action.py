@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.action module
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.action` module."""
 
 import pytest
 
@@ -19,6 +15,8 @@ from .unitutil.mock import call, class_mock, instance_mock, method_mock, propert
 
 
 class DescribeActionSetting(object):
+    """Unit-test suite for `pptx.action.ActionSetting` objects."""
+
     def it_knows_its_action_type(self, action_fixture):
         action_setting, expected_action = action_fixture
         action = action_setting.action
@@ -263,6 +261,8 @@ class DescribeActionSetting(object):
 
 
 class DescribeHyperlink(object):
+    """Unit-test suite for `pptx.action.Hyperlink` objects."""
+
     def it_knows_the_target_url_of_the_hyperlink(self, address_fixture):
         hyperlink, rId, expected_address = address_fixture
         address = hyperlink.address

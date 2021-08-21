@@ -2,12 +2,10 @@
 
 """MediaPart and related objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import hashlib
 
-from ..opc.package import Part
-from ..util import lazyproperty
+from pptx.opc.package import Part
+from pptx.util import lazyproperty
 
 
 class MediaPart(Part):

@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Unit-test suite for pptx.shapes.freeform module"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.shapes.freeform` module"""
 
 import pytest
 
@@ -28,6 +26,8 @@ from ..unitutil.mock import (
 
 
 class DescribeFreeformBuilder(object):
+    """Unit-test suite for `pptx.shapes.freeform.FreeformBuilder` objects."""
+
     def it_provides_a_constructor(self, new_fixture):
         shapes_, start_x, start_y, x_scale, y_scale = new_fixture[:5]
         _init_, start_x_int, start_y_int = new_fixture[5:]
@@ -462,6 +462,8 @@ class DescribeFreeformBuilder(object):
 
 
 class Describe_BaseDrawingOperation(object):
+    """Unit-test suite for `pptx.shapes.freeform.BaseDrawingOperation` objects."""
+
     def it_knows_its_x_coordinate(self, x_fixture):
         drawing_operation, expected_value = x_fixture
         x = drawing_operation.x
@@ -490,6 +492,8 @@ class Describe_BaseDrawingOperation(object):
 
 
 class Describe_Close(object):
+    """Unit-test suite for `pptx.shapes.freeform._Close` objects."""
+
     def it_provides_a_constructor(self, new_fixture):
         _init_ = new_fixture
 
@@ -527,6 +531,8 @@ class Describe_Close(object):
 
 
 class Describe_LineSegment(object):
+    """Unit-test suite for `pptx.shapes.freeform._LineSegment` objects."""
+
     def it_provides_a_constructor(self, new_fixture):
         builder_, x, y, _init_, x_int, y_int = new_fixture
 
@@ -572,6 +578,8 @@ class Describe_LineSegment(object):
 
 
 class Describe_MoveTo(object):
+    """Unit-test suite for `pptx.shapes.freeform._MoveTo` objects."""
+
     def it_provides_a_constructor(self, new_fixture):
         builder_, x, y, _init_, x_int, y_int = new_fixture
 

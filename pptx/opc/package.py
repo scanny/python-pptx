@@ -17,10 +17,10 @@ from pptx.util import lazyproperty
 
 
 class OpcPackage(object):
-    """
-    Main API class for |python-opc|. A new instance is constructed by calling
-    the :meth:`open` class method with a path to a package file or file-like
-    object containing one.
+    """Main API class for |python-opc|.
+
+    A new instance is constructed by calling the :meth:`open` classmethod with a path
+    to a package file or file-like object containing a package (.pptx file).
     """
 
     def __init__(self):
@@ -36,10 +36,7 @@ class OpcPackage(object):
         pass
 
     def iter_parts(self):
-        """
-        Generate exactly one reference to each of the parts in the package by
-        performing a depth-first traversal of the rels graph.
-        """
+        """Generate exactly one reference to each part in the package."""
 
         def walk_parts(source, visited=list()):
             for rel in source.rels.values():
@@ -58,22 +55,27 @@ class OpcPackage(object):
             yield part
 
     def iter_rels(self):
-        """
-        Generate exactly one reference to each relationship in the package by
-        performing a depth-first traversal of the rels graph.
+        """Generate exactly one reference to each relationship in package.
+
+        Performs a depth-first traversal of the rels graph.
         """
 
         def walk_rels(source, visited=None):
             visited = [] if visited is None else visited
             for rel in source.rels.values():
                 yield rel
+                # --- external items can have no relationships ---
                 if rel.is_external:
                     continue
+                # --- all relationships other than those for the package belong to a
+                # --- part. Once that part has been processed, processing it again
+                # --- would lead to the same relationships appearing more than once.
                 part = rel.target_part
                 if part in visited:
                     continue
                 visited.append(part)
                 new_source = part
+                # --- recurse into relationships of each unvisited target-part ---
                 for rel in walk_rels(new_source, visited):
                     yield rel
 
@@ -93,20 +95,18 @@ class OpcPackage(object):
 
     @property
     def main_document_part(self):
-        """
-        Return a reference to the main document part for this package.
-        Examples include a document part for a WordprocessingML package, a
-        presentation part for a PresentationML package, or a workbook part
-        for a SpreadsheetML package.
+        """Return |Part| subtype serving as the main document part for this package.
+
+        In this case it will be a |Presentation| part.
         """
         return self.part_related_by(RT.OFFICE_DOCUMENT)
 
     def next_partname(self, tmpl):
-        """
-        Return a |PackURI| instance representing the next available partname
-        matching *tmpl*, which is a printf (%)-style template string
-        containing a single replacement item, a '%d' to be used to insert the
-        integer portion of the partname. Example: '/ppt/slides/slide%d.xml'
+        """Return |PackURI| next available partname matching `tmpl`.
+
+        `tmpl` is a printf (%)-style template string containing a single replacement
+        item, a '%d' to be used to insert the integer portion of the partname.
+        Example: '/ppt/slides/slide%d.xml'
         """
         partnames = [part.partname for part in self.iter_parts()]
         for n in range(1, len(partnames) + 2):
@@ -117,20 +117,17 @@ class OpcPackage(object):
 
     @classmethod
     def open(cls, pkg_file):
-        """
-        Return an |OpcPackage| instance loaded with the contents of
-        *pkg_file*.
-        """
+        """Return an |OpcPackage| instance loaded with the contents of `pkg_file`."""
         pkg_reader = PackageReader.from_file(pkg_file)
         package = cls()
         Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
         return package
 
     def part_related_by(self, reltype):
-        """
-        Return part to which this package has a relationship of *reltype*.
-        Raises |KeyError| if no such relationship is found and |ValueError|
-        if more than one such relationship is found.
+        """Return (single) part having relationship to this package of `reltype`.
+
+        Raises |KeyError| if no such relationship is found and |ValueError| if more than
+        one such relationship is found.
         """
         return self.rels.part_with_reltype(reltype)
 
@@ -143,9 +140,10 @@ class OpcPackage(object):
         return [part for part in self.iter_parts()]
 
     def relate_to(self, part, reltype):
-        """
-        Return rId key of relationship to *part*, from the existing
-        relationship if there is one, otherwise a newly created one.
+        """Return rId key of relationship of `reltype` to `target`.
+
+        If such a relationship already exists, its rId is returned. Otherwise the
+        relationship is added and its new rId returned.
         """
         rel = self.rels.get_or_add(reltype, part)
         return rel.rId
@@ -159,9 +157,9 @@ class OpcPackage(object):
         return RelationshipCollection(PACKAGE_URI.baseURI)
 
     def save(self, pkg_file):
-        """
-        Save this package to *pkg_file*, where *file* can be either a path to
-        a file (a string) or a file-like object.
+        """Save this package to `pkg_file`.
+
+        `pkg_file` can be either a path to a file (a string) or a file-like object.
         """
         for part in self.parts:
             part.before_marshal()
@@ -169,10 +167,11 @@ class OpcPackage(object):
 
 
 class Part(object):
-    """
-    Base class for package parts. Provides common properties and methods, but
-    intended to be subclassed in client code to implement specific part
-    behaviors.
+    """Base class for package parts.
+
+    Provides common properties and methods, but intended to be subclassed in client code
+    to implement specific part behaviors. Also serves as the default class for parts
+    that are not yet given specific behaviors.
     """
 
     def __init__(self, partname, content_type, blob=None, package=None):
@@ -206,31 +205,35 @@ class Part(object):
 
     @property
     def blob(self):
-        """
-        Contents of this package part as a sequence of bytes. May be text or
-        binary. Intended to be overridden by subclasses. Default behavior is
-        to return load blob.
+        """Contents of this package part as a sequence of bytes.
+
+        May be text (XML generally) or binary. Intended to be overridden by subclasses.
+        Default behavior is to return the blob initial loaded during `Package.open()`
+        operation.
         """
         return self._blob
 
     @blob.setter
     def blob(self, bytes_):
-        """
-        Note that not all subclasses use the part blob as their blob source.
-        In particular, the |XmlPart| subclass uses its `self._element` to
-        serialize a blob on demand. This works find for binary parts though.
+        """Note that not all subclasses use the part blob as their blob source.
+
+        In particular, the |XmlPart| subclass uses its `self._element` to serialize a
+        blob on demand. This works fine for binary parts though.
         """
         self._blob = bytes_
 
     @property
     def content_type(self):
-        """
-        Content type of this part.
-        """
+        """Content-type (MIME-type) of this part."""
         return self._content_type
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
+        """Return `cls` instance loaded from arguments.
+
+        This one is a straight pass-through, but subtypes may do some pre-processing,
+        see XmlPart for an example.
+        """
         return cls(partname, content_type, blob, package)
 
     def load_rel(self, reltype, target, rId, is_external=False):
@@ -246,17 +249,12 @@ class Part(object):
 
     @property
     def package(self):
-        """
-        |OpcPackage| instance this part belongs to.
-        """
+        """|OpcPackage| instance this part belongs to."""
         return self._package
 
     @property
     def partname(self):
-        """
-        |PackURI| instance holding partname of this part, e.g.
-        '/ppt/slides/slide1.xml'
-        """
+        """|PackURI| partname for this part, e.g. "/ppt/slides/slide1.xml"."""
         return self._partname
 
     @partname.setter
@@ -269,27 +267,27 @@ class Part(object):
     # relationship management interface for child objects ------------
 
     def drop_rel(self, rId):
-        """
-        Remove the relationship identified by *rId* if its reference count
-        is less than 2. Relationships with a reference count of 0 are
-        implicit relationships.
+        """Remove relationship identified by `rId` if its reference count is under 2.
+
+        Relationships with a reference count of 0 are implicit relationships. Note that
+        only XML parts can drop relationships.
         """
         if self._rel_ref_count(rId) < 2:
             del self.rels[rId]
 
     def part_related_by(self, reltype):
-        """
-        Return part to which this part has a relationship of *reltype*.
-        Raises |KeyError| if no such relationship is found and |ValueError|
-        if more than one such relationship is found. Provides ability to
-        resolve implicitly related part, such as Slide -> SlideLayout.
+        """Return (single) part having relationship to this part of `reltype`.
+
+        Raises |KeyError| if no such relationship is found and |ValueError| if more than
+        one such relationship is found.
         """
         return self.rels.part_with_reltype(reltype)
 
     def relate_to(self, target, reltype, is_external=False):
-        """
-        Return rId key of relationship of *reltype* to *target*, from an
-        existing relationship if there is one, otherwise a newly created one.
+        """Return rId key of relationship of `reltype` to `target`.
+
+        If such a relationship already exists, its rId is returned. Otherwise the
+        relationship is added and its new rId returned.
         """
         if is_external:
             return self.rels.get_or_add_ext_rel(reltype, target)
@@ -308,17 +306,11 @@ class Part(object):
 
     @lazyproperty
     def rels(self):
-        """
-        |RelationshipCollection| instance holding the relationships for this
-        part.
-        """
+        """|Relationships| object containing relationships from this part to others."""
         return RelationshipCollection(self._partname.baseURI)
 
     def target_ref(self, rId):
-        """
-        Return URL contained in target ref of relationship identified by
-        *rId*.
-        """
+        """Return URL contained in target ref of relationship identified by `rId`."""
         rel = self.rels[rId]
         return rel.target_ref
 
@@ -336,20 +328,16 @@ class Part(object):
         return file.read()
 
     def _rel_ref_count(self, rId):
-        """
-        Return the count of references in this part's XML to the relationship
-        identified by *rId*.
-        """
+        """Return int count of references in this part's XML to `rId`."""
         rIds = self._element.xpath("//@r:id")
         return len([_rId for _rId in rIds if _rId == rId])
 
 
 class XmlPart(Part):
-    """
-    Base class for package parts containing an XML payload, which is most of
-    them. Provides additional methods to the |Part| base class that take care
-    of parsing and reserializing the XML payload and managing relationships
-    to other parts.
+    """Base class for package parts containing an XML payload, which is most of them.
+
+    Provides additional methods to the |Part| base class that take care of parsing and
+    reserializing the XML payload and managing relationships to other parts.
     """
 
     def __init__(self, partname, content_type, element, package=None):
@@ -358,27 +346,31 @@ class XmlPart(Part):
 
     @property
     def blob(self):
+        """bytes XML serialization of this part."""
         return serialize_part_xml(self._element)
 
     @classmethod
     def load(cls, partname, content_type, blob, package):
+        """Return instance of `cls` loaded with parsed XML from `blob`."""
         element = parse_xml(blob)
         return cls(partname, content_type, element, package)
 
     @property
     def part(self):
-        """
-        Part of the parent protocol, "children" of the document will not know
-        the part that contains them so must ask their parent object. That
-        chain of delegation ends here for child objects.
+        """This part.
+
+        This is part of the parent protocol, "children" of the document will not know
+        the part that contains them so must ask their parent object. That chain of
+        delegation ends here for child objects.
         """
         return self
 
 
 class PartFactory(object):
-    """
-    Provides a way for client code to specify a subclass of |Part| to be
-    constructed by |Unmarshaller| based on its content type.
+    """Constructs a registered subtype of |Part|.
+
+    Client code can register a subclass of |Part| to be used for a package blob based on
+    its content type.
     """
 
     part_type_for = {}
@@ -390,10 +382,9 @@ class PartFactory(object):
 
     @classmethod
     def _part_cls_for(cls, content_type):
-        """
-        Return the custom part class registered for *content_type*, or the
-        default part class if no custom class is registered for
-        *content_type*.
+        """Return the custom part class registered for `content_type`.
+
+        Returns |Part| if no custom class is registered for `content_type`.
         """
         if content_type in cls.part_type_for:
             return cls.part_type_for[content_type]
@@ -401,8 +392,14 @@ class PartFactory(object):
 
 
 class RelationshipCollection(dict):
-    """
-    Collection object for |_Relationship| instances, having list semantics.
+    """Collection of |_Relationship| instances, largely having dict semantics.
+
+    Relationships are keyed by their rId, but may also be found in other ways, such as
+    by their relationship type. `rels` is a dict of |Relationship| objects keyed by
+    their rId.
+
+    Note that iterating this collection generates |Relationship| references (values),
+    not rIds (keys) as it would for a dict.
     """
 
     def __init__(self, baseURI):
@@ -443,10 +440,10 @@ class RelationshipCollection(dict):
         return rel.rId
 
     def part_with_reltype(self, reltype):
-        """
-        Return target part of rel with matching *reltype*, raising |KeyError|
-        if not found and |ValueError| if more than one matching relationship
-        is found.
+        """Return target part of relationship with matching `reltype`.
+
+        Raises |KeyError| if not found and |ValueError| if more than one matching
+        relationship is found.
         """
         rel = self._get_rel_of_type(reltype)
         return rel.target_part
@@ -461,9 +458,10 @@ class RelationshipCollection(dict):
 
     @property
     def xml(self):
-        """
-        Serialize this relationship collection into XML suitable for storage
-        as a .rels file in an OPC package.
+        """bytes XML serialization of this relationship collection.
+
+        This value is suitable for storage as a .rels file in an OPC package. Includes
+        a `<?xml` header with encoding as UTF-8.
         """
         rels_elm = CT_Relationships.new()
         for rel in self.values():
@@ -508,9 +506,10 @@ class RelationshipCollection(dict):
 
     @property
     def _next_rId(self):
-        """
-        Next available rId in collection, starting from 'rId1' and making use
-        of any gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
+        """Next str rId available in collection.
+
+        The next rId is the first unused key starting from "rId1" and making use of any
+        gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
         for n in range(1, len(self) + 2):
             rId_candidate = "rId%d" % n  # like 'rId19'
@@ -565,9 +564,7 @@ class Unmarshaller(object):
 
 
 class _Relationship(object):
-    """
-    Value object for relationship to part.
-    """
+    """Value object describing link from a part or package to another part."""
 
     def __init__(self, rId, reltype, target, baseURI, external=False):
         super(_Relationship, self).__init__()
@@ -579,18 +576,31 @@ class _Relationship(object):
 
     @property
     def is_external(self):
+        """True if target_mode is `RTM.EXTERNAL`.
+
+        An external relationship is a link to a resource outside the package, such as
+        a web-resource (URL).
+        """
         return self._is_external
 
     @property
     def reltype(self):
+        """Member of RELATIONSHIP_TYPE describing relationship of target to source."""
         return self._reltype
 
     @property
     def rId(self):
+        """str relationship-id, like 'rId9'.
+
+        Corresponds to the `Id` attribute on the `CT_Relationship` element and
+        uniquely identifies this relationship within its peers for the source-part or
+        package.
+        """
         return self._rId
 
     @property
     def target_part(self):
+        """|Part| or subtype referred to by this relationship."""
         if self._is_external:
             raise ValueError(
                 "target_part property on _Relationship is undef"
@@ -600,6 +610,11 @@ class _Relationship(object):
 
     @property
     def target_ref(self):
+        """str reference to relationship target.
+
+        For internal relationships this is the relative partname, suitable for
+        serialization purposes. For an external relationship it is typically a URL.
+        """
         if self._is_external:
             return self._target
         else:

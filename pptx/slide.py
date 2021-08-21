@@ -2,8 +2,6 @@
 
 """Slide-related objects, including masters, layouts, and notes."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.shapes.shapetree import (
@@ -87,19 +85,20 @@ class NotesMaster(_BaseMaster):
 
 
 class NotesSlide(_BaseSlide):
-    """
-    Notes slide object. Provides access to slide notes placeholder and other
-    shapes on the notes handout page.
+    """Notes slide object.
+
+    Provides access to slide notes placeholder and other shapes on the notes handout
+    page.
     """
 
     __slots__ = ("_placeholders", "_shapes")
 
     def clone_master_placeholders(self, notes_master):
-        """
-        Selectively add placeholder shape elements from *notes_master* to the
-        shapes collection of this notes slide. Z-order of placeholders is
-        preserved. Certain placeholders (header, date, footer) are not
-        cloned.
+        """Selectively add placeholder shape elements from *notes_master*.
+
+        Selected placeholder shape elements from *notes_master* are added to the shapes
+        collection of this notes slide. Z-order of placeholders is preserved. Certain
+        placeholders (header, date, footer) are not cloned.
         """
 
         def iter_cloneable_placeholders(notes_master):
