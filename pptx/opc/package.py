@@ -33,15 +33,6 @@ class OpcPackage(object):
         Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
         return package
 
-    def after_unmarshal(self):
-        """
-        Called by loading code after all parts and relationships have been
-        loaded, to afford the opportunity for any required post-processing.
-        This one does nothing other than catch the call if a subclass
-        doesn't.
-        """
-        pass
-
     def iter_parts(self):
         """Generate exactly one reference to each part in the package."""
 
@@ -157,8 +148,6 @@ class OpcPackage(object):
 
         `pkg_file` can be either a path to a file (a string) or a file-like object.
         """
-        for part in self.parts:
-            part.before_marshal()
         PackageWriter.write(pkg_file, self.rels, self.parts)
 
 
@@ -185,26 +174,6 @@ class Part(object):
         see XmlPart for an example.
         """
         return cls(partname, content_type, blob, package)
-
-    def after_unmarshal(self):
-        """
-        Entry point for post-unmarshaling processing, for example to parse
-        the part XML. May be overridden by subclasses without forwarding call
-        to super.
-        """
-        # don't place any code here, just catch call if not overridden by
-        # subclass
-        pass
-
-    def before_marshal(self):
-        """
-        Entry point for pre-serialization processing, for example to finalize
-        part naming if necessary. May be overridden by subclasses without
-        forwarding call to super.
-        """
-        # don't place any code here, just catch call if not overridden by
-        # subclass
-        pass
 
     @property
     def blob(self):
@@ -523,9 +492,6 @@ class Unmarshaller(object):
         """
         parts = Unmarshaller._unmarshal_parts(pkg_reader, package, part_factory)
         Unmarshaller._unmarshal_relationships(pkg_reader, package, parts)
-        for part in parts.values():
-            part.after_unmarshal()
-        package.after_unmarshal()
 
     @staticmethod
     def _unmarshal_parts(pkg_reader, package, part_factory):

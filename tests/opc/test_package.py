@@ -35,6 +35,7 @@ from ..unitutil.mock import (
     method_mock,
     Mock,
     patch,
+    property_mock,
     PropertyMock,
 )
 
@@ -103,15 +104,17 @@ class DescribeOpcPackage(object):
         assert isinstance(partname, PackURI)
         assert partname == expected_partname
 
-    def it_can_save_to_a_pkg_file(self, pkg_file_, PackageWriter_, parts, parts_):
-        pkg = OpcPackage()
-        pkg.save(pkg_file_)
-        for part in parts_:
-            part.before_marshal.assert_called_once_with()
-        PackageWriter_.write.assert_called_once_with(pkg_file_, pkg._rels, parts_)
+    def it_can_save_to_a_pkg_file(self, request, rels_):
+        PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
+        property_mock(request, OpcPackage, "rels", return_value=rels_)
+        property_mock(request, OpcPackage, "parts", return_value=["parts"])
+        package = OpcPackage()
 
-    def it_can_be_notified_after_unmarshalling_is_complete(self, pkg):
-        pkg.after_unmarshal()
+        package.save("prs.pptx")
+
+        PackageWriter_.write.assert_called_once_with("prs.pptx", rels_, ["parts"])
+
+        # assert False
 
     # fixtures ---------------------------------------------
 
@@ -198,10 +201,6 @@ class DescribeOpcPackage(object):
         return class_mock(request, "pptx.opc.package.PackageReader")
 
     @pytest.fixture
-    def PackageWriter_(self, request):
-        return class_mock(request, "pptx.opc.package.PackageWriter")
-
-    @pytest.fixture
     def PartFactory_(self, request):
         return class_mock(request, "pptx.opc.package.PartFactory")
 
@@ -214,30 +213,8 @@ class DescribeOpcPackage(object):
         return instance_mock(request, Part)
 
     @pytest.fixture
-    def parts(self, request, parts_):
-        """
-        Return a mock patching property OpcPackage.parts, reversing the
-        patch after each use.
-        """
-        _patch = patch.object(
-            OpcPackage, "parts", new_callable=PropertyMock, return_value=parts_
-        )
-        request.addfinalizer(_patch.stop)
-        return _patch.start()
-
-    @pytest.fixture
-    def parts_(self, request):
-        part_ = instance_mock(request, Part, name="part_")
-        part_2_ = instance_mock(request, Part, name="part_2_")
-        return [part_, part_2_]
-
-    @pytest.fixture
     def pkg(self, request):
         return OpcPackage()
-
-    @pytest.fixture
-    def pkg_file_(self, request):
-        return loose_mock(request)
 
     @pytest.fixture
     def pkg_with_rels_(self, request, rels_):
@@ -294,12 +271,6 @@ class DescribePart(object):
 
         _init_.assert_called_once_with(part, partname_, CT.PML_SLIDE, b"blob", package_)
         assert isinstance(part, Part)
-
-    def it_can_be_notified_after_unmarshalling_is_complete(self, part):
-        part.after_unmarshal()
-
-    def it_can_be_notified_before_marshalling_is_started(self, part):
-        part.before_marshal()
 
     def it_uses_the_load_blob_as_its_blob(self, blob_fixture):
         part, load_blob = blob_fixture
@@ -935,14 +906,10 @@ class DescribeUnmarshaller(object):
         _unmarshal_relationships,
         parts_dict_,
     ):
-        # exercise ---------------------
         Unmarshaller.unmarshal(pkg_reader_, pkg_, part_factory_)
-        # verify -----------------------
+
         _unmarshal_parts.assert_called_once_with(pkg_reader_, pkg_, part_factory_)
         _unmarshal_relationships.assert_called_once_with(pkg_reader_, pkg_, parts_dict_)
-        for part in parts_dict_.values():
-            part.after_unmarshal.assert_called_once_with()
-        pkg_.after_unmarshal.assert_called_once_with()
 
     def it_can_unmarshal_parts(
         self,
