@@ -25,6 +25,14 @@ class OpcPackage(object):
     def __init__(self):
         super(OpcPackage, self).__init__()
 
+    @classmethod
+    def open(cls, pkg_file):
+        """Return an |OpcPackage| instance loaded with the contents of `pkg_file`."""
+        pkg_reader = PackageReader.from_file(pkg_file)
+        package = cls()
+        Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
+        return package
+
     def after_unmarshal(self):
         """
         Called by loading code after all parts and relationships have been
@@ -114,14 +122,6 @@ class OpcPackage(object):
                 return PackURI(candidate_partname)
         raise Exception("ProgrammingError: ran out of candidate_partnames")
 
-    @classmethod
-    def open(cls, pkg_file):
-        """Return an |OpcPackage| instance loaded with the contents of `pkg_file`."""
-        pkg_reader = PackageReader.from_file(pkg_file)
-        package = cls()
-        Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
-        return package
-
     def part_related_by(self, reltype):
         """Return (single) part having relationship to this package of `reltype`.
 
@@ -180,7 +180,14 @@ class Part(object):
         self._blob = blob
         self._package = package
 
-    # load/save interface to OpcPackage ------------------------------
+    @classmethod
+    def load(cls, partname, content_type, blob, package):
+        """Return `cls` instance loaded from arguments.
+
+        This one is a straight pass-through, but subtypes may do some pre-processing,
+        see XmlPart for an example.
+        """
+        return cls(partname, content_type, blob, package)
 
     def after_unmarshal(self):
         """
@@ -226,14 +233,14 @@ class Part(object):
         """Content-type (MIME-type) of this part."""
         return self._content_type
 
-    @classmethod
-    def load(cls, partname, content_type, blob, package):
-        """Return `cls` instance loaded from arguments.
+    def drop_rel(self, rId):
+        """Remove relationship identified by `rId` if its reference count is under 2.
 
-        This one is a straight pass-through, but subtypes may do some pre-processing,
-        see XmlPart for an example.
+        Relationships with a reference count of 0 are implicit relationships. Note that
+        only XML parts can drop relationships.
         """
-        return cls(partname, content_type, blob, package)
+        if self._rel_ref_count(rId) < 2:
+            del self.rels[rId]
 
     def load_rel(self, reltype, target, rId, is_external=False):
         """
@@ -251,6 +258,14 @@ class Part(object):
         """|OpcPackage| instance this part belongs to."""
         return self._package
 
+    def part_related_by(self, reltype):
+        """Return (single) part having relationship to this part of `reltype`.
+
+        Raises |KeyError| if no such relationship is found and |ValueError| if more than
+        one such relationship is found.
+        """
+        return self.rels.part_with_reltype(reltype)
+
     @property
     def partname(self):
         """|PackURI| partname for this part, e.g. "/ppt/slides/slide1.xml"."""
@@ -262,25 +277,6 @@ class Part(object):
             tmpl = "partname must be instance of PackURI, got '%s'"
             raise TypeError(tmpl % type(partname).__name__)
         self._partname = partname
-
-    # relationship management interface for child objects ------------
-
-    def drop_rel(self, rId):
-        """Remove relationship identified by `rId` if its reference count is under 2.
-
-        Relationships with a reference count of 0 are implicit relationships. Note that
-        only XML parts can drop relationships.
-        """
-        if self._rel_ref_count(rId) < 2:
-            del self.rels[rId]
-
-    def part_related_by(self, reltype):
-        """Return (single) part having relationship to this part of `reltype`.
-
-        Raises |KeyError| if no such relationship is found and |ValueError| if more than
-        one such relationship is found.
-        """
-        return self.rels.part_with_reltype(reltype)
 
     def relate_to(self, target, reltype, is_external=False):
         """Return rId key of relationship of `reltype` to `target`.
@@ -343,16 +339,16 @@ class XmlPart(Part):
         super(XmlPart, self).__init__(partname, content_type, package=package)
         self._element = element
 
-    @property
-    def blob(self):
-        """bytes XML serialization of this part."""
-        return serialize_part_xml(self._element)
-
     @classmethod
     def load(cls, partname, content_type, blob, package):
         """Return instance of `cls` loaded with parsed XML from `blob`."""
         element = parse_xml(blob)
         return cls(partname, content_type, element, package)
+
+    @property
+    def blob(self):
+        """bytes XML serialization of this part."""
+        return serialize_part_xml(self._element)
 
     @property
     def part(self):
