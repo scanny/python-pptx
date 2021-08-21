@@ -256,14 +256,9 @@ class Part(object):
             rel = self.rels.get_or_add(reltype, target)
             return rel.rId
 
-    @property
-    def related_parts(self):
-        """
-        Dictionary mapping related parts by rId, so child objects can resolve
-        explicit relationships present in the part XML, e.g. sldIdLst to a
-        specific |Slide| instance.
-        """
-        return self.rels.related_parts
+    def related_part(self, rId):
+        """Return related |Part| subtype identified by `rId`."""
+        return self.rels[rId].target_part
 
     @lazyproperty
     def rels(self):
@@ -407,14 +402,6 @@ class _Relationships(dict):
         """
         rel = self._get_rel_of_type(reltype)
         return rel.target_part
-
-    @property
-    def related_parts(self):
-        """
-        dict mapping rIds to target parts for all the internal relationships
-        in the collection.
-        """
-        return self._target_parts_by_rId
 
     @property
     def xml(self):

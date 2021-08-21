@@ -41,20 +41,17 @@ class DescribeGraphicFrame(object):
         assert str(e.value) == "shape does not contain a chart"
 
     def it_provides_access_to_its_chart_part(self, request, chart_part_):
-        graphicFrame = element(
-            "p:graphicFrame/a:graphic/a:graphicData/c:chart{r:id=rId42}"
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.return_value = chart_part_
+        property_mock(request, GraphicFrame, "part", return_value=slide_part_)
+        graphic_frame = GraphicFrame(
+            element("p:graphicFrame/a:graphic/a:graphicData/c:chart{r:id=rId42}"), None
         )
-        property_mock(
-            request,
-            GraphicFrame,
-            "part",
-            return_value=instance_mock(
-                request, SlidePart, related_parts={"rId42": chart_part_}
-            ),
-        )
-        graphic_frame = GraphicFrame(graphicFrame, None)
 
-        assert graphic_frame.chart_part is chart_part_
+        chart_part = graphic_frame.chart_part
+
+        slide_part_.related_part.assert_called_once_with("rId42")
+        assert chart_part is chart_part_
 
     @pytest.mark.parametrize(
         "graphicData_uri, expected_value",
@@ -159,17 +156,15 @@ class Describe_OleFormat(object):
 
     def it_provides_access_to_the_OLE_object_blob(self, request):
         ole_obj_part_ = instance_mock(request, EmbeddedPackagePart, blob=b"0123456789")
-        property_mock(
-            request,
-            _OleFormat,
-            "part",
-            return_value=instance_mock(
-                request, SlidePart, related_parts={"rId7": ole_obj_part_}
-            ),
-        )
-        graphicData = element("a:graphicData/p:oleObj{r:id=rId7}")
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.return_value = ole_obj_part_
+        property_mock(request, _OleFormat, "part", return_value=slide_part_)
+        ole_format = _OleFormat(element("a:graphicData/p:oleObj{r:id=rId7}"), None)
 
-        assert _OleFormat(graphicData, None).blob == b"0123456789"
+        blob = ole_format.blob
+
+        slide_part_.related_part.assert_called_once_with("rId7")
+        assert blob == b"0123456789"
 
     def it_knows_the_OLE_object_prog_id(self):
         graphicData = element("a:graphicData/p:oleObj{progId=Excel.Sheet.12}")

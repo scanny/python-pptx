@@ -153,23 +153,57 @@ class DescribeChartPart(object):
 class DescribeChartWorkbook(object):
     """Unit-test suite for `pptx.parts.chart.ChartWorkbook` objects."""
 
-    def it_can_get_the_chart_xlsx_part(self, xlsx_part_get_fixture):
-        chart_data, expected_object = xlsx_part_get_fixture
-        assert chart_data.xlsx_part is expected_object
+    def it_can_get_the_chart_xlsx_part(self, chart_part_, xlsx_part_):
+        chart_part_.related_part.return_value = xlsx_part_
+        chart_workbook = ChartWorkbook(
+            element("c:chartSpace/c:externalData{r:id=rId42}"), chart_part_
+        )
 
-    def it_can_change_the_chart_xlsx_part(self, xlsx_part_set_fixture):
-        chart_data, xlsx_part_, expected_xml = xlsx_part_set_fixture
+        xlsx_part = chart_workbook.xlsx_part
+
+        chart_part_.related_part.assert_called_once_with("rId42")
+        assert xlsx_part is xlsx_part_
+
+    def but_it_returns_None_when_the_chart_has_no_xlsx_part(self):
+        chart_workbook = ChartWorkbook(element("c:chartSpace"), None)
+        assert chart_workbook.xlsx_part is None
+
+    @pytest.mark.parametrize(
+        "chartSpace_cxml, expected_cxml",
+        (
+            (
+                "c:chartSpace{r:a=b}",
+                "c:chartSpace{r:a=b}/c:externalData{r:id=rId" "42}/c:autoUpdate{val=0}",
+            ),
+            (
+                "c:chartSpace/c:externalData{r:id=rId66}",
+                "c:chartSpace/c:externalData{r:id=rId42}",
+            ),
+        ),
+    )
+    def it_can_change_the_chart_xlsx_part(
+        self, chart_part_, xlsx_part_, chartSpace_cxml, expected_cxml
+    ):
+        chart_part_.relate_to.return_value = "rId42"
+        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
+
         chart_data.xlsx_part = xlsx_part_
-        chart_data._chart_part.relate_to.assert_called_once_with(xlsx_part_, RT.PACKAGE)
-        assert chart_data._chartSpace.xml == expected_xml
 
-    def it_adds_an_xlsx_part_on_update_if_needed(self, add_part_fixture):
-        chart_data, xlsx_blob_, EmbeddedXlsxPart_ = add_part_fixture[:3]
-        package_, xlsx_part_prop_, xlsx_part_ = add_part_fixture[3:]
+        chart_part_.relate_to.assert_called_once_with(xlsx_part_, RT.PACKAGE)
+        assert chart_data._chartSpace.xml == xml(expected_cxml)
 
-        chart_data.update_from_xlsx_blob(xlsx_blob_)
+    def it_adds_an_xlsx_part_on_update_if_needed(
+        self, request, chart_part_, package_, xlsx_part_, xlsx_part_prop_
+    ):
+        EmbeddedXlsxPart_ = class_mock(request, "pptx.parts.chart.EmbeddedXlsxPart")
+        EmbeddedXlsxPart_.new.return_value = xlsx_part_
+        chart_part_.package = package_
+        xlsx_part_prop_.return_value = None
+        chart_data = ChartWorkbook(element("c:chartSpace"), chart_part_)
 
-        EmbeddedXlsxPart_.new.assert_called_once_with(xlsx_blob_, package_)
+        chart_data.update_from_xlsx_blob(b"xlsx-blob")
+
+        EmbeddedXlsxPart_.new.assert_called_once_with(b"xlsx-blob", package_)
         xlsx_part_prop_.assert_called_with(xlsx_part_)
 
     def but_replaces_xlsx_blob_when_part_exists(self, update_blob_fixture):
@@ -180,78 +214,15 @@ class DescribeChartWorkbook(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def add_part_fixture(
-        self,
-        request,
-        chart_part_,
-        xlsx_blob_,
-        EmbeddedXlsxPart_,
-        package_,
-        xlsx_part_,
-        xlsx_part_prop_,
-    ):
-        chartSpace_cxml = "c:chartSpace"
-        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
-        xlsx_part_prop_.return_value = None
-        return (
-            chart_data,
-            xlsx_blob_,
-            EmbeddedXlsxPart_,
-            package_,
-            xlsx_part_prop_,
-            xlsx_part_,
-        )
-
-    @pytest.fixture
     def update_blob_fixture(self, request, xlsx_blob_, xlsx_part_prop_):
         chart_data = ChartWorkbook(None, None)
         return chart_data, xlsx_blob_
 
-    @pytest.fixture(
-        params=[
-            ("c:chartSpace", None),
-            ("c:chartSpace/c:externalData{r:id=rId42}", "rId42"),
-        ]
-    )
-    def xlsx_part_get_fixture(self, request, chart_part_, xlsx_part_):
-        chartSpace_cxml, xlsx_part_rId = request.param
-        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
-        expected_object = xlsx_part_ if xlsx_part_rId else None
-        return chart_data, expected_object
-
-    @pytest.fixture(
-        params=[
-            (
-                "c:chartSpace{r:a=b}",
-                "c:chartSpace{r:a=b}/c:externalData{r:id=rId" "42}/c:autoUpdate{val=0}",
-            ),
-            (
-                "c:chartSpace/c:externalData{r:id=rId66}",
-                "c:chartSpace/c:externalData{r:id=rId42}",
-            ),
-        ]
-    )
-    def xlsx_part_set_fixture(self, request, chart_part_, xlsx_part_):
-        chartSpace_cxml, expected_cxml = request.param
-        chart_data = ChartWorkbook(element(chartSpace_cxml), chart_part_)
-        expected_xml = xml(expected_cxml)
-        return chart_data, xlsx_part_, expected_xml
-
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def chart_part_(self, request, package_, xlsx_part_):
-        chart_part_ = instance_mock(request, ChartPart)
-        chart_part_.package = package_
-        chart_part_.related_parts = {"rId42": xlsx_part_}
-        chart_part_.relate_to.return_value = "rId42"
-        return chart_part_
-
-    @pytest.fixture
-    def EmbeddedXlsxPart_(self, request, xlsx_part_):
-        EmbeddedXlsxPart_ = class_mock(request, "pptx.parts.chart.EmbeddedXlsxPart")
-        EmbeddedXlsxPart_.new.return_value = xlsx_part_
-        return EmbeddedXlsxPart_
+    def chart_part_(self, request):
+        return instance_mock(request, ChartPart)
 
     @pytest.fixture
     def package_(self, request):

@@ -75,7 +75,7 @@ class ChartWorkbook(object):
         xlsx_part_rId = self._chartSpace.xlsx_part_rId
         if xlsx_part_rId is None:
             return None
-        return self._chart_part.related_parts[xlsx_part_rId]
+        return self._chart_part.related_part(xlsx_part_rId)
 
     @xlsx_part.setter
     def xlsx_part(self, xlsx_part):

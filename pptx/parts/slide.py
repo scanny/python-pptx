@@ -27,7 +27,7 @@ class BaseSlidePart(XmlPart):
         by *rId*. Raises |KeyError| if no image is related by that id, which
         would generally indicate a corrupted .pptx file.
         """
-        return self.related_parts[rId].image
+        return self.related_part(rId).image
 
     def get_or_add_image_part(self, image_file):
         """Return `(image_part, rId)` pair corresponding to `image_file`.
@@ -284,7 +284,7 @@ class SlideMasterPart(BaseSlidePart):
         Return the |SlideLayout| object of the related |SlideLayoutPart|
         corresponding to relationship key *rId*.
         """
-        return self.related_parts[rId].slide_layout
+        return self.related_part(rId).slide_layout
 
     @lazyproperty
     def slide_master(self):

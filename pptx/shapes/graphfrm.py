@@ -36,7 +36,7 @@ class GraphicFrame(BaseShape):
     @property
     def chart_part(self):
         """The |ChartPart| object containing the chart in this graphic frame."""
-        return self.part.related_parts[self._element.chart_rId]
+        return self.part.related_part(self._element.chart_rId)
 
     @property
     def has_chart(self):
@@ -127,7 +127,7 @@ class _OleFormat(ParentedElementProxy):
 
         This value is None if the embedded object does not represent a "file".
         """
-        return self.part.related_parts[self._graphicData.blob_rId].blob
+        return self.part.related_part(self._graphicData.blob_rId).blob
 
     @property
     def prog_id(self):

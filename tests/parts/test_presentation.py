@@ -9,7 +9,7 @@ from pptx.opc.packuri import PackURI
 from pptx.package import Package
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
-from pptx.parts.slide import NotesMasterPart, SlidePart
+from pptx.parts.slide import NotesMasterPart, SlideMasterPart, SlidePart
 from pptx.presentation import Presentation
 from pptx.slide import NotesMaster, Slide, SlideLayout, SlideMaster
 
@@ -63,24 +63,42 @@ class DescribePresentationPart(object):
         notes_master = prs_part.notes_master
         assert notes_master is notes_master_
 
-    def it_provides_access_to_a_related_slide(self, slide_fixture):
-        prs_part, rId, slide_ = slide_fixture
-        slide = prs_part.related_slide(rId)
-        prs_part.related_parts.__getitem__.assert_called_once_with(rId)
+    def it_provides_access_to_a_related_slide(self, request, slide_, related_part_):
+        slide_part_ = instance_mock(request, SlidePart, slide=slide_)
+        related_part_.return_value = slide_part_
+        prs_part = PresentationPart(None, None, None, None)
+
+        slide = prs_part.related_slide("rId42")
+
+        related_part_.assert_called_once_with(prs_part, "rId42")
         assert slide is slide_
 
-    def it_provides_access_to_a_related_master(self, master_fixture):
-        prs_part, rId, slide_master_ = master_fixture
-        slide_master = prs_part.related_slide_master(rId)
-        prs_part.related_parts.__getitem__.assert_called_once_with(rId)
+    def it_provides_access_to_a_related_master(
+        self, request, slide_master_, related_part_
+    ):
+        slide_master_part_ = instance_mock(
+            request, SlideMasterPart, slide_master=slide_master_
+        )
+        related_part_.return_value = slide_master_part_
+        prs_part = PresentationPart(None, None, None, None)
+
+        slide_master = prs_part.related_slide_master("rId42")
+
+        related_part_.assert_called_once_with(prs_part, "rId42")
         assert slide_master is slide_master_
 
-    def it_can_rename_related_slide_parts(self, rename_fixture):
-        prs_part, rIds, getitem_ = rename_fixture[:3]
-        calls, slide_parts, expected_names = rename_fixture[3:]
+    def it_can_rename_related_slide_parts(self, request, related_part_):
+        rIds = tuple("rId%d" % n for n in range(5, 0, -1))
+        slide_parts = tuple(instance_mock(request, SlidePart) for _ in range(5))
+        related_part_.side_effect = iter(slide_parts)
+        prs_part = PresentationPart(None, None, None, None)
+
         prs_part.rename_slide_parts(rIds)
-        assert getitem_.call_args_list == calls
-        assert [sp.partname for sp in slide_parts] == expected_names
+
+        assert related_part_.call_args_list == [call(prs_part, rId) for rId in rIds]
+        assert [s.partname for s in slide_parts] == [
+            PackURI("/ppt/slides/slide%d.xml" % (i + 1)) for i in range(len(rIds))
+        ]
 
     def it_can_save_the_package_to_a_file(self, save_fixture):
         prs_part, file_, package_ = save_fixture
@@ -99,19 +117,49 @@ class DescribePresentationPart(object):
         assert rId is rId_
         assert slide is slide_
 
-    def it_finds_the_slide_id_of_a_slide_part(self, slide_id_fixture):
-        prs_part, slide_part_, expected_value = slide_id_fixture
-        _slide_id = prs_part.slide_id(slide_part_)
-        assert _slide_id == expected_value
+    def it_finds_the_slide_id_of_a_slide_part(self, slide_part_, related_part_):
+        prs_elm = element(
+            "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
+            "b,id=257},p:sldId{r:id=c,id=258})"
+        )
+        related_part_.side_effect = iter((None, slide_part_, None))
+        prs_part = PresentationPart(None, None, prs_elm, None)
 
-    def it_raises_on_slide_id_not_found(self, slide_id_raises_fixture):
-        prs_part, slide_part_ = slide_id_raises_fixture
+        _slide_id = prs_part.slide_id(slide_part_)
+
+        assert related_part_.call_args_list == [
+            call(prs_part, "a"),
+            call(prs_part, "b"),
+        ]
+        assert _slide_id == 257
+
+    def it_raises_on_slide_id_not_found(self, slide_part_, related_part_):
+        prs_elm = element(
+            "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
+            "b,id=257},p:sldId{r:id=c,id=258})"
+        )
+        related_part_.return_value = "not the slide you're looking for"
+        prs_part = PresentationPart(None, None, prs_elm, None)
+
         with pytest.raises(ValueError):
             prs_part.slide_id(slide_part_)
 
-    def it_finds_a_slide_by_slide_id(self, get_slide_fixture):
-        prs_part, slide_id, expected_value = get_slide_fixture
+    @pytest.mark.parametrize("is_present", (True, False))
+    def it_finds_a_slide_by_slide_id(
+        self, is_present, slide_, slide_part_, related_part_
+    ):
+        prs_elm = element(
+            "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
+            "b,id=257},p:sldId{r:id=c,id=258})"
+        )
+        slide_id = 257 if is_present else 666
+        expected_value = slide_ if is_present else None
+        related_part_.return_value = slide_part_
+        slide_part_.slide = slide_
+        prs_part = PresentationPart(None, None, prs_elm, None)
+
         slide = prs_part.get_slide(slide_id)
+
         assert slide == expected_value
 
     def it_knows_the_next_slide_partname_to_help(self, next_fixture):
@@ -156,28 +204,6 @@ class DescribePresentationPart(object):
         package_.core_properties = core_properties_
         return prs_part, core_properties_
 
-    @pytest.fixture(params=[True, False])
-    def get_slide_fixture(self, request, slide_, slide_part_, related_parts_prop_):
-        is_present = request.param
-        prs_elm = element(
-            "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
-            "b,id=257},p:sldId{r:id=c,id=258})"
-        )
-        prs_part = PresentationPart(None, None, prs_elm)
-        slide_id = 257 if is_present else 666
-        expected_value = slide_ if is_present else None
-        related_parts_prop_.return_value = {"a": None, "b": slide_part_, "c": None}
-        slide_part_.slide = slide_
-        return prs_part, slide_id, expected_value
-
-    @pytest.fixture
-    def master_fixture(self, slide_master_, related_parts_prop_):
-        prs_part = PresentationPart(None, None, None, None)
-        rId = "rId42"
-        related_parts_ = related_parts_prop_.return_value
-        related_parts_.__getitem__.return_value.slide_master = slide_master_
-        return prs_part, rId, slide_master_
-
     @pytest.fixture
     def next_fixture(self):
         prs_elm = element("p:presentation/p:sldIdLst/(p:sldId,p:sldId)")
@@ -221,53 +247,10 @@ class DescribePresentationPart(object):
         return prs_part, Presentation_, prs_elm, prs_
 
     @pytest.fixture
-    def rename_fixture(self, related_parts_prop_):
-        prs_part = PresentationPart(None, None, None)
-        rIds = ("rId1", "rId2")
-        getitem_ = related_parts_prop_.return_value.__getitem__
-        calls = [call("rId1"), call("rId2")]
-        slide_parts = [SlidePart(None, None, None), SlidePart(None, None, None)]
-        expected_names = [
-            PackURI("/ppt/slides/slide1.xml"),
-            PackURI("/ppt/slides/slide2.xml"),
-        ]
-        getitem_.side_effect = slide_parts
-        return (prs_part, rIds, getitem_, calls, slide_parts, expected_names)
-
-    @pytest.fixture
     def save_fixture(self, package_):
         prs_part = PresentationPart(None, None, None, package_)
         file_ = "foobar.docx"
         return prs_part, file_, package_
-
-    @pytest.fixture
-    def slide_fixture(self, slide_, related_parts_prop_):
-        prs_part = PresentationPart(None, None, None, None)
-        rId = "rId42"
-        related_parts_ = related_parts_prop_.return_value
-        related_parts_.__getitem__.return_value.slide = slide_
-        return prs_part, rId, slide_
-
-    @pytest.fixture
-    def slide_id_fixture(self, slide_part_, related_parts_prop_):
-        prs_elm = element(
-            "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
-            "b,id=257},p:sldId{r:id=c,id=258})"
-        )
-        prs_part = PresentationPart(None, None, prs_elm)
-        expected_value = 257
-        related_parts_prop_.return_value = {"a": None, "b": slide_part_, "c": None}
-        return prs_part, slide_part_, expected_value
-
-    @pytest.fixture
-    def slide_id_raises_fixture(self, slide_part_, related_parts_prop_):
-        prs_elm = element(
-            "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
-            "b,id=257},p:sldId{r:id=c,id=258})"
-        )
-        prs_part = PresentationPart(None, None, prs_elm)
-        related_parts_prop_.return_value = {"a": None, "b": None, "c": None}
-        return prs_part, slide_part_
 
     # fixture components ---------------------------------------------
 
@@ -318,8 +301,8 @@ class DescribePresentationPart(object):
         return method_mock(request, PresentationPart, "relate_to", autospec=True)
 
     @pytest.fixture
-    def related_parts_prop_(self, request):
-        return property_mock(request, PresentationPart, "related_parts")
+    def related_part_(self, request):
+        return method_mock(request, PresentationPart, "related_part")
 
     @pytest.fixture
     def slide_(self, request):

@@ -37,7 +37,6 @@ from ..unitutil.mock import (
     initializer_mock,
     instance_mock,
     method_mock,
-    property_mock,
 )
 
 
@@ -48,9 +47,18 @@ class DescribeBaseSlidePart(object):
         base_slide, expected_value = name_fixture
         assert base_slide.name == expected_value
 
-    def it_can_get_a_related_image_by_rId(self, get_image_fixture):
-        slide, rId, image_ = get_image_fixture
-        assert slide.get_image(rId) is image_
+    def it_can_get_a_related_image_by_rId(self, request, image_part_):
+        image_ = instance_mock(request, Image)
+        image_part_.image = image_
+        related_part_ = method_mock(
+            request, BaseSlidePart, "related_part", return_value=image_part_
+        )
+        slide_part = BaseSlidePart(None, None, None, None)
+
+        image = slide_part.get_image("rId42")
+
+        related_part_.assert_called_once_with(slide_part, "rId42")
+        assert image is image_
 
     def it_can_add_an_image_part(self, request, image_part_):
         package_ = instance_mock(request, Package)
@@ -70,14 +78,6 @@ class DescribeBaseSlidePart(object):
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
-    def get_image_fixture(self, related_parts_prop_, image_part_, image_):
-        slide = BaseSlidePart(None, None, None, None)
-        rId = "rId42"
-        related_parts_prop_.return_value = {rId: image_part_}
-        image_part_.image = image_
-        return slide, rId, image_
-
-    @pytest.fixture
     def name_fixture(self):
         sld_cxml, expected_value = "p:sld/p:cSld{name=Foobar}", "Foobar"
         sld = element(sld_cxml)
@@ -87,16 +87,8 @@ class DescribeBaseSlidePart(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def image_(self, request):
-        return instance_mock(request, Image)
-
-    @pytest.fixture
     def image_part_(self, request):
         return instance_mock(request, ImagePart)
-
-    @pytest.fixture
-    def related_parts_prop_(self, request):
-        return property_mock(request, BaseSlidePart, "related_parts")
 
 
 class DescribeNotesMasterPart(object):
@@ -726,10 +718,19 @@ class DescribeSlideMasterPart(object):
         SlideMaster_.assert_called_once_with(sldMaster, slide_master_part)
         assert slide_master is slide_master_
 
-    def it_provides_access_to_a_related_slide_layout(self, related_fixture):
-        slide_master_part, rId, getitem_, slide_layout_ = related_fixture
-        slide_layout = slide_master_part.related_slide_layout(rId)
-        getitem_.assert_called_once_with(rId)
+    def it_provides_access_to_a_related_slide_layout(self, request):
+        slide_layout_ = instance_mock(request, SlideLayout)
+        slide_layout_part_ = instance_mock(
+            request, SlideLayoutPart, slide_layout=slide_layout_
+        )
+        related_part_ = method_mock(
+            request, SlideMasterPart, "related_part", return_value=slide_layout_part_
+        )
+        slide_master_part = SlideMasterPart(None, None, None, None)
+
+        slide_layout = slide_master_part.related_slide_layout("rId42")
+
+        related_part_.assert_called_once_with(slide_master_part, "rId42")
         assert slide_layout is slide_layout_
 
     # fixtures -------------------------------------------------------
@@ -740,23 +741,7 @@ class DescribeSlideMasterPart(object):
         slide_master_part = SlideMasterPart(None, None, sldMaster)
         return slide_master_part, SlideMaster_, sldMaster, slide_master_
 
-    @pytest.fixture
-    def related_fixture(self, slide_layout_, related_parts_prop_):
-        slide_master_part = SlideMasterPart(None, None, None, None)
-        rId = "rId42"
-        getitem_ = related_parts_prop_.return_value.__getitem__
-        getitem_.return_value.slide_layout = slide_layout_
-        return slide_master_part, rId, getitem_, slide_layout_
-
     # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def related_parts_prop_(self, request):
-        return property_mock(request, SlideMasterPart, "related_parts")
-
-    @pytest.fixture
-    def slide_layout_(self, request):
-        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def SlideMaster_(self, request, slide_master_):

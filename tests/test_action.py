@@ -201,8 +201,8 @@ class DescribeActionSetting(object):
         # this becomes the return value of ActionSetting._slides
         prs_part_ = part_prop_.return_value.package.presentation_part
         prs_part_.presentation.slides = [0, 1, 2, 3, 4, 5]
-        related_parts_ = part_prop_.return_value.related_parts
-        related_parts_.__getitem__.return_value.slide = 4
+        related_part_ = part_prop_.return_value.related_part
+        related_part_.return_value.slide = 4
         return action_setting, expected_value
 
     @pytest.fixture(params=[(PP_ACTION.NEXT_SLIDE, 2), (PP_ACTION.PREVIOUS_SLIDE, 0)])

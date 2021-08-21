@@ -42,7 +42,7 @@ class PresentationPart(XmlPart):
         """
         for sldId in self._element.sldIdLst:
             if sldId.id == slide_id:
-                return self.related_parts[sldId.rId].slide
+                return self.related_part(sldId.rId).slide
         return None
 
     @lazyproperty
@@ -80,11 +80,11 @@ class PresentationPart(XmlPart):
 
     def related_slide(self, rId):
         """Return |Slide| object for related |SlidePart| related by `rId`."""
-        return self.related_parts[rId].slide
+        return self.related_part(rId).slide
 
     def related_slide_master(self, rId):
         """Return |SlideMaster| object for |SlideMasterPart| related by `rId`."""
-        return self.related_parts[rId].slide_master
+        return self.related_part(rId).slide_master
 
     def rename_slide_parts(self, rIds):
         """Assign incrementing partnames to the slide parts identified by `rIds`.
@@ -95,7 +95,7 @@ class PresentationPart(XmlPart):
         The extension is always ``.xml``.
         """
         for idx, rId in enumerate(rIds):
-            slide_part = self.related_parts[rId]
+            slide_part = self.related_part(rId)
             slide_part.partname = PackURI("/ppt/slides/slide%d.xml" % (idx + 1))
 
     def save(self, path_or_stream):
@@ -109,7 +109,7 @@ class PresentationPart(XmlPart):
     def slide_id(self, slide_part):
         """Return the slide-id associated with `slide_part`."""
         for sldId in self._element.sldIdLst:
-            if self.related_parts[sldId.rId] is slide_part:
+            if self.related_part(sldId.rId) is slide_part:
                 return sldId.id
         raise ValueError("matching slide_part not found")
 

@@ -114,7 +114,7 @@ class ActionSetting(Subshape):
             return self._slides[prev_slide_idx]
         elif self.action == PP_ACTION.NAMED_SLIDE:
             rId = self._hlink.rId
-            return self.part.related_parts[rId].slide
+            return self.part.related_part(rId).slide
 
     @target_slide.setter
     def target_slide(self, slide):

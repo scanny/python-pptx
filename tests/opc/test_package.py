@@ -339,9 +339,18 @@ class DescribePart(object):
         part.rels.get_or_add_ext_rel.assert_called_once_with(reltype_, url_)
         assert rId is rId_
 
-    def it_can_find_a_related_part_by_rId(self, related_parts_fixture):
-        part, related_parts_ = related_parts_fixture
-        assert part.related_parts is related_parts_
+    def it_can_find_a_related_part_by_rId(
+        self, request, rels_prop_, relationships_, relationship_, part_
+    ):
+        relationship_.target_part = part_
+        relationships_.__getitem__.return_value = relationship_
+        rels_prop_.return_value = relationships_
+        part = Part(None, None, None)
+
+        related_part = part.related_part("rId17")
+
+        relationships_.__getitem__.assert_called_once_with("rId17")
+        assert related_part is part_
 
     def it_provides_access_to_its_relationships(self, rels_fixture):
         part, Relationships_, partname_, rels_ = rels_fixture
@@ -437,11 +446,6 @@ class DescribePart(object):
         return part, reltype_, part_
 
     @pytest.fixture
-    def related_parts_fixture(self, request, part, rels_, related_parts_):
-        part._rels = rels_
-        return part, related_parts_
-
-    @pytest.fixture
     def rels_fixture(self, Relationships_, partname_, rels_):
         part = Part(partname_, None)
         return part, Relationships_, partname_, rels_
@@ -484,17 +488,24 @@ class DescribePart(object):
         return instance_mock(request, _Relationship, rId=rId_, target_ref=url_)
 
     @pytest.fixture
-    def rels_(self, request, part_, rel_, rId_, related_parts_):
+    def relationship_(self, request):
+        return instance_mock(request, _Relationship)
+
+    @pytest.fixture
+    def relationships_(self, request):
+        return instance_mock(request, _Relationships)
+
+    @pytest.fixture
+    def rels_(self, request, part_, rel_, rId_):
         rels_ = instance_mock(request, _Relationships)
         rels_.part_with_reltype.return_value = part_
         rels_.get_or_add.return_value = rel_
         rels_.get_or_add_ext_rel.return_value = rId_
-        rels_.related_parts = related_parts_
         return rels_
 
     @pytest.fixture
-    def related_parts_(self, request):
-        return instance_mock(request, dict)
+    def rels_prop_(self, request):
+        return property_mock(request, Part, "rels")
 
     @pytest.fixture
     def reltype_(self, request):
@@ -686,15 +697,6 @@ class Describe_Relationships(object):
         part = rels.part_with_reltype(reltype)
         assert part is known_target_part
 
-    def it_can_find_a_related_part_by_rId(self, rels_with_known_target_part):
-        rels, rId, known_target_part = rels_with_known_target_part
-        part = rels.related_parts[rId]
-        assert part is known_target_part
-
-    def it_raises_KeyError_on_part_with_rId_not_found(self):
-        with pytest.raises(KeyError):
-            _Relationships(None).related_parts["rId666"]
-
     def it_knows_the_next_available_rId_to_help(self, rels_with_rId_gap):
         rels, expected_next_rId = rels_with_rId_gap
         next_rId = rels._next_rId
@@ -727,11 +729,6 @@ class Describe_Relationships(object):
         return rels, reltype, url, rId
 
     @pytest.fixture
-    def _rel_with_known_target_part(self, _rId, _reltype, _target_part, _baseURI):
-        rel = _Relationship(_rId, _reltype, _target_part, _baseURI)
-        return rel, _rId, _target_part
-
-    @pytest.fixture
     def _rel_with_target_known_by_reltype(self, _rId, _reltype, _target_part, _baseURI):
         rel = _Relationship(_rId, _reltype, _target_part, _baseURI)
         return rel, _reltype, _target_part
@@ -750,12 +747,6 @@ class Describe_Relationships(object):
         patch_.start()
         request.addfinalizer(patch_.stop)
         return rels_elm
-
-    @pytest.fixture
-    def rels_with_known_target_part(self, rels, _rel_with_known_target_part):
-        rel, rId, target_part = _rel_with_known_target_part
-        rels.add_relationship(None, target_part, rId)
-        return rels, rId, target_part
 
     @pytest.fixture
     def rels_with_matching_rel_(self, request, rels):
