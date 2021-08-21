@@ -1,17 +1,17 @@
 # encoding: utf-8
 
-"""
-Provides a low-level, read-only API to a serialized Open Packaging Convention
-(OPC) package.
-"""
+"""API for reading/writing serialized Open Packaging Convention (OPC) package."""
 
-from __future__ import absolute_import
+import os
+import zipfile
 
-from .constants import RELATIONSHIP_TARGET_MODE as RTM
-from .oxml import parse_xml
-from .packuri import PACKAGE_URI, PackURI
-from .phys_pkg import PhysPkgReader
-from .shared import CaseInsensitiveDict
+from pptx.compat import is_string
+from pptx.exceptions import PackageNotFoundError
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
+from pptx.opc.oxml import CT_Types, parse_xml, serialize_part_xml
+from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
+from pptx.opc.shared import CaseInsensitiveDict
+from pptx.opc.spec import default_content_types
 
 
 class PackageReader(object):
@@ -30,7 +30,7 @@ class PackageReader(object):
         """
         Return a |PackageReader| instance loaded with contents of *pkg_file*.
         """
-        phys_reader = PhysPkgReader(pkg_file)
+        phys_reader = _PhysPkgReader(pkg_file)
         content_types = _ContentTypeMap.from_xml(phys_reader.content_types_xml)
         pkg_srels = PackageReader._srels_for(phys_reader, PACKAGE_URI)
         sparts = PackageReader._load_serialized_parts(
@@ -163,6 +163,199 @@ class _ContentTypeMap(object):
         self._overrides[partname] = content_type
 
 
+class PackageWriter(object):
+    """
+    Writes a zip-format OPC package to *pkg_file*, where *pkg_file* can be
+    either a path to a zip file (a string) or a file-like object. Its single
+    API method, :meth:`write`, is static, so this class is not intended to
+    be instantiated.
+    """
+
+    @staticmethod
+    def write(pkg_file, pkg_rels, parts):
+        """
+        Write a physical package (.pptx file) to *pkg_file* containing
+        *pkg_rels* and *parts* and a content types stream based on the
+        content types of the parts.
+        """
+        phys_writer = _PhysPkgWriter(pkg_file)
+        PackageWriter._write_content_types_stream(phys_writer, parts)
+        PackageWriter._write_pkg_rels(phys_writer, pkg_rels)
+        PackageWriter._write_parts(phys_writer, parts)
+        phys_writer.close()
+
+    @staticmethod
+    def _write_content_types_stream(phys_writer, parts):
+        """
+        Write ``[Content_Types].xml`` part to the physical package with an
+        appropriate content type lookup target for each part in *parts*.
+        """
+        content_types_blob = serialize_part_xml(_ContentTypesItem.xml_for(parts))
+        phys_writer.write(CONTENT_TYPES_URI, content_types_blob)
+
+    @staticmethod
+    def _write_parts(phys_writer, parts):
+        """
+        Write the blob of each part in *parts* to the package, along with a
+        rels item for its relationships if and only if it has any.
+        """
+        for part in parts:
+            phys_writer.write(part.partname, part.blob)
+            if len(part._rels):
+                phys_writer.write(part.partname.rels_uri, part._rels.xml)
+
+    @staticmethod
+    def _write_pkg_rels(phys_writer, pkg_rels):
+        """
+        Write the XML rels item for *pkg_rels* ('/_rels/.rels') to the
+        package.
+        """
+        phys_writer.write(PACKAGE_URI.rels_uri, pkg_rels.xml)
+
+
+class _PhysPkgReader(object):
+    """
+    Factory for physical package reader objects.
+    """
+
+    def __new__(cls, pkg_file):
+        # if *pkg_file* is a string, treat it as a path
+        if is_string(pkg_file):
+            if os.path.isdir(pkg_file):
+                reader_cls = _DirPkgReader
+            elif zipfile.is_zipfile(pkg_file):
+                reader_cls = _ZipPkgReader
+            else:
+                raise PackageNotFoundError("Package not found at '%s'" % pkg_file)
+        else:  # assume it's a stream and pass it to Zip reader to sort out
+            reader_cls = _ZipPkgReader
+
+        return super(_PhysPkgReader, cls).__new__(reader_cls)
+
+
+class _DirPkgReader(_PhysPkgReader):
+    """
+    Implements |PhysPkgReader| interface for an OPC package extracted into a
+    directory.
+    """
+
+    def __init__(self, path):
+        """
+        *path* is the path to a directory containing an expanded package.
+        """
+        super(_DirPkgReader, self).__init__()
+        self._path = os.path.abspath(path)
+
+    def blob_for(self, pack_uri):
+        """
+        Return contents of file corresponding to *pack_uri* in package
+        directory.
+        """
+        path = os.path.join(self._path, pack_uri.membername)
+        with open(path, "rb") as f:
+            blob = f.read()
+        return blob
+
+    def close(self):
+        """
+        Provides interface consistency with |ZipFileSystem|, but does
+        nothing, a directory file system doesn't need closing.
+        """
+        pass
+
+    @property
+    def content_types_xml(self):
+        """
+        Return the `[Content_Types].xml` blob from the package.
+        """
+        return self.blob_for(CONTENT_TYPES_URI)
+
+    def rels_xml_for(self, source_uri):
+        """
+        Return rels item XML for source with *source_uri*, or None if the
+        item has no rels item.
+        """
+        try:
+            rels_xml = self.blob_for(source_uri.rels_uri)
+        except IOError:
+            rels_xml = None
+        return rels_xml
+
+
+class _ZipPkgReader(_PhysPkgReader):
+    """
+    Implements |PhysPkgReader| interface for a zip file OPC package.
+    """
+
+    def __init__(self, pkg_file):
+        super(_ZipPkgReader, self).__init__()
+        self._zipf = zipfile.ZipFile(pkg_file, "r")
+
+    def blob_for(self, pack_uri):
+        """
+        Return blob corresponding to *pack_uri*. Raises |ValueError| if no
+        matching member is present in zip archive.
+        """
+        return self._zipf.read(pack_uri.membername)
+
+    def close(self):
+        """
+        Close the zip archive, releasing any resources it is using.
+        """
+        self._zipf.close()
+
+    @property
+    def content_types_xml(self):
+        """
+        Return the `[Content_Types].xml` blob from the zip package.
+        """
+        return self.blob_for(CONTENT_TYPES_URI)
+
+    def rels_xml_for(self, source_uri):
+        """
+        Return rels item XML for source with *source_uri* or None if no rels
+        item is present.
+        """
+        try:
+            rels_xml = self.blob_for(source_uri.rels_uri)
+        except KeyError:
+            rels_xml = None
+        return rels_xml
+
+
+class _PhysPkgWriter(object):
+    """
+    Factory for physical package writer objects.
+    """
+
+    def __new__(cls, pkg_file):
+        return super(_PhysPkgWriter, cls).__new__(_ZipPkgWriter)
+
+
+class _ZipPkgWriter(_PhysPkgWriter):
+    """
+    Implements |PhysPkgWriter| interface for a zip file OPC package.
+    """
+
+    def __init__(self, pkg_file):
+        super(_ZipPkgWriter, self).__init__()
+        self._zipf = zipfile.ZipFile(pkg_file, "w", compression=zipfile.ZIP_DEFLATED)
+
+    def close(self):
+        """
+        Close the zip archive, flushing any pending physical writes and
+        releasing any resources it's using.
+        """
+        self._zipf.close()
+
+    def write(self, pack_uri, blob):
+        """
+        Write *blob* to this zip package with the membername corresponding to
+        *pack_uri*.
+        """
+        self._zipf.writestr(pack_uri.membername, blob)
+
+
 class _SerializedPart(object):
     """
     Value object for an OPC package part. Provides access to the partname,
@@ -291,3 +484,57 @@ class _SerializedRelationshipCollection(object):
             for rel_elm in rels_elm.relationship_lst:
                 srels._srels.append(_SerializedRelationship(baseURI, rel_elm))
         return srels
+
+
+class _ContentTypesItem(object):
+    """
+    Service class that composes a content types item ([Content_Types].xml)
+    based on a list of parts. Not meant to be instantiated directly, its
+    single interface method is xml_for(), e.g.
+    ``_ContentTypesItem.xml_for(parts)``.
+    """
+
+    def __init__(self):
+        self._defaults = CaseInsensitiveDict()
+        self._overrides = dict()
+
+    @classmethod
+    def xml_for(cls, parts):
+        """
+        Return content types XML mapping each part in *parts* to the
+        appropriate content type and suitable for storage as
+        ``[Content_Types].xml`` in an OPC package.
+        """
+        cti = cls()
+        cti._defaults["rels"] = CT.OPC_RELATIONSHIPS
+        cti._defaults["xml"] = CT.XML
+        for part in parts:
+            cti._add_content_type(part.partname, part.content_type)
+        return cti._xml()
+
+    def _add_content_type(self, partname, content_type):
+        """
+        Add a content type for the part with *partname* and *content_type*,
+        using a default or override as appropriate.
+        """
+        ext = partname.ext
+        if (ext.lower(), content_type) in default_content_types:
+            self._defaults[ext] = content_type
+        else:
+            self._overrides[partname] = content_type
+
+    def _xml(self):
+        """
+        Return etree element containing the XML representation of this content
+        types item, suitable for serialization to the ``[Content_Types].xml``
+        item for an OPC package. Although the sequence of elements is not
+        strictly significant, as an aid to testing and readability Default
+        elements are sorted by extension and Override elements are sorted by
+        partname.
+        """
+        _types_elm = CT_Types.new()
+        for ext in sorted(self._defaults.keys()):
+            _types_elm.add_default(ext, self._defaults[ext])
+        for partname in sorted(self._overrides.keys()):
+            _types_elm.add_override(partname, self._overrides[partname])
+        return _types_elm

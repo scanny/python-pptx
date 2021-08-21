@@ -1,35 +1,56 @@
 # encoding: utf-8
 
-"""
-Test suite for opc.pkgreader module
-"""
+"""Unit-test suite for `pptx.opc.serialized` module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+try:
+    from io import BytesIO  # Python 3
+except ImportError:
+    from StringIO import StringIO as BytesIO
 
+import hashlib
 import pytest
 
+from zipfile import ZIP_DEFLATED, ZipFile
+
+from pptx.exceptions import PackageNotFoundError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
 from pptx.opc.oxml import CT_Relationship
-from pptx.opc.packuri import PackURI
-from pptx.opc.phys_pkg import _ZipPkgReader
-from pptx.opc.pkgreader import (
-    _ContentTypeMap,
+from pptx.opc.package import Part
+from pptx.opc.packuri import PACKAGE_URI, PackURI
+from pptx.opc.serialized import (
     PackageReader,
+    PackageWriter,
+    _ContentTypeMap,
+    _ContentTypesItem,
+    _DirPkgReader,
+    _PhysPkgReader,
+    _PhysPkgWriter,
     _SerializedPart,
     _SerializedRelationship,
     _SerializedRelationshipCollection,
+    _ZipPkgReader,
+    _ZipPkgWriter,
 )
 
 from .unitdata.types import a_Default, a_Types, an_Override
+from ..unitutil.file import absjoin, test_file_dir
 from ..unitutil.mock import (
+    MagicMock,
+    Mock,
     call,
     class_mock,
     function_mock,
     initializer_mock,
+    instance_mock,
+    loose_mock,
     method_mock,
-    Mock,
     patch,
 )
+
+
+test_pptx_path = absjoin(test_file_dir, "test.pptx")
+dir_pkg_path = absjoin(test_file_dir, "expanded_pptx")
+zip_pkg_path = test_pptx_path
 
 
 class DescribePackageReader(object):
@@ -46,19 +67,19 @@ class DescribePackageReader(object):
         return method_mock(request, PackageReader, "_load_serialized_parts")
 
     @pytest.fixture
-    def PhysPkgReader_(self, request):
-        _patch = patch("pptx.opc.pkgreader.PhysPkgReader", spec_set=_ZipPkgReader)
+    def _PhysPkgReader_(self, request):
+        _patch = patch("pptx.opc.serialized._PhysPkgReader", spec_set=_ZipPkgReader)
         request.addfinalizer(_patch.stop)
         return _patch.start()
 
     @pytest.fixture
     def _SerializedPart_(self, request):
-        return class_mock(request, "pptx.opc.pkgreader._SerializedPart")
+        return class_mock(request, "pptx.opc.serialized._SerializedPart")
 
     @pytest.fixture
     def _SerializedRelationshipCollection_(self, request):
         return class_mock(
-            request, "pptx.opc.pkgreader._SerializedRelationshipCollection"
+            request, "pptx.opc.serialized._SerializedRelationshipCollection"
         )
 
     @pytest.fixture
@@ -70,10 +91,10 @@ class DescribePackageReader(object):
         return method_mock(request, PackageReader, "_walk_phys_parts")
 
     def it_can_construct_from_pkg_file(
-        self, init, PhysPkgReader_, from_xml, _srels_for, _load_serialized_parts
+        self, init, _PhysPkgReader_, from_xml, _srels_for, _load_serialized_parts
     ):
         # mockery ----------------------
-        phys_reader = PhysPkgReader_.return_value
+        phys_reader = _PhysPkgReader_.return_value
         content_types = from_xml.return_value
         pkg_srels = _srels_for.return_value
         sparts = _load_serialized_parts.return_value
@@ -81,7 +102,7 @@ class DescribePackageReader(object):
         # exercise ---------------------
         pkg_reader = PackageReader.from_file(pkg_file)
         # verify -----------------------
-        PhysPkgReader_.assert_called_once_with(pkg_file)
+        _PhysPkgReader_.assert_called_once_with(pkg_file)
         from_xml.assert_called_once_with(phys_reader.content_types_xml)
         _srels_for.assert_called_once_with(phys_reader, "/")
         _load_serialized_parts.assert_called_once_with(
@@ -319,6 +340,245 @@ class Describe_ContentTypeMap(object):
         return types_bldr.xml()
 
 
+class DescribePackageWriter(object):
+    def it_can_write_a_package(self, _PhysPkgWriter_, _write_methods):
+        # mockery ----------------------
+        pkg_file = Mock(name="pkg_file")
+        pkg_rels = Mock(name="pkg_rels")
+        parts = Mock(name="parts")
+        phys_writer = _PhysPkgWriter_.return_value
+        # exercise ---------------------
+        PackageWriter.write(pkg_file, pkg_rels, parts)
+        # verify -----------------------
+        expected_calls = [
+            call._write_content_types_stream(phys_writer, parts),
+            call._write_pkg_rels(phys_writer, pkg_rels),
+            call._write_parts(phys_writer, parts),
+        ]
+        _PhysPkgWriter_.assert_called_once_with(pkg_file)
+        assert _write_methods.mock_calls == expected_calls
+        phys_writer.close.assert_called_once_with()
+
+    def it_can_write_a_content_types_stream(self, xml_for, serialize_part_xml_):
+        # mockery ----------------------
+        phys_writer = Mock(name="phys_writer")
+        parts = Mock(name="parts")
+        # exercise ---------------------
+        PackageWriter._write_content_types_stream(phys_writer, parts)
+        # verify -----------------------
+        xml_for.assert_called_once_with(parts)
+        serialize_part_xml_.assert_called_once_with(xml_for.return_value)
+        phys_writer.write.assert_called_once_with(
+            "/[Content_Types].xml", serialize_part_xml_.return_value
+        )
+
+    def it_can_write_a_pkg_rels_item(self):
+        # mockery ----------------------
+        phys_writer = Mock(name="phys_writer")
+        pkg_rels = Mock(name="pkg_rels")
+        # exercise ---------------------
+        PackageWriter._write_pkg_rels(phys_writer, pkg_rels)
+        # verify -----------------------
+        phys_writer.write.assert_called_once_with("/_rels/.rels", pkg_rels.xml)
+
+    def it_can_write_a_list_of_parts(self):
+        # mockery ----------------------
+        phys_writer = Mock(name="phys_writer")
+        rels = MagicMock(name="rels")
+        rels.__len__.return_value = 1
+        part1 = Mock(name="part1", _rels=rels)
+        part2 = Mock(name="part2", _rels=[])
+        # exercise ---------------------
+        PackageWriter._write_parts(phys_writer, [part1, part2])
+        # verify -----------------------
+        expected_calls = [
+            call(part1.partname, part1.blob),
+            call(part1.partname.rels_uri, part1._rels.xml),
+            call(part2.partname, part2.blob),
+        ]
+        assert phys_writer.write.mock_calls == expected_calls
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def _PhysPkgWriter_(self, request):
+        _patch = patch("pptx.opc.serialized._PhysPkgWriter")
+        request.addfinalizer(_patch.stop)
+        return _patch.start()
+
+    @pytest.fixture
+    def serialize_part_xml_(self, request):
+        return function_mock(request, "pptx.opc.serialized.serialize_part_xml")
+
+    @pytest.fixture
+    def _write_methods(self, request):
+        """Mock that patches all the _write_* methods of PackageWriter"""
+        root_mock = Mock(name="PackageWriter")
+        patch1 = patch.object(PackageWriter, "_write_content_types_stream")
+        patch2 = patch.object(PackageWriter, "_write_pkg_rels")
+        patch3 = patch.object(PackageWriter, "_write_parts")
+        root_mock.attach_mock(patch1.start(), "_write_content_types_stream")
+        root_mock.attach_mock(patch2.start(), "_write_pkg_rels")
+        root_mock.attach_mock(patch3.start(), "_write_parts")
+
+        def fin():
+            patch1.stop()
+            patch2.stop()
+            patch3.stop()
+
+        request.addfinalizer(fin)
+        return root_mock
+
+    @pytest.fixture
+    def xml_for(self, request):
+        return method_mock(request, _ContentTypesItem, "xml_for")
+
+
+class Describe_DirPkgReader(object):
+    def it_is_used_by_PhysPkgReader_when_pkg_is_a_dir(self):
+        phys_reader = _PhysPkgReader(dir_pkg_path)
+        assert isinstance(phys_reader, _DirPkgReader)
+
+    def it_doesnt_mind_being_closed_even_though_it_doesnt_need_it(self, dir_reader):
+        dir_reader.close()
+
+    def it_can_retrieve_the_blob_for_a_pack_uri(self, dir_reader):
+        pack_uri = PackURI("/ppt/presentation.xml")
+        blob = dir_reader.blob_for(pack_uri)
+        sha1 = hashlib.sha1(blob).hexdigest()
+        assert sha1 == "51b78f4dabc0af2419d4e044ab73028c4bef53aa"
+
+    def it_can_get_the_content_types_xml(self, dir_reader):
+        sha1 = hashlib.sha1(dir_reader.content_types_xml).hexdigest()
+        assert sha1 == "a68cf138be3c4eb81e47e2550166f9949423c7df"
+
+    def it_can_retrieve_the_rels_xml_for_a_source_uri(self, dir_reader):
+        rels_xml = dir_reader.rels_xml_for(PACKAGE_URI)
+        sha1 = hashlib.sha1(rels_xml).hexdigest()
+        assert sha1 == "64ffe86bb2bbaad53c3c1976042b907f8e10c5a3"
+
+    def it_returns_none_when_part_has_no_rels_xml(self, dir_reader):
+        partname = PackURI("/ppt/viewProps.xml")
+        rels_xml = dir_reader.rels_xml_for(partname)
+        assert rels_xml is None
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def pkg_file_(self, request):
+        return loose_mock(request)
+
+    @pytest.fixture(scope="class")
+    def dir_reader(self):
+        return _DirPkgReader(dir_pkg_path)
+
+
+class Describe_PhysPkgReader(object):
+    def it_raises_when_pkg_path_is_not_a_package(self):
+        with pytest.raises(PackageNotFoundError):
+            _PhysPkgReader("foobar")
+
+
+class Describe_ZipPkgReader(object):
+    def it_is_used_by_PhysPkgReader_when_pkg_is_a_zip(self):
+        phys_reader = _PhysPkgReader(zip_pkg_path)
+        assert isinstance(phys_reader, _ZipPkgReader)
+
+    def it_is_used_by_PhysPkgReader_when_pkg_is_a_stream(self):
+        with open(zip_pkg_path, "rb") as stream:
+            phys_reader = _PhysPkgReader(stream)
+        assert isinstance(phys_reader, _ZipPkgReader)
+
+    def it_opens_pkg_file_zip_on_construction(self, ZipFile_, pkg_file_):
+        _ZipPkgReader(pkg_file_)
+        ZipFile_.assert_called_once_with(pkg_file_, "r")
+
+    def it_can_be_closed(self, ZipFile_):
+        # mockery ----------------------
+        zipf = ZipFile_.return_value
+        zip_pkg_reader = _ZipPkgReader(None)
+        # exercise ---------------------
+        zip_pkg_reader.close()
+        # verify -----------------------
+        zipf.close.assert_called_once_with()
+
+    def it_can_retrieve_the_blob_for_a_pack_uri(self, phys_reader):
+        pack_uri = PackURI("/ppt/presentation.xml")
+        blob = phys_reader.blob_for(pack_uri)
+        sha1 = hashlib.sha1(blob).hexdigest()
+        assert sha1 == "efa7bee0ac72464903a67a6744c1169035d52a54"
+
+    def it_has_the_content_types_xml(self, phys_reader):
+        sha1 = hashlib.sha1(phys_reader.content_types_xml).hexdigest()
+        assert sha1 == "ab762ac84414fce18893e18c3f53700c01db56c3"
+
+    def it_can_retrieve_rels_xml_for_source_uri(self, phys_reader):
+        rels_xml = phys_reader.rels_xml_for(PACKAGE_URI)
+        sha1 = hashlib.sha1(rels_xml).hexdigest()
+        assert sha1 == "e31451d4bbe7d24adbe21454b8e9fdae92f50de5"
+
+    def it_returns_none_when_part_has_no_rels_xml(self, phys_reader):
+        partname = PackURI("/ppt/viewProps.xml")
+        rels_xml = phys_reader.rels_xml_for(partname)
+        assert rels_xml is None
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(scope="class")
+    def phys_reader(self, request):
+        phys_reader = _ZipPkgReader(zip_pkg_path)
+        request.addfinalizer(phys_reader.close)
+        return phys_reader
+
+    @pytest.fixture
+    def pkg_file_(self, request):
+        return loose_mock(request)
+
+
+class Describe_ZipPkgWriter(object):
+    def it_is_used_by_PhysPkgWriter_unconditionally(self, tmp_pptx_path):
+        phys_writer = _PhysPkgWriter(tmp_pptx_path)
+        assert isinstance(phys_writer, _ZipPkgWriter)
+
+    def it_opens_pkg_file_zip_on_construction(self, ZipFile_):
+        pkg_file = Mock(name="pkg_file")
+        _ZipPkgWriter(pkg_file)
+        ZipFile_.assert_called_once_with(pkg_file, "w", compression=ZIP_DEFLATED)
+
+    def it_can_be_closed(self, ZipFile_):
+        # mockery ----------------------
+        zipf = ZipFile_.return_value
+        zip_pkg_writer = _ZipPkgWriter(None)
+        # exercise ---------------------
+        zip_pkg_writer.close()
+        # verify -----------------------
+        zipf.close.assert_called_once_with()
+
+    def it_can_write_a_blob(self, pkg_file):
+        # setup ------------------------
+        pack_uri = PackURI("/part/name.xml")
+        blob = "<BlobbityFooBlob/>".encode("utf-8")
+        # exercise ---------------------
+        pkg_writer = _PhysPkgWriter(pkg_file)
+        pkg_writer.write(pack_uri, blob)
+        pkg_writer.close()
+        # verify -----------------------
+        written_blob_sha1 = hashlib.sha1(blob).hexdigest()
+        zipf = ZipFile(pkg_file, "r")
+        retrieved_blob = zipf.read(pack_uri.membername)
+        zipf.close()
+        retrieved_blob_sha1 = hashlib.sha1(retrieved_blob).hexdigest()
+        assert retrieved_blob_sha1 == written_blob_sha1
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture
+    def pkg_file(self, request):
+        pkg_file = BytesIO()
+        request.addfinalizer(pkg_file.close)
+        return pkg_file
+
+
 class Describe_SerializedPart(object):
     def it_remembers_construction_values(self):
         # test data --------------------
@@ -425,8 +685,75 @@ class Describe_SerializedRelationshipCollection(object):
 
     @pytest.fixture
     def parse_xml(self, request):
-        return function_mock(request, "pptx.opc.pkgreader.parse_xml")
+        return function_mock(request, "pptx.opc.serialized.parse_xml")
 
     @pytest.fixture
     def _SerializedRelationship_(self, request):
-        return class_mock(request, "pptx.opc.pkgreader._SerializedRelationship")
+        return class_mock(request, "pptx.opc.serialized._SerializedRelationship")
+
+
+class Describe_ContentTypesItem(object):
+    def it_can_compose_content_types_xml(self, xml_for_fixture):
+        parts, expected_xml = xml_for_fixture
+        types_elm = _ContentTypesItem.xml_for(parts)
+        assert types_elm.xml == expected_xml
+
+    # fixtures ---------------------------------------------
+
+    def _mock_part(self, request, name, partname_str, content_type):
+        partname = PackURI(partname_str)
+        return instance_mock(
+            request, Part, name=name, partname=partname, content_type=content_type
+        )
+
+    @pytest.fixture(
+        params=[
+            ("Default", "/ppt/MEDIA/image.PNG", CT.PNG),
+            ("Default", "/ppt/media/image.xml", CT.XML),
+            ("Default", "/ppt/media/image.rels", CT.OPC_RELATIONSHIPS),
+            ("Default", "/ppt/media/image.jpeg", CT.JPEG),
+            ("Override", "/docProps/core.xml", "app/vnd.core"),
+            ("Override", "/ppt/slides/slide1.xml", "app/vnd.ct_sld"),
+            ("Override", "/zebra/foo.bar", "app/vnd.foobar"),
+        ]
+    )
+    def xml_for_fixture(self, request):
+        elm_type, partname_str, content_type = request.param
+        part_ = self._mock_part(request, "part_", partname_str, content_type)
+        # expected_xml -----------------
+        types_bldr = a_Types().with_nsdecls()
+        ext = partname_str.split(".")[-1].lower()
+        if elm_type == "Default" and ext not in ("rels", "xml"):
+            default_bldr = a_Default()
+            default_bldr.with_Extension(ext)
+            default_bldr.with_ContentType(content_type)
+            types_bldr.with_child(default_bldr)
+
+        types_bldr.with_child(
+            a_Default().with_Extension("rels").with_ContentType(CT.OPC_RELATIONSHIPS)
+        )
+        types_bldr.with_child(
+            a_Default().with_Extension("xml").with_ContentType(CT.XML)
+        )
+
+        if elm_type == "Override":
+            override_bldr = an_Override()
+            override_bldr.with_PartName(partname_str)
+            override_bldr.with_ContentType(content_type)
+            types_bldr.with_child(override_bldr)
+
+        expected_xml = types_bldr.xml()
+        return [part_], expected_xml
+
+
+# fixtures -------------------------------------------------
+
+
+@pytest.fixture
+def tmp_pptx_path(tmpdir):
+    return str(tmpdir.join("test_python-pptx.pptx"))
+
+
+@pytest.fixture
+def ZipFile_(request):
+    return class_mock(request, "pptx.opc.serialized.zipfile.ZipFile")

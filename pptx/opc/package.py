@@ -10,8 +10,7 @@ from pptx.compat import is_string
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships, serialize_part_xml
 from pptx.opc.packuri import PACKAGE_URI, PackURI
-from pptx.opc.pkgreader import PackageReader
-from pptx.opc.pkgwriter import PackageWriter
+from pptx.opc.serialized import PackageReader, PackageWriter
 from pptx.oxml import parse_xml
 from pptx.util import lazyproperty
 

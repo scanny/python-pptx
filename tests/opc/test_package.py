@@ -6,6 +6,7 @@ import io
 
 import pytest
 
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
@@ -17,7 +18,7 @@ from pptx.opc.package import (
     Unmarshaller,
     XmlPart,
 )
-from pptx.opc.pkgreader import PackageReader
+from pptx.opc.serialized import PackageReader
 from pptx.oxml.xmlchemy import BaseOxmlElement
 from pptx.package import Package
 
@@ -293,23 +294,6 @@ class DescribePart(object):
         __init_.assert_called_once_with(partname_, content_type_, blob_, package_)
         assert isinstance(part, Part)
 
-    def it_knows_its_partname(self, partname_get_fixture):
-        part, expected_partname = partname_get_fixture
-        assert part.partname == expected_partname
-
-    def it_can_change_its_partname(self, partname_set_fixture):
-        part, new_partname = partname_set_fixture
-        part.partname = new_partname
-        assert part.partname == new_partname
-
-    def it_knows_its_content_type(self, content_type_fixture):
-        part, expected_content_type = content_type_fixture
-        assert part.content_type == expected_content_type
-
-    def it_knows_the_package_it_belongs_to(self, package_get_fixture):
-        part, expected_package = package_get_fixture
-        assert part.package == expected_package
-
     def it_can_be_notified_after_unmarshalling_is_complete(self, part):
         part.after_unmarshal()
 
@@ -324,6 +308,83 @@ class DescribePart(object):
         part, new_blob = Part(None, None, "xyz", None), "foobar"
         part.blob = new_blob
         assert part.blob == new_blob
+
+    def it_knows_its_content_type(self, content_type_fixture):
+        part, expected_content_type = content_type_fixture
+        assert part.content_type == expected_content_type
+
+    def it_can_drop_a_relationship(self, drop_rel_fixture):
+        part, rId, rel_should_be_gone = drop_rel_fixture
+
+        part.drop_rel(rId)
+
+        if rel_should_be_gone:
+            assert rId not in part.rels
+        else:
+            assert rId in part.rels
+
+    def it_can_load_a_relationship(self, load_rel_fixture):
+        part, rels_, reltype_, target_, rId_ = load_rel_fixture
+
+        part.load_rel(reltype_, target_, rId_)
+
+        rels_.add_relationship.assert_called_once_with(reltype_, target_, rId_, False)
+
+    def it_knows_the_package_it_belongs_to(self, package_get_fixture):
+        part, expected_package = package_get_fixture
+        assert part.package == expected_package
+
+    def it_can_find_a_related_part_by_reltype(self, related_part_fixture):
+        part, reltype_, related_part_ = related_part_fixture
+
+        related_part = part.part_related_by(reltype_)
+
+        part.rels.part_with_reltype.assert_called_once_with(reltype_)
+        assert related_part is related_part_
+
+    def it_knows_its_partname(self, partname_get_fixture):
+        part, expected_partname = partname_get_fixture
+        assert part.partname == expected_partname
+
+    def it_can_change_its_partname(self, partname_set_fixture):
+        part, new_partname = partname_set_fixture
+        part.partname = new_partname
+        assert part.partname == new_partname
+
+    def it_can_establish_a_relationship_to_another_part(self, relate_to_part_fixture):
+        part, target_, reltype_, rId_ = relate_to_part_fixture
+
+        rId = part.relate_to(target_, reltype_)
+
+        part.rels.get_or_add.assert_called_once_with(reltype_, target_)
+        assert rId is rId_
+
+    def it_can_establish_an_external_relationship(self, relate_to_url_fixture):
+        part, url_, reltype_, rId_ = relate_to_url_fixture
+
+        rId = part.relate_to(url_, reltype_, is_external=True)
+
+        part.rels.get_or_add_ext_rel.assert_called_once_with(reltype_, url_)
+        assert rId is rId_
+
+    def it_can_find_a_related_part_by_rId(self, related_parts_fixture):
+        part, related_parts_ = related_parts_fixture
+        assert part.related_parts is related_parts_
+
+    def it_provides_access_to_its_relationships(self, rels_fixture):
+        part, Relationships_, partname_, rels_ = rels_fixture
+
+        rels = part.rels
+
+        Relationships_.assert_called_once_with(partname_.baseURI)
+        assert rels is rels_
+
+    def it_can_find_the_uri_of_an_external_relationship(self, target_ref_fixture):
+        part, rId_, url_ = target_ref_fixture
+
+        url = part.target_ref(rId_)
+
+        assert url == url_
 
     def it_can_load_a_blob_from_a_file_path_to_help(self):
         path = absjoin(test_file_dir, "minimal.pptx")
@@ -350,105 +411,6 @@ class DescribePart(object):
         part = Part(None, content_type, None, None)
         return part, content_type
 
-    @pytest.fixture
-    def load_fixture(self, request, partname_, content_type_, blob_, package_, __init_):
-        return (partname_, content_type_, blob_, package_, __init_)
-
-    @pytest.fixture
-    def package_get_fixture(self, package_):
-        part = Part(None, None, None, package_)
-        return part, package_
-
-    @pytest.fixture
-    def part(self):
-        part = Part(None, None)
-        return part
-
-    @pytest.fixture
-    def partname_get_fixture(self):
-        partname = PackURI("/part/name")
-        part = Part(partname, None, None, None)
-        return part, partname
-
-    @pytest.fixture
-    def partname_set_fixture(self):
-        old_partname = PackURI("/old/part/name")
-        new_partname = PackURI("/new/part/name")
-        part = Part(old_partname, None, None, None)
-        return part, new_partname
-
-    # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def blob_(self, request):
-        return instance_mock(request, bytes)
-
-    @pytest.fixture
-    def content_type_(self, request):
-        return instance_mock(request, str)
-
-    @pytest.fixture
-    def __init_(self, request):
-        return initializer_mock(request, Part)
-
-    @pytest.fixture
-    def package_(self, request):
-        return instance_mock(request, OpcPackage)
-
-    @pytest.fixture
-    def partname_(self, request):
-        return instance_mock(request, PackURI)
-
-
-class DescribePartRelationshipManagementInterface(object):
-    def it_provides_access_to_its_relationships(self, rels_fixture):
-        part, Relationships_, partname_, rels_ = rels_fixture
-        rels = part.rels
-        Relationships_.assert_called_once_with(partname_.baseURI)
-        assert rels is rels_
-
-    def it_can_load_a_relationship(self, load_rel_fixture):
-        part, rels_, reltype_, target_, rId_ = load_rel_fixture
-        part.load_rel(reltype_, target_, rId_)
-        rels_.add_relationship.assert_called_once_with(reltype_, target_, rId_, False)
-
-    def it_can_establish_a_relationship_to_another_part(self, relate_to_part_fixture):
-        part, target_, reltype_, rId_ = relate_to_part_fixture
-        rId = part.relate_to(target_, reltype_)
-        part.rels.get_or_add.assert_called_once_with(reltype_, target_)
-        assert rId is rId_
-
-    def it_can_establish_an_external_relationship(self, relate_to_url_fixture):
-        part, url_, reltype_, rId_ = relate_to_url_fixture
-        rId = part.relate_to(url_, reltype_, is_external=True)
-        part.rels.get_or_add_ext_rel.assert_called_once_with(reltype_, url_)
-        assert rId is rId_
-
-    def it_can_drop_a_relationship(self, drop_rel_fixture):
-        part, rId, rel_should_be_gone = drop_rel_fixture
-        part.drop_rel(rId)
-        if rel_should_be_gone:
-            assert rId not in part.rels
-        else:
-            assert rId in part.rels
-
-    def it_can_find_a_related_part_by_reltype(self, related_part_fixture):
-        part, reltype_, related_part_ = related_part_fixture
-        related_part = part.part_related_by(reltype_)
-        part.rels.part_with_reltype.assert_called_once_with(reltype_)
-        assert related_part is related_part_
-
-    def it_can_find_a_related_part_by_rId(self, related_parts_fixture):
-        part, related_parts_ = related_parts_fixture
-        assert part.related_parts is related_parts_
-
-    def it_can_find_the_uri_of_an_external_relationship(self, target_ref_fixture):
-        part, rId_, url_ = target_ref_fixture
-        url = part.target_ref(rId_)
-        assert url == url_
-
-    # fixtures ---------------------------------------------
-
     @pytest.fixture(
         params=[
             ("p:sp", True),
@@ -464,9 +426,31 @@ class DescribePartRelationshipManagementInterface(object):
         return part, rId, rel_should_be_dropped
 
     @pytest.fixture
+    def load_fixture(self, request, partname_, content_type_, blob_, package_, __init_):
+        return (partname_, content_type_, blob_, package_, __init_)
+
+    @pytest.fixture
     def load_rel_fixture(self, part, rels_, reltype_, part_, rId_):
         part._rels = rels_
         return part, rels_, reltype_, part_, rId_
+
+    @pytest.fixture
+    def package_get_fixture(self, package_):
+        part = Part(None, None, None, package_)
+        return part, package_
+
+    @pytest.fixture
+    def partname_get_fixture(self):
+        partname = PackURI("/part/name")
+        part = Part(partname, None, None, None)
+        return part, partname
+
+    @pytest.fixture
+    def partname_set_fixture(self):
+        old_partname = PackURI("/old/part/name")
+        new_partname = PackURI("/new/part/name")
+        part = Part(old_partname, None, None, None)
+        return part, new_partname
 
     @pytest.fixture
     def relate_to_part_fixture(self, request, part, reltype_, part_, rels_, rId_):
@@ -500,6 +484,22 @@ class DescribePartRelationshipManagementInterface(object):
         return part, rId_, url_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def blob_(self, request):
+        return instance_mock(request, bytes)
+
+    @pytest.fixture
+    def content_type_(self, request):
+        return instance_mock(request, str)
+
+    @pytest.fixture
+    def __init_(self, request):
+        return initializer_mock(request, Part)
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, OpcPackage)
 
     @pytest.fixture
     def part(self):
@@ -706,6 +706,241 @@ class DescribePartFactory(object):
         return partname_2_, content_type_2_, pkg_2_, blob_2_
 
 
+class DescribeRelationshipCollection(object):
+    """Unit-test suite for `pptx.opc.package._Relationships` objects."""
+
+    def it_has_a_len(self):
+        rels = RelationshipCollection(None)
+        assert len(rels) == 0
+
+    def it_has_dict_style_lookup_of_rel_by_rId(self):
+        rel = Mock(name="rel", rId="foobar")
+        rels = RelationshipCollection(None)
+        rels["foobar"] = rel
+        assert rels["foobar"] == rel
+
+    def it_should_raise_on_failed_lookup_by_rId(self):
+        rels = RelationshipCollection(None)
+        with pytest.raises(KeyError):
+            rels["barfoo"]
+
+    def it_can_add_a_relationship(self, _Relationship_):
+        baseURI, rId, reltype, target, external = (
+            "baseURI",
+            "rId9",
+            "reltype",
+            "target",
+            False,
+        )
+        rels = RelationshipCollection(baseURI)
+        rel = rels.add_relationship(reltype, target, rId, external)
+        _Relationship_.assert_called_once_with(rId, reltype, target, baseURI, external)
+        assert rels[rId] == rel
+        assert rel == _Relationship_.return_value
+
+    def it_can_add_a_relationship_if_not_found(
+        self, rels_with_matching_rel_, rels_with_missing_rel_
+    ):
+
+        rels, reltype, part, matching_rel = rels_with_matching_rel_
+        assert rels.get_or_add(reltype, part) == matching_rel
+
+        rels, reltype, part, new_rel = rels_with_missing_rel_
+        assert rels.get_or_add(reltype, part) == new_rel
+
+    def it_can_add_an_external_relationship(self, add_ext_rel_fixture_):
+        rels, reltype, url = add_ext_rel_fixture_
+        rId = rels.get_or_add_ext_rel(reltype, url)
+        rel = rels[rId]
+        assert rel.is_external
+        assert rel.target_ref == url
+        assert rel.reltype == reltype
+
+    def it_should_return_an_existing_one_if_it_matches(
+        self, add_matching_ext_rel_fixture_
+    ):
+        rels, reltype, url, rId = add_matching_ext_rel_fixture_
+        _rId = rels.get_or_add_ext_rel(reltype, url)
+        assert _rId == rId
+        assert len(rels) == 1
+
+    def it_can_find_a_related_part_by_reltype(self, rels_with_target_known_by_reltype):
+        rels, reltype, known_target_part = rels_with_target_known_by_reltype
+        part = rels.part_with_reltype(reltype)
+        assert part is known_target_part
+
+    def it_can_find_a_related_part_by_rId(self, rels_with_known_target_part):
+        rels, rId, known_target_part = rels_with_known_target_part
+        part = rels.related_parts[rId]
+        assert part is known_target_part
+
+    def it_raises_KeyError_on_part_with_rId_not_found(self):
+        with pytest.raises(KeyError):
+            RelationshipCollection(None).related_parts["rId666"]
+
+    def it_knows_the_next_available_rId_to_help(self, rels_with_rId_gap):
+        rels, expected_next_rId = rels_with_rId_gap
+        next_rId = rels._next_rId
+        assert next_rId == expected_next_rId
+
+    def it_can_compose_rels_xml(self, rels, rels_elm):
+        rels.xml
+
+        rels_elm.assert_has_calls(
+            [
+                call.add_rel("rId1", "http://rt-hyperlink", "http://some/link", True),
+                call.add_rel("rId2", "http://rt-image", "../media/image1.png", False),
+                call.xml(),
+            ],
+            any_order=True,
+        )
+
+    # --- fixtures -----------------------------------------
+
+    @pytest.fixture
+    def add_ext_rel_fixture_(self, reltype, url):
+        rels = RelationshipCollection(None)
+        return rels, reltype, url
+
+    @pytest.fixture
+    def add_matching_ext_rel_fixture_(self, request, reltype, url):
+        rId = "rId369"
+        rels = RelationshipCollection(None)
+        rels.add_relationship(reltype, url, rId, is_external=True)
+        return rels, reltype, url, rId
+
+    @pytest.fixture
+    def _rel_with_known_target_part(self, _rId, _reltype, _target_part, _baseURI):
+        rel = _Relationship(_rId, _reltype, _target_part, _baseURI)
+        return rel, _rId, _target_part
+
+    @pytest.fixture
+    def _rel_with_target_known_by_reltype(self, _rId, _reltype, _target_part, _baseURI):
+        rel = _Relationship(_rId, _reltype, _target_part, _baseURI)
+        return rel, _reltype, _target_part
+
+    @pytest.fixture
+    def rels_elm(self, request):
+        """Return a rels_elm mock that will be returned from CT_Relationships.new()"""
+        # --- create rels_elm mock with a .xml property ---
+        rels_elm = Mock(name="rels_elm")
+        xml = PropertyMock(name="xml")
+        type(rels_elm).xml = xml
+        rels_elm.attach_mock(xml, "xml")
+        rels_elm.reset_mock()  # to clear attach_mock call
+        # --- patch CT_Relationships to return that rels_elm ---
+        patch_ = patch.object(CT_Relationships, "new", return_value=rels_elm)
+        patch_.start()
+        request.addfinalizer(patch_.stop)
+        return rels_elm
+
+    @pytest.fixture
+    def rels_with_known_target_part(self, rels, _rel_with_known_target_part):
+        rel, rId, target_part = _rel_with_known_target_part
+        rels.add_relationship(None, target_part, rId)
+        return rels, rId, target_part
+
+    @pytest.fixture
+    def rels_with_matching_rel_(self, request, rels):
+        matching_reltype_ = instance_mock(request, str, name="matching_reltype_")
+        matching_part_ = instance_mock(request, Part, name="matching_part_")
+        matching_rel_ = instance_mock(
+            request,
+            _Relationship,
+            name="matching_rel_",
+            reltype=matching_reltype_,
+            target_part=matching_part_,
+            is_external=False,
+        )
+        rels[1] = matching_rel_
+        return rels, matching_reltype_, matching_part_, matching_rel_
+
+    @pytest.fixture
+    def rels_with_missing_rel_(self, request, rels, _Relationship_):
+        missing_reltype_ = instance_mock(request, str, name="missing_reltype_")
+        missing_part_ = instance_mock(request, Part, name="missing_part_")
+        new_rel_ = instance_mock(
+            request,
+            _Relationship,
+            name="new_rel_",
+            reltype=missing_reltype_,
+            target_part=missing_part_,
+            is_external=False,
+        )
+        _Relationship_.return_value = new_rel_
+        return rels, missing_reltype_, missing_part_, new_rel_
+
+    @pytest.fixture
+    def rels_with_rId_gap(self, request):
+        rels = RelationshipCollection(None)
+
+        rel_with_rId1 = instance_mock(
+            request, _Relationship, name="rel_with_rId1", rId="rId1"
+        )
+        rel_with_rId3 = instance_mock(
+            request, _Relationship, name="rel_with_rId3", rId="rId3"
+        )
+        rels["rId1"] = rel_with_rId1
+        rels["rId3"] = rel_with_rId3
+        return rels, "rId2"
+
+    @pytest.fixture
+    def rels_with_target_known_by_reltype(
+        self, rels, _rel_with_target_known_by_reltype
+    ):
+        rel, reltype, target_part = _rel_with_target_known_by_reltype
+        rels[1] = rel
+        return rels, reltype, target_part
+
+    # --- fixture components -------------------------------
+
+    @pytest.fixture
+    def _baseURI(self):
+        return "/baseURI"
+
+    @pytest.fixture
+    def _Relationship_(self, request):
+        return class_mock(request, "pptx.opc.package._Relationship")
+
+    @pytest.fixture
+    def rels(self):
+        """
+        Populated RelationshipCollection instance that will exercise the
+        rels.xml property.
+        """
+        rels = RelationshipCollection("/baseURI")
+        rels.add_relationship(
+            reltype="http://rt-hyperlink",
+            target="http://some/link",
+            rId="rId1",
+            is_external=True,
+        )
+        part = Mock(name="part")
+        part.partname.relative_ref.return_value = "../media/image1.png"
+        rels.add_relationship(reltype="http://rt-image", target=part, rId="rId2")
+        return rels
+
+    @pytest.fixture
+    def _reltype(self):
+        return RT.SLIDE
+
+    @pytest.fixture
+    def reltype(self):
+        return "http://rel/type"
+
+    @pytest.fixture
+    def _rId(self):
+        return "rId6"
+
+    @pytest.fixture
+    def _target_part(self, request):
+        return loose_mock(request)
+
+    @pytest.fixture
+    def url(self):
+        return "https://github.com/scanny/python-pptx"
+
+
 class Describe_Relationship(object):
     """Unit-test suite for `pptx.opc.package._Relationship` objects."""
 
@@ -742,130 +977,6 @@ class Describe_Relationship(object):
         baseURI = "/ppt/slides"
         rel = _Relationship(None, None, part, baseURI)  # external=False
         assert rel.target_ref == "../media/image1.png"
-
-
-class DescribeRelationshipCollection(object):
-    """Unit-test suite for `pptx.opc.package._Relationships` objects."""
-
-    def it_has_a_len(self):
-        rels = RelationshipCollection(None)
-        assert len(rels) == 0
-
-    def it_has_dict_style_lookup_of_rel_by_rId(self):
-        rel = Mock(name="rel", rId="foobar")
-        rels = RelationshipCollection(None)
-        rels["foobar"] = rel
-        assert rels["foobar"] == rel
-
-    def it_should_raise_on_failed_lookup_by_rId(self):
-        rels = RelationshipCollection(None)
-        with pytest.raises(KeyError):
-            rels["barfoo"]
-
-    def it_can_add_a_relationship(self, _Relationship_):
-        baseURI, rId, reltype, target, external = (
-            "baseURI",
-            "rId9",
-            "reltype",
-            "target",
-            False,
-        )
-        rels = RelationshipCollection(baseURI)
-        rel = rels.add_relationship(reltype, target, rId, external)
-        _Relationship_.assert_called_once_with(rId, reltype, target, baseURI, external)
-        assert rels[rId] == rel
-        assert rel == _Relationship_.return_value
-
-    def it_can_add_an_external_relationship(self, add_ext_rel_fixture_):
-        rels, reltype, url = add_ext_rel_fixture_
-        rId = rels.get_or_add_ext_rel(reltype, url)
-        rel = rels[rId]
-        assert rel.is_external
-        assert rel.target_ref == url
-        assert rel.reltype == reltype
-
-    def it_should_return_an_existing_one_if_it_matches(
-        self, add_matching_ext_rel_fixture_
-    ):
-        rels, reltype, url, rId = add_matching_ext_rel_fixture_
-        _rId = rels.get_or_add_ext_rel(reltype, url)
-        assert _rId == rId
-        assert len(rels) == 1
-
-    def it_can_compose_rels_xml(self, rels, rels_elm):
-        # exercise ---------------------
-        rels.xml
-        # verify -----------------------
-        rels_elm.assert_has_calls(
-            [
-                call.add_rel("rId1", "http://rt-hyperlink", "http://some/link", True),
-                call.add_rel("rId2", "http://rt-image", "../media/image1.png", False),
-                call.xml(),
-            ],
-            any_order=True,
-        )
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def add_ext_rel_fixture_(self, reltype, url):
-        rels = RelationshipCollection(None)
-        return rels, reltype, url
-
-    @pytest.fixture
-    def add_matching_ext_rel_fixture_(self, request, reltype, url):
-        rId = "rId369"
-        rels = RelationshipCollection(None)
-        rels.add_relationship(reltype, url, rId, is_external=True)
-        return rels, reltype, url, rId
-
-    @pytest.fixture
-    def _Relationship_(self, request):
-        return class_mock(request, "pptx.opc.package._Relationship")
-
-    @pytest.fixture
-    def rels(self):
-        """
-        Populated RelationshipCollection instance that will exercise the
-        rels.xml property.
-        """
-        rels = RelationshipCollection("/baseURI")
-        rels.add_relationship(
-            reltype="http://rt-hyperlink",
-            target="http://some/link",
-            rId="rId1",
-            is_external=True,
-        )
-        part = Mock(name="part")
-        part.partname.relative_ref.return_value = "../media/image1.png"
-        rels.add_relationship(reltype="http://rt-image", target=part, rId="rId2")
-        return rels
-
-    @pytest.fixture
-    def rels_elm(self, request):
-        """
-        Return a rels_elm mock that will be returned from
-        CT_Relationships.new()
-        """
-        # create rels_elm mock with a .xml property
-        rels_elm = Mock(name="rels_elm")
-        xml = PropertyMock(name="xml")
-        type(rels_elm).xml = xml
-        rels_elm.attach_mock(xml, "xml")
-        rels_elm.reset_mock()  # to clear attach_mock call
-        # patch CT_Relationships to return that rels_elm
-        patch_ = patch.object(CT_Relationships, "new", return_value=rels_elm)
-        patch_.start()
-        request.addfinalizer(patch_.stop)
-        return rels_elm
-
-    @pytest.fixture
-    def reltype(self):
-        return "http://rel/type"
-
-    @pytest.fixture
-    def url(self):
-        return "https://github.com/scanny/python-pptx"
 
 
 class DescribeUnmarshaller(object):
