@@ -37,22 +37,24 @@ def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):
     return _patch.start()
 
 
-def function_mock(request, q_function_name, **kwargs):
+def function_mock(request, q_function_name, autospec=True, **kwargs):
     """Return mock patching function with qualified name `q_function_name`.
 
     Patch is reversed after calling test returns.
     """
-    _patch = patch(q_function_name, **kwargs)
+    _patch = patch(q_function_name, autospec=autospec, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
 
-def initializer_mock(request, cls, **kwargs):
+def initializer_mock(request, cls, autospec=True, **kwargs):
     """Return mock for __init__() method on `cls`.
 
     The patch is reversed after pytest uses it.
     """
-    _patch = patch.object(cls, "__init__", return_value=None, **kwargs)
+    _patch = patch.object(
+        cls, "__init__", autospec=autospec, return_value=None, **kwargs
+    )
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
@@ -80,12 +82,12 @@ def loose_mock(request, name=None, **kwargs):
     return Mock(name=name, **kwargs)
 
 
-def method_mock(request, cls, method_name, **kwargs):
+def method_mock(request, cls, method_name, autospec=True, **kwargs):
     """Return mock for method `method_name` on `cls`.
 
     The patch is reversed after pytest uses it.
     """
-    _patch = patch.object(cls, method_name, **kwargs)
+    _patch = patch.object(cls, method_name, autospec=autospec, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 

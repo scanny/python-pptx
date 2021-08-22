@@ -6,7 +6,7 @@ import io
 
 import pytest
 
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
@@ -288,10 +288,13 @@ class DescribeOpcPackage(object):
 class DescribePart(object):
     """Unit-test suite for `pptx.opc.package.Part` objects."""
 
-    def it_can_be_constructed_by_PartFactory(self, load_fixture):
-        partname_, content_type_, blob_, package_, __init_ = load_fixture
-        part = Part.load(partname_, content_type_, blob_, package_)
-        __init_.assert_called_once_with(partname_, content_type_, blob_, package_)
+    def it_can_be_constructed_by_PartFactory(self, request, package_):
+        partname_ = PackURI("/ppt/slides/slide1.xml")
+        _init_ = initializer_mock(request, Part)
+
+        part = Part.load(partname_, CT.PML_SLIDE, b"blob", package_)
+
+        _init_.assert_called_once_with(part, partname_, CT.PML_SLIDE, b"blob", package_)
         assert isinstance(part, Part)
 
     def it_can_be_notified_after_unmarshalling_is_complete(self, part):
@@ -426,10 +429,6 @@ class DescribePart(object):
         return part, rId, rel_should_be_dropped
 
     @pytest.fixture
-    def load_fixture(self, request, partname_, content_type_, blob_, package_, __init_):
-        return (partname_, content_type_, blob_, package_, __init_)
-
-    @pytest.fixture
     def load_rel_fixture(self, part, rels_, reltype_, part_, rId_):
         part._rels = rels_
         return part, rels_, reltype_, part_, rId_
@@ -490,14 +489,6 @@ class DescribePart(object):
         return instance_mock(request, bytes)
 
     @pytest.fixture
-    def content_type_(self, request):
-        return instance_mock(request, str)
-
-    @pytest.fixture
-    def __init_(self, request):
-        return initializer_mock(request, Part)
-
-    @pytest.fixture
     def package_(self, request):
         return instance_mock(request, OpcPackage)
 
@@ -552,14 +543,19 @@ class DescribePart(object):
 class DescribeXmlPart(object):
     """Unit-test suite for `pptx.opc.package.XmlPart` objects."""
 
-    def it_can_be_constructed_by_PartFactory(self, load_fixture):
-        partname_, content_type_, blob_, package_ = load_fixture[:4]
-        element_, parse_xml_, __init_ = load_fixture[4:]
-        # exercise ---------------------
-        part = XmlPart.load(partname_, content_type_, blob_, package_)
-        # verify -----------------------
-        parse_xml_.assert_called_once_with(blob_)
-        __init_.assert_called_once_with(partname_, content_type_, element_, package_)
+    def it_can_be_constructed_by_PartFactory(self, request):
+        partname = PackURI("/ppt/slides/slide1.xml")
+        element_ = element("p:sld")
+        package_ = instance_mock(request, OpcPackage)
+        parse_xml_ = function_mock(
+            request, "pptx.opc.package.parse_xml", return_value=element_
+        )
+        _init_ = initializer_mock(request, XmlPart)
+
+        part = XmlPart.load(partname, CT.PML_SLIDE, b"blob", package_)
+
+        parse_xml_.assert_called_once_with(b"blob")
+        _init_.assert_called_once_with(part, partname, CT.PML_SLIDE, element_, package_)
         assert isinstance(part, XmlPart)
 
     def it_can_serialize_to_xml(self, blob_fixture):
@@ -580,62 +576,14 @@ class DescribeXmlPart(object):
         return xml_part, element_, serialize_part_xml_
 
     @pytest.fixture
-    def load_fixture(
-        self,
-        request,
-        partname_,
-        content_type_,
-        blob_,
-        package_,
-        element_,
-        parse_xml_,
-        __init_,
-    ):
-        return (
-            partname_,
-            content_type_,
-            blob_,
-            package_,
-            element_,
-            parse_xml_,
-            __init_,
-        )
-
-    @pytest.fixture
     def part_fixture(self):
         return XmlPart(None, None, None, None)
 
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def blob_(self, request):
-        return instance_mock(request, str)
-
-    @pytest.fixture
-    def content_type_(self, request):
-        return instance_mock(request, str)
-
-    @pytest.fixture
     def element_(self, request):
         return instance_mock(request, BaseOxmlElement)
-
-    @pytest.fixture
-    def __init_(self, request):
-        return initializer_mock(request, XmlPart)
-
-    @pytest.fixture
-    def package_(self, request):
-        return instance_mock(request, OpcPackage)
-
-    @pytest.fixture
-    def parse_xml_(self, request, element_):
-        return function_mock(
-            request, "pptx.opc.package.parse_xml", return_value=element_
-        )
-
-    @pytest.fixture
-    def partname_(self, request):
-        return instance_mock(request, PackURI)
 
     @pytest.fixture
     def serialize_part_xml_(self, request):

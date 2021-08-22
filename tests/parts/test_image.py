@@ -29,14 +29,21 @@ new_image_path = absjoin(test_file_dir, "monty-truth.png")
 class DescribeImagePart(object):
     """Unit-test suite for `pptx.parts.image.ImagePart` objects."""
 
-    def it_can_construct_from_an_image_object(self, new_fixture):
-        package_, image_, _init_, partname_ = new_fixture
+    def it_can_construct_from_an_image_object(self, request, image_):
+        package_ = instance_mock(request, Package)
+        _init_ = initializer_mock(request, ImagePart)
+        partname_ = package_.next_image_partname.return_value
 
         image_part = ImagePart.new(package_, image_)
 
         package_.next_image_partname.assert_called_once_with(image_.ext)
         _init_.assert_called_once_with(
-            partname_, image_.content_type, image_.blob, package_, image_.filename
+            image_part,
+            partname_,
+            image_.content_type,
+            image_.blob,
+            package_,
+            image_.filename,
         )
         assert isinstance(image_part, ImagePart)
 
@@ -61,11 +68,6 @@ class DescribeImagePart(object):
         blob, filename = "blob", "foobar.png"
         image_part = ImagePart(None, None, blob, None, filename)
         return image_part, Image_, blob, filename, image_
-
-    @pytest.fixture
-    def new_fixture(self, request, package_, image_, _init_):
-        partname_ = package_.next_image_partname.return_value
-        return package_, image_, _init_, partname_
 
     @pytest.fixture(
         params=[
@@ -99,14 +101,6 @@ class DescribeImagePart(object):
     def image_(self, request):
         return instance_mock(request, Image)
 
-    @pytest.fixture
-    def _init_(self, request):
-        return initializer_mock(request, ImagePart)
-
-    @pytest.fixture
-    def package_(self, request):
-        return instance_mock(request, Package)
-
 
 class DescribeImage(object):
     """Unit-test suite for `pptx.parts.image.Image` objects."""
@@ -123,10 +117,10 @@ class DescribeImage(object):
         Image.from_blob.assert_called_once_with(blob, None)
         assert image is image_
 
-    def it_can_construct_from_a_blob(self, from_blob_fixture):
-        blob, filename = from_blob_fixture
-        image = Image.from_blob(blob, filename)
-        Image.__init__.assert_called_once_with(blob, filename)
+    def it_can_construct_from_a_blob(self, _init_):
+        image = Image.from_blob(b"blob", "foo.png")
+
+        _init_.assert_called_once_with(image, b"blob", "foo.png")
         assert isinstance(image, Image)
 
     def it_knows_its_blob(self, blob_fixture):
@@ -220,11 +214,6 @@ class DescribeImage(object):
         filename = request.param
         image = Image(None, filename)
         return image, filename
-
-    @pytest.fixture
-    def from_blob_fixture(self, _init_):
-        blob, filename = b"foobar", "foo.png"
-        return blob, filename
 
     @pytest.fixture
     def from_path_fixture(self, from_blob_, image_):

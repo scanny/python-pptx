@@ -143,18 +143,15 @@ class _ImageParts(object):
             yield image_part
 
     def get_or_add_image_part(self, image_file):
-        """
-        Return an |ImagePart| object containing the image in *image_file*,
-        which is either a path to an image file or a file-like object
-        containing an image. If an image part containing this same image
-        already exists, that instance is returned, otherwise a new image part
-        is created.
+        """Return |ImagePart| object containing the image in `image_file`.
+
+        `image_file` can be either a path to an image file or a file-like object
+        containing an image. If an image part containing this same image already exists,
+        that instance is returned, otherwise a new image part is created.
         """
         image = Image.from_file(image_file)
         image_part = self._find_by_sha1(image.sha1)
-        if image_part is None:
-            image_part = ImagePart.new(self._package, image)
-        return image_part
+        return ImagePart.new(self._package, image) if image_part is None else image_part
 
     def _find_by_sha1(self, sha1):
         """

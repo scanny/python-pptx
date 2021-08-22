@@ -54,54 +54,20 @@ zip_pkg_path = test_pptx_path
 
 
 class DescribePackageReader(object):
-    @pytest.fixture
-    def from_xml(self, request):
-        return method_mock(request, _ContentTypeMap, "from_xml")
-
-    @pytest.fixture
-    def init(self, request):
-        return initializer_mock(request, PackageReader)
-
-    @pytest.fixture
-    def _load_serialized_parts(self, request):
-        return method_mock(request, PackageReader, "_load_serialized_parts")
-
-    @pytest.fixture
-    def _PhysPkgReader_(self, request):
-        _patch = patch("pptx.opc.serialized._PhysPkgReader", spec_set=_ZipPkgReader)
-        request.addfinalizer(_patch.stop)
-        return _patch.start()
-
-    @pytest.fixture
-    def _SerializedPart_(self, request):
-        return class_mock(request, "pptx.opc.serialized._SerializedPart")
-
-    @pytest.fixture
-    def _SerializedRelationshipCollection_(self, request):
-        return class_mock(
-            request, "pptx.opc.serialized._SerializedRelationshipCollection"
-        )
-
-    @pytest.fixture
-    def _srels_for(self, request):
-        return method_mock(request, PackageReader, "_srels_for")
-
-    @pytest.fixture
-    def _walk_phys_parts(self, request):
-        return method_mock(request, PackageReader, "_walk_phys_parts")
+    """Unit-test suite for `pptx.opc.serialized.PackageReader` objects."""
 
     def it_can_construct_from_pkg_file(
         self, init, _PhysPkgReader_, from_xml, _srels_for, _load_serialized_parts
     ):
-        # mockery ----------------------
+
         phys_reader = _PhysPkgReader_.return_value
         content_types = from_xml.return_value
         pkg_srels = _srels_for.return_value
         sparts = _load_serialized_parts.return_value
         pkg_file = Mock(name="pkg_file")
-        # exercise ---------------------
+
         pkg_reader = PackageReader.from_file(pkg_file)
-        # verify -----------------------
+
         _PhysPkgReader_.assert_called_once_with(pkg_file)
         from_xml.assert_called_once_with(phys_reader.content_types_xml)
         _srels_for.assert_called_once_with(phys_reader, "/")
@@ -109,7 +75,7 @@ class DescribePackageReader(object):
             phys_reader, pkg_srels, content_types
         )
         phys_reader.close.assert_called_once_with()
-        init.assert_called_once_with(content_types, pkg_srels, sparts)
+        init.assert_called_once_with(pkg_reader, content_types, pkg_srels, sparts)
         assert isinstance(pkg_reader, PackageReader)
 
     def it_can_iterate_over_the_serialized_parts(self):
@@ -234,6 +200,44 @@ class DescribePackageReader(object):
         phys_reader.rels_xml_for.assert_called_once_with(source_uri)
         load_from_xml.assert_called_once_with(source_uri.baseURI, rels_xml)
         assert retval == srels
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def from_xml(self, request):
+        return method_mock(request, _ContentTypeMap, "from_xml")
+
+    @pytest.fixture
+    def init(self, request):
+        return initializer_mock(request, PackageReader)
+
+    @pytest.fixture
+    def _load_serialized_parts(self, request):
+        return method_mock(request, PackageReader, "_load_serialized_parts")
+
+    @pytest.fixture
+    def _PhysPkgReader_(self, request):
+        _patch = patch("pptx.opc.serialized._PhysPkgReader", spec_set=_ZipPkgReader)
+        request.addfinalizer(_patch.stop)
+        return _patch.start()
+
+    @pytest.fixture
+    def _SerializedPart_(self, request):
+        return class_mock(request, "pptx.opc.serialized._SerializedPart")
+
+    @pytest.fixture
+    def _SerializedRelationshipCollection_(self, request):
+        return class_mock(
+            request, "pptx.opc.serialized._SerializedRelationshipCollection"
+        )
+
+    @pytest.fixture
+    def _srels_for(self, request):
+        return method_mock(request, PackageReader, "_srels_for")
+
+    @pytest.fixture
+    def _walk_phys_parts(self, request):
+        return method_mock(request, PackageReader, "_walk_phys_parts")
 
 
 class Describe_ContentTypeMap(object):

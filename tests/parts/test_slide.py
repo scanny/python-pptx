@@ -52,15 +52,20 @@ class DescribeBaseSlidePart(object):
         slide, rId, image_ = get_image_fixture
         assert slide.get_image(rId) is image_
 
-    def it_can_add_an_image_part(self, image_part_fixture):
-        slide, image_file, image_part_, rId_ = image_part_fixture
+    def it_can_add_an_image_part(self, request, image_part_):
+        package_ = instance_mock(request, Package)
+        package_.get_or_add_image_part.return_value = image_part_
+        relate_to_ = method_mock(
+            request, BaseSlidePart, "relate_to", return_value="rId6"
+        )
+        slide_part = BaseSlidePart(None, None, None, package_)
 
-        image_part, rId = slide.get_or_add_image_part(image_file)
+        image_part, rId = slide_part.get_or_add_image_part("foobar.png")
 
-        slide._package.get_or_add_image_part.assert_called_once_with(image_file)
-        slide.relate_to.assert_called_once_with(image_part_, RT.IMAGE)
+        package_.get_or_add_image_part.assert_called_once_with("foobar.png")
+        relate_to_.assert_called_once_with(slide_part, image_part_, RT.IMAGE)
         assert image_part is image_part_
-        assert rId is rId_
+        assert rId == "rId6"
 
     # fixtures -------------------------------------------------------
 
@@ -71,14 +76,6 @@ class DescribeBaseSlidePart(object):
         related_parts_prop_.return_value = {rId: image_part_}
         image_part_.image = image_
         return slide, rId, image_
-
-    @pytest.fixture
-    def image_part_fixture(self, partname_, package_, image_part_, relate_to_):
-        slide = BaseSlidePart(partname_, None, None, package_)
-        image_file, rId = "foobar.png", "rId6"
-        package_.get_or_add_image_part.return_value = image_part_
-        relate_to_.return_value = rId
-        return slide, image_file, image_part_, rId
 
     @pytest.fixture
     def name_fixture(self):
@@ -96,18 +93,6 @@ class DescribeBaseSlidePart(object):
     @pytest.fixture
     def image_part_(self, request):
         return instance_mock(request, ImagePart)
-
-    @pytest.fixture
-    def package_(self, request):
-        return instance_mock(request, Package)
-
-    @pytest.fixture
-    def partname_(self):
-        return PackURI("/foo/bar.xml")
-
-    @pytest.fixture
-    def relate_to_(self, request):
-        return method_mock(request, BaseSlidePart, "relate_to")
 
     @pytest.fixture
     def related_parts_prop_(self, request):
@@ -509,14 +494,16 @@ class DescribeSlidePart(object):
 
     def it_can_create_a_new_slide_part(self, request, package_, relate_to_):
         partname = PackURI("/foobar.xml")
-        SlidePart_init_ = initializer_mock(request, SlidePart)
+        _init_ = initializer_mock(request, SlidePart)
         slide_layout_part_ = instance_mock(request, SlideLayoutPart)
         CT_Slide_ = class_mock(request, "pptx.parts.slide.CT_Slide")
         CT_Slide_.new.return_value = sld = element("c:sld")
 
         slide_part = SlidePart.new(partname, package_, slide_layout_part_)
 
-        SlidePart_init_.assert_called_once_with(partname, CT.PML_SLIDE, sld, package_)
+        _init_.assert_called_once_with(
+            slide_part, partname, CT.PML_SLIDE, sld, package_
+        )
         slide_part.relate_to.assert_called_once_with(
             slide_part, slide_layout_part_, RT.SLIDE_LAYOUT
         )

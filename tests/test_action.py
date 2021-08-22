@@ -7,6 +7,7 @@ import pytest
 from pptx.action import ActionSetting, Hyperlink
 from pptx.enum.action import PP_ACTION
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.package import Part
 from pptx.parts.slide import SlidePart
 from pptx.slide import Slide
 
@@ -34,15 +35,31 @@ class DescribeActionSetting(object):
         target_slide = action_setting.target_slide
         assert target_slide == expected_value
 
-    def it_can_change_its_slide_jump_target(self, target_set_fixture):
-        action_setting, value, expected_xml = target_set_fixture[:3]
-        slide_part_, calls = target_set_fixture[3:]
+    def it_can_change_its_slide_jump_target(
+        self, request, _clear_click_action_, slide_, part_prop_, part_
+    ):
+        part_prop_.return_value = part_
+        part_.relate_to.return_value = "rId42"
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_.part = slide_part_
+        action_setting = ActionSetting(element("p:cNvPr{a:b=c,r:s=t}"), None)
 
-        action_setting.target_slide = value
+        action_setting.target_slide = slide_
 
-        action_setting._clear_click_action.assert_called_once_with()
-        assert action_setting._element.xml == expected_xml
-        assert slide_part_.relate_to.call_args_list == calls
+        _clear_click_action_.assert_called_once_with(action_setting)
+        part_.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:b=c,r:s=t}/a:hlinkClick{action=ppaction://hlinksldjump,r:id=rI"
+            "d42}",
+        )
+
+    def but_it_clears_the_target_slide_if_None_is_assigned(self, _clear_click_action_):
+        action_setting = ActionSetting(element("p:cNvPr{a:b=c,r:s=t}"), None)
+
+        action_setting.target_slide = None
+
+        _clear_click_action_.assert_called_once_with(action_setting)
+        assert action_setting._element.xml == xml("p:cNvPr{a:b=c,r:s=t}")
 
     def it_raises_on_no_next_prev_slide(self, target_raise_fixture):
         action_setting = target_raise_fixture
@@ -130,11 +147,11 @@ class DescribeActionSetting(object):
             ),
         ]
     )
-    def clear_fixture(self, request, part_prop_, slide_part_):
+    def clear_fixture(self, request, part_prop_, part_):
         xPr_cxml, rId, expected_cxml = request.param
         action_setting = ActionSetting(element(xPr_cxml), None)
 
-        part_prop_.return_value = slide_part_
+        part_prop_.return_value = part_
 
         calls = [call(rId)] if rId else []
         expected_xml = xml(expected_cxml)
@@ -188,31 +205,6 @@ class DescribeActionSetting(object):
         related_parts_.__getitem__.return_value.slide = 4
         return action_setting, expected_value
 
-    @pytest.fixture(
-        params=[
-            (None, "p:cNvPr{a:b=c,r:s=t}"),
-            (
-                "slide_",
-                "p:cNvPr{a:b=c,r:s=t}/a:hlinkClick{action=ppaction://hlinksldjump,r"
-                ":id=rId42}",
-            ),
-        ]
-    )
-    def target_set_fixture(
-        self, request, slide_, _clear_click_action_, part_prop_, slide_part_
-    ):
-        value_key, expected_cxml = request.param
-        action_setting = ActionSetting(element("p:cNvPr{a:b=c,r:s=t}"), None)
-        value = None if value_key is None else slide_
-
-        part_prop_.return_value = slide_part_
-        slide_part_.relate_to.return_value = "rId42"
-        slide_.part = slide_part_
-
-        expected_xml = xml(expected_cxml)
-        calls = [] if value is None else [call(slide_part_, RT.SLIDE)]
-        return action_setting, value, expected_xml, slide_part_, calls
-
     @pytest.fixture(params=[(PP_ACTION.NEXT_SLIDE, 2), (PP_ACTION.PREVIOUS_SLIDE, 0)])
     def target_raise_fixture(
         self, request, action_prop_, part_prop_, _slide_index_prop_
@@ -244,6 +236,10 @@ class DescribeActionSetting(object):
         return instance_mock(request, Hyperlink)
 
     @pytest.fixture
+    def part_(self, request):
+        return instance_mock(request, Part)
+
+    @pytest.fixture
     def part_prop_(self, request):
         return property_mock(request, ActionSetting, "part")
 
@@ -254,10 +250,6 @@ class DescribeActionSetting(object):
     @pytest.fixture
     def _slide_index_prop_(self, request):
         return property_mock(request, ActionSetting, "_slide_index")
-
-    @pytest.fixture
-    def slide_part_(self, request):
-        return instance_mock(request, SlidePart)
 
 
 class DescribeHyperlink(object):

@@ -123,8 +123,7 @@ class ActionSetting(Subshape):
             return
         hlink = self._element.get_or_add_hlinkClick()
         hlink.action = "ppaction://hlinksldjump"
-        this_part, target_part = self.part, slide.part
-        hlink.rId = this_part.relate_to(target_part, RT.SLIDE)
+        hlink.rId = self.part.relate_to(slide.part, RT.SLIDE)
 
     def _clear_click_action(self):
         """Remove any existing click action."""

@@ -169,10 +169,19 @@ class Describe_BaseMaster(object):
 class DescribeNotesSlide(object):
     """Unit-test suite for `pptx.slide.NotesSlide` objects."""
 
-    def it_can_clone_the_notes_master_placeholders(self, clone_fixture):
-        notes_slide, notes_master_, clone_placeholder_, calls = clone_fixture
+    def it_can_clone_the_notes_master_placeholders(
+        self, request, notes_master_, shapes_
+    ):
+        placeholders = notes_master_.placeholders = (
+            BaseShape(element("p:sp/p:nvSpPr/p:nvPr/p:ph{type=body}"), None),
+            BaseShape(element("p:sp/p:nvSpPr/p:nvPr/p:ph{type=dt}"), None),
+        )
+        property_mock(request, NotesSlide, "shapes", return_value=shapes_)
+        notes_slide = NotesSlide(None, None)
+
         notes_slide.clone_master_placeholders(notes_master_)
-        assert clone_placeholder_.call_args_list == calls
+
+        assert shapes_.clone_placeholder.call_args_list == [call(placeholders[0])]
 
     def it_provides_access_to_its_shapes(self, shapes_fixture):
         notes_slide, NotesSlideShapes_, spTree, shapes_ = shapes_fixture
@@ -202,17 +211,6 @@ class DescribeNotesSlide(object):
         assert text_frame is expected_value
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def clone_fixture(self, notes_master_, clone_placeholder_, shapes_prop_, shapes_):
-        notes_slide = NotesSlide(None, None)
-        placeholders = notes_master_.placeholders = (
-            BaseShape(element("p:sp/p:nvSpPr/p:nvPr/p:ph{type=body}"), None),
-            BaseShape(element("p:sp/p:nvSpPr/p:nvPr/p:ph{type=dt}"), None),
-        )
-        calls = [call(placeholders[0])]
-        shapes_.clone_placeholder = clone_placeholder_
-        return notes_slide, notes_master_, clone_placeholder_, calls
 
     @pytest.fixture(
         params=[
@@ -266,10 +264,6 @@ class DescribeNotesSlide(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def clone_placeholder_(self, request):
-        return method_mock(request, NotesSlideShapes, "clone_placeholder")
-
-    @pytest.fixture
     def notes_master_(self, request):
         return instance_mock(request, NotesMaster)
 
@@ -306,10 +300,6 @@ class DescribeNotesSlide(object):
     @pytest.fixture
     def shapes_(self, request):
         return instance_mock(request, NotesSlideShapes)
-
-    @pytest.fixture
-    def shapes_prop_(self, request, shapes_):
-        return property_mock(request, NotesSlide, "shapes", return_value=shapes_)
 
     @pytest.fixture
     def text_frame_(self, request):
