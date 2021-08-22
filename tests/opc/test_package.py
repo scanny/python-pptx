@@ -14,7 +14,7 @@ from pptx.opc.package import (
     Part,
     PartFactory,
     _Relationship,
-    RelationshipCollection,
+    _Relationships,
     Unmarshaller,
     XmlPart,
 )
@@ -53,13 +53,11 @@ class DescribeOpcPackage(object):
         Unmarshaller_.unmarshal.assert_called_once_with(pkg_reader, pkg, PartFactory_)
         assert isinstance(pkg, OpcPackage)
 
-    def it_initializes_its_rels_collection_on_first_reference(
-        self, RelationshipCollection_
-    ):
+    def it_initializes_its_rels_collection_on_first_reference(self, _Relationships_):
         pkg = OpcPackage()
         rels = pkg.rels
-        RelationshipCollection_.assert_called_once_with(PACKAGE_URI.baseURI)
-        assert rels == RelationshipCollection_.return_value
+        _Relationships_.assert_called_once_with(PACKAGE_URI.baseURI)
+        assert rels == _Relationships_.return_value
 
     def it_can_add_a_relationship_to_a_part(self, pkg_with_rels_, rel_attrs_):
         reltype, target, rId = rel_attrs_
@@ -248,8 +246,8 @@ class DescribeOpcPackage(object):
         return pkg
 
     @pytest.fixture
-    def RelationshipCollection_(self, request):
-        return class_mock(request, "pptx.opc.package.RelationshipCollection")
+    def _Relationships_(self, request):
+        return class_mock(request, "pptx.opc.package._Relationships")
 
     @pytest.fixture
     def rel_attrs_(self, request):
@@ -268,13 +266,13 @@ class DescribeOpcPackage(object):
         )
 
     def rels(self, request, values):
-        rels = instance_mock(request, RelationshipCollection)
+        rels = instance_mock(request, _Relationships)
         rels.values.return_value = values
         return rels
 
     @pytest.fixture
     def rels_(self, request):
-        return instance_mock(request, RelationshipCollection)
+        return instance_mock(request, _Relationships)
 
     @pytest.fixture
     def reltype(self, request):
@@ -507,7 +505,7 @@ class DescribePart(object):
     @pytest.fixture
     def Relationships_(self, request, rels_):
         return class_mock(
-            request, "pptx.opc.package.RelationshipCollection", return_value=rels_
+            request, "pptx.opc.package._Relationships", return_value=rels_
         )
 
     @pytest.fixture
@@ -516,7 +514,7 @@ class DescribePart(object):
 
     @pytest.fixture
     def rels_(self, request, part_, rel_, rId_, related_parts_):
-        rels_ = instance_mock(request, RelationshipCollection)
+        rels_ = instance_mock(request, _Relationships)
         rels_.part_with_reltype.return_value = part_
         rels_.get_or_add.return_value = rel_
         rels_.get_or_add_ext_rel.return_value = rId_
@@ -654,21 +652,21 @@ class DescribePartFactory(object):
         return partname_2_, content_type_2_, pkg_2_, blob_2_
 
 
-class DescribeRelationshipCollection(object):
+class Describe_Relationships(object):
     """Unit-test suite for `pptx.opc.package._Relationships` objects."""
 
     def it_has_a_len(self):
-        rels = RelationshipCollection(None)
+        rels = _Relationships(None)
         assert len(rels) == 0
 
     def it_has_dict_style_lookup_of_rel_by_rId(self):
         rel = Mock(name="rel", rId="foobar")
-        rels = RelationshipCollection(None)
+        rels = _Relationships(None)
         rels["foobar"] = rel
         assert rels["foobar"] == rel
 
     def it_should_raise_on_failed_lookup_by_rId(self):
-        rels = RelationshipCollection(None)
+        rels = _Relationships(None)
         with pytest.raises(KeyError):
             rels["barfoo"]
 
@@ -680,7 +678,7 @@ class DescribeRelationshipCollection(object):
             "target",
             False,
         )
-        rels = RelationshipCollection(baseURI)
+        rels = _Relationships(baseURI)
         rel = rels.add_relationship(reltype, target, rId, external)
         _Relationship_.assert_called_once_with(rId, reltype, target, baseURI, external)
         assert rels[rId] == rel
@@ -724,7 +722,7 @@ class DescribeRelationshipCollection(object):
 
     def it_raises_KeyError_on_part_with_rId_not_found(self):
         with pytest.raises(KeyError):
-            RelationshipCollection(None).related_parts["rId666"]
+            _Relationships(None).related_parts["rId666"]
 
     def it_knows_the_next_available_rId_to_help(self, rels_with_rId_gap):
         rels, expected_next_rId = rels_with_rId_gap
@@ -747,13 +745,13 @@ class DescribeRelationshipCollection(object):
 
     @pytest.fixture
     def add_ext_rel_fixture_(self, reltype, url):
-        rels = RelationshipCollection(None)
+        rels = _Relationships(None)
         return rels, reltype, url
 
     @pytest.fixture
     def add_matching_ext_rel_fixture_(self, request, reltype, url):
         rId = "rId369"
-        rels = RelationshipCollection(None)
+        rels = _Relationships(None)
         rels.add_relationship(reltype, url, rId, is_external=True)
         return rels, reltype, url, rId
 
@@ -820,7 +818,7 @@ class DescribeRelationshipCollection(object):
 
     @pytest.fixture
     def rels_with_rId_gap(self, request):
-        rels = RelationshipCollection(None)
+        rels = _Relationships(None)
 
         rel_with_rId1 = instance_mock(
             request, _Relationship, name="rel_with_rId1", rId="rId1"
@@ -853,10 +851,10 @@ class DescribeRelationshipCollection(object):
     @pytest.fixture
     def rels(self):
         """
-        Populated RelationshipCollection instance that will exercise the
+        Populated _Relationships instance that will exercise the
         rels.xml property.
         """
-        rels = RelationshipCollection("/baseURI")
+        rels = _Relationships("/baseURI")
         rels.add_relationship(
             reltype="http://rt-hyperlink",
             target="http://some/link",

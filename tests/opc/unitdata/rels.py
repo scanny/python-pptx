@@ -1,13 +1,9 @@
 # encoding: utf-8
 
-"""
-Test data for relationship-related unit tests.
-"""
-
-from __future__ import absolute_import
+"""Test data for relationship-related unit tests."""
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import RelationshipCollection
+from pptx.opc.package import _Relationships
 
 from pptx.opc.constants import NAMESPACE as NS
 from pptx.oxml import parse_xml
@@ -29,8 +25,8 @@ class BaseBuilder(object):
         return self
 
 
-class RelationshipCollectionBuilder(object):
-    """Builder class for test RelationshipCollections"""
+class RelationshipsBuilder(object):
+    """Builder class for test _Relationships"""
 
     partname_tmpls = {
         RT.SLIDE_MASTER: "/ppt/slideMasters/slideMaster%d.xml",
@@ -61,7 +57,7 @@ class RelationshipCollectionBuilder(object):
         return partname_tmpl % partnum
 
     def build(self):
-        rels = RelationshipCollection()
+        rels = _Relationships()
         for rel in self.relationships:
             rels.add_rel(rel)
         return rels
@@ -299,7 +295,7 @@ def a_Relationships():
 
 
 def a_rels():
-    return RelationshipCollectionBuilder()
+    return RelationshipsBuilder()
 
 
 def a_Types():
