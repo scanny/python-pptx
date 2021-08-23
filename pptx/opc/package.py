@@ -97,8 +97,14 @@ class OpcPackage(object):
         item, a '%d' to be used to insert the integer portion of the partname.
         Example: '/ppt/slides/slide%d.xml'
         """
-        partnames = [part.partname for part in self.iter_parts()]
-        for n in range(1, len(partnames) + 2):
+        # --- expected next partname is tmpl % n where n is one greater than the number
+        # --- of existing partnames that match tmpl. Speed up finding the next one
+        # --- (maybe) by searching from the end downward rather than from 1 upward.
+        prefix = tmpl[: (tmpl % 42).find("42")]
+        partnames = set(
+            p.partname for p in self.iter_parts() if p.partname.startswith(prefix)
+        )
+        for n in range(len(partnames) + 1, 0, -1):
             candidate_partname = tmpl % n
             if candidate_partname not in partnames:
                 return PackURI(candidate_partname)

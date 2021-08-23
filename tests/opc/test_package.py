@@ -177,11 +177,28 @@ class DescribeOpcPackage(object):
         relationships_.part_with_reltype.assert_called_once_with(RT.SLIDE)
         assert related_part is related_part_
 
-    def it_can_find_the_next_available_vector_partname(self, next_partname_fixture):
-        package, partname_template, expected_partname = next_partname_fixture
-        partname = package.next_partname(partname_template)
-        assert isinstance(partname, PackURI)
-        assert partname == expected_partname
+    @pytest.mark.parametrize(
+        "ns, expected_n",
+        (((), 1), ((1,), 2), ((1, 2), 3), ((2, 4), 3), ((1, 4), 3)),
+    )
+    def it_can_find_the_next_available_partname(self, request, ns, expected_n):
+        tmpl = "/x%d.xml"
+        method_mock(
+            request,
+            OpcPackage,
+            "iter_parts",
+            return_value=(instance_mock(request, Part, partname=tmpl % n) for n in ns),
+        )
+        next_partname = tmpl % expected_n
+        PackURI_ = class_mock(
+            request, "pptx.opc.package.PackURI", return_value=PackURI(next_partname)
+        )
+        package = OpcPackage(None)
+
+        partname = package.next_partname(tmpl)
+
+        PackURI_.assert_called_once_with(next_partname)
+        assert partname == next_partname
 
     def it_can_save_to_a_pkg_file(self, request, _rels_prop_, relationships_):
         PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
@@ -222,28 +239,7 @@ class DescribeOpcPackage(object):
         _Relationships_.assert_called_once_with(PACKAGE_URI.baseURI)
         assert rels is relationships_
 
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture(params=[((), 1), ((1,), 2), ((1, 2), 3), ((2, 3), 1), ((1, 3), 2)])
-    def next_partname_fixture(self, request, iter_parts_):
-        existing_partname_numbers, next_partname_number = request.param
-        package = OpcPackage(None)
-        parts = [
-            instance_mock(
-                request, Part, name="part[%d]" % idx, partname="/foo/bar/baz%d.xml" % n
-            )
-            for idx, n in enumerate(existing_partname_numbers)
-        ]
-        iter_parts_.return_value = iter(parts)
-        partname_template = "/foo/bar/baz%d.xml"
-        expected_partname = PackURI("/foo/bar/baz%d.xml" % next_partname_number)
-        return package, partname_template, expected_partname
-
     # fixture components -----------------------------------
-
-    @pytest.fixture
-    def iter_parts_(self, request):
-        return method_mock(request, OpcPackage, "iter_parts")
 
     @pytest.fixture
     def relationships_(self, request):
