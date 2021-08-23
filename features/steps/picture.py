@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Gherkin step implementations for picture-related features.
-"""
-
-from __future__ import absolute_import
+"""Gherkin step implementations for picture-related features."""
 
 from behave import given, when, then
 
@@ -61,7 +57,7 @@ def when_I_assign_member_to_picture_auto_shape_type(context, member):
 @then("a {ext} image part appears in the pptx file")
 def step_then_a_ext_image_part_appears_in_the_pptx_file(context, ext):
     pkg = Package.open(saved_pptx_path)
-    partnames = [part.partname for part in pkg.parts]
+    partnames = frozenset(p.partname for p in pkg.iter_parts())
     image_partname = "/ppt/media/image1.%s" % ext
     assert image_partname in partnames, "got %s" % [
         p for p in partnames if "image" in p

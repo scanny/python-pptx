@@ -118,14 +118,6 @@ class OpcPackage(object):
         """
         return self._rels.part_with_reltype(reltype)
 
-    @property
-    def parts(self):
-        """
-        Return a list containing a reference to each of the parts in this
-        package.
-        """
-        return [part for part in self.iter_parts()]
-
     def relate_to(self, target, reltype, is_external=False):
         """Return rId key of relationship of `reltype` to `target`.
 
@@ -142,7 +134,7 @@ class OpcPackage(object):
 
         `pkg_file` can be either a path to a file (a string) or a file-like object.
         """
-        PackageWriter.write(pkg_file, self._rels, self.parts)
+        PackageWriter.write(pkg_file, self._rels, tuple(self.iter_parts()))
 
     def _load(self):
         """Return the package after loading all parts and relationships."""

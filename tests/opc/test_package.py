@@ -41,7 +41,6 @@ from ..unitutil.mock import (
     loose_mock,
     method_mock,
     Mock,
-    patch,
     property_mock,
 )
 
@@ -156,14 +155,6 @@ class DescribeOpcPackage(object):
         relationships_.get_or_add.assert_called_once_with("http://rel/type", part_)
         assert rId == "rId99"
 
-    def it_can_provide_a_list_of_the_parts_it_contains(self):
-        # mockery ----------------------
-        parts = [Mock(name="part1"), Mock(name="part2")]
-        pkg = OpcPackage(None)
-        # verify -----------------------
-        with patch.object(OpcPackage, "iter_parts", return_value=parts):
-            assert pkg.parts == [parts[0], parts[1]]
-
     def it_can_find_a_part_related_by_reltype(
         self, request, _rels_prop_, relationships_
     ):
@@ -201,16 +192,15 @@ class DescribeOpcPackage(object):
         assert partname == next_partname
 
     def it_can_save_to_a_pkg_file(self, request, _rels_prop_, relationships_):
-        PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
         _rels_prop_.return_value = relationships_
-        property_mock(request, OpcPackage, "parts", return_value=["parts"])
+        parts_ = tuple(instance_mock(request, Part) for _ in range(3))
+        method_mock(request, OpcPackage, "iter_parts", return_value=iter(parts_))
+        PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
         package = OpcPackage(None)
 
         package.save("prs.pptx")
 
-        PackageWriter_.write.assert_called_once_with(
-            "prs.pptx", relationships_, ["parts"]
-        )
+        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_)
 
     def it_loads_the_pkg_file_to_help(self, request):
         package_reader_ = instance_mock(request, PackageReader)
