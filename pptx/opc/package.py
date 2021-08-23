@@ -24,16 +24,13 @@ class OpcPackage(object):
     to a package file or file-like object containing a package (.pptx file).
     """
 
-    def __init__(self):
-        super(OpcPackage, self).__init__()
+    def __init__(self, pkg_file):
+        self._pkg_file = pkg_file
 
     @classmethod
     def open(cls, pkg_file):
         """Return an |OpcPackage| instance loaded with the contents of `pkg_file`."""
-        pkg_reader = PackageReader.from_file(pkg_file)
-        package = cls()
-        Unmarshaller.unmarshal(pkg_reader, package, PartFactory)
-        return package
+        return cls(pkg_file)._load()
 
     def iter_parts(self):
         """Generate exactly one reference to each part in the package."""
@@ -140,6 +137,13 @@ class OpcPackage(object):
         `pkg_file` can be either a path to a file (a string) or a file-like object.
         """
         PackageWriter.write(pkg_file, self._rels, self.parts)
+
+    def _load(self):
+        """Return the package after loading all parts and relationships."""
+        Unmarshaller.unmarshal(
+            PackageReader.from_file(self._pkg_file), self, PartFactory
+        )
+        return self
 
     @lazyproperty
     def _rels(self):

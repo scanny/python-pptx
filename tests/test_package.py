@@ -56,7 +56,7 @@ class DescribePackage(object):
 
     @pytest.fixture
     def image_part_fixture(self, image_parts_, image_part_, _image_parts_prop_):
-        package = Package()
+        package = Package(None)
         image_file = "foobar.png"
         _image_parts_prop_.return_value = image_parts_
         image_parts_.get_or_add_image_part.return_value = image_part_
@@ -64,21 +64,21 @@ class DescribePackage(object):
 
     @pytest.fixture
     def media_part_fixture(self, media_, media_part_, _media_parts_prop_, media_parts_):
-        package = Package()
+        package = Package(None)
         _media_parts_prop_.return_value = media_parts_
         media_parts_.get_or_add_media_part.return_value = media_part_
         return package, media_, media_part_
 
     @pytest.fixture
     def m_parts_fixture(self, _MediaParts_, media_parts_):
-        package = Package()
+        package = Package(None)
         _MediaParts_.return_value = media_parts_
         return package, _MediaParts_, media_parts_
 
     @pytest.fixture(params=[((3, 4, 2), 1), ((4, 2, 1), 3), ((2, 3, 1), 4)])
     def next_fixture(self, request, iter_parts_):
         idxs, idx = request.param
-        package = Package()
+        package = Package(None)
         package.iter_parts.return_value = self.i_image_parts(request, idxs)
         ext = "foo"
         expected_value = "/ppt/media/image%d.%s" % (idx, ext)
@@ -87,7 +87,7 @@ class DescribePackage(object):
     @pytest.fixture(params=[((3, 4, 2), 1), ((4, 2, 1), 3), ((2, 3, 1), 4)])
     def nmp_fixture(self, request, iter_parts_):
         idxs, idx = request.param
-        package = Package()
+        package = Package(None)
         package.iter_parts.return_value = self.i_media_parts(request, idxs)
         ext = "foo"
         expected_value = "/ppt/media/media%d.%s" % (idx, ext)
