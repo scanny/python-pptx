@@ -54,14 +54,8 @@ class DescribeOpcPackage(object):
         Unmarshaller_.unmarshal.assert_called_once_with(pkg_reader, pkg, PartFactory_)
         assert isinstance(pkg, OpcPackage)
 
-    def it_initializes_its_rels_collection_on_first_reference(self, _Relationships_):
-        pkg = OpcPackage()
-        rels = pkg.rels
-        _Relationships_.assert_called_once_with(PACKAGE_URI.baseURI)
-        assert rels == _Relationships_.return_value
-
-    def it_can_add_a_relationship_to_a_part(self, request, rels_prop_, relationships_):
-        rels_prop_.return_value = relationships_
+    def it_can_add_a_relationship_to_a_part(self, request, _rels_prop_, relationships_):
+        _rels_prop_.return_value = relationships_
         relationship_ = instance_mock(request, _Relationship)
         relationships_.add_relationship.return_value = relationship_
         target_ = instance_mock(request, Part, name="target_part")
@@ -75,9 +69,9 @@ class DescribeOpcPackage(object):
         assert relationship is relationship_
 
     def it_can_establish_a_relationship_to_another_part(
-        self, request, rels_prop_, relationships_
+        self, request, _rels_prop_, relationships_
     ):
-        rels_prop_.return_value = relationships_
+        _rels_prop_.return_value = relationships_
         relationship_ = instance_mock(request, _Relationship)
         relationships_.get_or_add.return_value = relationship_
         relationship_.rId = "rId99"
@@ -108,11 +102,11 @@ class DescribeOpcPackage(object):
         assert rels == expected_rels
 
     def it_can_find_a_part_related_by_reltype(
-        self, request, rels_prop_, relationships_
+        self, request, _rels_prop_, relationships_
     ):
         related_part_ = instance_mock(request, Part, name="related_part_")
         relationships_.part_with_reltype.return_value = related_part_
-        rels_prop_.return_value = relationships_
+        _rels_prop_.return_value = relationships_
         package = OpcPackage()
 
         related_part = package.part_related_by(RT.SLIDE)
@@ -126,9 +120,9 @@ class DescribeOpcPackage(object):
         assert isinstance(partname, PackURI)
         assert partname == expected_partname
 
-    def it_can_save_to_a_pkg_file(self, request, rels_):
+    def it_can_save_to_a_pkg_file(self, request, _rels_prop_, rels_):
         PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
-        property_mock(request, OpcPackage, "rels", return_value=rels_)
+        _rels_prop_.return_value = rels_
         property_mock(request, OpcPackage, "parts", return_value=["parts"])
         package = OpcPackage()
 
@@ -136,7 +130,16 @@ class DescribeOpcPackage(object):
 
         PackageWriter_.write.assert_called_once_with("prs.pptx", rels_, ["parts"])
 
-        # assert False
+    def it_constructs_its_relationships_object_to_help(self, request, relationships_):
+        _Relationships_ = class_mock(
+            request, "pptx.opc.package._Relationships", return_value=relationships_
+        )
+        package = OpcPackage()
+
+        rels = package._rels
+
+        _Relationships_.assert_called_once_with(PACKAGE_URI.baseURI)
+        assert rels is relationships_
 
     # fixtures ---------------------------------------------
 
@@ -168,7 +171,7 @@ class DescribeOpcPackage(object):
         return package, partname_template, expected_partname
 
     @pytest.fixture
-    def rels_fixture(self, request, rels_prop_, part_1_, part_2_):
+    def rels_fixture(self, request, _rels_prop_, part_1_, part_2_):
         """
         +----------+          +--------+
         | pkg_rels |-- r1 --> | part_1 |
@@ -189,7 +192,7 @@ class DescribeOpcPackage(object):
 
         package = OpcPackage()
 
-        rels_prop_.return_value = self.rels(request, (r1, r4, r5))
+        _rels_prop_.return_value = self.rels(request, (r1, r4, r5))
         part_1_.rels = self.rels(request, (r2,))
         part_2_.rels = self.rels(request, (r3,))
 
@@ -217,10 +220,6 @@ class DescribeOpcPackage(object):
     def part_2_(self, request):
         return instance_mock(request, Part)
 
-    @pytest.fixture
-    def _Relationships_(self, request):
-        return class_mock(request, "pptx.opc.package._Relationships")
-
     def rel(self, request, is_external, target_part, name):
         return instance_mock(
             request,
@@ -244,8 +243,8 @@ class DescribeOpcPackage(object):
         return instance_mock(request, _Relationships)
 
     @pytest.fixture
-    def rels_prop_(self, request):
-        return property_mock(request, OpcPackage, "rels")
+    def _rels_prop_(self, request):
+        return property_mock(request, OpcPackage, "_rels")
 
     @pytest.fixture
     def Unmarshaller_(self, request):

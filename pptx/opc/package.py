@@ -36,8 +36,8 @@ class OpcPackage(object):
     def iter_parts(self):
         """Generate exactly one reference to each part in the package."""
 
-        def walk_parts(source, visited=list()):
-            for rel in source.rels.values():
+        def walk_parts(rels, visited=list()):
+            for rel in rels.values():
                 if rel.is_external:
                     continue
                 part = rel.target_part
@@ -45,11 +45,11 @@ class OpcPackage(object):
                     continue
                 visited.append(part)
                 yield part
-                new_source = part
-                for part in walk_parts(new_source, visited):
+                new_rels = part.rels
+                for part in walk_parts(new_rels, visited):
                     yield part
 
-        for part in walk_parts(self):
+        for part in walk_parts(self._rels):
             yield part
 
     def iter_rels(self):
@@ -58,9 +58,9 @@ class OpcPackage(object):
         Performs a depth-first traversal of the rels graph.
         """
 
-        def walk_rels(source, visited=None):
+        def walk_rels(rels, visited=None):
             visited = [] if visited is None else visited
-            for rel in source.rels.values():
+            for rel in rels.values():
                 yield rel
                 # --- external items can have no relationships ---
                 if rel.is_external:
@@ -72,12 +72,12 @@ class OpcPackage(object):
                 if part in visited:
                     continue
                 visited.append(part)
-                new_source = part
+                new_rels = part.rels
                 # --- recurse into relationships of each unvisited target-part ---
-                for rel in walk_rels(new_source, visited):
+                for rel in walk_rels(new_rels, visited):
                     yield rel
 
-        for rel in walk_rels(self):
+        for rel in walk_rels(self._rels):
             yield rel
 
     def load_rel(self, reltype, target, rId, is_external=False):
@@ -89,7 +89,7 @@ class OpcPackage(object):
         methods exist for adding a new relationship to the package during
         processing.
         """
-        return self.rels.add_relationship(reltype, target, rId, is_external)
+        return self._rels.add_relationship(reltype, target, rId, is_external)
 
     @property
     def main_document_part(self):
@@ -119,7 +119,7 @@ class OpcPackage(object):
         Raises |KeyError| if no such relationship is found and |ValueError| if more than
         one such relationship is found.
         """
-        return self.rels.part_with_reltype(reltype)
+        return self._rels.part_with_reltype(reltype)
 
     @property
     def parts(self):
@@ -135,20 +135,20 @@ class OpcPackage(object):
         If such a relationship already exists, its rId is returned. Otherwise the
         relationship is added and its new rId returned.
         """
-        rel = self.rels.get_or_add(reltype, part)
+        rel = self._rels.get_or_add(reltype, part)
         return rel.rId
-
-    @lazyproperty
-    def rels(self):
-        """The |_Relationships| object containing the relationships for this package."""
-        return _Relationships(PACKAGE_URI.baseURI)
 
     def save(self, pkg_file):
         """Save this package to `pkg_file`.
 
         `pkg_file` can be either a path to a file (a string) or a file-like object.
         """
-        PackageWriter.write(pkg_file, self.rels, self.parts)
+        PackageWriter.write(pkg_file, self._rels, self.parts)
+
+    @lazyproperty
+    def _rels(self):
+        """The |_Relationships| object containing the relationships for this package."""
+        return _Relationships(PACKAGE_URI.baseURI)
 
 
 class Part(object):
