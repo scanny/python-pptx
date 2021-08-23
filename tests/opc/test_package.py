@@ -18,10 +18,11 @@ from pptx.opc.package import (
     OpcPackage,
     Part,
     PartFactory,
-    _Relationship,
-    _Relationships,
     Unmarshaller,
     XmlPart,
+    _PackageLoader,
+    _Relationship,
+    _Relationships,
 )
 from pptx.opc.serialized import PackageReader
 from pptx.oxml import parse_xml
@@ -202,19 +203,17 @@ class DescribeOpcPackage(object):
 
         PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_)
 
-    def it_loads_the_pkg_file_to_help(self, request):
-        package_reader_ = instance_mock(request, PackageReader)
-        PackageReader_ = class_mock(request, "pptx.opc.package.PackageReader")
-        PackageReader_.from_file.return_value = package_reader_
-        PartFactory_ = class_mock(request, "pptx.opc.package.PartFactory")
-        Unmarshaller_ = class_mock(request, "pptx.opc.package.Unmarshaller")
+    def it_loads_the_pkg_file_to_help(self, request, _rels_prop_, relationships_):
+        _PackageLoader_ = class_mock(request, "pptx.opc.package._PackageLoader")
+        _PackageLoader_.load.return_value = "pkg-rels-xml", {"partname": "part"}
+        _rels_prop_.return_value = relationships_
         package = OpcPackage("prs.pptx")
 
         return_value = package._load()
 
-        PackageReader_.from_file.assert_called_once_with("prs.pptx")
-        Unmarshaller_.unmarshal.assert_called_once_with(
-            package_reader_, package, PartFactory_
+        _PackageLoader_.load.assert_called_once_with("prs.pptx", package)
+        relationships_.load_from_xml.assert_called_once_with(
+            PACKAGE_URI, "pkg-rels-xml", {"partname": "part"}
         )
         assert return_value is package
 
@@ -238,6 +237,33 @@ class DescribeOpcPackage(object):
     @pytest.fixture
     def _rels_prop_(self, request):
         return property_mock(request, OpcPackage, "_rels")
+
+
+class Describe_PackageLoader(object):
+    """Unit-test suite for `pptx.opc.package._PackageLoader` objects."""
+
+    def it_provides_a_load_interface_classmethod(self, request, package_):
+        _init_ = initializer_mock(request, _PackageLoader)
+        pkg_xml_rels_ = element("r:Relationships")
+        _load_ = method_mock(
+            request,
+            _PackageLoader,
+            "_load",
+            return_value=(pkg_xml_rels_, {"partname": "part"}),
+        )
+
+        pkg_xml_rels, parts = _PackageLoader.load("prs.pptx", package_)
+
+        _init_.assert_called_once_with(ANY, "prs.pptx", package_)
+        _load_.assert_called_once_with(ANY)
+        assert pkg_xml_rels is pkg_xml_rels_
+        assert parts == {"partname": "part"}
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def package_(self, request):
+        return instance_mock(request, OpcPackage)
 
 
 class DescribePart(object):

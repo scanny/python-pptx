@@ -58,6 +58,19 @@ class PackageReader(object):
             for srel in spart.srels:
                 yield (spart.partname, srel)
 
+    def rels_xml_for(self, pkg_file, partname):
+        """Return optional rels item XML for `partname`.
+
+        Returns `None` if no rels item is present for `partname`. `partname` is a
+        |PackURI| instance.
+        """
+        # --- ugly temporary hack to make this interim `._rels_xml_for()` method
+        # --- produce the same result as the one that's coming a few commits later.
+        phys_reader = _PhysPkgReader(pkg_file)
+        rels_xml = phys_reader.rels_xml_for(partname)
+        phys_reader.close()
+        return rels_xml
+
     @staticmethod
     def _load_serialized_parts(phys_reader, pkg_srels, content_types):
         """

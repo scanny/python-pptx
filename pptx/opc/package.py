@@ -138,15 +138,54 @@ class OpcPackage(object):
 
     def _load(self):
         """Return the package after loading all parts and relationships."""
-        Unmarshaller.unmarshal(
-            PackageReader.from_file(self._pkg_file), self, PartFactory
-        )
+        pkg_xml_rels, parts = _PackageLoader.load(self._pkg_file, self)
+        self._rels.load_from_xml(PACKAGE_URI, pkg_xml_rels, parts)
         return self
 
     @lazyproperty
     def _rels(self):
         """The |_Relationships| object containing the relationships for this package."""
         return _Relationships(PACKAGE_URI.baseURI)
+
+
+class _PackageLoader(object):
+    """Function-object that loads a package from disk (or other store)."""
+
+    def __init__(self, pkg_file, package):
+        self._pkg_file = pkg_file
+        self._package = package
+
+    @classmethod
+    def load(cls, pkg_file, package):
+        """Return (pkg_xml_rels, parts) pair resulting from loading `pkg_file`.
+
+        The returned `parts` value is a {partname: part} mapping with each part in the
+        package included and constructed complete with its relationships to other parts
+        in the package.
+
+        The returned `pkg_xml_rels` value is a `CT_Relationships` object containing the
+        parsed package relationships. It is the caller's responsibility (the package
+        object) to load those relationships into its |_Relationships| object.
+        """
+        return cls(pkg_file, package)._load()
+
+    def _load(self):
+        """Return (pkg_xml_rels, parts) pair resulting from loading pkg_file."""
+        # --- ugly temporary hack to make this interim `._load()` method produce the
+        # --- same result as the one that's coming a few commits later.
+        package = self._package
+        Unmarshaller.unmarshal(self._package_reader, package, PartFactory)
+
+        pkg_xml_rels = parse_xml(
+            self._package_reader.rels_xml_for(self._pkg_file, PACKAGE_URI)
+        )
+
+        return pkg_xml_rels, {p.partname: p for p in package.iter_parts()}
+
+    @lazyproperty
+    def _package_reader(self):
+        """|PackageReader| object providing access to package-items in pkg_file."""
+        return PackageReader.from_file(self._pkg_file)
 
 
 class Part(object):
