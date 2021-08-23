@@ -18,13 +18,12 @@ from pptx.opc.package import (
     OpcPackage,
     Part,
     PartFactory,
-    Unmarshaller,
     XmlPart,
     _PackageLoader,
     _Relationship,
     _Relationships,
 )
-from pptx.opc.serialized import PackageReader
+from pptx.opc.serialized import PackageReader, _SerializedRelationship
 from pptx.oxml import parse_xml
 from pptx.oxml.xmlchemy import BaseOxmlElement
 from pptx.package import Package
@@ -39,7 +38,6 @@ from ..unitutil.mock import (
     function_mock,
     initializer_mock,
     instance_mock,
-    loose_mock,
     method_mock,
     Mock,
     property_mock,
@@ -259,11 +257,93 @@ class Describe_PackageLoader(object):
         assert pkg_xml_rels is pkg_xml_rels_
         assert parts == {"partname": "part"}
 
+    def it_can_unmarshal_parts(
+        self, request, _package_reader_prop_, package_reader_, package_
+    ):
+        _package_reader_prop_.return_value = package_reader_
+        package_reader_.iter_sparts.return_value = (
+            ("partname-%d" % n, CT.PML_SLIDE, b"blob-%d" % n) for n in range(1, 4)
+        )
+        parts_ = tuple(instance_mock(request, Part) for _ in range(5))
+        PartFactory_ = class_mock(
+            request, "pptx.opc.package.PartFactory", side_effect=iter(parts_)
+        )
+        package_loader = _PackageLoader(None, package_)
+
+        parts = package_loader._parts
+
+        assert PartFactory_.call_args_list == [
+            call("partname-1", CT.PML_SLIDE, b"blob-1", package_),
+            call("partname-2", CT.PML_SLIDE, b"blob-2", package_),
+            call("partname-3", CT.PML_SLIDE, b"blob-3", package_),
+        ]
+        assert parts == {
+            "partname-1": parts_[0],
+            "partname-2": parts_[1],
+            "partname-3": parts_[2],
+        }
+
+    def it_can_unmarshal_relationships(
+        self, request, _package_reader_prop_, package_reader_, _parts_prop_, package_
+    ):
+        _package_reader_prop_.return_value = package_reader_
+        package_reader_.iter_srels.return_value = (
+            (
+                partname,
+                instance_mock(
+                    request,
+                    _SerializedRelationship,
+                    name="srel_%d" % n,
+                    rId="rId%d" % n,
+                    reltype=reltype,
+                    target_partname="partname_%d" % (n + 2),
+                    target_ref="target_ref_%d" % n,
+                    is_external=is_external,
+                ),
+            )
+            for n, partname, reltype, is_external in (
+                (1, "/", RT.SLIDE, False),
+                (2, "/", RT.HYPERLINK, True),
+                (3, "partname_1", RT.SLIDE, False),
+                (4, "partname_2", RT.HYPERLINK, True),
+            )
+        )
+        parts = _parts_prop_.return_value = {
+            "partname_%d" % n: instance_mock(request, Part, name="part_%d" % n)
+            for n in range(1, 7)
+        }
+        package_loader = _PackageLoader(None, package_)
+
+        package_loader._unmarshal_relationships()
+
+        assert package_.load_rel.call_args_list == [
+            call(RT.SLIDE, parts["partname_3"], "rId1", False),
+            call(RT.HYPERLINK, "target_ref_2", "rId2", True),
+        ]
+        parts["partname_1"].load_rel.assert_called_once_with(
+            RT.SLIDE, parts["partname_5"], "rId3", False
+        )
+        parts["partname_2"].load_rel.assert_called_once_with(
+            RT.HYPERLINK, "target_ref_4", "rId4", True
+        )
+
     # fixture components -----------------------------------
 
     @pytest.fixture
     def package_(self, request):
         return instance_mock(request, OpcPackage)
+
+    @pytest.fixture
+    def package_reader_(self, request):
+        return instance_mock(request, PackageReader)
+
+    @pytest.fixture
+    def _package_reader_prop_(self, request):
+        return property_mock(request, _PackageLoader, "_package_reader")
+
+    @pytest.fixture
+    def _parts_prop_(self, request):
+        return property_mock(request, _PackageLoader, "_parts")
 
 
 class DescribePart(object):
@@ -1024,172 +1104,3 @@ class Describe_Relationship(object):
     @pytest.fixture
     def part_(self, request):
         return instance_mock(request, Part)
-
-
-class DescribeUnmarshaller(object):
-    def it_can_unmarshal_from_a_pkg_reader(
-        self,
-        pkg_reader_,
-        pkg_,
-        part_factory_,
-        _unmarshal_parts,
-        _unmarshal_relationships,
-        parts_dict_,
-    ):
-        Unmarshaller.unmarshal(pkg_reader_, pkg_, part_factory_)
-
-        _unmarshal_parts.assert_called_once_with(pkg_reader_, pkg_, part_factory_)
-        _unmarshal_relationships.assert_called_once_with(pkg_reader_, pkg_, parts_dict_)
-
-    def it_can_unmarshal_parts(
-        self,
-        pkg_reader_,
-        pkg_,
-        part_factory_,
-        parts_dict_,
-        partnames_,
-        content_types_,
-        blobs_,
-    ):
-        # fixture ----------------------
-        partname_, partname_2_ = partnames_
-        content_type_, content_type_2_ = content_types_
-        blob_, blob_2_ = blobs_
-        # exercise ---------------------
-        parts = Unmarshaller._unmarshal_parts(pkg_reader_, pkg_, part_factory_)
-        # verify -----------------------
-        assert part_factory_.call_args_list == [
-            call(partname_, content_type_, blob_, pkg_),
-            call(partname_2_, content_type_2_, blob_2_, pkg_),
-        ]
-        assert parts == parts_dict_
-
-    def it_can_unmarshal_relationships(self):
-        # test data --------------------
-        reltype = "http://reltype"
-        # mockery ----------------------
-        pkg_reader = Mock(name="pkg_reader")
-        pkg_reader.iter_srels.return_value = (
-            (
-                "/",
-                Mock(
-                    name="srel1",
-                    rId="rId1",
-                    reltype=reltype,
-                    target_partname="partname1",
-                    is_external=False,
-                ),
-            ),
-            (
-                "/",
-                Mock(
-                    name="srel2",
-                    rId="rId2",
-                    reltype=reltype,
-                    target_ref="target_ref_1",
-                    is_external=True,
-                ),
-            ),
-            (
-                "partname1",
-                Mock(
-                    name="srel3",
-                    rId="rId3",
-                    reltype=reltype,
-                    target_partname="partname2",
-                    is_external=False,
-                ),
-            ),
-            (
-                "partname2",
-                Mock(
-                    name="srel4",
-                    rId="rId4",
-                    reltype=reltype,
-                    target_ref="target_ref_2",
-                    is_external=True,
-                ),
-            ),
-        )
-        pkg = Mock(name="pkg")
-        parts = {}
-        for num in range(1, 3):
-            name = "part%d" % num
-            part = Mock(name=name)
-            parts["partname%d" % num] = part
-            pkg.attach_mock(part, name)
-        # exercise ---------------------
-        Unmarshaller._unmarshal_relationships(pkg_reader, pkg, parts)
-        # verify -----------------------
-        expected_pkg_calls = [
-            call.load_rel(reltype, parts["partname1"], "rId1", False),
-            call.load_rel(reltype, "target_ref_1", "rId2", True),
-            call.part1.load_rel(reltype, parts["partname2"], "rId3", False),
-            call.part2.load_rel(reltype, "target_ref_2", "rId4", True),
-        ]
-        assert pkg.mock_calls == expected_pkg_calls
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def blobs_(self, request):
-        blob_ = loose_mock(request, spec=str, name="blob_")
-        blob_2_ = loose_mock(request, spec=str, name="blob_2_")
-        return blob_, blob_2_
-
-    @pytest.fixture
-    def content_types_(self, request):
-        content_type_ = loose_mock(request, spec=str, name="content_type_")
-        content_type_2_ = loose_mock(request, spec=str, name="content_type_2_")
-        return content_type_, content_type_2_
-
-    @pytest.fixture
-    def part_factory_(self, request, parts_):
-        part_factory_ = loose_mock(request, spec=Part)
-        part_factory_.side_effect = parts_
-        return part_factory_
-
-    @pytest.fixture
-    def partnames_(self, request):
-        partname_ = loose_mock(request, spec=str, name="partname_")
-        partname_2_ = loose_mock(request, spec=str, name="partname_2_")
-        return partname_, partname_2_
-
-    @pytest.fixture
-    def parts_(self, request):
-        part_ = instance_mock(request, Part, name="part_")
-        part_2_ = instance_mock(request, Part, name="part_2")
-        return part_, part_2_
-
-    @pytest.fixture
-    def parts_dict_(self, request, partnames_, parts_):
-        partname_, partname_2_ = partnames_
-        part_, part_2_ = parts_
-        return {partname_: part_, partname_2_: part_2_}
-
-    @pytest.fixture
-    def pkg_(self, request):
-        return instance_mock(request, Package)
-
-    @pytest.fixture
-    def pkg_reader_(self, request, partnames_, content_types_, blobs_):
-        partname_, partname_2_ = partnames_
-        content_type_, content_type_2_ = content_types_
-        blob_, blob_2_ = blobs_
-        spart_return_values = (
-            (partname_, content_type_, blob_),
-            (partname_2_, content_type_2_, blob_2_),
-        )
-        pkg_reader_ = instance_mock(request, PackageReader)
-        pkg_reader_.iter_sparts.return_value = spart_return_values
-        return pkg_reader_
-
-    @pytest.fixture
-    def _unmarshal_parts(self, request, parts_dict_):
-        return method_mock(
-            request, Unmarshaller, "_unmarshal_parts", return_value=parts_dict_
-        )
-
-    @pytest.fixture
-    def _unmarshal_relationships(self, request):
-        return method_mock(request, Unmarshaller, "_unmarshal_relationships")

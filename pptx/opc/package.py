@@ -173,19 +173,48 @@ class _PackageLoader(object):
         """Return (pkg_xml_rels, parts) pair resulting from loading pkg_file."""
         # --- ugly temporary hack to make this interim `._load()` method produce the
         # --- same result as the one that's coming a few commits later.
-        package = self._package
-        Unmarshaller.unmarshal(self._package_reader, package, PartFactory)
+        self._unmarshal_relationships()
 
         pkg_xml_rels = parse_xml(
             self._package_reader.rels_xml_for(self._pkg_file, PACKAGE_URI)
         )
 
-        return pkg_xml_rels, {p.partname: p for p in package.iter_parts()}
+        return pkg_xml_rels, self._parts
 
     @lazyproperty
     def _package_reader(self):
         """|PackageReader| object providing access to package-items in pkg_file."""
         return PackageReader.from_file(self._pkg_file)
+
+    @lazyproperty
+    def _parts(self):
+        """Return a {partname: |Part|} dict unmarshalled from `pkg_reader`.
+
+        Side-effect is that each part in `pkg_reader` is constructed using
+        `part_factory`.
+        """
+        package = self._package
+        return {
+            partname: PartFactory(partname, content_type, blob, package)
+            for partname, content_type, blob in self._package_reader.iter_sparts()
+        }
+
+    def _unmarshal_relationships(self):
+        """Add relationships to each source object.
+
+        Source objects correspond to each relationship-target in `pkg_reader` with its
+        target_part set to the actual target part in `parts`.
+        """
+        pkg_reader = self._package_reader
+        package = self._package
+        parts = self._parts
+
+        for source_uri, srel in pkg_reader.iter_srels():
+            source = package if source_uri == "/" else parts[source_uri]
+            target = (
+                srel.target_ref if srel.is_external else parts[srel.target_partname]
+            )
+            source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
 
 
 class Part(object):
@@ -570,49 +599,6 @@ class _Relationships(Mapping):
         for rel in self:
             D[rel.reltype].append(rel)
         return D
-
-
-class Unmarshaller(object):
-    """
-    Hosts static methods for unmarshalling a package from a |PackageReader|
-    instance.
-    """
-
-    @staticmethod
-    def unmarshal(pkg_reader, package, part_factory):
-        """
-        Construct graph of parts and realized relationships based on the
-        contents of *pkg_reader*, delegating construction of each part to
-        *part_factory*. Package relationships are added to *pkg*.
-        """
-        parts = Unmarshaller._unmarshal_parts(pkg_reader, package, part_factory)
-        Unmarshaller._unmarshal_relationships(pkg_reader, package, parts)
-
-    @staticmethod
-    def _unmarshal_parts(pkg_reader, package, part_factory):
-        """
-        Return a dictionary of |Part| instances unmarshalled from
-        *pkg_reader*, keyed by partname. Side-effect is that each part in
-        *pkg_reader* is constructed using *part_factory*.
-        """
-        parts = {}
-        for partname, content_type, blob in pkg_reader.iter_sparts():
-            parts[partname] = part_factory(partname, content_type, blob, package)
-        return parts
-
-    @staticmethod
-    def _unmarshal_relationships(pkg_reader, package, parts):
-        """
-        Add a relationship to the source object corresponding to each of the
-        relationships in *pkg_reader* with its target_part set to the actual
-        target part in *parts*.
-        """
-        for source_uri, srel in pkg_reader.iter_srels():
-            source = package if source_uri == "/" else parts[source_uri]
-            target = (
-                srel.target_ref if srel.is_external else parts[srel.target_partname]
-            )
-            source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
 
 
 class _Relationship(object):
