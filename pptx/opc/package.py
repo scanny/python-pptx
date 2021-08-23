@@ -6,8 +6,10 @@ The :mod:`pptx.packaging` module coheres around the concerns of reading and writ
 presentations to and from a .pptx file.
 """
 
-from pptx.compat import is_string
-from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+import collections
+
+from pptx.compat import is_string, Mapping
+from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM, RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships, serialize_part_xml
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.serialized import PackageReader, PackageWriter
@@ -37,7 +39,7 @@ class OpcPackage(object):
         """Generate exactly one reference to each part in the package."""
 
         def walk_parts(rels, visited=list()):
-            for rel in rels.values():
+            for rel in rels:
                 if rel.is_external:
                     continue
                 part = rel.target_part
@@ -60,7 +62,7 @@ class OpcPackage(object):
 
         def walk_rels(rels, visited=None):
             visited = [] if visited is None else visited
-            for rel in rels.values():
+            for rel in rels:
                 yield rel
                 # --- external items can have no relationships ---
                 if rel.is_external:
@@ -129,14 +131,16 @@ class OpcPackage(object):
         """
         return [part for part in self.iter_parts()]
 
-    def relate_to(self, part, reltype):
+    def relate_to(self, target, reltype, is_external=False):
         """Return rId key of relationship of `reltype` to `target`.
 
         If such a relationship already exists, its rId is returned. Otherwise the
         relationship is added and its new rId returned.
         """
-        rel = self._rels.get_or_add(reltype, part)
-        return rel.rId
+        if is_external:
+            return self._rels.get_or_add_ext_rel(reltype, target)
+        else:
+            return self._rels.get_or_add(reltype, target)
 
     def save(self, pkg_file):
         """Save this package to `pkg_file`.
@@ -250,11 +254,11 @@ class Part(object):
         If such a relationship already exists, its rId is returned. Otherwise the
         relationship is added and its new rId returned.
         """
-        if is_external:
-            return self.rels.get_or_add_ext_rel(reltype, target)
-        else:
-            rel = self.rels.get_or_add(reltype, target)
-            return rel.rId
+        return (
+            self._rels.get_or_add_ext_rel(reltype, target)
+            if is_external
+            else self._rels.get_or_add(reltype, target)
+        )
 
     def related_part(self, rId):
         """Return related |Part| subtype identified by `rId`."""
@@ -263,12 +267,12 @@ class Part(object):
     @lazyproperty
     def rels(self):
         """|Relationships| collection of relationships from this part to other parts."""
+        # --- this must be public to allow the part graph to be traversed ---
         return self._rels
 
     def target_ref(self, rId):
         """Return URL contained in target ref of relationship identified by `rId`."""
-        rel = self.rels[rId]
-        return rel.target_ref
+        return self._rels[rId].target_ref
 
     def _blob_from_file(self, file):
         """Return bytes of `file`, which is either a str path or a file-like object."""
@@ -352,7 +356,7 @@ class PartFactory(object):
         return cls.default_part_type
 
 
-class _Relationships(dict):
+class _Relationships(Mapping):
     """Collection of |_Relationship| instances, largely having dict semantics.
 
     Relationships are keyed by their rId, but may also be found in other ways, such as
@@ -363,41 +367,84 @@ class _Relationships(dict):
     not rIds (keys) as it would for a dict.
     """
 
-    def __init__(self, baseURI):
-        self._baseURI = baseURI
-        self._target_parts_by_rId = {}
+    def __init__(self, base_uri):
+        self._base_uri = base_uri
+
+    def __contains__(self, rId):
+        """Implement 'in' operation, like `"rId7" in relationships`."""
+        return rId in self._rels
+
+    def __getitem__(self, rId):
+        """Implement relationship lookup by rId using indexed access, like rels[rId]."""
+        try:
+            return self._rels[rId]
+        except KeyError:
+            raise KeyError("no relationship with key '%s'" % rId)
+
+    def __iter__(self):
+        """Implement iteration of relationships."""
+        return iter(list(self._rels.values()))
+
+    def __len__(self):
+        """Return count of relationships in collection."""
+        return len(self._rels)
 
     def add_relationship(self, reltype, target, rId, is_external=False):
-        """
-        Return a newly added |_Relationship| instance.
-        """
-        rel = _Relationship(rId, reltype, target, self._baseURI, is_external)
-        self[rId] = rel
-        if not is_external:
-            self._target_parts_by_rId[rId] = target
+        """Return a newly added |_Relationship| instance."""
+        rel = _Relationship(
+            self._base_uri,
+            rId,
+            reltype,
+            RTM.EXTERNAL if is_external else RTM.INTERNAL,
+            target,
+        )
+        self._rels[rId] = rel
         return rel
 
     def get_or_add(self, reltype, target_part):
+        """Return str rId of `reltype` to `target_part`.
+
+        The rId of an existing matching relationship is used if present. Otherwise, a
+        new relationship is added and that rId is returned.
         """
-        Return relationship of *reltype* to *target_part*, newly added if not
-        already present in collection.
-        """
-        rel = self._get_matching(reltype, target_part)
-        if rel is None:
-            rId = self._next_rId
-            rel = self.add_relationship(reltype, target_part, rId)
-        return rel
+        existing_rId = self._get_matching(reltype, target_part)
+        return (
+            self._add_relationship(reltype, target_part)
+            if existing_rId is None
+            else existing_rId
+        )
 
     def get_or_add_ext_rel(self, reltype, target_ref):
+        """Return str rId of external relationship of `reltype` to `target_ref`.
+
+        The rId of an existing matching relationship is used if present. Otherwise, a
+        new relationship is added and that rId is returned.
         """
-        Return rId of external relationship of *reltype* to *target_ref*,
-        newly added if not already present in collection.
-        """
-        rel = self._get_matching(reltype, target_ref, is_external=True)
-        if rel is None:
-            rId = self._next_rId
-            rel = self.add_relationship(reltype, target_ref, rId, is_external=True)
-        return rel.rId
+        existing_rId = self._get_matching(reltype, target_ref, is_external=True)
+        return (
+            self._add_relationship(reltype, target_ref, is_external=True)
+            if existing_rId is None
+            else existing_rId
+        )
+
+    def load_from_xml(self, base_uri, xml_rels, parts):
+        """Replace any relationships in this collection with those from `xml_rels`."""
+
+        def iter_valid_rels():
+            """Filter out broken relationships such as those pointing to NULL."""
+            for rel_elm in xml_rels.relationship_lst:
+                # --- Occasionally a PowerPoint plugin or other client will "remove"
+                # --- a relationship simply by "voiding" its Target value, like making
+                # --- it "/ppt/slides/NULL". Skip any relationships linking to a
+                # --- partname that is not present in the package.
+                if rel_elm.targetMode == RTM.INTERNAL:
+                    partname = PackURI.from_rel_ref(base_uri, rel_elm.target_ref)
+                    if partname not in parts:
+                        continue
+                yield _Relationship.from_xml(base_uri, rel_elm, parts)
+
+        self._rels.clear()
+        self._rels.update((rel.rId, rel) for rel in iter_valid_rels())
 
     def part_with_reltype(self, reltype):
         """Return target part of relationship with matching `reltype`.
@@ -405,8 +452,24 @@ class _Relationships(dict):
         Raises |KeyError| if not found and |ValueError| if more than one matching
         relationship is found.
         """
-        rel = self._get_rel_of_type(reltype)
-        return rel.target_part
+        rels_of_reltype = self._rels_by_reltype[reltype]
+
+        if len(rels_of_reltype) == 0:
+            raise KeyError("no relationship of type '%s' in collection" % reltype)
+
+        if len(rels_of_reltype) > 1:
+            raise ValueError(
+                "multiple relationships of type '%s' in collection" % reltype
+            )
+
+        return rels_of_reltype[0].target_part
+
+    def pop(self, rId):
+        """Return |Relationship| identified by `rId` after removing it from collection.
+
+        The caller is responsible for ensuring it is no longer required.
+        """
+        return self._rels.pop(rId)
 
     @property
     def xml(self):
@@ -416,45 +479,36 @@ class _Relationships(dict):
         a `<?xml` header with encoding as UTF-8.
         """
         rels_elm = CT_Relationships.new()
-        for rel in self.values():
+        for rel in self:
             rels_elm.add_rel(rel.rId, rel.reltype, rel.target_ref, rel.is_external)
         return rels_elm.xml
 
-    def _get_matching(self, reltype, target, is_external=False):
-        """
-        Return relationship of matching *reltype*, *target*, and
-        *is_external* from collection, or None if not found.
-        """
+    def _add_relationship(self, reltype, target, is_external=False):
+        """Return str rId of |_Relationship| newly added to spec."""
+        rId = self._next_rId
+        self._rels[rId] = _Relationship(
+            self._base_uri,
+            rId,
+            reltype,
+            target_mode=RTM.EXTERNAL if is_external else RTM.INTERNAL,
+            target=target,
+        )
+        return rId
 
-        def matches(rel, reltype, target, is_external):
-            if rel.reltype != reltype:
-                return False
+    def _get_matching(self, reltype, target, is_external=False):
+        """Return optional str rId of rel of `reltype`, `target`, and `is_external`.
+
+        Returns `None` on no matching relationship
+        """
+        for rel in self._rels_by_reltype[reltype]:
             if rel.is_external != is_external:
-                return False
+                continue
             rel_target = rel.target_ref if rel.is_external else rel.target_part
             if rel_target != target:
-                return False
-            return True
+                continue
+            return rel.rId
 
-        for rel in self.values():
-            if matches(rel, reltype, target, is_external):
-                return rel
         return None
-
-    def _get_rel_of_type(self, reltype):
-        """
-        Return single relationship of type *reltype* from the collection.
-        Raises |KeyError| if no matching relationship is found. Raises
-        |ValueError| if more than one matching relationship is found.
-        """
-        matching = [rel for rel in self.values() if rel.reltype == reltype]
-        if len(matching) == 0:
-            tmpl = "no relationship of type '%s' in collection"
-            raise KeyError(tmpl % reltype)
-        if len(matching) > 1:
-            tmpl = "multiple relationships of type '%s' in collection"
-            raise ValueError(tmpl % reltype)
-        return matching[0]
 
     @property
     def _next_rId(self):
@@ -463,10 +517,26 @@ class _Relationships(dict):
         The next rId is the first unused key starting from "rId1" and making use of any
         gaps in numbering, e.g. 'rId2' for rIds ['rId1', 'rId3'].
         """
-        for n in range(1, len(self) + 2):
+        # --- The common case is where all sequential numbers starting at "rId1" are
+        # --- used and the next available rId is "rId%d" % (len(rels)+1). So we start
+        # --- there and count down to produce the best performance.
+        for n in range(len(self) + 1, 0, -1):
             rId_candidate = "rId%d" % n  # like 'rId19'
-            if rId_candidate not in self:
+            if rId_candidate not in self._rels:
                 return rId_candidate
+
+    @lazyproperty
+    def _rels(self):
+        """dict {rId: _Relationship} containing relationships of this collection."""
+        return dict()
+
+    @property
+    def _rels_by_reltype(self):
+        """defaultdict {reltype: [rels]} for all relationships in collection."""
+        D = collections.defaultdict(list)
+        for rel in self:
+            D[rel.reltype].append(rel)
+        return D
 
 
 class Unmarshaller(object):
@@ -515,29 +585,38 @@ class Unmarshaller(object):
 class _Relationship(object):
     """Value object describing link from a part or package to another part."""
 
-    def __init__(self, rId, reltype, target, baseURI, external=False):
-        super(_Relationship, self).__init__()
+    def __init__(self, base_uri, rId, reltype, target_mode, target):
+        self._base_uri = base_uri
         self._rId = rId
         self._reltype = reltype
+        self._target_mode = target_mode
         self._target = target
-        self._baseURI = baseURI
-        self._is_external = bool(external)
 
-    @property
+    @classmethod
+    def from_xml(cls, base_uri, rel, parts):
+        """Return |_Relationship| object based on CT_Relationship element `rel`."""
+        target = (
+            rel.target_ref
+            if rel.targetMode == RTM.EXTERNAL
+            else parts[PackURI.from_rel_ref(base_uri, rel.target_ref)]
+        )
+        return cls(base_uri, rel.rId, rel.reltype, rel.targetMode, target)
+
+    @lazyproperty
     def is_external(self):
         """True if target_mode is `RTM.EXTERNAL`.
 
         An external relationship is a link to a resource outside the package, such as
         a web-resource (URL).
         """
-        return self._is_external
+        return self._target_mode == RTM.EXTERNAL
 
-    @property
+    @lazyproperty
     def reltype(self):
         """Member of RELATIONSHIP_TYPE describing relationship of target to source."""
         return self._reltype
 
-    @property
+    @lazyproperty
     def rId(self):
         """str relationship-id, like 'rId9'.
 
@@ -547,24 +626,39 @@ class _Relationship(object):
         """
         return self._rId
 
-    @property
+    @lazyproperty
     def target_part(self):
         """|Part| or subtype referred to by this relationship."""
-        if self._is_external:
+        if self.is_external:
             raise ValueError(
-                "target_part property on _Relationship is undef"
-                "ined when target mode is External"
+                "`.target_part` property on _Relationship is undefined when "
+                "target-mode is external"
             )
         return self._target
 
-    @property
+    @lazyproperty
+    def target_partname(self):
+        """|PackURI| instance containing partname targeted by this relationship.
+
+        Raises `ValueError` on reference if target_mode is external. Use
+        :attr:`target_mode` to check before referencing.
+        """
+        if self.is_external:
+            raise ValueError(
+                "`.target_partname` property on _Relationship is undefined when "
+                "target-mode is external"
+            )
+        return self._target.partname
+
+    @lazyproperty
     def target_ref(self):
         """str reference to relationship target.
 
         For internal relationships this is the relative partname, suitable for
         serialization purposes. For an external relationship it is typically a URL.
         """
-        if self._is_external:
-            return self._target
-        else:
-            return self._target.partname.relative_ref(self._baseURI)
+        return (
+            self._target
+            if self.is_external
+            else self.target_partname.relative_ref(self._base_uri)
+        )

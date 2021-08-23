@@ -2,12 +2,17 @@
 
 """Unit-test suite for `pptx.opc.package` module."""
 
+import collections
 import io
 
 import pytest
 
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
-from pptx.opc.oxml import CT_Relationships
+from pptx.opc.constants import (
+    CONTENT_TYPE as CT,
+    RELATIONSHIP_TARGET_MODE as RTM,
+    RELATIONSHIP_TYPE as RT,
+)
+from pptx.opc.oxml import CT_Relationship
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
     OpcPackage,
@@ -19,11 +24,12 @@ from pptx.opc.package import (
     XmlPart,
 )
 from pptx.opc.serialized import PackageReader
+from pptx.oxml import parse_xml
 from pptx.oxml.xmlchemy import BaseOxmlElement
 from pptx.package import Package
 
 from ..unitutil.cxml import element
-from ..unitutil.file import absjoin, test_file_dir
+from ..unitutil.file import absjoin, snippet_bytes, test_file_dir
 from ..unitutil.mock import (
     call,
     class_mock,
@@ -36,7 +42,6 @@ from ..unitutil.mock import (
     Mock,
     patch,
     property_mock,
-    PropertyMock,
 )
 
 
@@ -71,10 +76,8 @@ class DescribeOpcPackage(object):
     def it_can_establish_a_relationship_to_another_part(
         self, request, _rels_prop_, relationships_
     ):
+        relationships_.get_or_add.return_value = "rId99"
         _rels_prop_.return_value = relationships_
-        relationship_ = instance_mock(request, _Relationship)
-        relationships_.get_or_add.return_value = relationship_
-        relationship_.rId = "rId99"
         part_ = instance_mock(request, Part)
         package = OpcPackage()
 
@@ -235,7 +238,7 @@ class DescribeOpcPackage(object):
 
     def rels(self, request, values):
         rels = instance_mock(request, _Relationships)
-        rels.values.return_value = values
+        rels.__iter__.return_value = iter(values)
         return rels
 
     @pytest.fixture
@@ -319,13 +322,17 @@ class DescribePart(object):
         part.partname = new_partname
         assert part.partname == new_partname
 
-    def it_can_establish_a_relationship_to_another_part(self, relate_to_part_fixture):
-        part, target_, reltype_, rId_ = relate_to_part_fixture
+    def it_can_establish_a_relationship_to_another_part(
+        self, _rels_prop_, relationships_, part_
+    ):
+        relationships_.get_or_add.return_value = "rId42"
+        _rels_prop_.return_value = relationships_
+        part = Part(None, None, None)
 
-        rId = part.relate_to(target_, reltype_)
+        rId = part.relate_to(part_, RT.SLIDE)
 
-        part.rels.get_or_add.assert_called_once_with(reltype_, target_)
-        assert rId is rId_
+        relationships_.get_or_add.assert_called_once_with(RT.SLIDE, part_)
+        assert rId == "rId42"
 
     def it_can_establish_an_external_relationship(self, relate_to_url_fixture):
         part, url_, reltype_, rId_ = relate_to_url_fixture
@@ -410,12 +417,6 @@ class DescribePart(object):
         new_partname = PackURI("/new/part/name")
         part = Part(old_partname, None, None, None)
         return part, new_partname
-
-    @pytest.fixture
-    def relate_to_part_fixture(self, part, _rels_prop_, reltype_, part_, rels_, rId_):
-        _rels_prop_.return_value = rels_
-        target_ = part_
-        return part, target_, reltype_, rId_
 
     @pytest.fixture
     def relate_to_url_fixture(self, part, _rels_prop_, rels_, url_, reltype_, rId_):
@@ -619,254 +620,398 @@ class DescribePartFactory(object):
 class Describe_Relationships(object):
     """Unit-test suite for `pptx.opc.package._Relationships` objects."""
 
-    def it_has_a_len(self):
-        rels = _Relationships(None)
-        assert len(rels) == 0
+    def it_has_dict_style_lookup_of_rel_by_rId(self, _rels_prop_, relationship_):
+        _rels_prop_.return_value = {"rId17": relationship_}
+        assert _Relationships(None)["rId17"] is relationship_
 
-    def it_has_dict_style_lookup_of_rel_by_rId(self):
-        rel = Mock(name="rel", rId="foobar")
-        rels = _Relationships(None)
-        rels["foobar"] = rel
-        assert rels["foobar"] == rel
+    def but_it_raises_KeyError_when_no_relationship_has_rId(self, _rels_prop_):
+        _rels_prop_.return_value = {}
+        with pytest.raises(KeyError) as e:
+            _Relationships(None)["rId6"]
+        assert str(e.value) == "\"no relationship with key 'rId6'\""
 
-    def it_should_raise_on_failed_lookup_by_rId(self):
-        rels = _Relationships(None)
-        with pytest.raises(KeyError):
-            rels["barfoo"]
+    def it_can_iterate_the_relationships_it_contains(self, request, _rels_prop_):
+        rels_ = set(instance_mock(request, _Relationship) for n in range(5))
+        _rels_prop_.return_value = {"rId%d" % (i + 1): r for i, r in enumerate(rels_)}
+        relationships = _Relationships(None)
 
-    def it_can_add_a_relationship(self, _Relationship_):
-        baseURI, rId, reltype, target, external = (
-            "baseURI",
-            "rId9",
-            "reltype",
-            "target",
-            False,
-        )
-        rels = _Relationships(baseURI)
-        rel = rels.add_relationship(reltype, target, rId, external)
-        _Relationship_.assert_called_once_with(rId, reltype, target, baseURI, external)
-        assert rels[rId] == rel
-        assert rel == _Relationship_.return_value
+        for r in relationships:
+            rels_.remove(r)
 
-    def it_can_add_a_relationship_if_not_found(
-        self, rels_with_matching_rel_, rels_with_missing_rel_
+        assert len(rels_) == 0
+
+    def it_has_a_len(self, _rels_prop_):
+        _rels_prop_.return_value = {"a": 0, "b": 1}
+        assert len(_Relationships(None)) == 2
+
+    def it_can_add_a_relationship_to_a_target_part(
+        self, part_, _get_matching_, _add_relationship_
     ):
+        _get_matching_.return_value = None
+        _add_relationship_.return_value = "rId7"
+        relationships = _Relationships(None)
 
-        rels, reltype, part, matching_rel = rels_with_matching_rel_
-        assert rels.get_or_add(reltype, part) == matching_rel
+        rId = relationships.get_or_add(RT.IMAGE, part_)
 
-        rels, reltype, part, new_rel = rels_with_missing_rel_
-        assert rels.get_or_add(reltype, part) == new_rel
+        _get_matching_.assert_called_once_with(relationships, RT.IMAGE, part_)
+        _add_relationship_.assert_called_once_with(relationships, RT.IMAGE, part_)
+        assert rId == "rId7"
 
-    def it_can_add_an_external_relationship(self, add_ext_rel_fixture_):
-        rels, reltype, url = add_ext_rel_fixture_
-        rId = rels.get_or_add_ext_rel(reltype, url)
-        rel = rels[rId]
-        assert rel.is_external
-        assert rel.target_ref == url
-        assert rel.reltype == reltype
-
-    def it_should_return_an_existing_one_if_it_matches(
-        self, add_matching_ext_rel_fixture_
+    def but_it_returns_an_existing_relationship_if_it_matches(
+        self, part_, _get_matching_
     ):
-        rels, reltype, url, rId = add_matching_ext_rel_fixture_
-        _rId = rels.get_or_add_ext_rel(reltype, url)
-        assert _rId == rId
-        assert len(rels) == 1
+        _get_matching_.return_value = "rId3"
+        relationships = _Relationships(None)
 
-    def it_can_find_a_related_part_by_reltype(self, rels_with_target_known_by_reltype):
-        rels, reltype, known_target_part = rels_with_target_known_by_reltype
-        part = rels.part_with_reltype(reltype)
-        assert part is known_target_part
+        rId = relationships.get_or_add(RT.IMAGE, part_)
 
-    def it_knows_the_next_available_rId_to_help(self, rels_with_rId_gap):
-        rels, expected_next_rId = rels_with_rId_gap
-        next_rId = rels._next_rId
-        assert next_rId == expected_next_rId
+        _get_matching_.assert_called_once_with(relationships, RT.IMAGE, part_)
+        assert rId == "rId3"
 
-    def it_can_compose_rels_xml(self, rels, rels_elm):
-        rels.xml
-
-        rels_elm.assert_has_calls(
-            [
-                call.add_rel("rId1", "http://rt-hyperlink", "http://some/link", True),
-                call.add_rel("rId2", "http://rt-image", "../media/image1.png", False),
-                call.xml(),
-            ],
-            any_order=True,
-        )
-
-    # --- fixtures -----------------------------------------
-
-    @pytest.fixture
-    def add_ext_rel_fixture_(self, reltype, url):
-        rels = _Relationships(None)
-        return rels, reltype, url
-
-    @pytest.fixture
-    def add_matching_ext_rel_fixture_(self, request, reltype, url):
-        rId = "rId369"
-        rels = _Relationships(None)
-        rels.add_relationship(reltype, url, rId, is_external=True)
-        return rels, reltype, url, rId
-
-    @pytest.fixture
-    def _rel_with_target_known_by_reltype(self, _rId, _reltype, _target_part, _baseURI):
-        rel = _Relationship(_rId, _reltype, _target_part, _baseURI)
-        return rel, _reltype, _target_part
-
-    @pytest.fixture
-    def rels_elm(self, request):
-        """Return a rels_elm mock that will be returned from CT_Relationships.new()"""
-        # --- create rels_elm mock with a .xml property ---
-        rels_elm = Mock(name="rels_elm")
-        xml = PropertyMock(name="xml")
-        type(rels_elm).xml = xml
-        rels_elm.attach_mock(xml, "xml")
-        rels_elm.reset_mock()  # to clear attach_mock call
-        # --- patch CT_Relationships to return that rels_elm ---
-        patch_ = patch.object(CT_Relationships, "new", return_value=rels_elm)
-        patch_.start()
-        request.addfinalizer(patch_.stop)
-        return rels_elm
-
-    @pytest.fixture
-    def rels_with_matching_rel_(self, request, rels):
-        matching_reltype_ = instance_mock(request, str, name="matching_reltype_")
-        matching_part_ = instance_mock(request, Part, name="matching_part_")
-        matching_rel_ = instance_mock(
-            request,
-            _Relationship,
-            name="matching_rel_",
-            reltype=matching_reltype_,
-            target_part=matching_part_,
-            is_external=False,
-        )
-        rels[1] = matching_rel_
-        return rels, matching_reltype_, matching_part_, matching_rel_
-
-    @pytest.fixture
-    def rels_with_missing_rel_(self, request, rels, _Relationship_):
-        missing_reltype_ = instance_mock(request, str, name="missing_reltype_")
-        missing_part_ = instance_mock(request, Part, name="missing_part_")
-        new_rel_ = instance_mock(
-            request,
-            _Relationship,
-            name="new_rel_",
-            reltype=missing_reltype_,
-            target_part=missing_part_,
-            is_external=False,
-        )
-        _Relationship_.return_value = new_rel_
-        return rels, missing_reltype_, missing_part_, new_rel_
-
-    @pytest.fixture
-    def rels_with_rId_gap(self, request):
-        rels = _Relationships(None)
-
-        rel_with_rId1 = instance_mock(
-            request, _Relationship, name="rel_with_rId1", rId="rId1"
-        )
-        rel_with_rId3 = instance_mock(
-            request, _Relationship, name="rel_with_rId3", rId="rId3"
-        )
-        rels["rId1"] = rel_with_rId1
-        rels["rId3"] = rel_with_rId3
-        return rels, "rId2"
-
-    @pytest.fixture
-    def rels_with_target_known_by_reltype(
-        self, rels, _rel_with_target_known_by_reltype
+    def it_can_add_an_external_relationship_to_a_URI(
+        self, _get_matching_, _add_relationship_
     ):
-        rel, reltype, target_part = _rel_with_target_known_by_reltype
-        rels[1] = rel
-        return rels, reltype, target_part
+        _get_matching_.return_value = None
+        _add_relationship_.return_value = "rId2"
+        relationships = _Relationships(None)
 
-    # --- fixture components -------------------------------
+        rId = relationships.get_or_add_ext_rel(RT.HYPERLINK, "http://url")
+
+        _get_matching_.assert_called_once_with(
+            relationships, RT.HYPERLINK, "http://url", is_external=True
+        )
+        _add_relationship_.assert_called_once_with(
+            relationships, RT.HYPERLINK, "http://url", is_external=True
+        )
+        assert rId == "rId2"
+
+    def but_it_returns_an_existing_external_relationship_if_it_matches(
+        self, part_, _get_matching_
+    ):
+        _get_matching_.return_value = "rId10"
+        relationships = _Relationships(None)
+
+        rId = relationships.get_or_add_ext_rel(RT.HYPERLINK, "http://url")
+
+        _get_matching_.assert_called_once_with(
+            relationships, RT.HYPERLINK, "http://url", is_external=True
+        )
+        assert rId == "rId10"
+
+    def it_can_load_from_the_xml_in_a_rels_part(self, request, _Relationship_, part_):
+        rels_ = tuple(
+            instance_mock(request, _Relationship, rId="rId%d" % (i + 1))
+            for i in range(5)
+        )
+        _Relationship_.from_xml.side_effect = iter(rels_)
+        parts = {"/ppt/slideLayouts/slideLayout1.xml": part_}
+        xml_rels = parse_xml(snippet_bytes("rels-load-from-xml"))
+        relationships = _Relationships(None)
+
+        relationships.load_from_xml("/ppt/slides", xml_rels, parts)
+
+        assert _Relationship_.from_xml.call_args_list == [
+            call("/ppt/slides", xml_rels[0], parts),
+            call("/ppt/slides", xml_rels[1], parts),
+        ]
+        assert relationships._rels == {"rId1": rels_[0], "rId2": rels_[1]}
+
+    def it_can_find_a_part_with_reltype(
+        self, _rels_by_reltype_prop_, relationship_, part_
+    ):
+        relationship_.target_part = part_
+        _rels_by_reltype_prop_.return_value = collections.defaultdict(
+            list, ((RT.SLIDE_LAYOUT, [relationship_]),)
+        )
+        relationships = _Relationships(None)
+
+        assert relationships.part_with_reltype(RT.SLIDE_LAYOUT) is part_
+
+    def but_it_raises_KeyError_when_there_is_no_such_part(self, _rels_by_reltype_prop_):
+        _rels_by_reltype_prop_.return_value = collections.defaultdict(list)
+        relationships = _Relationships(None)
+
+        with pytest.raises(KeyError) as e:
+            relationships.part_with_reltype(RT.SLIDE_LAYOUT)
+        assert str(e.value) == (
+            "\"no relationship of type 'http://schemas.openxmlformats.org/"
+            "officeDocument/2006/relationships/slideLayout' in collection\""
+        )
+
+    def and_it_raises_ValueError_when_there_is_more_than_one_part_with_reltype(
+        self, _rels_by_reltype_prop_, relationship_, part_
+    ):
+        relationship_.target_part = part_
+        _rels_by_reltype_prop_.return_value = collections.defaultdict(
+            list, ((RT.SLIDE_LAYOUT, [relationship_, relationship_]),)
+        )
+        relationships = _Relationships(None)
+
+        with pytest.raises(ValueError) as e:
+            relationships.part_with_reltype(RT.SLIDE_LAYOUT)
+        assert str(e.value) == (
+            "multiple relationships of type 'http://schemas.openxmlformats.org/"
+            "officeDocument/2006/relationships/slideLayout' in collection"
+        )
+
+    def it_can_pop_a_relationship_to_remove_it_from_the_collection(
+        self, _rels_prop_, relationship_
+    ):
+        _rels_prop_.return_value = {"rId22": relationship_}
+        relationships = _Relationships(None)
+
+        relationships.pop("rId22")
+
+        assert relationships._rels == {}
+
+    def it_can_serialize_itself_to_XML(self, request, _rels_prop_):
+        _rels_prop_.return_value = {
+            "rId1": instance_mock(
+                request,
+                _Relationship,
+                rId="rId1",
+                reltype=RT.SLIDE,
+                target_ref="../slides/slide1.xml",
+                is_external=False,
+            ),
+            "rId2": instance_mock(
+                request,
+                _Relationship,
+                rId="rId2",
+                reltype=RT.HYPERLINK,
+                target_ref="http://url",
+                is_external=True,
+            ),
+        }
+        relationships = _Relationships(None)
+
+        assert relationships.xml == snippet_bytes("relationships")
+
+    def it_can_add_a_relationship_to_a_part_to_help(
+        self,
+        request,
+        _next_rId_prop_,
+        _Relationship_,
+        relationship_,
+        _rels_prop_,
+        part_,
+    ):
+        _next_rId_prop_.return_value = "rId8"
+        _Relationship_.return_value = relationship_
+        _rels_prop_.return_value = {}
+        relationships = _Relationships("/ppt")
+
+        rId = relationships._add_relationship(RT.SLIDE, part_)
+
+        _Relationship_.assert_called_once_with(
+            "/ppt", "rId8", RT.SLIDE, target_mode=RTM.INTERNAL, target=part_
+        )
+        assert relationships._rels == {"rId8": relationship_}
+        assert rId == "rId8"
+
+    def and_it_can_add_an_external_relationship_to_help(
+        self, request, _next_rId_prop_, _rels_prop_, _Relationship_, relationship_
+    ):
+        _next_rId_prop_.return_value = "rId9"
+        _Relationship_.return_value = relationship_
+        _rels_prop_.return_value = {}
+        relationships = _Relationships("/ppt")
+
+        rId = relationships._add_relationship(
+            RT.HYPERLINK, "http://url", is_external=True
+        )
+
+        _Relationship_.assert_called_once_with(
+            "/ppt", "rId9", RT.HYPERLINK, target_mode=RTM.EXTERNAL, target="http://url"
+        )
+        assert relationships._rels == {"rId9": relationship_}
+        assert rId == "rId9"
+
+    def it_can_get_a_matching_relationship_to_help(
+        self, _rels_by_reltype_prop_, relationship_, part_
+    ):
+        relationship_.is_external = False
+        relationship_.target_part = part_
+        relationship_.rId = "rId10"
+        _rels_by_reltype_prop_.return_value = {RT.SLIDE: [relationship_]}
+        relationships = _Relationships(None)
+
+        assert relationships._get_matching(RT.SLIDE, part_) == "rId10"
+
+    def but_it_returns_None_when_there_is_no_matching_relationship(
+        self, _rels_by_reltype_prop_
+    ):
+        _rels_by_reltype_prop_.return_value = collections.defaultdict(list)
+        relationships = _Relationships(None)
+
+        assert relationships._get_matching(RT.HYPERLINK, "http://url", True) is None
+
+    @pytest.mark.parametrize(
+        "rIds, expected_value",
+        (
+            ((), "rId1"),
+            (("rId1",), "rId2"),
+            (("rId1", "rId2"), "rId3"),
+            (("rId1", "rId4"), "rId3"),
+            (("rId1", "rId4", "rId6"), "rId3"),
+            (("rId1", "rId2", "rId6"), "rId4"),
+        ),
+    )
+    def it_finds_the_next_rId_to_help(self, _rels_prop_, rIds, expected_value):
+        _rels_prop_.return_value = {rId: None for rId in rIds}
+        relationships = _Relationships(None)
+
+        assert relationships._next_rId == expected_value
+
+    def it_collects_relationships_by_reltype_to_help(self, request, _rels_prop_):
+        rels = {
+            "rId%d" % (i + 1): instance_mock(request, _Relationship, reltype=reltype)
+            for i, reltype in enumerate((RT.SLIDE, RT.IMAGE, RT.SLIDE, RT.HYPERLINK))
+        }
+        _rels_prop_.return_value = rels
+        relationships = _Relationships(None)
+
+        rels_by_reltype = relationships._rels_by_reltype
+
+        assert rels["rId1"] in rels_by_reltype[RT.SLIDE]
+        assert rels["rId2"] in rels_by_reltype[RT.IMAGE]
+        assert rels["rId3"] in rels_by_reltype[RT.SLIDE]
+        assert rels["rId4"] in rels_by_reltype[RT.HYPERLINK]
+        assert rels_by_reltype[RT.CHART] == []
+
+    # fixture components -----------------------------------
 
     @pytest.fixture
-    def _baseURI(self):
-        return "/baseURI"
+    def _add_relationship_(self, request):
+        return method_mock(request, _Relationships, "_add_relationship")
+
+    @pytest.fixture
+    def _get_matching_(self, request):
+        return method_mock(request, _Relationships, "_get_matching")
+
+    @pytest.fixture
+    def _next_rId_prop_(self, request):
+        return property_mock(request, _Relationships, "_next_rId")
+
+    @pytest.fixture
+    def part_(self, request):
+        return instance_mock(request, Part)
 
     @pytest.fixture
     def _Relationship_(self, request):
         return class_mock(request, "pptx.opc.package._Relationship")
 
     @pytest.fixture
-    def rels(self):
-        """
-        Populated _Relationships instance that will exercise the
-        rels.xml property.
-        """
-        rels = _Relationships("/baseURI")
-        rels.add_relationship(
-            reltype="http://rt-hyperlink",
-            target="http://some/link",
-            rId="rId1",
-            is_external=True,
-        )
-        part = Mock(name="part")
-        part.partname.relative_ref.return_value = "../media/image1.png"
-        rels.add_relationship(reltype="http://rt-image", target=part, rId="rId2")
-        return rels
+    def relationship_(self, request):
+        return instance_mock(request, _Relationship)
 
     @pytest.fixture
-    def _reltype(self):
-        return RT.SLIDE
+    def _rels_by_reltype_prop_(self, request):
+        return property_mock(request, _Relationships, "_rels_by_reltype")
 
     @pytest.fixture
-    def reltype(self):
-        return "http://rel/type"
-
-    @pytest.fixture
-    def _rId(self):
-        return "rId6"
-
-    @pytest.fixture
-    def _target_part(self, request):
-        return loose_mock(request)
-
-    @pytest.fixture
-    def url(self):
-        return "https://github.com/scanny/python-pptx"
+    def _rels_prop_(self, request):
+        return property_mock(request, _Relationships, "_rels")
 
 
 class Describe_Relationship(object):
     """Unit-test suite for `pptx.opc.package._Relationship` objects."""
 
-    def it_remembers_construction_values(self):
-        # test data --------------------
-        rId = "rId9"
-        reltype = "reltype"
-        target = Mock(name="target_part")
-        external = False
-        # exercise ---------------------
-        rel = _Relationship(rId, reltype, target, None, external)
-        # verify -----------------------
-        assert rel.rId == rId
-        assert rel.reltype == reltype
-        assert rel.target_part == target
-        assert rel.is_external == external
+    def it_can_construct_from_xml(self, request, part_):
+        _init_ = initializer_mock(request, _Relationship)
+        rel_elm = instance_mock(
+            request,
+            CT_Relationship,
+            rId="rId42",
+            reltype=RT.SLIDE,
+            targetMode=RTM.INTERNAL,
+            target_ref="slides/slide7.xml",
+        )
+        parts = {"/ppt/slides/slide7.xml": part_}
 
-    def it_should_raise_on_target_part_access_on_external_rel(self):
-        rel = _Relationship(None, None, None, None, external=True)
-        with pytest.raises(ValueError):
-            rel.target_part
+        relationship = _Relationship.from_xml("/ppt", rel_elm, parts)
 
-    def it_should_have_target_ref_for_external_rel(self):
-        rel = _Relationship(None, None, "target", None, external=True)
-        assert rel.target_ref == "target"
+        _init_.assert_called_once_with(
+            relationship,
+            "/ppt",
+            "rId42",
+            RT.SLIDE,
+            RTM.INTERNAL,
+            part_,
+        )
+        assert isinstance(relationship, _Relationship)
 
-    def it_should_have_relative_ref_for_internal_rel(self):
+    @pytest.mark.parametrize(
+        "target_mode, expected_value",
+        ((RTM.INTERNAL, False), (RTM.EXTERNAL, True), (None, False)),
+    )
+    def it_knows_whether_it_is_external(self, target_mode, expected_value):
+        relationship = _Relationship(None, None, None, target_mode, None)
+        assert relationship.is_external == expected_value
+
+    def it_knows_its_relationship_type(self):
+        relationship = _Relationship(None, None, RT.SLIDE, None, None)
+        assert relationship.reltype == RT.SLIDE
+
+    def it_knows_its_rId(self):
+        relationship = _Relationship(None, "rId42", None, None, None)
+        assert relationship.rId == "rId42"
+
+    def it_provides_access_to_its_target_part(self, part_):
+        relationship = _Relationship(None, None, None, RTM.INTERNAL, part_)
+        assert relationship.target_part is part_
+
+    def but_it_raises_ValueError_on_target_part_for_external_rel(self):
+        relationship = _Relationship(None, None, None, RTM.EXTERNAL, None)
+        with pytest.raises(ValueError) as e:
+            relationship.target_part
+        assert str(e.value) == (
+            "`.target_part` property on _Relationship is undefined when "
+            "target-mode is external"
+        )
+
+    def it_knows_its_target_partname(self, part_):
+        part_.partname = PackURI("/ppt/slideLayouts/slideLayout4.xml")
+        relationship = _Relationship(None, None, None, RTM.INTERNAL, part_)
+
+        assert relationship.target_partname == "/ppt/slideLayouts/slideLayout4.xml"
+
+    def but_it_raises_ValueError_on_target_partname_for_external_rel(self):
+        relationship = _Relationship(None, None, None, RTM.EXTERNAL, None)
+
+        with pytest.raises(ValueError) as e:
+            relationship.target_partname
+
+        assert str(e.value) == (
+            "`.target_partname` property on _Relationship is undefined when "
+            "target-mode is external"
+        )
+
+    def it_knows_the_target_uri_for_an_external_rel(self):
+        relationship = _Relationship(None, None, None, RTM.EXTERNAL, "http://url")
+        assert relationship.target_ref == "http://url"
+
+    def and_it_knows_the_relative_partname_for_an_internal_rel(self, request):
+        """Internal relationships have a relative reference for `.target_ref`.
+
+        A relative reference looks like "../slideLayouts/slideLayout1.xml". This form
+        is suitable for writing to a .rels file.
         """
-        Internal relationships (TargetMode == 'Internal' in the XML) should
-        have a relative ref, e.g. '../slideLayouts/slideLayout1.xml', for
-        the target_ref attribute.
-        """
-        part = Mock(name="part", partname=PackURI("/ppt/media/image1.png"))
-        baseURI = "/ppt/slides"
-        rel = _Relationship(None, None, part, baseURI)  # external=False
-        assert rel.target_ref == "../media/image1.png"
+        property_mock(
+            request,
+            _Relationship,
+            "target_partname",
+            return_value=PackURI("/ppt/media/image1.png"),
+        )
+        relationship = _Relationship("/ppt/slides", None, None, None, None)
+
+        assert relationship.target_ref == "../media/image1.png"
+
+    # --- fixture components -------------------------------
+
+    @pytest.fixture
+    def part_(self, request):
+        return instance_mock(request, Part)
 
 
 class DescribeUnmarshaller(object):

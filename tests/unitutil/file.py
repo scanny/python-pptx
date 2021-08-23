@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""
-Utility functions for loading files for unit testing
-"""
+"""Utility functions for loading files for unit testing."""
 
 import os
 import sys
@@ -37,6 +35,15 @@ def parse_xml_file(file_):
     Return ElementTree for XML contained in *file_*
     """
     return etree.parse(file_, oxml_parser)
+
+
+def snippet_bytes(snippet_file_name):
+    """Return bytes read from snippet file having `snippet_file_name`."""
+    snippet_file_path = os.path.join(
+        test_file_dir, "snippets", "%s.txt" % snippet_file_name
+    )
+    with open(snippet_file_path, "rb") as f:
+        return f.read().strip()
 
 
 def snippet_seq(name, offset=0, count=sys.maxsize):
