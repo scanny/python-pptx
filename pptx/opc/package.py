@@ -37,31 +37,24 @@ class OpcPackage(object):
 
     def iter_parts(self):
         """Generate exactly one reference to each part in the package."""
-
-        def walk_parts(rels, visited=list()):
-            for rel in rels:
-                if rel.is_external:
-                    continue
-                part = rel.target_part
-                if part in visited:
-                    continue
-                visited.append(part)
-                yield part
-                new_rels = part.rels
-                for part in walk_parts(new_rels, visited):
-                    yield part
-
-        for part in walk_parts(self._rels):
+        visited = set()
+        for rel in self.iter_rels():
+            if rel.is_external:
+                continue
+            part = rel.target_part
+            if part in visited:
+                continue
             yield part
+            visited.add(part)
 
     def iter_rels(self):
         """Generate exactly one reference to each relationship in package.
 
         Performs a depth-first traversal of the rels graph.
         """
+        visited = set()
 
-        def walk_rels(rels, visited=None):
-            visited = [] if visited is None else visited
+        def walk_rels(rels):
             for rel in rels:
                 yield rel
                 # --- external items can have no relationships ---
@@ -73,10 +66,9 @@ class OpcPackage(object):
                 part = rel.target_part
                 if part in visited:
                     continue
-                visited.append(part)
-                new_rels = part.rels
+                visited.add(part)
                 # --- recurse into relationships of each unvisited target-part ---
-                for rel in walk_rels(new_rels, visited):
+                for rel in walk_rels(part.rels):
                     yield rel
 
         for rel in walk_rels(self._rels):
