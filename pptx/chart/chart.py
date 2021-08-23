@@ -211,8 +211,6 @@ class ChartTitle(ElementProxy):
     # actually differ in certain fuller behaviors, but at present they're
     # essentially identical.
 
-    __slots__ = ("_title", "_format")
-
     def __init__(self, title):
         super(ChartTitle, self).__init__(title)
         self._title = title

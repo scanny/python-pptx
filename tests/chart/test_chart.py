@@ -108,11 +108,15 @@ class DescribeChart(object):
         assert Legend_.call_args_list == expected_calls
         assert legend is expected_value
 
-    def it_knows_its_chart_type(self, chart_type_fixture):
-        chart, PlotTypeInspector_, plot_, chart_type = chart_type_fixture
-        _chart_type = chart.chart_type
+    def it_knows_its_chart_type(self, request, PlotTypeInspector_, plot_):
+        property_mock(request, Chart, "plots", return_value=[plot_])
+        PlotTypeInspector_.chart_type.return_value = XL_CHART_TYPE.PIE
+        chart = Chart(None, None)
+
+        chart_type = chart.chart_type
+
         PlotTypeInspector_.chart_type.assert_called_once_with(plot_)
-        assert _chart_type is chart_type
+        assert chart_type == XL_CHART_TYPE.PIE
 
     def it_knows_its_style(self, style_get_fixture):
         chart, expected_value = style_get_fixture
@@ -162,14 +166,6 @@ class DescribeChart(object):
     def cat_ax_raise_fixture(self):
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
         return chart
-
-    @pytest.fixture
-    def chart_type_fixture(self, PlotTypeInspector_, plot_):
-        chart = Chart(None, None)
-        chart._plots = [plot_]
-        chart_type = XL_CHART_TYPE.PIE
-        PlotTypeInspector_.chart_type.return_value = chart_type
-        return chart, PlotTypeInspector_, plot_, chart_type
 
     @pytest.fixture(
         params=[

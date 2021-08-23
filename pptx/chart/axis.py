@@ -230,8 +230,6 @@ class _BaseAxis(object):
 class AxisTitle(ElementProxy):
     """Provides properties for manipulating axis title."""
 
-    __slots__ = ("_title", "_format")
-
     def __init__(self, title):
         super(AxisTitle, self).__init__(title)
         self._title = title
@@ -313,8 +311,6 @@ class MajorGridlines(ElementProxy):
     Provides access to the properties of the major gridlines appearing on an
     axis.
     """
-
-    __slots__ = ("_xAx", "_format")
 
     def __init__(self, xAx):
         super(MajorGridlines, self).__init__(xAx)

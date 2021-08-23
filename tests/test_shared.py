@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for the docx.shared module
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.shared` module."""
 
 import pytest
 
@@ -16,10 +12,7 @@ from .unitutil.mock import instance_mock
 
 
 class DescribeElementProxy(object):
-    def it_raises_on_assign_to_undefined_attr(self):
-        element_proxy = ElementProxy(None)
-        with pytest.raises(AttributeError):
-            element_proxy.foobar = 42
+    """Unit-test suite for `pptx.shared.ElementProxy` objects."""
 
     def it_knows_when_its_equal_to_another_proxy_object(self, eq_fixture):
         proxy, proxy_2, proxy_3, not_a_proxy = eq_fixture
@@ -55,6 +48,8 @@ class DescribeElementProxy(object):
 
 
 class DescribeParentedElementProxy(object):
+    """Unit-test suite for `pptx.shared.ParentedElementProxy` objects."""
+
     def it_knows_its_parent(self, parent_fixture):
         proxy, parent = parent_fixture
         assert proxy.parent is parent

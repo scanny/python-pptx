@@ -13,8 +13,6 @@ class ElementProxy(object):
     type of class in python-pptx other than custom element (oxml) classes.
     """
 
-    __slots__ = ("_element",)
-
     def __init__(self, element):
         self._element = element
 
@@ -51,8 +49,6 @@ class ParentedElementProxy(ElementProxy):
     attribute to subclasses and the public :attr:`parent` read-only property.
     """
 
-    __slots__ = ("_parent",)
-
     def __init__(self, element, parent):
         super(ParentedElementProxy, self).__init__(element)
         self._parent = parent
@@ -78,8 +74,6 @@ class PartElementProxy(ElementProxy):
     Provides common members for proxy objects that wrap the root element of
     a part such as `p:sld`.
     """
-
-    __slots__ = ("_part",)
 
     def __init__(self, element, part):
         super(PartElementProxy, self).__init__(element)

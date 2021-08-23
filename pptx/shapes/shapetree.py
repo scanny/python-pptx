@@ -753,8 +753,6 @@ class SlidePlaceholders(ParentedElementProxy):
     placeholders it contains.
     """
 
-    __slots__ = ()
-
     def __getitem__(self, idx):
         """
         Access placeholder shape having *idx*. Note that while this looks

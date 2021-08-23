@@ -60,19 +60,34 @@ class DescribeOpcPackage(object):
         _Relationships_.assert_called_once_with(PACKAGE_URI.baseURI)
         assert rels == _Relationships_.return_value
 
-    def it_can_add_a_relationship_to_a_part(self, pkg_with_rels_, rel_attrs_):
-        reltype, target, rId = rel_attrs_
-        pkg = pkg_with_rels_
-        # exercise ---------------------
-        pkg.load_rel(reltype, target, rId)
-        # verify -----------------------
-        pkg._rels.add_relationship.assert_called_once_with(reltype, target, rId, False)
+    def it_can_add_a_relationship_to_a_part(self, request, rels_prop_, relationships_):
+        rels_prop_.return_value = relationships_
+        relationship_ = instance_mock(request, _Relationship)
+        relationships_.add_relationship.return_value = relationship_
+        target_ = instance_mock(request, Part, name="target_part")
+        package = OpcPackage()
 
-    def it_can_establish_a_relationship_to_another_part(self, relate_to_part_fixture_):
-        pkg, part_, reltype, rId = relate_to_part_fixture_
-        _rId = pkg.relate_to(part_, reltype)
-        pkg.rels.get_or_add.assert_called_once_with(reltype, part_)
-        assert _rId == rId
+        relationship = package.load_rel(RT.SLIDE, target_, "rId99")
+
+        relationships_.add_relationship.assert_called_once_with(
+            RT.SLIDE, target_, "rId99", False
+        )
+        assert relationship is relationship_
+
+    def it_can_establish_a_relationship_to_another_part(
+        self, request, rels_prop_, relationships_
+    ):
+        rels_prop_.return_value = relationships_
+        relationship_ = instance_mock(request, _Relationship)
+        relationships_.get_or_add.return_value = relationship_
+        relationship_.rId = "rId99"
+        part_ = instance_mock(request, Part)
+        package = OpcPackage()
+
+        rId = package.relate_to(part_, "http://rel/type")
+
+        relationships_.get_or_add.assert_called_once_with("http://rel/type", part_)
+        assert rId == "rId99"
 
     def it_can_provide_a_list_of_the_parts_it_contains(self):
         # mockery ----------------------
@@ -92,10 +107,17 @@ class DescribeOpcPackage(object):
         rels = list(package.iter_rels())
         assert rels == expected_rels
 
-    def it_can_find_a_part_related_by_reltype(self, related_part_fixture_):
-        pkg, reltype, related_part_ = related_part_fixture_
-        related_part = pkg.part_related_by(reltype)
-        pkg.rels.part_with_reltype.assert_called_once_with(reltype)
+    def it_can_find_a_part_related_by_reltype(
+        self, request, rels_prop_, relationships_
+    ):
+        related_part_ = instance_mock(request, Part, name="related_part_")
+        relationships_.part_with_reltype.return_value = related_part_
+        rels_prop_.return_value = relationships_
+        package = OpcPackage()
+
+        related_part = package.part_related_by(RT.SLIDE)
+
+        relationships_.part_with_reltype.assert_called_once_with(RT.SLIDE)
         assert related_part is related_part_
 
     def it_can_find_the_next_available_vector_partname(self, next_partname_fixture):
@@ -146,24 +168,7 @@ class DescribeOpcPackage(object):
         return package, partname_template, expected_partname
 
     @pytest.fixture
-    def relate_to_part_fixture_(self, request, pkg, rels_, reltype):
-        rId = "rId99"
-        rel_ = instance_mock(request, _Relationship, name="rel_", rId=rId)
-        rels_.get_or_add.return_value = rel_
-        pkg._rels = rels_
-        part_ = instance_mock(request, Part, name="part_")
-        return pkg, part_, reltype, rId
-
-    @pytest.fixture
-    def related_part_fixture_(self, request, rels_, reltype):
-        related_part_ = instance_mock(request, Part, name="related_part_")
-        rels_.part_with_reltype.return_value = related_part_
-        pkg = OpcPackage()
-        pkg._rels = rels_
-        return pkg, reltype, related_part_
-
-    @pytest.fixture
-    def rels_fixture(self, request, part_1_, part_2_):
+    def rels_fixture(self, request, rels_prop_, part_1_, part_2_):
         """
         +----------+          +--------+
         | pkg_rels |-- r1 --> | part_1 |
@@ -184,7 +189,7 @@ class DescribeOpcPackage(object):
 
         package = OpcPackage()
 
-        package._rels = self.rels(request, (r1, r4, r5))
+        rels_prop_.return_value = self.rels(request, (r1, r4, r5))
         part_1_.rels = self.rels(request, (r2,))
         part_2_.rels = self.rels(request, (r3,))
 
@@ -213,25 +218,8 @@ class DescribeOpcPackage(object):
         return instance_mock(request, Part)
 
     @pytest.fixture
-    def pkg(self, request):
-        return OpcPackage()
-
-    @pytest.fixture
-    def pkg_with_rels_(self, request, rels_):
-        pkg = OpcPackage()
-        pkg._rels = rels_
-        return pkg
-
-    @pytest.fixture
     def _Relationships_(self, request):
         return class_mock(request, "pptx.opc.package._Relationships")
-
-    @pytest.fixture
-    def rel_attrs_(self, request):
-        reltype = "http://rel/type"
-        target_ = instance_mock(request, Part, name="target_")
-        rId = "rId99"
-        return reltype, target_, rId
 
     def rel(self, request, is_external, target_part, name):
         return instance_mock(
@@ -241,6 +229,10 @@ class DescribeOpcPackage(object):
             target_part=target_part,
             name=name,
         )
+
+    @pytest.fixture
+    def relationships_(self, request):
+        return instance_mock(request, _Relationships)
 
     def rels(self, request, values):
         rels = instance_mock(request, _Relationships)
@@ -252,8 +244,8 @@ class DescribeOpcPackage(object):
         return instance_mock(request, _Relationships)
 
     @pytest.fixture
-    def reltype(self, request):
-        return "http://rel/type"
+    def rels_prop_(self, request):
+        return property_mock(request, OpcPackage, "rels")
 
     @pytest.fixture
     def Unmarshaller_(self, request):
@@ -285,15 +277,20 @@ class DescribePart(object):
         part, expected_content_type = content_type_fixture
         assert part.content_type == expected_content_type
 
-    def it_can_drop_a_relationship(self, drop_rel_fixture):
-        part, rId, rel_should_be_gone = drop_rel_fixture
+    @pytest.mark.parametrize("ref_count, calls", ((2, []), (1, [call("rId42")])))
+    def it_can_drop_a_relationship(
+        self, request, _rels_prop_, relationships_, ref_count, calls
+    ):
+        _rel_ref_count_ = method_mock(
+            request, Part, "_rel_ref_count", return_value=ref_count
+        )
+        _rels_prop_.return_value = relationships_
+        part = Part(None, None, None)
 
-        part.drop_rel(rId)
+        part.drop_rel("rId42")
 
-        if rel_should_be_gone:
-            assert rId not in part.rels
-        else:
-            assert rId in part.rels
+        _rel_ref_count_.assert_called_once_with(part, "rId42")
+        assert relationships_.pop.call_args_list == calls
 
     def it_can_load_a_relationship(self, load_rel_fixture):
         part, rels_, reltype_, target_, rId_ = load_rel_fixture
@@ -340,11 +337,11 @@ class DescribePart(object):
         assert rId is rId_
 
     def it_can_find_a_related_part_by_rId(
-        self, request, rels_prop_, relationships_, relationship_, part_
+        self, request, _rels_prop_, relationships_, relationship_, part_
     ):
         relationship_.target_part = part_
         relationships_.__getitem__.return_value = relationship_
-        rels_prop_.return_value = relationships_
+        _rels_prop_.return_value = relationships_
         part = Part(None, None, None)
 
         related_part = part.related_part("rId17")
@@ -392,23 +389,9 @@ class DescribePart(object):
         part = Part(None, content_type, None, None)
         return part, content_type
 
-    @pytest.fixture(
-        params=[
-            ("p:sp", True),
-            ("p:sp/r:a{r:id=rId42}", True),
-            ("p:sp/r:a{r:id=rId42}/r:b{r:id=rId42}", False),
-        ]
-    )
-    def drop_rel_fixture(self, request, part):
-        part_cxml, rel_should_be_dropped = request.param
-        rId = "rId42"
-        part._element = element(part_cxml)
-        part._rels = {rId: None}
-        return part, rId, rel_should_be_dropped
-
     @pytest.fixture
-    def load_rel_fixture(self, part, rels_, reltype_, part_, rId_):
-        part._rels = rels_
+    def load_rel_fixture(self, part, _rels_prop_, rels_, reltype_, part_, rId_):
+        _rels_prop_.return_value = rels_
         return part, rels_, reltype_, part_, rId_
 
     @pytest.fixture
@@ -430,19 +413,19 @@ class DescribePart(object):
         return part, new_partname
 
     @pytest.fixture
-    def relate_to_part_fixture(self, request, part, reltype_, part_, rels_, rId_):
-        part._rels = rels_
+    def relate_to_part_fixture(self, part, _rels_prop_, reltype_, part_, rels_, rId_):
+        _rels_prop_.return_value = rels_
         target_ = part_
         return part, target_, reltype_, rId_
 
     @pytest.fixture
-    def relate_to_url_fixture(self, request, part, rels_, url_, reltype_, rId_):
-        part._rels = rels_
+    def relate_to_url_fixture(self, part, _rels_prop_, rels_, url_, reltype_, rId_):
+        _rels_prop_.return_value = rels_
         return part, url_, reltype_, rId_
 
     @pytest.fixture
-    def related_part_fixture(self, request, part, rels_, reltype_, part_):
-        part._rels = rels_
+    def related_part_fixture(self, part, _rels_prop_, rels_, reltype_, part_):
+        _rels_prop_.return_value = rels_
         return part, reltype_, part_
 
     @pytest.fixture
@@ -451,8 +434,8 @@ class DescribePart(object):
         return part, Relationships_, partname_, rels_
 
     @pytest.fixture
-    def target_ref_fixture(self, request, part, rId_, rel_, url_):
-        part._rels = {rId_: rel_}
+    def target_ref_fixture(self, part, _rels_prop_, rId_, rel_, url_):
+        _rels_prop_.return_value = {rId_: rel_}
         return part, rId_, url_
 
     # fixture components ---------------------------------------------
@@ -504,8 +487,8 @@ class DescribePart(object):
         return rels_
 
     @pytest.fixture
-    def rels_prop_(self, request):
-        return property_mock(request, Part, "rels")
+    def _rels_prop_(self, request):
+        return property_mock(request, Part, "_rels")
 
     @pytest.fixture
     def reltype_(self, request):

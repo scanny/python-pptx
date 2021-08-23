@@ -206,7 +206,7 @@ class Part(object):
         only XML parts can drop relationships.
         """
         if self._rel_ref_count(rId) < 2:
-            del self.rels[rId]
+            self._rels.pop(rId)
 
     def load_rel(self, reltype, target, rId, is_external=False):
         """
@@ -217,7 +217,7 @@ class Part(object):
         methods exist for adding a new relationship to a part when
         manipulating a part.
         """
-        return self.rels.add_relationship(reltype, target, rId, is_external)
+        return self._rels.add_relationship(reltype, target, rId, is_external)
 
     @property
     def package(self):
@@ -230,7 +230,7 @@ class Part(object):
         Raises |KeyError| if no such relationship is found and |ValueError| if more than
         one such relationship is found.
         """
-        return self.rels.part_with_reltype(reltype)
+        return self._rels.part_with_reltype(reltype)
 
     @property
     def partname(self):
@@ -258,12 +258,12 @@ class Part(object):
 
     def related_part(self, rId):
         """Return related |Part| subtype identified by `rId`."""
-        return self.rels[rId].target_part
+        return self._rels[rId].target_part
 
     @lazyproperty
     def rels(self):
-        """|Relationships| object containing relationships from this part to others."""
-        return _Relationships(self._partname.baseURI)
+        """|Relationships| collection of relationships from this part to other parts."""
+        return self._rels
 
     def target_ref(self, rId):
         """Return URL contained in target ref of relationship identified by `rId`."""
@@ -287,6 +287,11 @@ class Part(object):
         """Return int count of references in this part's XML to `rId`."""
         rIds = self._element.xpath("//@r:id")
         return len([_rId for _rId in rIds if _rId == rId])
+
+    @lazyproperty
+    def _rels(self):
+        """|Relationships| collection of relationships from this part to other parts."""
+        return _Relationships(self._partname.baseURI)
 
 
 class XmlPart(Part):
