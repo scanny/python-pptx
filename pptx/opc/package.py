@@ -216,6 +216,44 @@ class _PackageLoader(object):
             )
             source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
 
+    @lazyproperty
+    def _xml_rels(self):
+        """dict {partname: xml_rels} for package and all package parts.
+
+        This is used as the basis for other loading operations such as loading parts and
+        populating their relationships.
+        """
+        xml_rels = {}
+        visited_partnames = set()
+
+        def load_rels(source_partname, rels):
+            """Populate `xml_rels` dict by traversing relationships depth-first."""
+            xml_rels[source_partname] = rels
+            visited_partnames.add(source_partname)
+            base_uri = source_partname.baseURI
+
+            # --- recursion stops when there are no unvisited partnames in rels ---
+            for rel in rels:
+                if rel.targetMode == RTM.EXTERNAL:
+                    continue
+                target_partname = PackURI.from_rel_ref(base_uri, rel.target_ref)
+                if target_partname in visited_partnames:
+                    continue
+                load_rels(target_partname, self._xml_rels_for(target_partname))
+
+        load_rels(PACKAGE_URI, self._xml_rels_for(PACKAGE_URI))
+        return xml_rels
+
+    def _xml_rels_for(self, partname):
+        """Return CT_Relationships object formed by parsing rels XML for `partname`.
+
+        A CT_Relationships object is returned in all cases. A part that has no
+        relationships receives an "empty" CT_Relationships object, i.e. containing no
+        `CT_Relationship` objects.
+        """
+        rels_xml = self._package_reader.rels_xml_for(self._pkg_file, partname)
+        return CT_Relationships.new() if rels_xml is None else parse_xml(rels_xml)
+
 
 class Part(object):
     """Base class for package parts.

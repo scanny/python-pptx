@@ -12,7 +12,7 @@ from pptx.opc.constants import (
     RELATIONSHIP_TARGET_MODE as RTM,
     RELATIONSHIP_TYPE as RT,
 )
-from pptx.opc.oxml import CT_Relationship
+from pptx.opc.oxml import CT_Relationship, CT_Relationships
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.opc.package import (
     OpcPackage,
@@ -326,6 +326,46 @@ class Describe_PackageLoader(object):
         parts["partname_2"].load_rel.assert_called_once_with(
             RT.HYPERLINK, "target_ref_4", "rId4", True
         )
+
+    def it_loads_the_xml_relationships_from_the_package_to_help(self, request):
+        pkg_xml_rels = parse_xml(snippet_bytes("package-rels-xml"))
+        prs_xml_rels = parse_xml(snippet_bytes("presentation-rels-xml"))
+        slide_xml_rels = CT_Relationships.new()
+        thumbnail_xml_rels = CT_Relationships.new()
+        core_xml_rels = CT_Relationships.new()
+        _xml_rels_for_ = method_mock(
+            request,
+            _PackageLoader,
+            "_xml_rels_for",
+            side_effect=iter(
+                (
+                    pkg_xml_rels,
+                    prs_xml_rels,
+                    slide_xml_rels,
+                    thumbnail_xml_rels,
+                    core_xml_rels,
+                )
+            ),
+        )
+        package_loader = _PackageLoader(None, None)
+
+        xml_rels = package_loader._xml_rels
+
+        # print(f"{_xml_rels_for_.call_args_list=}")
+        assert _xml_rels_for_.call_args_list == [
+            call(package_loader, "/"),
+            call(package_loader, "/ppt/presentation.xml"),
+            call(package_loader, "/ppt/slides/slide1.xml"),
+            call(package_loader, "/docProps/thumbnail.jpeg"),
+            call(package_loader, "/docProps/core.xml"),
+        ]
+        assert xml_rels == {
+            "/": pkg_xml_rels,
+            "/ppt/presentation.xml": prs_xml_rels,
+            "/ppt/slides/slide1.xml": slide_xml_rels,
+            "/docProps/thumbnail.jpeg": thumbnail_xml_rels,
+            "/docProps/core.xml": core_xml_rels,
+        }
 
     # fixture components -----------------------------------
 
