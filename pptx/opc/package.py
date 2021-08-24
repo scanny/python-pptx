@@ -175,9 +175,7 @@ class _PackageLoader(object):
         # --- same result as the one that's coming a few commits later.
         self._unmarshal_relationships()
 
-        pkg_xml_rels = parse_xml(
-            self._package_reader.rels_xml_for(self._pkg_file, PACKAGE_URI)
-        )
+        pkg_xml_rels = parse_xml(self._package_reader.rels_xml_for(PACKAGE_URI))
 
         return pkg_xml_rels, self._parts
 
@@ -251,7 +249,7 @@ class _PackageLoader(object):
         relationships receives an "empty" CT_Relationships object, i.e. containing no
         `CT_Relationship` objects.
         """
-        rels_xml = self._package_reader.rels_xml_for(self._pkg_file, partname)
+        rels_xml = self._package_reader.rels_xml_for(partname)
         return CT_Relationships.new() if rels_xml is None else parse_xml(rels_xml)
 
 

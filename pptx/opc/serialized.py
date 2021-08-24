@@ -29,6 +29,10 @@ class PackageReader(Container):
         """Return True when part identified by `pack_uri` is present in package."""
         return pack_uri in self._blob_reader
 
+    def __getitem__(self, pack_uri):
+        """Return bytes for part corresponding to `pack_uri`."""
+        return self._blob_reader[pack_uri]
+
     def iter_sparts(self):
         """
         Generate a 3-tuple `(partname, content_type, blob)` for each of the
@@ -48,63 +52,56 @@ class PackageReader(Container):
             for srel in spart.srels:
                 yield (spart.partname, srel)
 
-    def rels_xml_for(self, pkg_file, partname):
+    def rels_xml_for(self, partname):
         """Return optional rels item XML for `partname`.
 
         Returns `None` if no rels item is present for `partname`. `partname` is a
         |PackURI| instance.
         """
-        # --- ugly temporary hack to make this interim `._rels_xml_for()` method
-        # --- produce the same result as the one that's coming a few commits later.
-        phys_reader = _PhysPkgReader(pkg_file)
-        rels_xml = phys_reader.rels_xml_for(partname)
-        phys_reader.close()
-        return rels_xml
+        blob_reader, uri = self._blob_reader, partname.rels_uri
+        return blob_reader[uri] if uri in blob_reader else None
+
+    @lazyproperty
+    def _blob_reader(self):
+        """|_PhysPkgReader| subtype providing read access to the package file."""
+        return _PhysPkgReader.factory(self._pkg_file)
 
     @lazyproperty
     def _content_types(self):
-        """Filty temporary hack during refactoring."""
-        phys_reader = _PhysPkgReader(self._pkg_file)
-        return _ContentTypeMap.from_xml(phys_reader.content_types_xml)
-        phys_reader.close()
+        """temporary hack during refactoring."""
+        return _ContentTypeMap.from_xml(self._blob_reader[CONTENT_TYPES_URI])
 
     @lazyproperty
     def _pkg_srels(self):
         """Filty temporary hack during refactoring."""
-        phys_reader = _PhysPkgReader(self._pkg_file)
-        pkg_srels = self._srels_for(phys_reader, PACKAGE_URI)
-        phys_reader.close()
-        return pkg_srels
+        return self._srels_for(PACKAGE_URI)
 
     @lazyproperty
     def _sparts(self):
-        """Filty temporary hack during refactoring.
-
+        """
         Return a list of |_SerializedPart| instances corresponding to the
         parts in *phys_reader* accessible by walking the relationship graph
-        starting with `pkg_srels`.
+        starting with *pkg_srels*.
         """
-        phys_reader = _PhysPkgReader(self._pkg_file)
         sparts = []
-        part_walker = self._walk_phys_parts(phys_reader, self._pkg_srels)
+        part_walker = self._walk_phys_parts(self._pkg_srels)
         for partname, blob, srels in part_walker:
             content_type = self._content_types[partname]
             spart = _SerializedPart(partname, content_type, blob, srels)
             sparts.append(spart)
-        phys_reader.close()
         return tuple(sparts)
 
-    def _srels_for(self, phys_reader, source_uri):
+    def _srels_for(self, source_uri):
         """
         Return |_SerializedRelationshipCollection| instance populated with
         relationships for source identified by *source_uri*.
         """
-        rels_xml = phys_reader.rels_xml_for(source_uri)
+        rels_xml = self.rels_xml_for(source_uri)
         return _SerializedRelationshipCollection.load_from_xml(
             source_uri.baseURI, rels_xml
         )
 
-    def _walk_phys_parts(self, phys_reader, srels, visited_partnames=None):
+    def _walk_phys_parts(self, srels, visited_partnames=None):
         """
         Generate a 3-tuple `(partname, blob, srels)` for each of the parts in
         *phys_reader* by walking the relationship graph rooted at srels.
@@ -118,11 +115,11 @@ class PackageReader(Container):
             if partname in visited_partnames:
                 continue
             visited_partnames.append(partname)
-            part_srels = self._srels_for(phys_reader, partname)
-            blob = phys_reader.blob_for(partname)
+            part_srels = self._srels_for(partname)
+            blob = self._blob_reader[partname]
             yield (partname, blob, part_srels)
             for partname, blob, srels in self._walk_phys_parts(
-                phys_reader, part_srels, visited_partnames
+                part_srels, visited_partnames
             ):
                 yield (partname, blob, srels)
 
@@ -232,114 +229,76 @@ class PackageWriter(object):
         phys_writer.write(PACKAGE_URI.rels_uri, pkg_rels.xml)
 
 
-class _PhysPkgReader(object):
-    """
-    Factory for physical package reader objects.
-    """
+class _PhysPkgReader(Container):
+    """Base class for physical package reader objects."""
 
-    def __new__(cls, pkg_file):
-        # if *pkg_file* is a string, treat it as a path
-        if is_string(pkg_file):
-            if os.path.isdir(pkg_file):
-                reader_cls = _DirPkgReader
-            elif zipfile.is_zipfile(pkg_file):
-                reader_cls = _ZipPkgReader
-            else:
-                raise PackageNotFoundError("Package not found at '%s'" % pkg_file)
-        else:  # assume it's a stream and pass it to Zip reader to sort out
-            reader_cls = _ZipPkgReader
+    def __contains__(self, item):
+        """Must be implemented by each subclass."""
+        raise NotImplementedError(
+            "`%s` must implement `.__contains__()`" % type(self).__name__
+        )
 
-        return super(_PhysPkgReader, cls).__new__(reader_cls)
+    @classmethod
+    def factory(cls, pkg_file):
+        """Return |_PhysPkgReader| subtype instance appropriage for `pkg_file`."""
+        # --- for pkg_file other than str, assume it's a stream and pass it to Zip
+        # --- reader to sort out
+        if not is_string(pkg_file):
+            return _ZipPkgReader(pkg_file)
+
+        # --- otherwise we treat `pkg_file` as a path ---
+        if os.path.isdir(pkg_file):
+            return _DirPkgReader(pkg_file)
+
+        if zipfile.is_zipfile(pkg_file):
+            return _ZipPkgReader(pkg_file)
+
+        raise PackageNotFoundError("Package not found at '%s'" % pkg_file)
 
 
 class _DirPkgReader(_PhysPkgReader):
-    """
-    Implements |PhysPkgReader| interface for an OPC package extracted into a
-    directory.
+    """Implements |PhysPkgReader| interface for OPC package extracted into directory.
+
+    `path` is the path to a directory containing an expanded package.
     """
 
     def __init__(self, path):
-        """
-        *path* is the path to a directory containing an expanded package.
-        """
-        super(_DirPkgReader, self).__init__()
         self._path = os.path.abspath(path)
 
-    def blob_for(self, pack_uri):
-        """
-        Return contents of file corresponding to *pack_uri* in package
-        directory.
-        """
+    def __getitem__(self, pack_uri):
+        """Return bytes of file corresponding to `pack_uri` in package directory."""
         path = os.path.join(self._path, pack_uri.membername)
-        with open(path, "rb") as f:
-            blob = f.read()
-        return blob
-
-    def close(self):
-        """
-        Provides interface consistency with |ZipFileSystem|, but does
-        nothing, a directory file system doesn't need closing.
-        """
-        pass
-
-    @property
-    def content_types_xml(self):
-        """
-        Return the `[Content_Types].xml` blob from the package.
-        """
-        return self.blob_for(CONTENT_TYPES_URI)
-
-    def rels_xml_for(self, source_uri):
-        """
-        Return rels item XML for source with *source_uri*, or None if the
-        item has no rels item.
-        """
         try:
-            rels_xml = self.blob_for(source_uri.rels_uri)
+            with open(path, "rb") as f:
+                return f.read()
         except IOError:
-            rels_xml = None
-        return rels_xml
+            raise KeyError("no member '%s' in package" % pack_uri)
 
 
 class _ZipPkgReader(_PhysPkgReader):
-    """
-    Implements |PhysPkgReader| interface for a zip file OPC package.
-    """
+    """Implements |PhysPkgReader| interface for a zip-file OPC package."""
 
     def __init__(self, pkg_file):
-        super(_ZipPkgReader, self).__init__()
-        self._zipf = zipfile.ZipFile(pkg_file, "r")
+        self._pkg_file = pkg_file
 
-    def blob_for(self, pack_uri):
-        """
-        Return blob corresponding to *pack_uri*. Raises |ValueError| if no
-        matching member is present in zip archive.
-        """
-        return self._zipf.read(pack_uri.membername)
+    def __contains__(self, pack_uri):
+        """Return True when part identified by `pack_uri` is present in zip archive."""
+        return pack_uri in self._blobs
 
-    def close(self):
-        """
-        Close the zip archive, releasing any resources it is using.
-        """
-        self._zipf.close()
+    def __getitem__(self, pack_uri):
+        """Return bytes for part corresponding to `pack_uri`.
 
-    @property
-    def content_types_xml(self):
+        Raises |KeyError| if no matching member is present in zip archive.
         """
-        Return the `[Content_Types].xml` blob from the zip package.
-        """
-        return self.blob_for(CONTENT_TYPES_URI)
+        if pack_uri not in self._blobs:
+            raise KeyError("no member '%s' in package" % pack_uri)
+        return self._blobs[pack_uri]
 
-    def rels_xml_for(self, source_uri):
-        """
-        Return rels item XML for source with *source_uri* or None if no rels
-        item is present.
-        """
-        try:
-            rels_xml = self.blob_for(source_uri.rels_uri)
-        except KeyError:
-            rels_xml = None
-        return rels_xml
+    @lazyproperty
+    def _blobs(self):
+        """dict mapping partname to package part binaries."""
+        with zipfile.ZipFile(self._pkg_file, "r") as z:
+            return {PackURI("/%s" % name): z.read(name) for name in z.namelist()}
 
 
 class _PhysPkgWriter(object):

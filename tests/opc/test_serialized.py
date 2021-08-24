@@ -16,7 +16,7 @@ from pptx.exceptions import PackageNotFoundError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
 from pptx.opc.oxml import CT_Relationship
 from pptx.opc.package import Part
-from pptx.opc.packuri import PACKAGE_URI, PackURI
+from pptx.opc.packuri import PackURI
 from pptx.opc.serialized import (
     PackageReader,
     PackageWriter,
@@ -41,9 +41,9 @@ from ..unitutil.mock import (
     class_mock,
     function_mock,
     instance_mock,
-    loose_mock,
     method_mock,
     patch,
+    property_mock,
 )
 
 
@@ -55,76 +55,30 @@ zip_pkg_path = test_pptx_path
 class DescribePackageReader(object):
     """Unit-test suite for `pptx.opc.serialized.PackageReader` objects."""
 
-    def it_can_walk_phys_pkg_parts(self, _srels_for):
-        # test data --------------------
-        # +----------+       +--------+
-        # | pkg_rels |-----> | part_1 |
-        # +----------+       +--------+
-        #      |               |    ^
-        #      v               v    |
-        #   external         +--------+     +--------+
-        #                    | part_2 |---> | part_3 |
-        #                    +--------+     +--------+
-        partname_1, partname_2, partname_3 = (
-            "/part/name1.xml",
-            "/part/name2.xml",
-            "/part/name3.xml",
-        )
-        part_1_blob, part_2_blob, part_3_blob = ("<Part_1/>", "<Part_2/>", "<Part_3/>")
-        srels = [
-            Mock(name="rId1", is_external=True),
-            Mock(name="rId2", is_external=False, target_partname=partname_1),
-            Mock(name="rId3", is_external=False, target_partname=partname_2),
-            Mock(name="rId4", is_external=False, target_partname=partname_1),
-            Mock(name="rId5", is_external=False, target_partname=partname_3),
-        ]
-        pkg_srels = srels[:2]
-        part_1_srels = srels[2:3]
-        part_2_srels = srels[3:5]
-        part_3_srels = []
-        # mockery ----------------------
-        phys_reader = Mock(name="phys_reader")
-        _srels_for.side_effect = [part_1_srels, part_2_srels, part_3_srels]
-        phys_reader.blob_for.side_effect = [part_1_blob, part_2_blob, part_3_blob]
-        # exercise ---------------------
-        generated_tuples = [
-            t for t in PackageReader(None)._walk_phys_parts(phys_reader, pkg_srels)
-        ]
-        # verify -----------------------
-        expected_tuples = [
-            (partname_1, part_1_blob, part_1_srels),
-            (partname_2, part_2_blob, part_2_srels),
-            (partname_3, part_3_blob, part_3_srels),
-        ]
-        assert generated_tuples == expected_tuples
+    def it_knows_whether_it_contains_a_partname(self, _blob_reader_prop_):
+        _blob_reader_prop_.return_value = set(("/ppt", "/docProps"))
+        package_reader = PackageReader(None)
 
-    def it_can_retrieve_srels_for_a_source_uri(
-        self, _SerializedRelationshipCollection_
-    ):
-        # mockery ----------------------
-        phys_reader = Mock(name="phys_reader")
-        source_uri = Mock(name="source_uri")
-        rels_xml = phys_reader.rels_xml_for.return_value
-        load_from_xml = _SerializedRelationshipCollection_.load_from_xml
-        srels = load_from_xml.return_value
-        # exercise ---------------------
-        retval = PackageReader(None)._srels_for(phys_reader, source_uri)
-        # verify -----------------------
-        phys_reader.rels_xml_for.assert_called_once_with(source_uri)
-        load_from_xml.assert_called_once_with(source_uri.baseURI, rels_xml)
-        assert retval == srels
+        assert "/ppt" in package_reader
+        assert "/xyz" not in package_reader
+
+    def it_can_get_a_blob_by_partname(self, _blob_reader_prop_):
+        _blob_reader_prop_.return_value = {"/ppt/slides/slide1.xml": b"blob"}
+        package_reader = PackageReader(None)
+
+        assert package_reader["/ppt/slides/slide1.xml"] == b"blob"
+
+    def it_can_get_the_rels_xml_for_a_partname(self, _blob_reader_prop_):
+        _blob_reader_prop_.return_value = {"/ppt/_rels/presentation.xml.rels": b"blob"}
+        package_reader = PackageReader(None)
+
+        assert package_reader.rels_xml_for(PackURI("/ppt/presentation.xml")) == b"blob"
 
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def _SerializedRelationshipCollection_(self, request):
-        return class_mock(
-            request, "pptx.opc.serialized._SerializedRelationshipCollection"
-        )
-
-    @pytest.fixture
-    def _srels_for(self, request):
-        return method_mock(request, PackageReader, "_srels_for")
+    def _blob_reader_prop_(self, request):
+        return property_mock(request, PackageReader, "_blob_reader")
 
 
 class Describe_ContentTypeMap(object):
@@ -325,105 +279,104 @@ class DescribePackageWriter(object):
         return method_mock(request, _ContentTypesItem, "xml_for")
 
 
+class Describe_PhysPkgReader(object):
+    """Unit-test suite for `pptx.opc.serialized._PhysPkgReader` objects."""
+
+    def it_constructs_ZipPkgReader_when_pkg_is_file_like(
+        self, _ZipPkgReader_, zip_pkg_reader_
+    ):
+        _ZipPkgReader_.return_value = zip_pkg_reader_
+        file_like_pkg = BytesIO(b"pkg-bytes")
+
+        phys_reader = _PhysPkgReader.factory(file_like_pkg)
+
+        _ZipPkgReader_.assert_called_once_with(file_like_pkg)
+        assert phys_reader is zip_pkg_reader_
+
+    def and_it_constructs_DirPkgReader_when_pkg_is_a_dir(self, request):
+        dir_pkg_reader_ = instance_mock(request, _DirPkgReader)
+        _DirPkgReader_ = class_mock(
+            request, "pptx.opc.serialized._DirPkgReader", return_value=dir_pkg_reader_
+        )
+
+        phys_reader = _PhysPkgReader.factory(dir_pkg_path)
+
+        _DirPkgReader_.assert_called_once_with(dir_pkg_path)
+        assert phys_reader is dir_pkg_reader_
+
+    def and_it_constructs_ZipPkgReader_when_pkg_is_a_zip_file_path(
+        self, _ZipPkgReader_, zip_pkg_reader_
+    ):
+        _ZipPkgReader_.return_value = zip_pkg_reader_
+        pkg_file_path = test_pptx_path
+
+        phys_reader = _PhysPkgReader.factory(pkg_file_path)
+
+        _ZipPkgReader_.assert_called_once_with(pkg_file_path)
+        assert phys_reader is zip_pkg_reader_
+
+    def but_it_raises_when_pkg_path_is_not_a_package(self):
+        with pytest.raises(PackageNotFoundError) as e:
+            _PhysPkgReader.factory("foobar")
+        assert str(e.value) == "Package not found at 'foobar'"
+
+    # --- fixture components -------------------------------
+
+    @pytest.fixture
+    def zip_pkg_reader_(self, request):
+        return instance_mock(request, _ZipPkgReader)
+
+    @pytest.fixture
+    def _ZipPkgReader_(self, request):
+        return class_mock(request, "pptx.opc.serialized._ZipPkgReader")
+
+
 class Describe_DirPkgReader(object):
-    def it_is_used_by_PhysPkgReader_when_pkg_is_a_dir(self):
-        phys_reader = _PhysPkgReader(dir_pkg_path)
-        assert isinstance(phys_reader, _DirPkgReader)
+    """Unit-test suite for `pptx.opc.serialized._DirPkgReader` objects."""
 
-    def it_doesnt_mind_being_closed_even_though_it_doesnt_need_it(self, dir_reader):
-        dir_reader.close()
+    def it_can_retrieve_the_blob_for_a_pack_uri(self):
+        blob = _DirPkgReader(dir_pkg_path)[PackURI("/ppt/presentation.xml")]
 
-    def it_can_retrieve_the_blob_for_a_pack_uri(self, dir_reader):
-        pack_uri = PackURI("/ppt/presentation.xml")
-        blob = dir_reader.blob_for(pack_uri)
         sha1 = hashlib.sha1(blob).hexdigest()
         assert sha1 == "51b78f4dabc0af2419d4e044ab73028c4bef53aa"
 
-    def it_can_get_the_content_types_xml(self, dir_reader):
-        sha1 = hashlib.sha1(dir_reader.content_types_xml).hexdigest()
-        assert sha1 == "a68cf138be3c4eb81e47e2550166f9949423c7df"
-
-    def it_can_retrieve_the_rels_xml_for_a_source_uri(self, dir_reader):
-        rels_xml = dir_reader.rels_xml_for(PACKAGE_URI)
-        sha1 = hashlib.sha1(rels_xml).hexdigest()
-        assert sha1 == "64ffe86bb2bbaad53c3c1976042b907f8e10c5a3"
-
-    def it_returns_none_when_part_has_no_rels_xml(self, dir_reader):
-        partname = PackURI("/ppt/viewProps.xml")
-        rels_xml = dir_reader.rels_xml_for(partname)
-        assert rels_xml is None
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def pkg_file_(self, request):
-        return loose_mock(request)
-
-    @pytest.fixture(scope="class")
-    def dir_reader(self):
-        return _DirPkgReader(dir_pkg_path)
-
-
-class Describe_PhysPkgReader(object):
-    def it_raises_when_pkg_path_is_not_a_package(self):
-        with pytest.raises(PackageNotFoundError):
-            _PhysPkgReader("foobar")
+    def but_it_raises_KeyError_when_requested_member_is_not_present(self):
+        with pytest.raises(KeyError) as e:
+            _DirPkgReader(dir_pkg_path)[PackURI("/ppt/foobar.xml")]
+        assert str(e.value) == "\"no member '/ppt/foobar.xml' in package\""
 
 
 class Describe_ZipPkgReader(object):
-    def it_is_used_by_PhysPkgReader_when_pkg_is_a_zip(self):
-        phys_reader = _PhysPkgReader(zip_pkg_path)
-        assert isinstance(phys_reader, _ZipPkgReader)
+    """Unit-test suite for `pptx.opc.serialized._ZipPkgReader` objects."""
 
-    def it_is_used_by_PhysPkgReader_when_pkg_is_a_stream(self):
-        with open(zip_pkg_path, "rb") as stream:
-            phys_reader = _PhysPkgReader(stream)
-        assert isinstance(phys_reader, _ZipPkgReader)
+    def it_knows_whether_it_contains_a_partname(self, zip_pkg_reader):
+        assert PackURI("/ppt/presentation.xml") in zip_pkg_reader
+        assert PackURI("/ppt/foobar.xml") not in zip_pkg_reader
 
-    def it_opens_pkg_file_zip_on_construction(self, ZipFile_, pkg_file_):
-        _ZipPkgReader(pkg_file_)
-        ZipFile_.assert_called_once_with(pkg_file_, "r")
+    def it_can_get_a_blob_by_partname(self, zip_pkg_reader):
+        blob = zip_pkg_reader[PackURI("/ppt/presentation.xml")]
+        assert hashlib.sha1(blob).hexdigest() == (
+            "efa7bee0ac72464903a67a6744c1169035d52a54"
+        )
 
-    def it_can_be_closed(self, ZipFile_):
-        # mockery ----------------------
-        zipf = ZipFile_.return_value
-        zip_pkg_reader = _ZipPkgReader(None)
-        # exercise ---------------------
-        zip_pkg_reader.close()
-        # verify -----------------------
-        zipf.close.assert_called_once_with()
+    def but_it_raises_KeyError_when_requested_member_is_not_present(
+        self, zip_pkg_reader
+    ):
+        with pytest.raises(KeyError) as e:
+            zip_pkg_reader[PackURI("/ppt/foobar.xml")]
+        assert str(e.value) == "\"no member '/ppt/foobar.xml' in package\""
 
-    def it_can_retrieve_the_blob_for_a_pack_uri(self, phys_reader):
-        pack_uri = PackURI("/ppt/presentation.xml")
-        blob = phys_reader.blob_for(pack_uri)
-        sha1 = hashlib.sha1(blob).hexdigest()
-        assert sha1 == "efa7bee0ac72464903a67a6744c1169035d52a54"
+    def it_loads_the_package_blobs_on_first_access_to_help(self, zip_pkg_reader):
+        blobs = zip_pkg_reader._blobs
+        assert len(blobs) == 38
+        assert "/ppt/presentation.xml" in blobs
+        assert "/ppt/_rels/presentation.xml.rels" in blobs
 
-    def it_has_the_content_types_xml(self, phys_reader):
-        sha1 = hashlib.sha1(phys_reader.content_types_xml).hexdigest()
-        assert sha1 == "ab762ac84414fce18893e18c3f53700c01db56c3"
-
-    def it_can_retrieve_rels_xml_for_source_uri(self, phys_reader):
-        rels_xml = phys_reader.rels_xml_for(PACKAGE_URI)
-        sha1 = hashlib.sha1(rels_xml).hexdigest()
-        assert sha1 == "e31451d4bbe7d24adbe21454b8e9fdae92f50de5"
-
-    def it_returns_none_when_part_has_no_rels_xml(self, phys_reader):
-        partname = PackURI("/ppt/viewProps.xml")
-        rels_xml = phys_reader.rels_xml_for(partname)
-        assert rels_xml is None
-
-    # fixtures ---------------------------------------------
+    # --- fixture components -------------------------------
 
     @pytest.fixture(scope="class")
-    def phys_reader(self, request):
-        phys_reader = _ZipPkgReader(zip_pkg_path)
-        request.addfinalizer(phys_reader.close)
-        return phys_reader
-
-    @pytest.fixture
-    def pkg_file_(self, request):
-        return loose_mock(request)
+    def zip_pkg_reader(self, request):
+        return _ZipPkgReader(zip_pkg_path)
 
 
 class Describe_ZipPkgWriter(object):
