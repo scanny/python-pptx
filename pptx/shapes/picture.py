@@ -181,7 +181,7 @@ class Picture(_BasePicture):
         if prstGeom is None:
             spPr._remove_eg_Geometry()
             prstGeom = spPr._add_prstGeom()
-        prstGeom.prst = member
+        prstGeom.preset = MSO_SHAPE.to_xml(member)
 
     @property
     def image(self):

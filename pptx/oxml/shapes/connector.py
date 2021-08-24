@@ -33,6 +33,16 @@ class CT_Connector(BaseShapeElement):
     spPr = OneAndOnlyOne("p:spPr")
     del _tag_seq
 
+    @property
+    def has_custom_geometry(self):
+        """True if this connector has custom geometry.
+
+        A connector has custom geometry if it has a `p:spPr/a:custGeom`
+        descendant (instead of `p:spPr/a:prstGeom`).
+        """
+        return self.spPr.custGeom is not None
+
+
     @classmethod
     def new_cxnSp(cls, id_, name, prst, x, y, cx, cy, flipH, flipV):
         """
