@@ -4,6 +4,7 @@
 
 import collections
 import io
+import itertools
 
 import pytest
 
@@ -19,16 +20,17 @@ from pptx.opc.package import (
     Part,
     PartFactory,
     XmlPart,
+    _ContentTypeMap,
     _PackageLoader,
     _Relationship,
     _Relationships,
 )
-from pptx.opc.serialized import PackageReader, _SerializedRelationship
+from pptx.opc.serialized import PackageReader
 from pptx.oxml import parse_xml
 from pptx.package import Package
 
 from ..unitutil.cxml import element
-from ..unitutil.file import absjoin, snippet_bytes, test_file_dir
+from ..unitutil.file import absjoin, snippet_bytes, testfile_bytes, test_file_dir
 from ..unitutil.mock import (
     ANY,
     call,
@@ -125,20 +127,6 @@ class DescribeOpcPackage(object):
             rels[1],
             rels[2],
         )
-
-    def it_can_add_a_relationship_to_a_part(self, request, _rels_prop_, relationships_):
-        _rels_prop_.return_value = relationships_
-        relationship_ = instance_mock(request, _Relationship)
-        relationships_.add_relationship.return_value = relationship_
-        target_ = instance_mock(request, Part, name="target_part")
-        package = OpcPackage(None)
-
-        relationship = package.load_rel(RT.SLIDE, target_, "rId99")
-
-        relationships_.add_relationship.assert_called_once_with(
-            RT.SLIDE, target_, "rId99", False
-        )
-        assert relationship is relationship_
 
     def it_can_establish_a_relationship_to_another_part(
         self, request, _rels_prop_, relationships_
@@ -256,75 +244,32 @@ class Describe_PackageLoader(object):
         assert pkg_xml_rels is pkg_xml_rels_
         assert parts == {"partname": "part"}
 
-    def it_can_unmarshal_parts(
-        self, request, _package_reader_prop_, package_reader_, package_
-    ):
-        _package_reader_prop_.return_value = package_reader_
-        package_reader_.iter_sparts.return_value = (
-            ("partname-%d" % n, CT.PML_SLIDE, b"blob-%d" % n) for n in range(1, 4)
-        )
-        parts_ = tuple(instance_mock(request, Part) for _ in range(5))
-        PartFactory_ = class_mock(
-            request, "pptx.opc.package.PartFactory", side_effect=iter(parts_)
-        )
-        package_loader = _PackageLoader(None, package_)
-
-        parts = package_loader._parts
-
-        assert PartFactory_.call_args_list == [
-            call("partname-1", CT.PML_SLIDE, package_, b"blob-1"),
-            call("partname-2", CT.PML_SLIDE, package_, b"blob-2"),
-            call("partname-3", CT.PML_SLIDE, package_, b"blob-3"),
-        ]
-        assert parts == {
-            "partname-1": parts_[0],
-            "partname-2": parts_[1],
-            "partname-3": parts_[2],
+    def it_loads_the_package_to_help(self, request, _xml_rels_prop_):
+        parts_ = {
+            "partname_%d" % n: instance_mock(request, Part, partname="partname_%d" % n)
+            for n in range(1, 4)
         }
-
-    def it_can_unmarshal_relationships(
-        self, request, _package_reader_prop_, package_reader_, _parts_prop_, package_
-    ):
-        _package_reader_prop_.return_value = package_reader_
-        package_reader_.iter_srels.return_value = (
-            (
-                partname,
-                instance_mock(
-                    request,
-                    _SerializedRelationship,
-                    name="srel_%d" % n,
-                    rId="rId%d" % n,
-                    reltype=reltype,
-                    target_partname="partname_%d" % (n + 2),
-                    target_ref="target_ref_%d" % n,
-                    is_external=is_external,
+        property_mock(request, _PackageLoader, "_parts", return_value=parts_)
+        rels_ = dict(
+            itertools.chain(
+                (("/", instance_mock(request, _Relationships)),),
+                (
+                    ("partname_%d" % n, instance_mock(request, _Relationships))
+                    for n in range(1, 4)
                 ),
             )
-            for n, partname, reltype, is_external in (
-                (1, "/", RT.SLIDE, False),
-                (2, "/", RT.HYPERLINK, True),
-                (3, "partname_1", RT.SLIDE, False),
-                (4, "partname_2", RT.HYPERLINK, True),
+        )
+        _xml_rels_prop_.return_value = rels_
+        package_loader = _PackageLoader(None, None)
+
+        pkg_xml_rels, parts = package_loader._load()
+
+        for part_ in parts_.values():
+            part_.load_rels_from_xml.assert_called_once_with(
+                rels_[part_.partname], parts_
             )
-        )
-        parts = _parts_prop_.return_value = {
-            "partname_%d" % n: instance_mock(request, Part, name="part_%d" % n)
-            for n in range(1, 7)
-        }
-        package_loader = _PackageLoader(None, package_)
-
-        package_loader._unmarshal_relationships()
-
-        assert package_.load_rel.call_args_list == [
-            call(RT.SLIDE, parts["partname_3"], "rId1", False),
-            call(RT.HYPERLINK, "target_ref_2", "rId2", True),
-        ]
-        parts["partname_1"].load_rel.assert_called_once_with(
-            RT.SLIDE, parts["partname_5"], "rId3", False
-        )
-        parts["partname_2"].load_rel.assert_called_once_with(
-            RT.HYPERLINK, "target_ref_4", "rId4", True
-        )
+        assert pkg_xml_rels is rels_["/"]
+        assert parts is parts_
 
     def it_loads_the_xml_relationships_from_the_package_to_help(self, request):
         pkg_xml_rels = parse_xml(snippet_bytes("package-rels-xml"))
@@ -384,6 +329,10 @@ class Describe_PackageLoader(object):
     def _parts_prop_(self, request):
         return property_mock(request, _PackageLoader, "_parts")
 
+    @pytest.fixture
+    def _xml_rels_prop_(self, request):
+        return property_mock(request, _PackageLoader, "_xml_rels")
+
 
 class DescribePart(object):
     """Unit-test suite for `pptx.opc.package.Part` objects."""
@@ -423,13 +372,6 @@ class DescribePart(object):
 
         _rel_ref_count_.assert_called_once_with(part, "rId42")
         assert relationships_.pop.call_args_list == calls
-
-    def it_can_load_a_relationship(self, load_rel_fixture):
-        part, rels_, reltype_, target_, rId_ = load_rel_fixture
-
-        part.load_rel(reltype_, target_, rId_)
-
-        rels_.add_relationship.assert_called_once_with(reltype_, target_, rId_, False)
 
     def it_knows_the_package_it_belongs_to(self, package_get_fixture):
         part, expected_package = package_get_fixture
@@ -524,11 +466,6 @@ class DescribePart(object):
         content_type = "content/type"
         part = Part(None, content_type, None, None)
         return part, content_type
-
-    @pytest.fixture
-    def load_rel_fixture(self, part, _rels_prop_, rels_, reltype_, part_, rId_):
-        _rels_prop_.return_value = rels_
-        return part, rels_, reltype_, part_, rId_
 
     @pytest.fixture
     def package_get_fixture(self, package_):
@@ -730,6 +667,79 @@ class DescribePartFactory(object):
         pkg_2_ = instance_mock(request, Package, name="pkg_2_")
         blob_2_ = b"blob_2_"
         return partname_2_, content_type_2_, pkg_2_, blob_2_
+
+
+class Describe_ContentTypeMap(object):
+    """Unit-test suite for `pptx.opc.package._ContentTypeMap` objects."""
+
+    def it_can_construct_from_content_types_xml(self, request):
+        _init_ = initializer_mock(request, _ContentTypeMap)
+        content_types_xml = (
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-ty'
+            'pes">\n'
+            '  <Default Extension="xml" ContentType="application/xml"/>\n'
+            '  <Default Extension="PNG" ContentType="image/png"/>\n'
+            '  <Override PartName="/ppt/presentation.xml" ContentType="application/v'
+            'nd.openxmlformats-officedocument.presentationml.presentation.main+xml"/'
+            ">\n"
+            "</Types>\n"
+        )
+
+        ct_map = _ContentTypeMap.from_xml(content_types_xml)
+
+        _init_.assert_called_once_with(
+            ct_map,
+            {"/ppt/presentation.xml": CT.PML_PRESENTATION_MAIN},
+            {"png": CT.PNG, "xml": CT.XML},
+        )
+
+    @pytest.mark.parametrize(
+        "partname, expected_value",
+        (
+            ("/docProps/core.xml", CT.OPC_CORE_PROPERTIES),
+            ("/ppt/presentation.xml", CT.PML_PRESENTATION_MAIN),
+            ("/PPT/Presentation.XML", CT.PML_PRESENTATION_MAIN),
+            ("/ppt/viewprops.xml", CT.PML_VIEW_PROPS),
+        ),
+    )
+    def it_matches_an_override_on_case_insensitive_partname(
+        self, content_type_map, partname, expected_value
+    ):
+        assert content_type_map[PackURI(partname)] == expected_value
+
+    @pytest.mark.parametrize(
+        "partname, expected_value",
+        (
+            ("/foo/bar.xml", CT.XML),
+            ("/FOO/BAR.Rels", CT.OPC_RELATIONSHIPS),
+            ("/foo/bar.jpeg", CT.JPEG),
+        ),
+    )
+    def it_falls_back_to_case_insensitive_extension_default_match(
+        self, content_type_map, partname, expected_value
+    ):
+        assert content_type_map[PackURI(partname)] == expected_value
+
+    def it_raises_KeyError_on_partname_not_found(self, content_type_map):
+        with pytest.raises(KeyError) as e:
+            content_type_map[PackURI("/!blat/rhumba.1x&")]
+        assert str(e.value) == (
+            "\"no content-type for partname '/!blat/rhumba.1x&' "
+            'in [Content_Types].xml"'
+        )
+
+    def it_raises_TypeError_on_key_not_instance_of_PackURI(self, content_type_map):
+        with pytest.raises(TypeError) as e:
+            content_type_map["/part/name1.xml"]
+        assert str(e.value) == "_ContentTypeMap key must be <type 'PackURI'>, got str"
+
+    # fixtures ---------------------------------------------
+
+    @pytest.fixture(scope="class")
+    def content_type_map(self):
+        return _ContentTypeMap.from_xml(
+            testfile_bytes("expanded_pptx", "[Content_Types].xml")
+        )
 
 
 class Describe_Relationships(object):

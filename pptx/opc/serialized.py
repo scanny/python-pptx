@@ -7,8 +7,8 @@ import zipfile
 
 from pptx.compat import Container, is_string
 from pptx.exceptions import PackageNotFoundError
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
-from pptx.opc.oxml import CT_Types, parse_xml, serialize_part_xml
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.oxml import CT_Types, serialize_part_xml
 from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
 from pptx.opc.shared import CaseInsensitiveDict
 from pptx.opc.spec import default_content_types
@@ -33,25 +33,6 @@ class PackageReader(Container):
         """Return bytes for part corresponding to `pack_uri`."""
         return self._blob_reader[pack_uri]
 
-    def iter_sparts(self):
-        """
-        Generate a 3-tuple `(partname, content_type, blob)` for each of the
-        serialized parts in the package.
-        """
-        for spart in self._sparts:
-            yield (spart.partname, spart.content_type, spart.blob)
-
-    def iter_srels(self):
-        """
-        Generate a 2-tuple `(source_uri, srel)` for each of the relationships
-        in the package.
-        """
-        for srel in self._pkg_srels:
-            yield (PACKAGE_URI, srel)
-        for spart in self._sparts:
-            for srel in spart.srels:
-                yield (spart.partname, srel)
-
     def rels_xml_for(self, partname):
         """Return optional rels item XML for `partname`.
 
@@ -65,118 +46,6 @@ class PackageReader(Container):
     def _blob_reader(self):
         """|_PhysPkgReader| subtype providing read access to the package file."""
         return _PhysPkgReader.factory(self._pkg_file)
-
-    @lazyproperty
-    def _content_types(self):
-        """temporary hack during refactoring."""
-        return _ContentTypeMap.from_xml(self._blob_reader[CONTENT_TYPES_URI])
-
-    @lazyproperty
-    def _pkg_srels(self):
-        """Filty temporary hack during refactoring."""
-        return self._srels_for(PACKAGE_URI)
-
-    @lazyproperty
-    def _sparts(self):
-        """
-        Return a list of |_SerializedPart| instances corresponding to the
-        parts in *phys_reader* accessible by walking the relationship graph
-        starting with *pkg_srels*.
-        """
-        sparts = []
-        part_walker = self._walk_phys_parts(self._pkg_srels)
-        for partname, blob, srels in part_walker:
-            content_type = self._content_types[partname]
-            spart = _SerializedPart(partname, content_type, blob, srels)
-            sparts.append(spart)
-        return tuple(sparts)
-
-    def _srels_for(self, source_uri):
-        """
-        Return |_SerializedRelationshipCollection| instance populated with
-        relationships for source identified by *source_uri*.
-        """
-        rels_xml = self.rels_xml_for(source_uri)
-        return _SerializedRelationshipCollection.load_from_xml(
-            source_uri.baseURI, rels_xml
-        )
-
-    def _walk_phys_parts(self, srels, visited_partnames=None):
-        """
-        Generate a 3-tuple `(partname, blob, srels)` for each of the parts in
-        *phys_reader* by walking the relationship graph rooted at srels.
-        """
-        if visited_partnames is None:
-            visited_partnames = []
-        for srel in srels:
-            if srel.is_external:
-                continue
-            partname = srel.target_partname
-            if partname in visited_partnames:
-                continue
-            visited_partnames.append(partname)
-            part_srels = self._srels_for(partname)
-            blob = self._blob_reader[partname]
-            yield (partname, blob, part_srels)
-            for partname, blob, srels in self._walk_phys_parts(
-                part_srels, visited_partnames
-            ):
-                yield (partname, blob, srels)
-
-
-class _ContentTypeMap(object):
-    """
-    Value type providing dictionary semantics for looking up content type by
-    part name, e.g. ``content_type = cti['/ppt/presentation.xml']``.
-    """
-
-    def __init__(self):
-        super(_ContentTypeMap, self).__init__()
-        self._overrides = CaseInsensitiveDict()
-        self._defaults = CaseInsensitiveDict()
-
-    def __getitem__(self, partname):
-        """
-        Return content type for part identified by *partname*.
-        """
-        if not isinstance(partname, PackURI):
-            tmpl = "_ContentTypeMap key must be <type 'PackURI'>, got %s"
-            raise KeyError(tmpl % type(partname))
-        if partname in self._overrides:
-            return self._overrides[partname]
-        if partname.ext in self._defaults:
-            return self._defaults[partname.ext]
-        tmpl = "no content type for partname '%s' in [Content_Types].xml"
-        raise KeyError(tmpl % partname)
-
-    @staticmethod
-    def from_xml(content_types_xml):
-        """
-        Return a new |_ContentTypeMap| instance populated with the contents
-        of *content_types_xml*.
-        """
-        types_elm = parse_xml(content_types_xml)
-        ct_map = _ContentTypeMap()
-        for o in types_elm.override_lst:
-            ct_map._add_override(o.partName, o.contentType)
-        for d in types_elm.default_lst:
-            ct_map._add_default(d.extension, d.contentType)
-        return ct_map
-
-    def _add_default(self, extension, content_type):
-        """
-        Add the default mapping of *extension* to *content_type* to this
-        content type mapping. *extension* does not include the leading
-        period.
-        """
-        self._defaults[extension] = content_type
-
-    def _add_override(self, partname, content_type):
-        """
-        Add the default mapping of *partname* to *content_type* to this
-        content type mapping.
-        """
-        self._overrides[partname] = content_type
 
 
 class PackageWriter(object):
@@ -332,136 +201,6 @@ class _ZipPkgWriter(_PhysPkgWriter):
         *pack_uri*.
         """
         self._zipf.writestr(pack_uri.membername, blob)
-
-
-class _SerializedPart(object):
-    """
-    Value object for an OPC package part. Provides access to the partname,
-    content type, blob, and serialized relationships for the part.
-    """
-
-    def __init__(self, partname, content_type, blob, srels):
-        super(_SerializedPart, self).__init__()
-        self._partname = partname
-        self._content_type = content_type
-        self._blob = blob
-        self._srels = srels
-
-    @property
-    def partname(self):
-        return self._partname
-
-    @property
-    def content_type(self):
-        return self._content_type
-
-    @property
-    def blob(self):
-        return self._blob
-
-    @property
-    def srels(self):
-        return self._srels
-
-
-class _SerializedRelationship(object):
-    """
-    Value object representing a serialized relationship in an OPC package.
-    Serialized, in this case, means any target part is referred to via its
-    partname rather than a direct link to an in-memory |Part| object.
-    """
-
-    def __init__(self, baseURI, rel_elm):
-        super(_SerializedRelationship, self).__init__()
-        self._baseURI = baseURI
-        self._rId = rel_elm.rId
-        self._reltype = rel_elm.reltype
-        self._target_mode = rel_elm.targetMode
-        self._target_ref = rel_elm.target_ref
-
-    @property
-    def is_external(self):
-        """
-        True if target_mode is ``RTM.EXTERNAL``
-        """
-        return self._target_mode == RTM.EXTERNAL
-
-    @property
-    def reltype(self):
-        """Relationship type, like ``RT.OFFICE_DOCUMENT``"""
-        return self._reltype
-
-    @property
-    def rId(self):
-        """
-        Relationship id, like 'rId9', corresponds to the ``Id`` attribute on
-        the ``CT_Relationship`` element.
-        """
-        return self._rId
-
-    @property
-    def target_mode(self):
-        """
-        String in ``TargetMode`` attribute of ``CT_Relationship`` element,
-        one of ``RTM.INTERNAL`` or ``RTM.EXTERNAL``.
-        """
-        return self._target_mode
-
-    @property
-    def target_ref(self):
-        """
-        String in ``Target`` attribute of ``CT_Relationship`` element, a
-        relative part reference for internal target mode or an arbitrary URI,
-        e.g. an HTTP URL, for external target mode.
-        """
-        return self._target_ref
-
-    @property
-    def target_partname(self):
-        """
-        |PackURI| instance containing partname targeted by this relationship.
-        Raises ``ValueError`` on reference if target_mode is ``'External'``.
-        Use :attr:`target_mode` to check before referencing.
-        """
-        if self.is_external:
-            msg = (
-                "target_partname attribute on Relationship is undefined w"
-                'here TargetMode == "External"'
-            )
-            raise ValueError(msg)
-        # lazy-load _target_partname attribute
-        if not hasattr(self, "_target_partname"):
-            self._target_partname = PackURI.from_rel_ref(self._baseURI, self.target_ref)
-        return self._target_partname
-
-
-class _SerializedRelationshipCollection(object):
-    """
-    Read-only sequence of |_SerializedRelationship| instances corresponding
-    to the relationships item XML passed to constructor.
-    """
-
-    def __init__(self):
-        super(_SerializedRelationshipCollection, self).__init__()
-        self._srels = []
-
-    def __iter__(self):
-        """Support iteration, e.g. 'for x in srels:'"""
-        return self._srels.__iter__()
-
-    @staticmethod
-    def load_from_xml(baseURI, rels_item_xml):
-        """
-        Return |_SerializedRelationshipCollection| instance loaded with the
-        relationships contained in *rels_item_xml*. Returns an empty
-        collection if *rels_item_xml* is |None|.
-        """
-        srels = _SerializedRelationshipCollection()
-        if rels_item_xml is not None:
-            rels_elm = parse_xml(rels_item_xml)
-            for rel_elm in rels_elm.relationship_lst:
-                srels._srels.append(_SerializedRelationship(baseURI, rel_elm))
-        return srels
 
 
 class _ContentTypesItem(object):

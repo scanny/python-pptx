@@ -78,3 +78,10 @@ def testfile(name):
     Return the absolute path to test file having *name*.
     """
     return absjoin(test_file_dir, name)
+
+
+def testfile_bytes(*segments):
+    """Return bytes of file at path formed by adding `segments` to test file dir."""
+    path = os.path.join(test_file_dir, *segments)
+    with open(path, "rb") as f:
+        return f.read()

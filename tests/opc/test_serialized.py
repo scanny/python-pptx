@@ -13,21 +13,16 @@ import pytest
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from pptx.exceptions import PackageNotFoundError
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
-from pptx.opc.oxml import CT_Relationship
+from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.opc.serialized import (
     PackageReader,
     PackageWriter,
-    _ContentTypeMap,
     _ContentTypesItem,
     _DirPkgReader,
     _PhysPkgReader,
     _PhysPkgWriter,
-    _SerializedPart,
-    _SerializedRelationship,
-    _SerializedRelationshipCollection,
     _ZipPkgReader,
     _ZipPkgWriter,
 )
@@ -79,110 +74,6 @@ class DescribePackageReader(object):
     @pytest.fixture
     def _blob_reader_prop_(self, request):
         return property_mock(request, PackageReader, "_blob_reader")
-
-
-class Describe_ContentTypeMap(object):
-    def it_can_construct_from_ct_item_xml(self, from_xml_fixture):
-        content_types_xml, expected_defaults, expected_overrides = from_xml_fixture
-        ct_map = _ContentTypeMap.from_xml(content_types_xml)
-        assert ct_map._defaults == expected_defaults
-        assert ct_map._overrides == expected_overrides
-
-    def it_matches_an_override_on_case_insensitive_partname(
-        self, match_override_fixture
-    ):
-        ct_map, partname, content_type = match_override_fixture
-        assert ct_map[partname] == content_type
-
-    def it_falls_back_to_case_insensitive_extension_default_match(
-        self, match_default_fixture
-    ):
-        ct_map, partname, content_type = match_default_fixture
-        assert ct_map[partname] == content_type
-
-    def it_should_raise_on_partname_not_found(self):
-        ct_map = _ContentTypeMap()
-        with pytest.raises(KeyError):
-            ct_map[PackURI("/!blat/rhumba.1x&")]
-
-    def it_should_raise_on_key_not_instance_of_PackURI(self):
-        ct_map = _ContentTypeMap()
-        ct_map._add_override(PackURI("/part/name1.xml"), "app/vnd.type1")
-        with pytest.raises(KeyError):
-            ct_map["/part/name1.xml"]
-
-    # fixtures ---------------------------------------------
-
-    @pytest.fixture
-    def from_xml_fixture(self):
-        entries = (
-            ("Default", "xml", CT.XML),
-            ("Default", "PNG", CT.PNG),
-            ("Override", "/ppt/presentation.xml", CT.PML_PRESENTATION_MAIN),
-        )
-        content_types_xml = self._xml_from(entries)
-        expected_defaults = {}
-        expected_overrides = {}
-        for entry in entries:
-            if entry[0] == "Default":
-                ext = entry[1].lower()
-                content_type = entry[2]
-                expected_defaults[ext] = content_type
-            elif entry[0] == "Override":
-                partname, content_type = entry[1:]
-                expected_overrides[partname] = content_type
-        return content_types_xml, expected_defaults, expected_overrides
-
-    @pytest.fixture(
-        params=[
-            ("/foo/bar.xml", "xml", "application/xml"),
-            ("/foo/bar.PNG", "png", "image/png"),
-            ("/foo/bar.jpg", "JPG", "image/jpeg"),
-        ]
-    )
-    def match_default_fixture(self, request):
-        partname_str, ext, content_type = request.param
-        partname = PackURI(partname_str)
-        ct_map = _ContentTypeMap()
-        ct_map._add_override(PackURI("/bar/foo.xyz"), "application/xyz")
-        ct_map._add_default(ext, content_type)
-        return ct_map, partname, content_type
-
-    @pytest.fixture(
-        params=[
-            ("/foo/bar.xml", "/foo/bar.xml"),
-            ("/foo/bar.xml", "/FOO/Bar.XML"),
-            ("/FoO/bAr.XmL", "/foo/bar.xml"),
-        ]
-    )
-    def match_override_fixture(self, request):
-        partname_str, should_match_partname_str = request.param
-        partname = PackURI(partname_str)
-        should_match_partname = PackURI(should_match_partname_str)
-        content_type = "appl/vnd-foobar"
-        ct_map = _ContentTypeMap()
-        ct_map._add_override(partname, content_type)
-        return ct_map, should_match_partname, content_type
-
-    def _xml_from(self, entries):
-        """
-        Return XML for a [Content_Types].xml based on items in *entries*.
-        """
-        types_bldr = a_Types().with_nsdecls()
-        for entry in entries:
-            if entry[0] == "Default":
-                ext, content_type = entry[1:]
-                default_bldr = a_Default()
-                default_bldr.with_Extension(ext)
-                default_bldr.with_ContentType(content_type)
-                types_bldr.with_child(default_bldr)
-            elif entry[0] == "Override":
-                partname, content_type = entry[1:]
-                override_bldr = an_Override()
-                override_bldr.with_PartName(partname)
-                override_bldr.with_ContentType(content_type)
-                types_bldr.with_child(override_bldr)
-        return types_bldr.xml()
 
 
 class DescribePackageWriter(object):
@@ -421,119 +312,6 @@ class Describe_ZipPkgWriter(object):
         pkg_file = BytesIO()
         request.addfinalizer(pkg_file.close)
         return pkg_file
-
-
-class Describe_SerializedPart(object):
-    def it_remembers_construction_values(self):
-        # test data --------------------
-        partname = "/part/name.xml"
-        content_type = "app/vnd.type"
-        blob = "<Part/>"
-        srels = "srels proxy"
-        # exercise ---------------------
-        spart = _SerializedPart(partname, content_type, blob, srels)
-        # verify -----------------------
-        assert spart.partname == partname
-        assert spart.content_type == content_type
-        assert spart.blob == blob
-        assert spart.srels == srels
-
-
-class Describe_SerializedRelationship(object):
-    def it_remembers_construction_values(self):
-        # test data --------------------
-        rel_elm = CT_Relationship.new(
-            "rId9", "ReLtYpE", "docProps/core.xml", RTM.INTERNAL
-        )
-        # exercise ---------------------
-        srel = _SerializedRelationship("/", rel_elm)
-        # verify -----------------------
-        assert srel.rId == "rId9"
-        assert srel.reltype == "ReLtYpE"
-        assert srel.target_ref == "docProps/core.xml"
-        assert srel.target_mode == RTM.INTERNAL
-
-    def it_knows_when_it_is_external(self):
-        cases = (RTM.INTERNAL, RTM.EXTERNAL)
-        expected_values = (False, True)
-        for target_mode, expected_value in zip(cases, expected_values):
-            rel_elm = CT_Relationship.new(
-                "rId9", "ReLtYpE", "docProps/core.xml", target_mode
-            )
-            srel = _SerializedRelationship(None, rel_elm)
-            assert srel.is_external is expected_value
-
-    def it_can_calculate_its_target_partname(self):
-        # test data --------------------
-        cases = (
-            ("/", "docProps/core.xml", "/docProps/core.xml"),
-            ("/ppt", "viewProps.xml", "/ppt/viewProps.xml"),
-            (
-                "/ppt/slides",
-                "../slideLayouts/slideLayout1.xml",
-                "/ppt/slideLayouts/slideLayout1.xml",
-            ),
-        )
-        for baseURI, target_ref, expected_partname in cases:
-            # setup --------------------
-            rel_elm = Mock(
-                name="rel_elm",
-                rId=None,
-                reltype=None,
-                target_ref=target_ref,
-                target_mode=RTM.INTERNAL,
-            )
-            # exercise -----------------
-            srel = _SerializedRelationship(baseURI, rel_elm)
-            # verify -------------------
-            assert srel.target_partname == expected_partname
-
-    def it_raises_on_target_partname_when_external(self):
-        rel_elm = CT_Relationship.new(
-            "rId9", "ReLtYpE", "docProps/core.xml", RTM.EXTERNAL
-        )
-        srel = _SerializedRelationship("/", rel_elm)
-        with pytest.raises(ValueError):
-            srel.target_partname
-
-
-class Describe_SerializedRelationshipCollection(object):
-    def it_can_load_from_xml(self, parse_xml, _SerializedRelationship_):
-        # mockery ----------------------
-        baseURI, rels_item_xml, rel_elm_1, rel_elm_2 = (
-            Mock(name="baseURI"),
-            Mock(name="rels_item_xml"),
-            Mock(name="rel_elm_1"),
-            Mock(name="rel_elm_2"),
-        )
-        rels_elm = Mock(name="rels_elm", relationship_lst=[rel_elm_1, rel_elm_2])
-        parse_xml.return_value = rels_elm
-        # exercise ---------------------
-        srels = _SerializedRelationshipCollection.load_from_xml(baseURI, rels_item_xml)
-        # verify -----------------------
-        expected_calls = [call(baseURI, rel_elm_1), call(baseURI, rel_elm_2)]
-        parse_xml.assert_called_once_with(rels_item_xml)
-        assert _SerializedRelationship_.call_args_list == expected_calls
-        assert isinstance(srels, _SerializedRelationshipCollection)
-
-    def it_should_be_iterable(self):
-        srels = _SerializedRelationshipCollection()
-        try:
-            for x in srels:
-                pass
-        except TypeError:
-            msg = "_SerializedRelationshipCollection object is not iterable"
-            pytest.fail(msg)
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def parse_xml(self, request):
-        return function_mock(request, "pptx.opc.serialized.parse_xml")
-
-    @pytest.fixture
-    def _SerializedRelationship_(self, request):
-        return class_mock(request, "pptx.opc.serialized._SerializedRelationship")
 
 
 class Describe_ContentTypesItem(object):

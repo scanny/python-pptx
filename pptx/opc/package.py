@@ -11,8 +11,9 @@ import collections
 from pptx.compat import is_string, Mapping
 from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM, RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships, serialize_part_xml
-from pptx.opc.packuri import PACKAGE_URI, PackURI
+from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
 from pptx.opc.serialized import PackageReader, PackageWriter
+from pptx.opc.shared import CaseInsensitiveDict
 from pptx.oxml import parse_xml
 from pptx.util import lazyproperty
 
@@ -70,17 +71,6 @@ class OpcPackage(object):
 
         for rel in walk_rels(self._rels):
             yield rel
-
-    def load_rel(self, reltype, target, rId, is_external=False):
-        """
-        Return newly added |_Relationship| instance of *reltype* between this
-        part and *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *is_external* is |True|. Intended for use during
-        load from a serialized package, where the rId is well known. Other
-        methods exist for adding a new relationship to the package during
-        processing.
-        """
-        return self._rels.add_relationship(reltype, target, rId, is_external)
 
     @property
     def main_document_part(self):
@@ -171,13 +161,20 @@ class _PackageLoader(object):
 
     def _load(self):
         """Return (pkg_xml_rels, parts) pair resulting from loading pkg_file."""
-        # --- ugly temporary hack to make this interim `._load()` method produce the
-        # --- same result as the one that's coming a few commits later.
-        self._unmarshal_relationships()
+        parts, xml_rels = self._parts, self._xml_rels
 
-        pkg_xml_rels = parse_xml(self._package_reader.rels_xml_for(PACKAGE_URI))
+        for partname, part in parts.items():
+            part.load_rels_from_xml(xml_rels[partname], parts)
 
-        return pkg_xml_rels, self._parts
+        return xml_rels["/"], parts
+
+    @lazyproperty
+    def _content_types(self):
+        """|_ContentTypeMap| object providing content-types for items of this package.
+
+        Provides a content-type (MIME-type) for any given partname.
+        """
+        return _ContentTypeMap.from_xml(self._package_reader[CONTENT_TYPES_URI])
 
     @lazyproperty
     def _package_reader(self):
@@ -186,33 +183,29 @@ class _PackageLoader(object):
 
     @lazyproperty
     def _parts(self):
-        """Return a {partname: |Part|} dict unmarshalled from `pkg_reader`.
+        """dict {partname: Part} populated with parts loading from package.
 
-        Side-effect is that each part in `pkg_reader` is constructed using
-        `part_factory`.
+        Among other duties, this collection is passed to each relationships collection
+        so each relationship can resolve a reference to its target part when required.
+        This reference can only be reliably carried out once the all parts have been
+        loaded.
         """
+        content_types = self._content_types
         package = self._package
+        package_reader = self._package_reader
+
         return {
-            partname: PartFactory(partname, content_type, package, blob)
-            for partname, content_type, blob in self._package_reader.iter_sparts()
-        }
-
-    def _unmarshal_relationships(self):
-        """Add relationships to each source object.
-
-        Source objects correspond to each relationship-target in `pkg_reader` with its
-        target_part set to the actual target part in `parts`.
-        """
-        pkg_reader = self._package_reader
-        package = self._package
-        parts = self._parts
-
-        for source_uri, srel in pkg_reader.iter_srels():
-            source = package if source_uri == "/" else parts[source_uri]
-            target = (
-                srel.target_ref if srel.is_external else parts[srel.target_partname]
+            partname: PartFactory(
+                partname,
+                content_types[partname],
+                package,
+                blob=package_reader[partname],
             )
-            source.load_rel(srel.reltype, target, srel.rId, srel.is_external)
+            for partname in (p for p in self._xml_rels.keys() if p != "/")
+            # --- invalid partnames can arise in some packages; ignore those rather
+            # --- than raise an exception.
+            if partname in package_reader
+        }
 
     @lazyproperty
     def _xml_rels(self):
@@ -310,16 +303,15 @@ class Part(object):
         if self._rel_ref_count(rId) < 2:
             self._rels.pop(rId)
 
-    def load_rel(self, reltype, target, rId, is_external=False):
+    def load_rels_from_xml(self, xml_rels, parts):
+        """load _Relationships for this part from `xml_rels`.
+
+        Part references are resolved using the `parts` dict that maps each partname to
+        the loaded part with that partname. These relationships are loaded from a
+        serialized package and so already have assigned rIds. This method is only used
+        during package loading.
         """
-        Return newly added |_Relationship| instance of *reltype* between this
-        part and *target* with key *rId*. Target mode is set to
-        ``RTM.EXTERNAL`` if *is_external* is |True|. Intended for use during
-        load from a serialized package, where the rId is well known. Other
-        methods exist for adding a new relationship to a part when
-        manipulating a part.
-        """
-        return self._rels.add_relationship(reltype, target, rId, is_external)
+        self._rels.load_from_xml(self._partname.baseURI, xml_rels, parts)
 
     @property
     def package(self):
@@ -438,9 +430,9 @@ class PartFactory(object):
     part_type_for = {}
     default_part_type = Part
 
-    def __new__(cls, partname, content_type, blob, package):
+    def __new__(cls, partname, content_type, package, blob):
         PartClass = cls._part_cls_for(content_type)
-        return PartClass.load(partname, content_type, blob, package)
+        return PartClass.load(partname, content_type, package, blob)
 
     @classmethod
     def _part_cls_for(cls, content_type):
@@ -451,6 +443,44 @@ class PartFactory(object):
         if content_type in cls.part_type_for:
             return cls.part_type_for[content_type]
         return cls.default_part_type
+
+
+class _ContentTypeMap(object):
+    """Value type providing dict semantics for looking up content type by partname."""
+
+    def __init__(self, overrides, defaults):
+        self._overrides = overrides
+        self._defaults = defaults
+
+    def __getitem__(self, partname):
+        """Return content-type (MIME-type) for part identified by *partname*."""
+        if not isinstance(partname, PackURI):
+            raise TypeError(
+                "_ContentTypeMap key must be <type 'PackURI'>, got %s"
+                % type(partname).__name__
+            )
+
+        if partname in self._overrides:
+            return self._overrides[partname]
+
+        if partname.ext in self._defaults:
+            return self._defaults[partname.ext]
+
+        raise KeyError(
+            "no content-type for partname '%s' in [Content_Types].xml" % partname
+        )
+
+    @classmethod
+    def from_xml(cls, content_types_xml):
+        """Return |_ContentTypeMap| instance populated from `content_types_xml`."""
+        types_elm = parse_xml(content_types_xml)
+        overrides = CaseInsensitiveDict(
+            (o.partName.lower(), o.contentType) for o in types_elm.override_lst
+        )
+        defaults = CaseInsensitiveDict(
+            (d.extension.lower(), d.contentType) for d in types_elm.default_lst
+        )
+        return cls(overrides, defaults)
 
 
 class _Relationships(Mapping):
@@ -485,18 +515,6 @@ class _Relationships(Mapping):
     def __len__(self):
         """Return count of relationships in collection."""
         return len(self._rels)
-
-    def add_relationship(self, reltype, target, rId, is_external=False):
-        """Return a newly added |_Relationship| instance."""
-        rel = _Relationship(
-            self._base_uri,
-            rId,
-            reltype,
-            RTM.EXTERNAL if is_external else RTM.INTERNAL,
-            target,
-        )
-        self._rels[rId] = rel
-        return rel
 
     def get_or_add(self, reltype, target_part):
         """Return str rId of `reltype` to `target_part`.
