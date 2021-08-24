@@ -167,9 +167,9 @@ class SlidePart(BaseSlidePart):
         The chart depicts `chart_data` and is related to the slide contained in this
         part by `rId`.
         """
-        chart_part = ChartPart.new(chart_type, chart_data, self.package)
-        rId = self.relate_to(chart_part, RT.CHART)
-        return rId
+        return self.relate_to(
+            ChartPart.new(chart_type, chart_data, self._package), RT.CHART
+        )
 
     def add_embedded_ole_object_part(self, prog_id, ole_object_file):
         """Return rId of newly-added OLE-object part formed from `ole_object_file`."""

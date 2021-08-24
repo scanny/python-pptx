@@ -101,9 +101,7 @@ class CT_Relationships(BaseOxmlElement):
     @classmethod
     def new(cls):
         """Return a new ``<Relationships>`` element."""
-        xml = '<Relationships xmlns="%s"/>' % nsmap["pr"]
-        relationships = parse_xml(xml)
-        return relationships
+        return parse_xml('<Relationships xmlns="%s"/>' % nsmap["pr"])
 
     @property
     def xml(self):

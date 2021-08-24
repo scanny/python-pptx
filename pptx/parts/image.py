@@ -30,10 +30,6 @@ class ImagePart(Part):
         self._filename = filename
 
     @classmethod
-    def load(cls, partname, content_type, package, blob):
-        return cls(partname, content_type, package, blob)
-
-    @classmethod
     def new(cls, package, image):
         """Return new |ImagePart| instance containing `image`.
 

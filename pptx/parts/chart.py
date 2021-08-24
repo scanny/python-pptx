@@ -62,7 +62,7 @@ class ChartWorkbook(object):
         """
         xlsx_part = self.xlsx_part
         if xlsx_part is None:
-            self.xlsx_part = EmbeddedXlsxPart.new(xlsx_blob, self._package)
+            self.xlsx_part = EmbeddedXlsxPart.new(xlsx_blob, self._chart_part.package)
             return
         xlsx_part.blob = xlsx_blob
 
@@ -74,9 +74,11 @@ class ChartWorkbook(object):
         is |None| if there is no `<c:externalData>` element.
         """
         xlsx_part_rId = self._chartSpace.xlsx_part_rId
-        if xlsx_part_rId is None:
-            return None
-        return self._chart_part.related_part(xlsx_part_rId)
+        return (
+            None
+            if xlsx_part_rId is None
+            else self._chart_part.related_part(xlsx_part_rId)
+        )
 
     @xlsx_part.setter
     def xlsx_part(self, xlsx_part):
@@ -87,7 +89,3 @@ class ChartWorkbook(object):
         rId = self._chart_part.relate_to(xlsx_part, RT.PACKAGE)
         externalData = self._chartSpace.get_or_add_externalData()
         externalData.rId = rId
-
-    @property
-    def _package(self):
-        return self._chart_part.package

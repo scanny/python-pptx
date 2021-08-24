@@ -122,7 +122,7 @@ class OpcPackage(object):
     def save(self, pkg_file):
         """Save this package to `pkg_file`.
 
-        `pkg_file` can be either a path to a file (a string) or a file-like object.
+        `file` can be either a path to a file (a string) or a file-like object.
         """
         PackageWriter.write(pkg_file, self._rels, tuple(self.iter_parts()))
 
@@ -134,7 +134,7 @@ class OpcPackage(object):
 
     @lazyproperty
     def _rels(self):
-        """The |_Relationships| object containing the relationships for this package."""
+        """|Relationships| object containing relationships of this package."""
         return _Relationships(PACKAGE_URI.baseURI)
 
 
@@ -289,7 +289,7 @@ class Part(object):
         """
         self._blob = bytes_
 
-    @property
+    @lazyproperty
     def content_type(self):
         """Content-type (MIME-type) of this part."""
         return self._content_type
@@ -313,7 +313,7 @@ class Part(object):
         """
         self._rels.load_from_xml(self._partname.baseURI, xml_rels, parts)
 
-    @property
+    @lazyproperty
     def package(self):
         """|OpcPackage| instance this part belongs to."""
         return self._package
@@ -334,8 +334,10 @@ class Part(object):
     @partname.setter
     def partname(self, partname):
         if not isinstance(partname, PackURI):
-            tmpl = "partname must be instance of PackURI, got '%s'"
-            raise TypeError(tmpl % type(partname).__name__)
+            raise TypeError(
+                "partname must be instance of PackURI, got '%s'"
+                % type(partname).__name__
+            )
         self._partname = partname
 
     def relate_to(self, target, reltype, is_external=False):
@@ -379,12 +381,11 @@ class Part(object):
 
     def _rel_ref_count(self, rId):
         """Return int count of references in this part's XML to `rId`."""
-        rIds = self._element.xpath("//@r:id")
-        return len([_rId for _rId in rIds if _rId == rId])
+        return len([r for r in self._element.xpath("//@r:id") if r == rId])
 
     @lazyproperty
     def _rels(self):
-        """|Relationships| collection of relationships from this part to other parts."""
+        """|Relationships| object containing relationships from this part to others."""
         return _Relationships(self._partname.baseURI)
 
 
@@ -428,7 +429,6 @@ class PartFactory(object):
     """
 
     part_type_for = {}
-    default_part_type = Part
 
     def __new__(cls, partname, content_type, package, blob):
         PartClass = cls._part_cls_for(content_type)
@@ -442,7 +442,7 @@ class PartFactory(object):
         """
         if content_type in cls.part_type_for:
             return cls.part_type_for[content_type]
-        return cls.default_part_type
+        return Part
 
 
 class _ContentTypeMap(object):

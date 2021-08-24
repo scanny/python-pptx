@@ -27,7 +27,6 @@ from pptx.opc.package import (
 )
 from pptx.opc.serialized import PackageReader
 from pptx.oxml import parse_xml
-from pptx.package import Package
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, snippet_bytes, testfile_bytes, test_file_dir
@@ -35,12 +34,10 @@ from ..unitutil.mock import (
     ANY,
     call,
     class_mock,
-    cls_attr_mock,
     function_mock,
     initializer_mock,
     instance_mock,
     method_mock,
-    Mock,
     property_mock,
 )
 
@@ -609,64 +606,43 @@ class DescribePartFactory(object):
     """Unit-test suite for `pptx.opc.package.PartFactory` objects."""
 
     def it_constructs_custom_part_type_for_registered_content_types(
-        self, part_args_, CustomPartClass_, part_of_custom_type_
+        self, request, package_, part_
     ):
-        # fixture ----------------------
-        partname, content_type, pkg, blob = part_args_
-        # exercise ---------------------
-        PartFactory.part_type_for[content_type] = CustomPartClass_
-        part = PartFactory(partname, content_type, pkg, blob)
-        # verify -----------------------
-        CustomPartClass_.load.assert_called_once_with(partname, content_type, pkg, blob)
-        assert part is part_of_custom_type_
+        SlidePart_ = class_mock(request, "pptx.opc.package.XmlPart")
+        SlidePart_.load.return_value = part_
+        partname = PackURI("/ppt/slides/slide7.xml")
+        PartFactory.part_type_for[CT.PML_SLIDE] = SlidePart_
+
+        part = PartFactory(partname, CT.PML_SLIDE, package_, b"blob")
+
+        SlidePart_.load.assert_called_once_with(
+            partname, CT.PML_SLIDE, package_, b"blob"
+        )
+        assert part is part_
 
     def it_constructs_part_using_default_class_when_no_custom_registered(
-        self, part_args_2_, DefaultPartClass_, part_of_default_type_
+        self, request, package_, part_
     ):
-        partname, content_type, pkg, blob = part_args_2_
-        part = PartFactory(partname, content_type, pkg, blob)
-        DefaultPartClass_.load.assert_called_once_with(
-            partname, content_type, pkg, blob
+        Part_ = class_mock(request, "pptx.opc.package.Part")
+        Part_.load.return_value = part_
+        partname = PackURI("/bar/foo.xml")
+
+        part = PartFactory(partname, CT.OFC_VML_DRAWING, package_, b"blob")
+
+        Part_.load.assert_called_once_with(
+            partname, CT.OFC_VML_DRAWING, package_, b"blob"
         )
-        assert part is part_of_default_type_
+        assert part is part_
 
-    # fixtures ---------------------------------------------
+    # fixtures components ----------------------------------
 
     @pytest.fixture
-    def part_of_custom_type_(self, request):
+    def package_(self, request):
+        return instance_mock(request, OpcPackage)
+
+    @pytest.fixture
+    def part_(self, request):
         return instance_mock(request, Part)
-
-    @pytest.fixture
-    def CustomPartClass_(self, request, part_of_custom_type_):
-        CustomPartClass_ = Mock(name="CustomPartClass", spec=Part)
-        CustomPartClass_.load.return_value = part_of_custom_type_
-        return CustomPartClass_
-
-    @pytest.fixture
-    def part_of_default_type_(self, request):
-        return instance_mock(request, Part)
-
-    @pytest.fixture
-    def DefaultPartClass_(self, request, part_of_default_type_):
-        DefaultPartClass_ = cls_attr_mock(request, PartFactory, "default_part_type")
-        DefaultPartClass_.load.return_value = part_of_default_type_
-        return DefaultPartClass_
-
-    @pytest.fixture
-    def part_args_(self, request):
-        partname_ = PackURI("/foo/bar.xml")
-        content_type_ = "content/type"
-        pkg_ = instance_mock(request, Package, name="pkg_")
-        blob_ = b"blob_"
-        return partname_, content_type_, pkg_, blob_
-
-    @pytest.fixture
-    def part_args_2_(self, request):
-        partname_2_ = PackURI("/bar/foo.xml")
-        content_type_2_ = "foobar/type"
-        pkg_2_ = instance_mock(request, Package, name="pkg_2_")
-        blob_2_ = b"blob_2_"
-        return partname_2_, content_type_2_, pkg_2_, blob_2_
 
 
 class Describe_ContentTypeMap(object):
