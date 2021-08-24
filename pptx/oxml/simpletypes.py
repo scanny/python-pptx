@@ -587,6 +587,21 @@ class ST_PositiveFixedPercentage(ST_Percentage):
     def validate(cls, value):
         cls.validate_float_in_range(value, 0.0, 1.0)
 
+class ST_PositivePercentage(ST_Percentage):
+    """Percentage value is positive or 9'
+
+    Either an integer literal representing 1000ths of a percent
+    (e.g. "42000"), or a floating point literal with a '%' suffix
+    (e.g. "42.0%). Value is constrained to range of 0% to 100%. The source
+    value is a float between 0.0 and 1.0.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float(value)
+        if value < 0:
+            raise TypeError("value must be 0 or positive, got %s" % value)
+
 
 class ST_RelationshipId(XsdString):
     pass
@@ -1073,3 +1088,270 @@ class ST_PathFillMode(XsdTokenEnumeration):
     )
     _members = fill_modes
 
+
+class ST_LineEndType(XsdTokenEnumeration):
+    """
+    Valid Values for line end types
+    """
+    line_end_types = (
+        "none",
+        "triangle",
+        "stealth",
+        "diamond",
+        "oval",
+        "arrow",
+    )
+    _members = line_end_types
+
+class ST_LineEndWidth(XsdTokenEnumeration):
+    """
+    Valid values for line end widths
+    """
+    line_end_widths = (
+        "sm",
+        "med",
+        "lg"
+    )
+    _members = line_end_widths
+
+class ST_LineEndLength(XsdTokenEnumeration):
+    """
+    Valid Values for line end lengths
+    """
+    line_end_lengths = (
+        "sm",
+        "med",
+        "lg"
+    )
+    _members = line_end_lengths
+
+
+class ST_LineCap(XsdTokenEnumeration):
+    """
+    Valid Values for Line Cap
+    """
+    line_caps = (
+        "rnd",
+        "sq",
+        "flat"
+    )
+    _members = line_caps
+
+class ST_CompoundLine(XsdTokenEnumeration):
+    """
+    Valid Values for Compound Line Types
+    """
+    compound_types = (
+        "sng",
+        "dbl",
+        "thickThin",
+        "thinThick",
+        "tri"
+    )
+    _members = compound_types
+
+class ST_PenAlignment(XsdTokenEnumeration):
+    """
+    Valid Values for Stroke Pen Alignment
+    """
+    alignments = (
+        "ctr",
+        "in",
+    )
+    _members = alignments
+
+class ST_ShapeType(XsdTokenEnumeration):
+    """
+    List of Valid Values for Shape types.
+    This includes both connectors and Autoshapes
+    """
+    shape_types = (
+        "line",
+        "lineInv",
+        "triangle",
+        "rtTriangle",
+        "rect",
+        "diamond",
+        "parallelogram",
+        "trapezoid",
+        "nonIsoscelesTrapezoid",
+        "pentagon",
+        "hexagon",
+        "heptagon",
+        "octagon",
+        "decagon",
+        "dodecagon",
+        "star4",
+        "star5",
+        "star6",
+        "star7",
+        "star8",
+        "star10",
+        "star12",
+        "star16",
+        "star24",
+        "star32",
+        "roundRect",
+        "round1Rect",
+        "round2SameRect",
+        "round2DiagRect",
+        "snipRoundRect",
+        "snip1Rect",
+        "snip2SameRect",
+        "snip2DiagRect",
+        "plaque",
+        "ellipse",
+        "teardrop",
+        "homePlate",
+        "chevron",
+        "pieWedge",
+        "pie",
+        "blockArc",
+        "donut",
+        "noSmoking",
+        "rightArrow",
+        "leftArrow",
+        "upArrow",
+        "downArrow",
+        "stripedRightArrow",
+        "notchedRightArrow",
+        "bentUpArrow",
+        "leftRightArrow",
+        "upDownArrow",
+        "leftUpArrow",
+        "leftRightUpArrow",
+        "quadArrow",
+        "leftArrowCallout",
+        "rightArrowCallout",
+        "upArrowCallout",
+        "downArrowCallout",
+        "leftRightArrowCallout",
+        "upDownArrowCallout",
+        "quadArrowCallout",
+        "bentArrow",
+        "uturnArrow",
+        "circularArrow",
+        "leftCircularArrow",
+        "leftRightCircularArrow",
+        "curvedRightArrow",
+        "curvedLeftArrow",
+        "curvedUpArrow",
+        "curvedDownArrow",
+        "swooshArrow",
+        "cube",
+        "can",
+        "lightningBolt",
+        "heart",
+        "sun",
+        "moon",
+        "smileyFace",
+        "irregularSeal1",
+        "irregularSeal2",
+        "foldedCorner",
+        "bevel",
+        "frame",
+        "halfFrame",
+        "corner",
+        "diagStripe",
+        "chord",
+        "arc",
+        "leftBracket",
+        "rightBracket",
+        "leftBrace",
+        "rightBrace",
+        "bracketPair",
+        "bracePair",
+        "straightConnector1",
+        "bentConnector2",
+        "bentConnector3",
+        "bentConnector4",
+        "bentConnector5",
+        "curvedConnector2",
+        "curvedConnector3",
+        "curvedConnector4",
+        "curvedConnector5",
+        "callout1",
+        "callout2",
+        "callout3",
+        "accentCallout1",
+        "accentCallout2",
+        "accentCallout3",
+        "borderCallout1",
+        "borderCallout2",
+        "borderCallout3",
+        "accentBorderCallout1",
+        "accentBorderCallout2",
+        "accentBorderCallout3",
+        "wedgeRectCallout",
+        "wedgeRoundRectCallout",
+        "wedgeEllipseCallout",
+        "cloudCallout",
+        "cloud",
+        "ribbon",
+        "ribbon2",
+        "ellipseRibbon",
+        "ellipseRibbon2",
+        "leftRightRibbon",
+        "verticalScroll",
+        "horizontalScroll",
+        "wave",
+        "doubleWave",
+        "plus",
+        "flowChartProcess",
+        "flowChartDecision",
+        "flowChartInputOutput",
+        "flowChartPredefinedProcess",
+        "flowChartInternalStorage",
+        "flowChartDocument",
+        "flowChartMultidocument",
+        "flowChartTerminator",
+        "flowChartPreparation",
+        "flowChartManualInput",
+        "flowChartManualOperation",
+        "flowChartConnector",
+        "flowChartPunchedCard",
+        "flowChartPunchedTape",
+        "flowChartSummingJunction",
+        "flowChartOr",
+        "flowChartCollate",
+        "flowChartSort",
+        "flowChartExtract",
+        "flowChartMerge",
+        "flowChartOfflineStorage",
+        "flowChartOnlineStorage",
+        "flowChartMagneticTape",
+        "flowChartMagneticDisk",
+        "flowChartMagneticDrum",
+        "flowChartDisplay",
+        "flowChartDelay",
+        "flowChartAlternateProcess",
+        "flowChartOffpageConnector",
+        "actionButtonBlank",
+        "actionButtonHome",
+        "actionButtonHelp",
+        "actionButtonInformation",
+        "actionButtonForwardNext",
+        "actionButtonBackPrevious",
+        "actionButtonEnd",
+        "actionButtonBeginning",
+        "actionButtonReturn",
+        "actionButtonDocument",
+        "actionButtonSound",
+        "actionButtonMovie",
+        "gear6",
+        "gear9",
+        "funnel",
+        "mathPlus",
+        "mathMinus",
+        "mathMultiply",
+        "mathDivide",
+        "mathEqual",
+        "mathNotEqual",
+        "cornerTabs",
+        "squareTabs",
+        "plaqueTabs",
+        "chartX",
+        "chartStar",
+        "chartPlus",
+    )
+    _members = shape_types
