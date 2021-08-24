@@ -176,7 +176,7 @@ class DescribeCorePropertiesPart(object):
         if not tagname:
             child_element = ""
         elif not str_val:
-            child_element = "\n  <%s%s/>\n" % (tagname, attrs)
+            child_element = "\n  <%s%s/>\n" % (tagname, attrs)  # pragma: no cover
         else:
             child_element = "\n  <%s%s>%s</%s>\n" % (tagname, attrs, str_val, tagname)
         return tmpl % child_element

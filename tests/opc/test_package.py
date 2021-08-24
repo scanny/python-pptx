@@ -27,6 +27,7 @@ from pptx.opc.package import (
 )
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.oxml import parse_xml
+from pptx.parts.presentation import PresentationPart
 
 from ..unitutil.cxml import element
 from ..unitutil.file import absjoin, snippet_bytes, testfile_bytes, test_file_dir
@@ -144,6 +145,13 @@ class DescribeOpcPackage(object):
         _load_.assert_called_once_with(ANY)
         assert package is package_
 
+    def it_can_drop_a_relationship(self, _rels_prop_, relationships_):
+        _rels_prop_.return_value = relationships_
+
+        OpcPackage(None).drop_rel("rId42")
+
+        relationships_.pop.assert_called_once_with("rId42")
+
     def it_can_iterate_over_its_parts(self, request):
         part_, part_2_ = [
             instance_mock(request, Part, name="part_%d" % i) for i in range(2)
@@ -212,6 +220,18 @@ class DescribeOpcPackage(object):
             rels[1],
             rels[2],
         )
+
+    def it_provides_access_to_the_main_document_part(self, request):
+        presentation_part_ = instance_mock(request, PresentationPart)
+        part_related_by_ = method_mock(
+            request, OpcPackage, "part_related_by", return_value=presentation_part_
+        )
+        package = OpcPackage(None)
+
+        presentation_part = package.main_document_part
+
+        part_related_by_.assert_called_once_with(package, RT.OFFICE_DOCUMENT)
+        assert presentation_part is presentation_part_
 
     @pytest.mark.parametrize(
         "ns, expected_n",
@@ -428,6 +448,12 @@ class DescribePart(object):
         part.partname = PackURI("/new/part/name")
         assert part.partname == PackURI("/new/part/name")
 
+    def it_provides_access_to_its_relationships_for_traversal(
+        self, request, relationships_
+    ):
+        property_mock(request, Part, "_rels", return_value=relationships_)
+        assert Part(None, None, None).rels is relationships_
+
     def it_can_load_a_blob_from_a_file_path_to_help(self):
         path = absjoin(test_file_dir, "minimal.pptx")
         with open(path, "rb") as f:
@@ -615,6 +641,13 @@ class Describe_ContentTypeMap(object):
 
 class Describe_Relationships(object):
     """Unit-test suite for `pptx.opc.package._Relationships` objects."""
+
+    @pytest.mark.parametrize("rId, expected_value", (("rId1", True), ("rId2", False)))
+    def it_knows_whether_it_contains_a_relationship_with_rId(
+        self, _rels_prop_, rId, expected_value
+    ):
+        _rels_prop_.return_value = {"rId1": None}
+        assert (rId in _Relationships(None)) is expected_value
 
     def it_has_dict_style_lookup_of_rel_by_rId(self, _rels_prop_, relationship_):
         _rels_prop_.return_value = {"rId17": relationship_}
@@ -823,16 +856,51 @@ class Describe_Relationships(object):
         assert relationships._rels == {"rId9": relationship_}
         assert rId == "rId9"
 
+    @pytest.mark.parametrize(
+        "target_ref, is_external, expected_value",
+        (
+            ("http://url", True, "rId1"),
+            ("part_1", False, "rId2"),
+            ("http://foo", True, "rId3"),
+            ("part_2", False, "rId4"),
+            ("http://bar", True, None),
+        ),
+    )
     def it_can_get_a_matching_relationship_to_help(
-        self, _rels_by_reltype_prop_, relationship_, part_
+        self,
+        request,
+        _rels_by_reltype_prop_,
+        target_ref,
+        is_external,
+        expected_value,
     ):
-        relationship_.is_external = False
-        relationship_.target_part = part_
-        relationship_.rId = "rId10"
-        _rels_by_reltype_prop_.return_value = {RT.SLIDE: [relationship_]}
+        part_1, part_2 = (instance_mock(request, Part) for _ in range(2))
+        _rels_by_reltype_prop_.return_value = {
+            RT.SLIDE: [
+                instance_mock(
+                    request,
+                    _Relationship,
+                    rId=rId,
+                    target_part=target_part,
+                    target_ref=target_ref,
+                    is_external=is_external,
+                )
+                for rId, target_part, target_ref, is_external in (
+                    ("rId1", None, "http://url", True),
+                    ("rId2", part_1, "/ppt/foo.bar", False),
+                    ("rId3", None, "http://foo", True),
+                    ("rId4", part_2, "/ppt/bar.foo", False),
+                )
+            ]
+        }
+        target = (
+            target_ref if is_external else part_1 if target_ref == "part_1" else part_2
+        )
         relationships = _Relationships(None)
 
-        assert relationships._get_matching(RT.SLIDE, part_) == "rId10"
+        matching = relationships._get_matching(RT.SLIDE, target, is_external)
+
+        assert matching == expected_value
 
     def but_it_returns_None_when_there_is_no_matching_relationship(
         self, _rels_by_reltype_prop_

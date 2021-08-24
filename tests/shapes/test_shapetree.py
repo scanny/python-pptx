@@ -9,7 +9,6 @@ from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER, PROG_ID
 from pptx.oxml import parse_xml
-from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.shapes.shared import BaseShapeElement, ST_Direction
@@ -1596,10 +1595,6 @@ class DescribeLayoutPlaceholders(object):
             return_value=placeholder_,
             autospec=True,
         )
-
-    @pytest.fixture
-    def ph_elm_(self, request):
-        return instance_mock(request, CT_Shape)
 
     @pytest.fixture
     def placeholder_(self, request):

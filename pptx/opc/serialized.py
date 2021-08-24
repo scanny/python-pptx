@@ -112,7 +112,7 @@ class _PhysPkgReader(Container):
 
     def __contains__(self, item):
         """Must be implemented by each subclass."""
-        raise NotImplementedError(
+        raise NotImplementedError(  # pragma: no cover
             "`%s` must implement `.__contains__()`" % type(self).__name__
         )
 

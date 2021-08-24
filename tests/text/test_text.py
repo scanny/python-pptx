@@ -43,6 +43,20 @@ class DescribeTextFrame(object):
         text_frame.auto_size = value
         assert text_frame._txBody.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        "txBody_cxml",
+        (
+            "p:txBody/(a:p,a:p,a:p)",
+            'p:txBody/a:p/a:r/a:t"foo"',
+            'p:txBody/a:p/(a:br,a:r/a:t"foo")',
+            'p:txBody/a:p/(a:fld,a:br,a:r/a:t"foo")',
+        ),
+    )
+    def it_can_clear_itself_of_content(self, txBody_cxml):
+        text_frame = TextFrame(element(txBody_cxml), None)
+        text_frame.clear()
+        assert text_frame._element.xml == xml("p:txBody/a:p")
+
     def it_knows_its_margin_settings(self, margin_get_fixture):
         text_frame, prop_name, unit, expected_value = margin_get_fixture
         margin_value = getattr(text_frame, prop_name)

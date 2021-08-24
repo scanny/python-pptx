@@ -50,9 +50,7 @@ class TextFrame(Subshape):
         self._bodyPr.autofit = value
 
     def clear(self):
-        """
-        Remove all paragraphs except one empty one.
-        """
+        """Remove all paragraphs except one empty one."""
         for p in self._txBody.p_lst[1:]:
             self._txBody.remove(p)
         p = self.paragraphs[0]
@@ -81,7 +79,7 @@ class TextFrame(Subshape):
         """
         # ---no-op when empty as fit behavior not defined for that case---
         if self.text == "":
-            return
+            return  # pragma: no cover
 
         font_size = self._best_fit_font_size(
             font_family, max_size, bold, italic, font_file
@@ -209,7 +207,7 @@ class TextFrame(Subshape):
     @word_wrap.setter
     def word_wrap(self, value):
         if value not in (True, False, None):
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 "assigned value must be True, False, or None, got %s" % value
             )
         self._txBody.bodyPr.wrap = {

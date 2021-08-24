@@ -9,7 +9,7 @@ from pptx.enum.chart import XL_CHART_TYPE as XCT
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import NotesSlidePart, SlideLayoutPart, SlidePart
+from pptx.parts.slide import NotesSlidePart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder,
     _BaseSlidePlaceholder,
@@ -385,10 +385,6 @@ class DescribeLayoutPlaceholder(object):
     @pytest.fixture
     def part_prop_(self, request):
         return property_mock(request, LayoutPlaceholder, "part")
-
-    @pytest.fixture
-    def slide_layout_part_(self, request):
-        return instance_mock(request, SlideLayoutPart)
 
     @pytest.fixture
     def slide_master_(self, request):

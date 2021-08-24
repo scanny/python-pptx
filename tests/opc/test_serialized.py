@@ -2,15 +2,11 @@
 
 """Unit-test suite for `pptx.opc.serialized` module."""
 
-try:
-    from io import BytesIO  # Python 3
-except ImportError:
-    from StringIO import StringIO as BytesIO
-
 import hashlib
 import pytest
 import zipfile
 
+from pptx.compat import BytesIO
 from pptx.exceptions import PackageNotFoundError
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part, _Relationships

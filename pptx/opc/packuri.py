@@ -17,8 +17,7 @@ class PackURI(str):
 
     def __new__(cls, pack_uri_str):
         if not pack_uri_str[0] == "/":
-            tmpl = "PackURI must begin with slash, got '%s'"
-            raise ValueError(tmpl % pack_uri_str)
+            raise ValueError("PackURI must begin with slash, got '%s'" % pack_uri_str)
         return str.__new__(cls, pack_uri_str)
 
     @staticmethod
@@ -61,10 +60,11 @@ class PackURI(str):
 
     @property
     def idx(self):
-        """
-        Return partname index as integer for tuple partname or None for
-        singleton partname, e.g. ``21`` for ``'/ppt/slides/slide21.xml'`` and
-        |None| for ``'/ppt/presentation.xml'``.
+        """Optional int partname index.
+
+        Value is an integer for an "array" partname or None for singleton partname, e.g.
+        ``21`` for ``'/ppt/slides/slide21.xml'`` and |None| for
+        ``'/ppt/presentation.xml'``.
         """
         filename = self.filename
         if not filename:

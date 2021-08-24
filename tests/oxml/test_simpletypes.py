@@ -190,7 +190,7 @@ class DescribeST_HexColorRGB(object):
         if exception is None:
             try:
                 ST_HexColorRGB.validate(str_value)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 raise AssertionError("string '%s' did not validate" % str_value)
         else:
             with pytest.raises(exception):
@@ -258,12 +258,12 @@ class DescribeST_Percentage(object):
 class ST_SimpleType(BaseSimpleType):
     @classmethod
     def convert_from_xml(cls, str_value):
-        return 666
+        return 666  # pragma: no cover
 
     @classmethod
     def convert_to_xml(cls, value):
-        return "666"
+        return "666"  # pragma: no cover
 
     @classmethod
     def validate(cls, value):
-        pass
+        pass  # pragma: no cover

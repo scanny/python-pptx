@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.shape module
-"""
-
-from __future__ import absolute_import
+"""Unit-test suite for `pptx.shapes.base` module."""
 
 import pytest
 
@@ -36,10 +32,12 @@ from ..oxml.unitdata.shape import (
     an_xfrm,
 )
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock, loose_mock, property_mock
+from ..unitutil.mock import class_mock, instance_mock, loose_mock
 
 
 class DescribeBaseShape(object):
+    """Unit-test suite for `pptx.shapes.base.BaseShape` objects."""
+
     def it_provides_access_to_its_click_action(self, click_action_fixture):
         shape, ActionSetting_, cNvPr, click_action_ = click_action_fixture
         click_action = shape.click_action
@@ -523,10 +521,6 @@ class DescribeBaseShape(object):
     @pytest.fixture
     def shape_name(self):
         return "Foobar 41"
-
-    @pytest.fixture
-    def shape_text_frame_(self, request):
-        return property_mock(request, BaseShape, "text_frame")
 
     @pytest.fixture
     def shapes_(self, request):

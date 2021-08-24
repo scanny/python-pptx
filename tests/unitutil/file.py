@@ -5,36 +5,13 @@
 import os
 import sys
 
-from lxml import etree
-
-from pptx.oxml import oxml_parser
-
 
 _thisdir = os.path.split(__file__)[0]
 test_file_dir = os.path.abspath(os.path.join(_thisdir, "..", "test_files"))
 
 
-def abspath(relpath):
-    thisdir = os.path.split(__file__)[0]
-    return os.path.abspath(os.path.join(thisdir, relpath))
-
-
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
-
-
-def docx_path(name):
-    """
-    Return the absolute path to test .docx file with root name *name*.
-    """
-    return absjoin(test_file_dir, "%s.docx" % name)
-
-
-def parse_xml_file(file_):
-    """
-    Return ElementTree for XML contained in *file_*
-    """
-    return etree.parse(file_, oxml_parser)
 
 
 def snippet_bytes(snippet_file_name):

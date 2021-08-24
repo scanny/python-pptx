@@ -52,7 +52,9 @@ class _RelatableMixin(object):
     @lazyproperty
     def _rels(self):
         """|Relationships| object containing relationships from this part to others."""
-        raise NotImplementedError("`%s` must implement `.rels`" % type(self).__name__)
+        raise NotImplementedError(  # pragma: no cover
+            "`%s` must implement `.rels`" % type(self).__name__
+        )
 
 
 class OpcPackage(_RelatableMixin):
@@ -139,7 +141,9 @@ class OpcPackage(_RelatableMixin):
             candidate_partname = tmpl % n
             if candidate_partname not in partnames:
                 return PackURI(candidate_partname)
-        raise Exception("ProgrammingError: ran out of candidate_partnames")
+        raise Exception(  # pragma: no cover
+            "ProgrammingError: ran out of candidate_partnames"
+        )
 
     def save(self, pkg_file):
         """Save this package to `pkg_file`.
@@ -348,7 +352,7 @@ class Part(_RelatableMixin):
     @partname.setter
     def partname(self, partname):
         if not isinstance(partname, PackURI):
-            raise TypeError(
+            raise TypeError(  # pragma: no cover
                 "partname must be instance of PackURI, got '%s'"
                 % type(partname).__name__
             )

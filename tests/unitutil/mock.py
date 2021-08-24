@@ -8,7 +8,7 @@ if sys.version_info >= (3, 3):
     from unittest import mock  # noqa
     from unittest.mock import ANY, call, MagicMock  # noqa
     from unittest.mock import create_autospec, Mock, mock_open, patch, PropertyMock
-else:
+else:  # pragma: no cover
     import mock  # noqa
     from mock import ANY, call, MagicMock  # noqa
     from mock import create_autospec, Mock, mock_open, patch, PropertyMock
@@ -26,7 +26,7 @@ def class_mock(request, q_class_name, autospec=True, **kwargs):
     return _patch.start()
 
 
-def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):
+def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):  # pragma: no cover
     """Return a mock for attribute (class variable) `attr_name` on `cls`.
 
     Patch is reversed after pytest uses it.
@@ -77,9 +77,7 @@ def loose_mock(request, name=None, **kwargs):
     Additional keyword arguments are passed through to Mock(). If called without a name,
     it is assigned the name of the fixture.
     """
-    if name is None:
-        name = request.fixturename
-    return Mock(name=name, **kwargs)
+    return Mock(name=request.fixturename if name is None else name, **kwargs)
 
 
 def method_mock(request, cls, method_name, autospec=True, **kwargs):

@@ -235,4 +235,4 @@ class lazyproperty(object):
         usec per access when measured on a 2.8GHz development machine; so
         quite snappy and probably not a rich target for optimization efforts.
         """
-        raise AttributeError("can't set attribute")
+        raise AttributeError("can't set attribute")  # pragma: no cover
