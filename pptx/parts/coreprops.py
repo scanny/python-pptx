@@ -17,13 +17,13 @@ class CorePropertiesPart(XmlPart):
     """
 
     @classmethod
-    def default(cls):
+    def default(cls, package):
         """Return default new |CorePropertiesPart| instance suitable as starting point.
 
         This provides a base for adding core-properties to a package that doesn't yet
         have any.
         """
-        core_props = cls._new()
+        core_props = cls._new(package)
         core_props.title = "PowerPoint Presentation"
         core_props.last_modified_by = "python-pptx"
         core_props.revision = 1
@@ -151,9 +151,11 @@ class CorePropertiesPart(XmlPart):
         self._element.version_text = value
 
     @classmethod
-    def _new(cls):
+    def _new(cls, package):
         """Return new empty |CorePropertiesPart| instance."""
-        partname = PackURI("/docProps/core.xml")
-        content_type = CT.OPC_CORE_PROPERTIES
-        core_props_elm = CT_CoreProperties.new_coreProperties()
-        return CorePropertiesPart(partname, content_type, core_props_elm)
+        return CorePropertiesPart(
+            PackURI("/docProps/core.xml"),
+            CT.OPC_CORE_PROPERTIES,
+            package,
+            CT_CoreProperties.new_coreProperties(),
+        )

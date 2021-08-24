@@ -193,7 +193,7 @@ class _PackageLoader(object):
         """
         package = self._package
         return {
-            partname: PartFactory(partname, content_type, blob, package)
+            partname: PartFactory(partname, content_type, package, blob)
             for partname, content_type, blob in self._package_reader.iter_sparts()
         }
 
@@ -261,21 +261,21 @@ class Part(object):
     that are not yet given specific behaviors.
     """
 
-    def __init__(self, partname, content_type, blob=None, package=None):
-        super(Part, self).__init__()
+    def __init__(self, partname, content_type, package, blob=None):
+        # --- XmlPart subtypes, don't store a blob (the original XML) ---
         self._partname = partname
         self._content_type = content_type
-        self._blob = blob
         self._package = package
+        self._blob = blob
 
     @classmethod
-    def load(cls, partname, content_type, blob, package):
+    def load(cls, partname, content_type, package, blob):
         """Return `cls` instance loaded from arguments.
 
         This one is a straight pass-through, but subtypes may do some pre-processing,
         see XmlPart for an example.
         """
-        return cls(partname, content_type, blob, package)
+        return cls(partname, content_type, package, blob)
 
     @property
     def blob(self):
@@ -403,15 +403,14 @@ class XmlPart(Part):
     reserializing the XML payload and managing relationships to other parts.
     """
 
-    def __init__(self, partname, content_type, element, package=None):
-        super(XmlPart, self).__init__(partname, content_type, package=package)
+    def __init__(self, partname, content_type, package, element):
+        super(XmlPart, self).__init__(partname, content_type, package)
         self._element = element
 
     @classmethod
-    def load(cls, partname, content_type, blob, package):
+    def load(cls, partname, content_type, package, blob):
         """Return instance of `cls` loaded with parsed XML from `blob`."""
-        element = parse_xml(blob)
-        return cls(partname, content_type, element, package)
+        return cls(partname, content_type, package, element=parse_xml(blob))
 
     @property
     def blob(self):

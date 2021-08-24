@@ -29,8 +29,8 @@ class EmbeddedPackagePart(Part):
             return cls(
                 package.next_partname("/ppt/embeddings/oleObject%d.bin"),
                 CT.OFC_OLE_OBJECT,
-                object_blob,
                 package,
+                object_blob,
             )
 
         # --- A Microsoft Office file-type is a distinguished package object ---
@@ -48,8 +48,12 @@ class EmbeddedPackagePart(Part):
 
         The returned part object contains `blob` and is added to `package`.
         """
-        partname = package.next_partname(cls.partname_template)
-        return cls(partname, cls.content_type, blob, package)
+        return cls(
+            package.next_partname(cls.partname_template),
+            cls.content_type,
+            package,
+            blob,
+        )
 
 
 class EmbeddedDocxPart(EmbeddedPackagePart):

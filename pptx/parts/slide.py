@@ -78,18 +78,22 @@ class NotesMasterPart(BaseSlidePart):
         Create and return a standalone, default notes master part based on
         the built-in template (without any related parts, such as theme).
         """
-        partname = PackURI("/ppt/notesMasters/notesMaster1.xml")
-        content_type = CT.PML_NOTES_MASTER
-        notesMaster = CT_NotesMaster.new_default()
-        return NotesMasterPart(partname, content_type, notesMaster, package)
+        return NotesMasterPart(
+            PackURI("/ppt/notesMasters/notesMaster1.xml"),
+            CT.PML_NOTES_MASTER,
+            package,
+            CT_NotesMaster.new_default(),
+        )
 
     @classmethod
     def _new_theme_part(cls, package):
         """Return new default theme-part suitable for use with a notes master."""
-        partname = package.next_partname("/ppt/theme/theme%d.xml")
-        content_type = CT.OFC_THEME
-        theme = CT_OfficeStyleSheet.new_default()
-        return XmlPart(partname, content_type, theme, package)
+        return XmlPart(
+            package.next_partname("/ppt/theme/theme%d.xml"),
+            CT.OFC_THEME,
+            package,
+            CT_OfficeStyleSheet.new_default(),
+        )
 
 
 class NotesSlidePart(BaseSlidePart):
@@ -128,14 +132,17 @@ class NotesSlidePart(BaseSlidePart):
 
     @classmethod
     def _add_notes_slide_part(cls, package, slide_part, notes_master_part):
+        """Create and return a new notes-slide part.
+
+        The return part is fully related, but has no shape content (i.e. placeholders
+        not cloned).
         """
-        Create and return a new notes slide part that is fully related, but
-        has no shape content (i.e. placeholders not cloned).
-        """
-        partname = package.next_partname("/ppt/notesSlides/notesSlide%d.xml")
-        content_type = CT.PML_NOTES_SLIDE
-        notes = CT_NotesSlide.new()
-        notes_slide_part = NotesSlidePart(partname, content_type, notes, package)
+        notes_slide_part = NotesSlidePart(
+            package.next_partname("/ppt/notesSlides/notesSlide%d.xml"),
+            CT.PML_NOTES_SLIDE,
+            package,
+            CT_NotesSlide.new(),
+        )
         notes_slide_part.relate_to(notes_master_part, RT.NOTES_MASTER)
         notes_slide_part.relate_to(slide_part, RT.SLIDE)
         return notes_slide_part
@@ -146,12 +153,11 @@ class SlidePart(BaseSlidePart):
 
     @classmethod
     def new(cls, partname, package, slide_layout_part):
+        """Return newly-created blank slide part.
+
+        The new slide-part has `partname` and a relationship to `slide_layout_part`.
         """
-        Return a newly-created blank slide part having *partname* and related
-        to *slide_layout_part*.
-        """
-        sld = CT_Slide.new()
-        slide_part = cls(partname, CT.PML_SLIDE, sld, package)
+        slide_part = cls(partname, CT.PML_SLIDE, package, CT_Slide.new())
         slide_part.relate_to(slide_layout_part, RT.SLIDE_LAYOUT)
         return slide_part
 

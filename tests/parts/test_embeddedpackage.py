@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for `pptx.parts.embeddedpackage` module."""
+"""Unit-test suite for `pptx.parts.embeddedpackage` module."""
 
 import pytest
 
@@ -58,7 +58,7 @@ class DescribeEmbeddedPackagePart(object):
             "/ppt/embeddings/oleObject%d.bin"
         )
         _init_.assert_called_once_with(
-            ANY, partname_, CT.OFC_OLE_OBJECT, object_blob_, package_
+            ANY, partname_, CT.OFC_OLE_OBJECT, package_, object_blob_
         )
         assert isinstance(ole_object_part, EmbeddedPackagePart)
 
@@ -75,6 +75,6 @@ class DescribeEmbeddedPackagePart(object):
             EmbeddedXlsxPart.partname_template
         )
         _init_.assert_called_once_with(
-            ANY, partname_, EmbeddedXlsxPart.content_type, blob_, package_
+            xlsx_part, partname_, EmbeddedXlsxPart.content_type, package_, blob_
         )
         assert isinstance(xlsx_part, EmbeddedXlsxPart)

@@ -16,15 +16,14 @@ class Package(OpcPackage):
 
     @lazyproperty
     def core_properties(self):
-        """
-        Instance of |CoreProperties| holding the read/write Dublin Core
-        document properties for this presentation. Creates a default core
-        properties part if one is not present (not common).
+        """Instance of |CoreProperties| holding read/write Dublin Core doc properties.
+
+        Creates a default core properties part if one is not present (not common).
         """
         try:
             return self.part_related_by(RT.CORE_PROPERTIES)
         except KeyError:
-            core_props = CorePropertiesPart.default()
+            core_props = CorePropertiesPart.default(self)
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
 

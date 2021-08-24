@@ -25,13 +25,13 @@ class ImagePart(Part):
     `ppt/media/image[1-9][0-9]*.*`.
     """
 
-    def __init__(self, partname, content_type, blob, package, filename=None):
-        super(ImagePart, self).__init__(partname, content_type, blob, package)
+    def __init__(self, partname, content_type, package, blob, filename=None):
+        super(ImagePart, self).__init__(partname, content_type, package, blob)
         self._filename = filename
 
     @classmethod
-    def load(cls, partname, content_type, blob, package):
-        return cls(partname, content_type, blob, package)
+    def load(cls, partname, content_type, package, blob):
+        return cls(partname, content_type, package, blob)
 
     @classmethod
     def new(cls, package, image):
@@ -39,8 +39,13 @@ class ImagePart(Part):
 
         `image` is an |Image| object.
         """
-        partname = package.next_image_partname(image.ext)
-        return cls(partname, image.content_type, image.blob, package, image.filename)
+        return cls(
+            package.next_image_partname(image.ext),
+            image.content_type,
+            package,
+            image.blob,
+            image.filename,
+        )
 
     @property
     def desc(self):

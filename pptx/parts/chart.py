@@ -23,12 +23,13 @@ class ChartPart(XmlPart):
 
         Returned chart-part contains a chart of `chart_type` depicting `chart_data`.
         """
-        chart_blob = chart_data.xml_bytes(chart_type)
-        partname = package.next_partname(cls.partname_template)
-        content_type = CT.DML_CHART
-        chart_part = cls.load(partname, content_type, chart_blob, package)
-        xlsx_blob = chart_data.xlsx_blob
-        chart_part.chart_workbook.update_from_xlsx_blob(xlsx_blob)
+        chart_part = cls.load(
+            package.next_partname(cls.partname_template),
+            CT.DML_CHART,
+            package,
+            chart_data.xml_bytes(chart_type),
+        )
+        chart_part.chart_workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
         return chart_part
 
     @lazyproperty

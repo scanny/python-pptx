@@ -25,7 +25,6 @@ from pptx.opc.package import (
 )
 from pptx.opc.serialized import PackageReader, _SerializedRelationship
 from pptx.oxml import parse_xml
-from pptx.oxml.xmlchemy import BaseOxmlElement
 from pptx.package import Package
 
 from ..unitutil.cxml import element
@@ -273,9 +272,9 @@ class Describe_PackageLoader(object):
         parts = package_loader._parts
 
         assert PartFactory_.call_args_list == [
-            call("partname-1", CT.PML_SLIDE, b"blob-1", package_),
-            call("partname-2", CT.PML_SLIDE, b"blob-2", package_),
-            call("partname-3", CT.PML_SLIDE, b"blob-3", package_),
+            call("partname-1", CT.PML_SLIDE, package_, b"blob-1"),
+            call("partname-2", CT.PML_SLIDE, package_, b"blob-2"),
+            call("partname-3", CT.PML_SLIDE, package_, b"blob-3"),
         ]
         assert parts == {
             "partname-1": parts_[0],
@@ -398,9 +397,8 @@ class DescribePart(object):
         _init_.assert_called_once_with(part, partname_, CT.PML_SLIDE, b"blob", package_)
         assert isinstance(part, Part)
 
-    def it_uses_the_load_blob_as_its_blob(self, blob_fixture):
-        part, load_blob = blob_fixture
-        assert part.blob is load_blob
+    def it_uses_the_load_blob_as_its_blob(self):
+        assert Part(None, None, None, b"blob").blob == b"blob"
 
     def it_can_change_its_blob(self):
         part, new_blob = Part(None, None, "xyz", None), "foobar"
@@ -534,7 +532,7 @@ class DescribePart(object):
 
     @pytest.fixture
     def package_get_fixture(self, package_):
-        part = Part(None, None, None, package_)
+        part = Part(None, None, package_)
         return part, package_
 
     @pytest.fixture
@@ -562,7 +560,7 @@ class DescribePart(object):
 
     @pytest.fixture
     def rels_fixture(self, Relationships_, partname_, rels_):
-        part = Part(partname_, None)
+        part = Part(partname_, None, None)
         return part, Relationships_, partname_, rels_
 
     @pytest.fixture
@@ -582,7 +580,7 @@ class DescribePart(object):
 
     @pytest.fixture
     def part(self):
-        return Part(None, None)
+        return Part(None, None, None)
 
     @pytest.fixture
     def part_(self, request):
@@ -647,42 +645,27 @@ class DescribeXmlPart(object):
         )
         _init_ = initializer_mock(request, XmlPart)
 
-        part = XmlPart.load(partname, CT.PML_SLIDE, b"blob", package_)
+        part = XmlPart.load(partname, CT.PML_SLIDE, package_, b"blob")
 
         parse_xml_.assert_called_once_with(b"blob")
-        _init_.assert_called_once_with(part, partname, CT.PML_SLIDE, element_, package_)
+        _init_.assert_called_once_with(part, partname, CT.PML_SLIDE, package_, element_)
         assert isinstance(part, XmlPart)
 
-    def it_can_serialize_to_xml(self, blob_fixture):
-        xml_part, element_, serialize_part_xml_ = blob_fixture
+    def it_can_serialize_to_xml(self, request):
+        element_ = element("p:sld")
+        serialize_part_xml_ = function_mock(
+            request, "pptx.opc.package.serialize_part_xml"
+        )
+        xml_part = XmlPart(None, None, None, element_)
+
         blob = xml_part.blob
+
         serialize_part_xml_.assert_called_once_with(element_)
         assert blob is serialize_part_xml_.return_value
 
-    def it_knows_its_the_part_for_its_child_objects(self, part_fixture):
-        xml_part = part_fixture
+    def it_knows_it_is_the_part_for_its_child_objects(self):
+        xml_part = XmlPart(None, None, None, None)
         assert xml_part.part is xml_part
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def blob_fixture(self, request, element_, serialize_part_xml_):
-        xml_part = XmlPart(None, None, element_, None)
-        return xml_part, element_, serialize_part_xml_
-
-    @pytest.fixture
-    def part_fixture(self):
-        return XmlPart(None, None, None, None)
-
-    # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def element_(self, request):
-        return instance_mock(request, BaseOxmlElement)
-
-    @pytest.fixture
-    def serialize_part_xml_(self, request):
-        return function_mock(request, "pptx.opc.package.serialize_part_xml")
 
 
 class DescribePartFactory(object):

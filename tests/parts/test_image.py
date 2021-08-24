@@ -41,61 +41,49 @@ class DescribeImagePart(object):
             image_part,
             partname_,
             image_.content_type,
-            image_.blob,
             package_,
+            image_.blob,
             image_.filename,
         )
         assert isinstance(image_part, ImagePart)
 
-    def it_provides_access_to_its_image(self, image_fixture):
-        image_part, Image_, blob, desc, image_ = image_fixture
+    def it_provides_access_to_its_image(self, request, image_):
+        Image_ = class_mock(request, "pptx.parts.image.Image")
+        Image_.return_value = image_
+        property_mock(request, ImagePart, "desc", return_value="foobar.png")
+        image_part = ImagePart(None, None, None, b"blob", None)
+
         image = image_part.image
-        Image_.assert_called_once_with(blob, desc)
+
+        Image_.assert_called_once_with(b"blob", "foobar.png")
         assert image is image_
 
-    def it_can_scale_its_dimensions(self, scale_fixture):
-        image_part, width, height, expected_values = scale_fixture
-        assert image_part.scale(width, height) == expected_values
-
-    def it_knows_its_pixel_dimensions(self, size_fixture):
-        image, expected_size = size_fixture
-        assert image._px_size == expected_size
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def image_fixture(self, Image_, image_):
-        blob, filename = "blob", "foobar.png"
-        image_part = ImagePart(None, None, blob, None, filename)
-        return image_part, Image_, blob, filename, image_
-
-    @pytest.fixture(
-        params=[
+    @pytest.mark.parametrize(
+        "width, height, expected_width, expected_height",
+        (
             (None, None, Emu(2590800), Emu(2590800)),
             (1000, None, 1000, 1000),
             (None, 3000, 3000, 3000),
             (3337, 9999, 3337, 9999),
-        ]
+        ),
     )
-    def scale_fixture(self, request):
-        width, height, expected_width, expected_height = request.param
+    def it_can_scale_its_dimensions(
+        self, width, height, expected_width, expected_height
+    ):
         with open(test_image_path, "rb") as f:
             blob = f.read()
-        image = ImagePart(None, None, blob, None)
-        return image, width, height, (expected_width, expected_height)
+        image_part = ImagePart(None, None, None, blob)
 
-    @pytest.fixture
-    def size_fixture(self):
+        assert image_part.scale(width, height) == (expected_width, expected_height)
+
+    def it_knows_its_pixel_dimensions_to_help(self):
         with open(test_image_path, "rb") as f:
             blob = f.read()
-        image = ImagePart(None, None, blob, None)
-        return image, (204, 204)
+        image_part = ImagePart(None, None, None, blob)
+
+        assert image_part._px_size == (204, 204)
 
     # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def Image_(self, request, image_):
-        return class_mock(request, "pptx.parts.image.Image", return_value=image_)
 
     @pytest.fixture
     def image_(self, request):
