@@ -49,53 +49,62 @@ class PackageReader(Container):
 
 
 class PackageWriter(object):
+    """Writes a zip-format OPC package to `pkg_file`.
+
+    `pkg_file` can be either a path to a zip file (a string) or a file-like object.
+    `pkg_rels` is the |_Relationships| object containing relationships for the package.
+    `parts` is a sequence of |Part| subtype instance to be written to the package.
+
+    Its single API classmethod is :meth:`write`. This class is not intended to be
+    instantiated.
     """
-    Writes a zip-format OPC package to *pkg_file*, where *pkg_file* can be
-    either a path to a zip file (a string) or a file-like object. Its single
-    API method, :meth:`write`, is static, so this class is not intended to
-    be instantiated.
-    """
 
-    @staticmethod
-    def write(pkg_file, pkg_rels, parts):
-        """
-        Write a physical package (.pptx file) to *pkg_file* containing
-        *pkg_rels* and *parts* and a content types stream based on the
-        content types of the parts.
-        """
-        phys_writer = _PhysPkgWriter(pkg_file)
-        PackageWriter._write_content_types_stream(phys_writer, parts)
-        PackageWriter._write_pkg_rels(phys_writer, pkg_rels)
-        PackageWriter._write_parts(phys_writer, parts)
-        phys_writer.close()
+    def __init__(self, pkg_file, pkg_rels, parts):
+        self._pkg_file = pkg_file
+        self._pkg_rels = pkg_rels
+        self._parts = parts
 
-    @staticmethod
-    def _write_content_types_stream(phys_writer, parts):
-        """
-        Write ``[Content_Types].xml`` part to the physical package with an
-        appropriate content type lookup target for each part in *parts*.
-        """
-        content_types_blob = serialize_part_xml(_ContentTypesItem.xml_for(parts))
-        phys_writer.write(CONTENT_TYPES_URI, content_types_blob)
+    @classmethod
+    def write(cls, pkg_file, pkg_rels, parts):
+        """Write a physical package (.pptx file) to `pkg_file`.
 
-    @staticmethod
-    def _write_parts(phys_writer, parts):
+        The serialized package contains `pkg_rels` and `parts`, a content-types stream
+        based on the content type of each part, and a .rels file for each part that has
+        relationships.
         """
-        Write the blob of each part in *parts* to the package, along with a
-        rels item for its relationships if and only if it has any.
+        cls(pkg_file, pkg_rels, parts)._write()
+
+    def _write(self):
+        """Write physical package (.pptx file)."""
+        with _PhysPkgWriter.factory(self._pkg_file) as phys_writer:
+            self._write_content_types_stream(phys_writer)
+            self._write_pkg_rels(phys_writer)
+            self._write_parts(phys_writer)
+
+    def _write_content_types_stream(self, phys_writer):
+        """Write `[Content_Types].xml` part to the physical package.
+
+        This part must contain an appropriate content type lookup target for each part
+        in the package.
         """
-        for part in parts:
+        phys_writer.write(
+            CONTENT_TYPES_URI,
+            serialize_part_xml(_ContentTypesItem.xml_for(self._parts)),
+        )
+
+    def _write_parts(self, phys_writer):
+        """Write blob of each part in `parts` to the package.
+
+        A rels item for each part is also written when the part has relationships.
+        """
+        for part in self._parts:
             phys_writer.write(part.partname, part.blob)
-            if len(part._rels):
-                phys_writer.write(part.partname.rels_uri, part._rels.xml)
+            if part._rels:
+                phys_writer.write(part.partname.rels_uri, part.rels.xml)
 
-    @staticmethod
-    def _write_pkg_rels(phys_writer, pkg_rels):
-        """
-        Write the XML rels item for *pkg_rels* ('/_rels/.rels') to the
-        package.
-        """
-        phys_writer.write(PACKAGE_URI.rels_uri, pkg_rels.xml)
+    def _write_pkg_rels(self, phys_writer):
+        """Write the XML rels item for *pkg_rels* ('/_rels/.rels') to the package."""
+        phys_writer.write(PACKAGE_URI.rels_uri, self._pkg_rels.xml)
 
 
 class _PhysPkgReader(Container):
@@ -171,87 +180,95 @@ class _ZipPkgReader(_PhysPkgReader):
 
 
 class _PhysPkgWriter(object):
-    """
-    Factory for physical package writer objects.
-    """
+    """Base class for physical package writer objects."""
 
-    def __new__(cls, pkg_file):
-        return super(_PhysPkgWriter, cls).__new__(_ZipPkgWriter)
+    @classmethod
+    def factory(cls, pkg_file):
+        """Return |_PhysPkgWriter| subtype instance appropriage for `pkg_file`.
+
+        Currently the only subtype is `_ZipPkgWriter`, but a `_DirPkgWriter` could be
+        implemented or even a `_StreamPkgWriter`.
+        """
+        return _ZipPkgWriter(pkg_file)
 
 
 class _ZipPkgWriter(_PhysPkgWriter):
-    """
-    Implements |PhysPkgWriter| interface for a zip file OPC package.
-    """
+    """Implements |PhysPkgWriter| interface for a zip-file (.pptx file) OPC package."""
 
     def __init__(self, pkg_file):
-        super(_ZipPkgWriter, self).__init__()
-        self._zipf = zipfile.ZipFile(pkg_file, "w", compression=zipfile.ZIP_DEFLATED)
+        self._pkg_file = pkg_file
 
-    def close(self):
-        """
-        Close the zip archive, flushing any pending physical writes and
-        releasing any resources it's using.
+    def __enter__(self):
+        """Enable use as a context-manager. Opening zip for writing happens here."""
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Close the zip archive on exit from context.
+
+        Closing flushes any pending physical writes and releasing any resources it's
+        using.
         """
         self._zipf.close()
 
     def write(self, pack_uri, blob):
-        """
-        Write *blob* to this zip package with the membername corresponding to
-        *pack_uri*.
-        """
+        """Write `blob` to zip package with membername corresponding to `pack_uri`."""
         self._zipf.writestr(pack_uri.membername, blob)
+
+    @lazyproperty
+    def _zipf(self):
+        """`ZipFile` instance open for writing."""
+        return zipfile.ZipFile(self._pkg_file, "w", compression=zipfile.ZIP_DEFLATED)
 
 
 class _ContentTypesItem(object):
-    """
-    Service class that composes a content types item ([Content_Types].xml)
-    based on a list of parts. Not meant to be instantiated directly, its
-    single interface method is xml_for(), e.g.
-    ``_ContentTypesItem.xml_for(parts)``.
-    """
+    """Composes content-types "part" ([Content_Types].xml) for a collection of parts."""
 
-    def __init__(self):
-        self._defaults = CaseInsensitiveDict()
-        self._overrides = dict()
+    def __init__(self, parts):
+        self._parts = parts
 
     @classmethod
     def xml_for(cls, parts):
-        """
-        Return content types XML mapping each part in *parts* to the
-        appropriate content type and suitable for storage as
-        ``[Content_Types].xml`` in an OPC package.
-        """
-        cti = cls()
-        cti._defaults["rels"] = CT.OPC_RELATIONSHIPS
-        cti._defaults["xml"] = CT.XML
-        for part in parts:
-            cti._add_content_type(part.partname, part.content_type)
-        return cti._xml()
+        """Return content-types XML mapping each part in `parts` to a content-type.
 
-    def _add_content_type(self, partname, content_type):
+        The resulting XML is suitable for storage as `[Content_Types].xml` in an OPC
+        package.
         """
-        Add a content type for the part with *partname* and *content_type*,
-        using a default or override as appropriate.
-        """
-        ext = partname.ext
-        if (ext.lower(), content_type) in default_content_types:
-            self._defaults[ext] = content_type
-        else:
-            self._overrides[partname] = content_type
+        return cls(parts)._xml
 
+    @lazyproperty
     def _xml(self):
+        """lxml.etree._Element containing the content-types item.
+
+        This XML object is suitable for serialization to the `[Content_Types].xml` item
+        for an OPC package. Although the sequence of elements is not strictly
+        significant, as an aid to testing and readability Default elements are sorted by
+        extension and Override elements are sorted by partname.
         """
-        Return etree element containing the XML representation of this content
-        types item, suitable for serialization to the ``[Content_Types].xml``
-        item for an OPC package. Although the sequence of elements is not
-        strictly significant, as an aid to testing and readability Default
-        elements are sorted by extension and Override elements are sorted by
-        partname.
-        """
+        defaults, overrides = self._defaults_and_overrides
         _types_elm = CT_Types.new()
-        for ext in sorted(self._defaults.keys()):
-            _types_elm.add_default(ext, self._defaults[ext])
-        for partname in sorted(self._overrides.keys()):
-            _types_elm.add_override(partname, self._overrides[partname])
+
+        for ext, content_type in sorted(defaults.items()):
+            _types_elm.add_default(ext, content_type)
+        for partname, content_type in sorted(overrides.items()):
+            _types_elm.add_override(partname, content_type)
+
         return _types_elm
+
+    @lazyproperty
+    def _defaults_and_overrides(self):
+        """pair of dict (defaults, overrides) accounting for all parts.
+
+        `defaults` is {ext: content_type} and overrides is {partname: content_type}.
+        """
+        defaults = CaseInsensitiveDict(rels=CT.OPC_RELATIONSHIPS, xml=CT.XML)
+        overrides = dict()
+
+        for part in self._parts:
+            partname, content_type = part.partname, part.content_type
+            ext = partname.ext
+            if (ext.lower(), content_type) in default_content_types:
+                defaults[ext] = content_type
+            else:
+                overrides[partname] = content_type
+
+        return defaults, overrides
