@@ -5,39 +5,29 @@
 import os
 import zipfile
 
-from pptx.compat import is_string
+from pptx.compat import Container, is_string
 from pptx.exceptions import PackageNotFoundError
 from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TARGET_MODE as RTM
 from pptx.opc.oxml import CT_Types, parse_xml, serialize_part_xml
 from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
 from pptx.opc.shared import CaseInsensitiveDict
 from pptx.opc.spec import default_content_types
+from pptx.util import lazyproperty
 
 
-class PackageReader(object):
+class PackageReader(Container):
+    """Provides access to package-parts of an OPC package with dict semantics.
+
+    The package may be in zip-format (a .pptx file) or expanded into a directory
+    structure, perhaps by unzipping a .pptx file.
     """
-    Provides access to the contents of a zip-format OPC package via its
-    :attr:`serialized_parts` and :attr:`pkg_srels` attributes.
-    """
 
-    def __init__(self, content_types, pkg_srels, sparts):
-        super(PackageReader, self).__init__()
-        self._pkg_srels = pkg_srels
-        self._sparts = sparts
+    def __init__(self, pkg_file):
+        self._pkg_file = pkg_file
 
-    @staticmethod
-    def from_file(pkg_file):
-        """
-        Return a |PackageReader| instance loaded with contents of *pkg_file*.
-        """
-        phys_reader = _PhysPkgReader(pkg_file)
-        content_types = _ContentTypeMap.from_xml(phys_reader.content_types_xml)
-        pkg_srels = PackageReader._srels_for(phys_reader, PACKAGE_URI)
-        sparts = PackageReader._load_serialized_parts(
-            phys_reader, pkg_srels, content_types
-        )
-        phys_reader.close()
-        return PackageReader(content_types, pkg_srels, sparts)
+    def __contains__(self, pack_uri):
+        """Return True when part identified by `pack_uri` is present in package."""
+        return pack_uri in self._blob_reader
 
     def iter_sparts(self):
         """
@@ -71,23 +61,40 @@ class PackageReader(object):
         phys_reader.close()
         return rels_xml
 
-    @staticmethod
-    def _load_serialized_parts(phys_reader, pkg_srels, content_types):
-        """
+    @lazyproperty
+    def _content_types(self):
+        """Filty temporary hack during refactoring."""
+        phys_reader = _PhysPkgReader(self._pkg_file)
+        return _ContentTypeMap.from_xml(phys_reader.content_types_xml)
+        phys_reader.close()
+
+    @lazyproperty
+    def _pkg_srels(self):
+        """Filty temporary hack during refactoring."""
+        phys_reader = _PhysPkgReader(self._pkg_file)
+        pkg_srels = self._srels_for(phys_reader, PACKAGE_URI)
+        phys_reader.close()
+        return pkg_srels
+
+    @lazyproperty
+    def _sparts(self):
+        """Filty temporary hack during refactoring.
+
         Return a list of |_SerializedPart| instances corresponding to the
         parts in *phys_reader* accessible by walking the relationship graph
-        starting with *pkg_srels*.
+        starting with `pkg_srels`.
         """
+        phys_reader = _PhysPkgReader(self._pkg_file)
         sparts = []
-        part_walker = PackageReader._walk_phys_parts(phys_reader, pkg_srels)
+        part_walker = self._walk_phys_parts(phys_reader, self._pkg_srels)
         for partname, blob, srels in part_walker:
-            content_type = content_types[partname]
+            content_type = self._content_types[partname]
             spart = _SerializedPart(partname, content_type, blob, srels)
             sparts.append(spart)
+        phys_reader.close()
         return tuple(sparts)
 
-    @staticmethod
-    def _srels_for(phys_reader, source_uri):
+    def _srels_for(self, phys_reader, source_uri):
         """
         Return |_SerializedRelationshipCollection| instance populated with
         relationships for source identified by *source_uri*.
@@ -97,8 +104,7 @@ class PackageReader(object):
             source_uri.baseURI, rels_xml
         )
 
-    @staticmethod
-    def _walk_phys_parts(phys_reader, srels, visited_partnames=None):
+    def _walk_phys_parts(self, phys_reader, srels, visited_partnames=None):
         """
         Generate a 3-tuple `(partname, blob, srels)` for each of the parts in
         *phys_reader* by walking the relationship graph rooted at srels.
@@ -112,10 +118,10 @@ class PackageReader(object):
             if partname in visited_partnames:
                 continue
             visited_partnames.append(partname)
-            part_srels = PackageReader._srels_for(phys_reader, partname)
+            part_srels = self._srels_for(phys_reader, partname)
             blob = phys_reader.blob_for(partname)
             yield (partname, blob, part_srels)
-            for partname, blob, srels in PackageReader._walk_phys_parts(
+            for partname, blob, srels in self._walk_phys_parts(
                 phys_reader, part_srels, visited_partnames
             ):
                 yield (partname, blob, srels)

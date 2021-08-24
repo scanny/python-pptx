@@ -184,7 +184,7 @@ class _PackageLoader(object):
     @lazyproperty
     def _package_reader(self):
         """|PackageReader| object providing access to package-items in pkg_file."""
-        return PackageReader.from_file(self._pkg_file)
+        return PackageReader(self._pkg_file)
 
     @lazyproperty
     def _parts(self):
