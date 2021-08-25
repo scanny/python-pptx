@@ -18,7 +18,44 @@ from pptx.oxml import parse_xml
 from pptx.util import lazyproperty
 
 
-class OpcPackage(object):
+class _RelatableMixin(object):
+    """Provide relationship methods required by both the package and each part."""
+
+    def part_related_by(self, reltype):
+        """Return (single) part having relationship to this package of `reltype`.
+
+        Raises |KeyError| if no such relationship is found and |ValueError| if more than
+        one such relationship is found.
+        """
+        return self._rels.part_with_reltype(reltype)
+
+    def relate_to(self, target, reltype, is_external=False):
+        """Return rId key of relationship of `reltype` to `target`.
+
+        If such a relationship already exists, its rId is returned. Otherwise the
+        relationship is added and its new rId returned.
+        """
+        return (
+            self._rels.get_or_add_ext_rel(reltype, target)
+            if is_external
+            else self._rels.get_or_add(reltype, target)
+        )
+
+    def related_part(self, rId):
+        """Return related |Part| subtype identified by `rId`."""
+        return self._rels[rId].target_part
+
+    def target_ref(self, rId):
+        """Return URL contained in target ref of relationship identified by `rId`."""
+        return self._rels[rId].target_ref
+
+    @lazyproperty
+    def _rels(self):
+        """|Relationships| object containing relationships from this part to others."""
+        raise NotImplementedError("`%s` must implement `.rels`" % type(self).__name__)
+
+
+class OpcPackage(_RelatableMixin):
     """Main API class for |python-opc|.
 
     A new instance is constructed by calling the :meth:`open` classmethod with a path
@@ -32,6 +69,10 @@ class OpcPackage(object):
     def open(cls, pkg_file):
         """Return an |OpcPackage| instance loaded with the contents of `pkg_file`."""
         return cls(pkg_file)._load()
+
+    def drop_rel(self, rId):
+        """Remove relationship identified by `rId`."""
+        self._rels.pop(rId)
 
     def iter_parts(self):
         """Generate exactly one reference to each part in the package."""
@@ -99,25 +140,6 @@ class OpcPackage(object):
             if candidate_partname not in partnames:
                 return PackURI(candidate_partname)
         raise Exception("ProgrammingError: ran out of candidate_partnames")
-
-    def part_related_by(self, reltype):
-        """Return (single) part having relationship to this package of `reltype`.
-
-        Raises |KeyError| if no such relationship is found and |ValueError| if more than
-        one such relationship is found.
-        """
-        return self._rels.part_with_reltype(reltype)
-
-    def relate_to(self, target, reltype, is_external=False):
-        """Return rId key of relationship of `reltype` to `target`.
-
-        If such a relationship already exists, its rId is returned. Otherwise the
-        relationship is added and its new rId returned.
-        """
-        if is_external:
-            return self._rels.get_or_add_ext_rel(reltype, target)
-        else:
-            return self._rels.get_or_add(reltype, target)
 
     def save(self, pkg_file):
         """Save this package to `pkg_file`.
@@ -246,7 +268,7 @@ class _PackageLoader(object):
         return CT_Relationships.new() if rels_xml is None else parse_xml(rels_xml)
 
 
-class Part(object):
+class Part(_RelatableMixin):
     """Base class for package parts.
 
     Provides common properties and methods, but intended to be subclassed in client code
@@ -318,14 +340,6 @@ class Part(object):
         """|OpcPackage| instance this part belongs to."""
         return self._package
 
-    def part_related_by(self, reltype):
-        """Return (single) part having relationship to this part of `reltype`.
-
-        Raises |KeyError| if no such relationship is found and |ValueError| if more than
-        one such relationship is found.
-        """
-        return self._rels.part_with_reltype(reltype)
-
     @property
     def partname(self):
         """|PackURI| partname for this part, e.g. "/ppt/slides/slide1.xml"."""
@@ -340,31 +354,11 @@ class Part(object):
             )
         self._partname = partname
 
-    def relate_to(self, target, reltype, is_external=False):
-        """Return rId key of relationship of `reltype` to `target`.
-
-        If such a relationship already exists, its rId is returned. Otherwise the
-        relationship is added and its new rId returned.
-        """
-        return (
-            self._rels.get_or_add_ext_rel(reltype, target)
-            if is_external
-            else self._rels.get_or_add(reltype, target)
-        )
-
-    def related_part(self, rId):
-        """Return related |Part| subtype identified by `rId`."""
-        return self._rels[rId].target_part
-
     @lazyproperty
     def rels(self):
         """|Relationships| collection of relationships from this part to other parts."""
         # --- this must be public to allow the part graph to be traversed ---
         return self._rels
-
-    def target_ref(self, rId):
-        """Return URL contained in target ref of relationship identified by `rId`."""
-        return self._rels[rId].target_ref
 
     def _blob_from_file(self, file):
         """Return bytes of `file`, which is either a str path or a file-like object."""

@@ -21,6 +21,7 @@ from pptx.opc.package import (
     XmlPart,
     _ContentTypeMap,
     _PackageLoader,
+    _RelatableMixin,
     _Relationship,
     _Relationships,
 )
@@ -39,6 +40,94 @@ from ..unitutil.mock import (
     method_mock,
     property_mock,
 )
+
+
+class Describe_RelatableMixin(object):
+    """Unit-test suite for `pptx.opc.package._RelatableMixin`.
+
+    This mixin is used for both OpcPackage and Part because both a package and a part
+    can have relationships to target parts.
+    """
+
+    def it_can_find_a_part_related_by_reltype(self, _rels_prop_, relationships_, part_):
+        relationships_.part_with_reltype.return_value = part_
+        _rels_prop_.return_value = relationships_
+        mixin = _RelatableMixin()
+
+        related_part = mixin.part_related_by(RT.CHART)
+
+        relationships_.part_with_reltype.assert_called_once_with(RT.CHART)
+        assert related_part is part_
+
+    def it_can_establish_a_relationship_to_another_part(
+        self, _rels_prop_, relationships_, part_
+    ):
+        relationships_.get_or_add.return_value = "rId42"
+        _rels_prop_.return_value = relationships_
+        mixin = _RelatableMixin()
+
+        rId = mixin.relate_to(part_, RT.SLIDE)
+
+        relationships_.get_or_add.assert_called_once_with(RT.SLIDE, part_)
+        assert rId == "rId42"
+
+    def and_it_can_establish_a_relationship_to_an_external_link(
+        self, request, _rels_prop_, relationships_
+    ):
+        relationships_.get_or_add_ext_rel.return_value = "rId24"
+        _rels_prop_.return_value = relationships_
+        mixin = _RelatableMixin()
+
+        rId = mixin.relate_to("http://url", RT.HYPERLINK, is_external=True)
+
+        relationships_.get_or_add_ext_rel.assert_called_once_with(
+            RT.HYPERLINK, "http://url"
+        )
+        assert rId == "rId24"
+
+    def it_can_find_a_related_part_by_rId(
+        self, request, _rels_prop_, relationships_, relationship_, part_
+    ):
+        _rels_prop_.return_value = relationships_
+        relationships_.__getitem__.return_value = relationship_
+        relationship_.target_part = part_
+        mixin = _RelatableMixin()
+
+        related_part = mixin.related_part("rId17")
+
+        relationships_.__getitem__.assert_called_once_with("rId17")
+        assert related_part is part_
+
+    def it_can_find_a_target_ref_URI_by_rId(
+        self, request, _rels_prop_, relationships_, relationship_
+    ):
+        _rels_prop_.return_value = relationships_
+        relationships_.__getitem__.return_value = relationship_
+        relationship_.target_ref = "http://url"
+        mixin = _RelatableMixin()
+
+        target_ref = mixin.target_ref("rId9")
+
+        relationships_.__getitem__.assert_called_once_with("rId9")
+        assert target_ref == "http://url"
+
+    # fixture components -----------------------------------
+
+    @pytest.fixture
+    def part_(self, request):
+        return instance_mock(request, Part)
+
+    @pytest.fixture
+    def relationship_(self, request):
+        return instance_mock(request, _Relationship)
+
+    @pytest.fixture
+    def relationships_(self, request):
+        return instance_mock(request, _Relationships)
+
+    @pytest.fixture
+    def _rels_prop_(self, request):
+        return property_mock(request, _RelatableMixin, "_rels")
 
 
 class DescribeOpcPackage(object):
@@ -146,32 +235,6 @@ class DescribeOpcPackage(object):
 
         PackURI_.assert_called_once_with(next_partname)
         assert partname == next_partname
-
-    def it_can_find_a_part_related_by_reltype(
-        self, request, _rels_prop_, relationships_
-    ):
-        related_part_ = instance_mock(request, Part, name="related_part_")
-        relationships_.part_with_reltype.return_value = related_part_
-        _rels_prop_.return_value = relationships_
-        package = OpcPackage(None)
-
-        related_part = package.part_related_by(RT.SLIDE)
-
-        relationships_.part_with_reltype.assert_called_once_with(RT.SLIDE)
-        assert related_part is related_part_
-
-    def it_can_establish_a_relationship_to_another_part(
-        self, request, _rels_prop_, relationships_
-    ):
-        relationships_.get_or_add.return_value = "rId99"
-        _rels_prop_.return_value = relationships_
-        part_ = instance_mock(request, Part)
-        package = OpcPackage(None)
-
-        rId = package.relate_to(part_, "http://rel/type")
-
-        relationships_.get_or_add.assert_called_once_with("http://rel/type", part_)
-        assert rId == "rId99"
 
     def it_can_save_to_a_pkg_file(self, request, _rels_prop_, relationships_):
         _rels_prop_.return_value = relationships_
@@ -342,13 +405,11 @@ class DescribePart(object):
         assert Part(None, CT.PML_SLIDE, None).content_type == CT.PML_SLIDE
 
     @pytest.mark.parametrize("ref_count, calls", ((2, []), (1, [call("rId42")])))
-    def it_can_drop_a_relationship(
-        self, request, _rels_prop_, relationships_, ref_count, calls
-    ):
+    def it_can_drop_a_relationship(self, request, relationships_, ref_count, calls):
         _rel_ref_count_ = method_mock(
             request, Part, "_rel_ref_count", return_value=ref_count
         )
-        _rels_prop_.return_value = relationships_
+        property_mock(request, Part, "_rels", return_value=relationships_)
         part = Part(None, None, None)
 
         part.drop_rel("rId42")
@@ -359,16 +420,6 @@ class DescribePart(object):
     def it_knows_the_package_it_belongs_to(self, package_):
         assert Part(None, None, package_).package is package_
 
-    def it_can_find_a_part_related_by_reltype(self, _rels_prop_, relationships_, part_):
-        relationships_.part_with_reltype.return_value = part_
-        _rels_prop_.return_value = relationships_
-        part = Part(None, None, None)
-
-        related_part = part.part_related_by(RT.CHART)
-
-        relationships_.part_with_reltype.assert_called_once_with(RT.CHART)
-        assert related_part is part_
-
     def it_knows_its_partname(self):
         assert Part(PackURI("/part/name"), None, None).partname == PackURI("/part/name")
 
@@ -376,58 +427,6 @@ class DescribePart(object):
         part = Part(PackURI("/old/part/name"), None, None)
         part.partname = PackURI("/new/part/name")
         assert part.partname == PackURI("/new/part/name")
-
-    def it_can_establish_a_relationship_to_another_part(
-        self, _rels_prop_, relationships_, part_
-    ):
-        relationships_.get_or_add.return_value = "rId42"
-        _rels_prop_.return_value = relationships_
-        part = Part(None, None, None)
-
-        rId = part.relate_to(part_, RT.SLIDE)
-
-        relationships_.get_or_add.assert_called_once_with(RT.SLIDE, part_)
-        assert rId == "rId42"
-
-    def and_it_can_establish_an_external_relationship(
-        self, _rels_prop_, relationships_
-    ):
-        relationships_.get_or_add_ext_rel.return_value = "rId24"
-        _rels_prop_.return_value = relationships_
-        part = Part(None, None, None)
-
-        rId = part.relate_to("http://url", RT.HYPERLINK, is_external=True)
-
-        relationships_.get_or_add_ext_rel.assert_called_once_with(
-            RT.HYPERLINK, "http://url"
-        )
-        assert rId == "rId24"
-
-    def it_can_find_a_related_part_by_rId(
-        self, request, _rels_prop_, relationships_, relationship_, part_
-    ):
-        relationship_.target_part = part_
-        relationships_.__getitem__.return_value = relationship_
-        _rels_prop_.return_value = relationships_
-        part = Part(None, None, None)
-
-        related_part = part.related_part("rId17")
-
-        relationships_.__getitem__.assert_called_once_with("rId17")
-        assert related_part is part_
-
-    def it_can_find_a_target_ref_URI_by_rId(
-        self, request, _rels_prop_, relationships_, relationship_
-    ):
-        relationship_.target_ref = "http://url"
-        relationships_.__getitem__.return_value = relationship_
-        _rels_prop_.return_value = relationships_
-        part = Part(None, None, None)
-
-        target_ref = part.target_ref("rId9")
-
-        relationships_.__getitem__.assert_called_once_with("rId9")
-        assert target_ref == "http://url"
 
     def it_can_load_a_blob_from_a_file_path_to_help(self):
         path = absjoin(test_file_dir, "minimal.pptx")
@@ -459,20 +458,8 @@ class DescribePart(object):
         return instance_mock(request, OpcPackage)
 
     @pytest.fixture
-    def part_(self, request):
-        return instance_mock(request, Part)
-
-    @pytest.fixture
-    def relationship_(self, request):
-        return instance_mock(request, _Relationship)
-
-    @pytest.fixture
     def relationships_(self, request):
         return instance_mock(request, _Relationships)
-
-    @pytest.fixture
-    def _rels_prop_(self, request):
-        return property_mock(request, Part, "_rels")
 
 
 class DescribeXmlPart(object):
