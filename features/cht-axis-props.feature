@@ -174,7 +174,6 @@ Feature: Axis properties
       | off    | False          |
 
 
-  @wip
   Scenario Outline: Set Axis.reverse_order
     Given an axis having reverse-order turned <status>
      When I assign <value> to axis.reverse_order

@@ -191,6 +191,12 @@ class _BaseAxis(object):
         """
         return self._element.orientation == ST_Orientation.MAX_MIN
 
+    @reverse_order.setter
+    def reverse_order(self, value):
+        self._element.orientation = (
+            ST_Orientation.MAX_MIN if bool(value) is True else ST_Orientation.MIN_MAX
+        )
+
     @lazyproperty
     def tick_labels(self):
         """

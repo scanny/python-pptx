@@ -42,6 +42,13 @@ class BaseAxisElement(BaseOxmlElement):
             return ST_Orientation.MIN_MAX
         return orientation.val
 
+    @orientation.setter
+    def orientation(self, value):
+        """`value` is a member of `ST_Orientation`."""
+        self.scaling._remove_orientation()
+        if value == ST_Orientation.MAX_MIN:
+            self.scaling.get_or_add_orientation().val = value
+
     def _new_title(self):
         return CT_Title.new_title()
 
