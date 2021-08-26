@@ -162,3 +162,28 @@ Feature: Axis properties
   Scenario: Get Axis.major_gridlines
     Given an axis
      Then axis.major_gridlines is a MajorGridlines object
+
+
+  @wip
+  Scenario Outline: Get Axis.reverse_order
+    Given an axis having reverse-order turned <status>
+     Then axis.reverse_order is <expected-value>
+
+    Examples: axis unit cases
+      | status | expected-value |
+      | on     | True           |
+      | off    | False          |
+
+
+  @wip
+  Scenario Outline: Set Axis.reverse_order
+    Given an axis having reverse-order turned <status>
+     When I assign <value> to axis.reverse_order
+     Then axis.reverse_order is <expected-value>
+
+    Examples: major/minor_unit assignment cases
+      | status | value | expected-value |
+      | off    | False | False          |
+      | off    | True  | True           |
+      | on     | False | False          |
+      | on     | True  | True           |
