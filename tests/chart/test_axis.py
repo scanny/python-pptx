@@ -112,6 +112,10 @@ class Describe_BaseAxis(object):
         axis.minor_tick_mark = new_value
         assert axis._element.xml == expected_xml
 
+    def it_knows_whether_it_renders_in_reverse_order(self, reverse_order_get_fixture):
+        xAx, expected_value = reverse_order_get_fixture
+        assert _BaseAxis(xAx).reverse_order == expected_value
+
     def it_knows_its_tick_label_position(self, tick_lbl_pos_get_fixture):
         axis, expected_value = tick_lbl_pos_get_fixture
         assert axis.tick_label_position == expected_value
@@ -474,6 +478,18 @@ class Describe_BaseAxis(object):
         axis = _BaseAxis(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("c:catAx/c:scaling", False),
+            ("c:valAx/c:scaling/c:orientation", False),
+            ("c:catAx/c:scaling/c:orientation{val=minMax}", False),
+            ("c:valAx/c:scaling/c:orientation{val=maxMin}", True),
+        ]
+    )
+    def reverse_order_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        return element(xAx_cxml), expected_value
 
     @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
     def tick_labels_fixture(self, request, TickLabels_, tick_labels_):

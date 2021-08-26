@@ -164,7 +164,6 @@ Feature: Axis properties
      Then axis.major_gridlines is a MajorGridlines object
 
 
-  @wip
   Scenario Outline: Get Axis.reverse_order
     Given an axis having reverse-order turned <status>
      Then axis.reverse_order is <expected-value>

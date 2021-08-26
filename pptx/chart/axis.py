@@ -10,6 +10,7 @@ from pptx.enum.chart import (
     XL_TICK_MARK,
 )
 from pptx.oxml.ns import qn
+from pptx.oxml.simpletypes import ST_Orientation
 from pptx.shared import ElementProxy
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
@@ -174,6 +175,21 @@ class _BaseAxis(object):
         if value is XL_TICK_MARK.CROSS:
             return
         self._element._add_minorTickMark(val=value)
+
+    @property
+    def reverse_order(self):
+        """Read/write bool value specifying whether to reverse plotting order for axis.
+
+        For a category axis, this reverses the order in which the categories are
+        displayed. This may be desired, for example, on a (horizontal) bar-chart where
+        by default the first category appears at the bottom. Since we read from
+        top-to-bottom, many viewers may find it most natural for the first category to
+        appear on top.
+
+        For a value axis, it reverses the direction of increasing value from
+        bottom-to-top to top-to-bottom.
+        """
+        return self._element.orientation == ST_Orientation.MAX_MIN
 
     @lazyproperty
     def tick_labels(self):

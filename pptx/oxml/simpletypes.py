@@ -1,12 +1,14 @@
 # encoding: utf-8
 
-"""
-Simple type classes, providing validation and format translation for values
-stored in XML element attributes. Naming generally corresponds to the simple
-type in the associated XML schema.
-"""
+"""Simple-type classes.
 
-from __future__ import absolute_import, print_function
+A "simple-type" is a scalar type, generally serving as an XML attribute. This is in
+contrast to a "complex-type" which would specify an XML element.
+
+These objects providing validation and format translation for values stored in XML
+element attributes. Naming generally corresponds to the simple type in the associated
+XML schema.
+"""
 
 import numbers
 
@@ -478,6 +480,15 @@ class ST_MarkerSize(XsdUnsignedByte):
     @classmethod
     def validate(cls, value):
         cls.validate_int_in_range(value, 2, 72)
+
+
+class ST_Orientation(XsdStringEnumeration):
+    """Valid values for `val` attribute on c:orientation (CT_Orientation)."""
+
+    MAX_MIN = "maxMin"
+    MIN_MAX = "minMax"
+
+    _members = (MAX_MIN, MIN_MAX)
 
 
 class ST_Overlap(BaseIntType):

@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from pptx.enum.chart import XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from pptx.oxml.chart.shared import CT_Title
-from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset
+from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset, ST_Orientation
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -29,6 +29,18 @@ class BaseAxisElement(BaseOxmlElement):
         txPr = self.get_or_add_txPr()
         defRPr = txPr.defRPr
         return defRPr
+
+    @property
+    def orientation(self):
+        """Value of `val` attribute of `c:scaling/c:orientation` grandchild element.
+
+        Defaults to `ST_Orientation.MIN_MAX` if attribute or any ancestors are not
+        present.
+        """
+        orientation = self.scaling.orientation
+        if orientation is None:
+            return ST_Orientation.MIN_MAX
+        return orientation.val
 
     def _new_title(self):
         return CT_Title.new_title()
@@ -155,6 +167,17 @@ class CT_LblOffset(BaseOxmlElement):
     val = OptionalAttribute("val", ST_LblOffset, default=100)
 
 
+class CT_Orientation(BaseOxmlElement):
+    """`c:xAx/c:scaling/c:orientation` element, defining category order.
+
+    Used to reverse the order categories appear in on a bar chart so they start at the
+    top rather than the bottom. Because we read top-to-bottom, the default way looks odd
+    to many and perhaps most folks. Also applicable to value and date axes.
+    """
+
+    val = OptionalAttribute("val", ST_Orientation, default=ST_Orientation.MIN_MAX)
+
+
 class CT_Scaling(BaseOxmlElement):
     """`c:scaling` element.
 
@@ -162,6 +185,7 @@ class CT_Scaling(BaseOxmlElement):
     """
 
     _tag_seq = ("c:logBase", "c:orientation", "c:max", "c:min", "c:extLst")
+    orientation = ZeroOrOne("c:orientation", successors=_tag_seq[2:])
     max = ZeroOrOne("c:max", successors=_tag_seq[3:])
     min = ZeroOrOne("c:min", successors=_tag_seq[4:])
     del _tag_seq
