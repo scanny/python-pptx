@@ -11,8 +11,8 @@ from pptx.util import lazyproperty
 class ActionSetting(Subshape):
     """Properties specifying how a shape or run reacts to mouse actions."""
 
-    # Subshape superclass provides access to the Slide Part, which is needed
-    # to access relationships.
+    # --- The Subshape superclass provides access to the Slide Part, which is needed
+    # --- to access relationships.
     def __init__(self, xPr, parent, hover=False):
         super(ActionSetting, self).__init__(parent)
         # xPr is either a cNvPr or rPr element
@@ -22,11 +22,14 @@ class ActionSetting(Subshape):
 
     @property
     def action(self):
-        """
-        A member of the :ref:`PpActionType` enumeration, such as
-        `PP_ACTION.HYPERLINK`, indicating the type of action that will result
-        when the specified shape or text is clicked or the mouse pointer is
-        positioned over the shape during a slide show.
+        """Member of :ref:`PpActionType` enumeration, such as `PP_ACTION.HYPERLINK`.
+
+        The returned member indicates the type of action that will result when the
+        specified shape or text is clicked or the mouse pointer is positioned over the
+        shape during a slide show.
+
+        If there is no click-action or the click-action value is not recognized (is not
+        one of the official `MsoPpAction` values) then `PP_ACTION.NONE` is returned.
         """
         hlink = self._hlink
 
@@ -55,7 +58,7 @@ class ActionSetting(Subshape):
             "ole": PP_ACTION.OLE_VERB,
             "macro": PP_ACTION.RUN_MACRO,
             "program": PP_ACTION.RUN_PROGRAM,
-        }[action_verb]
+        }.get(action_verb, PP_ACTION.NONE)
 
     @lazyproperty
     def hyperlink(self):

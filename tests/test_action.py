@@ -129,6 +129,7 @@ class DescribeActionSetting(object):
                 "ppaction://hlinkshowjump?jump=lastslideviewed",
                 PP_ACTION.LAST_SLIDE_VIEWED,
             ),
+            ("p:cNvPr/a:hlinkClick", "ppaction://media", PP_ACTION.NONE),
         ]
     )
     def action_fixture(self, request):

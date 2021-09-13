@@ -9,16 +9,16 @@ Feature: Get or set an external hyperlink on a shape or text run
      Then click_action.hyperlink.address is <value>
 
     Examples: Click actions
-      | action             | value                        |
-      | none               | None                         |
-      | first slide        | None                         |
-      | last slide viewed  | None                         |
-      | named slide        | slide3.xml                   |
-      | hyperlink          | http://yahoo.com             |
-      | custom slide show  | None                         |
-      | OLE action         | None                         |
-      | run macro          | None                         |
-      | run program        | /Applications/Calculator.app |
+      | action             | value                                |
+      | none               | None                                 |
+      | first slide        | None                                 |
+      | last slide viewed  | None                                 |
+      | named slide        | slide3.xml                           |
+      | hyperlink          | http://yahoo.com                     |
+      | custom slide show  | None                                 |
+      | OLE action         | None                                 |
+      | run macro          | None                                 |
+      | run program        | file:////Applications/Calculator.app |
 
 
   Scenario Outline: Add hyperlink
@@ -51,4 +51,3 @@ Feature: Get or set an external hyperlink on a shape or text run
       | OLE action         |
       | run macro          |
       | run program        |
-
