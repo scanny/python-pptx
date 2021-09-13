@@ -26,3 +26,4 @@ Feature: Round-trip a presentation
      Given a presentation with external relationships
       When I save and reload the presentation
       Then the external relationships are still there
+       And the package has the expected number of .rels parts

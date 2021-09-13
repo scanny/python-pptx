@@ -1,12 +1,9 @@
 # encoding: utf-8
 
-"""
-Gherkin step implementations for presentation-level features.
-"""
-
-from __future__ import absolute_import
+"""Gherkin step implementations for presentation-level features."""
 
 import os
+import zipfile
 
 from behave import given, when, then
 
@@ -179,6 +176,13 @@ def then_ext_rels_are_preserved(context):
     assert rel.is_external
     assert rel.reltype == RT.HYPERLINK
     assert rel.target_ref == "https://github.com/scanny/python-pptx"
+
+
+@then("the package has the expected number of .rels parts")
+def then_the_package_has_the_expected_number_of_rels_parts(context):
+    with zipfile.ZipFile(saved_pptx_path, "r") as z:
+        member_count = len(z.namelist())
+    assert member_count == 18, "expected 18, got %d" % member_count
 
 
 @then("the slide height matches the new value")
