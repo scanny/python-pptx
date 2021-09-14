@@ -1056,44 +1056,27 @@ class DescribeSlideMasters(object):
 class Describe_Background(object):
     """Unit-test suite for `pptx.slide._Background` objects."""
 
-    def it_provides_access_to_its_fill(self, fill_fixture):
-        background, cSld, expected_xml = fill_fixture[:3]
-        from_fill_parent_, fill_ = fill_fixture[3:]
-
-        fill = background.fill
-
-        assert cSld.xml == expected_xml
-        from_fill_parent_.assert_called_once_with(cSld.xpath("p:bg/p:bgPr")[0])
-        assert fill is fill_
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture(
-        params=[
+    @pytest.mark.parametrize(
+        "cSld_xml, expected_cxml",
+        (
             ("p:cSld{a:b=c}", "p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)"),
             (
                 "p:cSld{a:b=c}/p:bg/p:bgRef",
                 "p:cSld{a:b=c}/p:bg/p:bgPr/(a:noFill,a:effectLst)",
             ),
             ("p:cSld/p:bg/p:bgPr/a:solidFill", "p:cSld/p:bg/p:bgPr/a:solidFill"),
-        ]
+        ),
     )
-    def fill_fixture(self, request, from_fill_parent_, fill_):
-        cSld_xml, expected_cxml = request.param
+    def it_provides_access_to_its_fill(self, request, cSld_xml, expected_cxml):
+        fill_ = instance_mock(request, FillFormat)
+        from_fill_parent_ = method_mock(
+            request, FillFormat, "from_fill_parent", autospec=False, return_value=fill_
+        )
         cSld = element(cSld_xml)
         background = _Background(cSld)
 
-        from_fill_parent_.return_value = fill_
+        fill = background.fill
 
-        expected_xml = xml(expected_cxml)
-        return background, cSld, expected_xml, from_fill_parent_, fill_
-
-    # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def fill_(self, request):
-        return instance_mock(request, FillFormat)
-
-    @pytest.fixture
-    def from_fill_parent_(self, request):
-        return method_mock(request, FillFormat, "from_fill_parent")
+        assert cSld.xml == xml(expected_cxml)
+        from_fill_parent_.assert_called_once_with(cSld.xpath("p:bg/p:bgPr")[0])
+        assert fill is fill_

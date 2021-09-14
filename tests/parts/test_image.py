@@ -93,10 +93,14 @@ class DescribeImagePart(object):
 class DescribeImage(object):
     """Unit-test suite for `pptx.parts.image.Image` objects."""
 
-    def it_can_construct_from_a_path(self, from_path_fixture):
-        image_file, blob, filename, image_ = from_path_fixture
-        image = Image.from_file(image_file)
-        Image.from_blob.assert_called_once_with(blob, filename)
+    def it_can_construct_from_a_path(self, from_blob_, image_):
+        with open(test_image_path, "rb") as f:
+            blob = f.read()
+        from_blob_.return_value = image_
+
+        image = Image.from_file(test_image_path)
+
+        Image.from_blob.assert_called_once_with(blob, "python-icon.jpeg")
         assert image is image_
 
     def it_can_construct_from_a_stream(self, from_stream_fixture):
@@ -204,15 +208,6 @@ class DescribeImage(object):
         return image, filename
 
     @pytest.fixture
-    def from_path_fixture(self, from_blob_, image_):
-        image_file = test_image_path
-        with open(test_image_path, "rb") as f:
-            blob = f.read()
-        filename = "python-icon.jpeg"
-        from_blob_.return_value = image_
-        return image_file, blob, filename, image_
-
-    @pytest.fixture
     def from_stream_fixture(self, from_blob_, image_):
         with open(test_image_path, "rb") as f:
             blob = f.read()
@@ -238,7 +233,7 @@ class DescribeImage(object):
 
     @pytest.fixture
     def from_blob_(self, request):
-        return method_mock(request, Image, "from_blob")
+        return method_mock(request, Image, "from_blob", autospec=False)
 
     @pytest.fixture
     def image_(self, request):

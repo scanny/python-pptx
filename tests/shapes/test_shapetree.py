@@ -810,7 +810,7 @@ class Describe_BaseGroupShapes(object):
 
     @pytest.fixture
     def FreeformBuilder_new_(self, request):
-        return method_mock(request, FreeformBuilder, "new")
+        return method_mock(request, FreeformBuilder, "new", autospec=False)
 
     @pytest.fixture
     def graphic_frame_(self, request):
@@ -2007,7 +2007,7 @@ class Describe_MoviePicElementCreator(object):
 
     @pytest.fixture
     def from_path_or_file_like_(self, request):
-        return method_mock(request, Video, "from_path_or_file_like")
+        return method_mock(request, Video, "from_path_or_file_like", autospec=False)
 
     @pytest.fixture
     def _media_rId_prop_(self, request):
@@ -2019,7 +2019,7 @@ class Describe_MoviePicElementCreator(object):
 
     @pytest.fixture
     def new_video_pic_(self, request):
-        return method_mock(request, CT_Picture, "new_video_pic")
+        return method_mock(request, CT_Picture, "new_video_pic", autospec=False)
 
     @pytest.fixture
     def pic_(self):

@@ -376,7 +376,7 @@ class DescribeFreeformBuilder(object):
 
     @pytest.fixture
     def _Close_new_(self, request):
-        return method_mock(request, _Close, "new")
+        return method_mock(request, _Close, "new", autospec=False)
 
     @pytest.fixture
     def _dx_prop_(self, request):
@@ -404,7 +404,7 @@ class DescribeFreeformBuilder(object):
 
     @pytest.fixture
     def _LineSegment_new_(self, request):
-        return method_mock(request, _LineSegment, "new")
+        return method_mock(request, _LineSegment, "new", autospec=False)
 
     @pytest.fixture
     def move_to_(self, request):
@@ -412,7 +412,7 @@ class DescribeFreeformBuilder(object):
 
     @pytest.fixture
     def _MoveTo_new_(self, request):
-        return method_mock(request, _MoveTo, "new")
+        return method_mock(request, _MoveTo, "new", autospec=False)
 
     @pytest.fixture
     def shape_(self, request):

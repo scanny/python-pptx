@@ -2,6 +2,8 @@
 
 """Utility functions wrapping the excellent `mock` library."""
 
+from __future__ import absolute_import
+
 import sys
 
 if sys.version_info >= (3, 3):

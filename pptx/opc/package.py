@@ -508,7 +508,8 @@ class _Relationships(Mapping):
 
     def __iter__(self):
         """Implement iteration of relationships."""
-        return iter(list(self._rels.values()))
+        rels = self._rels
+        return (rels[rId] for rId in sorted(rels.keys()))
 
     def __len__(self):
         """Return count of relationships in collection."""

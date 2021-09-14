@@ -2,6 +2,8 @@
 
 """Unit-test suite for `pptx.text.text` module."""
 
+from __future__ import unicode_literals
+
 import pytest
 
 from pptx.compat import is_unicode

@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.dml.fill module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.dml.fill` module."""
 
 import pytest
 
@@ -492,6 +490,8 @@ class Describe_NoneFill(object):
 
 
 class Describe_PattFill(object):
+    """Unit-test suite for `pptx.dml.fill._PattFill` objects."""
+
     def it_knows_its_fill_type(self, fill_type_fixture):
         patt_fill, expected_value = fill_type_fixture
         fill_type = patt_fill.type
@@ -618,7 +618,9 @@ class Describe_PattFill(object):
 
     @pytest.fixture
     def ColorFormat_from_colorchoice_parent_(self, request):
-        return method_mock(request, ColorFormat, "from_colorchoice_parent")
+        return method_mock(
+            request, ColorFormat, "from_colorchoice_parent", autospec=False
+        )
 
     @pytest.fixture
     def color_(self, request):
@@ -660,7 +662,9 @@ class Describe_SolidFill(object):
 
     @pytest.fixture
     def ColorFormat_from_colorchoice_parent_(self, request):
-        return method_mock(request, ColorFormat, "from_colorchoice_parent")
+        return method_mock(
+            request, ColorFormat, "from_colorchoice_parent", autospec=False
+        )
 
     @pytest.fixture
     def color_(self, request):

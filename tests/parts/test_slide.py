@@ -90,9 +90,19 @@ class DescribeNotesMasterPart(object):
     def it_can_create_a_notes_master_part(
         self, request, package_, notes_master_part_, theme_part_
     ):
-        method_mock(request, NotesMasterPart, "_new", return_value=notes_master_part_)
         method_mock(
-            request, NotesMasterPart, "_new_theme_part", return_value=theme_part_
+            request,
+            NotesMasterPart,
+            "_new",
+            autospec=False,
+            return_value=notes_master_part_,
+        )
+        method_mock(
+            request,
+            NotesMasterPart,
+            "_new_theme_part",
+            autospec=False,
+            return_value=theme_part_,
         )
         notes_master_part = NotesMasterPart.create_default(package_)
 
@@ -121,7 +131,13 @@ class DescribeNotesMasterPart(object):
             request, "pptx.parts.slide.NotesMasterPart", return_value=notes_master_part_
         )
         notesMaster = element("p:notesMaster")
-        method_mock(request, CT_NotesMaster, "new_default", return_value=notesMaster)
+        method_mock(
+            request,
+            CT_NotesMaster,
+            "new_default",
+            autospec=False,
+            return_value=notesMaster,
+        )
 
         notes_master_part = NotesMasterPart._new(package_)
 
@@ -139,7 +155,13 @@ class DescribeNotesMasterPart(object):
             request, "pptx.parts.slide.XmlPart", return_value=theme_part_
         )
         theme_elm = element("p:theme")
-        method_mock(request, CT_OfficeStyleSheet, "new_default", return_value=theme_elm)
+        method_mock(
+            request,
+            CT_OfficeStyleSheet,
+            "new_default",
+            autospec=False,
+            return_value=theme_elm,
+        )
         pn_tmpl = "/ppt/theme/theme%d.xml"
         partname = PackURI("/ppt/theme/theme2.xml")
         package_.next_partname.return_value = partname
@@ -186,6 +208,7 @@ class DescribeNotesSlidePart(object):
             request,
             NotesSlidePart,
             "_add_notes_slide_part",
+            autospec=False,
             return_value=notes_slide_part_,
         )
         notes_slide_part_.notes_slide = notes_slide_
@@ -232,7 +255,9 @@ class DescribeNotesSlidePart(object):
             request, "pptx.parts.slide.NotesSlidePart", return_value=notes_slide_part_
         )
         notes = element("p:notes")
-        new_ = method_mock(request, CT_NotesSlide, "new", return_value=notes)
+        new_ = method_mock(
+            request, CT_NotesSlide, "new", autospec=False, return_value=notes
+        )
         package_.next_partname.return_value = PackURI(
             "/ppt/notesSlides/notesSlide42.xml"
         )

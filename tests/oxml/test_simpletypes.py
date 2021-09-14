@@ -1,13 +1,13 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.oxml.simpletypes module, which contains simple type class
-definitions. A simple type in this context corresponds to an
-``<xsd:simpleType>`` definition in the XML schema and provides data
-validation and type conversion services for use by xmlchemy.
-"""
+"""Unit-test suite for `pptx.oxml.simpletypes` module.
 
-from __future__ import absolute_import, print_function
+`simpletypes` contains simple type class definitions. A simple type in this context
+corresponds to an `<xsd:simpleType>` e.g. `ST_Foobar` definition in the XML schema and
+provides data validation and type conversion services for use by xmlchemy. A simple-type
+generally corresponds to an element attribute whereas a complex type corresponds to an
+XML element (which itself can have multiple attributes and have child elements).
+"""
 
 import pytest
 
@@ -23,10 +23,14 @@ from ..unitutil.mock import method_mock, instance_mock
 
 
 class DescribeBaseSimpleType(object):
-    def it_can_convert_attr_value_to_python_type(self, from_xml_fixture):
-        SimpleType, str_value_, py_value_ = from_xml_fixture
-        py_value = SimpleType.from_xml(str_value_)
-        SimpleType.convert_from_xml.assert_called_once_with(str_value_)
+    """Unit-test suite for `pptx.oxml.simpletypes.BaseSimpleType` objects."""
+
+    def it_can_convert_attr_value_to_python_type(
+        self, str_value_, py_value_, convert_from_xml_
+    ):
+        py_value = ST_SimpleType.from_xml(str_value_)
+
+        ST_SimpleType.convert_from_xml.assert_called_once_with(str_value_)
         assert py_value is py_value_
 
     def it_can_convert_python_value_to_string(self, to_xml_fixture):
@@ -53,10 +57,6 @@ class DescribeBaseSimpleType(object):
                 BaseSimpleType.validate_string(value)
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def from_xml_fixture(self, request, str_value_, py_value_, convert_from_xml_):
-        return ST_SimpleType, str_value_, py_value_
 
     @pytest.fixture
     def to_xml_fixture(
@@ -98,13 +98,21 @@ class DescribeBaseSimpleType(object):
     @pytest.fixture
     def convert_from_xml_(self, request, py_value_):
         return method_mock(
-            request, ST_SimpleType, "convert_from_xml", return_value=py_value_
+            request,
+            ST_SimpleType,
+            "convert_from_xml",
+            autospec=False,
+            return_value=py_value_,
         )
 
     @pytest.fixture
     def convert_to_xml_(self, request, str_value_):
         return method_mock(
-            request, ST_SimpleType, "convert_to_xml", return_value=str_value_
+            request,
+            ST_SimpleType,
+            "convert_to_xml",
+            autospec=False,
+            return_value=str_value_,
         )
 
     @pytest.fixture
@@ -117,7 +125,7 @@ class DescribeBaseSimpleType(object):
 
     @pytest.fixture
     def validate_(self, request):
-        return method_mock(request, ST_SimpleType, "validate")
+        return method_mock(request, ST_SimpleType, "validate", autospec=False)
 
 
 class DescribeBaseIntType(object):

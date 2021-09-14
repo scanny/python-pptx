@@ -27,7 +27,10 @@ class DescribeChartPart(object):
         package_ = instance_mock(request, OpcPackage)
         package_.next_partname.return_value = PackURI("/ppt/charts/chart42.xml")
         chart_part_ = instance_mock(request, ChartPart)
-        load_ = method_mock(request, ChartPart, "load", return_value=chart_part_)
+        # --- load() must have autospec turned off to work in Python 2.7 mock ---
+        load_ = method_mock(
+            request, ChartPart, "load", autospec=False, return_value=chart_part_
+        )
 
         chart_part = ChartPart.new(XCT.RADAR, chart_data_, package_)
 

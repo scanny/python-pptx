@@ -2,6 +2,8 @@
 
 """Unit-test suite for `pptx.text.fonts` module."""
 
+from __future__ import unicode_literals
+
 import io
 import pytest
 
@@ -144,29 +146,35 @@ class DescribeFontFiles(object):
 
     @pytest.fixture
     def _font_directories_(self, request):
-        return method_mock(request, FontFiles, "_font_directories")
+        return method_mock(request, FontFiles, "_font_directories", autospec=False)
 
     @pytest.fixture
     def _installed_fonts_(self, request):
-        _installed_fonts_ = method_mock(request, FontFiles, "_installed_fonts")
-        _installed_fonts_.return_value = {
-            ("Foobar", False, False): "foobar.ttf",
-            ("Foobar", True, False): "foobarb.ttf",
-            ("Barfoo", False, True): "barfooi.ttf",
-        }
-        return _installed_fonts_
+        return method_mock(
+            request,
+            FontFiles,
+            "_installed_fonts",
+            autospec=False,
+            return_value={
+                ("Foobar", False, False): "foobar.ttf",
+                ("Foobar", True, False): "foobarb.ttf",
+                ("Barfoo", False, True): "barfooi.ttf",
+            },
+        )
 
     @pytest.fixture
     def _iter_font_files_in_(self, request):
-        return method_mock(request, FontFiles, "_iter_font_files_in")
+        return method_mock(request, FontFiles, "_iter_font_files_in", autospec=False)
 
     @pytest.fixture
     def _os_x_font_directories_(self, request):
-        return method_mock(request, FontFiles, "_os_x_font_directories")
+        return method_mock(request, FontFiles, "_os_x_font_directories", autospec=False)
 
     @pytest.fixture
     def _windows_font_directories_(self, request):
-        return method_mock(request, FontFiles, "_windows_font_directories")
+        return method_mock(
+            request, FontFiles, "_windows_font_directories", autospec=False
+        )
 
 
 class Describe_Font(object):
@@ -537,6 +545,7 @@ class Describe_NameTable(object):
             request,
             _NameTable,
             "_name_header",
+            autospec=False,
             return_value=(
                 platform_id,
                 encoding_id,
@@ -691,7 +700,7 @@ class Describe_NameTable(object):
 
     @pytest.fixture
     def _decode_name_(self, request):
-        return method_mock(request, _NameTable, "_decode_name")
+        return method_mock(request, _NameTable, "_decode_name", autospec=False)
 
     @pytest.fixture
     def _names_prop_(self, request):
@@ -699,7 +708,7 @@ class Describe_NameTable(object):
 
     @pytest.fixture
     def _raw_name_string_(self, request):
-        return method_mock(request, _NameTable, "_raw_name_string")
+        return method_mock(request, _NameTable, "_raw_name_string", autospec=False)
 
     @pytest.fixture
     def stream_(self, request):

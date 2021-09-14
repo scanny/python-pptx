@@ -882,10 +882,10 @@ class Describe_Relationships(object):
                     _Relationship,
                     rId=rId,
                     target_part=target_part,
-                    target_ref=target_ref,
-                    is_external=is_external,
+                    target_ref=ref,
+                    is_external=external,
                 )
-                for rId, target_part, target_ref, is_external in (
+                for rId, target_part, ref, external in (
                     ("rId1", None, "http://url", True),
                     ("rId2", part_1, "/ppt/foo.bar", False),
                     ("rId3", None, "http://foo", True),
