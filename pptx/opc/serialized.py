@@ -3,6 +3,7 @@
 """API for reading/writing serialized Open Packaging Convention (OPC) package."""
 
 import os
+import posixpath
 import zipfile
 
 from pptx.compat import Container, is_string
@@ -142,6 +143,10 @@ class _DirPkgReader(_PhysPkgReader):
 
     def __init__(self, path):
         self._path = os.path.abspath(path)
+
+    def __contains__(self, pack_uri):
+        """Return True when part identified by `pack_uri` is present in zip archive."""
+        return os.path.exists(posixpath.join(self._path, pack_uri.membername))
 
     def __getitem__(self, pack_uri):
         """Return bytes of file corresponding to `pack_uri` in package directory."""

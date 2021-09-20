@@ -234,16 +234,28 @@ class Describe_PhysPkgReader(object):
 class Describe_DirPkgReader(object):
     """Unit-test suite for `pptx.opc.serialized._DirPkgReader` objects."""
 
-    def it_can_retrieve_the_blob_for_a_pack_uri(self):
-        blob = _DirPkgReader(dir_pkg_path)[PackURI("/ppt/presentation.xml")]
+    def it_knows_whether_it_contains_a_partname(self, dir_pkg_reader):
+        assert PackURI("/ppt/presentation.xml") in dir_pkg_reader
+        assert PackURI("/ppt/foobar.xml") not in dir_pkg_reader
 
-        sha1 = hashlib.sha1(blob).hexdigest()
-        assert sha1 == "51b78f4dabc0af2419d4e044ab73028c4bef53aa"
+    def it_can_retrieve_the_blob_for_a_pack_uri(self, dir_pkg_reader):
+        blob = dir_pkg_reader[PackURI("/ppt/presentation.xml")]
+        assert (
+            hashlib.sha1(blob).hexdigest() == "51b78f4dabc0af2419d4e044ab73028c4bef53aa"
+        )
 
-    def but_it_raises_KeyError_when_requested_member_is_not_present(self):
+    def but_it_raises_KeyError_when_requested_member_is_not_present(
+        self, dir_pkg_reader
+    ):
         with pytest.raises(KeyError) as e:
-            _DirPkgReader(dir_pkg_path)[PackURI("/ppt/foobar.xml")]
+            dir_pkg_reader[PackURI("/ppt/foobar.xml")]
         assert str(e.value) == "\"no member '/ppt/foobar.xml' in package\""
+
+    # --- fixture components -------------------------------
+
+    @pytest.fixture(scope="class")
+    def dir_pkg_reader(self, request):
+        return _DirPkgReader(dir_pkg_path)
 
 
 class Describe_ZipPkgReader(object):

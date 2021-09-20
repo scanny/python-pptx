@@ -15,7 +15,6 @@ Feature: Round-trip a presentation
        And I save the presentation
       Then I see the pptx file in the working directory
 
-  @wip
   Scenario: Start presentation from package extracted into directory
      Given a clean working directory
       When I open a presentation extracted into a directory
