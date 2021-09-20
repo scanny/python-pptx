@@ -12,7 +12,7 @@ from pptx.compat import BytesIO
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.util import Inches
 
-from helpers import saved_pptx_path, test_pptx
+from helpers import saved_pptx_path, test_file, test_pptx
 
 
 # given ===================================================
@@ -67,6 +67,11 @@ def when_construct_default_prs(context):
 @when("I open a basic PowerPoint presentation")
 def when_open_basic_pptx(context):
     context.prs = Presentation(test_pptx("test"))
+
+
+@when("I open a presentation extracted into a directory")
+def when_I_open_a_presentation_extracted_into_a_directory(context):
+    context.prs = Presentation(test_file("extracted-pptx"))
 
 
 @when("I open a presentation contained in a stream")
