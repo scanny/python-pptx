@@ -245,6 +245,16 @@ class Describe_DirPkgReader(object):
             _DirPkgReader(dir_pkg_path)[PackURI("/ppt/foobar.xml")]
         assert str(e.value) == "\"no member '/ppt/foobar.xml' in package\""
 
+    @pytest.mark.xfail(reason="WIP", strict=True)
+    def it_knows_that_it_contains_the_blob_for_a_pack_uri(self):
+        reader = _DirPkgReader(dir_pkg_path)
+        assert PackURI("/ppt/presentation.xml") in reader
+
+    @pytest.mark.xfail(reason="WIP", strict=True)
+    def and_it_knows_that_it_does_not_contain_non_present_member(self):
+        reader = _DirPkgReader(dir_pkg_path)
+        assert PackURI("/ppt/foobar.xml") not in reader
+
 
 class Describe_ZipPkgReader(object):
     """Unit-test suite for `pptx.opc.serialized._ZipPkgReader` objects."""
