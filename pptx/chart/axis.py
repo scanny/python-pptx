@@ -322,7 +322,7 @@ class Gridlines(ElementProxy):
     axis.
     """
 
-    __slots__ = ("_xAx", "_format")
+    __slots__ = ("_xAx", "_format", "_category")
 
     def __init__(self, xAx, category):
         super(Gridlines, self).__init__(xAx)
