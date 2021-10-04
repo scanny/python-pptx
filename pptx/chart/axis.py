@@ -109,10 +109,18 @@ class _BaseAxis(object):
     @lazyproperty
     def major_gridlines(self):
         """
-        The |MajorGridlines| object representing the major gridlines for
+        The |Gridlines| object representing the major gridlines for
         this axis.
         """
-        return MajorGridlines(self._element)
+        return Gridlines(self._element, 'major')
+
+    @lazyproperty
+    def minor_gridlines(self):
+        """
+        The |Gridlines| object representing the minor gridlines for
+        this axis.
+        """
+        return Gridlines(self._element, 'minor')
 
     @property
     def major_tick_mark(self):
@@ -308,17 +316,18 @@ class DateAxis(_BaseAxis):
         return XL_CATEGORY_TYPE.TIME_SCALE
 
 
-class MajorGridlines(ElementProxy):
+class Gridlines(ElementProxy):
     """
-    Provides access to the properties of the major gridlines appearing on an
+    Provides access to the properties of the gridlines appearing on an
     axis.
     """
 
     __slots__ = ("_xAx", "_format")
 
-    def __init__(self, xAx):
-        super(MajorGridlines, self).__init__(xAx)
+    def __init__(self, xAx, category):
+        super(Gridlines, self).__init__(xAx)
         self._xAx = xAx  # axis element, catAx or valAx
+        self._category = category
 
     @lazyproperty
     def format(self):
@@ -326,8 +335,13 @@ class MajorGridlines(ElementProxy):
         The |ChartFormat| object providing access to the shape formatting
         properties of this data point, such as line and fill.
         """
-        majorGridlines = self._xAx.get_or_add_majorGridlines()
-        return ChartFormat(majorGridlines)
+        if self._category == "major":
+            gridlines = self._xAx.get_or_add_majorGridlines()
+        elif self._category == "minor":
+            gridlines = self._xAx.get_or_add_minorGridlines()
+        else:
+            return None
+        return ChartFormat(gridlines)
 
 
 class TickLabels(object):
