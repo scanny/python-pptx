@@ -1,29 +1,23 @@
 # encoding: utf-8
 
-"""
-Axis-related chart objects.
-"""
+"""Axis-related chart objects."""
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-from ..dml.chtfmt import ChartFormat
-from ..enum.chart import (
+from pptx.dml.chtfmt import ChartFormat
+from pptx.enum.chart import (
     XL_AXIS_CROSSES,
     XL_CATEGORY_TYPE,
     XL_TICK_LABEL_POSITION,
     XL_TICK_MARK,
 )
-from ..oxml.ns import qn
-from ..shared import ElementProxy
-from ..text.text import Font, TextFrame
-from ..util import lazyproperty
+from pptx.oxml.ns import qn
+from pptx.oxml.simpletypes import ST_Orientation
+from pptx.shared import ElementProxy
+from pptx.text.text import Font, TextFrame
+from pptx.util import lazyproperty
 
 
 class _BaseAxis(object):
-    """
-    Base class for chart axis objects. All axis objects share these
-    properties.
-    """
+    """Base class for chart axis objects. All axis objects share these properties."""
 
     def __init__(self, xAx):
         super(_BaseAxis, self).__init__()
@@ -190,6 +184,27 @@ class _BaseAxis(object):
             return
         self._element._add_minorTickMark(val=value)
 
+    @property
+    def reverse_order(self):
+        """Read/write bool value specifying whether to reverse plotting order for axis.
+
+        For a category axis, this reverses the order in which the categories are
+        displayed. This may be desired, for example, on a (horizontal) bar-chart where
+        by default the first category appears at the bottom. Since we read from
+        top-to-bottom, many viewers may find it most natural for the first category to
+        appear on top.
+
+        For a value axis, it reverses the direction of increasing value from
+        bottom-to-top to top-to-bottom.
+        """
+        return self._element.orientation == ST_Orientation.MAX_MIN
+
+    @reverse_order.setter
+    def reverse_order(self, value):
+        self._element.orientation = (
+            ST_Orientation.MAX_MIN if bool(value) is True else ST_Orientation.MIN_MAX
+        )
+
     @lazyproperty
     def tick_labels(self):
         """
@@ -238,8 +253,6 @@ class _BaseAxis(object):
 class AxisTitle(ElementProxy):
     """Provides properties for manipulating axis title."""
 
-    __slots__ = ("_title", "_format")
-
     def __init__(self, title):
         super(AxisTitle, self).__init__(title)
         self._title = title
@@ -287,9 +300,7 @@ class AxisTitle(ElementProxy):
 
 
 class CategoryAxis(_BaseAxis):
-    """
-    A category axis of a chart.
-    """
+    """A category axis of a chart."""
 
     @property
     def category_type(self):
@@ -301,10 +312,10 @@ class CategoryAxis(_BaseAxis):
 
 
 class DateAxis(_BaseAxis):
-    """
-    A category axis with dates as its category labels and having some special
-    display behaviors such as making length of equal periods equal and
-    normalizing month start dates despite unequal month lengths.
+    """A category axis with dates as its category labels.
+
+    This axis-type has some special display behaviors such as making length of equal
+    periods equal and normalizing month start dates despite unequal month lengths.
     """
 
     @property
@@ -345,9 +356,7 @@ class Gridlines(ElementProxy):
 
 
 class TickLabels(object):
-    """
-    A service class providing access to formatting of axis tick mark labels.
-    """
+    """A service class providing access to formatting of axis tick mark labels."""
 
     def __init__(self, xAx_elm):
         super(TickLabels, self).__init__()
@@ -429,10 +438,10 @@ class TickLabels(object):
 
 
 class ValueAxis(_BaseAxis):
-    """
-    An axis having continuous (as opposed to discrete) values. The vertical
-    axis is generally a value axis, however both axes of an XY-type chart are
-    value axes.
+    """An axis having continuous (as opposed to discrete) values.
+
+    The vertical axis is generally a value axis, however both axes of an XY-type chart
+    are value axes.
     """
 
     @property

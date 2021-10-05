@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Unit test suite for pptx.parts.image module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.parts.image` module."""
 
 import pytest
 
@@ -29,90 +27,80 @@ new_image_path = absjoin(test_file_dir, "monty-truth.png")
 
 
 class DescribeImagePart(object):
-    def it_can_construct_from_an_image_object(self, new_fixture):
-        package_, image_, _init_, partname_ = new_fixture
+    """Unit-test suite for `pptx.parts.image.ImagePart` objects."""
+
+    def it_can_construct_from_an_image_object(self, request, image_):
+        package_ = instance_mock(request, Package)
+        _init_ = initializer_mock(request, ImagePart)
+        partname_ = package_.next_image_partname.return_value
 
         image_part = ImagePart.new(package_, image_)
 
         package_.next_image_partname.assert_called_once_with(image_.ext)
         _init_.assert_called_once_with(
-            partname_, image_.content_type, image_.blob, package_, image_.filename
+            image_part,
+            partname_,
+            image_.content_type,
+            package_,
+            image_.blob,
+            image_.filename,
         )
         assert isinstance(image_part, ImagePart)
 
-    def it_provides_access_to_its_image(self, image_fixture):
-        image_part, Image_, blob, desc, image_ = image_fixture
+    def it_provides_access_to_its_image(self, request, image_):
+        Image_ = class_mock(request, "pptx.parts.image.Image")
+        Image_.return_value = image_
+        property_mock(request, ImagePart, "desc", return_value="foobar.png")
+        image_part = ImagePart(None, None, None, b"blob", None)
+
         image = image_part.image
-        Image_.assert_called_once_with(blob, desc)
+
+        Image_.assert_called_once_with(b"blob", "foobar.png")
         assert image is image_
 
-    def it_can_scale_its_dimensions(self, scale_fixture):
-        image_part, width, height, expected_values = scale_fixture
-        assert image_part.scale(width, height) == expected_values
-
-    def it_knows_its_pixel_dimensions(self, size_fixture):
-        image, expected_size = size_fixture
-        assert image._px_size == expected_size
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def image_fixture(self, Image_, image_):
-        blob, filename = "blob", "foobar.png"
-        image_part = ImagePart(None, None, blob, None, filename)
-        return image_part, Image_, blob, filename, image_
-
-    @pytest.fixture
-    def new_fixture(self, request, package_, image_, _init_):
-        partname_ = package_.next_image_partname.return_value
-        return package_, image_, _init_, partname_
-
-    @pytest.fixture(
-        params=[
+    @pytest.mark.parametrize(
+        "width, height, expected_width, expected_height",
+        (
             (None, None, Emu(2590800), Emu(2590800)),
             (1000, None, 1000, 1000),
             (None, 3000, 3000, 3000),
             (3337, 9999, 3337, 9999),
-        ]
+        ),
     )
-    def scale_fixture(self, request):
-        width, height, expected_width, expected_height = request.param
+    def it_can_scale_its_dimensions(
+        self, width, height, expected_width, expected_height
+    ):
         with open(test_image_path, "rb") as f:
             blob = f.read()
-        image = ImagePart(None, None, blob, None)
-        return image, width, height, (expected_width, expected_height)
+        image_part = ImagePart(None, None, None, blob)
 
-    @pytest.fixture
-    def size_fixture(self):
+        assert image_part.scale(width, height) == (expected_width, expected_height)
+
+    def it_knows_its_pixel_dimensions_to_help(self):
         with open(test_image_path, "rb") as f:
             blob = f.read()
-        image = ImagePart(None, None, blob, None)
-        return image, (204, 204)
+        image_part = ImagePart(None, None, None, blob)
+
+        assert image_part._px_size == (204, 204)
 
     # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def Image_(self, request, image_):
-        return class_mock(request, "pptx.parts.image.Image", return_value=image_)
 
     @pytest.fixture
     def image_(self, request):
         return instance_mock(request, Image)
 
-    @pytest.fixture
-    def _init_(self, request):
-        return initializer_mock(request, ImagePart)
-
-    @pytest.fixture
-    def package_(self, request):
-        return instance_mock(request, Package)
-
 
 class DescribeImage(object):
-    def it_can_construct_from_a_path(self, from_path_fixture):
-        image_file, blob, filename, image_ = from_path_fixture
-        image = Image.from_file(image_file)
-        Image.from_blob.assert_called_once_with(blob, filename)
+    """Unit-test suite for `pptx.parts.image.Image` objects."""
+
+    def it_can_construct_from_a_path(self, from_blob_, image_):
+        with open(test_image_path, "rb") as f:
+            blob = f.read()
+        from_blob_.return_value = image_
+
+        image = Image.from_file(test_image_path)
+
+        Image.from_blob.assert_called_once_with(blob, "python-icon.jpeg")
         assert image is image_
 
     def it_can_construct_from_a_stream(self, from_stream_fixture):
@@ -121,10 +109,10 @@ class DescribeImage(object):
         Image.from_blob.assert_called_once_with(blob, None)
         assert image is image_
 
-    def it_can_construct_from_a_blob(self, from_blob_fixture):
-        blob, filename = from_blob_fixture
-        image = Image.from_blob(blob, filename)
-        Image.__init__.assert_called_once_with(blob, filename)
+    def it_can_construct_from_a_blob(self, _init_):
+        image = Image.from_blob(b"blob", "foo.png")
+
+        _init_.assert_called_once_with(image, b"blob", "foo.png")
         assert isinstance(image, Image)
 
     def it_knows_its_blob(self, blob_fixture):
@@ -220,20 +208,6 @@ class DescribeImage(object):
         return image, filename
 
     @pytest.fixture
-    def from_blob_fixture(self, _init_):
-        blob, filename = b"foobar", "foo.png"
-        return blob, filename
-
-    @pytest.fixture
-    def from_path_fixture(self, from_blob_, image_):
-        image_file = test_image_path
-        with open(test_image_path, "rb") as f:
-            blob = f.read()
-        filename = "python-icon.jpeg"
-        from_blob_.return_value = image_
-        return image_file, blob, filename, image_
-
-    @pytest.fixture
     def from_stream_fixture(self, from_blob_, image_):
         with open(test_image_path, "rb") as f:
             blob = f.read()
@@ -259,7 +233,7 @@ class DescribeImage(object):
 
     @pytest.fixture
     def from_blob_(self, request):
-        return method_mock(request, Image, "from_blob")
+        return method_mock(request, Image, "from_blob", autospec=False)
 
     @pytest.fixture
     def image_(self, request):

@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Gherkin step implementations for click action-related features.
-"""
-
-from __future__ import absolute_import, print_function
+"""Gherkin step implementations for click action-related features."""
 
 from behave import given, then, when
 
@@ -12,7 +8,7 @@ from pptx import Presentation
 from pptx.action import Hyperlink
 from pptx.enum.action import PP_ACTION
 
-from helpers import test_pptx
+from helpers import test_file
 
 
 # given ===================================================
@@ -21,7 +17,7 @@ from helpers import test_pptx
 @given("an ActionSetting object having action {action} as click_action")
 def given_an_ActionSetting_object_as_click_action(context, action):
     shape_idx = {"NONE": 0, "NAMED_SLIDE": 6}[action]
-    slides = Presentation(test_pptx("act-props")).slides
+    slides = Presentation(test_file("act-props.pptm")).slides
     context.slides = slides
     context.click_action = slides[2].shapes[shape_idx].click_action
 
@@ -49,8 +45,9 @@ def given_a_shape_having_click_action_action(context, action):
         "OLE action",
         "run macro",
         "run program",
+        "play media",
     ).index(action)
-    slides = Presentation(test_pptx("act-props")).slides
+    slides = Presentation(test_file("act-props.pptm")).slides
     context.slides = slides
     context.click_action = slides[2].shapes[shape_idx].click_action
 
@@ -90,8 +87,10 @@ def then_click_action_hyperlink_is_a_Hyperlink_object(context):
 def then_click_action_hyperlink_address_is_value(context, value):
     expected_value = None if value == "None" else value
     hyperlink = context.click_action.hyperlink
-    print("expected value %s != %s" % (expected_value, hyperlink.address))
-    assert hyperlink.address == expected_value
+    assert hyperlink.address == expected_value, "expected %s, got %s" % (
+        expected_value,
+        hyperlink.address,
+    )
 
 
 @then("click_action.target_slide is {value}")

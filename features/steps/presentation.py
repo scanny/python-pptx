@@ -1,12 +1,9 @@
 # encoding: utf-8
 
-"""
-Gherkin step implementations for presentation-level features.
-"""
-
-from __future__ import absolute_import
+"""Gherkin step implementations for presentation-level features."""
 
 import os
+import zipfile
 
 from behave import given, when, then
 
@@ -15,7 +12,7 @@ from pptx.compat import BytesIO
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.util import Inches
 
-from helpers import saved_pptx_path, test_pptx
+from helpers import saved_pptx_path, test_file, test_pptx
 
 
 # given ===================================================
@@ -70,6 +67,11 @@ def when_construct_default_prs(context):
 @when("I open a basic PowerPoint presentation")
 def when_open_basic_pptx(context):
     context.prs = Presentation(test_pptx("test"))
+
+
+@when("I open a presentation extracted into a directory")
+def when_I_open_a_presentation_extracted_into_a_directory(context):
+    context.prs = Presentation(test_file("extracted-pptx"))
 
 
 @when("I open a presentation contained in a stream")
@@ -179,6 +181,13 @@ def then_ext_rels_are_preserved(context):
     assert rel.is_external
     assert rel.reltype == RT.HYPERLINK
     assert rel.target_ref == "https://github.com/scanny/python-pptx"
+
+
+@then("the package has the expected number of .rels parts")
+def then_the_package_has_the_expected_number_of_rels_parts(context):
+    with zipfile.ZipFile(saved_pptx_path, "r") as z:
+        member_count = len(z.namelist())
+    assert member_count == 18, "expected 18, got %d" % member_count
 
 
 @then("the slide height matches the new value")

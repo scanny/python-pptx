@@ -1,18 +1,13 @@
 # encoding: utf-8
 
-"""
-Objects shared by modules in the pptx.opc sub-package
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Objects shared by modules in the pptx.opc sub-package."""
 
 
 class CaseInsensitiveDict(dict):
-    """
-    Mapping type that behaves like dict except that it matches without respect
-    to the case of the key. E.g. cid['A'] == cid['a']. Note this is not
-    general-purpose, just complete enough to satisfy opc package needs. It
-    assumes str keys for example.
+    """Mapping type like dict except it matches key without respect to case.
+
+    For example, D['A'] == D['a']. Note this is not general-purpose, just complete
+    enough to satisfy opc package needs. It assumes str keys for example.
     """
 
     def __contains__(self, key):

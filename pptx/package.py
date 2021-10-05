@@ -1,42 +1,29 @@
 # encoding: utf-8
 
-"""
-API classes for dealing with presentations and other objects one typically
-encounters as an end-user of the PowerPoint user interface.
-"""
+"""Overall .pptx package."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from .opc.constants import RELATIONSHIP_TYPE as RT
-from .opc.package import OpcPackage
-from .opc.packuri import PackURI
-from .parts.coreprops import CorePropertiesPart
-from .parts.image import Image, ImagePart
-from .parts.media import MediaPart
-from .util import lazyproperty
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.package import OpcPackage
+from pptx.opc.packuri import PackURI
+from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.image import Image, ImagePart
+from pptx.parts.media import MediaPart
+from pptx.util import lazyproperty
 
 
 class Package(OpcPackage):
-    """
-    Return an instance of |Package| loaded from *file*, where *file* can be a
-    path (a string) or a file-like object. If *file* is a path, it can be
-    either a path to a PowerPoint `.pptx` file or a path to a directory
-    containing an expanded presentation file, as would result from unzipping
-    a `.pptx` file. If *file* is |None|, the default presentation template is
-    loaded.
-    """
+    """An overall .pptx package."""
 
     @lazyproperty
     def core_properties(self):
-        """
-        Instance of |CoreProperties| holding the read/write Dublin Core
-        document properties for this presentation. Creates a default core
-        properties part if one is not present (not common).
+        """Instance of |CoreProperties| holding read/write Dublin Core doc properties.
+
+        Creates a default core properties part if one is not present (not common).
         """
         try:
             return self.part_related_by(RT.CORE_PROPERTIES)
         except KeyError:
-            core_props = CorePropertiesPart.default()
+            core_props = CorePropertiesPart.default(self)
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
 
@@ -155,18 +142,15 @@ class _ImageParts(object):
             yield image_part
 
     def get_or_add_image_part(self, image_file):
-        """
-        Return an |ImagePart| object containing the image in *image_file*,
-        which is either a path to an image file or a file-like object
-        containing an image. If an image part containing this same image
-        already exists, that instance is returned, otherwise a new image part
-        is created.
+        """Return |ImagePart| object containing the image in `image_file`.
+
+        `image_file` can be either a path to an image file or a file-like object
+        containing an image. If an image part containing this same image already exists,
+        that instance is returned, otherwise a new image part is created.
         """
         image = Image.from_file(image_file)
         image_part = self._find_by_sha1(image.sha1)
-        if image_part is None:
-            image_part = ImagePart.new(self._package, image)
-        return image_part
+        return ImagePart.new(self._package, image) if image_part is None else image_part
 
     def _find_by_sha1(self, sha1):
         """

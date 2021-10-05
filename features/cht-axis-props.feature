@@ -70,6 +70,18 @@ Feature: Axis properties
       | automatic | None  |
 
 
+  Scenario Outline: Get Axis.format
+    Given a <axis-type> axis
+     Then axis.format is a ChartFormat object
+      And axis.format.fill is a FillFormat object
+      And axis.format.line is a LineFormat object
+
+    Examples: axis types
+      | axis-type |
+      | category  |
+      | value     |
+
+
   Scenario Outline: Get Axis.has_[major/minor]_gridlines
     Given an axis <having-or-not> <major-or-minor> gridlines
      Then axis.has_<major-or-minor>_gridlines is <expected-value>
@@ -152,13 +164,24 @@ Feature: Axis properties
      Then axis.major_gridlines is a MajorGridlines object
 
 
-  Scenario Outline: Get Axis.format
-    Given a <axis-type> axis
-     Then axis.format is a ChartFormat object
-      And axis.format.fill is a FillFormat object
-      And axis.format.line is a LineFormat object
+  Scenario Outline: Get Axis.reverse_order
+    Given an axis having reverse-order turned <status>
+     Then axis.reverse_order is <expected-value>
 
-    Examples: axis types
-      | axis-type |
-      | category  |
-      | value     |
+    Examples: axis unit cases
+      | status | expected-value |
+      | on     | True           |
+      | off    | False          |
+
+
+  Scenario Outline: Set Axis.reverse_order
+    Given an axis having reverse-order turned <status>
+     When I assign <value> to axis.reverse_order
+     Then axis.reverse_order is <expected-value>
+
+    Examples: major/minor_unit assignment cases
+      | status | value | expected-value |
+      | off    | False | False          |
+      | off    | True  | True           |
+      | on     | False | False          |
+      | on     | True  | True           |

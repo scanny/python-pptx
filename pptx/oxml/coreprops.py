@@ -10,6 +10,7 @@ import re
 
 from datetime import datetime, timedelta
 
+from pptx.compat import to_unicode
 from . import parse_xml
 from .ns import nsdecls, qn
 from .xmlchemy import BaseOxmlElement, ZeroOrOne
@@ -276,10 +277,8 @@ class CT_CoreProperties(BaseOxmlElement):
             del self.attrib[qn("xsi:foo")]
 
     def _set_element_text(self, prop_name, value):
-        """
-        Set string value of *name* property to *value*.
-        """
-        value = str(value)
+        """Set string value of *name* property to *value*."""
+        value = to_unicode(value)
         if len(value) > 255:
             tmpl = "exceeded 255 char limit for property, got:\n\n'%s'"
             raise ValueError(tmpl % value)

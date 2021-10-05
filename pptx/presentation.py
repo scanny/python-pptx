@@ -1,23 +1,18 @@
 # encoding: utf-8
 
-"""
-Main presentation object.
-"""
+"""Main presentation object."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from .shared import PartElementProxy
-from .slide import SlideMasters, Slides
-from .util import lazyproperty
+from pptx.shared import PartElementProxy
+from pptx.slide import SlideMasters, Slides
+from pptx.util import lazyproperty
 
 
 class Presentation(PartElementProxy):
-    """
-    PresentationML (PML) presentation. Not intended to be constructed
-    directly. Use :func:`pptx.Presentation` to open or create a presentation.
-    """
+    """PresentationML (PML) presentation.
 
-    __slots__ = ("_slide_masters", "_slides")
+    Not intended to be constructed directly. Use :func:`pptx.Presentation` to open or
+    create a presentation.
+    """
 
     @property
     def core_properties(self):

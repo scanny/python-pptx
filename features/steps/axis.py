@@ -69,6 +69,13 @@ def given_an_axis_having_major_or_minor_unit_of_value(context, major_or_minor, v
     context.axis = chart.value_axis
 
 
+@given("an axis having reverse-order turned {status}")
+def given_an_axis_having_reverse_order_turned_on_or_off(context, status):
+    prs = Presentation(test_pptx("cht-axis-props"))
+    chart = prs.slides[0].shapes[0].chart
+    context.axis = {"on": chart.value_axis, "off": chart.category_axis}[status]
+
+
 @given("an axis of type {cls_name}")
 def given_an_axis_of_type_cls_name(context, cls_name):
     slide_idx = {"CategoryAxis": 0, "DateAxis": 6}[cls_name]
@@ -130,6 +137,11 @@ def when_I_assign_value_to_axis_major_or_minor_unit(context, value, major_or_min
     propname = "%s_unit" % major_or_minor
     new_value = {"8.4": 8.4, "5": 5, "None": None}[value]
     setattr(axis, propname, new_value)
+
+
+@when("I assign {value} to axis.reverse_order")
+def when_I_assign_value_to_axis_reverse_order(context, value):
+    context.axis.reverse_order = {"True": True, "False": False}[value]
 
 
 @when("I assign {value} to axis_title.has_text_frame")
@@ -225,6 +237,14 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
         value
     ]
     assert actual_value == expected_value, "got %s" % actual_value
+
+
+@then("axis.reverse_order is {value}")
+def then_axis_reverse_order_is_value(context, value):
+    axis = context.axis
+    actual_value = axis.reverse_order
+    expected_value = {"True": True, "False": False}[value]
+    assert actual_value is expected_value, "got %s" % actual_value
 
 
 @then("axis_title.format is a ChartFormat object")

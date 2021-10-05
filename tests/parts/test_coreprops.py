@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.coreprops module
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.parts.coreprops` module."""
 
 import pytest
 
@@ -15,7 +11,9 @@ from pptx.oxml.coreprops import CT_CoreProperties
 from pptx.parts.coreprops import CorePropertiesPart
 
 
-class DescribeCoreProperties(object):
+class DescribeCorePropertiesPart(object):
+    """Unit-test suite for `pptx.parts.coreprops.CorePropertiesPart` objects."""
+
     def it_knows_the_string_property_values(self, str_prop_get_fixture):
         core_properties, prop_name, expected_value = str_prop_get_fixture
         actual_value = getattr(core_properties, prop_name)
@@ -46,7 +44,7 @@ class DescribeCoreProperties(object):
         assert core_properties._element.xml == expected_xml
 
     def it_can_construct_a_default_core_props(self):
-        core_props = CorePropertiesPart.default()
+        core_props = CorePropertiesPart.default(None)
         # verify -----------------------
         assert isinstance(core_props, CorePropertiesPart)
         assert core_props.content_type is CT.OPC_CORE_PROPERTIES
@@ -102,7 +100,7 @@ class DescribeCoreProperties(object):
     def date_prop_set_fixture(self, request):
         prop_name, tagname, value, str_val, attrs = request.param
         coreProperties = self.coreProperties(None, None)
-        core_properties = CorePropertiesPart.load(None, None, coreProperties, None)
+        core_properties = CorePropertiesPart.load(None, None, None, coreProperties)
         expected_xml = self.coreProperties(tagname, str_val, attrs)
         return core_properties, prop_name, value, expected_xml
 
@@ -143,7 +141,7 @@ class DescribeCoreProperties(object):
     def str_prop_set_fixture(self, request):
         prop_name, tagname, value = request.param
         coreProperties = self.coreProperties(None, None)
-        core_properties = CorePropertiesPart.load(None, None, coreProperties, None)
+        core_properties = CorePropertiesPart.load(None, None, None, coreProperties)
         expected_xml = self.coreProperties(tagname, value)
         return core_properties, prop_name, value, expected_xml
 
@@ -154,14 +152,14 @@ class DescribeCoreProperties(object):
         str_val, expected_revision = request.param
         tagname = "" if str_val is None else "cp:revision"
         coreProperties = self.coreProperties(tagname, str_val)
-        core_properties = CorePropertiesPart.load(None, None, coreProperties, None)
+        core_properties = CorePropertiesPart.load(None, None, None, coreProperties)
         return core_properties, expected_revision
 
     @pytest.fixture(params=[(42, "42")])
     def revision_set_fixture(self, request):
         value, str_val = request.param
         coreProperties = self.coreProperties(None, None)
-        core_properties = CorePropertiesPart.load(None, None, coreProperties, None)
+        core_properties = CorePropertiesPart.load(None, None, None, coreProperties)
         expected_xml = self.coreProperties("cp:revision", str_val)
         return core_properties, value, expected_xml
 
@@ -178,7 +176,7 @@ class DescribeCoreProperties(object):
         if not tagname:
             child_element = ""
         elif not str_val:
-            child_element = "\n  <%s%s/>\n" % (tagname, attrs)
+            child_element = "\n  <%s%s/>\n" % (tagname, attrs)  # pragma: no cover
         else:
             child_element = "\n  <%s%s>%s</%s>\n" % (tagname, attrs, str_val, tagname)
         return tmpl % child_element
@@ -208,4 +206,4 @@ class DescribeCoreProperties(object):
             b"  <cp:version>1.2.88</cp:version>\n"
             b"</cp:coreProperties>\n"
         )
-        return CorePropertiesPart.load(None, None, xml, None)
+        return CorePropertiesPart.load(None, None, None, xml)

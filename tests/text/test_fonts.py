@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.text.fonts module
-"""
+"""Unit-test suite for `pptx.text.fonts` module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import unicode_literals
 
 import io
 import pytest
@@ -37,6 +35,8 @@ from ..unitutil.mock import (
 
 
 class DescribeFontFiles(object):
+    """Unit-test suite for `pptx.text.fonts.FontFiles` object."""
+
     def it_can_find_a_system_font_file(self, find_fixture):
         family_name, is_bold, is_italic, expected_path = find_fixture
         path = FontFiles.find(family_name, is_bold, is_italic)
@@ -65,9 +65,8 @@ class DescribeFontFiles(object):
 
     def it_iterates_over_fonts_in_dir_to_help_find(self, iter_fixture):
         directory, _Font_, expected_calls, expected_paths = iter_fixture
-        paths = list(FontFiles._iter_font_files_in(directory))
 
-        print(directory)
+        paths = list(FontFiles._iter_font_files_in(directory))
 
         assert _Font_.open.call_args_list == expected_calls
         assert paths == expected_paths
@@ -147,32 +146,40 @@ class DescribeFontFiles(object):
 
     @pytest.fixture
     def _font_directories_(self, request):
-        return method_mock(request, FontFiles, "_font_directories")
+        return method_mock(request, FontFiles, "_font_directories", autospec=False)
 
     @pytest.fixture
     def _installed_fonts_(self, request):
-        _installed_fonts_ = method_mock(request, FontFiles, "_installed_fonts")
-        _installed_fonts_.return_value = {
-            ("Foobar", False, False): "foobar.ttf",
-            ("Foobar", True, False): "foobarb.ttf",
-            ("Barfoo", False, True): "barfooi.ttf",
-        }
-        return _installed_fonts_
+        return method_mock(
+            request,
+            FontFiles,
+            "_installed_fonts",
+            autospec=False,
+            return_value={
+                ("Foobar", False, False): "foobar.ttf",
+                ("Foobar", True, False): "foobarb.ttf",
+                ("Barfoo", False, True): "barfooi.ttf",
+            },
+        )
 
     @pytest.fixture
     def _iter_font_files_in_(self, request):
-        return method_mock(request, FontFiles, "_iter_font_files_in")
+        return method_mock(request, FontFiles, "_iter_font_files_in", autospec=False)
 
     @pytest.fixture
     def _os_x_font_directories_(self, request):
-        return method_mock(request, FontFiles, "_os_x_font_directories")
+        return method_mock(request, FontFiles, "_os_x_font_directories", autospec=False)
 
     @pytest.fixture
     def _windows_font_directories_(self, request):
-        return method_mock(request, FontFiles, "_windows_font_directories")
+        return method_mock(
+            request, FontFiles, "_windows_font_directories", autospec=False
+        )
 
 
 class Describe_Font(object):
+    """Unit-test suite for `pptx.text.fonts._Font` object."""
+
     def it_can_construct_from_a_font_file_path(self, open_fixture):
         path, _Stream_, stream_ = open_fixture
         with _Font.open(path) as f:
@@ -208,11 +215,15 @@ class Describe_Font(object):
         font, expected_value = table_count_fixture
         assert font._table_count == expected_value
 
-    def it_reads_the_header_to_help_read_font(self, fields_fixture):
-        font, expected_values = fields_fixture
+    def it_reads_the_header_to_help_read_font(self, request):
+        stream_ = instance_mock(request, _Stream)
+        stream_.read_fields.return_value = ("foob", 42, 64, 7, 16)
+        font = _Font(stream_)
+
         fields = font._fields
-        font._stream.read_fields.assert_called_once_with(">4sHHHH", 0)
-        assert fields == expected_values
+
+        stream_.read_fields.assert_called_once_with(">4sHHHH", 0)
+        assert fields == ("foob", 42, 64, 7, 16)
 
     # fixtures ---------------------------------------------
 
@@ -233,13 +244,6 @@ class Describe_Font(object):
         _tables_.return_value = {"name": name_table_}
         name_table_.family_name = expected_name
         return font, expected_name
-
-    @pytest.fixture
-    def fields_fixture(self, read_fields_):
-        stream = _Stream(None)
-        font = _Font(stream)
-        read_fields_.return_value = expected_values = ("foob", 42, 64, 7, 16)
-        return font, expected_values
 
     @pytest.fixture(
         params=[("head", True, True), ("head", False, False), ("foob", True, False)]
@@ -313,10 +317,6 @@ class Describe_Font(object):
         return instance_mock(request, _NameTable)
 
     @pytest.fixture
-    def read_fields_(self, request):
-        return method_mock(request, _Stream, "read_fields")
-
-    @pytest.fixture
     def _Stream_(self, request):
         return class_mock(request, "pptx.text.fonts._Stream")
 
@@ -342,11 +342,17 @@ class Describe_Font(object):
 
 
 class Describe_Stream(object):
-    def it_can_construct_from_a_path(self, open_fixture):
-        path, open_, _init_, file_ = open_fixture
-        stream = _Stream.open(path)
-        open_.assert_called_once_with(path, "rb")
-        _init_.assert_called_once_with(file_)
+    """Unit-test suite for `pptx.text.fonts._Stream` object."""
+
+    def it_can_construct_from_a_path(self, request):
+        open_ = open_mock(request, "pptx.text.fonts")
+        _init_ = initializer_mock(request, _Stream)
+        file_ = open_.return_value
+
+        stream = _Stream.open("foobar.ttf")
+
+        open_.assert_called_once_with("foobar.ttf", "rb")
+        _init_.assert_called_once_with(stream, file_)
         assert isinstance(stream, _Stream)
 
     def it_can_be_closed(self, close_fixture):
@@ -376,12 +382,6 @@ class Describe_Stream(object):
         return stream, file_
 
     @pytest.fixture
-    def open_fixture(self, open_, _init_):
-        path = "foobar.ttf"
-        file_ = open_.return_value
-        return path, open_, _init_, file_
-
-    @pytest.fixture
     def read_fixture(self, file_):
         stream = _Stream(file_)
         offset, length = 42, 21
@@ -403,16 +403,10 @@ class Describe_Stream(object):
     def file_(self, request):
         return instance_mock(request, io.RawIOBase)
 
-    @pytest.fixture
-    def _init_(self, request):
-        return initializer_mock(request, _Stream)
-
-    @pytest.fixture
-    def open_(self, request):
-        return open_mock(request, "pptx.text.fonts")
-
 
 class Describe_TableFactory(object):
+    """Unit-test suite for `pptx.text.fonts._TableFactory` object."""
+
     def it_constructs_the_appropriate_table_object(self, fixture):
         tag, stream_, offset, length, TableClass_, TableClass = fixture
         table = _TableFactory(tag, stream_, offset, length)
@@ -441,6 +435,8 @@ class Describe_TableFactory(object):
 
 
 class Describe_HeadTable(object):
+    """Unit-test suite for `pptx.text.fonts._HeadTable` object."""
+
     def it_knows_whether_the_font_is_bold(self, bold_fixture):
         head_table, expected_value = bold_fixture
         assert head_table.is_bold is expected_value
@@ -486,22 +482,48 @@ class Describe_HeadTable(object):
 
 
 class Describe_NameTable(object):
+    """Unit-test suite for `pptx.text.fonts._NameTable` object."""
+
     def it_knows_the_font_family_name(self, family_fixture):
         name_table, expected_value = family_fixture
         family_name = name_table.family_name
         assert family_name == expected_value
 
-    def it_provides_access_to_its_names_to_help_props(self, names_fixture):
-        name_table, names_dict = names_fixture
-        names = name_table._names
-        name_table._iter_names.assert_called_once_with()
-        assert names == names_dict
+    def it_provides_access_to_its_names_to_help_props(self, request):
+        _iter_names_ = method_mock(
+            request,
+            _NameTable,
+            "_iter_names",
+            return_value=iter([((0, 1), "Foobar"), ((3, 1), "Barfoo")]),
+        )
+        name_table = _NameTable(None, None, None, None)
 
-    def it_iterates_over_its_names_to_help_read_names(self, iter_fixture):
-        name_table, expected_calls, expected_names = iter_fixture
+        names = name_table._names
+
+        _iter_names_.assert_called_once_with(name_table)
+        assert names == {(0, 1): "Foobar", (3, 1): "Barfoo"}
+
+    def it_iterates_over_its_names_to_help_read_names(
+        self, request, _table_bytes_prop_
+    ):
+        property_mock(request, _NameTable, "_table_header", return_value=(0, 3, 42))
+        _table_bytes_prop_.return_value = "xXx"
+        _read_name_ = method_mock(
+            request,
+            _NameTable,
+            "_read_name",
+            side_effect=iter([(0, 1, "Foobar"), (3, 1, "Barfoo"), (9, 9, None)]),
+        )
+        name_table = _NameTable(None, None, None, None)
+
         names = list(name_table._iter_names())
-        assert name_table._read_name.call_args_list == expected_calls
-        assert names == expected_names
+
+        assert _read_name_.call_args_list == [
+            call(name_table, "xXx", 0, 42),
+            call(name_table, "xXx", 1, 42),
+            call(name_table, "xXx", 2, 42),
+        ]
+        assert names == [((0, 1), "Foobar"), ((3, 1), "Barfoo")]
 
     def it_reads_the_table_header_to_help_read_names(self, header_fixture):
         names_table, expected_value = header_fixture
@@ -516,18 +538,41 @@ class Describe_NameTable(object):
         )
         assert table_bytes == expected_value
 
-    def it_reads_a_name_to_help_read_names(self, read_fixture):
-        name_table, bufr, idx, strs_offset, platform_id = read_fixture[:5]
-        encoding_id, name_str_offset, length = read_fixture[5:8]
-        expected_value = read_fixture[8]
-
-        name = name_table._read_name(bufr, idx, strs_offset)
-
-        name_table._name_header.assert_called_once_with(bufr, idx)
-        name_table._read_name_text.assert_called_once_with(
-            bufr, platform_id, encoding_id, strs_offset, name_str_offset, length
+    def it_reads_a_name_to_help_read_names(self, request):
+        bufr, idx, strs_offset, platform_id, name_id = "buffer", 3, 47, 0, 1
+        encoding_id, name_str_offset, length, name = 7, 36, 12, "Arial"
+        _name_header_ = method_mock(
+            request,
+            _NameTable,
+            "_name_header",
+            autospec=False,
+            return_value=(
+                platform_id,
+                encoding_id,
+                666,
+                name_id,
+                length,
+                name_str_offset,
+            ),
         )
-        assert name == expected_value
+        _read_name_text_ = method_mock(
+            request, _NameTable, "_read_name_text", return_value=name
+        )
+        name_table = _NameTable(None, None, None, None)
+
+        actual = name_table._read_name(bufr, idx, strs_offset)
+
+        _name_header_.assert_called_once_with(bufr, idx)
+        _read_name_text_.assert_called_once_with(
+            name_table,
+            bufr,
+            platform_id,
+            encoding_id,
+            strs_offset,
+            name_str_offset,
+            length,
+        )
+        assert actual == (platform_id, name_id, name)
 
     def it_reads_a_name_header_to_help_read_names(self, name_hdr_fixture):
         name_table, bufr, idx, expected_value = name_hdr_fixture
@@ -594,28 +639,18 @@ class Describe_NameTable(object):
             ({(9, 1): "Foobar", (6, 1): "Barfoo"}, None),
         ]
     )
-    def family_fixture(self, request, _names_):
+    def family_fixture(self, request, _names_prop_):
         names, expected_value = request.param
         name_table = _NameTable(None, None, None, None)
-        _names_.return_value = names
+        _names_prop_.return_value = names
         return name_table, expected_value
 
     @pytest.fixture
-    def header_fixture(self, _table_bytes_):
+    def header_fixture(self, _table_bytes_prop_):
         name_table = _NameTable(None, None, None, None)
-        _table_bytes_.return_value = b"\x00\x00\x00\x02\x00\x2A"
+        _table_bytes_prop_.return_value = b"\x00\x00\x00\x02\x00\x2A"
         expected_value = (0, 2, 42)
         return name_table, expected_value
-
-    @pytest.fixture
-    def iter_fixture(self, _table_header_, _table_bytes_, _read_name):
-        name_table = _NameTable(None, None, None, None)
-        _table_header_.return_value = (0, 3, 42)
-        _table_bytes_.return_value = "xXx"
-        _read_name.side_effect = [(0, 1, "Foobar"), (3, 1, "Barfoo"), (9, 9, None)]
-        expected_calls = [call("xXx", 0, 42), call("xXx", 1, 42), call("xXx", 2, 42)]
-        expected_names = [((0, 1), "Foobar"), ((3, 1), "Barfoo")]
-        return name_table, expected_calls, expected_names
 
     @pytest.fixture
     def name_hdr_fixture(self):
@@ -633,13 +668,6 @@ class Describe_NameTable(object):
         idx = 1
         expected_value = (0, 1, 2, 3, 4, 5)
         return name_table, bufr, idx, expected_value
-
-    @pytest.fixture
-    def names_fixture(self, _iter_names_):
-        name_table = _NameTable(None, None, None, None)
-        _iter_names_.return_value = iter([((0, 1), "Foobar"), ((3, 1), "Barfoo")])
-        names_dict = {(0, 1): "Foobar", (3, 1): "Barfoo"}
-        return name_table, names_dict
 
     @pytest.fixture
     def name_text_fixture(self, _raw_name_string_, _decode_name_):
@@ -668,71 +696,24 @@ class Describe_NameTable(object):
         expected_bytes = b"Foobar"
         return (name_table, bufr, strings_offset, str_offset, length, expected_bytes)
 
-    @pytest.fixture
-    def read_fixture(self, _name_header, _read_name_text):
-        name_table = _NameTable(None, None, None, None)
-        bufr, idx, strs_offset, platform_id, name_id = "buffer", 3, 47, 0, 1
-        encoding_id, name_str_offset, length, name = 7, 36, 12, "Arial"
-        _name_header.return_value = (
-            platform_id,
-            encoding_id,
-            666,
-            name_id,
-            length,
-            name_str_offset,
-        )
-        _read_name_text.return_value = name
-        expected_value = (platform_id, name_id, name)
-        return (
-            name_table,
-            bufr,
-            idx,
-            strs_offset,
-            platform_id,
-            encoding_id,
-            name_str_offset,
-            length,
-            expected_value,
-        )
-
     # fixture components -----------------------------------
 
     @pytest.fixture
     def _decode_name_(self, request):
-        return method_mock(request, _NameTable, "_decode_name")
+        return method_mock(request, _NameTable, "_decode_name", autospec=False)
 
     @pytest.fixture
-    def _iter_names_(self, request):
-        return method_mock(request, _NameTable, "_iter_names")
-
-    @pytest.fixture
-    def _name_header(self, request):
-        return method_mock(request, _NameTable, "_name_header")
+    def _names_prop_(self, request):
+        return property_mock(request, _NameTable, "_names")
 
     @pytest.fixture
     def _raw_name_string_(self, request):
-        return method_mock(request, _NameTable, "_raw_name_string")
-
-    @pytest.fixture
-    def _read_name(self, request):
-        return method_mock(request, _NameTable, "_read_name")
-
-    @pytest.fixture
-    def _read_name_text(self, request):
-        return method_mock(request, _NameTable, "_read_name_text")
+        return method_mock(request, _NameTable, "_raw_name_string", autospec=False)
 
     @pytest.fixture
     def stream_(self, request):
         return instance_mock(request, _Stream)
 
     @pytest.fixture
-    def _table_bytes_(self, request):
+    def _table_bytes_prop_(self, request):
         return property_mock(request, _NameTable, "_table_bytes")
-
-    @pytest.fixture
-    def _table_header_(self, request):
-        return property_mock(request, _NameTable, "_table_header")
-
-    @pytest.fixture
-    def _names_(self, request):
-        return property_mock(request, _NameTable, "_names")
