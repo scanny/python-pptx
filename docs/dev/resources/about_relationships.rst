@@ -151,7 +151,8 @@ How will dynamic parts (like Slide) interact with its relationship list?
 
 ? Should it just add items to the relationship list when it creates new things?
 
-? Does it need some sort of lookup capability in order to delete? Or just have a delete relationship method on RelationshipCollection or something like that.
+? Does it need some sort of lookup capability in order to delete? Or just have a delete
+relationship method on _Relationships or something like that.
 
 Need to come up with a plausible set of use cases to think about a design.
 Right now the only use case is loading a template into a presentation and

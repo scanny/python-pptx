@@ -25,6 +25,7 @@ Feature: Get and set click action properties
       | OLE action         | OLE_VERB          |
       | run macro          | RUN_MACRO         |
       | run program        | RUN_PROGRAM       |
+      | play media         | NONE              |
 
 
   Scenario Outline: Get ActionSetting.hyperlink

@@ -2,18 +2,20 @@
 
 """lxml custom element classes for picture-related XML elements."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import division
 
-from .. import parse_xml
-from ..ns import nsdecls
-from .shared import BaseShapeElement
-from ..xmlchemy import BaseOxmlElement, OneAndOnlyOne
+from xml.sax.saxutils import escape
+
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne
 
 
 class CT_Picture(BaseShapeElement):
-    """
-    ``<p:pic>`` element, which represents a picture shape (an image placement
-    on a slide).
+    """`p:pic` element.
+
+    Represents a picture shape (an image placement on a slide).
     """
 
     nvPicPr = OneAndOnlyOne("p:nvPicPr")
@@ -61,14 +63,11 @@ class CT_Picture(BaseShapeElement):
         return parse_xml(cls._pic_ph_tmpl() % (id_, name, desc, rId))
 
     @classmethod
-    def new_pic(cls, id_, name, desc, rId, left, top, width, height):
-        """
-        Return a new ``<p:pic>`` element tree configured with the supplied
-        parameters.
-        """
-        xml = cls._pic_tmpl() % (id_, name, desc, rId, left, top, width, height)
-        pic = parse_xml(xml)
-        return pic
+    def new_pic(cls, shape_id, name, desc, rId, x, y, cx, cy):
+        """Return new `<p:pic>` element tree configured with supplied parameters."""
+        return parse_xml(
+            cls._pic_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy)
+        )
 
     @classmethod
     def new_video_pic(

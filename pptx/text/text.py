@@ -2,8 +2,6 @@
 
 """Text-related objects such as TextFrame and Paragraph."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.compat import to_unicode
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
@@ -20,10 +18,10 @@ from pptx.shared import ElementProxy
 
 
 class TextFrame(Subshape):
-    """
-    The part of a shape that contains its text. Not all shapes have a text
-    frame. Corresponds to the ``<p:txBody>`` element that can appear as a
-    child element of ``<p:sp>``. Not intended to be constructed directly.
+    """The part of a shape that contains its text.
+
+    Not all shapes have a text frame. Corresponds to the ``<p:txBody>`` element that can
+    appear as a child element of ``<p:sp>``. Not intended to be constructed directly.
     """
 
     def __init__(self, txBody, parent):
@@ -54,9 +52,7 @@ class TextFrame(Subshape):
         self._bodyPr.autofit = value
 
     def clear(self):
-        """
-        Remove all paragraphs except one empty one.
-        """
+        """Remove all paragraphs except one empty one."""
         for p in self._txBody.p_lst[1:]:
             self._txBody.remove(p)
         p = self.paragraphs[0]
@@ -85,7 +81,7 @@ class TextFrame(Subshape):
         """
         # ---no-op when empty as fit behavior not defined for that case---
         if self.text == "":
-            return
+            return  # pragma: no cover
 
         font_size = self._best_fit_font_size(
             font_family, max_size, bold, italic, font_file
@@ -213,7 +209,7 @@ class TextFrame(Subshape):
     @word_wrap.setter
     def word_wrap(self, value):
         if value not in (True, False, None):
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 "assigned value must be True, False, or None, got %s" % value
             )
         self._txBody.bodyPr.wrap = {
@@ -223,10 +219,10 @@ class TextFrame(Subshape):
         }[value]
 
     def _apply_fit(self, font_family, font_size, is_bold, is_italic):
-        """
-        Arrange all the text in this text frame to fit inside its extents by
-        setting auto size off, wrap on, and setting the font of all its text
-        to *font_family*, *font_size*, *is_bold*, and *is_italic*.
+        """Arrange text in this text frame to fit inside its extents.
+
+        This is accomplished by setting auto size off, wrap on, and setting the font of
+        all its text to `font_family`, `font_size`, `is_bold`, and `is_italic`.
         """
         self.auto_size = MSO_AUTO_SIZE.NONE
         self.word_wrap = True

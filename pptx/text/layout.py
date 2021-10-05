@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Objects related to layout of rendered text, such as TextFitter.
-"""
-
-from __future__ import absolute_import, print_function
+"""Objects related to layout of rendered text, such as TextFitter."""
 
 from PIL import ImageFont
 
@@ -20,10 +16,11 @@ class TextFitter(tuple):
 
     @classmethod
     def best_fit_font_size(cls, text, extents, max_size, font_file):
-        """
-        Return the largest whole-number point size less than or equal to
-        *max_size* that allows *text* to fit completely within *extents* when
-        rendered using font defined in *font_file*.
+        """Return whole-number best fit point size less than or equal to `max_size`.
+
+        The return value is the largest whole-number point size less than or equal to
+        `max_size` that allows `text` to fit completely within `extents` when rendered
+        using font defined in `font_file`.
         """
         line_source = _LineSource(text)
         text_fitter = cls(line_source, extents, font_file)
@@ -67,17 +64,17 @@ class TextFitter(tuple):
 
     @property
     def _fits_inside_predicate(self):
-        """
-        Return a function taking an integer point size argument that returns
-        |True| if the text in this fitter can be wrapped to fit entirely
-        within its extents when rendered at that point size.
+        """Return  function taking an integer point size argument.
+
+        The function returns |True| if the text in this fitter can be wrapped to fit
+        entirely within its extents when rendered at that point size.
         """
 
         def predicate(point_size):
-            """
-            Return |True| if the text in *line_source* can be wrapped to fit
-            entirely within *extents* when rendered at *point_size* using the
-            font defined in *font_file*.
+            """Return |True| when text in `line_source` can be wrapped to fit.
+
+            Fit means text can be broken into lines that fit entirely within `extents`
+            when rendered at `point_size` using the font defined in `font_file`.
             """
             text_lines = self._wrap_lines(self._line_source, point_size)
             cy = _rendered_size("Ty", point_size, self._font_file)[1]

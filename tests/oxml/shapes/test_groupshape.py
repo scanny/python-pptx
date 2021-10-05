@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.oxml.shapes.shapetree module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.oxml.shapes.groupshape` module."""
 
 import pytest
 
@@ -16,6 +14,8 @@ from ...unitutil.mock import call, class_mock, instance_mock, method_mock, prope
 
 
 class DescribeCT_GroupShape(object):
+    """Unit-test suite for `pptx.oxml.shapes.groupshape.CT_GroupShape` objects."""
+
     def it_can_add_a_graphicFrame_element_containing_a_table(self, add_table_fixt):
         spTree, id_, name, rows, cols, x, y, cx, cy = add_table_fixt[:9]
         new_table_graphicFrame_ = add_table_fixt[9]
@@ -26,7 +26,9 @@ class DescribeCT_GroupShape(object):
         new_table_graphicFrame_.assert_called_once_with(
             id_, name, rows, cols, x, y, cx, cy
         )
-        insert_element_before_.assert_called_once_with(graphicFrame_, "p:extLst")
+        insert_element_before_.assert_called_once_with(
+            spTree, graphicFrame_, "p:extLst"
+        )
         assert graphicFrame is graphicFrame_
 
     def it_can_add_a_grpSp_element(self, add_grpSp_fixture):
@@ -40,37 +42,45 @@ class DescribeCT_GroupShape(object):
     def it_can_add_a_pic_element_representing_a_picture(self, add_pic_fixt):
         spTree, id_, name, desc, rId, x, y, cx, cy = add_pic_fixt[:9]
         CT_Picture_, insert_element_before_, pic_ = add_pic_fixt[9:]
+
         pic = spTree.add_pic(id_, name, desc, rId, x, y, cx, cy)
+
         CT_Picture_.new_pic.assert_called_once_with(id_, name, desc, rId, x, y, cx, cy)
-        insert_element_before_.assert_called_once_with(pic_, "p:extLst")
+        insert_element_before_.assert_called_once_with(spTree, pic_, "p:extLst")
         assert pic is pic_
 
     def it_can_add_an_sp_element_for_a_placeholder(self, add_placeholder_fixt):
         spTree, id_, name, ph_type, orient, sz, idx = add_placeholder_fixt[:7]
         CT_Shape_, insert_element_before_, sp_ = add_placeholder_fixt[7:]
+
         sp = spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
+
         CT_Shape_.new_placeholder_sp.assert_called_once_with(
             id_, name, ph_type, orient, sz, idx
         )
-        insert_element_before_.assert_called_once_with(sp_, "p:extLst")
+        insert_element_before_.assert_called_once_with(spTree, sp_, "p:extLst")
         assert sp is sp_
 
     def it_can_add_an_sp_element_for_an_autoshape(self, add_autoshape_fixt):
         spTree, id_, name, prst, x, y, cx, cy = add_autoshape_fixt[:8]
         CT_Shape_, insert_element_before_, sp_ = add_autoshape_fixt[8:]
+
         sp = spTree.add_autoshape(id_, name, prst, x, y, cx, cy)
+
         CT_Shape_.new_autoshape_sp.assert_called_once_with(
             id_, name, prst, x, y, cx, cy
         )
-        insert_element_before_.assert_called_once_with(sp_, "p:extLst")
+        insert_element_before_.assert_called_once_with(spTree, sp_, "p:extLst")
         assert sp is sp_
 
     def it_can_add_a_textbox_sp_element(self, add_textbox_fixt):
         spTree, id_, name, x, y, cx, cy, CT_Shape_ = add_textbox_fixt[:8]
         insert_element_before_, sp_ = add_textbox_fixt[8:]
+
         sp = spTree.add_textbox(id_, name, x, y, cx, cy)
+
         CT_Shape_.new_textbox_sp.assert_called_once_with(id_, name, x, y, cx, cy)
-        insert_element_before_.assert_called_once_with(sp_, "p:extLst")
+        insert_element_before_.assert_called_once_with(spTree, sp_, "p:extLst")
         assert sp is sp_
 
     def it_can_recalculate_its_pos_and_size(self, recalc_fixture):

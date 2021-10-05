@@ -2,7 +2,7 @@
 
 """ImagePart and related objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import division
 
 import hashlib
 import os
@@ -12,34 +12,36 @@ try:
 except ImportError:
     import Image as PIL_Image
 
-from ..compat import BytesIO, is_string
-from ..opc.package import Part
-from ..opc.spec import image_content_types
-from ..util import lazyproperty
+from pptx.compat import BytesIO, is_string
+from pptx.opc.package import Part
+from pptx.opc.spec import image_content_types
+from pptx.util import lazyproperty
 
 
 class ImagePart(Part):
-    """
-    An image part, generally having a partname matching the regex
-    ``ppt/media/image[1-9][0-9]*.*``.
+    """An image part.
+
+    An image part generally has a partname matching the regex
+    `ppt/media/image[1-9][0-9]*.*`.
     """
 
-    def __init__(self, partname, content_type, blob, package, filename=None):
-        super(ImagePart, self).__init__(partname, content_type, blob, package)
+    def __init__(self, partname, content_type, package, blob, filename=None):
+        super(ImagePart, self).__init__(partname, content_type, package, blob)
         self._filename = filename
 
     @classmethod
-    def load(cls, partname, content_type, blob, package):
-        return cls(partname, content_type, blob, package)
-
-    @classmethod
     def new(cls, package, image):
+        """Return new |ImagePart| instance containing `image`.
+
+        `image` is an |Image| object.
         """
-        Return a new |ImagePart| instance containing *image*, which is an
-        |Image| object.
-        """
-        partname = package.next_image_partname(image.ext)
-        return cls(partname, image.content_type, image.blob, package, image.filename)
+        return cls(
+            package.next_image_partname(image.ext),
+            image.content_type,
+            package,
+            image.blob,
+            image.filename,
+        )
 
     @property
     def desc(self):
@@ -137,9 +139,7 @@ class ImagePart(Part):
 
 
 class Image(object):
-    """
-    Immutable value object representing an image such as a JPEG, PNG, or GIF.
-    """
+    """Immutable value object representing an image such as a JPEG, PNG, or GIF."""
 
     def __init__(self, blob, filename):
         super(Image, self).__init__()
@@ -148,9 +148,7 @@ class Image(object):
 
     @classmethod
     def from_blob(cls, blob, filename=None):
-        """
-        Return a new |Image| object loaded from the image binary in *blob*.
-        """
+        """Return a new |Image| object loaded from the image binary in *blob*."""
         return cls(blob, filename)
 
     @classmethod

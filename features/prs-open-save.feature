@@ -15,6 +15,12 @@ Feature: Round-trip a presentation
        And I save the presentation
       Then I see the pptx file in the working directory
 
+  Scenario: Start presentation from package extracted into directory
+     Given a clean working directory
+      When I open a presentation extracted into a directory
+       And I save the presentation
+      Then I see the pptx file in the working directory
+
   Scenario: Save presentation to package stream
      Given a clean working directory
       When I open a basic PowerPoint presentation
@@ -26,3 +32,4 @@ Feature: Round-trip a presentation
      Given a presentation with external relationships
       When I save and reload the presentation
       Then the external relationships are still there
+       And the package has the expected number of .rels parts

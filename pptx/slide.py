@@ -2,8 +2,6 @@
 
 """Slide-related objects, including masters, layouts, and notes."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.text.text import TextListStyle
@@ -24,8 +22,6 @@ from pptx.util import lazyproperty
 
 class _BaseSlide(PartElementProxy):
     """Base class for slide objects, including masters, layouts and notes."""
-
-    __slots__ = ("_background",)
 
     @lazyproperty
     def background(self):
@@ -60,8 +56,6 @@ class _BaseMaster(_BaseSlide):
     Provides access to placeholders and regular shapes.
     """
 
-    __slots__ = ("_placeholders", "_shapes")
-
     @lazyproperty
     def placeholders(self):
         """
@@ -85,23 +79,20 @@ class NotesMaster(_BaseMaster):
     most commonly used of which are placeholders.
     """
 
-    __slots__ = ()
-
 
 class NotesSlide(_BaseSlide):
-    """
-    Notes slide object. Provides access to slide notes placeholder and other
-    shapes on the notes handout page.
-    """
+    """Notes slide object.
 
-    __slots__ = ("_placeholders", "_shapes")
+    Provides access to slide notes placeholder and other shapes on the notes handout
+    page.
+    """
 
     def clone_master_placeholders(self, notes_master):
-        """
-        Selectively add placeholder shape elements from *notes_master* to the
-        shapes collection of this notes slide. Z-order of placeholders is
-        preserved. Certain placeholders (header, date, footer) are not
-        cloned.
+        """Selectively add placeholder shape elements from *notes_master*.
+
+        Selected placeholder shape elements from *notes_master* are added to the shapes
+        collection of this notes slide. Z-order of placeholders is preserved. Certain
+        placeholders (header, date, footer) are not cloned.
         """
 
         def iter_cloneable_placeholders(notes_master):
@@ -169,8 +160,6 @@ class NotesSlide(_BaseSlide):
 
 class Slide(_BaseSlide):
     """Slide object. Provides access to shapes and slide-level properties."""
-
-    __slots__ = ("_placeholders", "_shapes")
 
     @property
     def background(self):
@@ -331,8 +320,6 @@ class SlideLayout(_BaseSlide):
     slide layout-level properties.
     """
 
-    __slots__ = ("_placeholders", "_shapes")
-
     def iter_cloneable_placeholders(self):
         """
         Generate a reference to each layout placeholder on this slide layout
@@ -405,8 +392,6 @@ class SlideLayouts(ParentedElementProxy):
 
     Supports indexed access, len(), iteration, index() and remove().
     """
-
-    __slots__ = ("_sldLayoutIdLst",)
 
     def __init__(self, sldLayoutIdLst, parent):
         super(SlideLayouts, self).__init__(sldLayoutIdLst, parent)
@@ -484,8 +469,6 @@ class SlideMaster(_BaseMaster):
     inherited from |_BaseMaster|.
     """
 
-    __slots__ = ("_slide_layouts",)
-
     @lazyproperty
     def slide_layouts(self):
         """|SlideLayouts| object providing access to this slide-master's layouts."""
@@ -518,8 +501,6 @@ class SlideMasters(ParentedElementProxy):
 
     Has list access semantics, supporting indexed access, len(), and iteration.
     """
-
-    __slots__ = ("_sldMasterIdLst",)
 
     def __init__(self, sldMasterIdLst, parent):
         super(SlideMasters, self).__init__(sldMasterIdLst, parent)
@@ -557,8 +538,6 @@ class _Background(ElementProxy):
     explicitly-defined background; a slide with an inherited background still
     has a |_Background| object.
     """
-
-    __slots__ = ("_cSld", "_fill")
 
     def __init__(self, cSld):
         super(_Background, self).__init__(cSld)

@@ -83,7 +83,7 @@ class Element(object):
         Provide a more meaningful repr value for an Element object, one that
         displays the tagname as a simple empty element, e.g. ``<w:pPr/>``.
         """
-        return "<%s/>" % self._tagname
+        return "<%s/>" % self._tagname  # pragma: no cover
 
     def connect_children(self, child_node_list):
         """
@@ -134,7 +134,7 @@ class Element(object):
         for name, val in self._attrs:
             pfx = nspfx(name)
             if pfx is None or pfx in nspfxs:
-                continue
+                continue  # pragma: no cover
             nspfxs.append(pfx)
         return nspfxs
 

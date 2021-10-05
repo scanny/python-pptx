@@ -1,18 +1,15 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.shapes.placeholder module
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""Unit-test suite for `pptx.shapes.placeholder` module."""
 
 import pytest
 
 from pptx.chart.data import ChartData
+from pptx.enum.chart import XL_CHART_TYPE as XCT
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 from pptx.parts.image import ImagePart
-from pptx.parts.slide import NotesSlidePart, SlideLayoutPart, SlidePart
+from pptx.parts.slide import NotesSlidePart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder,
     _BaseSlidePlaceholder,
@@ -44,6 +41,8 @@ from ..unitutil.mock import class_mock, instance_mock, method_mock, property_moc
 
 
 class Describe_BaseSlidePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder._BaseSlidePlaceholder` object."""
+
     def it_knows_its_shape_type(self):
         placeholder = _BaseSlidePlaceholder(None, None)
         assert placeholder.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
@@ -52,11 +51,15 @@ class Describe_BaseSlidePlaceholder(object):
         placeholder, prop_name, expected_value = override_fixture
         assert getattr(placeholder, prop_name) == expected_value
 
-    def it_provides_inherited_dims_when_no_override(self, inherited_fixture):
-        placeholder, prop_name, expected_value = inherited_fixture
+    @pytest.mark.parametrize("prop_name", ("left", "top", "width", "height"))
+    def it_provides_inherited_dims_when_no_override(self, request, prop_name):
+        method_mock(request, _BaseSlidePlaceholder, "_inherited_value", return_value=42)
+        placeholder = _BaseSlidePlaceholder(element("p:sp/p:spPr"), None)
+
         value = getattr(placeholder, prop_name)
-        placeholder._inherited_value.assert_called_once_with(prop_name)
-        assert value == expected_value
+
+        placeholder._inherited_value.assert_called_once_with(placeholder, prop_name)
+        assert value == 42
 
     def it_gets_an_inherited_dim_value_to_help(self, base_val_fixture):
         placeholder, attr_name, expected_value = base_val_fixture
@@ -115,13 +118,6 @@ class Describe_BaseSlidePlaceholder(object):
         expected_xml = xml(expected_cxml)
         return placeholder, prop_name, value, expected_xml
 
-    @pytest.fixture(params=["left", "top", "width", "height"])
-    def inherited_fixture(self, request, _inherited_value_):
-        prop_name = request.param
-        placeholder = _BaseSlidePlaceholder(element("p:sp/p:spPr"), None)
-        _inherited_value_.return_value = expected_value = 42
-        return placeholder, prop_name, expected_value
-
     @pytest.fixture(
         params=[
             ("left", "p:sp/p:spPr/a:xfrm/a:off{x=12}", 12),
@@ -150,10 +146,6 @@ class Describe_BaseSlidePlaceholder(object):
         return property_mock(request, _BaseSlidePlaceholder, "_base_placeholder")
 
     @pytest.fixture
-    def _inherited_value_(self, request):
-        return method_mock(request, _BaseSlidePlaceholder, "_inherited_value")
-
-    @pytest.fixture
     def layout_placeholder_(self, request):
         return instance_mock(request, LayoutPlaceholder)
 
@@ -173,6 +165,8 @@ class Describe_BaseSlidePlaceholder(object):
 
 
 class DescribeBasePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.BasePlaceholder` object."""
+
     def it_knows_its_idx_value(self, idx_fixture):
         placeholder, idx = idx_fixture
         assert placeholder.idx == idx
@@ -291,19 +285,40 @@ class DescribeBasePlaceholder(object):
 
 
 class DescribeChartPlaceholder(object):
-    def it_can_insert_a_chart_into_itself(self, insert_fixture):
-        chart_ph, chart_type, chart_data_, graphicFrame = insert_fixture[:4]
-        rId, PlaceholderGraphicFrame_, ph_graphic_frame_ = insert_fixture[4:]
+    """Unit-test suite for `pptx.shapes.placeholder.ChartPlaceholder` object."""
 
-        ph_graphic_frame = chart_ph.insert_chart(chart_type, chart_data_)
-
-        chart_ph.part.add_chart_part.assert_called_once_with(chart_type, chart_data_)
-        chart_ph._new_chart_graphicFrame.assert_called_once_with(
-            rId, chart_ph.left, chart_ph.top, chart_ph.width, chart_ph.height
+    def it_can_insert_a_chart_into_itself(self, request, part_prop_):
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.add_chart_part.return_value = "rId6"
+        part_prop_.return_value = slide_part_
+        graphicFrame = element("p:graphicFrame")
+        _new_chart_graphicFrame_ = method_mock(
+            request,
+            ChartPlaceholder,
+            "_new_chart_graphicFrame",
+            return_value=graphicFrame,
         )
-        chart_ph._replace_placeholder_with.assert_called_once_with(graphicFrame)
+        _replace_placeholder_with_ = method_mock(
+            request, ChartPlaceholder, "_replace_placeholder_with"
+        )
+        placeholder_graphic_frame_ = instance_mock(request, PlaceholderGraphicFrame)
+        PlaceholderGraphicFrame_ = class_mock(
+            request,
+            "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+            return_value=placeholder_graphic_frame_,
+        )
+        chart_data_ = instance_mock(request, ChartData)
+        chart_ph = ChartPlaceholder(
+            element("p:sp/p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4})"), "parent"
+        )
+
+        ph_graphic_frame = chart_ph.insert_chart(XCT.PIE, chart_data_)
+
+        slide_part_.add_chart_part.assert_called_once_with(XCT.PIE, chart_data_)
+        _new_chart_graphicFrame_.assert_called_once_with(chart_ph, "rId6", 1, 2, 3, 4)
+        _replace_placeholder_with_.assert_called_once_with(chart_ph, graphicFrame)
         PlaceholderGraphicFrame_.assert_called_once_with(graphicFrame, chart_ph._parent)
-        assert ph_graphic_frame is ph_graphic_frame_
+        assert ph_graphic_frame is placeholder_graphic_frame_
 
     def it_creates_a_graphicFrame_element_to_help(self, new_fixture):
         chart_ph, rId, x, y, cx, cy, expected_xml = new_fixture
@@ -311,31 +326,6 @@ class DescribeChartPlaceholder(object):
         assert graphicFrame.xml == expected_xml
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def insert_fixture(
-        self,
-        part_prop_,
-        chart_data_,
-        PlaceholderGraphicFrame_,
-        placeholder_graphic_frame_,
-        _new_chart_graphicFrame_,
-        _replace_placeholder_with_,
-    ):
-        sp_cxml = "p:sp/p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4})"
-        chart_ph = ChartPlaceholder(element(sp_cxml), "parent")
-        chart_type, rId, graphicFrame = 42, "rId6", element("p:graphicFrame")
-        part_prop_.return_value.add_chart_part.return_value = rId
-        _new_chart_graphicFrame_.return_value = graphicFrame
-        return (
-            chart_ph,
-            chart_type,
-            chart_data_,
-            graphicFrame,
-            rId,
-            PlaceholderGraphicFrame_,
-            placeholder_graphic_frame_,
-        )
 
     @pytest.fixture
     def new_fixture(self):
@@ -348,32 +338,8 @@ class DescribeChartPlaceholder(object):
     # fixture components ---------------------------------------------
 
     @pytest.fixture
-    def chart_data_(self, request):
-        return instance_mock(request, ChartData)
-
-    @pytest.fixture
-    def _new_chart_graphicFrame_(self, request):
-        return method_mock(request, ChartPlaceholder, "_new_chart_graphicFrame")
-
-    @pytest.fixture
     def part_prop_(self, request, slide_):
         return property_mock(request, ChartPlaceholder, "part", return_value=slide_)
-
-    @pytest.fixture
-    def PlaceholderGraphicFrame_(self, request, placeholder_graphic_frame_):
-        return class_mock(
-            request,
-            "pptx.shapes.placeholder.PlaceholderGraphicFrame",
-            return_value=placeholder_graphic_frame_,
-        )
-
-    @pytest.fixture
-    def placeholder_graphic_frame_(self, request):
-        return instance_mock(request, PlaceholderGraphicFrame)
-
-    @pytest.fixture
-    def _replace_placeholder_with_(self, request):
-        return method_mock(request, ChartPlaceholder, "_replace_placeholder_with")
 
     @pytest.fixture
     def slide_(self, request):
@@ -381,6 +347,8 @@ class DescribeChartPlaceholder(object):
 
 
 class DescribeLayoutPlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.LayoutPlaceholder` object."""
+
     def it_uses_InheritsDimensions_mixin(self):
         layout_placeholder = LayoutPlaceholder(None, None)
         assert isinstance(layout_placeholder, _InheritsDimensions)
@@ -415,14 +383,8 @@ class DescribeLayoutPlaceholder(object):
         return instance_mock(request, MasterPlaceholder)
 
     @pytest.fixture
-    def part_prop_(self, request, slide_layout_part_):
-        return property_mock(
-            request, LayoutPlaceholder, "part", return_value=slide_layout_part_
-        )
-
-    @pytest.fixture
-    def slide_layout_part_(self, request):
-        return instance_mock(request, SlideLayoutPart)
+    def part_prop_(self, request):
+        return property_mock(request, LayoutPlaceholder, "part")
 
     @pytest.fixture
     def slide_master_(self, request):
@@ -430,6 +392,8 @@ class DescribeLayoutPlaceholder(object):
 
 
 class DescribeNotesSlidePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.NotesSlidePlaceholder` object."""
+
     def it_finds_its_base_placeholder_to_help(self, base_ph_fixture):
         placeholder, notes_master_, ph_type, master_placeholder_ = base_ph_fixture
         base_placeholder = placeholder._base_placeholder
@@ -481,22 +445,59 @@ class DescribeNotesSlidePlaceholder(object):
 
 
 class DescribePicturePlaceholder(object):
-    def it_can_insert_a_picture_into_itself(self, insert_fixture):
-        picture_ph, image_file, pic = insert_fixture[:3]
-        PlaceholderPicture_, placeholder_picture_ = insert_fixture[3:]
+    """Unit-test suite for `pptx.shapes.placeholder.PicturePlaceholder` object."""
 
-        placeholder_picture = picture_ph.insert_picture(image_file)
+    def it_can_insert_a_picture_into_itself(self, request):
+        pic = element("p:pic")
+        _new_placeholder_pic_ = method_mock(
+            request, PicturePlaceholder, "_new_placeholder_pic", return_value=pic
+        )
+        _replace_placeholder_with_ = method_mock(
+            request, PicturePlaceholder, "_replace_placeholder_with"
+        )
+        placeholder_picture_ = instance_mock(request, PlaceholderPicture)
+        PlaceholderPicture_ = class_mock(
+            request,
+            "pptx.shapes.placeholder.PlaceholderPicture",
+            return_value=placeholder_picture_,
+        )
+        picture_ph = PicturePlaceholder(None, "parent")
 
-        picture_ph._new_placeholder_pic.assert_called_once_with(image_file)
-        picture_ph._replace_placeholder_with.assert_called_once_with(pic)
+        placeholder_picture = picture_ph.insert_picture("foobar.png")
+
+        _new_placeholder_pic_.assert_called_once_with(picture_ph, "foobar.png")
+        _replace_placeholder_with_.assert_called_once_with(picture_ph, pic)
         PlaceholderPicture_.assert_called_once_with(pic, picture_ph._parent)
         assert placeholder_picture is placeholder_picture_
 
-    def it_creates_a_pic_element_to_help(self, pic_fixture):
-        picture_ph, image_file, expected_xml = pic_fixture
-        pic = picture_ph._new_placeholder_pic(image_file)
-        picture_ph._get_or_add_image.assert_called_once_with(image_file)
-        assert pic.xml == expected_xml
+    @pytest.mark.parametrize(
+        "image_size, crop_attr_names",
+        (((444, 333), ("l", "r")), ((333, 444), ("t", "b"))),
+    )
+    def it_creates_a_pic_element_to_help(self, request, image_size, crop_attr_names):
+        _get_or_add_image_ = method_mock(
+            request,
+            PicturePlaceholder,
+            "_get_or_add_image",
+            return_value=(42, "bar", image_size),
+        )
+        picture_ph = PicturePlaceholder(
+            element(
+                "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/a:ext{cx=99"
+                ",cy=99})"
+            ),
+            None,
+        )
+
+        pic = picture_ph._new_placeholder_pic("foobar.png")
+
+        _get_or_add_image_.assert_called_once_with(picture_ph, "foobar.png")
+        assert pic.xml == xml(
+            "p:pic/(p:nvPicPr/(p:cNvPr{id=2,name=foo,descr=bar},p:cNvPicPr/a"
+            ":picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{"
+            "r:embed=42},a:srcRect{%s=12500,%s=12500},a:stretch/a:fillRect),"
+            "p:spPr)" % crop_attr_names
+        )
 
     def it_adds_an_image_to_help(self, get_or_add_fixture):
         placeholder, image_file, expected_value = get_or_add_fixture
@@ -517,67 +518,15 @@ class DescribePicturePlaceholder(object):
         expected_value = rId, desc, image_size
         return placeholder, image_file, expected_value
 
-    @pytest.fixture
-    def insert_fixture(
-        self,
-        PlaceholderPicture_,
-        placeholder_picture_,
-        _new_placeholder_pic_,
-        _replace_placeholder_with_,
-    ):
-        picture_ph = PicturePlaceholder(None, "parent")
-        image_file, pic = "foobar.png", element("p:pic")
-        _new_placeholder_pic_.return_value = pic
-        PlaceholderPicture_.return_value = placeholder_picture_
-        return (picture_ph, image_file, pic, PlaceholderPicture_, placeholder_picture_)
-
-    @pytest.fixture(params=[((444, 333), ("l", "r")), ((333, 444), ("t", "b"))])
-    def pic_fixture(self, request, _get_or_add_image_):
-        image_size, crop_attr_names = request.param
-        sp_cxml = (
-            "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/a:ext{cx=99" ",cy=99})"
-        )
-        sp = element(sp_cxml)
-        picture_ph = PicturePlaceholder(sp, None)
-        image_file = "foobar.png"
-        _get_or_add_image_.return_value = 42, "bar", image_size
-        expected_xml = xml(
-            "p:pic/(p:nvPicPr/(p:cNvPr{id=2,name=foo,descr=bar},p:cNvPicPr/a"
-            ":picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{"
-            "r:embed=42},a:srcRect{%s=12500,%s=12500},a:stretch/a:fillRect),"
-            "p:spPr)" % crop_attr_names
-        )
-        return picture_ph, image_file, expected_xml
-
     # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def _get_or_add_image_(self, request):
-        return method_mock(request, PicturePlaceholder, "_get_or_add_image")
 
     @pytest.fixture
     def image_part_(self, request):
         return instance_mock(request, ImagePart)
 
     @pytest.fixture
-    def _new_placeholder_pic_(self, request):
-        return method_mock(request, PicturePlaceholder, "_new_placeholder_pic")
-
-    @pytest.fixture
     def part_prop_(self, request, slide_):
         return property_mock(request, PicturePlaceholder, "part", return_value=slide_)
-
-    @pytest.fixture
-    def PlaceholderPicture_(self, request):
-        return class_mock(request, "pptx.shapes.placeholder.PlaceholderPicture")
-
-    @pytest.fixture
-    def placeholder_picture_(self, request):
-        return instance_mock(request, PlaceholderPicture)
-
-    @pytest.fixture
-    def _replace_placeholder_with_(self, request):
-        return method_mock(request, PicturePlaceholder, "_replace_placeholder_with")
 
     @pytest.fixture
     def slide_(self, request):
@@ -585,70 +534,42 @@ class DescribePicturePlaceholder(object):
 
 
 class DescribeTablePlaceholder(object):
-    def it_can_insert_a_table_into_itself(self, insert_fixture):
-        table_ph, rows, cols, graphicFrame = insert_fixture[:4]
-        PlaceholderGraphicFrame_, ph_graphic_frame_ = insert_fixture[4:]
+    """Unit-test suite for `pptx.shapes.placeholder.TablePlaceholder` object."""
 
-        ph_graphic_frame = table_ph.insert_table(rows, cols)
-
-        table_ph._new_placeholder_table.assert_called_once_with(rows, cols)
-        table_ph._replace_placeholder_with.assert_called_once_with(graphicFrame)
-        PlaceholderGraphicFrame_.assert_called_once_with(graphicFrame, table_ph._parent)
-        assert ph_graphic_frame is ph_graphic_frame_
-
-    def it_creates_a_graphicFrame_element_to_help(self, new_fixture):
-        table_ph, rows, cols, expected_xml = new_fixture
-        graphicFrame = table_ph._new_placeholder_table(rows, cols)
-        assert graphicFrame.xml == expected_xml
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def insert_fixture(
-        self,
-        PlaceholderGraphicFrame_,
-        placeholder_graphic_frame_,
-        _new_placeholder_table_,
-        _replace_placeholder_with_,
-    ):
+    def it_can_insert_a_table_into_itself(self, request):
+        graphicFrame = element("p:graphicFrame")
+        _new_placeholder_table_ = method_mock(
+            request,
+            TablePlaceholder,
+            "_new_placeholder_table",
+            return_value=graphicFrame,
+        )
+        _replace_placeholder_with_ = method_mock(
+            request, TablePlaceholder, "_replace_placeholder_with"
+        )
+        placeholder_graphic_frame_ = instance_mock(request, PlaceholderGraphicFrame)
+        PlaceholderGraphicFrame_ = class_mock(
+            request,
+            "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+            return_value=placeholder_graphic_frame_,
+        )
         table_ph = TablePlaceholder(None, "parent")
-        rows, cols, graphicFrame = 4, 2, element("p:graphicFrame")
-        _new_placeholder_table_.return_value = graphicFrame
-        PlaceholderGraphicFrame_.return_value = placeholder_graphic_frame_
-        return (
-            table_ph,
-            rows,
-            cols,
-            graphicFrame,
-            PlaceholderGraphicFrame_,
-            placeholder_graphic_frame_,
+
+        ph_graphic_frame = table_ph.insert_table(4, 2)
+
+        _new_placeholder_table_.assert_called_once_with(table_ph, 4, 2)
+        _replace_placeholder_with_.assert_called_once_with(table_ph, graphicFrame)
+        PlaceholderGraphicFrame_.assert_called_once_with(graphicFrame, table_ph._parent)
+        assert ph_graphic_frame is placeholder_graphic_frame_
+
+    def it_creates_a_graphicFrame_element_to_help(self):
+        table_ph = TablePlaceholder(
+            element(
+                "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/(a:off{x=1,y=2},"
+                "a:ext{cx=3,cy=4}))"
+            ),
+            None,
         )
+        graphicFrame = table_ph._new_placeholder_table(1, 1)
 
-    @pytest.fixture
-    def new_fixture(self):
-        sp_cxml = (
-            "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/(a:off{x=1,"
-            "y=2},a:ext{cx=3,cy=4}))"
-        )
-        table_ph = TablePlaceholder(element(sp_cxml), None)
-        rows, cols = 1, 1
-        expected_xml = snippet_seq("placeholders")[0]
-        return table_ph, rows, cols, expected_xml
-
-    # fixture components ---------------------------------------------
-
-    @pytest.fixture
-    def _new_placeholder_table_(self, request):
-        return method_mock(request, TablePlaceholder, "_new_placeholder_table")
-
-    @pytest.fixture
-    def PlaceholderGraphicFrame_(self, request):
-        return class_mock(request, "pptx.shapes.placeholder.PlaceholderGraphicFrame")
-
-    @pytest.fixture
-    def placeholder_graphic_frame_(self, request):
-        return instance_mock(request, PlaceholderGraphicFrame)
-
-    @pytest.fixture
-    def _replace_placeholder_with_(self, request):
-        return method_mock(request, TablePlaceholder, "_replace_placeholder_with")
+        assert graphicFrame.xml == snippet_seq("placeholders")[0]

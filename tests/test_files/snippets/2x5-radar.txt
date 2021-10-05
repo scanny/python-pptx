@@ -11,6 +11,7 @@
     </mc:Fallback>
   </mc:AlternateContent>
   <c:chart>
+    <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:layout/>
       <c:radarChart>

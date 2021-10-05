@@ -2,7 +2,7 @@
 
 """Gherkin step implementations for shape-related features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import unicode_literals
 
 import hashlib
 
@@ -86,6 +86,14 @@ def given_a_FreeformBuilder_object_as_builder(context):
     context.builder = builder
 
 
+@given("a GraphicFrame object as shape")
+def given_a_GraphicFrame_object_as_shape(context):
+    # shouldn't matter, but this one contains a table
+    prs = Presentation(test_pptx("shp-common-props"))
+    sld = prs.slides[0]
+    context.shape = sld.shapes[2]
+
+
 @given("a GraphicFrame object containing a chart as shape")
 def given_a_GraphicFrame_object_containing_a_chart_as_shape(context):
     prs = Presentation(test_pptx("shp-access-chart"))
@@ -100,12 +108,12 @@ def given_a_GraphicFrame_object_containing_a_table_as_shape(context):
     context.shape = sld.shapes[0]
 
 
-@given("a GraphicFrame object as shape")
-def given_a_GraphicFrame_object_as_shape(context):
-    # shouldn't matter, but this one contains a table
-    prs = Presentation(test_pptx("shp-common-props"))
+@given("a GraphicFrame object containing an OLE object as shape")
+@given("a GraphicFrame object containing an embedded XLSX object as shape")
+def given_a_GraphicFrame_object_containing_an_embedded_xlsx_object_as_shape(context):
+    prs = Presentation(test_pptx("shp-access-ole-object"))
     sld = prs.slides[0]
-    context.shape = sld.shapes[2]
+    context.shape = sld.shapes[0]
 
 
 @given("a GroupShape object as group_shape")
@@ -126,6 +134,13 @@ def given_a_GroupShape_object_as_shape(context):
 def given_a_movie_shape(context):
     prs = Presentation(test_pptx("shp-movie-props"))
     context.movie = prs.slides[0].shapes[0]
+
+
+@given("an _OleFormat object for an OLE object as ole_format")
+@given("an _OleFormat object for an embedded XLSX as ole_format")
+def given_an_OleFormat_object_for_an_embedded_XLSX_as_ole_format(context):
+    prs = Presentation(test_pptx("shp-access-ole-object"))
+    context.ole_format = prs.slides[0].shapes[0].ole_format
 
 
 @given("a Picture object as picture")
@@ -419,6 +434,12 @@ def then_group_shape_shapes_is_a_GroupShapes_object(context):
     assert class_name == "GroupShapes", "got %s" % class_name
 
 
+@then("len(ole_format.blob) == {value}")
+def then_len_ole_format_blob_eq_value(context, value):
+    actual = len(context.ole_format.blob)
+    assert actual == int(value)
+
+
 @then("movie is a Movie object")
 def then_movie_is_a_Movie_object(context):
     class_name = context.movie.__class__.__name__
@@ -463,6 +484,30 @@ def then_movie_width_movie_height_eq_cx_cy(context):
     movie = context.movie
     size = movie.width, movie.height
     assert size == (Emu(3962400), Emu(5715000)), "got %s" % size
+
+
+@then("ole_format.blob matches ole_object_file byte-for-byte")
+def then_ole_format_bytes_matches_ole_object_file_byte_for_byte(context):
+    assert context.ole_format.blob == context.ole_object_file.getvalue()
+
+
+@then('ole_format.prog_id == "{expected_value}"')
+def then_ole_format_prog_id_eq_value(context, expected_value):
+    actual_value = context.ole_format.prog_id
+    assert actual_value == expected_value, "expected %r, got %r" % (
+        expected_value,
+        actual_value,
+    )
+
+
+@then("ole_format.show_as_icon is {value}")
+def then_ole_format_show_as_icon_is_value(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    actual_value = context.ole_format.show_as_icon
+    assert actual_value == expected_value, "expected %r, got %r" % (
+        expected_value,
+        actual_value,
+    )
 
 
 @then("picture.crop_{side} == {value}")
@@ -551,6 +596,16 @@ def then_shape_name_eq_value(context, expected_value):
     shape = context.shape
     msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
     assert shape.name == expected_value, msg
+
+
+@then("shape.ole_format is an _OleFormat object")
+def then_shape_ole_format_is_an_OleFormat_object(context):
+    cls_name = type(context.shape.ole_format).__name__
+    expected_cls_name = "_OleFormat"
+    assert cls_name == expected_cls_name, "expected %r, got %r" % (
+        expected_cls_name,
+        cls_name,
+    )
 
 
 @then("shape.part is a SlidePart object")

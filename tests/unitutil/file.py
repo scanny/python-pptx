@@ -1,42 +1,26 @@
 # encoding: utf-8
 
-"""
-Utility functions for loading files for unit testing
-"""
+"""Utility functions for loading files for unit testing."""
 
 import os
 import sys
-
-from lxml import etree
-
-from pptx.oxml import oxml_parser
 
 
 _thisdir = os.path.split(__file__)[0]
 test_file_dir = os.path.abspath(os.path.join(_thisdir, "..", "test_files"))
 
 
-def abspath(relpath):
-    thisdir = os.path.split(__file__)[0]
-    return os.path.abspath(os.path.join(thisdir, relpath))
-
-
 def absjoin(*paths):
     return os.path.abspath(os.path.join(*paths))
 
 
-def docx_path(name):
-    """
-    Return the absolute path to test .docx file with root name *name*.
-    """
-    return absjoin(test_file_dir, "%s.docx" % name)
-
-
-def parse_xml_file(file_):
-    """
-    Return ElementTree for XML contained in *file_*
-    """
-    return etree.parse(file_, oxml_parser)
+def snippet_bytes(snippet_file_name):
+    """Return bytes read from snippet file having `snippet_file_name`."""
+    snippet_file_path = os.path.join(
+        test_file_dir, "snippets", "%s.txt" % snippet_file_name
+    )
+    with open(snippet_file_path, "rb") as f:
+        return f.read().strip()
 
 
 def snippet_seq(name, offset=0, count=sys.maxsize):
@@ -71,3 +55,10 @@ def testfile(name):
     Return the absolute path to test file having *name*.
     """
     return absjoin(test_file_dir, name)
+
+
+def testfile_bytes(*segments):
+    """Return bytes of file at path formed by adding `segments` to test file dir."""
+    path = os.path.join(test_file_dir, *segments)
+    with open(path, "rb") as f:
+        return f.read()

@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Test suite for pptx.chart.chart module"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit-test suite for `pptx.chart.chart` module."""
 
 import pytest
 
@@ -28,6 +26,8 @@ from ..unitutil.mock import (
 
 
 class DescribeChart(object):
+    """Unit-test suite for `pptx.chart.chart.Chart` objects."""
+
     def it_provides_access_to_its_font(self, font_fixture, Font_, font_):
         chartSpace, expected_xml = font_fixture
         Font_.return_value = font_
@@ -108,11 +108,15 @@ class DescribeChart(object):
         assert Legend_.call_args_list == expected_calls
         assert legend is expected_value
 
-    def it_knows_its_chart_type(self, chart_type_fixture):
-        chart, PlotTypeInspector_, plot_, chart_type = chart_type_fixture
-        _chart_type = chart.chart_type
+    def it_knows_its_chart_type(self, request, PlotTypeInspector_, plot_):
+        property_mock(request, Chart, "plots", return_value=[plot_])
+        PlotTypeInspector_.chart_type.return_value = XL_CHART_TYPE.PIE
+        chart = Chart(None, None)
+
+        chart_type = chart.chart_type
+
         PlotTypeInspector_.chart_type.assert_called_once_with(plot_)
-        assert _chart_type is chart_type
+        assert chart_type == XL_CHART_TYPE.PIE
 
     def it_knows_its_style(self, style_get_fixture):
         chart, expected_value = style_get_fixture
@@ -162,14 +166,6 @@ class DescribeChart(object):
     def cat_ax_raise_fixture(self):
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
         return chart
-
-    @pytest.fixture
-    def chart_type_fixture(self, PlotTypeInspector_, plot_):
-        chart = Chart(None, None)
-        chart._plots = [plot_]
-        chart_type = XL_CHART_TYPE.PIE
-        PlotTypeInspector_.chart_type.return_value = chart_type
-        return chart, PlotTypeInspector_, plot_, chart_type
 
     @pytest.fixture(
         params=[
@@ -452,6 +448,8 @@ class DescribeChart(object):
 
 
 class DescribeChartTitle(object):
+    """Unit-test suite for `pptx.chart.chart.ChartTitle` objects."""
+
     def it_provides_access_to_its_format(self, format_fixture):
         chart_title, ChartFormat_, format_ = format_fixture
         format = chart_title.format
@@ -549,6 +547,8 @@ class DescribeChartTitle(object):
 
 
 class Describe_Plots(object):
+    """Unit-test suite for `pptx.chart.chart._Plots` objects."""
+
     def it_supports_indexed_access(self, getitem_fixture):
         plots, idx, PlotFactory_, plot_elm, chart_, plot_ = getitem_fixture
         plot = plots[idx]
