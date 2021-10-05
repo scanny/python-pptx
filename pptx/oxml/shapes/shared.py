@@ -305,8 +305,8 @@ class CT_LineProperties(BaseOxmlElement):
         Choice("a:miter")),
         successors=_tag_seq[9:]
     )
-    headEnd = ZeroOrOne("a:headEnd")
-    tailEnd = ZeroOrOne("a:tailEnd")
+    headEnd = ZeroOrOne("a:headEnd", successors=_tag_seq[10:])
+    tailEnd = ZeroOrOne("a:tailEnd", successors=_tag_seq[11:])
     del _tag_seq
     w = OptionalAttribute("w", ST_LineWidth, default=Emu(0))
     cap = OptionalAttribute("cap", ST_LineCap)
