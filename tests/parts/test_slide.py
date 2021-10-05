@@ -589,7 +589,33 @@ class DescribeSlideLayoutPart(object):
 
 
 class DescribeSlideMasterPart(object):
-    """Unit-test suite for `pptx.parts.slide.SlideMasterPart` objects."""
+    def it_provides_access_to_its_slide_master(self, request):
+        slide_master_ = instance_mock(request, SlideMaster)
+        SlideMaster_ = class_mock(
+            request, "pptx.parts.slide.SlideMaster", return_value=slide_master_
+        )
+        sldMaster = element("p:sldMaster")
+        slide_master_part = SlideMasterPart(None, None, None, sldMaster)
+
+        slide_master = slide_master_part.slide_master
+
+        SlideMaster_.assert_called_once_with(sldMaster, slide_master_part)
+        assert slide_master is slide_master_
+
+    def it_provides_access_to_a_related_slide_layout(self, request):
+        slide_layout_ = instance_mock(request, SlideLayout)
+        slide_layout_part_ = instance_mock(
+            request, SlideLayoutPart, slide_layout=slide_layout_
+        )
+        related_part_ = method_mock(
+            request, SlideMasterPart, "related_part", return_value=slide_layout_part_
+        )
+        slide_master_part = SlideMasterPart(None, None, None, None)
+
+        slide_layout = slide_master_part.related_slide_layout("rId42")
+
+        related_part_.assert_called_once_with(slide_master_part, "rId42")
+        assert slide_layout is slide_layout_
 
     def it_provides_access_to_its_related_theme(self, theme_fixture):
         slide_master_part, part_related_by_, theme_ = theme_fixture
@@ -600,24 +626,6 @@ class DescribeSlideMasterPart(object):
 
 
     # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def master_fixture(self, SlideMaster_, slide_master_):
-    def it_provides_access_to_its_slide_master(self, request):
-        slide_master_ = instance_mock(request, SlideMaster)
-        SlideMaster_ = class_mock(
-            request, "pptx.parts.slide.SlideMaster", return_value=slide_master_
-        )
-        sldMaster = element("p:sldMaster")
-        slide_master_part = SlideMasterPart(None, None, None, sldMaster)
-
-    @pytest.fixture
-    def related_fixture(self, slide_layout_, related_parts_prop_):
-        slide_master_part = SlideMasterPart(None, None, None, None)
-        rId = "rId42"
-        getitem_ = related_parts_prop_.return_value.__getitem__
-        getitem_.return_value.slide_layout = slide_layout_
-        return slide_master_part, rId, getitem_, slide_layout_
 
     @pytest.fixture
     def theme_fixture(self, part_related_by_, theme_, theme_part_):
@@ -637,10 +645,10 @@ class DescribeSlideMasterPart(object):
     @pytest.fixture
     def related_parts_prop_(self, request):
         return property_mock(request, SlideMasterPart, "related_parts")
-        slide_master = slide_master_part.slide_master
 
-        SlideMaster_.assert_called_once_with(sldMaster, slide_master_part)
-        assert slide_master is slide_master_
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def theme_(self, request):
@@ -654,15 +662,7 @@ class DescribeSlideMasterPart(object):
     def SlideMaster_(self, request, slide_master_):
         return class_mock(
             request, "pptx.parts.slide.SlideMaster", return_value=slide_master_
-    def it_provides_access_to_a_related_slide_layout(self, request):
-        slide_layout_ = instance_mock(request, SlideLayout)
-        slide_layout_part_ = instance_mock(
-            request, SlideLayoutPart, slide_layout=slide_layout_
         )
-        related_part_ = method_mock(
-            request, SlideMasterPart, "related_part", return_value=slide_layout_part_
-        )
-        slide_master_part = SlideMasterPart(None, None, None, None)
 
     @pytest.fixture
     def slide_master_(self, request):
@@ -694,7 +694,7 @@ class DescribeThemePart(object):
     @pytest.fixture
     def theme_fixture(self, Theme_, theme_):
         sldTheme = element("a:theme")
-        theme_part = ThemePart(None, None, sldTheme)
+        theme_part = ThemePart(None, None, None, sldTheme)
         return theme_part, Theme_, sldTheme, theme_
 
     @pytest.fixture
@@ -714,7 +714,3 @@ class DescribeThemePart(object):
     @pytest.fixture
     def Theme_(self, request, theme_):
         return class_mock( request, "pptx.parts.slide.Theme", return_value=theme_)
-        slide_layout = slide_master_part.related_slide_layout("rId42")
-
-        related_part_.assert_called_once_with(slide_master_part, "rId42")
-        assert slide_layout is slide_layout_

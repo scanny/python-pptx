@@ -27,7 +27,7 @@ from pptx.text.text import (
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
-from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, a_pPr, an_extLst, an_ext, an_hlinkClr
+from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, an_pPr, an_extLst, an_ext, an_hlinkClr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
     class_mock,
@@ -1864,7 +1864,7 @@ class Describe_ParagraphProperties(object):
     # fixture components -----------------------------------
     @pytest.fixture
     def pPr_bldr(self):
-        return a_pPr().with_nsdecls()
+        return an_pPr().with_nsdecls()
 
     @pytest.fixture
     def paragraph_properties(self, pPr_bldr):

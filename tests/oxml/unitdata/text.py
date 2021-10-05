@@ -82,7 +82,27 @@ class CT_TextParagraphBuilder(BaseBuilder):
     __nspfxs__ = ("a",)
     __attrs__ = ()
 
+class CT_TextParagraphPropertiesBuilder(BaseBuilder):
+    """
+    Test data builder for CT_TextParagraphProperties (<a:pPr>) XML element
+    that appears as a child of <a:p>.
+    """
 
+    __tag__ = "a:pPr"
+    __nspfxs__ = ("a",)
+    __attrs__ = (
+        "marL",
+        "marR",
+        "lvl",
+        "indent",
+        "algn",
+        "defTabSz",
+        "rtl",
+        "eaLnBrk",
+        "fontAlgn",
+        "latinLnBrk",
+        "hangingPunct",
+    )
 class XsdString(BaseBuilder):
     __attrs__ = ()
 
@@ -99,10 +119,6 @@ def a_p():
 
 def a_t():
     return XsdString("a:t", ("a",))
-
-
-def a_txBody():
-    return CT_TextBodyBuilder()
 
 
 def an_endParaRPr():
@@ -127,3 +143,7 @@ def an_r():
 
 def an_rPr():
     return CT_TextCharacterPropertiesBuilder("a:rPr")
+
+def an_pPr():
+    """Return a CT_TextParagraphPropertiesBuilder instance"""
+    return CT_TextParagraphPropertiesBuilder()
