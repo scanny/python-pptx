@@ -1,13 +1,6 @@
 # encoding: utf-8
 
-"""
-Temporary stand-in for main oxml module that came across with the
-PackageReader transplant. Probably much will get replaced with objects from
-the pptx.oxml.core and then this module will either get deleted or only hold
-the package related custom element classes.
-"""
-
-from __future__ import absolute_import
+"""OPC-local oxml module to handle OPC-local concerns like relationship parsing."""
 
 from lxml import etree
 
@@ -92,9 +85,7 @@ class CT_Relationship(BaseOxmlElement):
 
 
 class CT_Relationships(BaseOxmlElement):
-    """
-    ``<Relationships>`` element, the root element in a .rels file.
-    """
+    """`<Relationships>` element, the root element in a .rels file."""
 
     relationship = ZeroOrMore("pr:Relationship")
 
@@ -109,12 +100,8 @@ class CT_Relationships(BaseOxmlElement):
 
     @classmethod
     def new(cls):
-        """
-        Return a new ``<Relationships>`` element.
-        """
-        xml = '<Relationships xmlns="%s"/>' % nsmap["pr"]
-        relationships = parse_xml(xml)
-        return relationships
+        """Return a new ``<Relationships>`` element."""
+        return parse_xml('<Relationships xmlns="%s"/>' % nsmap["pr"])
 
     @property
     def xml(self):

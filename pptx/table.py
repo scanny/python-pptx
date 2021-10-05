@@ -2,8 +2,6 @@
 
 """Table-related objects such as Table and Cell."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from pptx.compat import is_integer
 from pptx.dml.fill import FillFormat
 from pptx.dml.border import BorderFormat
@@ -35,10 +33,10 @@ class Table(object):
 
     @lazyproperty
     def columns(self):
-        """
-        Read-only reference to collection of |_Column| objects representing
-        the table's columns. |_Column| objects are accessed using list
-        notation, e.g. ``col = tbl.columns[0]``.
+        """|_ColumnCollection| instance for this table.
+
+        Provides access to |_Column| objects representing the table's columns. |_Column|
+        objects are accessed using list notation, e.g. ``col = tbl.columns[0]``.
         """
         return _ColumnCollection(self._tbl, self)
 
@@ -138,10 +136,10 @@ class Table(object):
 
     @lazyproperty
     def rows(self):
-        """
-        Read-only reference to collection of |_Row| objects representing the
-        table's rows. |_Row| objects are accessed using list notation, e.g.
-        ``col = tbl.rows[0]``.
+        """|_RowCollection| instance for this table.
+
+        Provides access to |_Row| objects representing the table's rows. |_Row| objects
+        are accessed using list notation, e.g. ``col = tbl.rows[0]``.
         """
         return _RowCollection(self._tbl, self)
 

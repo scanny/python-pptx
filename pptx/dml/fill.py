@@ -391,8 +391,6 @@ class _GradientStop(ElementProxy):
     A gradient stop defines a color and a position.
     """
 
-    __slots__ = ("_gs", "_color")
-
     def __init__(self, gs):
         super(_GradientStop, self).__init__(gs)
         self._gs = gs

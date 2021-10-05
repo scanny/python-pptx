@@ -1,8 +1,8 @@
 # encoding: utf-8
 
-"""Test suite for pptx.text.text module."""
+"""Unit-test suite for `pptx.text.text` module."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import unicode_literals
 
 import pytest
 
@@ -27,7 +27,7 @@ from pptx.text.text import (
 from pptx.text.bullets import TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface
 from pptx.util import Inches, Pt
 
-from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, a_pPr, an_extLst, an_ext, an_hlinkClr
+from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr, an_pPr, an_extLst, an_ext, an_hlinkClr
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import (
     class_mock,
@@ -54,6 +54,20 @@ class DescribeTextFrame(object):
         text_frame, value, expected_xml = autosize_set_fixture
         text_frame.auto_size = value
         assert text_frame._txBody.xml == expected_xml
+
+    @pytest.mark.parametrize(
+        "txBody_cxml",
+        (
+            "p:txBody/(a:p,a:p,a:p)",
+            'p:txBody/a:p/a:r/a:t"foo"',
+            'p:txBody/a:p/(a:br,a:r/a:t"foo")',
+            'p:txBody/a:p/(a:fld,a:br,a:r/a:t"foo")',
+        ),
+    )
+    def it_can_clear_itself_of_content(self, txBody_cxml):
+        text_frame = TextFrame(element(txBody_cxml), None)
+        text_frame.clear()
+        assert text_frame._element.xml == xml("p:txBody/a:p")
 
     def it_knows_its_margin_settings(self, margin_get_fixture):
         text_frame, prop_name, unit, expected_value = margin_get_fixture
@@ -122,9 +136,7 @@ class DescribeTextFrame(object):
 
         assert text_frame._element.xml == expected_xml
 
-    def it_can_resize_its_text_to_best_fit(
-        self, text_prop_, _best_fit_font_size_, _apply_fit_
-    ):
+    def it_can_resize_its_text_to_best_fit(self, request, text_prop_):
         family, max_size, bold, italic, font_file, font_size = (
             "Family",
             42,
@@ -134,15 +146,18 @@ class DescribeTextFrame(object):
             21,
         )
         text_prop_.return_value = "some text"
-        _best_fit_font_size_.return_value = font_size
+        _best_fit_font_size_ = method_mock(
+            request, TextFrame, "_best_fit_font_size", return_value=font_size
+        )
+        _apply_fit_ = method_mock(request, TextFrame, "_apply_fit")
         text_frame = TextFrame(None, None)
 
         text_frame.fit_text(family, max_size, bold, italic, font_file)
 
-        text_frame._best_fit_font_size.assert_called_once_with(
-            family, max_size, bold, italic, font_file
+        _best_fit_font_size_.assert_called_once_with(
+            text_frame, family, max_size, bold, italic, font_file
         )
-        text_frame._apply_fit.assert_called_once_with(family, font_size, bold, italic)
+        _apply_fit_.assert_called_once_with(text_frame, family, font_size, bold, italic)
 
     def it_calculates_its_best_fit_font_size_to_help_fit_text(self, size_font_fixture):
         text_frame, family, max_size, bold, italic = size_font_fixture[:5]
@@ -165,12 +180,16 @@ class DescribeTextFrame(object):
         text_frame = Shape(element(sp_cxml), None).text_frame
         assert text_frame._extents == (731520, 822960)
 
-    def it_applies_fit_to_help_fit_text(self, apply_fit_fixture):
-        text_frame, family, font_size, bold, italic = apply_fit_fixture
+    def it_applies_fit_to_help_fit_text(self, request):
+        family, font_size, bold, italic = "Family", 42, True, False
+        _set_font_ = method_mock(request, TextFrame, "_set_font")
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
         text_frame._apply_fit(family, font_size, bold, italic)
+
         assert text_frame.auto_size is MSO_AUTO_SIZE.NONE
         assert text_frame.word_wrap is True
-        text_frame._set_font.assert_called_once_with(family, font_size, bold, italic)
+        _set_font_.assert_called_once_with(text_frame, family, font_size, bold, italic)
 
     def it_sets_its_font_to_help_fit_text(self, set_font_fixture):
         text_frame, family, size, bold, italic, expected_xml = set_font_fixture
@@ -227,13 +246,6 @@ class DescribeTextFrame(object):
         text_frame = TextFrame(element(txBody_cxml), None)
         expected_xml = xml(expected_cxml)
         return text_frame, new_value, expected_xml
-
-    @pytest.fixture
-    def apply_fit_fixture(self, _set_font_):
-        txBody = element("p:txBody/a:bodyPr")
-        text_frame = TextFrame(txBody, None)
-        family, font_size, bold, italic = "Family", 42, True, False
-        return text_frame, family, font_size, bold, italic
 
     @pytest.fixture(
         params=[
@@ -455,14 +467,6 @@ class DescribeTextFrame(object):
     # fixture components -----------------------------------
 
     @pytest.fixture
-    def _apply_fit_(self, request):
-        return method_mock(request, TextFrame, "_apply_fit")
-
-    @pytest.fixture
-    def _best_fit_font_size_(self, request):
-        return method_mock(request, TextFrame, "_best_fit_font_size")
-
-    @pytest.fixture
     def _extents_prop_(self, request):
         return property_mock(request, TextFrame, "_extents")
 
@@ -473,10 +477,6 @@ class DescribeTextFrame(object):
     @pytest.fixture
     def paragraphs_prop_(self, request):
         return property_mock(request, TextFrame, "paragraphs")
-
-    @pytest.fixture
-    def _set_font_(self, request):
-        return method_mock(request, TextFrame, "_set_font")
 
     @pytest.fixture
     def TextFitter_(self, request):
@@ -498,6 +498,8 @@ class DescribeTextFrame(object):
         return TextFrame(element("p:txBody"), parent_)
 
 class DescribeFont(object):
+    """Unit-test suite for `pptx.text.text.Font` object."""
+
     def it_knows_its_bold_setting(self, bold_get_fixture):
         font, expected_value = bold_get_fixture
         assert font.bold == expected_value
@@ -768,6 +770,8 @@ class DescribeFont(object):
 
 
 class Describe_Hyperlink(object):
+    """Unit-test suite for `pptx.text.text._Hyperlink` object."""
+
     def it_knows_the_target_url_of_the_hyperlink(self, hlink_with_url_):
         hlink, rId, url = hlink_with_url_
         assert hlink.address == url
@@ -1390,15 +1394,18 @@ class Describe_Run(object):
         assert text == expected_value
         assert is_unicode(text)
 
-    def it_can_change_its_text(self, text_set_fixture):
-        r, new_value, expected_xml = text_set_fixture
-        run = _Run(r, None)
-
+    @pytest.mark.parametrize(
+        "r_cxml, new_value, expected_r_cxml",
+        (
+            ("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"'),
+            ("a:r/a:t", "bar\x1bfoo", 'a:r/a:t"bar_x001B_foo"'),
+            ("a:r/a:t", "bar\tfoo", 'a:r/a:t"bar\tfoo"'),
+        ),
+    )
+    def it_can_change_its_text(self, r_cxml, new_value, expected_r_cxml):
+        run = _Run(element(r_cxml), None)
         run.text = new_value
-
-        print("run._r.xml == %s" % repr(run._r.xml))
-        print("expected_xml == %s" % repr(expected_xml))
-        assert run._r.xml == expected_xml
+        assert run._r.xml == xml(expected_r_cxml)
 
     # fixtures ---------------------------------------------
 
@@ -1421,19 +1428,6 @@ class Describe_Run(object):
         r = element('a:r/a:t"foobar"')
         run = _Run(r, None)
         return run, "foobar"
-
-    @pytest.fixture(
-        params=[
-            ("a:r/a:t", "barfoo", 'a:r/a:t"barfoo"'),
-            ("a:r/a:t", "bar\x1bfoo", 'a:r/a:t"bar_x001B_foo"'),
-            ("a:r/a:t", "bar\tfoo", 'a:r/a:t"bar\tfoo"'),
-        ]
-    )
-    def text_set_fixture(self, request):
-        r_cxml, new_value, expected_r_cxml = request.param
-        r = element(r_cxml)
-        expected_xml = xml(expected_r_cxml)
-        return r, new_value, expected_xml
 
     # fixture components -----------------------------------
 
@@ -1870,7 +1864,7 @@ class Describe_ParagraphProperties(object):
     # fixture components -----------------------------------
     @pytest.fixture
     def pPr_bldr(self):
-        return a_pPr().with_nsdecls()
+        return an_pPr().with_nsdecls()
 
     @pytest.fixture
     def paragraph_properties(self, pPr_bldr):

@@ -1,8 +1,6 @@
 # encoding: utf-8
 
-"""Unit test suite for pptx.media module."""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Unit test suite for `pptx.media` module."""
 
 import pytest
 
@@ -17,10 +15,16 @@ TEST_VIDEO_PATH = absjoin(test_file_dir, "dummy.mp4")
 
 
 class DescribeVideo(object):
-    def it_can_construct_from_a_path(self, from_path_fixture):
-        movie_path, mime_type, blob, filename, video_ = from_path_fixture
-        video = Video.from_path_or_file_like(movie_path, mime_type)
-        Video.from_blob.assert_called_once_with(blob, mime_type, filename)
+    """Unit-test suite for `pptx.media.Video` objects."""
+
+    def it_can_construct_from_a_path(self, video_, from_blob_):
+        with open(TEST_VIDEO_PATH, "rb") as f:
+            blob = f.read()
+        from_blob_.return_value = video_
+
+        video = Video.from_path_or_file_like(TEST_VIDEO_PATH, "video/mp4")
+
+        Video.from_blob.assert_called_once_with(blob, "video/mp4", "dummy.mp4")
         assert video is video_
 
     def it_can_construct_from_a_stream(self, from_stream_fixture):
@@ -98,15 +102,6 @@ class DescribeVideo(object):
         return blob, mime_type, filename, Video_init_
 
     @pytest.fixture
-    def from_path_fixture(self, video_, from_blob_):
-        movie_path, mime_type = TEST_VIDEO_PATH, "video/mp4"
-        with open(movie_path, "rb") as f:
-            blob = f.read()
-        filename = "dummy.mp4"
-        from_blob_.return_value = video_
-        return movie_path, mime_type, blob, filename, video_
-
-    @pytest.fixture
     def from_stream_fixture(self, video_, from_blob_):
         with open(TEST_VIDEO_PATH, "rb") as f:
             blob = f.read()
@@ -130,7 +125,7 @@ class DescribeVideo(object):
 
     @pytest.fixture
     def from_blob_(self, request):
-        return method_mock(request, Video, "from_blob")
+        return method_mock(request, Video, "from_blob", autospec=False)
 
     @pytest.fixture
     def video_(self, request):

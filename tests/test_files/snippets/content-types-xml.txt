@@ -1,0 +1,9 @@
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="png" ContentType="image/png"/>
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/docProps/core.xml" ContentType="app/vnd.core"/>
+  <Override PartName="/ppt/slides/slide1.xml" ContentType="app/vnd.ct_sld"/>
+  <Override PartName="/zebra/foo.bar" ContentType="app/vnd.foobar"/>
+</Types>
+

@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test data for autoshape-related unit tests.
-"""
-
-from __future__ import absolute_import
+"""Test data for autoshape-related unit tests."""
 
 from ...unitdata import BaseBuilder
 
@@ -31,18 +27,6 @@ class CT_GeomGuideListBuilder(BaseBuilder):
     __tag__ = "a:avLst"
     __nspfxs__ = ("a",)
     __attrs__ = ()
-
-
-class CT_GraphicalObjectBuilder(BaseBuilder):
-    __tag__ = "a:graphic"
-    __nspfxs__ = ("a",)
-    __attrs__ = ()
-
-
-class CT_GraphicalObjectDataBuilder(BaseBuilder):
-    __tag__ = "a:graphicData"
-    __nspfxs__ = ("a",)
-    __attrs__ = ("uri",)
 
 
 class CT_GraphicalObjectFrameBuilder(BaseBuilder):
@@ -161,14 +145,6 @@ def a_cxnSp():
 
 def a_gd():
     return CT_GeomGuideBuilder()
-
-
-def a_graphic():
-    return CT_GraphicalObjectBuilder()
-
-
-def a_graphicData():
-    return CT_GraphicalObjectDataBuilder()
 
 
 def a_graphicFrame():

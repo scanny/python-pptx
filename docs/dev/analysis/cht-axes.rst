@@ -17,6 +17,40 @@ depending upon the chart type. Likewise for a value axis.
 PowerPoint behavior
 -------------------
 
+Reverse-order
+~~~~~~~~~~~~~
+
+Normally, categories appear left-to-right in the order specified and values appear
+vertically in increasing order. This default ordering can be reversed when desired.
+
+One common case is for the categories in a "horizontal" bar-chart (as opposed to the
+"vertical" column-chart). Because the value axis appears at the bottom, categories
+appear from bottom-to-top on the categories axis. For many readers this is odd, perhaps
+because we read top-to-bottom.
+
+The axis "direction" can be switched using the `Axis.reverse_order` property. This
+controls the value of the `c:xAx/c:scaling/c:orientation{val=minMax|maxMin}` XML
+element/attribute. The default is False.
+
+MS API protocol::
+
+    >>> axis = Chart.Axes(xlCategory)
+    >>> axis.ReversePlotOrder
+    False
+    >>> axis.ReversePlotOrder = True
+    >>> axis.ReversePlotOrder
+    True
+
+Proposed python-pptx protocol::
+
+    >>> axis = chart.category_axis
+    >>> axis.reverse_order
+    False
+    >>> axis.reverse_order = True
+    >>> axis.reverse_order
+    True
+
+
 Tick label position
 ~~~~~~~~~~~~~~~~~~~
 
@@ -288,6 +322,10 @@ Related Schema Definitions
     <xsd:attribute name="sourceLinked" type="xsd:boolean"/>
   </xsd:complexType>
 
+  <xsd:complexType name="CT_Orientation">
+    <xsd:attribute name="val" type="ST_Orientation" default="minMax"/>
+  </xsd:complexType>
+
   <xsd:complexType name="CT_TickLblPos">
     <xsd:attribute name="val" type="ST_TickLblPos" default="nextTo"/>
   </xsd:complexType>
@@ -309,6 +347,13 @@ Related Schema Definitions
       <xsd:enumeration value="autoZero"/>
       <xsd:enumeration value="max"/>
       <xsd:enumeration value="min"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ST_Orientation">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="maxMin"/>
+      <xsd:enumeration value="minMax"/>
     </xsd:restriction>
   </xsd:simpleType>
 

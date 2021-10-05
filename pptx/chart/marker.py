@@ -18,8 +18,6 @@ class Marker(ElementProxy):
     a line-type chart.
     """
 
-    __slots__ = ("_format",)
-
     @lazyproperty
     def format(self):
         """

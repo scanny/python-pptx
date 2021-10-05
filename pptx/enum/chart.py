@@ -202,51 +202,51 @@ class XL_DATA_LABEL_POSITION(XmlEnumeration):
 
     __members__ = (
         XmlMappedEnumMember(
-            "ABOVE", 0, "t", "The data label is positioned above the data po" "int."
+            "ABOVE", 0, "t", "The data label is positioned above the data point."
         ),
         XmlMappedEnumMember(
-            "BELOW", 1, "b", "The data label is positioned below the data po" "int."
+            "BELOW", 1, "b", "The data label is positioned below the data point."
         ),
         XmlMappedEnumMember(
-            "BEST_FIT", 5, "bestFit", "Word sets the position of the data la" "bel."
+            "BEST_FIT", 5, "bestFit", "Word sets the position of the data label."
         ),
         XmlMappedEnumMember(
             "CENTER",
             -4108,
             "ctr",
-            "The data label is centered on the data "
-            "point or inside a bar or a pie slice.",
+            "The data label is centered on the data point or inside a bar or a pie "
+            "slice.",
         ),
         XmlMappedEnumMember(
             "INSIDE_BASE",
             4,
             "inBase",
-            "The data label is positioned inside" " the data point at the bottom edge.",
+            "The data label is positioned inside the data point at the bottom edge.",
         ),
         XmlMappedEnumMember(
             "INSIDE_END",
             3,
             "inEnd",
-            "The data label is positioned inside t" "he data point at the top edge.",
+            "The data label is positioned inside the data point at the top edge.",
         ),
         XmlMappedEnumMember(
             "LEFT",
             -4131,
             "l",
-            "The data label is positioned to the left of" " the data point.",
+            "The data label is positioned to the left of the data point.",
         ),
         ReturnValueOnlyEnumMember("MIXED", 6, "Data labels are in multiple positions."),
         XmlMappedEnumMember(
             "OUTSIDE_END",
             2,
             "outEnd",
-            "The data label is positioned outsid" "e the data point at the top edge.",
+            "The data label is positioned outside the data point at the top edge.",
         ),
         XmlMappedEnumMember(
             "RIGHT",
             -4152,
             "r",
-            "The data label is positioned to the right " "of the data point.",
+            "The data label is positioned to the right of the data point.",
         ),
     )
 

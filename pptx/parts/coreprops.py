@@ -1,28 +1,29 @@
 # encoding: utf-8
 
-"""
-Core properties part, corresponds to ``/docProps/core.xml`` part in package.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+"""Core properties part, corresponds to ``/docProps/core.xml`` part in package."""
 
 from datetime import datetime
 
-from ..opc.constants import CONTENT_TYPE as CT
-from ..opc.package import XmlPart
-from ..opc.packuri import PackURI
-from ..oxml.coreprops import CT_CoreProperties
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.package import XmlPart
+from pptx.opc.packuri import PackURI
+from pptx.oxml.coreprops import CT_CoreProperties
 
 
 class CorePropertiesPart(XmlPart):
-    """
-    Corresponds to part named ``/docProps/core.xml``, containing the core
-    document properties for this document package.
+    """Corresponds to part named `/docProps/core.xml`.
+
+    Contains the core document properties for this document package.
     """
 
     @classmethod
-    def default(cls):
-        core_props = cls._new()
+    def default(cls, package):
+        """Return default new |CorePropertiesPart| instance suitable as starting point.
+
+        This provides a base for adding core-properties to a package that doesn't yet
+        have any.
+        """
+        core_props = cls._new(package)
         core_props.title = "PowerPoint Presentation"
         core_props.last_modified_by = "python-pptx"
         core_props.revision = 1
@@ -150,8 +151,11 @@ class CorePropertiesPart(XmlPart):
         self._element.version_text = value
 
     @classmethod
-    def _new(cls):
-        partname = PackURI("/docProps/core.xml")
-        content_type = CT.OPC_CORE_PROPERTIES
-        core_props_elm = CT_CoreProperties.new_coreProperties()
-        return CorePropertiesPart(partname, content_type, core_props_elm)
+    def _new(cls, package):
+        """Return new empty |CorePropertiesPart| instance."""
+        return CorePropertiesPart(
+            PackURI("/docProps/core.xml"),
+            CT.OPC_CORE_PROPERTIES,
+            package,
+            CT_CoreProperties.new_coreProperties(),
+        )

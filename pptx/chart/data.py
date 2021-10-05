@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-ChartData and related objects.
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+"""ChartData and related objects."""
 
 import datetime
 from numbers import Number
@@ -298,19 +294,20 @@ class CategoryChartData(_BaseChartData):
             series_data.add_data_point(value)
         return series_data
 
-    @lazyproperty
+    @property
     def categories(self):
-        """
-        A |data.Categories| object providing access to the hierarchy of
-        category objects for this chart data. Assigning an iterable of
-        category labels (strings, numbers, or dates) replaces the
-        |data.Categories| object with a new one containing a category for
-        each label in the sequence.
+        """|data.Categories| object providing access to category-object hierarchy.
 
-        Creating a chart from chart data having date categories will cause
-        the chart to have a |DateAxis| for its category axis.
+        Assigning an iterable of category labels (strings, numbers, or dates) replaces
+        the |data.Categories| object with a new one containing a category for each label
+        in the sequence.
+
+        Creating a chart from chart data having date categories will cause the chart to
+        have a |DateAxis| for its category axis.
         """
-        return Categories()
+        if not getattr(self, "_categories", False):
+            self._categories = Categories()
+        return self._categories
 
     @categories.setter
     def categories(self, category_labels):

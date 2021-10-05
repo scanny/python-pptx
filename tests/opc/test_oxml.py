@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-"""
-Test suite for opc.oxml module
-"""
+"""Unit-test suite for `pptx.opc.oxml` module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import unicode_literals
 
 import pytest
 
@@ -30,6 +28,8 @@ from .unitdata.rels import (
 
 
 class DescribeCT_Default(object):
+    """Unit-test suite for `pptx.opc.oxml.CT_Default` objects."""
+
     def it_provides_read_access_to_xml_values(self):
         default = a_Default().element
         assert default.extension == "xml"
@@ -37,6 +37,8 @@ class DescribeCT_Default(object):
 
 
 class DescribeCT_Override(object):
+    """Unit-test suite for `pptx.opc.oxml.CT_Override` objects."""
+
     def it_provides_read_access_to_xml_values(self):
         override = an_Override().element
         assert override.partName == "/part/name.xml"
@@ -44,6 +46,8 @@ class DescribeCT_Override(object):
 
 
 class DescribeCT_Relationship(object):
+    """Unit-test suite for `pptx.opc.oxml.CT_Relationship` objects."""
+
     def it_provides_read_access_to_xml_values(self):
         rel = a_Relationship().element
         assert rel.rId == "rId9"
@@ -70,6 +74,8 @@ class DescribeCT_Relationship(object):
 
 
 class DescribeCT_Relationships(object):
+    """Unit-test suite for `pptx.opc.oxml.CT_Relationships` objects."""
+
     def it_can_construct_a_new_relationships_element(self):
         rels = CT_Relationships.new()
         expected_xml = (
@@ -101,6 +107,8 @@ class DescribeCT_Relationships(object):
 
 
 class DescribeCT_Types(object):
+    """Unit-test suite for `pptx.opc.oxml.CT_Types` objects."""
+
     def it_provides_access_to_default_child_elements(self):
         types = a_Types().element
         assert len(types.default_lst) == 2
@@ -134,7 +142,9 @@ class DescribeCT_Types(object):
         assert types.xml == expected_types_xml
 
 
-class DescribeSerializePartXml(object):
+class Describe_serialize_part_xml(object):
+    """Unit-test suite for `pptx.opc.oxml.serialize_part_xml` function."""
+
     def it_produces_properly_formatted_xml_for_an_opc_part(
         self, part_elm, expected_part_xml
     ):

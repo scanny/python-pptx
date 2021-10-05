@@ -1,10 +1,6 @@
 # encoding: utf-8
 
-"""
-Test suite for pptx.chart module
-"""
-
-from __future__ import absolute_import, print_function
+"""Unit-test suite for pptx.chart.axis module."""
 
 import pytest
 
@@ -13,7 +9,7 @@ from pptx.chart.axis import (
     _BaseAxis,
     CategoryAxis,
     DateAxis,
-    MajorGridlines,
+    Gridlines,
     TickLabels,
     ValueAxis,
 )
@@ -31,6 +27,20 @@ from ..unitutil.mock import class_mock, instance_mock
 
 
 class Describe_BaseAxis(object):
+    """Unit-test suite for `pptx.chart.axis._BaseAxis` objects."""
+
+    def it_provides_access_to_its_title(self, title_fixture):
+        axis, AxisTitle_, axis_title_ = title_fixture
+        axis_title = axis.axis_title
+        AxisTitle_.assert_called_once_with(axis._element.title)
+        assert axis_title is axis_title_
+
+    def it_provides_access_to_its_format(self, format_fixture):
+        axis, ChartFormat_, format_ = format_fixture
+        format = axis.format
+        ChartFormat_.assert_called_once_with(axis._xAx)
+        assert format is format_
+
     def it_knows_whether_it_has_major_gridlines(self, major_gridlines_get_fixture):
         base_axis, expected_value = major_gridlines_get_fixture
         assert base_axis.has_major_gridlines is expected_value
@@ -58,37 +68,13 @@ class Describe_BaseAxis(object):
         axis.has_title = new_value
         assert axis._element.xml == expected_xml
 
-    def it_knows_whether_it_is_visible(self, visible_get_fixture):
-        axis, expected_bool_value = visible_get_fixture
-        assert axis.visible is expected_bool_value
+    def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
+        axis, MajorGridlines_, xAx, major_gridlines_ = maj_grdlns_fixture
 
-    def it_can_change_whether_it_is_visible(self, visible_set_fixture):
-        axis, new_value, expected_xml = visible_set_fixture
-        axis.visible = new_value
-        assert axis._element.xml == expected_xml
+        major_gridlines = axis.major_gridlines
 
-    def it_raises_on_assign_non_bool_to_visible(self):
-        axis = _BaseAxis(None)
-        with pytest.raises(ValueError):
-            axis.visible = "foobar"
-
-    def it_knows_the_scale_maximum(self, maximum_scale_get_fixture):
-        axis, expected_value = maximum_scale_get_fixture
-        assert axis.maximum_scale == expected_value
-
-    def it_can_change_the_scale_maximum(self, maximum_scale_set_fixture):
-        axis, new_value, expected_xml = maximum_scale_set_fixture
-        axis.maximum_scale = new_value
-        assert axis._element.xml == expected_xml
-
-    def it_knows_the_scale_minimum(self, minimum_scale_get_fixture):
-        axis, expected_value = minimum_scale_get_fixture
-        assert axis.minimum_scale == expected_value
-
-    def it_can_change_the_scale_minimum(self, minimum_scale_set_fixture):
-        axis, new_value, expected_xml = minimum_scale_set_fixture
-        axis.minimum_scale = new_value
-        assert axis._element.xml == expected_xml
+        MajorGridlines_.assert_called_once_with(xAx)
+        assert major_gridlines is major_gridlines_
 
     def it_knows_its_major_tick_setting(self, major_tick_get_fixture):
         axis, expected_value = major_tick_get_fixture
@@ -99,6 +85,24 @@ class Describe_BaseAxis(object):
         axis.major_tick_mark = new_value
         assert axis._element.xml == expected_xml
 
+    def it_knows_its_maximum_scale(self, maximum_scale_get_fixture):
+        axis, expected_value = maximum_scale_get_fixture
+        assert axis.maximum_scale == expected_value
+
+    def it_can_change_its_maximum_scale(self, maximum_scale_set_fixture):
+        axis, new_value, expected_xml = maximum_scale_set_fixture
+        axis.maximum_scale = new_value
+        assert axis._element.xml == expected_xml
+
+    def it_knows_its_minimum_scale(self, minimum_scale_get_fixture):
+        axis, expected_value = minimum_scale_get_fixture
+        assert axis.minimum_scale == expected_value
+
+    def it_can_change_its_minimum_scale(self, minimum_scale_set_fixture):
+        axis, new_value, expected_xml = minimum_scale_set_fixture
+        axis.minimum_scale = new_value
+        assert axis._element.xml == expected_xml
+
     def it_knows_its_minor_tick_setting(self, minor_tick_get_fixture):
         axis, expected_value = minor_tick_get_fixture
         assert axis.minor_tick_mark == expected_value
@@ -106,6 +110,20 @@ class Describe_BaseAxis(object):
     def it_can_change_its_minor_tick_mark(self, minor_tick_set_fixture):
         axis, new_value, expected_xml = minor_tick_set_fixture
         axis.minor_tick_mark = new_value
+        assert axis._element.xml == expected_xml
+
+    def it_knows_whether_it_renders_in_reverse_order(self, reverse_order_get_fixture):
+        xAx, expected_value = reverse_order_get_fixture
+        assert _BaseAxis(xAx).reverse_order == expected_value
+
+    def it_can_change_whether_it_renders_in_reverse_order(
+        self, reverse_order_set_fixture
+    ):
+        xAx, new_value, expected_xml = reverse_order_set_fixture
+        axis = _BaseAxis(xAx)
+
+        axis.reverse_order = new_value
+
         assert axis._element.xml == expected_xml
 
     def it_knows_its_tick_label_position(self, tick_lbl_pos_get_fixture):
@@ -132,14 +150,34 @@ class Describe_BaseAxis(object):
     def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
         axis, MajorGridlines_, xAx, major_gridlines_ = maj_grdlns_fixture
         major_gridlines = axis.major_gridlines
-        MajorGridlines_.assert_called_once_with(xAx)
+        MajorGridlines_.assert_called_once_with(xAx, 'major')
         assert major_gridlines is major_gridlines_
+
+    def it_provides_access_to_its_minor_gridlines(self, min_grdlns_fixture):
+        axis, MinorGridlines_, xAx, minor_gridlines_ = min_grdlns_fixture
+        minor_gridlines = axis.minor_gridlines
+        MinorGridlines_.assert_called_once_with(xAx, 'minor')
+        assert minor_gridlines is minor_gridlines_
 
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
         axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
         tick_labels = axis.tick_labels
         TickLabels_.assert_called_once_with(xAx)
         assert tick_labels is tick_labels_
+
+    def it_knows_whether_it_is_visible(self, visible_get_fixture):
+        axis, expected_bool_value = visible_get_fixture
+        assert axis.visible is expected_bool_value
+
+    def it_can_change_whether_it_is_visible(self, visible_set_fixture):
+        axis, new_value, expected_xml = visible_set_fixture
+        axis.visible = new_value
+        assert axis._element.xml == expected_xml
+
+    def but_it_raises_on_assign_non_bool_to_visible(self):
+        axis = _BaseAxis(None)
+        with pytest.raises(ValueError):
+            axis.visible = "foobar"
 
     # fixtures -------------------------------------------------------
 
@@ -192,6 +230,13 @@ class Describe_BaseAxis(object):
         xAx = element(xAx_cxml)
         axis = _BaseAxis(xAx)
         return axis, MajorGridlines_, xAx, major_gridlines_
+
+    @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
+    def min_grdlns_fixture(self, request, MinorGridlines_, minor_gridlines_):
+        xAx_cxml = request.param
+        xAx = element(xAx_cxml)
+        axis = _BaseAxis(xAx)
+        return axis, MinorGridlines_, xAx, minor_gridlines_
 
     @pytest.fixture(
         params=[
@@ -475,6 +520,55 @@ class Describe_BaseAxis(object):
         expected_xml = xml(expected_xAx_cxml)
         return axis, new_value, expected_xml
 
+    @pytest.fixture(
+        params=[
+            ("c:catAx/c:scaling", False),
+            ("c:valAx/c:scaling/c:orientation", False),
+            ("c:catAx/c:scaling/c:orientation{val=minMax}", False),
+            ("c:valAx/c:scaling/c:orientation{val=maxMin}", True),
+        ]
+    )
+    def reverse_order_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        return element(xAx_cxml), expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:catAx/c:scaling", False, "c:catAx/c:scaling"),
+            ("c:catAx/c:scaling", True, "c:catAx/c:scaling/c:orientation{val=maxMin}"),
+            ("c:valAx/c:scaling/c:orientation", False, "c:valAx/c:scaling"),
+            (
+                "c:valAx/c:scaling/c:orientation",
+                True,
+                "c:valAx/c:scaling/c:orientation{val=maxMin}",
+            ),
+            (
+                "c:dateAx/c:scaling/c:orientation{val=minMax}",
+                False,
+                "c:dateAx/c:scaling",
+            ),
+            (
+                "c:dateAx/c:scaling/c:orientation{val=minMax}",
+                True,
+                "c:dateAx/c:scaling/c:orientation{val=maxMin}",
+            ),
+            (
+                "c:catAx/c:scaling/c:orientation{val=maxMin}",
+                False,
+                "c:catAx/c:scaling",
+            ),
+            (
+                "c:catAx/c:scaling/c:orientation{val=maxMin}",
+                True,
+                "c:catAx/c:scaling/c:orientation{val=maxMin}",
+            ),
+        ]
+    )
+    def reverse_order_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        xAx, expected_xml = element(xAx_cxml), xml(expected_xAx_cxml)
+        return xAx, new_value, expected_xml
+
     @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
     def tick_labels_fixture(self, request, TickLabels_, tick_labels_):
         xAx_cxml = request.param
@@ -611,12 +705,22 @@ class Describe_BaseAxis(object):
     @pytest.fixture
     def MajorGridlines_(self, request, major_gridlines_):
         return class_mock(
-            request, "pptx.chart.axis.MajorGridlines", return_value=major_gridlines_
+            request, "pptx.chart.axis.Gridlines", return_value=major_gridlines_
         )
 
     @pytest.fixture
     def major_gridlines_(self, request):
-        return instance_mock(request, MajorGridlines)
+        return instance_mock(request, Gridlines)
+
+    @pytest.fixture
+    def MinorGridlines_(self, request, minor_gridlines_):
+        return class_mock(
+            request, "pptx.chart.axis.Gridlines", return_value=minor_gridlines_
+        )
+
+    @pytest.fixture
+    def minor_gridlines_(self, request):
+        return instance_mock(request, Gridlines)
 
     @pytest.fixture
     def TickLabels_(self, request, tick_labels_):
@@ -754,7 +858,7 @@ class DescribeDateAxis(object):
         return date_axis, expected_value
 
 
-class DescribeMajorGridlines(object):
+class DescribeGridlines(object):
     def it_provides_access_to_its_format(self, format_fixture):
         gridlines, expected_xml, ChartFormat_, format_ = format_fixture
         format = gridlines.format
@@ -774,7 +878,7 @@ class DescribeMajorGridlines(object):
     )
     def format_fixture(self, request, ChartFormat_, format_):
         xAx_cxml, expected_cxml = request.param
-        gridlines = MajorGridlines(element(xAx_cxml))
+        gridlines = Gridlines(element(xAx_cxml), 'major')
         expected_xml = xml(expected_cxml)
         return gridlines, expected_xml, ChartFormat_, format_
 

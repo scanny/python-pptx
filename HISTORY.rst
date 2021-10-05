@@ -3,6 +3,28 @@
 Release History
 ---------------
 
+0.6.21 (2021-09-20)
++++++++++++++++++++
+
+- Fix #741 _DirPkgReader must implement .__contains__()
+
+
+0.6.20 (2021-09-14)
++++++++++++++++++++
+
+- Fix #206 accommodate NULL target-references in relationships.
+- Fix #223 escape image filename that appears as literal in XML.
+- Fix #517 option to display chart categories/values in reverse order.
+- Major refactoring of ancient package loading code.
+
+
+0.6.19 (2021-05-17)
++++++++++++++++++++
+
+- Add shapes.add_ole_object(), allowing arbitrary Excel or other binary file to be
+  embedded as a shape on a slide. The OLE object is represented as an icon.
+
+
 0.6.18 (2019-05-02)
 +++++++++++++++++++
 
