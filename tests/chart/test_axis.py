@@ -13,7 +13,7 @@ from pptx.chart.axis import (
     _BaseAxis,
     CategoryAxis,
     DateAxis,
-    MajorGridlines,
+    Gridlines,
     TickLabels,
     ValueAxis,
 )
@@ -132,8 +132,14 @@ class Describe_BaseAxis(object):
     def it_provides_access_to_its_major_gridlines(self, maj_grdlns_fixture):
         axis, MajorGridlines_, xAx, major_gridlines_ = maj_grdlns_fixture
         major_gridlines = axis.major_gridlines
-        MajorGridlines_.assert_called_once_with(xAx)
+        MajorGridlines_.assert_called_once_with(xAx, 'major')
         assert major_gridlines is major_gridlines_
+
+    def it_provides_access_to_its_minor_gridlines(self, min_grdlns_fixture):
+        axis, MinorGridlines_, xAx, minor_gridlines_ = min_grdlns_fixture
+        minor_gridlines = axis.minor_gridlines
+        MinorGridlines_.assert_called_once_with(xAx, 'minor')
+        assert minor_gridlines is minor_gridlines_
 
     def it_provides_access_to_the_tick_labels(self, tick_labels_fixture):
         axis, tick_labels_, TickLabels_, xAx = tick_labels_fixture
@@ -192,6 +198,13 @@ class Describe_BaseAxis(object):
         xAx = element(xAx_cxml)
         axis = _BaseAxis(xAx)
         return axis, MajorGridlines_, xAx, major_gridlines_
+
+    @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
+    def min_grdlns_fixture(self, request, MinorGridlines_, minor_gridlines_):
+        xAx_cxml = request.param
+        xAx = element(xAx_cxml)
+        axis = _BaseAxis(xAx)
+        return axis, MinorGridlines_, xAx, minor_gridlines_
 
     @pytest.fixture(
         params=[
@@ -611,12 +624,22 @@ class Describe_BaseAxis(object):
     @pytest.fixture
     def MajorGridlines_(self, request, major_gridlines_):
         return class_mock(
-            request, "pptx.chart.axis.MajorGridlines", return_value=major_gridlines_
+            request, "pptx.chart.axis.Gridlines", return_value=major_gridlines_
         )
 
     @pytest.fixture
     def major_gridlines_(self, request):
-        return instance_mock(request, MajorGridlines)
+        return instance_mock(request, Gridlines)
+
+    @pytest.fixture
+    def MinorGridlines_(self, request, minor_gridlines_):
+        return class_mock(
+            request, "pptx.chart.axis.Gridlines", return_value=minor_gridlines_
+        )
+
+    @pytest.fixture
+    def minor_gridlines_(self, request):
+        return instance_mock(request, Gridlines)
 
     @pytest.fixture
     def TickLabels_(self, request, tick_labels_):
@@ -754,7 +777,7 @@ class DescribeDateAxis(object):
         return date_axis, expected_value
 
 
-class DescribeMajorGridlines(object):
+class DescribeGridlines(object):
     def it_provides_access_to_its_format(self, format_fixture):
         gridlines, expected_xml, ChartFormat_, format_ = format_fixture
         format = gridlines.format
@@ -774,7 +797,7 @@ class DescribeMajorGridlines(object):
     )
     def format_fixture(self, request, ChartFormat_, format_):
         xAx_cxml, expected_cxml = request.param
-        gridlines = MajorGridlines(element(xAx_cxml))
+        gridlines = Gridlines(element(xAx_cxml), 'major')
         expected_xml = xml(expected_cxml)
         return gridlines, expected_xml, ChartFormat_, format_
 
