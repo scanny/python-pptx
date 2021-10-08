@@ -13,6 +13,7 @@ from pptx.enum.text import (
     MSO_TEXT_UNDERLINE_TYPE,
     MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT,
+    PP_PARAGRAPH_DIRECTION,
 )
 from pptx.exc import InvalidXmlError
 from pptx.oxml import parse_xml
@@ -462,7 +463,21 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     defRPr = ZeroOrOne("a:defRPr", successors=_tag_seq[16:])
     lvl = OptionalAttribute("lvl", ST_TextIndentLevelType, default=0)
     algn = OptionalAttribute("algn", PP_PARAGRAPH_ALIGNMENT)
+    rtl = OptionalAttribute("rtl", PP_PARAGRAPH_DIRECTION)
     del _tag_seq
+
+    @property
+    def is_rtl(self):
+        if self.rtl:
+            return self.rtl
+        return False
+
+    @is_rtl.setter
+    def is_rtl(self, value):
+        if value is None:
+            return
+        if isinstance(value, bool):
+            self.rtl = value
 
     @property
     def line_spacing(self):
