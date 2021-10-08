@@ -220,13 +220,8 @@ class PP_PARAGRAPH_DIRECTION(XmlEnumeration):
     )
 
     __members__ = (
-        XmlMappedEnumMember("NONE", 0, "none", 'RTL no specified'),
         XmlMappedEnumMember("RIGHTTOLEFT", 1, '1', "Right-to-Left layout"),
-        ReturnValueOnlyEnumMember(
-            "MIXED",
-            -2,
-            "Return value only; indicates a combination of the " "other states.",
-        ),
+
     )
 
 @alias("PP_ALIGN")
