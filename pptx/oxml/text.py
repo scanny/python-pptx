@@ -468,7 +468,9 @@ class CT_TextParagraphProperties(BaseOxmlElement):
 
     @property
     def is_rtl(self):
-        return self.rtl
+        if self.rtl:
+            return self.rtl
+        return False
 
     @is_rtl.setter
     def is_rtl(self, value):
