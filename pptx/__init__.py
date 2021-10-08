@@ -2,7 +2,7 @@
 
 """Initialization module for python-pptx package."""
 
-__version__ = "0.6.20"
+__version__ = "0.6.22"
 
 
 import pptx.exc as exceptions

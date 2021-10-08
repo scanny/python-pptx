@@ -199,6 +199,35 @@ class MSO_VERTICAL_ANCHOR(XmlEnumeration):
         ),
     )
 
+@alias("PP_DIRECTION")
+class PP_PARAGRAPH_DIRECTION(XmlEnumeration):
+    """
+    Specifies weather the paragraphs is rtl or not.
+
+    Alias: ``PP_DIRECTION``
+
+    Example::
+
+        from pptx.enum.text import PP_DIRECTION
+
+        shape.paragraphs[0].alignment = PP_DIRECTION
+    """
+
+    __ms_name__ = "PpDirection"
+
+    __url__ = (
+        "https://docs.microsoft.com/en-us/office/vba/api/powerpoint.ppdirection"
+    )
+
+    __members__ = (
+        XmlMappedEnumMember("NONE", 0, "none", 'RTL no specified'),
+        XmlMappedEnumMember("RIGHTTOLEFT", 1, '1', "Right-to-Left layout"),
+        ReturnValueOnlyEnumMember(
+            "MIXED",
+            -2,
+            "Return value only; indicates a combination of the " "other states.",
+        ),
+    )
 
 @alias("PP_ALIGN")
 class PP_PARAGRAPH_ALIGNMENT(XmlEnumeration):

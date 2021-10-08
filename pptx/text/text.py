@@ -566,6 +566,20 @@ class _Paragraph(Subshape):
         pPr.line_spacing = value
 
     @property
+    def is_rtl(self):
+        pPr = self._p.pPr
+        if pPr is None:
+            return False
+        return pPr.is_rtl
+
+    @is_rtl.setter
+    def is_rtl(self, value):
+        pPr = self._p.pPr
+        if pPr is None:
+            return
+        pPr.is_rtl = value
+
+    @property
     def runs(self):
         """
         Immutable sequence of |_Run| objects corresponding to the runs in

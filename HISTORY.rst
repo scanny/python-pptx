@@ -3,6 +3,17 @@
 Release History
 ---------------
 
+0.6.22 (2021-10-08)
++++++++++++++++++++
+
+- Added RTL property for Paragraph
+
+0.6.21 (2021-09-20)
++++++++++++++++++++
+
+- Fix #741 _DirPkgReader must implement .__contains__()
+
+
 0.6.20 (2021-09-14)
 +++++++++++++++++++
 
