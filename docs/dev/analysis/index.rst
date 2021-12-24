@@ -44,6 +44,7 @@ Chart
    cht-points
    cht-radar-chart
    cht-bubble-chart
+   cht-waterfall-chart
    cht-xy-chart
    cht-line-chart
    cht-pie-chart
