@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<cx:chartSpace xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex">
+  <cx:chartData>
+    <cx:externalData r:id="rId1" cx:autoUpdate="0"/>
+    <cx:data id="0">
+      <cx:strDim type="cat">
+        <cx:f>Sheet1!$A$2:$A$9</cx:f>
+        <cx:lvl ptCount="8">
+          <cx:pt idx="0">Category 1</cx:pt>
+          <cx:pt idx="1">Category 2</cx:pt>
+          <cx:pt idx="2">Category 3</cx:pt>
+          <cx:pt idx="3">Category 4</cx:pt>
+          <cx:pt idx="4">Category 5</cx:pt>
+          <cx:pt idx="5">Category 6</cx:pt>
+          <cx:pt idx="6">Category 7</cx:pt>
+          <cx:pt idx="7">Category 8</cx:pt>
+        </cx:lvl>
+      </cx:strDim>
+      <cx:numDim type="val">
+        <cx:f>Sheet1!$B$2:$B$9</cx:f>
+        <cx:lvl ptCount="8" formatCode="General">
+          <cx:pt idx="0">100</cx:pt>
+          <cx:pt idx="1">20</cx:pt>
+          <cx:pt idx="2">50</cx:pt>
+          <cx:pt idx="3">-40</cx:pt>
+          <cx:pt idx="4">130</cx:pt>
+          <cx:pt idx="5">-60</cx:pt>
+          <cx:pt idx="6">70</cx:pt>
+          <cx:pt idx="7">140</cx:pt>
+        </cx:lvl>
+      </cx:numDim>
+    </cx:data>
+  </cx:chartData>
+  <cx:chart>
+    <cx:title pos="t" align="ctr" overlay="0"/>
+    <cx:plotArea>
+      <cx:plotAreaRegion>
+        <cx:series layoutId="waterfall" uniqueId="{81976154-2C8B-4199-B8D2-4D79C6FDF1F5}">
+          <cx:tx>
+            <cx:txData>
+              <cx:f>Sheet1!$B$1</cx:f>
+              <cx:v>Series1</cx:v>
+            </cx:txData>
+          </cx:tx>
+          <cx:dataLabels pos="outEnd">
+            <cx:visibility seriesName="0" categoryName="0" value="1"/>
+          </cx:dataLabels>
+          <cx:dataId val="0"/>
+          <cx:layoutPr>
+            <cx:subtotals>
+              <cx:idx val="0"/>
+              <cx:idx val="4"/>
+              <cx:idx val="7"/>
+            </cx:subtotals>
+          </cx:layoutPr>
+        </cx:series>
+      </cx:plotAreaRegion>
+      <cx:axis id="0">
+        <cx:catScaling gapWidth="0.5"/>
+        <cx:tickLabels/>
+      </cx:axis>
+      <cx:axis id="1">
+        <cx:valScaling/>
+        <cx:majorGridlines/>
+        <cx:tickLabels/>
+      </cx:axis>
+    </cx:plotArea>
+    <cx:legend pos="t" align="ctr" overlay="0"/>
+  </cx:chart>
+</cx:chartSpace>

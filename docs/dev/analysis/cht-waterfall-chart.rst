@@ -4,6 +4,8 @@
 Waterfall Chart
 ===============
 
+Here's an overview of a [Waterfall Chart](https://en.wikipedia.org/wiki/Waterfall_chart).
+
 A waterfall chart shows a running total as values are added or subtracted. It's useful for
 understanding how an initial value (for example, net income) is affected by a series of positive
 and negative values.
@@ -42,6 +44,39 @@ XML specimen
 
 .. highlight:: xml
 
+Waterfall charts are not supported by PowerPoint versions prior to Office 2016. This is part of the
+`2014 Chart Extension Schema <https://docs.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/e2723b0a-9120-42a5-bd11-c252ccb13c1e>`_
+that also includes these charts:
+
+- ``boxWhisker``
+- ``clusteredColumn``
+- ``funnel``
+- ``paretoLine``
+- ``regionMap``
+- ``sunburst``
+- ``treemap``
+- ``waterfall``
+
+The chart extension schema is defined in ``[Content_Types].xml``
+
+``[Content_Types].xml``::
+
+  <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <!-- other types -->
+    <Override PartName="/ppt/charts/chartEx1.xml" ContentType="application/vnd.ms-office.chartex+xml"/>
+  </Types>
+
+
+It is used in the `slide1.xml.rels <cht-waterfall-chart/>` file like this::
+
+``slide1.xml.rels``::
+
+    <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart1.xml"/>
+    <Relationship Id="rId2" Type="http://schemas.microsoft.com/office/2014/relationships/chartEx" Target="../charts/chartEx1.xml"/>
+
+The first line is the relationship for normal charts (e.g. a bar chart). The second has the relationship for a waterfall chart.
+
 XML for default waterfall chart uses an Excel sheet with this data structure::
 
               Series1
@@ -53,6 +88,10 @@ XML for default waterfall chart uses an Excel sheet with this data structure::
     Category 6    -60
     Category 7     70
     Category 8    140
+
+The waterfall chart appears inside an `<mc:AlternateContent>` block to accommodate
+non-supporting versions. The supporting alternative is a `<p:graphicFrame>` element. The fallback
+alternative is a `<p:pic>` element and represents a static image of the chart.
 
 ``ppt/slides/slide1.xml``::
 
