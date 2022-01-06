@@ -39,11 +39,11 @@ def _default_pptx_path(template="default"):
     Return the path to the built-in default .pptx package.
     """
     _thisdir = os.path.split(__file__)[0]
-    tmplpath = os.path.join(_thisdir, "templates", f"{template}.pptx")
+    tmplpath = os.path.join(_thisdir, "templates", "%s.pptx" % template)
     if not os.path.exists(tmplpath):
         raise ValueError(
-            f"{tmplpath} not found;"
-            + f" expected 'default' or 'wide', got '{template}'"
+            "'%s' not found;" % tmplpath
+            + " expected 'default' or 'wide', got '%s'" % template
         )
     return tmplpath
 
