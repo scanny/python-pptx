@@ -87,7 +87,7 @@ remove the placeholder itself. A deleted placeholder can be restored by
 reapplying the layout.
 
 
-Placholders inherit
+Placeholders inherit
 -------------------
 
 A placeholder appearing on a slide is only part of the overall placeholder
