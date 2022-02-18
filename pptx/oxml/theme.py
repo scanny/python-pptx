@@ -55,7 +55,7 @@ class CT_BaseStyles(BaseOxmlElement):
         "a:clrScheme",
         "a:fontScheme",
         "a:fmtScheme",
-        "a:extList",
+        "a:extLst",
     )
     clrScheme = OneAndOnlyOne("a:clrScheme")
     fontScheme = OneAndOnlyOne("a:fontScheme")
@@ -100,7 +100,7 @@ class CT_FontScheme(BaseOxmlElement):
     _tag_seq = (
         "a:majorFont",
         "a:minorFont",
-        "a_extList"
+        "a:extLst"
     )
     majorFont = OneAndOnlyOne("a:majorFont")
     minorFont = OneAndOnlyOne("a:minorFont")
