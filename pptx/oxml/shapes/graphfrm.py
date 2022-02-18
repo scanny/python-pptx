@@ -6,7 +6,7 @@ from pptx.oxml import parse_xml
 from pptx.oxml.chart.chart import CT_Chart
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.shared import BaseShapeElement
-from pptx.oxml.simpletypes import XsdBoolean, XsdString
+from pptx.oxml.simpletypes import XsdBoolean, XsdString, ST_RelationshipId
 from pptx.oxml.table import CT_Table
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -19,6 +19,7 @@ from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
+    GRAPHIC_DATA_URI_DRAWING,
 )
 
 
@@ -37,6 +38,10 @@ class CT_GraphicalObject(BaseOxmlElement):
         """
         return self.graphicData.chart
 
+    @property
+    def smart_art(self):
+        return self.graphicData.diagram
+
 
 class CT_GraphicalObjectData(BaseShapeElement):
     """
@@ -47,6 +52,7 @@ class CT_GraphicalObjectData(BaseShapeElement):
     chart = ZeroOrOne("c:chart")
     tbl = ZeroOrOne("a:tbl")
     uri = RequiredAttribute("uri", XsdString)
+    diagram = ZeroOrOne("dgm:relIds")
 
     @property
     def blob_rId(self):
@@ -144,6 +150,58 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         return self.xfrm
 
     @property
+    def smart_art_data_rId(self):
+        """
+        The ``r:dm`` attribute of the ``<dgm:relIds>`` great-grandchild element,
+        or |None| if not present.
+        """
+        smart_art = self.smart_art
+        if smart_art is None:
+            return None
+        return smart_art.data_rId
+
+    @property
+    def smart_art_style_rId(self):
+        """
+        The ``r:qs`` attribute of the ``<dgm:relIds>`` great-grandchild element,
+        or |None| if not present.
+        """
+        smart_art = self.smart_art
+        if smart_art is None:
+            return None
+        return smart_art.style_rId
+
+    @property
+    def smart_art_layout_rId(self):
+        """
+        The ``r:lo`` attribute of the ``<dgm:relIds>`` great-grandchild element,
+        or |None| if not present.
+        """
+        smart_art = self.smart_art
+        if smart_art is None:
+            return None
+        return smart_art.layout_rId
+
+    @property
+    def smart_art_colors_rId(self):
+        """
+        The ``r:cs`` attribute of the ``<dgm:relIds>`` great-grandchild element,
+        or |None| if not present.
+        """
+        smart_art = self.smart_art
+        if smart_art is None:
+            return None
+        return smart_art.colors_rId
+
+    @property
+    def smart_art(self):
+        """
+        The ``<dgm:relIds>`` great-grandchild element, or |None| if not present.
+        """
+        return self.graphic.smart_art
+
+
+    @property
     def graphicData(self):
         """`<a:graphicData> grandchild of this graphic-frame element."""
         return self.graphic.graphicData
@@ -211,6 +269,21 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
                 id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId
             )
         )
+
+    @classmethod
+    def new_smart_art_graphicFrame(
+        cls, id_, name, x, y, cx, cy, rId_dm, rId_lo, rId_qs, rId_cs
+    ):
+        """
+        Return a ``<p:graphicFrame>`` element tree populated with a chart
+        element.
+        """
+        graphicFrame = CT_GraphicalObjectFrame.new_graphicFrame(id_, name, x, y, cx, cy)
+        graphicData = graphicFrame.graphic.graphicData
+        graphicData.uri = GRAPHIC_DATA_URI_DRAWING
+        graphicData.append(CT_RelIds.new_diagram(rId_dm, rId_lo, rId_qs, rId_cs))
+        return graphicFrame
+
 
     @classmethod
     def new_table_graphicFrame(cls, id_, name, rows, cols, x, y, cx, cy):
@@ -336,3 +409,20 @@ class CT_OleObject(BaseOxmlElement):
     def is_embedded(self):
         """True when this OLE object is embedded, False when it is linked."""
         return True if len(self.xpath("./p:embed")) > 0 else False
+
+
+class CT_RelIds(BaseOxmlElement):
+    """<dgm:relIds> element.  The element that defines a Smart Art Drawing and its relationships"""
+    data_rId = RequiredAttribute("r:dm", ST_RelationshipId)
+    layout_rId = RequiredAttribute("r:lo", ST_RelationshipId)
+    style_rId = RequiredAttribute("r:qs", ST_RelationshipId)
+    colors_rId = RequiredAttribute("r:cs", ST_RelationshipId)
+
+    _diagram_tmpl = '<dgm:relIds %s %s r:dm="%%s" r:lo="%%s" r:qs="%%s" r:cs="%%s" />' % (nsdecls("dgm"), nsdecls("r"))
+
+    @staticmethod
+    def new_diagram(dm, lo, qs, cs):
+
+        xml = CT_RelIds._diagram_tmpl % (dm, lo, qs, cs)
+        diagram = parse_xml(xml)
+        return diagram

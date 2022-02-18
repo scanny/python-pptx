@@ -9,6 +9,12 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.parts.chart import ChartPart
+from pptx.parts.smartart import (
+    SmartArtColorsPart,
+    SmartArtDataPart,
+    SmartArtLayoutPart,
+    SmartArtQuickStylePart,
+)
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from pptx.util import lazyproperty
@@ -171,6 +177,20 @@ class SlidePart(BaseSlidePart):
         return self.relate_to(
             ChartPart.new(chart_type, chart_data, self._package), RT.CHART
         )
+
+    def add_smart_art_drawing_parts(self, colors_xml, data_xml, layout_xml, style_xml, drawing_xml):
+        """Return str rId of new |SmartArtPart| object.
+        
+        """
+        colors_rId = self.relate_to(SmartArtColorsPart.new(self._package, colors_xml), RT.DIAGRAM_COLORS)
+        data_part, drawing_part = SmartArtDataPart.new(self._package, data_xml, drawing_xml)
+        drawing_rId = self.relate_to(drawing_part, RT.DRAWING)
+        data_part.set_drawing_rId(drawing_rId)
+        data_rId = self.relate_to(data_part, RT.DIAGRAM_DATA)
+        layout_rId = self.relate_to(SmartArtLayoutPart.new(self._package, layout_xml), RT.DIAGRAM_LAYOUT)
+        style_rId = self.relate_to(SmartArtQuickStylePart.new(self._package, style_xml), RT.DIAGRAM_QUICK_STYLE)
+        
+        return drawing_rId, colors_rId, data_rId, layout_rId, style_rId
 
     def add_embedded_ole_object_part(self, prog_id, ole_object_file):
         """Return rId of newly-added OLE-object part formed from `ole_object_file`."""

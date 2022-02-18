@@ -361,6 +361,7 @@ from .shapes.graphfrm import (  # noqa: E402
     CT_GraphicalObjectFrame,
     CT_GraphicalObjectFrameNonVisual,
     CT_OleObject,
+    CT_RelIds,
 )
 
 register_element_cls("a:graphic", CT_GraphicalObject)
@@ -368,6 +369,7 @@ register_element_cls("a:graphicData", CT_GraphicalObjectData)
 register_element_cls("p:graphicFrame", CT_GraphicalObjectFrame)
 register_element_cls("p:nvGraphicFramePr", CT_GraphicalObjectFrameNonVisual)
 register_element_cls("p:oleObj", CT_OleObject)
+register_element_cls("dgm:relIds", CT_RelIds)
 
 
 from .shapes.groupshape import (  # noqa: E402
@@ -609,3 +611,13 @@ from .media import (
     CT_OfficeArtExtensionList,  # noqa: E402
 )
 register_element_cls("a:extLst", CT_OfficeArtExtensionList)
+
+
+from .diagrams.data import (
+    CT_DataModel,  # noqa: E402
+    CT_DataModelExt,
+    CT_DataModelExtLst,
+)
+register_element_cls("dgm:dataModel", CT_DataModel)
+register_element_cls("dsp:dataModelExt", CT_DataModelExt)
+register_element_cls("dgm:extLst", CT_DataModelExtLst)

@@ -20,6 +20,8 @@ _nsmap = {
     "dc": ("http://purl.org/dc/elements/1.1/"),
     "dcmitype": ("http://purl.org/dc/dcmitype/"),
     "dcterms": ("http://purl.org/dc/terms/"),
+    "dgm": ("http://schemas.openxmlformats.org/drawingml/2006/diagram"),
+    "dsp": ("http://schemas.microsoft.com/office/drawing/2008/diagram"),
     "ep": (
         "http://schemas.openxmlformats.org/officeDocument/2006/extended-p" "roperties"
     ),

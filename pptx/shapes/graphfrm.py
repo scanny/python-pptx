@@ -13,6 +13,7 @@ from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
+    GRAPHIC_DATA_URI_DRAWING,
 )
 from pptx.table import Table
 
@@ -39,6 +40,24 @@ class GraphicFrame(BaseShape):
         return self.part.related_part(self._element.chart_rId)
 
     @property
+    def smart_art_parts(self):
+        """The |SmartArtPart| object contianing the smart art in this graphic frame."""
+        parts = {
+            "data": self.part.related_part(self._element.smart_art_data_rId),
+            "layout": self.part.related_part(self._element.smart_art_layout_rId),
+            "style": self.part.related_part(self._element.smart_art_style_rId),
+            "colors": self.part.related_part(self._element.smart_art_colors_rId),
+            "diagram": self.part.related_part(self.smart_art_drawing_part_rId),
+        }
+        return parts
+
+    @property
+    def smart_art_drawing_part_rId(self):
+        data_part = self.part.related_part(self._element.smart_art_data_rId)
+        return data_part.ext_list[0].dataModelExt.relId
+
+
+    @property
     def has_chart(self):
         """|True| if this graphic frame contains a chart object. |False| otherwise.
 
@@ -53,6 +72,14 @@ class GraphicFrame(BaseShape):
         When |True|, the table object can be accessed using the `.table` property.
         """
         return self._element.graphicData_uri == GRAPHIC_DATA_URI_TABLE
+
+    @property
+    def has_smart_art(self):
+        """|True| if this graphic frame contains a smart art object, |False| otherwise.
+
+        When |True|, the smart art object can be accessed using the `.smart_art` property.
+        """
+        return self._element.graphicData_uri == GRAPHIC_DATA_URI_DRAWING
 
     @property
     def ole_format(self):
@@ -93,6 +120,8 @@ class GraphicFrame(BaseShape):
             return MSO_SHAPE_TYPE.CHART
         elif graphicData_uri == GRAPHIC_DATA_URI_TABLE:
             return MSO_SHAPE_TYPE.TABLE
+        elif graphicData_uri == GRAPHIC_DATA_URI_DRAWING:
+            return MSO_SHAPE_TYPE.DIAGRAM
         elif graphicData_uri == GRAPHIC_DATA_URI_OLEOBJ:
             return (
                 MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT

@@ -318,6 +318,20 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(graphicFrame)
 
+    def add_smart_art(self, drawing_xml, colors_xml, data_xml, layout_xml, quickstyle_xml, x, y, cx, cy):
+        """Return newly-created GraphicFrame shape with a SmartArt object.
+        
+        The Smart Art Object is positioned at (*x*, *y*), has size (*cx*, *cy*), and 
+        is built using the 5 different raw XML strings that are provided here.
+
+        A |GraphicFrame| object is returned.
+        
+        """
+        part_ids = self.part.add_smart_art_drawing_parts(colors_xml, data_xml, layout_xml, quickstyle_xml, drawing_xml)
+        graphicFrame = self._add_smartart_graphicFrame(x, y, cx, cy, part_ids)
+        self._recalculate_extents()
+        return self._shape_factory(graphicFrame)
+
     def add_picture(self, image_file, left, top, width=None, height=None):
         """Add picture shape displaying image in *image_file*.
 
@@ -393,7 +407,6 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(sp)
 
-
     def index(self, shape):
         """Return the index of *shape* in this sequence.
 
@@ -412,6 +425,15 @@ class _BaseGroupShapes(_BaseShapes):
         name = "Chart %d" % (shape_id - 1)
         graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
             shape_id, name, rId, x, y, cx, cy
+        )
+        self._spTree.append(graphicFrame)
+        return graphicFrame
+
+    def _add_smartart_graphicFrame(self, x, y, cx, cy, rIds):
+        shape_id = self._next_shape_id
+        name = "Diagram %d" % (shape_id - 1)
+        graphicFrame = CT_GraphicalObjectFrame.new_smart_art_graphicFrame(
+            shape_id, name, x, y, cx, cy, rIds[2], rIds[3], rIds[4], rIds[1]
         )
         self._spTree.append(graphicFrame)
         return graphicFrame

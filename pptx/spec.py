@@ -11,7 +11,7 @@ from pptx.enum.shapes import MSO_SHAPE
 GRAPHIC_DATA_URI_CHART = "http://schemas.openxmlformats.org/drawingml/2006/chart"
 GRAPHIC_DATA_URI_OLEOBJ = "http://schemas.openxmlformats.org/presentationml/2006/ole"
 GRAPHIC_DATA_URI_TABLE = "http://schemas.openxmlformats.org/drawingml/2006/table"
-
+GRAPHIC_DATA_URI_DRAWING = "http://schemas.openxmlformats.org/drawingml/2006/diagram"
 
 # ============================================================================
 # AutoShape type specs

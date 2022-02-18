@@ -409,6 +409,7 @@ class CT_PositiveSize2D(BaseOxmlElement):
     """
 
     hyperlinkColor = ZeroOrOne("ahyp:hlinkClr")
+    dataModelExt = ZeroOrOne("dsp:dataModelExt")
 
     cx = RequiredAttribute("cx", ST_PositiveCoordinate)
     cy = RequiredAttribute("cy", ST_PositiveCoordinate)
