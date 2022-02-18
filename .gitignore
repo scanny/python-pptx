@@ -13,3 +13,4 @@ tags
 pyproject.toml
 pip-wheel-metadata/* 
 .vscode/*
+build/*
