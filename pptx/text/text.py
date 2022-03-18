@@ -727,6 +727,8 @@ class _Run(Subshape):
 
 
 class _Field(Subshape):
+    """Field object. Corresponds to ``<a:fld>`` child element in a paragraph."""
+
     def __init__(self, f, parent):
         super(_Field, self).__init__(parent)
         self._f = f
