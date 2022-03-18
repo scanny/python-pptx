@@ -451,6 +451,7 @@ register_element_cls("a:tr", CT_TableRow)
 
 from .text import (  # noqa: E402
     CT_RegularTextRun,
+    CT_TextField,
     CT_TextBody,
     CT_TextBodyProperties,
     CT_TextCharacterProperties,
@@ -474,6 +475,7 @@ register_element_cls("a:latin", CT_TextFont)
 register_element_cls("a:lnSpc", CT_TextSpacing)
 register_element_cls("a:normAutofit", CT_TextNormalAutofit)
 register_element_cls("a:r", CT_RegularTextRun)
+register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:p", CT_TextParagraph)
 register_element_cls("a:pPr", CT_TextParagraphProperties)
 register_element_cls("c:rich", CT_TextBody)

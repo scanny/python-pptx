@@ -494,6 +494,17 @@ class _Paragraph(Subshape):
         r = self._p.add_r()
         return _Run(r, self)
 
+    def add_field(self):
+        """
+        Return a new field appended to the runs in this paragraph.
+        """
+        import uuid;
+
+        f = self._p.add_fld()
+        f.id = f'{{{str(uuid.uuid4())}}}'
+
+        return _Field(f, self)
+
     @property
     def alignment(self):
         """
@@ -713,3 +724,36 @@ class _Run(Subshape):
     @text.setter
     def text(self, str):
         self._r.text = to_unicode(str)
+
+
+class _Field(Subshape):
+    def __init__(self, f, parent):
+        super(_Field, self).__init__(parent)
+        self._f = f
+
+    @property
+    def text(self):
+        """Read/write. A unicode string containing the text in this run.
+
+        Assignment replaces all text in the run. The assigned value can be a 7-bit ASCII
+        string, a UTF-8 encoded 8-bit string, or unicode. String values are converted to
+        unicode assuming UTF-8 encoding.
+
+        Any other control characters in the assigned string other than tab or newline
+        are escaped as a hex representation. For example, ESC (ASCII 27) is escaped as
+        "_x001B_". Contrast the behavior of `TextFrame.text` and `_Paragraph.text` with
+        respect to line-feed and vertical-tab characters.
+        """
+        return self._f.text
+
+    @text.setter
+    def text(self, str):
+        self._f.text = to_unicode(str)
+
+    @property
+    def type(self):
+        return self._f.type
+
+    @type.setter
+    def type(self, str):
+        self._f.type = str

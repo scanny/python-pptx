@@ -753,3 +753,6 @@ class ST_UniversalMeasure(BaseSimpleType):
         }[units_part]
         emu_value = Emu(int(round(quantity * multiplier)))
         return emu_value
+
+class ST_FieldType(XsdString):
+    pass
