@@ -734,6 +734,18 @@ class _Field(Subshape):
         self._f = f
 
     @property
+    def font(self):
+        """
+        |Font| instance containing run-level character properties for the
+        text in this run. Character properties can be and perhaps most often
+        are inherited from parent objects such as the paragraph and slide
+        layout the run is contained in. Only those specifically overridden at
+        the run level are contained in the font object.
+        """
+        rPr = self._f.get_or_add_rPr()
+        return Font(rPr)
+
+    @property
     def text(self):
         """Read/write. A unicode string containing the text in this run.
 
