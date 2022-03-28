@@ -88,7 +88,7 @@ reapplying the layout.
 
 
 Placeholders inherit
--------------------
+--------------------
 
 A placeholder appearing on a slide is only part of the overall placeholder
 mechanism. Placeholder behavior requires three different categories of
