@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        args: [--line-length, "128"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.270
+    hooks:
+      - id: ruff
+        args: [--ignore, "E203,E501,W503,B006"]
+        additional_dependencies: [flake8-bugbear]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [--profile, "black"]
+
+  #- repo: https://github.com/pre-commit/mirrors-mypy
+  #  rev: v1.3.0
+  #  hooks:
+  #    - id: mypy
+  #      args: [--ignore-missing-imports]
+  #      additional_dependencies: [types-freezegun]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: trailing-whitespace
+

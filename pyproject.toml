@@ -1,0 +1,50 @@
+[project]
+name = "python-pptx"
+version = "0.1.0"
+description = "Generate and manipulate Open XML PowerPoint (.pptx) files"
+keywords = ["powerpoint", "pptx", "ppt", "office", "openxml"]
+authors = [
+    { name = "Steve Canny", email = "python-pptx@googlegroups.com" }
+]
+maintainers = [
+    { name = "zztkm", email = "zztkm@tsurutatakumi.info" }
+]
+dependencies = [
+    "lxml~=4.9.2",
+    "Pillow~=9.5.0",
+    "XlsxWriter~=3.1.2",
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">= 3.8"
+
+[project.urls]
+Documentation = "https://python-pptx.readthedocs.io/en/latest"
+Source = "https://github.com/zztkm/python-pptx"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+  "pptx/templates/*",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pptx"]
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "tox~=4.6.0",
+    "pre-commit~=3.3.2",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+
+line-length = 128
+
