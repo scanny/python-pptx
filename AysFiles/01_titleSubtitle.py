@@ -2,7 +2,12 @@ from pptx import Presentation
 
 # Create new powerpoint presentation
 presentation = Presentation()
+# Slide Layout seçenekleri için toplamda 11 tane seçenek bulunmaktadır. Bunu aşağıdaki kod ile gözlemleyebiliriz.
 
+# presentation = Presentation()
+# slide_layouts = presentation.slide_layouts
+
+print(len(slide_layouts))
 # Slide 1
 slide1 = presentation.slides.add_slide(presentation.slide_layouts[0])
 title = slide1.shapes.title
