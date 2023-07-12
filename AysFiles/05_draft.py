@@ -101,4 +101,4 @@ new_table.cell(0, 0).text = "Customer Cam"
 new_table.cell(0, 1).text = "Referance Cam"
 
 #Save the presentation
-presentation.save("draft.pptx")
+presentation.save("05_draft.pptx")
