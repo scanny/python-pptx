@@ -22,5 +22,5 @@ python-pptx.
 
 .. _`examples with screenshots`:
    https://python-pptx.readthedocs.org/en/latest/user/quickstart.html
-## Sources
--https://automatetheboringstuff.com/
+##Sources
+- https://automatetheboringstuff.com/
