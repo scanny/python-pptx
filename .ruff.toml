@@ -1,0 +1,11 @@
+# -- don't check these locations --
+exclude = [
+    # -- docs/ - documentation Python code is incidental --
+    "docs",
+    # -- lab/ has some experimental code that is not disciplined --
+    "lab",
+    # -- ref/ is not source-code --
+    "ref",
+    # -- spec/ has some ad-hoc discovery code that is not disciplined --
+    "spec",
+]
