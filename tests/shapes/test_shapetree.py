@@ -2284,6 +2284,16 @@ class Describe_OleObjectElementCreator(object):
         slide_part_.get_or_add_image_part.assert_called_once_with("obj-icon.emf")
         assert rId == "rId16"
 
+    @pytest.mark.parametrize(
+        "icon_width_arg, expected_value",
+        ((Emu(666666), Emu(666666)), (None, Emu(965200))),
+    )
+    def it_determines_the_icon_width_to_help(self, icon_width_arg, expected_value):
+        element_creator = _OleObjectElementCreator(
+            None, None, None, None, None, None, None, None, None, icon_width_arg, None
+        )
+        assert element_creator._icon_width == expected_value
+
     def it_adds_and_relates_the_ole_object_part_to_help(
         self, request, _slide_part_prop_, slide_part_
     ):

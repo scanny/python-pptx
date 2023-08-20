@@ -193,7 +193,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
     @classmethod
     def new_ole_object_graphicFrame(
-        cls, id_, name, ole_object_rId, progId, icon_rId, x, y, cx, cy
+        cls, id_, name, ole_object_rId, progId, icon_rId, x, y, cx, cy, imgW
     ):
         """Return newly-created `<p:graphicFrame>` for embedded OLE-object.
 

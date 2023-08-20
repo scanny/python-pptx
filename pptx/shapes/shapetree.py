@@ -1087,6 +1087,7 @@ class _OleObjectElementCreator(object):
             self._y,
             self._cx,
             self._cy,
+            self._icon_width,
         )
 
     @lazyproperty
@@ -1145,6 +1146,16 @@ class _OleObjectElementCreator(object):
         """str rId like "rId7" of rel to icon (image) representing OLE-object part."""
         _, rId = self._slide_part.get_or_add_image_part(self._icon_image_file)
         return rId
+
+    @lazyproperty
+    def _icon_width(self):
+        """Width of enclosed EMF icon within the OLE graphic-frame.
+
+        This must be specified when a custom icon is used, to avoid stretching of the
+        image and possible undesired resizing by PowerPoint when the OLE shape is
+        double-clicked to open it.
+        """
+        return self._icon_width_arg if self._icon_width_arg is not None else Emu(965200)
 
     @lazyproperty
     def _ole_object_rId(self):
