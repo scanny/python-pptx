@@ -96,7 +96,7 @@ class OpcPackage(_RelatableMixin):
         visited = set()
 
         def walk_rels(rels):
-            for rel in rels:
+            for rel in rels.values():
                 yield rel
                 # --- external items can have no relationships ---
                 if rel.is_external:
@@ -482,14 +482,14 @@ class _ContentTypeMap(object):
 
 
 class _Relationships(Mapping):
-    """Collection of |_Relationship| instances, largely having dict semantics.
+    """Collection of |_Relationship| instances having `dict` semantics.
 
     Relationships are keyed by their rId, but may also be found in other ways, such as
-    by their relationship type. `rels` is a dict of |Relationship| objects keyed by
-    their rId.
+    by their relationship type. |Relationship| objects are keyed by their rId.
 
-    Note that iterating this collection generates |Relationship| references (values),
-    not rIds (keys) as it would for a dict.
+    Iterating this collection has normal mapping semantics, generating the keys (rIds)
+    of the mapping. `rels.keys()`, `rels.values()`, and `rels.items() can be used as
+    they would be for a `dict`.
     """
 
     def __init__(self, base_uri):
@@ -507,9 +507,8 @@ class _Relationships(Mapping):
             raise KeyError("no relationship with key '%s'" % rId)
 
     def __iter__(self):
-        """Implement iteration of relationships."""
-        rels = self._rels
-        return (rels[rId] for rId in sorted(rels.keys()))
+        """Implement iteration of rIds (iterating a mapping produces its keys)."""
+        return iter(self._rels)
 
     def __len__(self):
         """Return count of relationships in collection."""
@@ -593,8 +592,22 @@ class _Relationships(Mapping):
         a `<?xml` header with encoding as UTF-8.
         """
         rels_elm = CT_Relationships.new()
-        for rel in self:
+
+        # -- Sequence <Relationship> elements deterministically (in numerical order) to
+        # -- simplify testing and manual inspection.
+        def iter_rels_in_numerical_order():
+            sorted_num_rId_pairs = sorted(
+                (
+                    int(rId[3:]) if rId.startswith("rId") and rId[3:].isdigit() else 0,
+                    rId,
+                )
+                for rId in self.keys()
+            )
+            return (self[rId] for _, rId in sorted_num_rId_pairs)
+
+        for rel in iter_rels_in_numerical_order():
             rels_elm.add_rel(rel.rId, rel.reltype, rel.target_ref, rel.is_external)
+
         return rels_elm.xml
 
     def _add_relationship(self, reltype, target, is_external=False):
@@ -648,7 +661,7 @@ class _Relationships(Mapping):
     def _rels_by_reltype(self):
         """defaultdict {reltype: [rels]} for all relationships in collection."""
         D = collections.defaultdict(list)
-        for rel in self:
+        for rel in self.values():
             D[rel.reltype].append(rel)
         return D
 

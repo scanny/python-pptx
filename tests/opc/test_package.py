@@ -190,7 +190,7 @@ class DescribeOpcPackage(object):
         part_0_, part_1_ = [
             instance_mock(request, Part, name="part_%d" % i) for i in range(2)
         ]
-        rels = tuple(
+        all_rels = tuple(
             instance_mock(
                 request,
                 _Relationship,
@@ -208,18 +208,15 @@ class DescribeOpcPackage(object):
                 )
             )
         )
-        _rels_prop_.return_value = rels[:3]
-        part_0_.rels = rels[3:4]
-        part_1_.rels = rels[4:]
+        _rels_prop_.return_value = {r.rId: r for r in all_rels[:3]}
+        part_0_.rels = {r.rId: r for r in all_rels[3:4]}
+        part_1_.rels = {r.rId: r for r in all_rels[4:]}
         package = OpcPackage(None)
 
-        assert tuple(package.iter_rels()) == (
-            rels[0],
-            rels[3],
-            rels[4],
-            rels[1],
-            rels[2],
-        )
+        rels = set(package.iter_rels())
+
+        # -- sequence is not guaranteed, but count (len) and uniqueness are --
+        assert rels == set(all_rels)
 
     def it_provides_access_to_the_main_document_part(self, request):
         presentation_part_ = instance_mock(request, PresentationPart)
@@ -234,8 +231,7 @@ class DescribeOpcPackage(object):
         assert presentation_part is presentation_part_
 
     @pytest.mark.parametrize(
-        "ns, expected_n",
-        (((), 1), ((1,), 2), ((1, 2), 3), ((2, 4), 3), ((1, 4), 3)),
+        "ns, expected_n", (((), 1), ((1,), 2), ((1, 2), 3), ((2, 4), 3), ((1, 4), 3))
     )
     def it_can_find_the_next_available_partname(self, request, ns, expected_n):
         tmpl = "/x%d.xml"
@@ -659,13 +655,15 @@ class Describe_Relationships(object):
             _Relationships(None)["rId6"]
         assert str(e.value) == "\"no relationship with key 'rId6'\""
 
-    def it_can_iterate_the_relationships_it_contains(self, request, _rels_prop_):
+    def it_can_iterate_the_rIds_of_the_relationships_it_contains(
+        self, request, _rels_prop_
+    ):
         rels_ = set(instance_mock(request, _Relationship) for n in range(5))
         _rels_prop_.return_value = {"rId%d" % (i + 1): r for i, r in enumerate(rels_)}
         relationships = _Relationships(None)
 
-        for r in relationships:
-            rels_.remove(r)
+        for rId in relationships:
+            rels_.remove(relationships[rId])
 
         assert len(rels_) == 0
 
@@ -795,10 +793,10 @@ class Describe_Relationships(object):
 
     def it_can_serialize_itself_to_XML(self, request, _rels_prop_):
         _rels_prop_.return_value = {
-            "rId1": instance_mock(
+            "rId11": instance_mock(
                 request,
                 _Relationship,
-                rId="rId1",
+                rId="rId11",
                 reltype=RT.SLIDE,
                 target_ref="../slides/slide1.xml",
                 is_external=False,
@@ -810,6 +808,14 @@ class Describe_Relationships(object):
                 reltype=RT.HYPERLINK,
                 target_ref="http://url",
                 is_external=True,
+            ),
+            "foo7W": instance_mock(
+                request,
+                _Relationship,
+                rId="foo7W",
+                reltype=RT.IMAGE,
+                target_ref="../media/image1.png",
+                is_external=False,
             ),
         }
         relationships = _Relationships(None)
@@ -867,12 +873,7 @@ class Describe_Relationships(object):
         ),
     )
     def it_can_get_a_matching_relationship_to_help(
-        self,
-        request,
-        _rels_by_reltype_prop_,
-        target_ref,
-        is_external,
-        expected_value,
+        self, request, _rels_by_reltype_prop_, target_ref, is_external, expected_value
     ):
         part_1, part_2 = (instance_mock(request, Part) for _ in range(2))
         _rels_by_reltype_prop_.return_value = {
@@ -996,12 +997,7 @@ class Describe_Relationship(object):
         relationship = _Relationship.from_xml("/ppt", rel_elm, parts)
 
         _init_.assert_called_once_with(
-            relationship,
-            "/ppt",
-            "rId42",
-            RT.SLIDE,
-            RTM.INTERNAL,
-            part_,
+            relationship, "/ppt", "rId42", RT.SLIDE, RTM.INTERNAL, part_
         )
         assert isinstance(relationship, _Relationship)
 
