@@ -1088,6 +1088,7 @@ class _OleObjectElementCreator(object):
             self._cx,
             self._cy,
             self._icon_width,
+            self._icon_height,
         )
 
     @lazyproperty
@@ -1118,6 +1119,21 @@ class _OleObjectElementCreator(object):
             Emu(self._prog_id_arg.height)
             if self._prog_id_arg in PROG_ID
             else Emu(609600)
+        )
+
+    @lazyproperty
+    def _icon_height(self):
+        """Vertical size of enclosed EMF icon within the OLE graphic-frame.
+
+        This must be specified when a custom icon is used, to avoid stretching of the
+        image and possible undesired resizing by PowerPoint when the OLE shape is
+        double-clicked to open it.
+
+        The correct size can be determined by creating an example PPTX using PowerPoint
+        and then inspecting the XML of the OLE graphics-frame (p:oleObj.imgH).
+        """
+        return (
+            self._icon_height_arg if self._icon_height_arg is not None else Emu(609600)
         )
 
     @lazyproperty

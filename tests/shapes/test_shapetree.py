@@ -2247,6 +2247,16 @@ class Describe_OleObjectElementCreator(object):
         assert element_creator._cy == expected_value
 
     @pytest.mark.parametrize(
+        "icon_height_arg, expected_value",
+        ((Emu(666666), Emu(666666)), (None, Emu(609600)),),
+    )
+    def it_determines_the_icon_height_to_help(self, icon_height_arg, expected_value):
+        element_creator = _OleObjectElementCreator(
+            None, None, None, None, None, None, None, None, None, None, icon_height_arg
+        )
+        assert element_creator._icon_height == expected_value
+
+    @pytest.mark.parametrize(
         "icon_file_arg, prog_id, expected_value",
         (
             ("user-icon.png", PROG_ID.XLSX, "user-icon.png"),
