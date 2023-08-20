@@ -5,6 +5,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from numbers import Number
+import xml.sax.saxutils as saxutils
 
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
@@ -234,11 +235,14 @@ class AutoShapeType(object):
 
     @property
     def basename(self):
+        """Base of shape name for this auto shape type.
+
+        A shape name is like "Rounded Rectangle 7" and appears as an XML attribute for
+        example at `p:sp/p:nvSpPr/p:cNvPr{name}`. This basename value is the name less
+        the distinguishing integer. This value is escaped because at least one
+        autoshape-type name includes double quotes ('"No" Symbol').
         """
-        Base of shape name (less the distinguishing integer) for this auto
-        shape type
-        """
-        return self._basename
+        return saxutils.escape(self._basename, {'"': "&quot;"})
 
     @classmethod
     def default_adjustment_values(cls, prst):

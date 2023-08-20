@@ -260,11 +260,19 @@ class DescribeAdjustmentCollection(object):
 
 
 class DescribeAutoShapeType(object):
+    """Unit-test suite for `pptx.shapes.autoshape.AutoShapeType`"""
+
     def it_knows_the_details_of_the_auto_shape_type_it_represents(self):
         autoshape_type = AutoShapeType(MSO_SHAPE.ROUNDED_RECTANGLE)
         assert autoshape_type.autoshape_type_id == MSO_SHAPE.ROUNDED_RECTANGLE
         assert autoshape_type.prst == "roundRect"
         assert autoshape_type.basename == "Rounded Rectangle"
+
+    def it_xml_escapes_the_basename_when_the_name_contains_special_characters(self):
+        autoshape_type = AutoShapeType(MSO_SHAPE.NO_SYMBOL)
+        assert autoshape_type.autoshape_type_id == MSO_SHAPE.NO_SYMBOL
+        assert autoshape_type.prst == "noSmoking"
+        assert autoshape_type.basename == "&quot;No&quot; Symbol"
 
     def it_knows_the_default_adj_vals_for_its_autoshape_type(
         self, default_adj_vals_fixture_

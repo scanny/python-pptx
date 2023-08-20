@@ -468,7 +468,7 @@ autoshape_types = {
         "basename": "Notched Right Arrow",
         "avLst": (("adj1", 50000), ("adj2", 50000)),
     },
-    MSO_SHAPE.NO_SYMBOL: {"basename": '"No" symbol', "avLst": (("adj", 18750),)},
+    MSO_SHAPE.NO_SYMBOL: {"basename": '"No" Symbol', "avLst": (("adj", 18750),)},
     MSO_SHAPE.OCTAGON: {"basename": "Octagon", "avLst": (("adj", 29289),)},
     MSO_SHAPE.OVAL: {"basename": "Oval", "avLst": ()},
     MSO_SHAPE.OVAL_CALLOUT: {
