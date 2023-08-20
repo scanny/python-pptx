@@ -23,7 +23,6 @@ thisdir = os.path.dirname(__file__)
 init_py = ascii_bytes_from(thisdir, "pptx", "__init__.py")
 readme = ascii_bytes_from(thisdir, "README.rst")
 history = ascii_bytes_from(thisdir, "HISTORY.rst")
-license = ascii_bytes_from(thisdir, "LICENSE")
 
 # Read the version from pptx.__version__ without importing the package
 # (and thus attempting to import packages it depends on that may not be
@@ -38,7 +37,7 @@ KEYWORDS = "powerpoint ppt pptx office open xml"
 AUTHOR = "Steve Canny"
 AUTHOR_EMAIL = "python-pptx@googlegroups.com"
 URL = "https://github.com/scanny/python-pptx"
-LICENSE = license
+LICENSE = "MIT"
 PACKAGES = find_packages(exclude=["tests", "tests.*"])
 PACKAGE_DATA = {"pptx": ["templates/*"]}
 
