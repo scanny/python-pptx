@@ -2183,7 +2183,7 @@ class Describe_OleObjectElementCreator(object):
             "  <a:graphic>\n"
             "    <a:graphicData "
             'uri="http://schemas.openxmlformats.org/presentationml/2006/ole">\n'
-            '      <p:oleObj showAsIcon="1" r:id="rId42" imgW="965200" imgH="609600" '
+            '      <p:oleObj showAsIcon="1" r:id="rId42" imgW="457200" imgH="685800" '
             'progId="Excel.Sheet.42">\n'
             "        <p:embed/>\n"
             "        <p:pic>\n"

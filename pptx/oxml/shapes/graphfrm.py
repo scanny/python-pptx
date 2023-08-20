@@ -208,7 +208,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         """
         return parse_xml(
             cls._graphicFrame_xml_for_ole_object(
-                id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId
+                id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId, imgW, imgH
             )
         )
 
@@ -247,7 +247,7 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
 
     @classmethod
     def _graphicFrame_xml_for_ole_object(
-        cls, id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId
+        cls, id_, name, x, y, cx, cy, ole_object_rId, progId, icon_rId, imgW, imgH
     ):
         """str XML for <a:graphic> element of an embedded OLE-object shape."""
         return (
@@ -268,8 +268,8 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
             '        uri="http://schemas.openxmlformats.org/presentationml/2006/ole">\n'
             '      <p:oleObj showAsIcon="1"'
             '                r:id="{ole_object_rId}"'
-            '                imgW="965200"'
-            '                imgH="609600"'
+            '                imgW="{imgW}"'
+            '                imgH="{imgH}"'
             '                progId="{progId}">\n'
             "        <p:embed/>\n"
             "        <p:pic>\n"
@@ -309,6 +309,8 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
             ole_object_rId=ole_object_rId,
             progId=progId,
             icon_rId=icon_rId,
+            imgW=imgW,
+            imgH=imgH,
         )
 
 
