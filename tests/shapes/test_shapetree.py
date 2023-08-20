@@ -52,7 +52,7 @@ from pptx.shapes.shapetree import (
 )
 from pptx.slide import SlideLayout, SlideMaster
 from pptx.table import Table
-from pptx.util import Emu
+from pptx.util import Emu, Inches
 
 from ..oxml.unitdata.shape import a_ph, a_pic, an_nvPr, an_nvSpPr, an_sp
 from ..unitutil.cxml import element, xml
@@ -375,10 +375,30 @@ class Describe_BaseGroupShapes(object):
         x, y, cx, cy = 1, 2, 3, 4
         shapes = _BaseGroupShapes(element("p:spTree"), None)
 
-        shape = shapes.add_ole_object("worksheet.xlsx", PROG_ID.XLSX, x, y, cx, cy)
+        shape = shapes.add_ole_object(
+            "worksheet.xlsx",
+            PROG_ID.XLSX,
+            x,
+            y,
+            cx,
+            cy,
+            "test.xlsx",
+            Inches(0.5),
+            Inches(0.75),
+        )
 
         _OleObjectElementCreator_.graphicFrame.assert_called_once_with(
-            shapes, 42, "worksheet.xlsx", PROG_ID.XLSX, x, y, cx, cy, None
+            shapes,
+            42,
+            "worksheet.xlsx",
+            PROG_ID.XLSX,
+            x,
+            y,
+            cx,
+            cy,
+            "test.xlsx",
+            Inches(0.5),
+            Inches(0.75),
         )
         assert shapes._spTree[-1] is graphicFrame
         _recalculate_extents_.assert_called_once_with(shapes)
@@ -2093,11 +2113,32 @@ class Describe_OleObjectElementCreator(object):
         )
 
         graphicFrame = _OleObjectElementCreator.graphicFrame(
-            shapes_, shape_id, "sheet.xlsx", PROG_ID.XLSX, x, y, cx, cy, "icon.png"
+            shapes_,
+            shape_id,
+            "sheet.xlsx",
+            PROG_ID.XLSX,
+            x,
+            y,
+            cx,
+            cy,
+            "icon.png",
+            Inches(0.5),
+            Inches(0.75),
         )
 
         _init_.assert_called_once_with(
-            ANY, shapes_, shape_id, "sheet.xlsx", PROG_ID.XLSX, x, y, cx, cy, "icon.png"
+            ANY,
+            shapes_,
+            shape_id,
+            "sheet.xlsx",
+            PROG_ID.XLSX,
+            x,
+            y,
+            cx,
+            cy,
+            "icon.png",
+            Inches(0.5),
+            Inches(0.75),
         )
         _graphicFrame_prop_.assert_called_once_with()
         assert graphicFrame is graphicFrame_
@@ -2119,7 +2160,7 @@ class Describe_OleObjectElementCreator(object):
         property_mock(request, _OleObjectElementCreator, "_cx", return_value=cx)
         property_mock(request, _OleObjectElementCreator, "_cy", return_value=cy)
         element_creator = _OleObjectElementCreator(
-            None, shape_id, None, None, x, y, cx, cy, None
+            None, shape_id, None, None, x, y, cx, cy, None, Inches(0.5), Inches(0.75)
         )
 
         assert element_creator._graphicFrame.xml == (
@@ -2183,9 +2224,9 @@ class Describe_OleObjectElementCreator(object):
             (None, "Foo.Bar.6", Emu(965200)),
         ),
     )
-    def it_determines_the_icon_width_to_help(self, cx_arg, prog_id, expected_value):
+    def it_determines_the_shape_width_to_help(self, cx_arg, prog_id, expected_value):
         element_creator = _OleObjectElementCreator(
-            None, None, None, prog_id, None, None, cx_arg, None, None
+            None, None, None, prog_id, None, None, cx_arg, None, None, None, None
         )
         assert element_creator._cx == expected_value
 
@@ -2199,9 +2240,9 @@ class Describe_OleObjectElementCreator(object):
             (None, "Foo.Bar.6", Emu(609600)),
         ),
     )
-    def it_determines_the_icon_height_to_help(self, cy_arg, prog_id, expected_value):
+    def it_determines_the_shape_height_to_help(self, cy_arg, prog_id, expected_value):
         element_creator = _OleObjectElementCreator(
-            None, None, None, prog_id, None, None, None, cy_arg, None
+            None, None, None, prog_id, None, None, None, cy_arg, None, None, None
         )
         assert element_creator._cy == expected_value
 
@@ -2219,7 +2260,7 @@ class Describe_OleObjectElementCreator(object):
         self, icon_file_arg, prog_id, expected_value
     ):
         element_creator = _OleObjectElementCreator(
-            None, None, None, prog_id, None, None, None, None, icon_file_arg
+            None, None, None, prog_id, None, None, None, None, icon_file_arg, None, None
         )
         assert element_creator._icon_image_file.endswith(expected_value)
 
@@ -2235,7 +2276,7 @@ class Describe_OleObjectElementCreator(object):
         slide_part_.get_or_add_image_part.return_value = None, "rId16"
         _slide_part_prop_.return_value = slide_part_
         element_creator = _OleObjectElementCreator(
-            None, None, None, None, None, None, None, None, None
+            None, None, None, None, None, None, None, None, None, None, None
         )
 
         rId = element_creator._icon_rId
@@ -2250,7 +2291,17 @@ class Describe_OleObjectElementCreator(object):
         slide_part_.add_embedded_ole_object_part.return_value = "rId14"
         _slide_part_prop_.return_value = slide_part_
         element_creator = _OleObjectElementCreator(
-            None, None, ole_object_file, PROG_ID.DOCX, None, None, None, None, None
+            None,
+            None,
+            ole_object_file,
+            PROG_ID.DOCX,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
         )
 
         rId = element_creator._ole_object_rId
@@ -2271,21 +2322,21 @@ class Describe_OleObjectElementCreator(object):
     )
     def it_resolves_the_progId_str_to_help(self, prog_id_arg, expected_value):
         element_creator = _OleObjectElementCreator(
-            None, None, None, prog_id_arg, None, None, None, None, None
+            None, None, None, prog_id_arg, None, None, None, None, None, None, None
         )
         assert element_creator._progId == expected_value
 
     def it_computes_the_shape_name_to_help(self):
         shape_id = 42
         element_creator = _OleObjectElementCreator(
-            None, shape_id, None, None, None, None, None, None, None
+            None, shape_id, None, None, None, None, None, None, None, None, None
         )
         assert element_creator._shape_name == "Object 41"
 
     def it_provides_access_to_the_slide_part_to_help(self, shapes_, slide_part_):
         shapes_.part = slide_part_
         element_creator = _OleObjectElementCreator(
-            shapes_, None, None, None, None, None, None, None, None
+            shapes_, None, None, None, None, None, None, None, None, None, None
         )
 
         assert element_creator._slide_part is slide_part_

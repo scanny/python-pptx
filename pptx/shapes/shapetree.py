@@ -330,6 +330,8 @@ class _BaseGroupShapes(_BaseShapes):
             width,
             height,
             icon_file,
+            icon_width,
+            icon_height,
         )
         self._spTree.append(graphicFrame)
         self._recalculate_extents()
@@ -1017,7 +1019,18 @@ class _OleObjectElementCreator(object):
     """
 
     def __init__(
-        self, shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
+        self,
+        shapes,
+        shape_id,
+        ole_object_file,
+        prog_id,
+        x,
+        y,
+        cx,
+        cy,
+        icon_file,
+        icon_width,
+        icon_height,
     ):
         self._shapes = shapes
         self._shape_id = shape_id
@@ -1028,14 +1041,37 @@ class _OleObjectElementCreator(object):
         self._cx_arg = cx
         self._cy_arg = cy
         self._icon_file_arg = icon_file
+        self._icon_width_arg = icon_width
+        self._icon_height_arg = icon_height
 
     @classmethod
     def graphicFrame(
-        cls, shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
+        cls,
+        shapes,
+        shape_id,
+        ole_object_file,
+        prog_id,
+        x,
+        y,
+        cx,
+        cy,
+        icon_file,
+        icon_width,
+        icon_height,
     ):
         """Return new `p:graphicFrame` element containing embedded `ole_object_file`."""
         return cls(
-            shapes, shape_id, ole_object_file, prog_id, x, y, cx, cy, icon_file
+            shapes,
+            shape_id,
+            ole_object_file,
+            prog_id,
+            x,
+            y,
+            cx,
+            cy,
+            icon_file,
+            icon_width,
+            icon_height,
         )._graphicFrame
 
     @lazyproperty
