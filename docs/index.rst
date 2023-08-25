@@ -7,10 +7,21 @@ Release v\ |version| (:ref:`Installation <install>`)
 .. include:: ../README.rst
 
 
+Philosophy
+----------
+
+|pp| aims to broadly support the PowerPoint format (PPTX, PowerPoint 2007 and later),
+but its primary commitment is to be _industrial-grade_, that is, suitable for use in a
+commercial setting. Maintaining this robustness requires a high engineering standard
+which includes a comprehensive two-level (e2e + unit) testing regimen. This discipline
+comes at a cost in development effort/time, but we consider reliability to be an
+essential requirement.
+
+
 Feature Support
 ---------------
 
-|pp| has the following capabilities, with many more on the roadmap:
+|pp| has the following capabilities:
 
 * Round-trip any Open XML presentation (.pptx file) including all its elements
 * Add slides
@@ -21,11 +32,18 @@ Feature Support
 * Add auto shapes (e.g. polygons, flowchart shapes, etc.) to a slide
 * Add and manipulate column, bar, line, and pie charts
 * Access and change core document properties such as title and subject
+* And many others ...
 
-Additional capabilities are actively being developed and added on a release
-cadence of roughly once per month. If you find a feature you need that |pp|
-doesn't yet have, reach out via the mailing list or issue tracker and we'll see
-if we can jump the queue for you to pop it in there :)
+Even with all |pp| does, the PowerPoint document format is very rich and there are still
+features |pp| does not support.
+
+
+New features/releases
+---------------------
+
+New features are generally added via sponsorship. If there's a new feature you need for
+your use case, feel free to reach out at the email address on the github.com/scanny
+profile page. Many of the most used features such as charts were added this way.
 
 
 User Guide
