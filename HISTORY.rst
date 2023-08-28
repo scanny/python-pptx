@@ -3,6 +3,18 @@
 Release History
 ---------------
 
+0.6.22 (2023-08-28)
++++++++++++++++++++
+
+- Add #909 Add imgW, imgH params to `shapes.add_ole_object()`
+- fix: #754 _Relationships.items() raises
+- fix: #758 quote in autoshape name must be escaped
+- fix: #746 update Python 3.x support in docs
+- fix: #748 setup's `license` should be short string
+- fix: #762 AttributeError: module 'collections' has no attribute 'abc'
+       (Windows Python 3.10+)
+
+
 0.6.21 (2021-09-20)
 +++++++++++++++++++
 
