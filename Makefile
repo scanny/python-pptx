@@ -3,7 +3,7 @@ MAKE   = make
 PYTHON = python
 SETUP  = $(PYTHON) ./setup.py
 
-.PHONY: accept clean cleandocs coverage docs readme sdist upload
+.PHONY: accept build clean cleandocs coverage docs opendocs
 
 help:
 	@echo "Please use \`make <target>' where <target> is one or more of"
@@ -19,6 +19,9 @@ help:
 
 accept:
 	$(BEHAVE) --stop
+
+build:
+	$(SETUP) bdist_wheel sdist
 
 clean:
 	find . -type f -name \*.pyc -exec rm {} \;
@@ -36,9 +39,3 @@ docs:
 
 opendocs:
 	open docs/.build/html/index.html
-
-sdist:
-	$(SETUP) sdist
-
-upload:
-	$(SETUP) sdist upload

@@ -2,8 +2,11 @@
 
 """Unit-test suite for `pptx.package` module."""
 
+import os
+
 import pytest
 
+import pptx
 from pptx.media import Video
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part, _Relationship
@@ -21,7 +24,10 @@ class DescribePackage(object):
     """Unit-test suite for `pptx.package.Package` objects."""
 
     def it_provides_access_to_its_core_properties_part(self):
-        pkg = Package.open("pptx/templates/default.pptx")
+        default_pptx = os.path.abspath(
+            os.path.join(os.path.split(pptx.__file__)[0], "templates", "default.pptx")
+        )
+        pkg = Package.open(default_pptx)
         assert isinstance(pkg.core_properties, CorePropertiesPart)
 
     def it_can_get_or_add_an_image_part(self, image_part_fixture):
