@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+0.6.23 (2023-11-02)
++++++++++++++++++++
+
+- fix: #912 Pillow<=9.5 constraint entails security vulnerability
+
+
 0.6.22 (2023-08-28)
 +++++++++++++++++++
 

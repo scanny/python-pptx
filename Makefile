@@ -2,6 +2,7 @@ BEHAVE = behave
 MAKE   = make
 PYTHON = python
 SETUP  = $(PYTHON) ./setup.py
+TWINE  = $(PYTHON) -m twine
 
 .PHONY: accept build clean cleandocs coverage docs opendocs
 
@@ -40,3 +41,9 @@ docs:
 
 opendocs:
 	open docs/.build/html/index.html
+
+test-upload: build
+	$(TWINE) upload --repository testpypi dist/*
+
+upload: clean build
+	$(TWINE) upload dist/*
