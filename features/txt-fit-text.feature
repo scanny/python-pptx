@@ -8,4 +8,4 @@ Feature: Resize text to fit shape
      When I call TextFrame.fit_text()
      Then text_frame.auto_size is MSO_AUTO_SIZE.NONE
       And text_frame.word_wrap is True
-      And the size of the text is 10pt
+      And the size of the text is 10pt or 11pt

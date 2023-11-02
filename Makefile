@@ -21,6 +21,7 @@ accept:
 	$(BEHAVE) --stop
 
 build:
+	rm -rf dist
 	$(SETUP) bdist_wheel sdist
 
 clean:

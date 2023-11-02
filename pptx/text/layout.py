@@ -310,7 +310,11 @@ def _rendered_size(text, point_size, font_file):
     px_per_inch = 72.0
 
     font = _Fonts.font(font_file, point_size)
-    px_width, px_height = font.getsize(text)
+    try:
+        px_width, px_height = font.getsize(text)
+    except AttributeError:
+        left, top, right, bottom = font.getbbox(text)
+        px_width, px_height = right - left, bottom - top
 
     emu_width = int(px_width / px_per_inch * emu_per_inch)
     emu_height = int(px_height / px_per_inch * emu_per_inch)
