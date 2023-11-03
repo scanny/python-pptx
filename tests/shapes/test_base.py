@@ -57,6 +57,15 @@ class DescribeBaseShape(object):
         shape.name = new_value
         assert shape._element.xml == expected_xml
 
+    def it_knows_its_alt_text(self, alt_text_fixture):
+        shape, expected_value = alt_text_fixture
+        assert shape.alt_text == expected_value
+
+    def it_can_change_its_alt_text(self, alt_text_set_fixture):
+        shape, new_value, expected_xml = alt_text_set_fixture
+        shape.alt_text = new_value
+        assert shape._element.xml == expected_xml
+
     def it_has_a_position(self, position_get_fixture):
         shape, expected_left, expected_top = position_get_fixture
         assert shape.left == expected_left
@@ -252,6 +261,29 @@ class DescribeBaseShape(object):
     def name_set_fixture(self, request):
         xSp_cxml, ShapeCls, new_value, expected_xSp_cxml = request.param
         shape = ShapeCls(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
+        return shape, new_value, expected_xml
+
+    @pytest.fixture
+    def alt_text_fixture(self):
+        shape_elm = element("p:sp/p:nvSpPr/p:cNvPr{id=1,name=foo,descr=foo}")
+        shape = BaseShape(shape_elm, None)
+        return shape, 'foo'
+
+    @pytest.fixture(
+        params=[
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=foo,descr=foo}",
+                Shape,
+                "bar",
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=foo,descr=bar}",
+            )
+        ]
+    )
+    def alt_text_set_fixture(self, request):
+        xSp_cxml, ShapeCls, new_value, expected_xSp_cxml = request.param
+        shape = ShapeCls(element(xSp_cxml), None)
+        expected_xml = xml(expected_xSp_cxml)
         expected_xml = xml(expected_xSp_cxml)
         return shape, new_value, expected_xml
 
