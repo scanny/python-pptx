@@ -65,6 +65,10 @@ might like. Say for example you want a shape with three paragraphs::
     p.text = paragraph_strs[0]
 
     for para_str in paragraph_strs[1:]:
+        p = text_frame.add_paragraph(para_str)
+
+        # is equivalent to ...
+
         p = text_frame.add_paragraph()
         p.text = para_str
 

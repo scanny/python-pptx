@@ -114,8 +114,8 @@ before setting the text it contains.
     p.text = "This is a second paragraph that's bold"
     p.font.bold = True
 
-    p = tf.add_paragraph()
-    p.text = "This is a third paragraph that's big"
+    # Alternative way to create a paragraph and add text immediately
+    p = tf.add_paragraph("This is a third paragraph that's big")
     p.font.size = Pt(40)
 
     prs.save('test.pptx')

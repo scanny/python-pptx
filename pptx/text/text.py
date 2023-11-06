@@ -26,13 +26,16 @@ class TextFrame(Subshape):
         super(TextFrame, self).__init__(parent)
         self._element = self._txBody = txBody
 
-    def add_paragraph(self):
+    def add_paragraph(self, text=None):
         """
         Return new |_Paragraph| instance appended to the sequence of
         paragraphs contained in this text frame.
         """
         p = self._txBody.add_p()
-        return _Paragraph(p, self)
+        new_p = _Paragraph(p, self)
+        if text:
+            new_p.text = text
+        return new_p
 
     @property
     def auto_size(self):
