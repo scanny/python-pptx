@@ -80,6 +80,14 @@ class _BaseShapes(ParentedElementProxy):
             raise IndexError("shape index out of range")
         return self._shape_factory(shape_elm)
 
+    def get_by_name(self, name, default=None):
+        """Return shape object having *name* or *default* if not found."""
+        shape_elms = list(self._iter_member_elms())
+        for shape_elm in shape_elms:
+            if BaseShape(shape_elm, None).name == name:
+                return self._shape_factory(shape_elm)
+        return default
+
     def __iter__(self):
         """
         Generate a reference to each shape in the collection, in sequence.
