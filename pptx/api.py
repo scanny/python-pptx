@@ -15,15 +15,15 @@ from .opc.constants import CONTENT_TYPE as CT
 from .package import Package
 
 
-def Presentation(pptx=None):
+def Presentation(pptx=None, template="default"):
     """
     Return a |Presentation| object loaded from *pptx*, where *pptx* can be
     either a path to a ``.pptx`` file (a string) or a file-like object. If
     *pptx* is missing or ``None``, the built-in default presentation
-    "template" is loaded.
+    "template" is loaded. Valid templates are "default" or "wide".
     """
     if pptx is None:
-        pptx = _default_pptx_path()
+        pptx = _default_pptx_path(template)
 
     presentation_part = Package.open(pptx).main_document_part
 
@@ -34,12 +34,18 @@ def Presentation(pptx=None):
     return presentation_part.presentation
 
 
-def _default_pptx_path():
+def _default_pptx_path(template="default"):
     """
     Return the path to the built-in default .pptx package.
     """
     _thisdir = os.path.split(__file__)[0]
-    return os.path.join(_thisdir, "templates", "default.pptx")
+    tmplpath = os.path.join(_thisdir, "templates", "%s.pptx" % template)
+    if not os.path.exists(tmplpath):
+        raise ValueError(
+            "'%s' not found;" % tmplpath
+            + " expected 'default' or 'wide', got '%s'" % template
+        )
+    return tmplpath
 
 
 def _is_pptx_package(prs_part):
