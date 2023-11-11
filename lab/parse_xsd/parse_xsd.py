@@ -120,7 +120,7 @@ class TypeGraph(object):
 
     def load_subgraph(self, typename, visited=None):
         complexType_elm, nsprefix = self.get_complexType(typename)
-        # take care to avoid infinite recursion by only visting each type once
+        # take care to avoid infinite recursion by only visiting each type once
         visited = [] if visited is None else visited
         if typename in visited:
             return
