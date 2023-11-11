@@ -440,13 +440,19 @@ from .table import (  # noqa: E402
     CT_TableRow,
 )
 
-register_element_cls("a:gridCol", CT_TableCol)
-register_element_cls("a:tbl", CT_Table)
-register_element_cls("a:tblGrid", CT_TableGrid)
-register_element_cls("a:tblPr", CT_TableProperties)
-register_element_cls("a:tc", CT_TableCell)
-register_element_cls("a:tcPr", CT_TableCellProperties)
-register_element_cls("a:tr", CT_TableRow)
+register_element_cls('a:gridCol', CT_TableCol)
+register_element_cls('a:tbl', CT_Table)
+register_element_cls('a:tblGrid', CT_TableGrid)
+register_element_cls('a:tblPr', CT_TableProperties)
+register_element_cls('a:tc', CT_TableCell)
+register_element_cls('a:tcPr', CT_TableCellProperties)
+register_element_cls('a:tr', CT_TableRow)
+register_element_cls('a:lnB', CT_LineProperties)
+register_element_cls('a:lnT', CT_LineProperties)
+register_element_cls('a:lnL', CT_LineProperties)
+register_element_cls('a:lnR', CT_LineProperties)
+register_element_cls('a:lnBlToTr', CT_LineProperties)
+register_element_cls('a:lnTlToBr', CT_LineProperties)
 
 
 from .text import (  # noqa: E402

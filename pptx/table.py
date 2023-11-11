@@ -4,6 +4,7 @@
 
 from pptx.compat import is_integer
 from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
 from pptx.oxml.table import TcRange
 from pptx.shapes import Subshape
 from pptx.text.text import TextFrame
@@ -176,6 +177,16 @@ class _Cell(Subshape):
         if not isinstance(other, type(self)):
             return True
         return self._tc is not other._tc
+
+    @lazyproperty
+    def borders(self):
+        """
+        Read-only reference to a |_TableBorders| object representing the
+        cell's borders. |_TableBorders| contains a |LineFormat| property for each border, e.g.
+        ``bottom_border = cell.borders.bottom``.
+        """
+        tcPr = self._tc.get_or_add_tcPr()
+        return _CellBorders(tcPr)
 
     @lazyproperty
     def fill(self):
@@ -519,3 +530,55 @@ class _RowCollection(Subshape):
         Called by a row when its height changes. Pass along to parent.
         """
         self._parent.notify_height_changed()
+
+
+class _CellBorderLine(object):
+    """
+    A placeholder for a specific table cell border line.
+    """
+    def __init__(self, ln):
+        self._ln = ln
+
+    @property
+    def ln(self):
+        return self._ln
+
+    def get_or_add_ln(self):
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this table cell border.
+        """
+        return self._ln
+
+
+class _CellBorders(object):
+    """
+    Read-only references to all |LineFormat| objects of a table cell, e.g.
+    ``bottom_border = cell.borders.bottom``.
+    """
+    def __init__(self, tcPr):
+        self._tcPr = tcPr
+
+    @lazyproperty
+    def top(self):
+        return LineFormat(_CellBorderLine(self._tcPr.get_or_add_lnT()))
+
+    @lazyproperty
+    def bottom(self):
+        return LineFormat(_CellBorderLine(self._tcPr.get_or_add_lnB()))
+
+    @lazyproperty
+    def left(self):
+        return LineFormat(_CellBorderLine(self._tcPr.get_or_add_lnL()))
+
+    @lazyproperty
+    def right(self):
+        return LineFormat(_CellBorderLine(self._tcPr.get_or_add_lnR()))
+
+    @lazyproperty
+    def bl2tr(self):
+        return LineFormat(_CellBorderLine(self._tcPr.get_or_add_lnBlToTr()))
+
+    @lazyproperty
+    def br2tl(self):
+        return LineFormat(_CellBorderLine(self._tcPr.get_or_add_lnTlToBr()))

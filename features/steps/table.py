@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from behave import given, when, then
 
 from pptx import Presentation
+from pptx.dml.color import RGBColor  # noga
+from pptx.dml.line import LineFormat
 from pptx.enum.text import MSO_ANCHOR  # noqa
 from pptx.util import Inches
 
@@ -41,6 +43,13 @@ def given_a_3x3_table_with_cells_a_to_i_as_table(context):
 def given_a_Cell_object_as_cell(context):
     prs = Presentation(test_pptx("shp-shapes"))
     context.cell = prs.slides[0].shapes[3].table.cell(0, 0)
+
+
+@given('a _CellBorders object as borders')
+def given_a_CellBorders_object_as_borders(context):
+    prs = Presentation(test_pptx('shp-shapes'))
+    cell = prs.slides[0].shapes[3].table.cell(0, 0)
+    context.borders = cell.borders
 
 
 @given('a _Cell object containing "unladen swallows" as cell')
@@ -96,6 +105,21 @@ def when_I_assign_cell_margin_side_eq_value(context, value, side):
 @when('I assign cell.text = "test text"')
 def when_I_assign_cell_text(context):
     context.cell.text = "test text"
+
+
+@when("I assign cell.borders.top.width = {value}")
+def when_I_assign_cell_borders_top_width_eq_value(context, value):
+    context.cell.borders.top.width = eval(value)
+
+
+@when("I call cell.borders.top.fill.solid()")
+def when_I_call_cell_borders_top_fill_solid(context):
+    context.cell.borders.top.fill.solid()
+
+
+@when("I assign cell.borders.top.fill.fore_color.rgb = {value}")
+def when_I_assign_cell_borders_top_fill_fore_color_rgb_eq_value(context, value):
+    context.cell.borders.top.fill.fore_color.rgb = eval(value)
 
 
 @when("I assign cell.vertical_anchor = {value}")
@@ -186,6 +210,50 @@ def then_cell_ref_is_merge_origin_is(context, cell_ref, bool_lit):
     expected = eval(bool_lit)
     actual = getattr(context, cell_ref).is_merge_origin
     assert actual is expected, "%s.is_merge_origin is %s" % (cell_ref, actual)
+
+
+@then("borders.left is a LineFormat object")
+def then_borders_left_is_a_LineFormat_object(context):
+    assert isinstance(context.borders.left, LineFormat)
+
+
+@then("borders.right is a LineFormat object")
+def then_borders_right_is_a_LineFormat_object(context):
+    assert isinstance(context.borders.right, LineFormat)
+
+
+@then("borders.top is a LineFormat object")
+def then_borders_top_is_a_LineFormat_object(context):
+    assert isinstance(context.borders.top, LineFormat)
+
+
+@then("borders.bottom is a LineFormat object")
+def then_borders_bottom_is_a_LineFormat_object(context):
+    assert isinstance(context.borders.bottom, LineFormat)
+
+
+@then("borders.br2tl is a LineFormat object")
+def then_borders_br2tl_is_a_LineFormat_object(context):
+    assert isinstance(context.borders.br2tl, LineFormat)
+
+
+@then("borders.bl2tr is a LineFormat object")
+def then_borders_bl2tr_is_a_LineFormat_object(context):
+    assert isinstance(context.borders.bl2tr, LineFormat)
+
+
+@then("cell.borders.top.width.inches == {float_lit}")
+def then_cell_borders_top_width_eq(context, float_lit):
+    actual = context.cell.borders.top.width.inches
+    expected = float(float_lit)
+    assert actual == expected, 'cell.borders.top.width.inches == %s' % actual
+
+
+@then("cell.borders.top.fill.fore_color.rgb == {value}")
+def then_cell_borders_top_fill_fore_color_rgb_eq_value(context, value):
+    actual = context.cell.borders.top.fill.fore_color.rgb
+    expected = eval(value)
+    assert actual == expected, 'cell.borders.top.fill.fore_color.rgb == %s' % actual
 
 
 @then("{cell_ref}.is_spanned is {bool_lit}")

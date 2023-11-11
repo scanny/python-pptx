@@ -111,3 +111,22 @@ Feature: Table cell proxy objects
       | inherited | MSO_ANCHOR.TOP    |
       | middle    | MSO_ANCHOR.BOTTOM |
       | bottom    | None              |
+
+
+  Scenario: default cell borders
+    Given a _CellBorders object as borders
+     Then borders.left is a LineFormat object
+      And borders.top is a LineFormat object
+      And borders.right is a LineFormat object
+      And borders.bottom is a LineFormat object
+      And borders.bl2tr is a LineFormat object
+      And borders.br2tl is a LineFormat object
+
+
+  Scenario: set cell borders
+    Given a _Cell object as cell
+     When I assign cell.borders.top.width = Inches(0.1)
+      And I call cell.borders.top.fill.solid()
+      And I assign cell.borders.top.fill.fore_color.rgb = RGBColor(100, 100, 100)
+     Then cell.borders.top.width.inches == 0.1
+      And cell.borders.top.fill.fore_color.rgb == RGBColor(100, 100, 100)

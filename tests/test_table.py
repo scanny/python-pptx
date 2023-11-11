@@ -5,6 +5,7 @@
 import pytest
 
 from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
 from pptx.oxml.table import CT_Table, CT_TableCell, TcRange
@@ -197,6 +198,12 @@ class DescribeTableBooleanProperties(object):
 class Describe_Cell(object):
     """Unit-test suite for `pptx.table._Cell` object."""
 
+    def it_provides_access_to_its_borders(self, border_fixture):
+        cell, border_name = border_fixture
+        border = getattr(cell.borders, border_name)
+        assert isinstance(border, LineFormat)
+        assert isinstance(border.fill, FillFormat)
+
     def it_is_equal_to_other_instance_having_same_tc(self):
         tc = element("a:tc")
         other_tc = element("a:tc")
@@ -376,6 +383,17 @@ class Describe_Cell(object):
         cell = _Cell(element(tc_cxml), None)
         expected_xml = xml(expected_tc_cxml)
         return cell, new_value, expected_xml
+
+    @pytest.fixture(params=[
+        'top',
+        'bottom',
+        'left',
+        'right',
+        'bl2tr',
+        'br2tl',
+    ])
+    def border_fixture(self, cell, request):
+        return cell, request.param
 
     @pytest.fixture
     def fill_fixture(self, cell):
