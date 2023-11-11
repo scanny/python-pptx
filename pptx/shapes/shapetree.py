@@ -2,6 +2,7 @@
 
 """The shape tree, the structure that holds a slide's shapes."""
 
+from collections.abc import Mapping
 import os
 
 from pptx.compat import BytesIO
@@ -58,7 +59,7 @@ from pptx.util import Emu, lazyproperty
 # +-- SlidePlaceholders
 
 
-class _BaseShapes(ParentedElementProxy):
+class _BaseShapes(Mapping, ParentedElementProxy):
     """
     Base class for a shape collection appearing in a slide-type object,
     include Slide, SlideLayout, and SlideMaster, providing common methods.
@@ -765,7 +766,7 @@ class NotesSlidePlaceholders(MasterPlaceholders):
         return _NotesSlideShapeFactory(placeholder_elm, self)
 
 
-class SlidePlaceholders(ParentedElementProxy):
+class SlidePlaceholders(Mapping, ParentedElementProxy):
     """
     Collection of placeholder shapes on a slide. Supports iteration,
     :func:`len`, and dictionary-style lookup on the `idx` value of the
