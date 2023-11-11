@@ -501,6 +501,24 @@ class DescribeFont(object):
         font.italic = new_value
         assert font._element.xml == expected_xml
 
+    def it_knows_its_superscript_setting(self, superscript_get_fixture):
+        font, expected_value = superscript_get_fixture
+        assert font.superscript == expected_value
+
+    def it_can_change_its_superscript_setting(self, superscript_set_fixture):
+        font, new_value, expected_xml = superscript_set_fixture
+        font.superscript = new_value
+        assert font._element.xml == expected_xml
+
+    def it_knows_its_subscript_setting(self, subscript_get_fixture):
+        font, expected_value = subscript_get_fixture
+        assert font.subscript == expected_value
+
+    def it_can_change_its_subscript_setting(self, subscript_set_fixture):
+        font, new_value, expected_xml = subscript_set_fixture
+        font.subscript = new_value
+        assert font._element.xml == expected_xml
+
     def it_knows_its_language_id(self, language_id_get_fixture):
         font, expected_value = language_id_get_fixture
         assert font.language_id == expected_value
@@ -582,6 +600,48 @@ class DescribeFont(object):
         ]
     )
     def italic_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[("a:rPr{baseline=30000}", True), ("a:rPr{baseline=0}", False)]
+    )
+    def superscript_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{baseline=30000}"),
+            ("a:rPr{baseline=30000}", False, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=-25000}", False, "a:rPr{baseline=0}"),
+        ]
+    )
+    def superscript_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[("a:rPr{baseline=-25000}", True), ("a:rPr{baseline=0}", False)]
+    )
+    def subscript_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{baseline=-25000}"),
+            ("a:rPr{baseline=30000}", False, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=-25000}", False, "a:rPr{baseline=0}"),
+        ]
+    )
+    def subscript_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
