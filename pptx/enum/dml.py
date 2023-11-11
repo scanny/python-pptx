@@ -138,7 +138,7 @@ class MSO_LINE_DASH_STYLE(XmlEnumeration):
         XmlMappedEnumMember(
             "LONG_DASH_DOT", 8, "lgDashDot", "Line is a long dash-dot patter" "n."
         ),
-        XmlMappedEnumMember("ROUND_DOT", 3, "dot", "Line is made up of round dots."),
+        XmlMappedEnumMember("ROUND_DOT", 3, "sysDot", "Line is made up of round dots."),
         XmlMappedEnumMember("SOLID", 1, "solid", "Line is solid."),
         XmlMappedEnumMember(
             "SQUARE_DOT", 2, "sysDash", "Line is made up of square dots."
