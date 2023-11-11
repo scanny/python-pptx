@@ -262,7 +262,7 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return self._shape_factory(cxnSp)
 
-    def add_group_shape(self, shapes=[]):
+    def add_group_shape(self, shapes=None):
         """Return a |GroupShape| object newly appended to this shape tree.
 
         The group shape is empty and must be populated with shapes using
@@ -271,6 +271,7 @@ class _BaseGroupShapes(_BaseShapes):
         it contains; its position and extents are recalculated each time
         a shape is added to it.
         """
+        shapes = shapes or []
         grpSp = self._element.add_grpSp()
         for shape in shapes:
             grpSp.insert_element_before(shape._element, "p:extLst")
@@ -920,7 +921,6 @@ class _MoviePicElementCreator(object):
         return cls(
             shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image, mime_type
         )._pic
-        return
 
     @property
     def _media_rId(self):

@@ -11,7 +11,7 @@ import pytest
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
-from pptx.enum.dml import MSO_FILL, MSO_LINE
+from pptx.enum.dml import MSO_ARROWHEAD, MSO_FILL, MSO_LINE
 from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
 
@@ -28,6 +28,24 @@ class DescribeLineFormat(object):
     def it_can_change_its_dash_style(self, dash_style_set_fixture):
         line, dash_style, spPr, expected_xml = dash_style_set_fixture
         line.dash_style = dash_style
+        assert spPr.xml == expected_xml
+
+    def it_knows_its_head_end(self, head_end_get_fixture):
+        line, expected_value = head_end_get_fixture
+        assert line.head_end == expected_value
+
+    def it_can_change_its_head_end(self, head_end_set_fixture):
+        line, head_end, spPr, expected_xml = head_end_set_fixture
+        line.head_end = head_end
+        assert spPr.xml == expected_xml
+
+    def it_knows_its_tail_end(self, tail_end_get_fixture):
+        line, expected_value = tail_end_get_fixture
+        assert line.tail_end == expected_value
+
+    def it_can_change_its_tail_end(self, tail_end_set_fixture):
+        line, tail_end, spPr, expected_xml = tail_end_set_fixture
+        line.tail_end = tail_end
         assert spPr.xml == expected_xml
 
     def it_knows_its_width(self, width_get_fixture):
@@ -106,6 +124,78 @@ class DescribeLineFormat(object):
         line = LineFormat(spPr)
         expected_xml = xml(expected_cxml)
         return line, dash_style, spPr, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:spPr', None),
+        ('p:spPr/a:ln', None),
+        ('p:spPr/a:ln/a:headEnd', None),
+        ('p:spPr/a:ln/a:headEnd{type=diamond}', MSO_ARROWHEAD.DIAMOND),
+        ('p:spPr/a:ln/a:headEnd{type=triangle}', MSO_ARROWHEAD.TRIANGLE),
+    ])
+    def head_end_get_fixture(self, request):
+        spPr_cxml, expected_value = request.param
+        spPr = element(spPr_cxml)
+        line = LineFormat(spPr)
+        return line, expected_value
+
+    @pytest.fixture(params=[
+        ('p:spPr{a:b=c}', MSO_ARROWHEAD.DIAMOND,
+         'p:spPr{a:b=c}/a:ln/a:headEnd{type=diamond}'),
+        ('p:spPr/a:ln', MSO_ARROWHEAD.TRIANGLE,
+         'p:spPr/a:ln/a:headEnd{type=triangle}'),
+        ('p:spPr/a:ln/a:headEnd', MSO_ARROWHEAD.OVAL,
+         'p:spPr/a:ln/a:headEnd{type=oval}'),
+        ('p:spPr/a:ln/a:headEnd', MSO_ARROWHEAD.STEALTH,
+         'p:spPr/a:ln/a:headEnd{type=stealth}'),
+        ('p:spPr/a:ln/a:headEnd{type=diamond}', MSO_ARROWHEAD.OPEN,
+         'p:spPr/a:ln/a:headEnd{type=open}'),
+        ('p:spPr/a:ln/a:headEnd{type=diamond}', None,
+         'p:spPr/a:ln'),
+        ('p:spPr/a:ln/a:headEnd', None,
+         'p:spPr/a:ln'),
+    ])
+    def head_end_set_fixture(self, request):
+        spPr_cxml, head_end, expected_cxml = request.param
+        spPr = element(spPr_cxml)
+        line = LineFormat(spPr)
+        expected_xml = xml(expected_cxml)
+        return line, head_end, spPr, expected_xml
+
+    @pytest.fixture(params=[
+        ('p:spPr', None),
+        ('p:spPr/a:ln', None),
+        ('p:spPr/a:ln/a:tailEnd', None),
+        ('p:spPr/a:ln/a:tailEnd{type=diamond}', MSO_ARROWHEAD.DIAMOND),
+        ('p:spPr/a:ln/a:tailEnd{type=triangle}', MSO_ARROWHEAD.TRIANGLE),
+    ])
+    def tail_end_get_fixture(self, request):
+        spPr_cxml, expected_value = request.param
+        spPr = element(spPr_cxml)
+        line = LineFormat(spPr)
+        return line, expected_value
+
+    @pytest.fixture(params=[
+        ('p:spPr{a:b=c}', MSO_ARROWHEAD.DIAMOND,
+         'p:spPr{a:b=c}/a:ln/a:tailEnd{type=diamond}'),
+        ('p:spPr/a:ln', MSO_ARROWHEAD.TRIANGLE,
+         'p:spPr/a:ln/a:tailEnd{type=triangle}'),
+        ('p:spPr/a:ln/a:tailEnd', MSO_ARROWHEAD.OVAL,
+         'p:spPr/a:ln/a:tailEnd{type=oval}'),
+        ('p:spPr/a:ln/a:tailEnd', MSO_ARROWHEAD.STEALTH,
+         'p:spPr/a:ln/a:tailEnd{type=stealth}'),
+        ('p:spPr/a:ln/a:tailEnd{type=diamond}', MSO_ARROWHEAD.OPEN,
+         'p:spPr/a:ln/a:tailEnd{type=open}'),
+        ('p:spPr/a:ln/a:tailEnd{type=diamond}', None,
+         'p:spPr/a:ln'),
+        ('p:spPr/a:ln/a:tailEnd', None,
+         'p:spPr/a:ln'),
+    ])
+    def tail_end_set_fixture(self, request):
+        spPr_cxml, tail_end, expected_cxml = request.param
+        spPr = element(spPr_cxml)
+        line = LineFormat(spPr)
+        expected_xml = xml(expected_cxml)
+        return line, tail_end, spPr, expected_xml
 
     @pytest.fixture
     def fill_fixture(self, line, FillFormat_, ln_, fill_):

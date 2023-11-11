@@ -221,24 +221,25 @@ class Connector(BaseShape):
                 cxnSp.cy = dy - cy
 
     def get_or_add_ln(self):
-        """Helper method required by |LineFormat|."""
+        """
+        Return the ``<a:ln>`` element containing the line format properties
+        XML for this connector.
+        """
         return self._element.spPr.get_or_add_ln()
 
     @lazyproperty
     def line(self):
-        """|LineFormat| instance for this connector.
-
-        Provides access to line properties such as line color, width, and
-        line style.
+        """
+        |LineFormat| instance for this connector, providing access to line
+        properties such as line color.
         """
         return LineFormat(self)
 
     @property
     def ln(self):
-        """Helper method required by |LineFormat|.
-
+        """
         The ``<a:ln>`` element containing the line format properties such as
-        line color and width. |None| if no `<a:ln>` element is present.
+        line color and width. |None| if no ``<a:ln>`` element is present.
         """
         return self._element.spPr.ln
 

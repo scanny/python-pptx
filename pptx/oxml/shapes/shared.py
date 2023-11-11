@@ -266,6 +266,8 @@ class CT_LineProperties(BaseOxmlElement):
     )
     prstDash = ZeroOrOne("a:prstDash", successors=_tag_seq[5:])
     custDash = ZeroOrOne("a:custDash", successors=_tag_seq[6:])
+    headEnd = ZeroOrOne("a:headEnd", successors=_tag_seq[10:])
+    tailEnd = ZeroOrOne("a:tailEnd", successors=_tag_seq[11:])
     del _tag_seq
     w = OptionalAttribute("w", ST_LineWidth, default=Emu(0))
 
@@ -292,6 +294,38 @@ class CT_LineProperties(BaseOxmlElement):
         self._remove_custDash()
         prstDash = self.get_or_add_prstDash()
         prstDash.val = val
+
+    @property
+    def headEnd_type(self):
+        """Return value of `type` attribute of `a:headEnd` child.
+
+         Return |None| if not present.
+        """
+        headEnd = self.headEnd
+        if headEnd is None:
+            return None
+        return headEnd.type
+
+    @headEnd_type.setter
+    def headEnd_type(self, type):
+        headEnd = self.get_or_add_headEnd()
+        headEnd.type = type
+
+    @property
+    def tailEnd_type(self):
+        """Return value of `type` attribute of `a:tailEnd` child.
+
+         Return |None| if not present.
+        """
+        tailEnd = self.tailEnd
+        if tailEnd is None:
+            return None
+        return tailEnd.type
+
+    @tailEnd_type.setter
+    def tailEnd_type(self, type):
+        tailEnd = self.get_or_add_tailEnd()
+        tailEnd.type = type
 
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):
