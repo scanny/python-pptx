@@ -153,6 +153,31 @@ before setting the text it contains.
 
 ----
 
+``add_connector()`` example
+---------------------------
+
+.. image:: /_static/img/add-connector.png
+
+|
+
+::
+
+    from pptx import Presentation
+    from pptx.enum.shapes import MSO_CONNECTOR
+    from pptx.util import Cm
+
+    prs = Presentation()
+    title_only_slide_layout = prs.slide_layouts[5]
+    slide = prs.slides.add_slide(title_only_slide_layout)
+    shapes = slide.shapes
+    shapes.title.text = "Adding a connector"
+    connector = shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, Cm(2), Cm(4), Cm(24), Cm(16)
+    )
+
+    prs.save('test.pptx')
+
+----
 
 ``add_shape()`` example
 -------------------------
