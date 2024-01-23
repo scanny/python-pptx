@@ -133,6 +133,40 @@ class BaseShape(object):
         self._element._nvXxPr.cNvPr.name = value
 
     @property
+    def title(self):
+        """
+        Description of this shape, as per Alt Text "Title" in the GUI
+        """
+        return self._element._nvXxPr.cNvPr.title
+
+    @title.setter
+    def title(self, value):
+        self._element._nvXxPr.cNvPr.title = value
+
+    @property
+    def descr(self):
+        """
+        Description of this shape, as per Alt Text "Description" in the GUI
+        """
+        return self._element._nvXxPr.cNvPr.descr
+
+    @descr.setter
+    def descr(self, value):
+        self._element._nvXxPr.cNvPr.descr = value
+
+    @property
+    def hidden(self):
+        """
+        Hidden property of the shape. Setting it to True hides the shape
+        in the presentation.
+        """
+        return self._element._nvXxPr.cNvPr.hidden
+
+    @hidden.setter
+    def hidden(self, value):
+        self._element._nvXxPr.cNvPr.hidden = value
+
+    @property
     def part(self):
         """The package part containing this shape.
 
