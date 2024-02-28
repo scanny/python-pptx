@@ -28,6 +28,8 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    XsdString,
+    ST_FieldType,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -324,8 +326,10 @@ class CT_TextField(BaseOxmlElement):
     <a:fld> field element, for either a slide number or date field
     """
 
+    id = RequiredAttribute("id", XsdString)
     rPr = ZeroOrOne("a:rPr", successors=("a:pPr", "a:t"))
     t = ZeroOrOne("a:t", successors=())
+    type = OptionalAttribute("type", ST_FieldType)
 
     @property
     def text(self):
@@ -337,6 +341,28 @@ class CT_TextField(BaseOxmlElement):
             return ""
         text = t.text
         return to_unicode(text) if text is not None else ""
+
+    @text.setter
+    def text(self, str):
+        """*str* is unicode value to replace run text."""
+        t = self.t
+
+        if t is None:
+            self.get_or_add_t()
+
+        self.t.text = self._escape_ctrl_chars(str)
+
+    @staticmethod
+    def _escape_ctrl_chars(s):
+        """Return str after replacing each control character with a plain-text escape.
+
+        For example, a BEL character (x07) would appear as "_x0007_". Horizontal-tab
+        (x09) and line-feed (x0A) are not escaped. All other characters in the range
+        x00-x1F are escaped.
+        """
+        return re.sub(
+            r"([\x00-\x08\x0B-\x1F])", lambda match: "_x%04X_" % ord(match.group(1)), s
+        )
 
 
 class CT_TextFont(BaseOxmlElement):
@@ -379,6 +405,7 @@ class CT_TextParagraph(BaseOxmlElement):
     pPr = ZeroOrOne("a:pPr", successors=("a:r", "a:br", "a:fld", "a:endParaRPr"))
     r = ZeroOrMore("a:r", successors=("a:endParaRPr",))
     br = ZeroOrMore("a:br", successors=("a:endParaRPr",))
+    fld = ZeroOrMore("a:fld", successors=("a:endParaRPr",))
     endParaRPr = ZeroOrOne("a:endParaRPr", successors=())
 
     def add_br(self):
@@ -387,11 +414,20 @@ class CT_TextParagraph(BaseOxmlElement):
         """
         return self._add_br()
 
+    def add_fld(self, text=None):
+        f = self._add_fld()
+
+        if text:
+            f.text = text
+        return f
+
+
     def add_r(self, text=None):
         """
         Return a newly appended <a:r> element.
         """
         r = self._add_r()
+
         if text:
             r.text = text
         return r
