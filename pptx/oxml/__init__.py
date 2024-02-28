@@ -451,7 +451,6 @@ register_element_cls("a:tr", CT_TableRow)
 
 from .text import (  # noqa: E402
     CT_RegularTextRun,
-    CT_TextField,
     CT_TextBody,
     CT_TextBodyProperties,
     CT_TextCharacterProperties,
@@ -460,6 +459,7 @@ from .text import (  # noqa: E402
     CT_TextNormalAutofit,
     CT_TextParagraph,
     CT_TextParagraphProperties,
+    CT_TextField,
     CT_TextSpacing,
     CT_TextSpacingPercent,
     CT_TextSpacingPoint,
