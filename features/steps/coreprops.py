@@ -6,7 +6,7 @@ Gherkin step implementations for core properties-related features.
 
 from __future__ import absolute_import
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from behave import given, when, then
 
@@ -67,7 +67,7 @@ def step_then_a_core_props_part_with_def_vals_is_added(context):
     assert core_props.revision == 1
     # core_props.modified only stores time with seconds resolution, so
     # comparison needs to be a little loose (within two seconds)
-    modified_timedelta = datetime.utcnow() - core_props.modified
+    modified_timedelta = datetime.now(timezone.utc) - core_props.modified
     max_expected_timedelta = timedelta(seconds=2)
     assert modified_timedelta < max_expected_timedelta
 

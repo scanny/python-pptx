@@ -2,7 +2,7 @@
 
 """Core properties part, corresponds to ``/docProps/core.xml`` part in package."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import XmlPart
@@ -27,7 +27,7 @@ class CorePropertiesPart(XmlPart):
         core_props.title = "PowerPoint Presentation"
         core_props.last_modified_by = "python-pptx"
         core_props.revision = 1
-        core_props.modified = datetime.utcnow()
+        core_props.modified = datetime.now(timezone.utc)
         return core_props
 
     @property
