@@ -4,7 +4,7 @@
 
 import pytest
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml.coreprops import CT_CoreProperties
@@ -55,7 +55,7 @@ class DescribeCorePropertiesPart(object):
         assert core_props.revision == 1
         # core_props.modified only stores time with seconds resolution, so
         # comparison needs to be a little loose (within two seconds)
-        modified_timedelta = datetime.utcnow() - core_props.modified
+        modified_timedelta = datetime.now(timezone.utc) - core_props.modified
         max_expected_timedelta = timedelta(seconds=2)
         assert modified_timedelta < max_expected_timedelta
 
@@ -70,7 +70,7 @@ class DescribeCorePropertiesPart(object):
     )
     def date_prop_get_fixture(self, request, core_properties):
         prop_name, expected_datetime = request.param
-        return core_properties, prop_name, expected_datetime
+        return core_properties, prop_name, expected_datetime.astimezone() if expected_datetime is not None else None
 
     @pytest.fixture(
         params=[

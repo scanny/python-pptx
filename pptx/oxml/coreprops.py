@@ -247,7 +247,7 @@ class CT_CoreProperties(BaseOxmlElement):
         dt = None
         for tmpl in templates:
             try:
-                dt = datetime.strptime(parseable_part, tmpl)
+                dt = datetime.strptime(parseable_part, tmpl).astimezone()
             except ValueError:
                 continue
         if dt is None:
