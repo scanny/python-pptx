@@ -105,3 +105,14 @@ class Presentation(PartElementProxy):
         sldIdLst = self._element.get_or_add_sldIdLst()
         self.part.rename_slide_parts([sldId.rId for sldId in sldIdLst])
         return Slides(sldIdLst, self)
+    
+    def new_loc(self, currID, newID):
+            slideIDs = self.slides._sldIdLst
+            slideList = list(slideIDs)
+            slideIDs.remove(slideList[currID])
+            slideIDs.insert(newID, slideList[currID])
+
+    def del_slide(self, _id):
+            slideIDs = self.slides._sldIdLst
+            slideList = list(slideIDs)
+            slideIDs.remove(slideList[_id])
