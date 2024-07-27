@@ -1,10 +1,11 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.parts.image` module."""
+
+from __future__ import annotations
+
+import io
 
 import pytest
 
-from pptx.compat import BytesIO
 from pptx.package import Package
 from pptx.parts.image import Image, ImagePart
 from pptx.util import Emu
@@ -17,7 +18,6 @@ from ..unitutil.mock import (
     method_mock,
     property_mock,
 )
-
 
 images_pptx_path = absjoin(test_file_dir, "with_images.pptx")
 
@@ -67,9 +67,7 @@ class DescribeImagePart(object):
             (3337, 9999, 3337, 9999),
         ),
     )
-    def it_can_scale_its_dimensions(
-        self, width, height, expected_width, expected_height
-    ):
+    def it_can_scale_its_dimensions(self, width, height, expected_width, expected_height):
         with open(test_image_path, "rb") as f:
             blob = f.read()
         image_part = ImagePart(None, None, None, blob)
@@ -211,7 +209,7 @@ class DescribeImage(object):
     def from_stream_fixture(self, from_blob_, image_):
         with open(test_image_path, "rb") as f:
             blob = f.read()
-            image_file = BytesIO(blob)
+            image_file = io.BytesIO(blob)
         from_blob_.return_value = image_
         return image_file, blob, image_
 

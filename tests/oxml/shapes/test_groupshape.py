@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.oxml.shapes.groupshape` module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -23,12 +23,8 @@ class DescribeCT_GroupShape(object):
 
         graphicFrame = spTree.add_table(id_, name, rows, cols, x, y, cx, cy)
 
-        new_table_graphicFrame_.assert_called_once_with(
-            id_, name, rows, cols, x, y, cx, cy
-        )
-        insert_element_before_.assert_called_once_with(
-            spTree, graphicFrame_, "p:extLst"
-        )
+        new_table_graphicFrame_.assert_called_once_with(id_, name, rows, cols, x, y, cx, cy)
+        insert_element_before_.assert_called_once_with(spTree, graphicFrame_, "p:extLst")
         assert graphicFrame is graphicFrame_
 
     def it_can_add_a_grpSp_element(self, add_grpSp_fixture):
@@ -55,9 +51,7 @@ class DescribeCT_GroupShape(object):
 
         sp = spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
 
-        CT_Shape_.new_placeholder_sp.assert_called_once_with(
-            id_, name, ph_type, orient, sz, idx
-        )
+        CT_Shape_.new_placeholder_sp.assert_called_once_with(id_, name, ph_type, orient, sz, idx)
         insert_element_before_.assert_called_once_with(spTree, sp_, "p:extLst")
         assert sp is sp_
 
@@ -67,9 +61,7 @@ class DescribeCT_GroupShape(object):
 
         sp = spTree.add_autoshape(id_, name, prst, x, y, cx, cy)
 
-        CT_Shape_.new_autoshape_sp.assert_called_once_with(
-            id_, name, prst, x, y, cx, cy
-        )
+        CT_Shape_.new_autoshape_sp.assert_called_once_with(id_, name, prst, x, y, cx, cy)
         insert_element_before_.assert_called_once_with(spTree, sp_, "p:extLst")
         assert sp is sp_
 

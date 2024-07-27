@@ -1,14 +1,10 @@
-# encoding: utf-8
+"""Legend of a chart."""
 
-"""
-Legend of a chart.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-from ..enum.chart import XL_LEGEND_POSITION
-from ..text.text import Font
-from ..util import lazyproperty
+from pptx.enum.chart import XL_LEGEND_POSITION
+from pptx.text.text import Font
+from pptx.util import lazyproperty
 
 
 class Legend(object):

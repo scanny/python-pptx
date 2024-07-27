@@ -1,77 +1,90 @@
-# encoding: utf-8
+"""Custom element classes for presentation-related XML elements."""
 
-"""
-Custom element classes for presentation-related XML elements.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from typing import TYPE_CHECKING, Callable
 
-from .simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
-from .xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne, ZeroOrMore
+from pptx.oxml.simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
+from pptx.oxml.xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrMore, ZeroOrOne
+
+if TYPE_CHECKING:
+    from pptx.util import Length
 
 
 class CT_Presentation(BaseOxmlElement):
-    """
-    ``<p:presentation>`` element, root of the Presentation part stored as
-    ``/ppt/presentation.xml``.
-    """
+    """`p:presentation` element, root of the Presentation part stored as `/ppt/presentation.xml`."""
 
-    sldMasterIdLst = ZeroOrOne(
-        "p:sldMasterIdLst",
-        successors=(
-            "p:notesMasterIdLst",
-            "p:handoutMasterIdLst",
-            "p:sldIdLst",
-            "p:sldSz",
-            "p:notesSz",
-        ),
+    get_or_add_sldSz: Callable[[], CT_SlideSize]
+    get_or_add_sldIdLst: Callable[[], CT_SlideIdList]
+    get_or_add_sldMasterIdLst: Callable[[], CT_SlideMasterIdList]
+
+    sldMasterIdLst: CT_SlideMasterIdList | None = (
+        ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+            "p:sldMasterIdLst",
+            successors=(
+                "p:notesMasterIdLst",
+                "p:handoutMasterIdLst",
+                "p:sldIdLst",
+                "p:sldSz",
+                "p:notesSz",
+            ),
+        )
     )
-    sldIdLst = ZeroOrOne("p:sldIdLst", successors=("p:sldSz", "p:notesSz"))
-    sldSz = ZeroOrOne("p:sldSz", successors=("p:notesSz",))
+    sldIdLst: CT_SlideIdList | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:sldIdLst", successors=("p:sldSz", "p:notesSz")
+    )
+    sldSz: CT_SlideSize | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:sldSz", successors=("p:notesSz",)
+    )
 
 
 class CT_SlideId(BaseOxmlElement):
-    """
-    ``<p:sldId>`` element, direct child of <p:sldIdLst> that contains an rId
-    reference to a slide in the presentation.
+    """`p:sldId` element.
+
+    Direct child of `p:sldIdLst` that contains an `rId` reference to a slide in the presentation.
     """
 
-    id = RequiredAttribute("id", ST_SlideId)
-    rId = RequiredAttribute("r:id", XsdString)
+    id: int = RequiredAttribute("id", ST_SlideId)  # pyright: ignore[reportAssignmentType]
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
 
 
 class CT_SlideIdList(BaseOxmlElement):
-    """
-    ``<p:sldIdLst>`` element, direct child of <p:presentation> that contains
-    a list of the slide parts in the presentation.
+    """`p:sldIdLst` element.
+
+    Direct child of <p:presentation> that contains a list of the slide parts in the presentation.
     """
 
+    sldId_lst: list[CT_SlideId]
+
+    _add_sldId: Callable[..., CT_SlideId]
     sldId = ZeroOrMore("p:sldId")
 
-    def add_sldId(self, rId):
-        """
-        Return a reference to a newly created <p:sldId> child element having
-        its r:id attribute set to *rId*.
+    def add_sldId(self, rId: str) -> CT_SlideId:
+        """Create and return a reference to a new `p:sldId` child element.
+
+        The new `p:sldId` element has its r:id attribute set to `rId`.
         """
         return self._add_sldId(id=self._next_id, rId=rId)
 
     @property
     def _next_id(self):
-        """
-        Return the next available slide ID as an int. Valid slide IDs start
-        at 256. The next integer value greater than the max value in use is
-        chosen, which minimizes that chance of reusing the id of a deleted
-        slide.
+        """The next available slide ID as an `int`.
+
+        Valid slide IDs start at 256. The next integer value greater than the max value in use is
+        chosen, which minimizes that chance of reusing the id of a deleted slide.
         """
         id_str_lst = self.xpath("./p:sldId/@id")
         return max([255] + [int(id_str) for id_str in id_str_lst]) + 1
 
 
 class CT_SlideMasterIdList(BaseOxmlElement):
+    """`p:sldMasterIdLst` element.
+
+    Child of `p:presentation` containing references to the slide masters that belong to the
+    presentation.
     """
-    ``<p:sldMasterIdLst>`` element, child of ``<p:presentation>`` containing
-    references to the slide masters that belong to the presentation.
-    """
+
+    sldMasterId_lst: list[CT_SlideMasterIdListEntry]
 
     sldMasterId = ZeroOrMore("p:sldMasterId")
 
@@ -82,14 +95,19 @@ class CT_SlideMasterIdListEntry(BaseOxmlElement):
     a reference to a slide master.
     """
 
-    rId = RequiredAttribute("r:id", XsdString)
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
 
 
 class CT_SlideSize(BaseOxmlElement):
-    """
-    ``<p:sldSz>`` element, direct child of <p:presentation> that contains the
-    width and height of slides in the presentation.
+    """`p:sldSz` element.
+
+    Direct child of <p:presentation> that contains the width and height of slides in the
+    presentation.
     """
 
-    cx = RequiredAttribute("cx", ST_SlideSizeCoordinate)
-    cy = RequiredAttribute("cy", ST_SlideSizeCoordinate)
+    cx: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "cx", ST_SlideSizeCoordinate
+    )
+    cy: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "cy", ST_SlideSizeCoordinate
+    )

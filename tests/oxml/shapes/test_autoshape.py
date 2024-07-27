@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for `pptx.oxml.autoshape` module."""
 
-"""
-Test suite for pptx.oxml.autoshape module.
-"""
-
-from __future__ import absolute_import, print_function
+from __future__ import annotations
 
 import pytest
 
@@ -13,8 +9,8 @@ from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.shared import ST_Direction, ST_PlaceholderSize
 
-from ..unitdata.shape import a_gd, a_prstGeom, an_avLst
 from ...unitutil.cxml import element
+from ..unitdata.shape import a_gd, a_prstGeom, an_avLst
 
 
 class DescribeCT_PresetGeometry2D(object):
@@ -77,9 +73,7 @@ class DescribeCT_PresetGeometry2D(object):
         for name, fmla in gd_vals:
             gd_bldr = a_gd().with_name(name).with_fmla(fmla)
             avLst_bldr.with_child(gd_bldr)
-        prstGeom_bldr = (
-            a_prstGeom().with_nsdecls().with_prst(prst).with_child(avLst_bldr)
-        )
+        prstGeom_bldr = a_prstGeom().with_nsdecls().with_prst(prst).with_child(avLst_bldr)
         return prstGeom_bldr
 
 
@@ -103,8 +97,7 @@ class DescribeCT_Shape(object):
             'schemeClr val="lt1"/>\n    </a:fontRef>\n  </p:style>\n  <p:txBo'
             'dy>\n    <a:bodyPr rtlCol="0" anchor="ctr"/>\n    <a:lstStyle/>'
             '\n    <a:p>\n      <a:pPr algn="ctr"/>\n    </a:p>\n  </p:txBody'
-            ">\n</p:sp>\n"
-            % (nsdecls("a", "p"), id_, name, left, top, width, height, prst)
+            ">\n</p:sp>\n" % (nsdecls("a", "p"), id_, name, left, top, width, height, prst)
         )
         # exercise ---------------------
         sp = CT_Shape.new_autoshape_sp(id_, name, prst, left, top, width, height)

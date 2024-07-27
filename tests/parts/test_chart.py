@@ -1,13 +1,14 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.parts.chart` module."""
+
+from __future__ import annotations
 
 import pytest
 
 from pptx.chart.chart import Chart
 from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE as XCT
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
 from pptx.oxml.chart.chart import CT_ChartSpace
@@ -28,9 +29,7 @@ class DescribeChartPart(object):
         package_.next_partname.return_value = PackURI("/ppt/charts/chart42.xml")
         chart_part_ = instance_mock(request, ChartPart)
         # --- load() must have autospec turned off to work in Python 2.7 mock ---
-        load_ = method_mock(
-            request, ChartPart, "load", autospec=False, return_value=chart_part_
-        )
+        load_ = method_mock(request, ChartPart, "load", autospec=False, return_value=chart_part_)
 
         chart_part = ChartPart.new(XCT.RADAR, chart_data_, package_)
 
@@ -39,9 +38,7 @@ class DescribeChartPart(object):
         load_.assert_called_once_with(
             "/ppt/charts/chart42.xml", CT.DML_CHART, package_, b"chart-blob"
         )
-        chart_part_.chart_workbook.update_from_xlsx_blob.assert_called_once_with(
-            b"xlsx-blob"
-        )
+        chart_part_.chart_workbook.update_from_xlsx_blob.assert_called_once_with(b"xlsx-blob")
         assert chart_part is chart_part_
 
     def it_provides_access_to_the_chart_object(self, request, chartSpace_):
@@ -129,9 +126,7 @@ class DescribeChartWorkbook(object):
         EmbeddedXlsxPart_.new.assert_called_once_with(b"xlsx-blob", package_)
         xlsx_part_prop_.assert_called_with(xlsx_part_)
 
-    def but_it_replaces_the_xlsx_blob_when_the_part_exists(
-        self, xlsx_part_prop_, xlsx_part_
-    ):
+    def but_it_replaces_the_xlsx_blob_when_the_part_exists(self, xlsx_part_prop_, xlsx_part_):
         xlsx_part_prop_.return_value = xlsx_part_
         chart_data = ChartWorkbook(None, None)
         chart_data.update_from_xlsx_blob(b"xlsx-blob")

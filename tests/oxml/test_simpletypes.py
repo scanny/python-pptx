@@ -1,13 +1,19 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.oxml.simpletypes` module.
 
-`simpletypes` contains simple type class definitions. A simple type in this context
-corresponds to an `<xsd:simpleType>` e.g. `ST_Foobar` definition in the XML schema and
-provides data validation and type conversion services for use by xmlchemy. A simple-type
-generally corresponds to an element attribute whereas a complex type corresponds to an
-XML element (which itself can have multiple attributes and have child elements).
+The `simpletypes` module contains classes that each define a scalar-type that appears as an XML
+attribute.
+
+The term "simple-type", as distinct from "complex-type", is an XML Schema distinction. An XML
+attribute value must be a single string, and corresponds to a scalar value, like `bool`, `int`, or
+`str`. Complex-types describe _elements_, which can have multiple attributes as well as child
+elements.
+
+A simple type corresponds to an `<xsd:simpleType>` definition in the XML schema  e.g. `ST_Foobar`.
+The `BaseSimpleType` subclass provides data validation and type conversion services for use by
+`xmlchemy`.
 """
+
+from __future__ import annotations
 
 import pytest
 
@@ -19,13 +25,13 @@ from pptx.oxml.simpletypes import (
     ST_Percentage,
 )
 
-from ..unitutil.mock import method_mock, instance_mock
+from ..unitutil.mock import instance_mock, method_mock
 
 
 class DescribeBaseSimpleType(object):
     """Unit-test suite for `pptx.oxml.simpletypes.BaseSimpleType` objects."""
 
-    def it_can_convert_attr_value_to_python_type(
+    def it_can_convert_an_XML_attribute_value_to_a_python_type(
         self, str_value_, py_value_, convert_from_xml_
     ):
         py_value = ST_SimpleType.from_xml(str_value_)

@@ -1,21 +1,10 @@
-# encoding: utf-8
+"""Unit-test suite for `pptx.util` module."""
 
-"""
-Test suite for pptx.util module.
-"""
-
-from __future__ import absolute_import
+from __future__ import annotations
 
 import pytest
 
-from pptx.compat import to_unicode
-from pptx.util import Length, Centipoints, Cm, Emu, Inches, Mm, Pt
-
-
-def test_to_unicode_raises_on_non_string():
-    """to_unicode(text) raises on *text* not a string"""
-    with pytest.raises(TypeError):
-        to_unicode(999)
+from pptx.util import Centipoints, Cm, Emu, Inches, Length, Mm, Pt
 
 
 class DescribeLength(object):

@@ -1,11 +1,13 @@
-# encoding: utf-8
-
 """Placeholder-related objects.
 
 Specific to shapes having a `p:ph` element. A placeholder has distinct behaviors
 depending on whether it appears on a slide, layout, or master. Hence there is a
 non-trivial class inheritance structure.
 """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
@@ -14,6 +16,9 @@ from pptx.shapes.autoshape import Shape
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.util import Emu
+
+if TYPE_CHECKING:
+    from pptx.oxml.shapes.autoshape import CT_Shape
 
 
 class _InheritsDimensions(object):
@@ -208,12 +213,13 @@ class BasePlaceholder(Shape):
 
 
 class LayoutPlaceholder(_InheritsDimensions, Shape):
+    """Placeholder shape on a slide layout.
+
+    Provides differentiated behavior for slide layout placeholders, in particular, inheriting
+    shape properties from the master placeholder having the same type, when a matching one exists.
     """
-    Placeholder shape on a slide layout, providing differentiated behavior
-    for slide layout placeholders, in particular, inheriting shape properties
-    from the master placeholder having the same type, when a matching one
-    exists.
-    """
+
+    element: CT_Shape  # pyright: ignore[reportIncompatibleMethodOverride]
 
     @property
     def _base_placeholder(self):
@@ -241,9 +247,9 @@ class LayoutPlaceholder(_InheritsDimensions, Shape):
 
 
 class MasterPlaceholder(BasePlaceholder):
-    """
-    Placeholder shape on a slide master.
-    """
+    """Placeholder shape on a slide master."""
+
+    element: CT_Shape  # pyright: ignore[reportIncompatibleMethodOverride]
 
 
 class NotesSlidePlaceholder(_InheritsDimensions, Shape):
@@ -299,9 +305,7 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
         position and size and containing the chart identified by *rId*.
         """
         id_, name = self.shape_id, self.name
-        return CT_GraphicalObjectFrame.new_chart_graphicFrame(
-            id_, name, rId, x, y, cx, cy
-        )
+        return CT_GraphicalObjectFrame.new_chart_graphicFrame(id_, name, rId, x, y, cx, cy)
 
 
 class PicturePlaceholder(_BaseSlidePlaceholder):

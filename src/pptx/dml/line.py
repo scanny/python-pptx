@@ -1,12 +1,10 @@
-# encoding: utf-8
-
 """DrawingML objects related to line formatting."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from ..enum.dml import MSO_FILL
-from .fill import FillFormat
-from ..util import Emu, lazyproperty
+from pptx.dml.fill import FillFormat
+from pptx.enum.dml import MSO_FILL
+from pptx.util import Emu, lazyproperty
 
 
 class LineFormat(object):

@@ -1,20 +1,16 @@
-# encoding: utf-8
-
 """Gherkin step implementations for shape-related features."""
 
-from __future__ import unicode_literals
+from __future__ import annotations
 
 import hashlib
 
-from behave import given, when, then
-
-from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
-from pptx.action import ActionSetting
-from pptx.util import Emu
-
+from behave import given, then, when
 from helpers import cls_qname, test_file, test_pptx
 
+from pptx import Presentation
+from pptx.action import ActionSetting
+from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.util import Emu
 
 # given ===================================================
 
@@ -222,9 +218,7 @@ def given_a_shape_of_known_position_and_size(context):
 
 @when("I add a {cx} x {cy} shape at ({x}, {y})")
 def when_I_add_a_cx_cy_shape_at_x_y(context, cx, cy, x, y):
-    context.shape.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, int(x), int(y), int(cx), int(cy)
-    )
+    context.shape.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, int(x), int(y), int(cx), int(cy))
 
 
 @when("I assign 0.15 to shape.adjustments[0]")
@@ -272,9 +266,7 @@ def when_I_assign_value_to_connector_end_y(context, value):
 
 @when("I assign {value} to picture.crop_{side}")
 def when_I_assign_value_to_picture_crop_side(context, value, side):
-    new_value = (
-        None if value == "None" else float(value) if "." in value else int(value)
-    )
+    new_value = None if value == "None" else float(value) if "." in value else int(value)
     setattr(context.picture, "crop_%s" % side, new_value)
 
 
@@ -336,9 +328,7 @@ def then_accessing_shape_click_action_raises_TypeError(context):
     except TypeError:
         return
     except Exception as e:
-        raise AssertionError(
-            "Accessing GroupShape.click_action raised %s" % type(e).__name__
-        )
+        raise AssertionError("Accessing GroupShape.click_action raised %s" % type(e).__name__)
     raise AssertionError("Accessing GroupShape.click_action did not raise")
 
 
@@ -658,9 +648,7 @@ def then_shape_shape_id_equals(context, value_str):
 def then_shape_shape_type_is_MSO_SHAPE_TYPE_member(context, member_name):
     expected_shape_type = getattr(MSO_SHAPE_TYPE, member_name)
     actual_shape_type = context.shape.shape_type
-    assert actual_shape_type == expected_shape_type, (
-        "shape.shape_type == %s" % actual_shape_type
-    )
+    assert actual_shape_type == expected_shape_type, "shape.shape_type == %s" % actual_shape_type
 
 
 @then("shape.text == {value}")

@@ -1,17 +1,13 @@
-# encoding: utf-8
-
 """Step implementations for LineFormat-related features."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.dml import MSO_LINE
 from pptx.util import Length, Pt
-
-from helpers import test_pptx
-
 
 # given ===================================================
 

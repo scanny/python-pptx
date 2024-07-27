@@ -1,8 +1,8 @@
-# encoding: utf-8
-
 """Custom element classes for top-level chart-related XML elements."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from typing import cast
 
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.shared import CT_Title
@@ -40,9 +40,7 @@ class CT_Chart(BaseOxmlElement):
     autoTitleDeleted = ZeroOrOne("c:autoTitleDeleted", successors=_tag_seq[2:])
     plotArea = OneAndOnlyOne("c:plotArea")
     legend = ZeroOrOne("c:legend", successors=_tag_seq[9:])
-    rId = RequiredAttribute("r:id", XsdString)
-
-    _chart_tmpl = '<c:chart %s %s r:id="%%s"/>' % (nsdecls("c"), nsdecls("r"))
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
 
     @property
     def has_legend(self):
@@ -69,13 +67,9 @@ class CT_Chart(BaseOxmlElement):
                 self._add_legend()
 
     @staticmethod
-    def new_chart(rId):
-        """
-        Return a new ``<c:chart>`` element
-        """
-        xml = CT_Chart._chart_tmpl % (rId)
-        chart = parse_xml(xml)
-        return chart
+    def new_chart(rId: str) -> CT_Chart:
+        """Return a new `c:chart` element."""
+        return cast(CT_Chart, parse_xml(f'<c:chart {nsdecls("c")} {nsdecls("r")} r:id="{rId}"/>'))
 
     def _new_title(self):
         return CT_Title.new_title()

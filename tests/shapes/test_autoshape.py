@@ -1,8 +1,10 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""Test suite for pptx.shapes.autoshape module."""
+"""Unit-test suite for `pptx.shapes.autoshape` module."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
@@ -26,45 +28,76 @@ from ..oxml.unitdata.shape import (
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock, property_mock
 
+if TYPE_CHECKING:
+    from pptx.spec import AdjustmentValue
+
 
 class DescribeAdjustment(object):
-    def it_knows_its_effective_value(self, effective_val_fixture_):
-        adjustment, expected_effective_value = effective_val_fixture_
-        assert adjustment.effective_value == expected_effective_value
+    """Unit-test suite for `pptx.shapes.autoshape.Adjustment`."""
 
-    # fixture --------------------------------------------------------
-
-    def _effective_adj_val_cases():
-        return [
-            # no actual, effective should be determined by default value
+    @pytest.mark.parametrize(
+        ("def_val", "actual", "expected_value"),
+        [
+            # -- no actual, effective should be determined by default value --
             (50000, None, 0.5),
-            # actual matches default
+            # -- actual matches default --
             (50000, 50000, 0.5),
-            # actual is different than default
+            # -- actual is different than default --
             (50000, 12500, 0.125),
-            # actual is zero
+            # -- actual is zero --
             (50000, 0, 0.0),
-            # negative default
+            # -- negative default --
             (-20833, None, -0.20833),
-            # negative actual
+            # -- negative actual --
             (-20833, -5678901, -56.78901),
-        ]
-
-    @pytest.fixture(params=_effective_adj_val_cases())
-    def effective_val_fixture_(self, request):
-        name = None
-        def_val, actual, expected_effective_value = request.param
-        adjustment = Adjustment(name, def_val, actual)
-        return adjustment, expected_effective_value
+        ],
+    )
+    def it_knows_its_effective_value(self, def_val: int, actual: int | None, expected_value: float):
+        assert Adjustment("foobar", def_val, actual).effective_value == expected_value
 
 
 class DescribeAdjustmentCollection(object):
-    def it_should_load_default_adjustment_values(self, prstGeom_cases_):
-        prstGeom, prst, expected = prstGeom_cases_
+    """Unit-test suite for `pptx.shapes.autoshape.AdjustmentCollection`."""
+
+    @pytest.mark.parametrize(
+        ("prst", "expected_values"),
+        [
+            # -- rect has no adjustments --
+            ("rect", ()),
+            # -- chevron has one simple one
+            ("chevron", (("adj", 50000),)),
+            # -- one with several and some negative --
+            (
+                "accentBorderCallout1",
+                (("adj1", 18750), ("adj2", -8333), ("adj3", 112500), ("adj4", -38333)),
+            ),
+            # -- another one with some negative --
+            (
+                "wedgeRoundRectCallout",
+                (("adj1", -20833), ("adj2", 62500), ("adj3", 16667)),
+            ),
+            # -- one with values outside normal range --
+            (
+                "circularArrow",
+                (
+                    ("adj1", 12500),
+                    ("adj2", 1142319),
+                    ("adj3", 20457681),
+                    ("adj4", 10800000),
+                    ("adj5", 12500),
+                ),
+            ),
+        ],
+    )
+    def it_should_load_default_adjustment_values(
+        self, prst: str, expected_values: tuple[str, tuple[tuple[str, int], ...]]
+    ):
+        prstGeom = cast(CT_PresetGeometry2D, element(f"a:prstGeom{{prst={prst}}}/a:avLst"))
+
         adjustments = AdjustmentCollection(prstGeom)._adjustments
+
         actuals = tuple([(adj.name, adj.def_val) for adj in adjustments])
-        assert len(adjustments) == len(expected)
-        assert actuals == expected
+        assert actuals == expected_values
 
     def it_should_load_adj_val_actuals_from_xml(self, load_adj_actuals_fixture_):
         prstGeom, expected_actuals, prstGeom_xml = load_adj_actuals_fixture_
@@ -187,41 +220,6 @@ class DescribeAdjustmentCollection(object):
         prstGeom_xml = prstGeom_bldr.xml
         return prstGeom, expected, prstGeom_xml
 
-    def _prstGeom_cases():
-        return [
-            # rect has no adjustments
-            ("rect", ()),
-            # chevron has one simple one
-            ("chevron", (("adj", 50000),)),
-            # one with several and some negative
-            (
-                "accentBorderCallout1",
-                (("adj1", 18750), ("adj2", -8333), ("adj3", 112500), ("adj4", -38333)),
-            ),
-            # another one with some negative
-            (
-                "wedgeRoundRectCallout",
-                (("adj1", -20833), ("adj2", 62500), ("adj3", 16667)),
-            ),
-            # one with values outside normal range
-            (
-                "circularArrow",
-                (
-                    ("adj1", 12500),
-                    ("adj2", 1142319),
-                    ("adj3", 20457681),
-                    ("adj4", 10800000),
-                    ("adj5", 12500),
-                ),
-            ),
-        ]
-
-    @pytest.fixture(params=_prstGeom_cases())
-    def prstGeom_cases_(self, request):
-        prst, expected_values = request.param
-        prstGeom = a_prstGeom().with_nsdecls().with_prst(prst).with_child(an_avLst()).element
-        return prstGeom, prst, expected_values
-
     def _effective_val_cases():
         return [
             ("rect", ()),
@@ -261,32 +259,9 @@ class DescribeAutoShapeType(object):
         assert autoshape_type.prst == "noSmoking"
         assert autoshape_type.basename == "&quot;No&quot; Symbol"
 
-    def it_knows_the_default_adj_vals_for_its_autoshape_type(self, default_adj_vals_fixture_):
-        prst, default_adj_vals = default_adj_vals_fixture_
-        _default_adj_vals = AutoShapeType.default_adjustment_values(prst)
-        assert _default_adj_vals == default_adj_vals
-
-    def it_knows_the_autoshape_type_id_for_each_prst_key(self):
-        assert AutoShapeType.id_from_prst("rect") == MSO_SHAPE.RECTANGLE
-
-    def it_raises_when_asked_for_autoshape_type_id_with_a_bad_prst(self):
-        with pytest.raises(ValueError):
-            AutoShapeType.id_from_prst("badPrst")
-
-    def it_caches_autoshape_type_lookups(self):
-        autoshape_type_id = MSO_SHAPE.ROUNDED_RECTANGLE
-        autoshape_type_1 = AutoShapeType(autoshape_type_id)
-        autoshape_type_2 = AutoShapeType(autoshape_type_id)
-        assert autoshape_type_2 is autoshape_type_1
-
-    def it_raises_on_construction_with_bad_autoshape_type_id(self):
-        with pytest.raises(KeyError):
-            AutoShapeType(9999)
-
-    # fixtures -------------------------------------------------------
-
-    def _default_adj_vals_cases():
-        return [
+    @pytest.mark.parametrize(
+        ("prst", "default_adj_vals"),
+        [
             (MSO_SHAPE.RECTANGLE, ()),
             (MSO_SHAPE.CHEVRON, (("adj", 50000),)),
             (
@@ -299,12 +274,30 @@ class DescribeAutoShapeType(object):
                     ("adj5", 12500),
                 ),
             ),
-        ]
+        ],
+    )
+    def it_knows_the_default_adj_vals_for_its_autoshape_type(
+        self, prst: MSO_SHAPE, default_adj_vals: tuple[AdjustmentValue, ...]
+    ):
+        _default_adj_vals = AutoShapeType.default_adjustment_values(prst)
+        assert _default_adj_vals == default_adj_vals
 
-    @pytest.fixture(params=_default_adj_vals_cases())
-    def default_adj_vals_fixture_(self, request):
-        prst, default_adj_vals = request.param
-        return prst, default_adj_vals
+    def it_knows_the_autoshape_type_id_for_each_prst_key(self):
+        assert AutoShapeType.id_from_prst("rect") == MSO_SHAPE.RECTANGLE
+
+    def it_raises_when_asked_for_autoshape_type_id_with_a_bad_prst(self):
+        with pytest.raises(ValueError, match="MSO_AUTO_SHAPE_TYPE has no XML mapping for 'badPr"):
+            AutoShapeType.id_from_prst("badPrst")
+
+    def it_caches_autoshape_type_lookups(self):
+        autoshape_type_id = MSO_SHAPE.ROUNDED_RECTANGLE
+        autoshape_type_1 = AutoShapeType(autoshape_type_id)
+        autoshape_type_2 = AutoShapeType(autoshape_type_id)
+        assert autoshape_type_2 is autoshape_type_1
+
+    def it_raises_on_construction_with_bad_autoshape_type_id(self):
+        with pytest.raises(KeyError):
+            AutoShapeType(9999)
 
 
 class DescribeShape(object):

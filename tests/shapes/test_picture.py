@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Test suite for pptx.shapes.picture module."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -10,7 +8,7 @@ from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
-from pptx.shapes.picture import _BasePicture, _MediaFormat, Movie, Picture
+from pptx.shapes.picture import Movie, Picture, _BasePicture, _MediaFormat
 from pptx.util import Pt
 
 from ..unitutil.cxml import element, xml
@@ -206,9 +204,7 @@ class DescribeMovie(object):
 
     @pytest.fixture
     def _MediaFormat_(self, request, media_format_):
-        return class_mock(
-            request, "pptx.shapes.picture._MediaFormat", return_value=media_format_
-        )
+        return class_mock(request, "pptx.shapes.picture._MediaFormat", return_value=media_format_)
 
     @pytest.fixture
     def media_format_(self, request):

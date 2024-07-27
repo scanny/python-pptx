@@ -1,17 +1,15 @@
-# encoding: utf-8
+"""|ChartFormat| and related objects.
 
-"""
-|ChartFormat| and related objects. |ChartFormat| acts as proxy for the `spPr`
-element, which provides visual shape properties such as line and fill for
-chart elements.
+|ChartFormat| acts as proxy for the `spPr` element, which provides visual shape properties such as
+line and fill for chart elements.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from .fill import FillFormat
-from .line import LineFormat
-from ..shared import ElementProxy
-from ..util import lazyproperty
+from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
+from pptx.shared import ElementProxy
+from pptx.util import lazyproperty
 
 
 class ChartFormat(ElementProxy):

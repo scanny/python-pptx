@@ -1,25 +1,21 @@
-# encoding: utf-8
+"""Plot-related oxml objects."""
 
-"""
-Plot-related oxml objects.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-from .datalabel import CT_DLbls
-from ..simpletypes import (
+from pptx.oxml.chart.datalabel import CT_DLbls
+from pptx.oxml.simpletypes import (
     ST_BarDir,
     ST_BubbleScale,
     ST_GapAmount,
     ST_Grouping,
     ST_Overlap,
 )
-from ..xmlchemy import (
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
     OptionalAttribute,
-    ZeroOrOne,
     ZeroOrMore,
+    ZeroOrOne,
 )
 
 

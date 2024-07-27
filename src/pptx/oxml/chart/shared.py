@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Shared oxml objects for charts."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
@@ -186,10 +184,7 @@ class CT_Title(BaseOxmlElement):
     def new_title():
         """Return "loose" `c:title` element containing default children."""
         return parse_xml(
-            "<c:title %s>"
-            "  <c:layout/>"
-            '  <c:overlay val="0"/>'
-            "</c:title>" % nsdecls("c")
+            "<c:title %s>" "  <c:layout/>" '  <c:overlay val="0"/>' "</c:title>" % nsdecls("c")
         )
 
 

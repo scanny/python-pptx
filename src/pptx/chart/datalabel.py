@@ -1,13 +1,9 @@
-# encoding: utf-8
+"""Data label-related objects."""
 
-"""
-Data label-related objects.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from ..text.text import Font, TextFrame
-from ..util import lazyproperty
+from pptx.text.text import Font, TextFrame
+from pptx.util import lazyproperty
 
 
 class DataLabels(object):

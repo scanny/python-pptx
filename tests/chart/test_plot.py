@@ -1,19 +1,16 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""
-Test suite for pptx.chart.plot module
-"""
+"""Unit-test suite for `pptx.chart.plot` module."""
 
-from __future__ import absolute_import, print_function
+from __future__ import annotations
 
 import pytest
 
 from pptx.chart.category import Categories
 from pptx.chart.chart import Chart
 from pptx.chart.plot import (
-    _BasePlot,
-    AreaPlot,
     Area3DPlot,
+    AreaPlot,
     BarPlot,
     BubblePlot,
     DataLabels,
@@ -24,6 +21,7 @@ from pptx.chart.plot import (
     PlotTypeInspector,
     RadarPlot,
     XyPlot,
+    _BasePlot,
 )
 from pptx.chart.series import SeriesCollection
 from pptx.enum.chart import XL_CHART_TYPE as XL
@@ -46,15 +44,11 @@ class Describe_BasePlot(object):
         plot.has_data_labels = new_value
         assert plot._element.xml == expected_xml
 
-    def it_knows_whether_it_varies_color_by_category(
-        self, vary_by_categories_get_fixture
-    ):
+    def it_knows_whether_it_varies_color_by_category(self, vary_by_categories_get_fixture):
         plot, expected_value = vary_by_categories_get_fixture
         assert plot.vary_by_categories == expected_value
 
-    def it_can_change_whether_it_varies_color_by_category(
-        self, vary_by_categories_set_fixture
-    ):
+    def it_can_change_whether_it_varies_color_by_category(self, vary_by_categories_set_fixture):
         plot, new_value, expected_xml = vary_by_categories_set_fixture
         plot.vary_by_categories = new_value
         assert plot._element.xml == expected_xml
@@ -176,9 +170,7 @@ class Describe_BasePlot(object):
 
     @pytest.fixture
     def Categories_(self, request, categories_):
-        return class_mock(
-            request, "pptx.chart.plot.Categories", return_value=categories_
-        )
+        return class_mock(request, "pptx.chart.plot.Categories", return_value=categories_)
 
     @pytest.fixture
     def categories_(self, request):
@@ -190,9 +182,7 @@ class Describe_BasePlot(object):
 
     @pytest.fixture
     def DataLabels_(self, request, data_labels_):
-        return class_mock(
-            request, "pptx.chart.plot.DataLabels", return_value=data_labels_
-        )
+        return class_mock(request, "pptx.chart.plot.DataLabels", return_value=data_labels_)
 
     @pytest.fixture
     def data_labels_(self, request):
@@ -430,21 +420,18 @@ class DescribePlotTypeInspector(object):
             ("c:lineChart/c:grouping{val=percentStacked}", XL.LINE_MARKERS_STACKED_100),
             ("c:lineChart/c:ser/c:marker/c:symbol{val=none}", XL.LINE),
             (
-                "c:lineChart/(c:grouping{val=stacked},c:ser/c:marker/c:symbol{val=n"
-                "one})",
+                "c:lineChart/(c:grouping{val=stacked},c:ser/c:marker/c:symbol{val=n" "one})",
                 XL.LINE_STACKED,
             ),
             (
-                "c:lineChart/(c:grouping{val=percentStacked},c:ser/c:marker/c:symbo"
-                "l{val=none})",
+                "c:lineChart/(c:grouping{val=percentStacked},c:ser/c:marker/c:symbo" "l{val=none})",
                 XL.LINE_STACKED_100,
             ),
             ("c:pieChart", XL.PIE),
             ("c:pieChart/c:ser/c:explosion{val=25}", XL.PIE_EXPLODED),
             ("c:scatterChart/c:scatterStyle", XL.XY_SCATTER),
             (
-                "c:scatterChart/(c:scatterStyle{val=lineMarker},c:ser/c:spPr/a:ln/a"
-                ":noFill)",
+                "c:scatterChart/(c:scatterStyle{val=lineMarker},c:ser/c:spPr/a:ln/a" ":noFill)",
                 XL.XY_SCATTER,
             ),
             ("c:scatterChart/c:scatterStyle{val=lineMarker}", XL.XY_SCATTER_LINES),
@@ -473,8 +460,7 @@ class DescribePlotTypeInspector(object):
             ("c:radarChart/c:radarStyle{val=marker}", XL.RADAR_MARKERS),
             ("c:radarChart/c:radarStyle{val=filled}", XL.RADAR_FILLED),
             (
-                "c:radarChart/(c:radarStyle{val=marker},c:ser/c:marker/c:symbol{val"
-                "=none})",
+                "c:radarChart/(c:radarStyle{val=marker},c:ser/c:marker/c:symbol{val" "=none})",
                 XL.RADAR,
             ),
         ]

@@ -1,19 +1,35 @@
-# encoding: utf-8
-
 """Objects related to mouse click and hover actions on a shape or text."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, cast
 
 from pptx.enum.action import PP_ACTION
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.shapes import Subshape
 from pptx.util import lazyproperty
 
+if TYPE_CHECKING:
+    from pptx.oxml.action import CT_Hyperlink
+    from pptx.oxml.shapes.shared import CT_NonVisualDrawingProps
+    from pptx.oxml.text import CT_TextCharacterProperties
+    from pptx.parts.slide import SlidePart
+    from pptx.shapes.base import BaseShape
+    from pptx.slide import Slide, Slides
+
 
 class ActionSetting(Subshape):
     """Properties specifying how a shape or run reacts to mouse actions."""
 
-    # --- The Subshape superclass provides access to the Slide Part, which is needed
-    # --- to access relationships.
-    def __init__(self, xPr, parent, hover=False):
+    # -- The Subshape base class provides access to the Slide Part, which is needed to access
+    # -- relationships, which is where hyperlinks live.
+
+    def __init__(
+        self,
+        xPr: CT_NonVisualDrawingProps | CT_TextCharacterProperties,
+        parent: BaseShape,
+        hover: bool = False,
+    ):
         super(ActionSetting, self).__init__(parent)
         # xPr is either a cNvPr or rPr element
         self._element = xPr
@@ -61,7 +77,7 @@ class ActionSetting(Subshape):
         }.get(action_verb, PP_ACTION.NONE)
 
     @lazyproperty
-    def hyperlink(self):
+    def hyperlink(self) -> Hyperlink:
         """
         A |Hyperlink| object representing the hyperlink action defined on
         this click or hover mouse event. A |Hyperlink| object is always
@@ -70,7 +86,7 @@ class ActionSetting(Subshape):
         return Hyperlink(self._element, self._parent, self._hover)
 
     @property
-    def target_slide(self):
+    def target_slide(self) -> Slide | None:
         """
         A reference to the slide in this presentation that is the target of
         the slide jump action in this shape. Slide jump actions include
@@ -116,11 +132,13 @@ class ActionSetting(Subshape):
                 raise ValueError("no previous slide")
             return self._slides[prev_slide_idx]
         elif self.action == PP_ACTION.NAMED_SLIDE:
+            assert self._hlink is not None
             rId = self._hlink.rId
-            return self.part.related_part(rId).slide
+            slide_part = cast("SlidePart", self.part.related_part(rId))
+            return slide_part.slide
 
     @target_slide.setter
-    def target_slide(self, slide):
+    def target_slide(self, slide: Slide | None):
         self._clear_click_action()
         if slide is None:
             return
@@ -139,12 +157,13 @@ class ActionSetting(Subshape):
         self._element.remove(hlink)
 
     @property
-    def _hlink(self):
+    def _hlink(self) -> CT_Hyperlink | None:
         """
-        Reference to the `a:hlinkClick` or `h:hlinkHover` element for this
+        Reference to the `a:hlinkClick` or `a:hlinkHover` element for this
         click action. Returns |None| if the element is not present.
         """
         if self._hover:
+            assert isinstance(self._element, CT_NonVisualDrawingProps)
             return self._element.hlinkHover
         return self._element.hlinkClick
 
@@ -164,7 +183,7 @@ class ActionSetting(Subshape):
         return self._slides.index(self._slide)
 
     @lazyproperty
-    def _slides(self):
+    def _slides(self) -> Slides:
         """
         Reference to the slide collection for this presentation.
         """
@@ -172,11 +191,14 @@ class ActionSetting(Subshape):
 
 
 class Hyperlink(Subshape):
-    """
-    Represents a hyperlink action on a shape or text run.
-    """
+    """Represents a hyperlink action on a shape or text run."""
 
-    def __init__(self, xPr, parent, hover=False):
+    def __init__(
+        self,
+        xPr: CT_NonVisualDrawingProps | CT_TextCharacterProperties,
+        parent: BaseShape,
+        hover: bool = False,
+    ):
         super(Hyperlink, self).__init__(parent)
         # xPr is either a cNvPr or rPr element
         self._element = xPr
@@ -184,14 +206,13 @@ class Hyperlink(Subshape):
         self._hover = hover
 
     @property
-    def address(self):
-        """
-        Read/write. The URL of the hyperlink. URL can be on http, https,
-        mailto, or file scheme; others may work. Returns |None| if no
-        hyperlink is defined, including when another action such as
-        `RUN_MACRO` is defined on the object. Assigning |None| removes any
-        action defined on the object, whether it is a hyperlink action or
-        not.
+    def address(self) -> str | None:
+        """Read/write. The URL of the hyperlink.
+
+        URL can be on http, https, mailto, or file scheme; others may work. Returns |None| if no
+        hyperlink is defined, including when another action such as `RUN_MACRO` is defined on the
+        object. Assigning |None| removes any action defined on the object, whether it is a hyperlink
+        action or not.
         """
         hlink = self._hlink
 
@@ -207,7 +228,7 @@ class Hyperlink(Subshape):
         return self.part.target_ref(rId)
 
     @address.setter
-    def address(self, url):
+    def address(self, url: str | None):
         # implements all three of add, change, and remove hyperlink
         self._remove_hlink()
 
@@ -216,30 +237,29 @@ class Hyperlink(Subshape):
             hlink = self._get_or_add_hlink()
             hlink.rId = rId
 
-    def _get_or_add_hlink(self):
-        """
-        Get the `a:hlinkClick` or `a:hlinkHover` element for the Hyperlink
-        object, depending on the value of `self._hover`. Create one if not
-        present.
+    def _get_or_add_hlink(self) -> CT_Hyperlink:
+        """Get the `a:hlinkClick` or `a:hlinkHover` element for the Hyperlink object.
+
+        The actual element depends on the value of `self._hover`. Create the element if not present.
         """
         if self._hover:
-            return self._element.get_or_add_hlinkHover()
+            return cast("CT_NonVisualDrawingProps", self._element).get_or_add_hlinkHover()
         return self._element.get_or_add_hlinkClick()
 
     @property
-    def _hlink(self):
-        """
-        Reference to the `a:hlinkClick` or `h:hlinkHover` element for this
-        click action. Returns |None| if the element is not present.
+    def _hlink(self) -> CT_Hyperlink | None:
+        """Reference to the `a:hlinkClick` or `h:hlinkHover` element for this click action.
+
+        Returns |None| if the element is not present.
         """
         if self._hover:
-            return self._element.hlinkHover
+            return cast("CT_NonVisualDrawingProps", self._element).hlinkHover
         return self._element.hlinkClick
 
     def _remove_hlink(self):
-        """
-        Remove the a:hlinkClick or a:hlinkHover element, including dropping
-        any relationship it might have.
+        """Remove the a:hlinkClick or a:hlinkHover element.
+
+        Also drops any relationship it might have.
         """
         hlink = self._hlink
         if hlink is None:

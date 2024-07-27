@@ -1,9 +1,12 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
 """Unit-test suite for `pptx.chart.xlsx` module."""
 
-import pytest
+from __future__ import annotations
 
+import io
+
+import pytest
 from xlsxwriter import Workbook
 from xlsxwriter.worksheet import Worksheet
 
@@ -15,12 +18,11 @@ from pptx.chart.data import (
     XyChartData,
 )
 from pptx.chart.xlsx import (
-    _BaseWorkbookWriter,
     BubbleWorkbookWriter,
     CategoryWorkbookWriter,
     XyWorkbookWriter,
+    _BaseWorkbookWriter,
 )
-from pptx.compat import BytesIO
 
 from ..unitutil.mock import ANY, call, class_mock, instance_mock, method_mock
 
@@ -31,9 +33,7 @@ class Describe_BaseWorkbookWriter(object):
     def it_can_generate_a_chart_data_Excel_blob(
         self, request, xlsx_file_, workbook_, worksheet_, BytesIO_
     ):
-        _populate_worksheet_ = method_mock(
-            request, _BaseWorkbookWriter, "_populate_worksheet"
-        )
+        _populate_worksheet_ = method_mock(request, _BaseWorkbookWriter, "_populate_worksheet")
         _open_worksheet_ = method_mock(request, _BaseWorkbookWriter, "_open_worksheet")
         # --- to make context manager behavior work ---
         _open_worksheet_.return_value.__enter__.return_value = (workbook_, worksheet_)
@@ -44,9 +44,7 @@ class Describe_BaseWorkbookWriter(object):
         xlsx_blob = workbook_writer.xlsx_blob
 
         _open_worksheet_.assert_called_once_with(workbook_writer, xlsx_file_)
-        _populate_worksheet_.assert_called_once_with(
-            workbook_writer, workbook_, worksheet_
-        )
+        _populate_worksheet_.assert_called_once_with(workbook_writer, workbook_, worksheet_)
         assert xlsx_blob == b"xlsx-blob"
 
     def it_can_open_a_worksheet_in_a_context(self, open_fixture):
@@ -81,7 +79,7 @@ class Describe_BaseWorkbookWriter(object):
 
     @pytest.fixture
     def BytesIO_(self, request):
-        return class_mock(request, "pptx.chart.xlsx.BytesIO")
+        return class_mock(request, "pptx.chart.xlsx.io.BytesIO")
 
     @pytest.fixture
     def Workbook_(self, request, workbook_):
@@ -97,7 +95,7 @@ class Describe_BaseWorkbookWriter(object):
 
     @pytest.fixture
     def xlsx_file_(self, request):
-        return instance_mock(request, BytesIO)
+        return instance_mock(request, io.BytesIO)
 
 
 class DescribeCategoryWorkbookWriter(object):
@@ -207,9 +205,7 @@ class DescribeCategoryWorkbookWriter(object):
         return column_number, expected_value
 
     @pytest.fixture
-    def populate_fixture(
-        self, workbook_, worksheet_, _write_categories_, _write_series_
-    ):
+    def populate_fixture(self, workbook_, worksheet_, _write_categories_, _write_series_):
         workbook_writer = CategoryWorkbookWriter(None)
         return workbook_writer, workbook_, worksheet_
 
@@ -293,9 +289,7 @@ class DescribeCategoryWorkbookWriter(object):
         return workbook_writer, workbook_, worksheet_, number_format, calls
 
     @pytest.fixture
-    def write_sers_fixture(
-        self, request, chart_data_, workbook_, worksheet_, categories_
-    ):
+    def write_sers_fixture(self, request, chart_data_, workbook_, worksheet_, categories_):
         workbook_writer = CategoryWorkbookWriter(chart_data_)
         num_format = workbook_.add_format.return_value
         calls = [call.write(0, 1, "S1"), call.write_column(1, 1, (42, 24), num_format)]
@@ -330,21 +324,15 @@ class DescribeCategoryWorkbookWriter(object):
 
     @pytest.fixture
     def _write_cat_column_(self, request):
-        return method_mock(
-            request, CategoryWorkbookWriter, "_write_cat_column", autospec=True
-        )
+        return method_mock(request, CategoryWorkbookWriter, "_write_cat_column", autospec=True)
 
     @pytest.fixture
     def _write_categories_(self, request):
-        return method_mock(
-            request, CategoryWorkbookWriter, "_write_categories", autospec=True
-        )
+        return method_mock(request, CategoryWorkbookWriter, "_write_categories", autospec=True)
 
     @pytest.fixture
     def _write_series_(self, request):
-        return method_mock(
-            request, CategoryWorkbookWriter, "_write_series", autospec=True
-        )
+        return method_mock(request, CategoryWorkbookWriter, "_write_series", autospec=True)
 
 
 class DescribeBubbleWorkbookWriter(object):

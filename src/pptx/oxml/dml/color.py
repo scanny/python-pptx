@@ -1,14 +1,10 @@
-# encoding: utf-8
+"""lxml custom element classes for DrawingML-related XML elements."""
 
-"""
-lxml custom element classes for DrawingML-related XML elements.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import
-
-from ...enum.dml import MSO_THEME_COLOR
-from ..simpletypes import ST_HexColorRGB, ST_Percentage
-from ..xmlchemy import (
+from pptx.enum.dml import MSO_THEME_COLOR
+from pptx.oxml.simpletypes import ST_HexColorRGB, ST_Percentage
+from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     Choice,
     RequiredAttribute,

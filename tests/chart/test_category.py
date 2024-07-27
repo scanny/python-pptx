@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for the `pptx.chart.category` module."""
 
-"""
-Unit test suite for the pptx.chart.category module.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -28,7 +24,12 @@ class DescribeCategories(object):
         assert category is category_
 
     def it_can_iterate_over_the_categories_it_contains(self, iter_fixture):
-        categories, expected_categories, Category_, calls, = iter_fixture
+        (
+            categories,
+            expected_categories,
+            Category_,
+            calls,
+        ) = iter_fixture
         assert [c for c in categories] == expected_categories
         assert Category_.call_args_list == calls
 
@@ -117,9 +118,7 @@ class DescribeCategories(object):
         calls = [call(None, 0), call(pt, 1)]
         return categories, expected_categories, Category_, calls
 
-    @pytest.fixture(
-        params=[("c:barChart", 0), ("c:barChart/c:ser/c:cat/c:ptCount{val=4}", 4)]
-    )
+    @pytest.fixture(params=[("c:barChart", 0), ("c:barChart/c:ser/c:cat/c:ptCount{val=4}", 4)])
     def len_fixture(self, request):
         xChart_cxml, expected_len = request.param
         categories = Categories(element(xChart_cxml))
@@ -147,9 +146,7 @@ class DescribeCategories(object):
 
     @pytest.fixture
     def Category_(self, request, category_):
-        return class_mock(
-            request, "pptx.chart.category.Category", return_value=category_
-        )
+        return class_mock(request, "pptx.chart.category.Category", return_value=category_)
 
     @pytest.fixture
     def category_(self, request):
@@ -245,9 +242,7 @@ class DescribeCategoryLevel(object):
 
     @pytest.fixture
     def Category_(self, request, category_):
-        return class_mock(
-            request, "pptx.chart.category.Category", return_value=category_
-        )
+        return class_mock(request, "pptx.chart.category.Category", return_value=category_)
 
     @pytest.fixture
     def category_(self, request):

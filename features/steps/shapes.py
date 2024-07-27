@@ -1,10 +1,11 @@
-# encoding: utf-8
-
 """Gherkin step implementations for shape collections."""
+
+from __future__ import annotations
 
 import io
 
 from behave import given, then, when
+from helpers import saved_pptx_path, test_file, test_image, test_pptx
 
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
@@ -12,9 +13,6 @@ from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER, PROG_ID
 from pptx.shapes.base import BaseShape
 from pptx.util import Emu, Inches
-
-from helpers import saved_pptx_path, test_file, test_image, test_pptx
-
 
 # given ===================================================
 
@@ -174,9 +172,7 @@ def when_I_assign_shapes_add_ole_object_to_shape(context):
 
 @when("I assign shapes.add_picture() to shape")
 def when_I_assign_shapes_add_picture_to_shape(context):
-    context.shape = context.shapes.add_picture(
-        test_image("sonic.gif"), Inches(1), Inches(2)
-    )
+    context.shape = context.shapes.add_picture(test_image("sonic.gif"), Inches(1), Inches(2))
 
 
 @when("I assign shapes.add_shape() to shape")
@@ -188,9 +184,7 @@ def when_I_assign_shapes_add_shape_to_shape(context):
 
 @when("I assign shapes.add_textbox() to shape")
 def when_I_assign_shapes_add_textbox_to_shape(context):
-    context.shape = context.shapes.add_textbox(
-        Inches(1), Inches(2), Inches(3), Inches(0.5)
-    )
+    context.shape = context.shapes.add_textbox(Inches(1), Inches(2), Inches(3), Inches(0.5))
 
 
 @when("I assign shapes.build_freeform() to builder")
@@ -229,9 +223,7 @@ def when_I_assign_True_to_shapes_turbo_add_enabled(context):
 @when("I call shapes.add_chart({type_}, chart_data)")
 def when_I_call_shapes_add_chart(context, type_):
     chart_type = getattr(XL_CHART_TYPE, type_)
-    context.chart = context.shapes.add_chart(
-        chart_type, 0, 0, 0, 0, context.chart_data
-    ).chart
+    context.chart = context.shapes.add_chart(chart_type, 0, 0, 0, 0, context.chart_data).chart
 
 
 @when("I call shapes.add_connector(MSO_CONNECTOR.STRAIGHT, 1, 2, 3, 4)")
@@ -252,9 +244,7 @@ def when_I_call_shapes_add_movie(context):
 
 
 @then("iterating shapes produces {count} objects of type {class_name}")
-def then_iterating_shapes_produces_count_objects_of_type_class_name(
-    context, count, class_name
-):
+def then_iterating_shapes_produces_count_objects_of_type_class_name(context, count, class_name):
     shapes = context.shapes
     expected_count, expected_class_name = int(count), class_name
     idx = -1
@@ -268,17 +258,13 @@ def then_iterating_shapes_produces_count_objects_of_type_class_name(
 
 
 @then("iterating shapes produces {count} objects that subclass BaseShape")
-def then_iterating_shapes_produces_count_objects_that_subclass_BaseShape(
-    context, count
-):
+def then_iterating_shapes_produces_count_objects_that_subclass_BaseShape(context, count):
     shapes = context.shapes
     expected_count = int(count)
     idx = -1
     for idx, shape in enumerate(shapes):
         class_name = shape.__class__.__name__
-        assert isinstance(shape, BaseShape), (
-            "%s does not subclass BaseShape" % class_name
-        )
+        assert isinstance(shape, BaseShape), "%s does not subclass BaseShape" % class_name
     actual_count = idx + 1
     assert actual_count == expected_count, "got %d items" % actual_count
 
@@ -294,9 +280,7 @@ def then_len_shapes_eq_value(context, value):
 def then_shape_is_a_type_object(context, clsname):
     actual_class_name = context.shape.__class__.__name__
     expected_class_name = clsname
-    assert actual_class_name == expected_class_name, (
-        "shape is a %s object" % actual_class_name
-    )
+    assert actual_class_name == expected_class_name, "shape is a %s object" % actual_class_name
 
 
 @then("shapes[-1] == shape")

@@ -1,46 +1,40 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""
-Test suite for pptx.oxml.presentation module
-"""
+"""Unit-test suite for `pptx.oxml.presentation` module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
+
+from typing import cast
 
 import pytest
+
+from pptx.oxml.presentation import CT_SlideIdList
 
 from ..unitutil.cxml import element, xml
 
 
 class DescribeCT_SlideIdList(object):
-    def it_can_add_a_sldId_element_as_a_child(self, add_fixture):
-        sldIdLst, expected_xml = add_fixture
+    """Unit-test suite for `pptx.oxml.presentation.CT_SlideIdLst` objects."""
+
+    def it_can_add_a_sldId_element_as_a_child(self):
+        sldIdLst = cast(CT_SlideIdList, element("p:sldIdLst/p:sldId{r:id=rId4,id=256}"))
+
         sldIdLst.add_sldId("rId1")
-        assert sldIdLst.xml == expected_xml
 
-    def it_knows_the_next_available_slide_id(self, next_id_fixture):
-        sldIdLst, expected_id = next_id_fixture
-        assert sldIdLst._next_id == expected_id
-
-    # fixtures -------------------------------------------------------
-
-    @pytest.fixture
-    def add_fixture(self):
-        sldIdLst = element("p:sldIdLst/p:sldId{r:id=rId4,id=256}")
-        expected_xml = xml(
+        assert sldIdLst.xml == xml(
             "p:sldIdLst/(p:sldId{r:id=rId4,id=256},p:sldId{r:id=rId1,id=257})"
         )
-        return sldIdLst, expected_xml
 
-    @pytest.fixture(
-        params=[
+    @pytest.mark.parametrize(
+        ("sldIdLst_cxml", "expected_value"),
+        [
             ("p:sldIdLst", 256),
             ("p:sldIdLst/p:sldId{id=42}", 256),
             ("p:sldIdLst/p:sldId{id=256}", 257),
             ("p:sldIdLst/(p:sldId{id=256},p:sldId{id=712})", 713),
             ("p:sldIdLst/(p:sldId{id=280},p:sldId{id=257})", 281),
-        ]
+        ],
     )
-    def next_id_fixture(self, request):
-        sldIdLst_cxml, expected_value = request.param
-        sldIdLst = element(sldIdLst_cxml)
-        return sldIdLst, expected_value
+    def it_knows_the_next_available_slide_id(self, sldIdLst_cxml: str, expected_value: int):
+        sldIdLst = cast(CT_SlideIdList, element(sldIdLst_cxml))
+        assert sldIdLst._next_id == expected_value

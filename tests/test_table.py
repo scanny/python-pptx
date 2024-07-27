@@ -1,6 +1,8 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
 """Unit-test suite for `pptx.table` module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -10,13 +12,13 @@ from pptx.oxml.ns import qn
 from pptx.oxml.table import CT_Table, CT_TableCell, TcRange
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.table import (
+    Table,
     _Cell,
     _CellCollection,
     _Column,
     _ColumnCollection,
     _Row,
     _RowCollection,
-    Table,
 )
 from pptx.text.text import TextFrame
 from pptx.util import Inches, Length, Pt
@@ -68,9 +70,7 @@ class DescribeTable(object):
 
     def it_provides_access_to_its_rows(self, request):
         rows_ = instance_mock(request, _RowCollection)
-        _RowCollection_ = class_mock(
-            request, "pptx.table._RowCollection", return_value=rows_
-        )
+        _RowCollection_ = class_mock(request, "pptx.table._RowCollection", return_value=rows_)
         tbl = element("a:tbl")
         table = Table(tbl, None)
 
@@ -237,9 +237,7 @@ class Describe_Cell(object):
         setattr(cell, margin_prop_name, new_value)
         assert cell._tc.xml == expected_xml
 
-    def it_raises_on_margin_assigned_other_than_int_or_None(
-        self, margin_raises_fixture
-    ):
+    def it_raises_on_margin_assigned_other_than_int_or_None(self, margin_raises_fixture):
         cell, margin_attr_name, val_of_invalid_type = margin_raises_fixture
         with pytest.raises(TypeError):
             setattr(cell, margin_attr_name, val_of_invalid_type)
@@ -381,9 +379,7 @@ class Describe_Cell(object):
     def fill_fixture(self, cell):
         return cell
 
-    @pytest.fixture(
-        params=[("a:tc", 1), ("a:tc{gridSpan=2}", 1), ("a:tc{rowSpan=42}", 42)]
-    )
+    @pytest.fixture(params=[("a:tc", 1), ("a:tc{gridSpan=2}", 1), ("a:tc{rowSpan=42}", 42)])
     def height_fixture(self, request):
         tc_cxml, expected_value = request.param
         tc = element(tc_cxml)
@@ -422,9 +418,7 @@ class Describe_Cell(object):
         expected_xml = xml(expected_tc_cxml)
         return cell, margin_prop_name, new_value, expected_xml
 
-    @pytest.fixture(
-        params=["margin_left", "margin_right", "margin_top", "margin_bottom"]
-    )
+    @pytest.fixture(params=["margin_left", "margin_right", "margin_top", "margin_bottom"])
     def margin_raises_fixture(self, request):
         margin_prop_name = request.param
         cell = _Cell(element("a:tc"), None)
@@ -489,9 +483,7 @@ class Describe_Cell(object):
         range_tcs = tuple(tcs[idx] for idx in range_tc_idxs)
         return origin_tc, range_tcs
 
-    @pytest.fixture(
-        params=[("a:tc", 1), ("a:tc{rowSpan=2}", 1), ("a:tc{gridSpan=24}", 24)]
-    )
+    @pytest.fixture(params=[("a:tc", 1), ("a:tc{rowSpan=2}", 1), ("a:tc{gridSpan=24}", 24)])
     def width_fixture(self, request):
         tc_cxml, expected_value = request.param
         tc = element(tc_cxml)
@@ -561,8 +553,7 @@ class Describe_CellCollection(object):
         cell_collection = _CellCollection(tr, None)
 
         expected_cells = [
-            instance_mock(request, _Cell, name="cell%d" % idx)
-            for idx in range(len(tcs))
+            instance_mock(request, _Cell, name="cell%d" % idx) for idx in range(len(tcs))
         ]
         _Cell_.side_effect = expected_cells
         calls = [call(tc, cell_collection) for tc in tcs]
@@ -601,9 +592,7 @@ class Describe_Column(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(
-        params=[("a:gridCol{w=914400}", Inches(1)), ("a:gridCol{w=10pt}", Pt(10))]
-    )
+    @pytest.fixture(params=[("a:gridCol{w=914400}", Inches(1)), ("a:gridCol{w=10pt}", Pt(10))])
     def width_get_fixture(self, request):
         gridCol_cxml, expected_value = request.param
         column = _Column(element(gridCol_cxml), None)

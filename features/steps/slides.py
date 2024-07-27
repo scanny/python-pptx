@@ -1,15 +1,11 @@
-# encoding: utf-8
-
 """Gherkin step implementations for slide collection-related features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from behave import given, when, then
-
-from pptx import Presentation
-
+from behave import given, then, when
 from helpers import test_pptx
 
+from pptx import Presentation
 
 # given ===================================================
 

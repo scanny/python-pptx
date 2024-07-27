@@ -1,16 +1,12 @@
-# encoding: utf-8
-
 """Gherkin step implementations for chart axis features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.chart import XL_AXIS_CROSSES, XL_CATEGORY_TYPE
-
-from helpers import test_pptx
-
 
 # given ===================================================
 
@@ -19,9 +15,7 @@ from helpers import test_pptx
 def given_a_axis_type_axis(context, axis_type):
     prs = Presentation(test_pptx("cht-axis-props"))
     chart = prs.slides[0].shapes[0].chart
-    context.axis = {"category": chart.category_axis, "value": chart.value_axis}[
-        axis_type
-    ]
+    context.axis = {"category": chart.category_axis, "value": chart.value_axis}[axis_type]
 
 
 @given("a major gridlines")
@@ -33,9 +27,7 @@ def given_a_major_gridlines(context):
 
 @given("a value axis having category axis crossing of {crossing}")
 def given_a_value_axis_having_cat_ax_crossing_of(context, crossing):
-    slide_idx = {"automatic": 0, "maximum": 2, "minimum": 3, "2.75": 4, "-1.5": 5}[
-        crossing
-    ]
+    slide_idx = {"automatic": 0, "maximum": 2, "minimum": 3, "2.75": 4, "-1.5": 5}[crossing]
     prs = Presentation(test_pptx("cht-axis-props"))
     context.value_axis = prs.slides[slide_idx].shapes[0].chart.value_axis
 
@@ -122,9 +114,7 @@ def when_I_assign_value_to_axis_has_title(context, value):
 
 
 @when("I assign {value} to axis.has_{major_or_minor}_gridlines")
-def when_I_assign_value_to_axis_has_major_or_minor_gridlines(
-    context, value, major_or_minor
-):
+def when_I_assign_value_to_axis_has_major_or_minor_gridlines(context, value, major_or_minor):
     axis = context.axis
     propname = "has_%s_gridlines" % major_or_minor
     new_value = {"True": True, "False": False}[value]
@@ -210,9 +200,7 @@ def then_axis_has_title_is_value(context, value):
 
 
 @then("axis.has_{major_or_minor}_gridlines is {value}")
-def then_axis_has_major_or_minor_gridlines_is_expected_value(
-    context, major_or_minor, value
-):
+def then_axis_has_major_or_minor_gridlines_is_expected_value(context, major_or_minor, value):
     axis = context.axis
     actual_value = {
         "major": axis.has_major_gridlines,
@@ -233,9 +221,7 @@ def then_axis_major_or_minor_unit_is_value(context, major_or_minor, value):
     axis = context.axis
     propname = "%s_unit" % major_or_minor
     actual_value = getattr(axis, propname)
-    expected_value = {"20.0": 20.0, "8.4": 8.4, "5.0": 5.0, "4.2": 4.2, "None": None}[
-        value
-    ]
+    expected_value = {"20.0": 20.0, "8.4": 8.4, "5.0": 5.0, "4.2": 4.2, "None": None}[value]
     assert actual_value == expected_value, "got %s" % actual_value
 
 

@@ -1,24 +1,28 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""Unit-test suite for pptx.chart.axis module."""
+"""Unit-test suite for `pptx.chart.axis` module."""
+
+from __future__ import annotations
 
 import pytest
 
 from pptx.chart.axis import (
     AxisTitle,
-    _BaseAxis,
     CategoryAxis,
     DateAxis,
     MajorGridlines,
     TickLabels,
     ValueAxis,
+    _BaseAxis,
 )
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
     XL_AXIS_CROSSES,
     XL_CATEGORY_TYPE,
-    XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS,
     XL_TICK_MARK,
+)
+from pptx.enum.chart import (
+    XL_TICK_LABEL_POSITION as XL_TICK_LBL_POS,
 )
 from pptx.text.text import Font
 
@@ -116,9 +120,7 @@ class Describe_BaseAxis(object):
         xAx, expected_value = reverse_order_get_fixture
         assert _BaseAxis(xAx).reverse_order == expected_value
 
-    def it_can_change_whether_it_renders_in_reverse_order(
-        self, reverse_order_set_fixture
-    ):
+    def it_can_change_whether_it_renders_in_reverse_order(self, reverse_order_set_fixture):
         xAx, new_value, expected_xml = reverse_order_set_fixture
         axis = _BaseAxis(xAx)
 
@@ -655,9 +657,7 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture
     def AxisTitle_(self, request, axis_title_):
-        return class_mock(
-            request, "pptx.chart.axis.AxisTitle", return_value=axis_title_
-        )
+        return class_mock(request, "pptx.chart.axis.AxisTitle", return_value=axis_title_)
 
     @pytest.fixture
     def axis_title_(self, request):
@@ -673,9 +673,7 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture
     def MajorGridlines_(self, request, major_gridlines_):
-        return class_mock(
-            request, "pptx.chart.axis.MajorGridlines", return_value=major_gridlines_
-        )
+        return class_mock(request, "pptx.chart.axis.MajorGridlines", return_value=major_gridlines_)
 
     @pytest.fixture
     def major_gridlines_(self, request):
@@ -683,9 +681,7 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture
     def TickLabels_(self, request, tick_labels_):
-        return class_mock(
-            request, "pptx.chart.axis.TickLabels", return_value=tick_labels_
-        )
+        return class_mock(request, "pptx.chart.axis.TickLabels", return_value=tick_labels_)
 
     @pytest.fixture
     def tick_labels_(self, request):
@@ -740,20 +736,17 @@ class DescribeAxisTitle(object):
             (
                 "c:title{a:b=c}",
                 True,
-                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             (
                 "c:title{a:b=c}/c:tx",
                 True,
-                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             (
                 "c:title{a:b=c}/c:tx/c:strRef",
                 True,
-                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             ("c:title/c:tx/c:rich", True, "c:title/c:tx/c:rich"),
             ("c:title", False, "c:title"),
@@ -822,9 +815,7 @@ class DescribeMajorGridlines(object):
         gridlines, expected_xml, ChartFormat_, format_ = format_fixture
         format = gridlines.format
         assert gridlines._xAx.xml == expected_xml
-        ChartFormat_.assert_called_once_with(
-            gridlines._xAx.xpath("c:majorGridlines")[0]
-        )
+        ChartFormat_.assert_called_once_with(gridlines._xAx.xpath("c:majorGridlines")[0])
         assert format is format_
 
     # fixtures -------------------------------------------------------
@@ -873,9 +864,7 @@ class DescribeTickLabels(object):
         tick_labels.number_format = new_value
         assert tick_labels._element.xml == expected_xml
 
-    def it_knows_whether_its_number_format_is_linked(
-        self, number_format_is_linked_get_fixture
-    ):
+    def it_knows_whether_its_number_format_is_linked(self, number_format_is_linked_get_fixture):
         tick_labels, expected_value = number_format_is_linked_get_fixture
         assert tick_labels.number_format_is_linked is expected_value
 

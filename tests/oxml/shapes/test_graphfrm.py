@@ -1,13 +1,12 @@
-# encoding: utf-8
-
 """Unit-test suite for pptx.oxml.graphfrm module."""
+
+from __future__ import annotations
 
 import pytest
 
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 
 from ...unitutil.cxml import xml
-
 
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
 TABLE_URI = "http://schemas.openxmlformats.org/drawingml/2006/table"
@@ -23,9 +22,7 @@ class DescribeCT_GraphicalObjectFrame(object):
 
     def it_can_construct_a_new_chart_graphicFrame(self, new_chart_graphicFrame_fixture):
         id_, name, rId, x, y, cx, cy, expected_xml = new_chart_graphicFrame_fixture
-        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
-            id_, name, rId, x, y, cx, cy
-        )
+        graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(id_, name, rId, x, y, cx, cy)
         assert graphicFrame.xml == expected_xml
 
     def it_can_construct_a_new_table_graphicFrame(self, new_table_graphicFrame_fixture):

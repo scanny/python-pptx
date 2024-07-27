@@ -1,12 +1,10 @@
-# encoding: utf-8
+"""Unit-test suite for the `pptx.oxml.xmlchemy` module.
 
-"""
-Test suite for the pptx.oxml.xmlchemy module, focused on the metaclass and
-element and attribute definition classes. A major part of the fixture is
-provided by the metaclass-built test classes at the end of the file.
+Focused on the metaclass and element and attribute definition classes. A major part of the fixture
+is provided by the metaclass-built test classes at the end of the file.
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import annotations
 
 import pytest
 
@@ -48,22 +46,16 @@ class DescribeChoice(object):
         parent, choice, expected_xml = insert_fixture
         parent._insert_choice(choice)
         assert parent.xml == expected_xml
-        assert parent._insert_choice.__doc__.startswith(
-            "Return the passed ``<p:choice>`` "
-        )
+        assert parent._insert_choice.__doc__.startswith("Return the passed ``<p:choice>`` ")
 
     def it_adds_an_add_method_for_the_child_element(self, add_fixture):
         parent, expected_xml = add_fixture
         choice = parent._add_choice()
         assert parent.xml == expected_xml
         assert isinstance(choice, CT_Choice)
-        assert parent._add_choice.__doc__.startswith(
-            "Add a new ``<p:choice>`` child element "
-        )
+        assert parent._add_choice.__doc__.startswith("Add a new ``<p:choice>`` child element ")
 
-    def it_adds_a_get_or_change_to_method_for_the_child_element(
-        self, get_or_change_to_fixture
-    ):
+    def it_adds_a_get_or_change_to_method_for_the_child_element(self, get_or_change_to_fixture):
         parent, expected_xml = get_or_change_to_fixture
         choice = parent.get_or_change_to_choice()
         assert isinstance(choice, CT_Choice)
@@ -77,9 +69,7 @@ class DescribeChoice(object):
         expected_xml = self.parent_bldr("choice").xml()
         return parent, expected_xml
 
-    @pytest.fixture(
-        params=[("choice2", "choice"), (None, "choice"), ("choice", "choice")]
-    )
+    @pytest.fixture(params=[("choice2", "choice"), (None, "choice"), ("choice", "choice")])
     def get_or_change_to_fixture(self, request):
         before_member_tag, after_member_tag = request.param
         parent = self.parent_bldr(before_member_tag).element
@@ -96,10 +86,7 @@ class DescribeChoice(object):
     @pytest.fixture
     def insert_fixture(self):
         parent = (
-            a_parent()
-            .with_nsdecls()
-            .with_child(an_oomChild())
-            .with_child(an_oooChild())
+            a_parent().with_nsdecls().with_child(an_oomChild()).with_child(an_oooChild())
         ).element
         choice = a_choice().with_nsdecls().element
         expected_xml = (
@@ -156,27 +143,21 @@ class DescribeOneOrMore(object):
         parent, oomChild, expected_xml = insert_fixture
         parent._insert_oomChild(oomChild)
         assert parent.xml == expected_xml
-        assert parent._insert_oomChild.__doc__.startswith(
-            "Return the passed ``<p:oomChild>`` "
-        )
+        assert parent._insert_oomChild.__doc__.startswith("Return the passed ``<p:oomChild>`` ")
 
     def it_adds_a_private_add_method_for_the_child_element(self, add_fixture):
         parent, expected_xml = add_fixture
         oomChild = parent._add_oomChild()
         assert parent.xml == expected_xml
         assert isinstance(oomChild, CT_OomChild)
-        assert parent._add_oomChild.__doc__.startswith(
-            "Add a new ``<p:oomChild>`` child element "
-        )
+        assert parent._add_oomChild.__doc__.startswith("Add a new ``<p:oomChild>`` child element ")
 
     def it_adds_a_public_add_method_for_the_child_element(self, add_fixture):
         parent, expected_xml = add_fixture
         oomChild = parent.add_oomChild()
         assert parent.xml == expected_xml
         assert isinstance(oomChild, CT_OomChild)
-        assert parent._add_oomChild.__doc__.startswith(
-            "Add a new ``<p:oomChild>`` child element "
-        )
+        assert parent._add_oomChild.__doc__.startswith("Add a new ``<p:oomChild>`` child element ")
 
     # fixtures -------------------------------------------------------
 
@@ -238,9 +219,7 @@ class DescribeOptionalAttribute(object):
         assert parent.xml == expected_xml
 
     def it_adds_a_docstring_for_the_property(self):
-        assert CT_Parent.optAttr.__doc__.startswith(
-            "ST_IntegerType type-converted value of "
-        )
+        assert CT_Parent.optAttr.__doc__.startswith("ST_IntegerType type-converted value of ")
 
     # fixtures -------------------------------------------------------
 
@@ -271,9 +250,7 @@ class DescribeRequiredAttribute(object):
         assert parent.xml == expected_xml
 
     def it_adds_a_docstring_for_the_property(self):
-        assert CT_Parent.reqAttr.__doc__.startswith(
-            "ST_IntegerType type-converted value of "
-        )
+        assert CT_Parent.reqAttr.__doc__.startswith("ST_IntegerType type-converted value of ")
 
     def it_raises_on_get_when_attribute_not_present(self):
         parent = a_parent().with_nsdecls().element
@@ -320,18 +297,14 @@ class DescribeZeroOrMore(object):
         parent, zomChild, expected_xml = insert_fixture
         parent._insert_zomChild(zomChild)
         assert parent.xml == expected_xml
-        assert parent._insert_zomChild.__doc__.startswith(
-            "Return the passed ``<p:zomChild>`` "
-        )
+        assert parent._insert_zomChild.__doc__.startswith("Return the passed ``<p:zomChild>`` ")
 
     def it_adds_an_add_method_for_the_child_element(self, add_fixture):
         parent, expected_xml = add_fixture
         zomChild = parent._add_zomChild()
         assert parent.xml == expected_xml
         assert isinstance(zomChild, CT_ZomChild)
-        assert parent._add_zomChild.__doc__.startswith(
-            "Add a new ``<p:zomChild>`` child element "
-        )
+        assert parent._add_zomChild.__doc__.startswith("Add a new ``<p:zomChild>`` child element ")
 
     def it_removes_the_property_root_name_used_for_declaration(self):
         assert not hasattr(CT_Parent, "zomChild")
@@ -393,17 +366,13 @@ class DescribeZeroOrOne(object):
         zooChild = parent._add_zooChild()
         assert parent.xml == expected_xml
         assert isinstance(zooChild, CT_ZooChild)
-        assert parent._add_zooChild.__doc__.startswith(
-            "Add a new ``<p:zooChild>`` child element "
-        )
+        assert parent._add_zooChild.__doc__.startswith("Add a new ``<p:zooChild>`` child element ")
 
     def it_adds_an_insert_method_for_the_child_element(self, insert_fixture):
         parent, zooChild, expected_xml = insert_fixture
         parent._insert_zooChild(zooChild)
         assert parent.xml == expected_xml
-        assert parent._insert_zooChild.__doc__.startswith(
-            "Return the passed ``<p:zooChild>`` "
-        )
+        assert parent._insert_zooChild.__doc__.startswith("Return the passed ``<p:zooChild>`` ")
 
     def it_adds_a_get_or_add_method_for_the_child_element(self, get_or_add_fixture):
         parent, expected_xml = get_or_add_fixture
@@ -522,9 +491,7 @@ class CT_Parent(BaseOxmlElement):
         (Choice("p:choice"), Choice("p:choice2")),
         successors=("p:oomChild", "p:oooChild"),
     )
-    oomChild = OneOrMore(
-        "p:oomChild", successors=("p:oooChild", "p:zomChild", "p:zooChild")
-    )
+    oomChild = OneOrMore("p:oomChild", successors=("p:oooChild", "p:zomChild", "p:zooChild"))
     oooChild = OneAndOnlyOne("p:oooChild")
     zomChild = ZeroOrMore("p:zomChild", successors=("p:zooChild",))
     zooChild = ZeroOrOne("p:zooChild", successors=())

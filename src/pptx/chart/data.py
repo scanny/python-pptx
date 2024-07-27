@@ -1,8 +1,9 @@
-# encoding: utf-8
-
 """ChartData and related objects."""
 
+from __future__ import annotations
+
 import datetime
+from collections.abc import Sequence
 from numbers import Number
 
 from pptx.chart.xlsx import (
@@ -11,19 +12,17 @@ from pptx.chart.xlsx import (
     XyWorkbookWriter,
 )
 from pptx.chart.xmlwriter import ChartXmlWriter
-from pptx.compat import Sequence
 from pptx.util import lazyproperty
 
 
 class _BaseChartData(Sequence):
-    """
-    Base class providing common members for chart data objects. A chart data
-    object serves as a proxy for the chart data table that will be written to
-    an Excel worksheet; operating as a sequence of series as well as
-    providing access to chart-level attributes. A chart data object is used
-    as a parameter in :meth:`shapes.add_chart` and
-    :meth:`Chart.replace_data`. The data structure varies between major chart
-    categories such as category charts and XY charts.
+    """Base class providing common members for chart data objects.
+
+    A chart data object serves as a proxy for the chart data table that will be written to an
+    Excel worksheet; operating as a sequence of series as well as providing access to chart-level
+    attributes. A chart data object is used as a parameter in :meth:`shapes.add_chart` and
+    :meth:`Chart.replace_data`. The data structure varies between major chart categories such as
+    category charts and XY charts.
     """
 
     def __init__(self, number_format="General"):

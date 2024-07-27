@@ -1,16 +1,12 @@
-# encoding: utf-8
-
 """Gherkin step implementations for FillFormat-related features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.dml import MSO_FILL, MSO_PATTERN  # noqa
-
-from helpers import test_pptx
-
 
 # given ====================================================
 
@@ -23,9 +19,7 @@ def given_a_FillFormat_object_as_fill(context):
 
 @given("a FillFormat object as fill having {pattern} fill")
 def given_a_FillFormat_object_as_fill_having_pattern(context, pattern):
-    shape_idx = {"no pattern": 0, "MSO_PATTERN.DIVOT": 1, "MSO_PATTERN.WAVE": 2}[
-        pattern
-    ]
+    shape_idx = {"no pattern": 0, "MSO_PATTERN.DIVOT": 1, "MSO_PATTERN.WAVE": 2}[pattern]
     slide = Presentation(test_pptx("dml-fill")).slides[1]
     fill = slide.shapes[shape_idx].fill
     context.fill = fill
@@ -102,18 +96,14 @@ def when_I_call_fill_solid(context):
 def then_fill_back_color_is_a_ColorFormat_object(context):
     actual_value = context.fill.back_color.__class__.__name__
     expected_value = "ColorFormat"
-    assert actual_value == expected_value, (
-        "fill.back_color is a %s object" % actual_value
-    )
+    assert actual_value == expected_value, "fill.back_color is a %s object" % actual_value
 
 
 @then("fill.fore_color is a ColorFormat object")
 def then_fill_fore_color_is_a_ColorFormat_object(context):
     actual_value = context.fill.fore_color.__class__.__name__
     expected_value = "ColorFormat"
-    assert actual_value == expected_value, (
-        "fill.fore_color is a %s object" % actual_value
-    )
+    assert actual_value == expected_value, "fill.fore_color is a %s object" % actual_value
 
 
 @then("fill.gradient_angle == {value}")
@@ -127,9 +117,7 @@ def then_fill_gradient_angle_eq_value(context, value):
 def then_fill_gradient_stops_is_a_GradientStops_object(context):
     expected_value = "_GradientStops"
     actual_value = context.fill.gradient_stops.__class__.__name__
-    assert actual_value == expected_value, (
-        "fill.gradient_stops is a %s object" % actual_value
-    )
+    assert actual_value == expected_value, "fill.gradient_stops is a %s object" % actual_value
 
 
 @then("fill.pattern is {value}")

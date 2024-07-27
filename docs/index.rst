@@ -11,7 +11,7 @@ Philosophy
 ----------
 
 |pp| aims to broadly support the PowerPoint format (PPTX, PowerPoint 2007 and later),
-but its primary commitment is to be _industrial-grade_, that is, suitable for use in a
+but its primary commitment is to be *industrial-grade*, that is, suitable for use in a
 commercial setting. Maintaining this robustness requires a high engineering standard
 which includes a comprehensive two-level (e2e + unit) testing regimen. This discipline
 comes at a cost in development effort/time, but we consider reliability to be an

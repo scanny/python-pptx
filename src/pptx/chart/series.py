@@ -1,13 +1,12 @@
-# encoding: utf-8
-
 """Series-related objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from pptx.chart.datalabel import DataLabels
 from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
-from pptx.compat import Sequence
 from pptx.dml.chtfmt import ChartFormat
 from pptx.oxml.ns import qn
 from pptx.util import lazyproperty
@@ -254,8 +253,6 @@ def _SeriesFactory(ser):
             qn("c:scatterChart"): XySeries,
         }[xChart_tag]
     except KeyError:
-        raise NotImplementedError(
-            "series class for %s not yet implemented" % xChart_tag
-        )
+        raise NotImplementedError("series class for %s not yet implemented" % xChart_tag)
 
     return SeriesCls(ser)

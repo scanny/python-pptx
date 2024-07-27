@@ -1,8 +1,6 @@
-# encoding: utf-8
+"""Helper objects for unit testing."""
 
-"""
-Helper objects for unit testing.
-"""
+from __future__ import annotations
 
 
 def count(start=0, step=1):

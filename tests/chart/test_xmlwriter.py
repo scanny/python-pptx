@@ -1,10 +1,8 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""
-Test suite for pptx.chart.xmlwriter module
-"""
+"""Unit-test suite for `pptx.chart.xmlwriter` module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
 
 from datetime import date
 from itertools import islice
@@ -12,14 +10,16 @@ from itertools import islice
 import pytest
 
 from pptx.chart.data import (
-    _BaseChartData,
-    _BaseSeriesData,
     BubbleChartData,
     CategoryChartData,
     CategorySeriesData,
     XyChartData,
+    _BaseChartData,
+    _BaseSeriesData,
 )
 from pptx.chart.xmlwriter import (
+    ChartXmlWriter,
+    SeriesXmlRewriterFactory,
     _AreaChartXmlWriter,
     _BarChartXmlWriter,
     _BaseSeriesXmlRewriter,
@@ -28,12 +28,10 @@ from pptx.chart.xmlwriter import (
     _BubbleSeriesXmlWriter,
     _CategorySeriesXmlRewriter,
     _CategorySeriesXmlWriter,
-    ChartXmlWriter,
     _DoughnutChartXmlWriter,
     _LineChartXmlWriter,
     _PieChartXmlWriter,
     _RadarChartXmlWriter,
-    SeriesXmlRewriterFactory,
     _XyChartXmlWriter,
     _XySeriesXmlRewriter,
     _XySeriesXmlWriter,
@@ -292,9 +290,7 @@ class Describe_PieChartXmlWriter(object):
             ("PIE_EXPLODED", 3, 1, "3x1-pie-exploded"),
         ),
     )
-    def it_can_generate_xml_for_a_pie_chart(
-        self, enum_member, cat_count, ser_count, snippet_name
-    ):
+    def it_can_generate_xml_for_a_pie_chart(self, enum_member, cat_count, ser_count, snippet_name):
         chart_type = getattr(XL_CHART_TYPE, enum_member)
         chart_data = make_category_chart_data(cat_count, str, ser_count)
         xml_writer = _PieChartXmlWriter(chart_type, chart_data)
@@ -306,9 +302,7 @@ class Describe_RadarChartXmlWriter(object):
     """Unit-test suite for `pptx.chart.xmlwriter._RadarChartXmlWriter`."""
 
     def it_can_generate_xml_for_a_radar_chart(self):
-        series_data_seq = make_category_chart_data(
-            cat_count=5, cat_type=str, ser_count=2
-        )
+        series_data_seq = make_category_chart_data(cat_count=5, cat_type=str, ser_count=2)
         xml_writer = _RadarChartXmlWriter(XL_CHART_TYPE.RADAR, series_data_seq)
 
         assert xml_writer.xml == snippet_text("2x5-radar")
@@ -456,9 +450,7 @@ class Describe_BaseSeriesXmlRewriter(object):
     def it_can_replace_series_data(self, replace_fixture):
         rewriter, chartSpace, plotArea, ser_count, calls = replace_fixture
         rewriter.replace_series_data(chartSpace)
-        rewriter._adjust_ser_count.assert_called_once_with(
-            rewriter, plotArea, ser_count
-        )
+        rewriter._adjust_ser_count.assert_called_once_with(rewriter, plotArea, ser_count)
         assert rewriter._rewrite_ser_data.call_args_list == calls
 
     def it_adjusts_the_ser_count_to_help(self, adjust_fixture):
@@ -519,9 +511,7 @@ class Describe_BaseSeriesXmlRewriter(object):
         return rewriter, plotArea, count, expected_xml
 
     @pytest.fixture
-    def replace_fixture(
-        self, request, chart_data_, _adjust_ser_count_, _rewrite_ser_data_
-    ):
+    def replace_fixture(self, request, chart_data_, _adjust_ser_count_, _rewrite_ser_data_):
         rewriter = _BaseSeriesXmlRewriter(chart_data_)
         chartSpace = element(
             "c:chartSpace/c:chart/c:plotArea/c:barChart/(c:ser/c:order{val=0"
@@ -572,15 +562,11 @@ class Describe_BaseSeriesXmlRewriter(object):
 
     @pytest.fixture
     def _add_cloned_sers_(self, request):
-        return method_mock(
-            request, _BaseSeriesXmlRewriter, "_add_cloned_sers", autospec=True
-        )
+        return method_mock(request, _BaseSeriesXmlRewriter, "_add_cloned_sers", autospec=True)
 
     @pytest.fixture
     def _adjust_ser_count_(self, request):
-        return method_mock(
-            request, _BaseSeriesXmlRewriter, "_adjust_ser_count", autospec=True
-        )
+        return method_mock(request, _BaseSeriesXmlRewriter, "_adjust_ser_count", autospec=True)
 
     @pytest.fixture
     def chart_data_(self, request):
@@ -588,15 +574,11 @@ class Describe_BaseSeriesXmlRewriter(object):
 
     @pytest.fixture
     def _rewrite_ser_data_(self, request):
-        return method_mock(
-            request, _BaseSeriesXmlRewriter, "_rewrite_ser_data", autospec=True
-        )
+        return method_mock(request, _BaseSeriesXmlRewriter, "_rewrite_ser_data", autospec=True)
 
     @pytest.fixture
     def _trim_ser_count_by_(self, request):
-        return method_mock(
-            request, _BaseSeriesXmlRewriter, "_trim_ser_count_by", autospec=True
-        )
+        return method_mock(request, _BaseSeriesXmlRewriter, "_trim_ser_count_by", autospec=True)
 
 
 class Describe_BubbleSeriesXmlRewriter(object):

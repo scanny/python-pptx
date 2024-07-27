@@ -1,64 +1,58 @@
-# encoding: utf-8
-
 """Initializes lxml parser, particularly the custom element classes.
 
 Also makes available a handful of functions that wrap its typical uses.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING, Type
 
 from lxml import etree
 
-from .ns import NamespacePrefixedTag
+from pptx.oxml.ns import NamespacePrefixedTag
+
+if TYPE_CHECKING:
+    from pptx.oxml.xmlchemy import BaseOxmlElement
 
 
-# configure etree XML parser -------------------------------
+# -- configure etree XML parser ----------------------------
 element_class_lookup = etree.ElementNamespaceClassLookup()
 oxml_parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
 oxml_parser.set_element_class_lookup(element_class_lookup)
 
 
-def parse_from_template(template_name):
-    """
-    Return an element loaded from the XML in the template file identified by
-    *template_name*.
-    """
+def parse_from_template(template_file_name: str):
+    """Return an element loaded from the XML in the template file identified by `template_name`."""
     thisdir = os.path.split(__file__)[0]
-    filename = os.path.join(thisdir, "..", "templates", "%s.xml" % template_name)
+    filename = os.path.join(thisdir, "..", "templates", "%s.xml" % template_file_name)
     with open(filename, "rb") as f:
         xml = f.read()
     return parse_xml(xml)
 
 
-def parse_xml(xml):
-    """
-    Return root lxml element obtained by parsing XML character string in
-    *xml*, which can be either a Python 2.x string or unicode.
-    """
-    root_element = etree.fromstring(xml, oxml_parser)
-    return root_element
+def parse_xml(xml: str | bytes):
+    """Return root lxml element obtained by parsing XML character string in `xml`."""
+    return etree.fromstring(xml, oxml_parser)
 
 
-def register_element_cls(nsptagname, cls):
-    """
-    Register *cls* to be constructed when the oxml parser encounters an
-    element having name *nsptag_name*. *nsptag_name* is a string of the form
-    ``nspfx:tagroot``, e.g. ``'w:document'``.
+def register_element_cls(nsptagname: str, cls: Type[BaseOxmlElement]):
+    """Register `cls` to be constructed when oxml parser encounters element having `nsptag_name`.
+
+    `nsptag_name` is a string of the form `nspfx:tagroot`, e.g. `"w:document"`.
     """
     nsptag = NamespacePrefixedTag(nsptagname)
     namespace = element_class_lookup.get_namespace(nsptag.nsuri)
     namespace[nsptag.local_part] = cls
 
 
-from .action import CT_Hyperlink  # noqa: E402
+from pptx.oxml.action import CT_Hyperlink  # noqa: E402
 
 register_element_cls("a:hlinkClick", CT_Hyperlink)
 register_element_cls("a:hlinkHover", CT_Hyperlink)
 
 
-from .chart.axis import (  # noqa: E402
+from pptx.oxml.chart.axis import (  # noqa: E402
     CT_AxisUnit,
     CT_CatAx,
     CT_ChartLines,
@@ -87,7 +81,7 @@ register_element_cls("c:tickLblPos", CT_TickLblPos)
 register_element_cls("c:valAx", CT_ValAx)
 
 
-from .chart.chart import (  # noqa: E402
+from pptx.oxml.chart.chart import (  # noqa: E402
     CT_Chart,
     CT_ChartSpace,
     CT_ExternalData,
@@ -102,27 +96,27 @@ register_element_cls("c:plotArea", CT_PlotArea)
 register_element_cls("c:style", CT_Style)
 
 
-from .chart.datalabel import CT_DLbl, CT_DLblPos, CT_DLbls  # noqa: E402
+from pptx.oxml.chart.datalabel import CT_DLbl, CT_DLblPos, CT_DLbls  # noqa: E402
 
 register_element_cls("c:dLbl", CT_DLbl)
 register_element_cls("c:dLblPos", CT_DLblPos)
 register_element_cls("c:dLbls", CT_DLbls)
 
 
-from .chart.legend import CT_Legend, CT_LegendPos  # noqa: E402
+from pptx.oxml.chart.legend import CT_Legend, CT_LegendPos  # noqa: E402
 
 register_element_cls("c:legend", CT_Legend)
 register_element_cls("c:legendPos", CT_LegendPos)
 
 
-from .chart.marker import CT_Marker, CT_MarkerSize, CT_MarkerStyle  # noqa: E402
+from pptx.oxml.chart.marker import CT_Marker, CT_MarkerSize, CT_MarkerStyle  # noqa: E402
 
 register_element_cls("c:marker", CT_Marker)
 register_element_cls("c:size", CT_MarkerSize)
 register_element_cls("c:symbol", CT_MarkerStyle)
 
 
-from .chart.plot import (  # noqa: E402
+from pptx.oxml.chart.plot import (  # noqa: E402
     CT_Area3DChart,
     CT_AreaChart,
     CT_BarChart,
@@ -155,7 +149,7 @@ register_element_cls("c:radarChart", CT_RadarChart)
 register_element_cls("c:scatterChart", CT_ScatterChart)
 
 
-from .chart.series import (  # noqa: E402
+from pptx.oxml.chart.series import (  # noqa: E402
     CT_AxDataSource,
     CT_DPt,
     CT_Lvl,
@@ -175,7 +169,7 @@ register_element_cls("c:xVal", CT_NumDataSource)
 register_element_cls("c:yVal", CT_NumDataSource)
 
 
-from .chart.shared import (  # noqa: E402
+from pptx.oxml.chart.shared import (  # noqa: E402
     CT_Boolean,
     CT_Boolean_Explicit,
     CT_Double,
@@ -218,12 +212,12 @@ register_element_cls("c:x", CT_Double)
 register_element_cls("c:xMode", CT_LayoutMode)
 
 
-from .coreprops import CT_CoreProperties  # noqa: E402
+from pptx.oxml.coreprops import CT_CoreProperties  # noqa: E402
 
 register_element_cls("cp:coreProperties", CT_CoreProperties)
 
 
-from .dml.color import (  # noqa: E402
+from pptx.oxml.dml.color import (  # noqa: E402
     CT_Color,
     CT_HslColor,
     CT_Percentage,
@@ -246,7 +240,7 @@ register_element_cls("a:srgbClr", CT_SRgbColor)
 register_element_cls("a:sysClr", CT_SystemColor)
 
 
-from .dml.fill import (  # noqa: E402
+from pptx.oxml.dml.fill import (  # noqa: E402
     CT_Blip,
     CT_BlipFillProperties,
     CT_GradientFillProperties,
@@ -273,12 +267,12 @@ register_element_cls("a:solidFill", CT_SolidColorFillProperties)
 register_element_cls("a:srcRect", CT_RelativeRect)
 
 
-from .dml.line import CT_PresetLineDashProperties  # noqa: E402
+from pptx.oxml.dml.line import CT_PresetLineDashProperties  # noqa: E402
 
 register_element_cls("a:prstDash", CT_PresetLineDashProperties)
 
 
-from .presentation import (  # noqa: E402
+from pptx.oxml.presentation import (  # noqa: E402
     CT_Presentation,
     CT_SlideId,
     CT_SlideIdList,
@@ -295,7 +289,7 @@ register_element_cls("p:sldMasterIdLst", CT_SlideMasterIdList)
 register_element_cls("p:sldSz", CT_SlideSize)
 
 
-from .shapes.autoshape import (  # noqa: E402
+from pptx.oxml.shapes.autoshape import (  # noqa: E402
     CT_AdjPoint2D,
     CT_CustomGeometry2D,
     CT_GeomGuide,
@@ -326,7 +320,7 @@ register_element_cls("p:nvSpPr", CT_ShapeNonVisual)
 register_element_cls("p:sp", CT_Shape)
 
 
-from .shapes.connector import (  # noqa: E402
+from pptx.oxml.shapes.connector import (  # noqa: E402
     CT_Connection,
     CT_Connector,
     CT_ConnectorNonVisual,
@@ -340,7 +334,7 @@ register_element_cls("p:cxnSp", CT_Connector)
 register_element_cls("p:nvCxnSpPr", CT_ConnectorNonVisual)
 
 
-from .shapes.graphfrm import (  # noqa: E402
+from pptx.oxml.shapes.graphfrm import (  # noqa: E402
     CT_GraphicalObject,
     CT_GraphicalObjectData,
     CT_GraphicalObjectFrame,
@@ -355,7 +349,7 @@ register_element_cls("p:nvGraphicFramePr", CT_GraphicalObjectFrameNonVisual)
 register_element_cls("p:oleObj", CT_OleObject)
 
 
-from .shapes.groupshape import (  # noqa: E402
+from pptx.oxml.shapes.groupshape import (  # noqa: E402
     CT_GroupShape,
     CT_GroupShapeNonVisual,
     CT_GroupShapeProperties,
@@ -367,14 +361,14 @@ register_element_cls("p:nvGrpSpPr", CT_GroupShapeNonVisual)
 register_element_cls("p:spTree", CT_GroupShape)
 
 
-from .shapes.picture import CT_Picture, CT_PictureNonVisual  # noqa: E402
+from pptx.oxml.shapes.picture import CT_Picture, CT_PictureNonVisual  # noqa: E402
 
 register_element_cls("p:blipFill", CT_BlipFillProperties)
 register_element_cls("p:nvPicPr", CT_PictureNonVisual)
 register_element_cls("p:pic", CT_Picture)
 
 
-from .shapes.shared import (  # noqa: E402
+from pptx.oxml.shapes.shared import (  # noqa: E402
     CT_ApplicationNonVisualDrawingProps,
     CT_LineProperties,
     CT_NonVisualDrawingProps,
@@ -399,7 +393,7 @@ register_element_cls("p:spPr", CT_ShapeProperties)
 register_element_cls("p:xfrm", CT_Transform2D)
 
 
-from .slide import (  # noqa: E402
+from pptx.oxml.slide import (  # noqa: E402
     CT_Background,
     CT_BackgroundProperties,
     CT_CommonSlideData,
@@ -430,7 +424,7 @@ register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
 
 
-from .table import (  # noqa: E402
+from pptx.oxml.table import (  # noqa: E402
     CT_Table,
     CT_TableCell,
     CT_TableCellProperties,
@@ -449,7 +443,7 @@ register_element_cls("a:tcPr", CT_TableCellProperties)
 register_element_cls("a:tr", CT_TableRow)
 
 
-from .text import (  # noqa: E402
+from pptx.oxml.text import (  # noqa: E402
     CT_RegularTextRun,
     CT_TextBody,
     CT_TextBodyProperties,
@@ -487,6 +481,6 @@ register_element_cls("c:txPr", CT_TextBody)
 register_element_cls("p:txBody", CT_TextBody)
 
 
-from .theme import CT_OfficeStyleSheet  # noqa: E402
+from pptx.oxml.theme import CT_OfficeStyleSheet  # noqa: E402
 
 register_element_cls("a:theme", CT_OfficeStyleSheet)

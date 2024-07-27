@@ -1,13 +1,9 @@
-# encoding: utf-8
+"""DrawingML objects related to color, ColorFormat being the most prominent."""
 
-"""
-DrawingML objects related to color, ColorFormat being the most prominent.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-from ..enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
-from ..oxml.dml.color import (
+from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
+from pptx.oxml.dml.color import (
     CT_HslColor,
     CT_PresetColor,
     CT_SchemeColor,

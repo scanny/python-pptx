@@ -1,12 +1,20 @@
-# encoding: utf-8
-
 """Chart part objects, including Chart and Charts."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from pptx.chart.chart import Chart
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import lazyproperty
+
+if TYPE_CHECKING:
+    from pptx.chart.data import ChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.package import Package
 
 
 class ChartPart(XmlPart):
@@ -18,7 +26,7 @@ class ChartPart(XmlPart):
     partname_template = "/ppt/charts/chart%d.xml"
 
     @classmethod
-    def new(cls, chart_type, chart_data, package):
+    def new(cls, chart_type: XL_CHART_TYPE, chart_data: ChartData, package: Package):
         """Return new |ChartPart| instance added to `package`.
 
         Returned chart-part contains a chart of `chart_type` depicting `chart_data`.
@@ -74,11 +82,7 @@ class ChartWorkbook(object):
         is |None| if there is no `<c:externalData>` element.
         """
         xlsx_part_rId = self._chartSpace.xlsx_part_rId
-        return (
-            None
-            if xlsx_part_rId is None
-            else self._chart_part.related_part(xlsx_part_rId)
-        )
+        return None if xlsx_part_rId is None else self._chart_part.related_part(xlsx_part_rId)
 
     @xlsx_part.setter
     def xlsx_part(self, xlsx_part):

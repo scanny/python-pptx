@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Chart data-label related oxml objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from pptx.enum.chart import XL_DATA_LABEL_POSITION
 from pptx.oxml import parse_xml

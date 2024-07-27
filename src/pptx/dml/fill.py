@@ -1,10 +1,10 @@
-# encoding: utf-8
-
 """DrawingML objects related to fill."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from pptx.compat import Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
 from pptx.dml.color import ColorFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.oxml.dml.fill import (
@@ -15,23 +15,28 @@ from pptx.oxml.dml.fill import (
     CT_PatternFillProperties,
     CT_SolidColorFillProperties,
 )
+from pptx.oxml.xmlchemy import BaseOxmlElement
 from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
 
+if TYPE_CHECKING:
+    from pptx.enum.dml import MSO_FILL_TYPE
+    from pptx.oxml.xmlchemy import BaseOxmlElement
+
 
 class FillFormat(object):
-    """
-    Provides access to the current fill properties object and provides
-    methods to change the fill type.
+    """Provides access to the current fill properties.
+
+    Also provides methods to change the fill type.
     """
 
-    def __init__(self, eg_fill_properties_parent, fill_obj):
+    def __init__(self, eg_fill_properties_parent: BaseOxmlElement, fill_obj: _Fill):
         super(FillFormat, self).__init__()
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
 
     @classmethod
-    def from_fill_parent(cls, eg_fillProperties_parent):
+    def from_fill_parent(cls, eg_fillProperties_parent: BaseOxmlElement) -> FillFormat:
         """
         Return a |FillFormat| instance initialized to the settings contained
         in *eg_fillProperties_parent*, which must be an element having
@@ -151,11 +156,8 @@ class FillFormat(object):
         self._fill = _SolidFill(solidFill)
 
     @property
-    def type(self):
-        """
-        Return a value from the :ref:`MsoFillType` enumeration corresponding
-        to the type of this fill.
-        """
+    def type(self) -> MSO_FILL_TYPE:
+        """The type of this fill, e.g. `MSO_FILL_TYPE.SOLID`."""
         return self._fill.type
 
 
@@ -194,10 +196,7 @@ class _Fill(object):
     @property
     def fore_color(self):
         """Raise TypeError for types that do not override this property."""
-        tmpl = (
-            "fill type %s has no foreground color, call .solid() or .pattern"
-            "ed() first"
-        )
+        tmpl = "fill type %s has no foreground color, call .solid() or .pattern" "ed() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
@@ -207,9 +206,10 @@ class _Fill(object):
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
-    def type(self):  # pragma: no cover
-        tmpl = ".type property must be implemented on %s"
-        raise NotImplementedError(tmpl % self.__class__.__name__)
+    def type(self) -> MSO_FILL_TYPE:  # pragma: no cover
+        raise NotImplementedError(
+            f".type property must be implemented on {self.__class__.__name__}"
+        )
 
 
 class _BlipFill(_Fill):
@@ -251,9 +251,7 @@ class _GradFill(_Fill):
         # Since the UI is consistent with trigonometry conventions, we
         # respect that in the API.
         clockwise_angle = lin.ang
-        counter_clockwise_angle = (
-            0.0 if clockwise_angle == 0.0 else (360.0 - clockwise_angle)
-        )
+        counter_clockwise_angle = 0.0 if clockwise_angle == 0.0 else (360.0 - clockwise_angle)
         return counter_clockwise_angle
 
     @gradient_angle.setter

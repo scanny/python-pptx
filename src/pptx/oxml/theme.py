@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""lxml custom element classes for theme-related XML elements."""
 
-"""
-lxml custom element classes for theme-related XML elements.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from . import parse_from_template
 from .xmlchemy import BaseOxmlElement

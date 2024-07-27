@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for the `pptx.chart.point` module."""
 
-"""
-Unit test suite for the pptx.chart.point module.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -166,9 +162,7 @@ class DescribePoint(object):
 
     @pytest.fixture
     def ChartFormat_(self, request, chart_format_):
-        return class_mock(
-            request, "pptx.chart.point.ChartFormat", return_value=chart_format_
-        )
+        return class_mock(request, "pptx.chart.point.ChartFormat", return_value=chart_format_)
 
     @pytest.fixture
     def chart_format_(self, request):
@@ -176,9 +170,7 @@ class DescribePoint(object):
 
     @pytest.fixture
     def DataLabel_(self, request, data_label_):
-        return class_mock(
-            request, "pptx.chart.point.DataLabel", return_value=data_label_
-        )
+        return class_mock(request, "pptx.chart.point.DataLabel", return_value=data_label_)
 
     @pytest.fixture
     def data_label_(self, request):

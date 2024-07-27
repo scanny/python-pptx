@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for pptx.shapes.graphfrm module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -62,9 +62,7 @@ class DescribeGraphicFrame(object):
         ),
     )
     def it_knows_whether_it_contains_a_chart(self, graphicData_uri, expected_value):
-        graphicFrame = element(
-            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri
-        )
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
         assert GraphicFrame(graphicFrame, None).has_chart is expected_value
 
     @pytest.mark.parametrize(
@@ -76,9 +74,7 @@ class DescribeGraphicFrame(object):
         ),
     )
     def it_knows_whether_it_contains_a_table(self, graphicData_uri, expected_value):
-        graphicFrame = element(
-            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri
-        )
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
         assert GraphicFrame(graphicFrame, None).has_table is expected_value
 
     def it_provides_access_to_the_OleFormat_object(self, request):
@@ -127,10 +123,7 @@ class DescribeGraphicFrame(object):
     )
     def it_knows_its_shape_type(self, uri, oleObj_child, expected_value):
         graphicFrame = element(
-            (
-                "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/p:oleObj/p:%s"
-                % (uri, oleObj_child)
-            )
+            ("p:graphicFrame/a:graphic/a:graphicData{uri=%s}/p:oleObj/p:%s" % (uri, oleObj_child))
             if oleObj_child
             else "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri
         )

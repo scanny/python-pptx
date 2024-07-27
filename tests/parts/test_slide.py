@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.parts.slide` module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -8,7 +8,8 @@ from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE as XCT
 from pptx.enum.shapes import PROG_ID
 from pptx.media import Video
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
 from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
@@ -44,9 +45,7 @@ class DescribeBaseSlidePart(object):
     """Unit-test suite for `pptx.parts.slide.BaseSlidePart` objects."""
 
     def it_knows_its_name(self):
-        slide_part = BaseSlidePart(
-            None, None, None, element("p:sld/p:cSld{name=Foobar}")
-        )
+        slide_part = BaseSlidePart(None, None, None, element("p:sld/p:cSld{name=Foobar}"))
         assert slide_part.name == "Foobar"
 
     def it_can_get_a_related_image_by_rId(self, request, image_part_):
@@ -65,9 +64,7 @@ class DescribeBaseSlidePart(object):
     def it_can_add_an_image_part(self, request, image_part_):
         package_ = instance_mock(request, Package)
         package_.get_or_add_image_part.return_value = image_part_
-        relate_to_ = method_mock(
-            request, BaseSlidePart, "relate_to", return_value="rId6"
-        )
+        relate_to_ = method_mock(request, BaseSlidePart, "relate_to", return_value="rId6")
         slide_part = BaseSlidePart(None, None, package_, None)
 
         image_part, rId = slide_part.get_or_add_image_part("foobar.png")
@@ -87,9 +84,7 @@ class DescribeBaseSlidePart(object):
 class DescribeNotesMasterPart(object):
     """Unit-test suite for `pptx.parts.slide.NotesMasterPart` objects."""
 
-    def it_can_create_a_notes_master_part(
-        self, request, package_, notes_master_part_, theme_part_
-    ):
+    def it_can_create_a_notes_master_part(self, request, package_, notes_master_part_, theme_part_):
         method_mock(
             request,
             NotesMasterPart,
@@ -124,9 +119,7 @@ class DescribeNotesMasterPart(object):
         NotesMaster_.assert_called_once_with(notesMaster, notes_master_part)
         assert notes_master is notes_master_
 
-    def it_creates_a_new_notes_master_part_to_help(
-        self, request, package_, notes_master_part_
-    ):
+    def it_creates_a_new_notes_master_part_to_help(self, request, package_, notes_master_part_):
         NotesMasterPart_ = class_mock(
             request, "pptx.parts.slide.NotesMasterPart", return_value=notes_master_part_
         )
@@ -151,9 +144,7 @@ class DescribeNotesMasterPart(object):
         assert notes_master_part is notes_master_part_
 
     def it_creates_a_new_theme_part_to_help(self, request, package_, theme_part_):
-        XmlPart_ = class_mock(
-            request, "pptx.parts.slide.XmlPart", return_value=theme_part_
-        )
+        XmlPart_ = class_mock(request, "pptx.parts.slide.XmlPart", return_value=theme_part_)
         theme_elm = element("p:theme")
         method_mock(
             request,
@@ -216,15 +207,11 @@ class DescribeNotesSlidePart(object):
 
         notes_slide_part = NotesSlidePart.new(package_, slide_part_)
 
-        _add_notes_slide_part_.assert_called_once_with(
-            package_, slide_part_, notes_master_part_
-        )
+        _add_notes_slide_part_.assert_called_once_with(package_, slide_part_, notes_master_part_)
         notes_slide_.clone_master_placeholders.assert_called_once_with(notes_master_)
         assert notes_slide_part is notes_slide_part_
 
-    def it_provides_access_to_the_notes_master(
-        self, request, notes_master_, notes_master_part_
-    ):
+    def it_provides_access_to_the_notes_master(self, request, notes_master_, notes_master_part_):
         part_related_by_ = method_mock(
             request, NotesSlidePart, "part_related_by", return_value=notes_master_part_
         )
@@ -237,9 +224,7 @@ class DescribeNotesSlidePart(object):
         assert notes_master is notes_master_
 
     def it_provides_access_to_its_notes_slide(self, request, notes_slide_):
-        NotesSlide_ = class_mock(
-            request, "pptx.parts.slide.NotesSlide", return_value=notes_slide_
-        )
+        NotesSlide_ = class_mock(request, "pptx.parts.slide.NotesSlide", return_value=notes_slide_)
         notes = element("p:notes")
         notes_slide_part = NotesSlidePart(None, None, None, notes)
 
@@ -255,20 +240,14 @@ class DescribeNotesSlidePart(object):
             request, "pptx.parts.slide.NotesSlidePart", return_value=notes_slide_part_
         )
         notes = element("p:notes")
-        new_ = method_mock(
-            request, CT_NotesSlide, "new", autospec=False, return_value=notes
-        )
-        package_.next_partname.return_value = PackURI(
-            "/ppt/notesSlides/notesSlide42.xml"
-        )
+        new_ = method_mock(request, CT_NotesSlide, "new", autospec=False, return_value=notes)
+        package_.next_partname.return_value = PackURI("/ppt/notesSlides/notesSlide42.xml")
 
         notes_slide_part = NotesSlidePart._add_notes_slide_part(
             package_, slide_part_, notes_master_part_
         )
 
-        package_.next_partname.assert_called_once_with(
-            "/ppt/notesSlides/notesSlide%d.xml"
-        )
+        package_.next_partname.assert_called_once_with("/ppt/notesSlides/notesSlide%d.xml")
         new_.assert_called_once_with()
         NotesSlidePart_.assert_called_once_with(
             PackURI("/ppt/notesSlides/notesSlide42.xml"),
@@ -354,9 +333,7 @@ class DescribeSlidePart(object):
             request, SlidePart, "_blob_from_file", return_value=b"012345"
         )
         embedded_package_part_ = instance_mock(request, EmbeddedPackagePart)
-        EmbeddedPackagePart_ = class_mock(
-            request, "pptx.parts.slide.EmbeddedPackagePart"
-        )
+        EmbeddedPackagePart_ = class_mock(request, "pptx.parts.slide.EmbeddedPackagePart")
         EmbeddedPackagePart_.factory.return_value = embedded_package_part_
         relate_to_.return_value = "rId9"
         slide_part = SlidePart(None, None, package_, None)
@@ -364,9 +341,7 @@ class DescribeSlidePart(object):
         _rId = slide_part.add_embedded_ole_object_part(prog_id, "workbook.xlsx")
 
         _blob_from_file_.assert_called_once_with(slide_part, "workbook.xlsx")
-        EmbeddedPackagePart_.factory.assert_called_once_with(
-            prog_id, b"012345", package_
-        )
+        EmbeddedPackagePart_.factory.assert_called_once_with(prog_id, b"012345", package_)
         relate_to_.assert_called_once_with(slide_part, embedded_package_part_, rel_type)
         assert _rId == "rId9"
 
@@ -394,9 +369,7 @@ class DescribeSlidePart(object):
 
         slide_part = SlidePart.new(partname, package_, slide_layout_part_)
 
-        _init_.assert_called_once_with(
-            slide_part, partname, CT.PML_SLIDE, package_, sld
-        )
+        _init_.assert_called_once_with(slide_part, partname, CT.PML_SLIDE, package_, sld)
         slide_part.relate_to.assert_called_once_with(
             slide_part, slide_layout_part_, RT.SLIDE_LAYOUT
         )
@@ -559,9 +532,7 @@ class DescribeSlideLayoutPart(object):
 
     def it_provides_access_to_its_slide_master(self, request):
         slide_master_ = instance_mock(request, SlideMaster)
-        slide_master_part_ = instance_mock(
-            request, SlideMasterPart, slide_master=slide_master_
-        )
+        slide_master_part_ = instance_mock(request, SlideMasterPart, slide_master=slide_master_)
         part_related_by_ = method_mock(
             request, SlideLayoutPart, "part_related_by", return_value=slide_master_part_
         )
@@ -604,9 +575,7 @@ class DescribeSlideMasterPart(object):
 
     def it_provides_access_to_a_related_slide_layout(self, request):
         slide_layout_ = instance_mock(request, SlideLayout)
-        slide_layout_part_ = instance_mock(
-            request, SlideLayoutPart, slide_layout=slide_layout_
-        )
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart, slide_layout=slide_layout_)
         related_part_ = method_mock(
             request, SlideMasterPart, "related_part", return_value=slide_layout_part_
         )

@@ -1,17 +1,13 @@
-# encoding: utf-8
-
 """Gherkin step implementations for chart legend features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.chart import XL_LEGEND_POSITION
 from pptx.text.text import Font
-
-from helpers import test_pptx
-
 
 # given ===================================================
 
@@ -31,9 +27,7 @@ def given_a_legend_having_horizontal_offset_of_value(context, value):
 
 @given("a legend positioned {location} the chart")
 def given_a_legend_positioned_location_the_chart(context, location):
-    slide_idx = {"at an unspecified location of": 0, "below": 1, "to the right of": 2}[
-        location
-    ]
+    slide_idx = {"at an unspecified location of": 0, "below": 1, "to the right of": 2}[location]
     prs = Presentation(test_pptx("cht-legend-props"))
     context.legend = prs.slides[slide_idx].shapes[0].chart.legend
 

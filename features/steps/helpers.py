@@ -1,13 +1,9 @@
-# encoding: utf-8
-
-"""
-Helper methods and variables for acceptance tests.
-"""
+"""Helper methods and variables for acceptance tests."""
 
 import os
 
 
-def absjoin(*paths):
+def absjoin(*paths: str) -> str:
     return os.path.abspath(os.path.join(*paths))
 
 
@@ -17,9 +13,7 @@ scratch_dir = absjoin(thisdir, "../_scratch")
 test_pptx_dir = absjoin(thisdir, "test_files")
 
 # legacy test pptx files ---------------
-no_core_props_pptx_path = absjoin(
-    thisdir, "../../tests/test_files", "no-core-props.pptx"
-)
+no_core_props_pptx_path = absjoin(thisdir, "../../tests/test_files", "no-core-props.pptx")
 
 # scratch test pptx file ---------------
 saved_pptx_path = absjoin(scratch_dir, "test_out.pptx")
@@ -27,41 +21,31 @@ saved_pptx_path = absjoin(scratch_dir, "test_out.pptx")
 test_text = "python-pptx was here!"
 
 
-def cls_qname(obj):
+def cls_qname(obj: object) -> str:
     module_name = obj.__module__
     cls_name = obj.__class__.__name__
     qname = "%s.%s" % (module_name, cls_name)
     return qname
 
 
-def count(start=0, step=1):
-    """
-    Local implementation of `itertools.count()` to allow v2.6 compatibility.
-    """
+def count(start: int = 0, step: int = 1):
+    """Local implementation of `itertools.count()` to allow v2.6 compatibility."""
     n = start
     while True:
         yield n
         n += step
 
 
-def test_file(filename):
-    """
-    Return the absolute path to the file having *filename* in acceptance
-    test_files directory.
-    """
+def test_file(filename: str) -> str:
+    """Return the absolute path to the file having *filename* in acceptance test_files directory."""
     return absjoin(thisdir, "test_files", filename)
 
 
-def test_image(filename):
-    """
-    Return the absolute path to image file having *filename* in test_files
-    directory.
-    """
+def test_image(filename: str):
+    """Return the absolute path to image file having *filename* in test_files directory."""
     return absjoin(thisdir, "test_files", filename)
 
 
-def test_pptx(name):
-    """
-    Return the absolute path to test .pptx file with root name *name*.
-    """
+def test_pptx(name: str) -> str:
+    """Return the absolute path to test .pptx file with root name *name*."""
     return absjoin(thisdir, "test_files", "%s.pptx" % name)

@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""XML test data builders for `pptx.oxml.text` unit tests."""
 
-"""
-XML test data builders for pptx.oxml.text unit tests
-"""
-
-from __future__ import absolute_import, print_function
+from __future__ import annotations
 
 from ...unitdata import BaseBuilder
 

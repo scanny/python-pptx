@@ -1,6 +1,8 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
 """Unit-test suite for `pptx.chart.chart` module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -36,9 +38,7 @@ class DescribeChart(object):
         font = chart.font
 
         assert chartSpace.xml == expected_xml
-        Font_.assert_called_once_with(
-            chartSpace.xpath("./c:txPr/a:p/a:pPr/a:defRPr")[0]
-        )
+        Font_.assert_called_once_with(chartSpace.xpath("./c:txPr/a:p/a:pPr/a:defRPr")[0])
         assert font is font_
 
     def it_knows_whether_it_has_a_title(self, has_title_get_fixture):
@@ -171,8 +171,7 @@ class DescribeChart(object):
         params=[
             (
                 "c:chartSpace{a:b=c}",
-                "c:chartSpace{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:chartSpace{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             ("c:chartSpace/c:txPr/a:p", "c:chartSpace/c:txPr/a:p/a:pPr/a:defRPr"),
             (
@@ -198,9 +197,7 @@ class DescribeChart(object):
         chart = Chart(element(chartSpace_cxml), None)
         return chart, expected_value
 
-    @pytest.fixture(
-        params=[("c:chartSpace/c:chart", True, "c:chartSpace/c:chart/c:legend")]
-    )
+    @pytest.fixture(params=[("c:chartSpace/c:chart", True, "c:chartSpace/c:chart/c:legend")])
     def has_legend_set_fixture(self, request):
         chartSpace_cxml, new_value, expected_chartSpace_cxml = request.param
         chart = Chart(element(chartSpace_cxml), None)
@@ -285,9 +282,7 @@ class DescribeChart(object):
         chart = Chart(chartSpace, None)
         return chart, SeriesCollection_, plotArea, series_collection_
 
-    @pytest.fixture(
-        params=[("c:chartSpace/c:style{val=42}", 42), ("c:chartSpace", None)]
-    )
+    @pytest.fixture(params=[("c:chartSpace/c:style{val=42}", 42), ("c:chartSpace", None)])
     def style_get_fixture(self, request):
         chartSpace_cxml, expected_value = request.param
         chart = Chart(element(chartSpace_cxml), None)
@@ -341,9 +336,7 @@ class DescribeChart(object):
 
     @pytest.fixture
     def CategoryAxis_(self, request, category_axis_):
-        return class_mock(
-            request, "pptx.chart.chart.CategoryAxis", return_value=category_axis_
-        )
+        return class_mock(request, "pptx.chart.chart.CategoryAxis", return_value=category_axis_)
 
     @pytest.fixture
     def category_axis_(self, request):
@@ -355,9 +348,7 @@ class DescribeChart(object):
 
     @pytest.fixture
     def ChartTitle_(self, request, chart_title_):
-        return class_mock(
-            request, "pptx.chart.chart.ChartTitle", return_value=chart_title_
-        )
+        return class_mock(request, "pptx.chart.chart.ChartTitle", return_value=chart_title_)
 
     @pytest.fixture
     def chart_title_(self, request):
@@ -430,9 +421,7 @@ class DescribeChart(object):
 
     @pytest.fixture
     def ValueAxis_(self, request, value_axis_):
-        return class_mock(
-            request, "pptx.chart.chart.ValueAxis", return_value=value_axis_
-        )
+        return class_mock(request, "pptx.chart.chart.ValueAxis", return_value=value_axis_)
 
     @pytest.fixture
     def value_axis_(self, request):
@@ -497,20 +486,17 @@ class DescribeChartTitle(object):
             (
                 "c:title{a:b=c}",
                 True,
-                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             (
                 "c:title{a:b=c}/c:tx",
                 True,
-                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             (
                 "c:title{a:b=c}/c:tx/c:strRef",
                 True,
-                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr"
-                ")",
+                "c:title{a:b=c}/c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr" ")",
             ),
             ("c:title/c:tx/c:rich", True, "c:title/c:tx/c:rich"),
             ("c:title", False, "c:title"),
@@ -594,9 +580,7 @@ class Describe_Plots(object):
 
     @pytest.fixture
     def PlotFactory_(self, request, plot_):
-        return function_mock(
-            request, "pptx.chart.chart.PlotFactory", return_value=plot_
-        )
+        return function_mock(request, "pptx.chart.chart.PlotFactory", return_value=plot_)
 
     @pytest.fixture
     def plot_(self, request):

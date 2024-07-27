@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Collection, Mapping, Protocol, TypeVar
+from typing import Any, Callable, Collection, Literal, Mapping, Protocol, TypeVar
 
 from typing_extensions import TypeAlias
 
@@ -24,6 +24,8 @@ _ElementOrTree: TypeAlias = _ET | _ElementTree[_ET]
 _NSMapArg = Mapping[None, str] | Mapping[str, str] | Mapping[str | None, str]
 
 _NonDefaultNSMapArg = Mapping[str, str]
+
+_OutputMethodArg = Literal["html", "text", "xml"]
 
 _TagName: TypeAlias = str
 

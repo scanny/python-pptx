@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Test data for autoshape-related unit tests."""
+
+from __future__ import annotations
 
 from ...unitdata import BaseBuilder
 

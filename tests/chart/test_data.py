@@ -1,19 +1,14 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""
-Test suite for pptx.chart.data module
-"""
+"""Test suite for `pptx.chart.data` module."""
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
 
 from datetime import date, datetime
 
 import pytest
 
 from pptx.chart.data import (
-    _BaseChartData,
-    _BaseDataPoint,
-    _BaseSeriesData,
     BubbleChartData,
     BubbleDataPoint,
     BubbleSeriesData,
@@ -26,11 +21,14 @@ from pptx.chart.data import (
     XyChartData,
     XyDataPoint,
     XySeriesData,
+    _BaseChartData,
+    _BaseDataPoint,
+    _BaseSeriesData,
 )
 from pptx.chart.xlsx import CategoryWorkbookWriter
 from pptx.enum.chart import XL_CHART_TYPE
 
-from ..unitutil.mock import call, class_mock, instance_mock, property_mock
+from ..unitutil.mock import Mock, call, class_mock, instance_mock, property_mock
 
 
 class DescribeChartData(object):
@@ -39,12 +37,16 @@ class DescribeChartData(object):
 
 
 class Describe_BaseChartData(object):
-    def it_can_generate_chart_part_XML_for_its_data(self, xml_bytes_fixture):
-        chart_data, chart_type_, ChartXmlWriter_, expected_bytes = xml_bytes_fixture
-        xml_bytes = chart_data.xml_bytes(chart_type_)
+    """Unit-test suite for `pptx.chart.data._BaseChartData`."""
 
-        ChartXmlWriter_.assert_called_once_with(chart_type_, chart_data)
-        assert xml_bytes == expected_bytes
+    def it_can_generate_chart_part_XML_for_its_data(self, ChartXmlWriter_: Mock):
+        ChartXmlWriter_.return_value.xml = "ƒøØßår"
+        chart_data = _BaseChartData()
+
+        xml_bytes = chart_data.xml_bytes(XL_CHART_TYPE.PIE)
+
+        ChartXmlWriter_.assert_called_once_with(XL_CHART_TYPE.PIE, chart_data)
+        assert xml_bytes == "ƒøØßår".encode("utf-8")
 
     def it_knows_its_number_format(self, number_format_fixture):
         chart_data, expected_value = number_format_fixture
@@ -59,12 +61,6 @@ class Describe_BaseChartData(object):
         chart_data = _BaseChartData(*argv)
         return chart_data, expected_value
 
-    @pytest.fixture
-    def xml_bytes_fixture(self, chart_type_, ChartXmlWriter_):
-        chart_data = _BaseChartData()
-        expected_bytes = "ƒøØßår".encode("utf-8")
-        return chart_data, chart_type_, ChartXmlWriter_, expected_bytes
-
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -72,10 +68,6 @@ class Describe_BaseChartData(object):
         ChartXmlWriter_ = class_mock(request, "pptx.chart.data.ChartXmlWriter")
         ChartXmlWriter_.return_value.xml = "ƒøØßår"
         return ChartXmlWriter_
-
-    @pytest.fixture
-    def chart_type_(self):
-        return XL_CHART_TYPE.PIE
 
 
 class Describe_BaseSeriesData(object):

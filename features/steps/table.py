@@ -1,17 +1,13 @@
-# encoding: utf-8
-
 """Gherkin step implementations for table-related features"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from behave import given, when, then
-
-from pptx import Presentation
-from pptx.enum.text import MSO_ANCHOR  # noqa
-from pptx.util import Inches
-
+from behave import given, then, when
 from helpers import test_pptx
 
+from pptx import Presentation
+from pptx.enum.text import MSO_ANCHOR  # noqa # pyright: ignore[reportUnusedImport]
+from pptx.util import Inches
 
 # given ===================================================
 
@@ -57,9 +53,7 @@ def given_a_Cell_object_with_known_margins_as_cell(context):
 
 @given("a _Cell object with {setting} vertical alignment as cell")
 def given_a_Cell_object_with_setting_vertical_alignment(context, setting):
-    cell_coordinates = {"inherited": (0, 1), "middle": (0, 2), "bottom": (0, 3)}[
-        setting
-    ]
+    cell_coordinates = {"inherited": (0, 1), "middle": (0, 2), "bottom": (0, 3)}[setting]
     prs = Presentation(test_pptx("tbl-cell"))
     context.cell = prs.slides[0].shapes[0].table.cell(*cell_coordinates)
 

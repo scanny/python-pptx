@@ -1,15 +1,11 @@
-# encoding: utf-8
-
 """Gherkin step implementations for chart plot features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
-
-from pptx import Presentation
-
 from helpers import test_pptx
 
+from pptx import Presentation
 
 # given ===================================================
 
@@ -95,9 +91,7 @@ def when_I_assign_value_to_plot_vary_by_categories(context, value):
 def then_bubble_plot_bubble_scale_is_value(context, value):
     expected_value = int(value)
     bubble_plot = context.bubble_plot
-    assert bubble_plot.bubble_scale == expected_value, (
-        "got %s" % bubble_plot.bubble_scale
-    )
+    assert bubble_plot.bubble_scale == expected_value, "got %s" % bubble_plot.bubble_scale
 
 
 @then("len(plot.categories) is {count}")

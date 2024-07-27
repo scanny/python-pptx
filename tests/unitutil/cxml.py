@@ -1,48 +1,48 @@
-# encoding: utf-8
+"""Parser for Compact XML Expression Language (CXEL) ('see-ex-ell').
 
-"""
-Parser for Compact XML Expression Language (CXEL) ('see-ex-ell'), a compact
-XML specification language I made up that's useful for producing XML element
+CXEL is a compact XML specification language I made up that's useful for producing XML element
 trees suitable for unit testing.
 """
 
-from __future__ import print_function
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from pyparsing import (
-    alphas,
-    alphanums,
     Combine,
-    dblQuotedString,
-    delimitedList,
     Forward,
     Group,
     Literal,
     Optional,
-    removeQuotes,
-    stringEnd,
     Suppress,
     Word,
+    alphanums,
+    alphas,
+    dblQuotedString,
+    delimitedList,
+    removeQuotes,
+    stringEnd,
 )
 
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import _nsmap as nsmap
 
+if TYPE_CHECKING:
+    from pptx.oxml.xmlchemy import BaseOxmlElement
 
 # ====================================================================
 # api functions
 # ====================================================================
 
 
-def element(cxel_str):
-    """
-    Return an oxml element parsed from the XML generated from *cxel_str*.
-    """
+def element(cxel_str: str) -> BaseOxmlElement:
+    """Return an oxml element parsed from the XML generated from `cxel_str`."""
     _xml = xml(cxel_str)
     return parse_xml(_xml)
 
 
-def xml(cxel_str):
-    """Return the XML generated from *cxel_str*."""
+def xml(cxel_str: str) -> str:
+    """Return the XML generated from `cxel_str`."""
     root_node.parseWithTabs()
     root_token = root_node.parseString(cxel_str)
     xml = root_token.element.xml
@@ -274,9 +274,7 @@ def grammar():
     child_node_list << (open_paren + delimitedList(node) + close_paren | node)
 
     root_node = (
-        element("element")
-        + Group(Optional(slash + child_node_list))("child_node_list")
-        + stringEnd
+        element("element") + Group(Optional(slash + child_node_list))("child_node_list") + stringEnd
     ).setParseAction(connect_root_node_children)
 
     return root_node
