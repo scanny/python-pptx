@@ -1,14 +1,10 @@
-# encoding: utf-8
+"""lxml custom element classes for legend-related XML elements."""
 
-"""
-lxml custom element classes for legend-related XML elements.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-from ...enum.chart import XL_LEGEND_POSITION
-from ..text import CT_TextBody
-from ..xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
+from pptx.enum.chart import XL_LEGEND_POSITION
+from pptx.oxml.text import CT_TextBody
+from pptx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrOne
 
 
 class CT_Legend(BaseOxmlElement):

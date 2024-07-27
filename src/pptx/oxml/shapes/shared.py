@@ -1,8 +1,8 @@
-# encoding: utf-8
-
 """Common shape-related oxml objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable
 
 from pptx.dml.fill import CT_GradientFillProperties
 from pptx.enum.shapes import PP_PLACEHOLDER
@@ -30,15 +30,19 @@ from pptx.oxml.xmlchemy import (
 )
 from pptx.util import Emu
 
+if TYPE_CHECKING:
+    from pptx.oxml.action import CT_Hyperlink
+    from pptx.oxml.shapes.autoshape import CT_CustomGeometry2D, CT_PresetGeometry2D
+    from pptx.util import Length
+
 
 class BaseShapeElement(BaseOxmlElement):
-    """
-    Provides common behavior for shape element classes like CT_Shape,
-    CT_Picture, etc.
-    """
+    """Provides common behavior for shape element classes like CT_Shape, CT_Picture, etc."""
+
+    spPr: CT_ShapeProperties
 
     @property
-    def cx(self):
+    def cx(self) -> Length:
         return self._get_xfrm_attr("cx")
 
     @cx.setter
@@ -46,7 +50,7 @@ class BaseShapeElement(BaseOxmlElement):
         self._set_xfrm_attr("cx", value)
 
     @property
-    def cy(self):
+    def cy(self) -> Length:
         return self._get_xfrm_attr("cy")
 
     @cy.setter
@@ -70,36 +74,34 @@ class BaseShapeElement(BaseOxmlElement):
         self._set_xfrm_attr("flipV", value)
 
     def get_or_add_xfrm(self):
-        """
-        Return the ``<a:xfrm>`` grandchild element, newly-added if not
-        present. This version works for ``<p:sp>``, ``<p:cxnSp>``, and
-        ``<p:pic>`` elements, others will need to override.
+        """Return the `a:xfrm` grandchild element, newly-added if not present.
+
+        This version works for `p:sp`, `p:cxnSp`, and `p:pic` elements, others will need to
+        override.
         """
         return self.spPr.get_or_add_xfrm()
 
     @property
     def has_ph_elm(self):
         """
-        True if this shape element has a ``<p:ph>`` descendant, indicating it
+        True if this shape element has a `p:ph` descendant, indicating it
         is a placeholder shape. False otherwise.
         """
         return self.ph is not None
 
     @property
-    def ph(self):
-        """
-        The ``<p:ph>`` descendant element if there is one, None otherwise.
-        """
+    def ph(self) -> CT_Placeholder | None:
+        """The `p:ph` descendant element if there is one, None otherwise."""
         ph_elms = self.xpath("./*[1]/p:nvPr/p:ph")
         if len(ph_elms) == 0:
             return None
         return ph_elms[0]
 
     @property
-    def ph_idx(self):
-        """
-        Integer value of placeholder idx attribute. Raises |ValueError| if
-        shape is not a placeholder.
+    def ph_idx(self) -> int:
+        """Integer value of placeholder idx attribute.
+
+        Raises |ValueError| if shape is not a placeholder.
         """
         ph = self.ph
         if ph is None:
@@ -107,10 +109,10 @@ class BaseShapeElement(BaseOxmlElement):
         return ph.idx
 
     @property
-    def ph_orient(self):
-        """
-        Placeholder orientation, e.g. 'vert'. Raises |ValueError| if shape is
-        not a placeholder.
+    def ph_orient(self) -> str:
+        """Placeholder orientation, e.g. 'vert'.
+
+        Raises |ValueError| if shape is not a placeholder.
         """
         ph = self.ph
         if ph is None:
@@ -118,10 +120,10 @@ class BaseShapeElement(BaseOxmlElement):
         return ph.orient
 
     @property
-    def ph_sz(self):
-        """
-        Placeholder size, e.g. ST_PlaceholderSize.HALF, None if shape has no
-        ``<p:ph>`` descendant.
+    def ph_sz(self) -> str:
+        """Placeholder size, e.g. ST_PlaceholderSize.HALF.
+
+        Raises `ValueError` if shape is not a placeholder.
         """
         ph = self.ph
         if ph is None:
@@ -130,9 +132,9 @@ class BaseShapeElement(BaseOxmlElement):
 
     @property
     def ph_type(self):
-        """
-        Placeholder type, e.g. ST_PlaceholderType.TITLE ('title'), none if
-        shape has no ``<p:ph>`` descendant.
+        """Placeholder type, e.g. ST_PlaceholderType.TITLE ('title').
+
+        Raises `ValueError` if shape is not a placeholder.
         """
         ph = self.ph
         if ph is None:
@@ -140,17 +142,15 @@ class BaseShapeElement(BaseOxmlElement):
         return ph.type
 
     @property
-    def rot(self):
-        """
-        Float representing degrees this shape is rotated clockwise.
-        """
+    def rot(self) -> float:
+        """Float representing degrees this shape is rotated clockwise."""
         xfrm = self.xfrm
-        if xfrm is None:
+        if xfrm is None or xfrm.rot is None:
             return 0.0
         return xfrm.rot
 
     @rot.setter
-    def rot(self, value):
+    def rot(self, value: float):
         self.get_or_add_xfrm().rot = value
 
     @property
@@ -169,13 +169,11 @@ class BaseShapeElement(BaseOxmlElement):
 
     @property
     def txBody(self):
-        """
-        Child ``<p:txBody>`` element, None if not present
-        """
+        """Child `p:txBody` element, None if not present."""
         return self.find(qn("p:txBody"))
 
     @property
-    def x(self):
+    def x(self) -> Length:
         return self._get_xfrm_attr("x")
 
     @x.setter
@@ -184,15 +182,15 @@ class BaseShapeElement(BaseOxmlElement):
 
     @property
     def xfrm(self):
-        """
-        The ``<a:xfrm>`` grandchild element or |None| if not found. This
-        version works for ``<p:sp>``, ``<p:cxnSp>``, and ``<p:pic>``
-        elements, others will need to override.
+        """The `a:xfrm` grandchild element or |None| if not found.
+
+        This version works for `p:sp`, `p:cxnSp`, and `p:pic` elements, others will need to
+        override.
         """
         return self.spPr.xfrm
 
     @property
-    def y(self):
+    def y(self) -> Length:
         return self._get_xfrm_attr("y")
 
     @y.setter
@@ -203,12 +201,12 @@ class BaseShapeElement(BaseOxmlElement):
     def _nvXxPr(self):
         """
         Required non-visual shape properties element for this shape. Actual
-        name depends on the shape type, e.g. ``<p:nvPicPr>`` for picture
+        name depends on the shape type, e.g. `p:nvPicPr` for picture
         shape.
         """
         return self.xpath("./*[1]")[0]
 
-    def _get_xfrm_attr(self, name):
+    def _get_xfrm_attr(self, name: str) -> Length | None:
         xfrm = self.xfrm
         if xfrm is None:
             return None
@@ -220,9 +218,9 @@ class BaseShapeElement(BaseOxmlElement):
 
 
 class CT_ApplicationNonVisualDrawingProps(BaseOxmlElement):
-    """
-    ``<p:nvPr>`` element
-    """
+    """`p:nvPr` element."""
+
+    get_or_add_ph: Callable[[], CT_Placeholder]
 
     ph = ZeroOrOne(
         "p:ph",
@@ -295,27 +293,34 @@ class CT_LineProperties(BaseOxmlElement):
 
 
 class CT_NonVisualDrawingProps(BaseOxmlElement):
-    """
-    ``<p:cNvPr>`` custom element class.
-    """
+    """`p:cNvPr` custom element class."""
+
+    get_or_add_hlinkClick: Callable[[], CT_Hyperlink]
+    get_or_add_hlinkHover: Callable[[], CT_Hyperlink]
 
     _tag_seq = ("a:hlinkClick", "a:hlinkHover", "a:extLst")
-    hlinkClick = ZeroOrOne("a:hlinkClick", successors=_tag_seq[1:])
-    hlinkHover = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
+    hlinkClick: CT_Hyperlink | None = ZeroOrOne("a:hlinkClick", successors=_tag_seq[1:])
+    hlinkHover: CT_Hyperlink | None = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
     id = RequiredAttribute("id", ST_DrawingElementId)
     name = RequiredAttribute("name", XsdString)
     del _tag_seq
 
 
 class CT_Placeholder(BaseOxmlElement):
-    """
-    ``<p:ph>`` custom element class.
-    """
+    """`p:ph` custom element class."""
 
-    type = OptionalAttribute("type", PP_PLACEHOLDER, default=PP_PLACEHOLDER.OBJECT)
-    orient = OptionalAttribute("orient", ST_Direction, default=ST_Direction.HORZ)
-    sz = OptionalAttribute("sz", ST_PlaceholderSize, default=ST_PlaceholderSize.FULL)
-    idx = OptionalAttribute("idx", XsdUnsignedInt, default=0)
+    type: PP_PLACEHOLDER = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "type", PP_PLACEHOLDER, default=PP_PLACEHOLDER.OBJECT
+    )
+    orient: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "orient", ST_Direction, default=ST_Direction.HORZ
+    )
+    sz: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "sz", ST_PlaceholderSize, default=ST_PlaceholderSize.FULL
+    )
+    idx: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "idx", XsdUnsignedInt, default=0
+    )
 
 
 class CT_Point2D(BaseOxmlElement):
@@ -323,8 +328,8 @@ class CT_Point2D(BaseOxmlElement):
     Custom element class for <a:off> element.
     """
 
-    x = RequiredAttribute("x", ST_Coordinate)
-    y = RequiredAttribute("y", ST_Coordinate)
+    x: Length = RequiredAttribute("x", ST_Coordinate)  # pyright: ignore[reportAssignmentType]
+    y: Length = RequiredAttribute("y", ST_Coordinate)  # pyright: ignore[reportAssignmentType]
 
 
 class CT_PositiveSize2D(BaseOxmlElement):
@@ -339,9 +344,13 @@ class CT_PositiveSize2D(BaseOxmlElement):
 class CT_ShapeProperties(BaseOxmlElement):
     """Custom element class for `p:spPr` element.
 
-    Shared by `p:sp`, `p:cxnSp`,  and `p:pic` elements as well as a few more
-    obscure ones.
+    Shared by `p:sp`, `p:cxnSp`,  and `p:pic` elements as well as a few more obscure ones.
     """
+
+    get_or_add_xfrm: Callable[[], CT_Transform2D]
+    get_or_add_ln: Callable[[], CT_LineProperties]
+    _add_prstGeom: Callable[[], CT_PresetGeometry2D]
+    _remove_custGeom: Callable[[], None]
 
     _tag_seq = (
         "a:xfrm",
@@ -360,9 +369,15 @@ class CT_ShapeProperties(BaseOxmlElement):
         "a:sp3d",
         "a:extLst",
     )
-    xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
-    custGeom = ZeroOrOne("a:custGeom", successors=_tag_seq[2:])
-    prstGeom = ZeroOrOne("a:prstGeom", successors=_tag_seq[3:])
+    xfrm: CT_Transform2D | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:xfrm", successors=_tag_seq[1:]
+    )
+    custGeom: CT_CustomGeometry2D | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:custGeom", successors=_tag_seq[2:]
+    )
+    prstGeom: CT_PresetGeometry2D | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:prstGeom", successors=_tag_seq[3:]
+    )
     eg_fillProperties = ZeroOrOneChoice(
         (
             Choice("a:noFill"),
@@ -374,7 +389,9 @@ class CT_ShapeProperties(BaseOxmlElement):
         ),
         successors=_tag_seq[9:],
     )
-    ln = ZeroOrOne("a:ln", successors=_tag_seq[10:])
+    ln: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:ln", successors=_tag_seq[10:]
+    )
     effectLst = ZeroOrOne("a:effectLst", successors=_tag_seq[11:])
     del _tag_seq
 
@@ -399,11 +416,10 @@ class CT_ShapeProperties(BaseOxmlElement):
         return Emu(cy_str_lst[0])
 
     @property
-    def x(self):
-        """
-        The offset of the left edge of the shape from the left edge of the
-        slide, as an instance of Emu. Corresponds to the value of the
-        `./xfrm/off/@x` attribute. None if not present.
+    def x(self) -> Length | None:
+        """Distance between the left edge of the slide and left edge of the shape.
+
+        0 if not present.
         """
         x_str_lst = self.xpath("./a:xfrm/a:off/@x")
         if not x_str_lst:
@@ -433,12 +449,16 @@ class CT_Transform2D(BaseOxmlElement):
     """
 
     _tag_seq = ("a:off", "a:ext", "a:chOff", "a:chExt")
-    off = ZeroOrOne("a:off", successors=_tag_seq[1:])
+    off: CT_Point2D | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:off", successors=_tag_seq[1:]
+    )
     ext = ZeroOrOne("a:ext", successors=_tag_seq[2:])
     chOff = ZeroOrOne("a:chOff", successors=_tag_seq[3:])
     chExt = ZeroOrOne("a:chExt", successors=_tag_seq[4:])
     del _tag_seq
-    rot = OptionalAttribute("rot", ST_Angle, default=0.0)
+    rot: float | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "rot", ST_Angle, default=0.0
+    )
     flipH = OptionalAttribute("flipH", XsdBoolean, default=False)
     flipV = OptionalAttribute("flipV", XsdBoolean, default=False)
 

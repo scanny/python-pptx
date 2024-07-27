@@ -1,18 +1,19 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
 """Unit-test suite for `pptx.opc.package` module."""
+
+from __future__ import annotations
 
 import collections
 import io
 import itertools
+from typing import Any
 
 import pytest
 
-from pptx.opc.constants import (
-    CONTENT_TYPE as CT,
-    RELATIONSHIP_TARGET_MODE as RTM,
-    RELATIONSHIP_TYPE as RT,
-)
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationship, CT_Relationships
 from pptx.opc.package import (
     OpcPackage,
@@ -30,9 +31,11 @@ from pptx.oxml import parse_xml
 from pptx.parts.presentation import PresentationPart
 
 from ..unitutil.cxml import element
-from ..unitutil.file import absjoin, snippet_bytes, testfile_bytes, test_file_dir
+from ..unitutil.file import absjoin, snippet_bytes, test_file_dir, testfile_bytes
 from ..unitutil.mock import (
     ANY,
+    FixtureRequest,
+    Mock,
     call,
     class_mock,
     function_mock,
@@ -43,7 +46,7 @@ from ..unitutil.mock import (
 )
 
 
-class Describe_RelatableMixin(object):
+class Describe_RelatableMixin:
     """Unit-test suite for `pptx.opc.package._RelatableMixin`.
 
     This mixin is used for both OpcPackage and Part because both a package and a part
@@ -60,9 +63,7 @@ class Describe_RelatableMixin(object):
         relationships_.part_with_reltype.assert_called_once_with(RT.CHART)
         assert related_part is part_
 
-    def it_can_establish_a_relationship_to_another_part(
-        self, _rels_prop_, relationships_, part_
-    ):
+    def it_can_establish_a_relationship_to_another_part(self, _rels_prop_, relationships_, part_):
         relationships_.get_or_add.return_value = "rId42"
         _rels_prop_.return_value = relationships_
         mixin = _RelatableMixin()
@@ -81,9 +82,7 @@ class Describe_RelatableMixin(object):
 
         rId = mixin.relate_to("http://url", RT.HYPERLINK, is_external=True)
 
-        relationships_.get_or_add_ext_rel.assert_called_once_with(
-            RT.HYPERLINK, "http://url"
-        )
+        relationships_.get_or_add_ext_rel.assert_called_once_with(RT.HYPERLINK, "http://url")
         assert rId == "rId24"
 
     def it_can_find_a_related_part_by_rId(
@@ -131,7 +130,7 @@ class Describe_RelatableMixin(object):
         return property_mock(request, _RelatableMixin, "_rels")
 
 
-class DescribeOpcPackage(object):
+class DescribeOpcPackage:
     """Unit-test suite for `pptx.opc.package.OpcPackage` objects."""
 
     def it_can_open_a_pkg_file(self, request):
@@ -153,13 +152,9 @@ class DescribeOpcPackage(object):
         relationships_.pop.assert_called_once_with("rId42")
 
     def it_can_iterate_over_its_parts(self, request):
-        part_, part_2_ = [
-            instance_mock(request, Part, name="part_%d" % i) for i in range(2)
-        ]
+        part_, part_2_ = [instance_mock(request, Part, name="part_%d" % i) for i in range(2)]
         rels_iter = (
-            instance_mock(
-                request, _Relationship, is_external=is_external, target_part=target
-            )
+            instance_mock(request, _Relationship, is_external=is_external, target_part=target)
             for is_external, target in (
                 (True, "http://some/url/"),
                 (False, part_),
@@ -187,9 +182,7 @@ class DescribeOpcPackage(object):
                    +--------> | part_1 |
                               +--------+
         """
-        part_0_, part_1_ = [
-            instance_mock(request, Part, name="part_%d" % i) for i in range(2)
-        ]
+        part_0_, part_1_ = [instance_mock(request, Part, name="part_%d" % i) for i in range(2)]
         all_rels = tuple(
             instance_mock(
                 request,
@@ -299,7 +292,7 @@ class DescribeOpcPackage(object):
         return property_mock(request, OpcPackage, "_rels")
 
 
-class Describe_PackageLoader(object):
+class Describe_PackageLoader:
     """Unit-test suite for `pptx.opc.package._PackageLoader` objects."""
 
     def it_provides_a_load_interface_classmethod(self, request, package_):
@@ -328,10 +321,7 @@ class Describe_PackageLoader(object):
         rels_ = dict(
             itertools.chain(
                 (("/", instance_mock(request, _Relationships)),),
-                (
-                    ("partname_%d" % n, instance_mock(request, _Relationships))
-                    for n in range(1, 4)
-                ),
+                (("partname_%d" % n, instance_mock(request, _Relationships)) for n in range(1, 4)),
             )
         )
         _xml_rels_prop_.return_value = rels_
@@ -340,9 +330,7 @@ class Describe_PackageLoader(object):
         pkg_xml_rels, parts = package_loader._load()
 
         for part_ in parts_.values():
-            part_.load_rels_from_xml.assert_called_once_with(
-                rels_[part_.partname], parts_
-            )
+            part_.load_rels_from_xml.assert_called_once_with(rels_[part_.partname], parts_)
         assert pkg_xml_rels is rels_["/"]
         assert parts is parts_
 
@@ -397,7 +385,7 @@ class Describe_PackageLoader(object):
         return property_mock(request, _PackageLoader, "_xml_rels")
 
 
-class DescribePart(object):
+class DescribePart:
     """Unit-test suite for `pptx.opc.package.Part` objects."""
 
     def it_can_be_constructed_by_PartFactory(self, request, package_):
@@ -420,19 +408,6 @@ class DescribePart(object):
     def it_knows_its_content_type(self):
         assert Part(None, CT.PML_SLIDE, None).content_type == CT.PML_SLIDE
 
-    @pytest.mark.parametrize("ref_count, calls", ((2, []), (1, [call("rId42")])))
-    def it_can_drop_a_relationship(self, request, relationships_, ref_count, calls):
-        _rel_ref_count_ = method_mock(
-            request, Part, "_rel_ref_count", return_value=ref_count
-        )
-        property_mock(request, Part, "_rels", return_value=relationships_)
-        part = Part(None, None, None)
-
-        part.drop_rel("rId42")
-
-        _rel_ref_count_.assert_called_once_with(part, "rId42")
-        assert relationships_.pop.call_args_list == calls
-
     def it_knows_the_package_it_belongs_to(self, package_):
         assert Part(None, None, package_).package is package_
 
@@ -444,9 +419,7 @@ class DescribePart(object):
         part.partname = PackURI("/new/part/name")
         assert part.partname == PackURI("/new/part/name")
 
-    def it_provides_access_to_its_relationships_for_traversal(
-        self, request, relationships_
-    ):
+    def it_provides_access_to_its_relationships_for_traversal(self, request, relationships_):
         property_mock(request, Part, "_rels", return_value=relationships_)
         assert Part(None, None, None).rels is relationships_
 
@@ -484,16 +457,14 @@ class DescribePart(object):
         return instance_mock(request, _Relationships)
 
 
-class DescribeXmlPart(object):
+class DescribeXmlPart:
     """Unit-test suite for `pptx.opc.package.XmlPart` objects."""
 
     def it_can_be_constructed_by_PartFactory(self, request):
         partname = PackURI("/ppt/slides/slide1.xml")
         element_ = element("p:sld")
         package_ = instance_mock(request, OpcPackage)
-        parse_xml_ = function_mock(
-            request, "pptx.opc.package.parse_xml", return_value=element_
-        )
+        parse_xml_ = function_mock(request, "pptx.opc.package.parse_xml", return_value=element_)
         _init_ = initializer_mock(request, XmlPart)
 
         part = XmlPart.load(partname, CT.PML_SLIDE, package_, b"blob")
@@ -504,9 +475,7 @@ class DescribeXmlPart(object):
 
     def it_can_serialize_to_xml(self, request):
         element_ = element("p:sld")
-        serialize_part_xml_ = function_mock(
-            request, "pptx.opc.package.serialize_part_xml"
-        )
+        serialize_part_xml_ = function_mock(request, "pptx.opc.package.serialize_part_xml")
         xml_part = XmlPart(None, None, None, element_)
 
         blob = xml_part.blob
@@ -514,17 +483,34 @@ class DescribeXmlPart(object):
         serialize_part_xml_.assert_called_once_with(element_)
         assert blob is serialize_part_xml_.return_value
 
+    @pytest.mark.parametrize(("ref_count", "calls"), [(2, []), (1, [call("rId42")])])
+    def it_can_drop_a_relationship(
+        self, request: FixtureRequest, relationships_: Mock, ref_count: int, calls: list[Any]
+    ):
+        _rel_ref_count_ = method_mock(request, XmlPart, "_rel_ref_count", return_value=ref_count)
+        property_mock(request, XmlPart, "_rels", return_value=relationships_)
+        part = XmlPart(None, None, None, None)
+
+        part.drop_rel("rId42")
+
+        _rel_ref_count_.assert_called_once_with(part, "rId42")
+        assert relationships_.pop.call_args_list == calls
+
     def it_knows_it_is_the_part_for_its_child_objects(self):
         xml_part = XmlPart(None, None, None, None)
         assert xml_part.part is xml_part
 
+    # -- fixtures ----------------------------------------------------
 
-class DescribePartFactory(object):
+    @pytest.fixture
+    def relationships_(self, request):
+        return instance_mock(request, _Relationships)
+
+
+class DescribePartFactory:
     """Unit-test suite for `pptx.opc.package.PartFactory` objects."""
 
-    def it_constructs_custom_part_type_for_registered_content_types(
-        self, request, package_, part_
-    ):
+    def it_constructs_custom_part_type_for_registered_content_types(self, request, package_, part_):
         SlidePart_ = class_mock(request, "pptx.opc.package.XmlPart")
         SlidePart_.load.return_value = part_
         partname = PackURI("/ppt/slides/slide7.xml")
@@ -532,9 +518,7 @@ class DescribePartFactory(object):
 
         part = PartFactory(partname, CT.PML_SLIDE, package_, b"blob")
 
-        SlidePart_.load.assert_called_once_with(
-            partname, CT.PML_SLIDE, package_, b"blob"
-        )
+        SlidePart_.load.assert_called_once_with(partname, CT.PML_SLIDE, package_, b"blob")
         assert part is part_
 
     def it_constructs_part_using_default_class_when_no_custom_registered(
@@ -546,9 +530,7 @@ class DescribePartFactory(object):
 
         part = PartFactory(partname, CT.OFC_VML_DRAWING, package_, b"blob")
 
-        Part_.load.assert_called_once_with(
-            partname, CT.OFC_VML_DRAWING, package_, b"blob"
-        )
+        Part_.load.assert_called_once_with(partname, CT.OFC_VML_DRAWING, package_, b"blob")
         assert part is part_
 
     # fixtures components ----------------------------------
@@ -562,7 +544,7 @@ class DescribePartFactory(object):
         return instance_mock(request, Part)
 
 
-class Describe_ContentTypeMap(object):
+class Describe_ContentTypeMap:
     """Unit-test suite for `pptx.opc.package._ContentTypeMap` objects."""
 
     def it_can_construct_from_content_types_xml(self, request):
@@ -617,8 +599,7 @@ class Describe_ContentTypeMap(object):
         with pytest.raises(KeyError) as e:
             content_type_map[PackURI("/!blat/rhumba.1x&")]
         assert str(e.value) == (
-            "\"no content-type for partname '/!blat/rhumba.1x&' "
-            'in [Content_Types].xml"'
+            "\"no content-type for partname '/!blat/rhumba.1x&' " 'in [Content_Types].xml"'
         )
 
     def it_raises_TypeError_on_key_not_instance_of_PackURI(self, content_type_map):
@@ -630,12 +611,10 @@ class Describe_ContentTypeMap(object):
 
     @pytest.fixture(scope="class")
     def content_type_map(self):
-        return _ContentTypeMap.from_xml(
-            testfile_bytes("expanded_pptx", "[Content_Types].xml")
-        )
+        return _ContentTypeMap.from_xml(testfile_bytes("expanded_pptx", "[Content_Types].xml"))
 
 
-class Describe_Relationships(object):
+class Describe_Relationships:
     """Unit-test suite for `pptx.opc.package._Relationships` objects."""
 
     @pytest.mark.parametrize("rId, expected_value", (("rId1", True), ("rId2", False)))
@@ -655,9 +634,7 @@ class Describe_Relationships(object):
             _Relationships(None)["rId6"]
         assert str(e.value) == "\"no relationship with key 'rId6'\""
 
-    def it_can_iterate_the_rIds_of_the_relationships_it_contains(
-        self, request, _rels_prop_
-    ):
+    def it_can_iterate_the_rIds_of_the_relationships_it_contains(self, request, _rels_prop_):
         rels_ = set(instance_mock(request, _Relationship) for n in range(5))
         _rels_prop_.return_value = {"rId%d" % (i + 1): r for i, r in enumerate(rels_)}
         relationships = _Relationships(None)
@@ -671,9 +648,7 @@ class Describe_Relationships(object):
         _rels_prop_.return_value = {"a": 0, "b": 1}
         assert len(_Relationships(None)) == 2
 
-    def it_can_add_a_relationship_to_a_target_part(
-        self, part_, _get_matching_, _add_relationship_
-    ):
+    def it_can_add_a_relationship_to_a_target_part(self, part_, _get_matching_, _add_relationship_):
         _get_matching_.return_value = None
         _add_relationship_.return_value = "rId7"
         relationships = _Relationships(None)
@@ -684,9 +659,7 @@ class Describe_Relationships(object):
         _add_relationship_.assert_called_once_with(relationships, RT.IMAGE, part_)
         assert rId == "rId7"
 
-    def but_it_returns_an_existing_relationship_if_it_matches(
-        self, part_, _get_matching_
-    ):
+    def but_it_returns_an_existing_relationship_if_it_matches(self, part_, _get_matching_):
         _get_matching_.return_value = "rId3"
         relationships = _Relationships(None)
 
@@ -695,9 +668,7 @@ class Describe_Relationships(object):
         _get_matching_.assert_called_once_with(relationships, RT.IMAGE, part_)
         assert rId == "rId3"
 
-    def it_can_add_an_external_relationship_to_a_URI(
-        self, _get_matching_, _add_relationship_
-    ):
+    def it_can_add_an_external_relationship_to_a_URI(self, _get_matching_, _add_relationship_):
         _get_matching_.return_value = None
         _add_relationship_.return_value = "rId2"
         relationships = _Relationships(None)
@@ -712,9 +683,7 @@ class Describe_Relationships(object):
         )
         assert rId == "rId2"
 
-    def but_it_returns_an_existing_external_relationship_if_it_matches(
-        self, part_, _get_matching_
-    ):
+    def but_it_returns_an_existing_external_relationship_if_it_matches(self, part_, _get_matching_):
         _get_matching_.return_value = "rId10"
         relationships = _Relationships(None)
 
@@ -727,8 +696,7 @@ class Describe_Relationships(object):
 
     def it_can_load_from_the_xml_in_a_rels_part(self, request, _Relationship_, part_):
         rels_ = tuple(
-            instance_mock(request, _Relationship, rId="rId%d" % (i + 1))
-            for i in range(5)
+            instance_mock(request, _Relationship, rId="rId%d" % (i + 1)) for i in range(5)
         )
         _Relationship_.from_xml.side_effect = iter(rels_)
         parts = {"/ppt/slideLayouts/slideLayout1.xml": part_}
@@ -743,9 +711,7 @@ class Describe_Relationships(object):
         ]
         assert relationships._rels == {"rId1": rels_[0], "rId2": rels_[1]}
 
-    def it_can_find_a_part_with_reltype(
-        self, _rels_by_reltype_prop_, relationship_, part_
-    ):
+    def it_can_find_a_part_with_reltype(self, _rels_by_reltype_prop_, relationship_, part_):
         relationship_.target_part = part_
         _rels_by_reltype_prop_.return_value = collections.defaultdict(
             list, ((RT.SLIDE_LAYOUT, [relationship_]),)
@@ -852,9 +818,7 @@ class Describe_Relationships(object):
         _rels_prop_.return_value = {}
         relationships = _Relationships("/ppt")
 
-        rId = relationships._add_relationship(
-            RT.HYPERLINK, "http://url", is_external=True
-        )
+        rId = relationships._add_relationship(RT.HYPERLINK, "http://url", is_external=True)
 
         _Relationship_.assert_called_once_with(
             "/ppt", "rId9", RT.HYPERLINK, target_mode=RTM.EXTERNAL, target="http://url"
@@ -894,18 +858,14 @@ class Describe_Relationships(object):
                 )
             ]
         }
-        target = (
-            target_ref if is_external else part_1 if target_ref == "part_1" else part_2
-        )
+        target = target_ref if is_external else part_1 if target_ref == "part_1" else part_2
         relationships = _Relationships(None)
 
         matching = relationships._get_matching(RT.SLIDE, target, is_external)
 
         assert matching == expected_value
 
-    def but_it_returns_None_when_there_is_no_matching_relationship(
-        self, _rels_by_reltype_prop_
-    ):
+    def but_it_returns_None_when_there_is_no_matching_relationship(self, _rels_by_reltype_prop_):
         _rels_by_reltype_prop_.return_value = collections.defaultdict(list)
         relationships = _Relationships(None)
 
@@ -979,7 +939,7 @@ class Describe_Relationships(object):
         return property_mock(request, _Relationships, "_rels")
 
 
-class Describe_Relationship(object):
+class Describe_Relationship:
     """Unit-test suite for `pptx.opc.package._Relationship` objects."""
 
     def it_can_construct_from_xml(self, request, part_):
@@ -996,9 +956,7 @@ class Describe_Relationship(object):
 
         relationship = _Relationship.from_xml("/ppt", rel_elm, parts)
 
-        _init_.assert_called_once_with(
-            relationship, "/ppt", "rId42", RT.SLIDE, RTM.INTERNAL, part_
-        )
+        _init_.assert_called_once_with(relationship, "/ppt", "rId42", RT.SLIDE, RTM.INTERNAL, part_)
         assert isinstance(relationship, _Relationship)
 
     @pytest.mark.parametrize(
@@ -1026,8 +984,7 @@ class Describe_Relationship(object):
         with pytest.raises(ValueError) as e:
             relationship.target_part
         assert str(e.value) == (
-            "`.target_part` property on _Relationship is undefined when "
-            "target-mode is external"
+            "`.target_part` property on _Relationship is undefined when " "target-mode is external"
         )
 
     def it_knows_its_target_partname(self, part_):

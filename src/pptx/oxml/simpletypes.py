@@ -1,37 +1,35 @@
-# encoding: utf-8
-
 """Simple-type classes.
 
-A "simple-type" is a scalar type, generally serving as an XML attribute. This is in
-contrast to a "complex-type" which would specify an XML element.
+A "simple-type" is a scalar type, generally serving as an XML attribute. This is in contrast to a
+"complex-type" which would specify an XML element.
 
-These objects providing validation and format translation for values stored in XML
-element attributes. Naming generally corresponds to the simple type in the associated
-XML schema.
+These objects providing validation and format translation for values stored in XML element
+attributes. Naming generally corresponds to the simple type in the associated XML schema.
 """
 
+from __future__ import annotations
+
 import numbers
+from typing import Any
 
 from pptx.exc import InvalidXmlError
 from pptx.util import Centipoints, Emu
 
 
-class BaseSimpleType(object):
+class BaseSimpleType:
     @classmethod
-    def from_xml(cls, str_value):
-        return cls.convert_from_xml(str_value)
+    def from_xml(cls, xml_value: str) -> Any:
+        return cls.convert_from_xml(xml_value)
 
     @classmethod
-    def to_xml(cls, value):
+    def to_xml(cls, value: Any) -> str:
         cls.validate(value)
         str_value = cls.convert_to_xml(value)
         return str_value
 
     @classmethod
-    def validate_float(cls, value):
-        """
-        Note that int values are accepted.
-        """
+    def validate_float(cls, value: Any):
+        """Note that int values are accepted."""
         if not isinstance(value, (int, float)):
             raise TypeError("value must be a number, got %s" % type(value))
 
@@ -151,8 +149,7 @@ class XsdBoolean(BaseSimpleType):
     def validate(cls, value):
         if value not in (True, False):
             raise TypeError(
-                "only True or False (and possibly None) may be assigned, got"
-                " '%s'" % value
+                "only True or False (and possibly None) may be assigned, got" " '%s'" % value
             )
 
 
@@ -231,7 +228,7 @@ class ST_Angle(XsdInt):
     THREE_SIXTY = 360 * DEGREE_INCREMENTS
 
     @classmethod
-    def convert_from_xml(cls, str_value):
+    def convert_from_xml(cls, str_value: str) -> float:
         rot = int(str_value) % cls.THREE_SIXTY
         return float(rot) / cls.DEGREE_INCREMENTS
 
@@ -349,9 +346,7 @@ class ST_CoordinateUnqualified(XsdLong):
 
 
 class ST_Direction(XsdTokenEnumeration):
-    """
-    Valid values for <p:ph orient=""> attribute
-    """
+    """Valid values for `<p:ph orient="...">` attribute."""
 
     HORZ = "horz"
     VERT = "vert"
@@ -419,17 +414,13 @@ class ST_HexColorRGB(BaseStringType):
 
         # must be 6 chars long----------
         if len(str_value) != 6:
-            raise ValueError(
-                "RGB string must be six characters long, got '%s'" % str_value
-            )
+            raise ValueError("RGB string must be six characters long, got '%s'" % str_value)
 
         # must parse as hex int --------
         try:
             int(str_value, 16)
         except ValueError:
-            raise ValueError(
-                "RGB string must be valid hex string, got '%s'" % str_value
-            )
+            raise ValueError("RGB string must be valid hex string, got '%s'" % str_value)
 
 
 class ST_LayoutMode(XsdStringEnumeration):
@@ -471,8 +462,7 @@ class ST_LineWidth(XsdInt):
         super(ST_LineWidth, cls).validate(value)
         if value < 0 or value > 20116800:
             raise ValueError(
-                "value must be in range 0-20116800 inclusive (0-1584 points)"
-                ", got %d" % value
+                "value must be in range 0-20116800 inclusive (0-1584 points)" ", got %d" % value
             )
 
 
@@ -615,8 +605,7 @@ class ST_SlideSizeCoordinate(BaseIntType):
         cls.validate_int(value)
         if value < 914400 or value > 51206400:
             raise ValueError(
-                "value must be in range(914400, 51206400) (1-56 inches), got"
-                " %d" % value
+                "value must be in range(914400, 51206400) (1-56 inches), got" " %d" % value
             )
 
 
@@ -636,9 +625,7 @@ class ST_TargetMode(XsdString):
     def validate(cls, value):
         cls.validate_string(value)
         if value not in ("External", "Internal"):
-            raise ValueError(
-                "must be one of 'Internal' or 'External', got '%s'" % value
-            )
+            raise ValueError("must be one of 'Internal' or 'External', got '%s'" % value)
 
 
 class ST_TextFontScalePercentOrPercentString(BaseFloatType):
@@ -661,9 +648,7 @@ class ST_TextFontScalePercentOrPercentString(BaseFloatType):
     def validate(cls, value):
         BaseFloatType.validate(value)
         if value < 1.0 or value > 100.0:
-            raise ValueError(
-                "value must be in range 1.0..100.0 (percent), got %s" % value
-            )
+            raise ValueError("value must be in range 1.0..100.0 (percent), got %s" % value)
 
 
 class ST_TextFontSize(BaseIntType):

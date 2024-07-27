@@ -1,22 +1,28 @@
-# encoding: utf-8
-
 """Utility functions wrapping the excellent `mock` library."""
 
-from __future__ import absolute_import
+from __future__ import annotations
 
-import sys
+from typing import Any
+from unittest import mock
+from unittest.mock import (
+    ANY,
+    MagicMock,
+    Mock,
+    PropertyMock,
+    call,
+    create_autospec,
+    mock_open,
+    patch,
+)
 
-if sys.version_info >= (3, 3):
-    from unittest import mock  # noqa
-    from unittest.mock import ANY, call, MagicMock  # noqa
-    from unittest.mock import create_autospec, Mock, mock_open, patch, PropertyMock
-else:  # pragma: no cover
-    import mock  # noqa
-    from mock import ANY, call, MagicMock  # noqa
-    from mock import create_autospec, Mock, mock_open, patch, PropertyMock
+from pytest import FixtureRequest, LogCaptureFixture  # noqa: PT013
+
+__all__ = ["ANY", "FixtureRequest", "LogCaptureFixture", "MagicMock", "call", "mock"]
 
 
-def class_mock(request, q_class_name, autospec=True, **kwargs):
+def class_mock(
+    request: FixtureRequest, q_class_name: str, autospec: bool = True, **kwargs: Any
+) -> Mock:
     """Return a mock patching the class with qualified name *q_class_name*.
 
     The mock is autospec'ed based on the patched class unless the optional argument
@@ -28,8 +34,10 @@ def class_mock(request, q_class_name, autospec=True, **kwargs):
     return _patch.start()
 
 
-def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):  # pragma: no cover
-    """Return a mock for attribute (class variable) `attr_name` on `cls`.
+def cls_attr_mock(
+    request: FixtureRequest, cls: type, attr_name: str, name: str | None = None, **kwargs: Any
+) -> Mock:
+    """Return a mock for an attribute (class variable) `attr_name` on `cls`.
 
     Patch is reversed after pytest uses it.
     """
@@ -39,7 +47,9 @@ def cls_attr_mock(request, cls, attr_name, name=None, **kwargs):  # pragma: no c
     return _patch.start()
 
 
-def function_mock(request, q_function_name, autospec=True, **kwargs):
+def function_mock(
+    request: FixtureRequest, q_function_name: str, autospec: bool = True, **kwargs: Any
+):
     """Return mock patching function with qualified name `q_function_name`.
 
     Patch is reversed after calling test returns.
@@ -49,19 +59,23 @@ def function_mock(request, q_function_name, autospec=True, **kwargs):
     return _patch.start()
 
 
-def initializer_mock(request, cls, autospec=True, **kwargs):
+def initializer_mock(request: FixtureRequest, cls: type, autospec: bool = True, **kwargs: Any):
     """Return mock for __init__() method on `cls`.
 
     The patch is reversed after pytest uses it.
     """
-    _patch = patch.object(
-        cls, "__init__", autospec=autospec, return_value=None, **kwargs
-    )
+    _patch = patch.object(cls, "__init__", autospec=autospec, return_value=None, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
 
-def instance_mock(request, cls, name=None, spec_set=True, **kwargs):
+def instance_mock(
+    request: FixtureRequest,
+    cls: type,
+    name: str | None = None,
+    spec_set: bool = True,
+    **kwargs: Any,
+) -> Mock:
     """Return mock for instance of `cls` that draws its spec from that class.
 
     The mock does not allow new attributes to be set on the instance. If `name` is
@@ -73,7 +87,7 @@ def instance_mock(request, cls, name=None, spec_set=True, **kwargs):
     return create_autospec(cls, _name=name, spec_set=spec_set, instance=True, **kwargs)
 
 
-def loose_mock(request, name=None, **kwargs):
+def loose_mock(request: FixtureRequest, name: str | None = None, **kwargs: Any):
     """Return a "loose" mock, meaning it has no spec to constrain calls on it.
 
     Additional keyword arguments are passed through to Mock(). If called without a name,
@@ -82,7 +96,9 @@ def loose_mock(request, name=None, **kwargs):
     return Mock(name=request.fixturename if name is None else name, **kwargs)
 
 
-def method_mock(request, cls, method_name, autospec=True, **kwargs):
+def method_mock(
+    request: FixtureRequest, cls: type, method_name: str, autospec: bool = True, **kwargs: Any
+):
     """Return mock for method `method_name` on `cls`.
 
     The patch is reversed after pytest uses it.
@@ -92,7 +108,7 @@ def method_mock(request, cls, method_name, autospec=True, **kwargs):
     return _patch.start()
 
 
-def open_mock(request, module_name, **kwargs):
+def open_mock(request: FixtureRequest, module_name: str, **kwargs: Any):
     """Return a mock for the builtin `open()` method in `module_name`."""
     target = "%s.open" % module_name
     _patch = patch(target, mock_open(), create=True, **kwargs)
@@ -100,14 +116,14 @@ def open_mock(request, module_name, **kwargs):
     return _patch.start()
 
 
-def property_mock(request, cls, prop_name, **kwargs):
+def property_mock(request: FixtureRequest, cls: type, prop_name: str, **kwargs: Any):
     """Return a mock for property `prop_name` on class `cls`."""
     _patch = patch.object(cls, prop_name, new_callable=PropertyMock, **kwargs)
     request.addfinalizer(_patch.stop)
     return _patch.start()
 
 
-def var_mock(request, q_var_name, **kwargs):
+def var_mock(request: FixtureRequest, q_var_name: str, **kwargs: Any):
     """Return mock patching the variable with qualified name *q_var_name*."""
     _patch = patch(q_var_name, **kwargs)
     request.addfinalizer(_patch.stop)

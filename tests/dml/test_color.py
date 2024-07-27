@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for `pptx.text` module."""
 
-"""
-Test suite for pptx.text module.
-"""
-
-from __future__ import absolute_import
+from __future__ import annotations
 
 import pytest
 
@@ -182,9 +178,7 @@ class DescribeColorFormat(object):
             "-0.3 to -0.4": (an_srgbClr, 70000, None, -0.4, 60000, None),
             "-0.4 to 0": (a_sysClr, 60000, None, 0, None, None),
         }
-        xClr_bldr_fn, mod_in, off_in, brightness, mod_out, off_out = mapping[
-            request.param
-        ]
+        xClr_bldr_fn, mod_in, off_in, brightness, mod_out, off_out = mapping[request.param]
 
         xClr_bldr = xClr_bldr_fn()
         if mod_in is not None:
@@ -222,10 +216,7 @@ class DescribeColorFormat(object):
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
         rgb_color = RGBColor(0x12, 0x34, 0x56)
         expected_xml = (
-            a_solidFill()
-            .with_nsdecls()
-            .with_child(an_srgbClr().with_val("123456"))
-            .xml()
+            a_solidFill().with_nsdecls().with_child(an_srgbClr().with_val("123456")).xml()
         )
         return color_format, rgb_color, expected_xml
 
@@ -248,10 +239,7 @@ class DescribeColorFormat(object):
         color_format = ColorFormat.from_colorchoice_parent(solidFill)
         theme_color = MSO_THEME_COLOR.ACCENT_6
         expected_xml = (
-            a_solidFill()
-            .with_nsdecls()
-            .with_child(a_schemeClr().with_val("accent6"))
-            .xml()
+            a_solidFill().with_nsdecls().with_child(a_schemeClr().with_val("accent6")).xml()
         )
         return color_format, theme_color, expected_xml
 

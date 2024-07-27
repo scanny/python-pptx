@@ -1,26 +1,20 @@
-# encoding: utf-8
-
 """Step implementations for text frame-related features"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.text import MSO_AUTO_SIZE
 from pptx.util import Inches, Pt
-
-from helpers import test_pptx
-
 
 # given ===================================================
 
 
 @given("a TextFrame object as text_frame")
 def given_a_text_frame(context):
-    context.text_frame = (
-        Presentation(test_pptx("txt-text")).slides[0].shapes[0].text_frame
-    )
+    context.text_frame = Presentation(test_pptx("txt-text")).slides[0].shapes[0].text_frame
 
 
 @given("a TextFrame object containing {value} as text_frame")

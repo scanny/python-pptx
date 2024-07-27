@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Axis-related oxml objects."""
 
-from __future__ import unicode_literals
+from __future__ import annotations
 
 from pptx.enum.chart import XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
 from pptx.oxml.chart.shared import CT_Title

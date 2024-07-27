@@ -1,23 +1,17 @@
-# encoding: utf-8
+"""Gherkin step implementations for placeholder-related features."""
 
-"""
-Gherkin step implementations for placeholder-related features.
-"""
-
-from __future__ import absolute_import
+from __future__ import annotations
 
 import hashlib
 
-from behave import given, when, then
+from behave import given, then, when
+from helpers import saved_pptx_path, test_file, test_pptx, test_text
 
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.shapes.base import _PlaceholderFormat
-
-from helpers import saved_pptx_path, test_file, test_pptx, test_text
-
 
 # given ===================================================
 
@@ -32,9 +26,7 @@ def given_a_bullet_body_placeholder(context):
 
 @given("a known {placeholder_type} placeholder shape")
 def given_a_known_placeholder_shape(context, placeholder_type):
-    context.execute_steps(
-        "given an unpopulated %s placeholder shape" % placeholder_type
-    )
+    context.execute_steps("given an unpopulated %s placeholder shape" % placeholder_type)
 
 
 @given("a layout placeholder having directly set position and size")

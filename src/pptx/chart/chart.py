@@ -1,13 +1,14 @@
-# encoding: utf-8
-
 """Chart-related objects such as Chart and ChartTitle."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
-from pptx.compat import Sequence
 from pptx.dml.chtfmt import ChartFormat
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame
@@ -88,12 +89,7 @@ class Chart(PartElementProxy):
     @lazyproperty
     def font(self):
         """Font object controlling text format defaults for this chart."""
-        defRPr = (
-            self._chartSpace.get_or_add_txPr()
-            .p_lst[0]
-            .get_or_add_pPr()
-            .get_or_add_defRPr()
-        )
+        defRPr = self._chartSpace.get_or_add_txPr().p_lst[0].get_or_add_pPr().get_or_add_defRPr()
         return Font(defRPr)
 
     @property

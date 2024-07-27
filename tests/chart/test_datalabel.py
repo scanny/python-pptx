@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Unit test suite for the pptx.chart.datalabel module"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -279,9 +277,7 @@ class DescribeDataLabels(object):
         data_labels.number_format = new_value
         assert data_labels._element.xml == expected_xml
 
-    def it_knows_whether_its_number_format_is_linked(
-        self, number_format_is_linked_get_fixture
-    ):
+    def it_knows_whether_its_number_format_is_linked(self, number_format_is_linked_get_fixture):
         data_labels, expected_value = number_format_is_linked_get_fixture
         assert data_labels.number_format_is_linked is expected_value
 

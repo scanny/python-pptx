@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.oxml.slide` module."""
+
+from __future__ import annotations
 
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide
 

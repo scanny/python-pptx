@@ -1,16 +1,12 @@
-# encoding: utf-8
+"""Gherkin step implementations for chart features."""
 
-"""
-Gherkin step implementations for chart features.
-"""
-
-from __future__ import absolute_import, print_function
+from __future__ import annotations
 
 import hashlib
-
 from itertools import islice
 
 from behave import given, then, when
+from helpers import count, test_pptx
 
 from pptx import Presentation
 from pptx.chart.chart import Legend
@@ -18,9 +14,6 @@ from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyCha
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import Inches
-
-from helpers import count, test_pptx
-
 
 # given ===================================================
 

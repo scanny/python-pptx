@@ -1,9 +1,12 @@
-# encoding: utf-8
-
 """Slide and related objects."""
 
+from __future__ import annotations
+
+from typing import IO, TYPE_CHECKING, cast
+
 from pptx.enum.shapes import PROG_ID
-from pptx.opc.constants import CONTENT_TYPE as CT, RELATIONSHIP_TYPE as RT
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
@@ -13,6 +16,12 @@ from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from pptx.util import lazyproperty
 
+if TYPE_CHECKING:
+    from pptx.chart.data import ChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.media import Video
+    from pptx.parts.image import Image, ImagePart
+
 
 class BaseSlidePart(XmlPart):
     """Base class for slide parts.
@@ -21,15 +30,17 @@ class BaseSlidePart(XmlPart):
     notes-master, and handout-master parts.
     """
 
-    def get_image(self, rId):
-        """
-        Return an |Image| object containing the image related to this slide
-        by *rId*. Raises |KeyError| if no image is related by that id, which
-        would generally indicate a corrupted .pptx file.
-        """
-        return self.related_part(rId).image
+    _element: CT_Slide
 
-    def get_or_add_image_part(self, image_file):
+    def get_image(self, rId: str) -> Image:
+        """Return an |Image| object containing the image related to this slide by *rId*.
+
+        Raises |KeyError| if no image is related by that id, which would generally indicate a
+        corrupted .pptx file.
+        """
+        return cast("ImagePart", self.related_part(rId)).image
+
+    def get_or_add_image_part(self, image_file: str | IO[bytes]):
         """Return `(image_part, rId)` pair corresponding to `image_file`.
 
         The returned |ImagePart| object contains the image in `image_file` and is
@@ -41,10 +52,8 @@ class BaseSlidePart(XmlPart):
         return image_part, rId
 
     @property
-    def name(self):
-        """
-        Internal name of this slide.
-        """
+    def name(self) -> str:
+        """Internal name of this slide."""
         return self._element.cSld.name
 
 
@@ -159,7 +168,7 @@ class SlidePart(BaseSlidePart):
         slide_part.relate_to(slide_layout_part, RT.SLIDE_LAYOUT)
         return slide_part
 
-    def add_chart_part(self, chart_type, chart_data):
+    def add_chart_part(self, chart_type: XL_CHART_TYPE, chart_data: ChartData):
         """Return str rId of new |ChartPart| object containing chart of `chart_type`.
 
         The chart depicts `chart_data` and is related to the slide contained in this
@@ -167,7 +176,9 @@ class SlidePart(BaseSlidePart):
         """
         return self.relate_to(ChartPart.new(chart_type, chart_data, self._package), RT.CHART)
 
-    def add_embedded_ole_object_part(self, prog_id, ole_object_file):
+    def add_embedded_ole_object_part(
+        self, prog_id: PROG_ID | str, ole_object_file: str | IO[bytes]
+    ):
         """Return rId of newly-added OLE-object part formed from `ole_object_file`."""
         relationship_type = RT.PACKAGE if isinstance(prog_id, PROG_ID) else RT.OLE_OBJECT
         return self.relate_to(
@@ -177,7 +188,7 @@ class SlidePart(BaseSlidePart):
             relationship_type,
         )
 
-    def get_or_add_video_media_part(self, video):
+    def get_or_add_video_media_part(self, video: Video) -> tuple[str, str]:
         """Return rIds for media and video relationships to media part.
 
         A new |MediaPart| object is created if it does not already exist
@@ -207,11 +218,11 @@ class SlidePart(BaseSlidePart):
         return True
 
     @lazyproperty
-    def notes_slide(self):
-        """
-        The |NotesSlide| instance associated with this slide. If the slide
-        does not have a notes slide, a new one is created. The same single
-        instance is returned on each call.
+    def notes_slide(self) -> NotesSlide:
+        """The |NotesSlide| instance associated with this slide.
+
+        If the slide does not have a notes slide, a new one is created. The same single instance
+        is returned on each call.
         """
         try:
             notes_slide_part = self.part_related_by(RT.NOTES_SLIDE)
@@ -227,19 +238,14 @@ class SlidePart(BaseSlidePart):
         return Slide(self._element, self)
 
     @property
-    def slide_id(self):
-        """
-        Return the slide identifier stored in the presentation part for this
-        slide part.
-        """
+    def slide_id(self) -> int:
+        """Return the slide identifier stored in the presentation part for this slide part."""
         presentation_part = self.package.presentation_part
         return presentation_part.slide_id(self)
 
     @property
-    def slide_layout(self):
-        """
-        |SlideLayout| object the slide in this part inherits from.
-        """
+    def slide_layout(self) -> SlideLayout:
+        """|SlideLayout| object the slide in this part inherits appearance from."""
         slide_layout_part = self.part_related_by(RT.SLIDE_LAYOUT)
         return slide_layout_part.slide_layout
 
@@ -268,10 +274,8 @@ class SlideLayoutPart(BaseSlidePart):
         return SlideLayout(self._element, self)
 
     @property
-    def slide_master(self):
-        """
-        Slide master from which this slide layout inherits properties.
-        """
+    def slide_master(self) -> SlideMaster:
+        """Slide master from which this slide layout inherits properties."""
         return self.part_related_by(RT.SLIDE_MASTER).slide_master
 
 
@@ -281,11 +285,8 @@ class SlideMasterPart(BaseSlidePart):
     Corresponds to package files ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
 
-    def related_slide_layout(self, rId):
-        """
-        Return the |SlideLayout| object of the related |SlideLayoutPart|
-        corresponding to relationship key *rId*.
-        """
+    def related_slide_layout(self, rId: str) -> SlideLayout:
+        """Return |SlideLayout| related to this slide-master by key `rId`."""
         return self.related_part(rId).slide_layout
 
     @lazyproperty

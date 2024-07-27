@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for `pptx.presentation` module."""
 
-"""
-Test suite for pptx.presentation module.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -71,9 +67,7 @@ class DescribePresentation(object):
     def it_provides_access_to_its_slide_masters(self, masters_fixture):
         prs, SlideMasters_, slide_masters_, expected_xml = masters_fixture
         slide_masters = prs.slide_masters
-        SlideMasters_.assert_called_once_with(
-            prs._element.xpath("p:sldMasterIdLst")[0], prs
-        )
+        SlideMasters_.assert_called_once_with(prs._element.xpath("p:sldMasterIdLst")[0], prs)
         assert slide_masters is slide_masters_
         assert prs._element.xml == expected_xml
 
@@ -93,9 +87,7 @@ class DescribePresentation(object):
     @pytest.fixture
     def layouts_fixture(self, masters_prop_, slide_layouts_):
         prs = Presentation(None, None)
-        masters_prop_.return_value.__getitem__.return_value.slide_layouts = (
-            slide_layouts_
-        )
+        masters_prop_.return_value.__getitem__.return_value.slide_layouts = slide_layouts_
         return prs, slide_layouts_
 
     @pytest.fixture
@@ -134,9 +126,7 @@ class DescribePresentation(object):
         file_ = "foobar.docx"
         return prs, file_, prs_part_
 
-    @pytest.fixture(
-        params=[("p:presentation", None), ("p:presentation/p:sldSz{cy=42}", 42)]
-    )
+    @pytest.fixture(params=[("p:presentation", None), ("p:presentation/p:sldSz{cy=42}", 42)])
     def sld_height_get_fixture(self, request):
         prs_cxml, expected_value = request.param
         prs = Presentation(element(prs_cxml), None)
@@ -154,9 +144,7 @@ class DescribePresentation(object):
         expected_xml = xml(expected_cxml)
         return prs, 914400, expected_xml
 
-    @pytest.fixture(
-        params=[("p:presentation", None), ("p:presentation/p:sldSz{cx=42}", 42)]
-    )
+    @pytest.fixture(params=[("p:presentation", None), ("p:presentation/p:sldSz{cx=42}", 42)])
     def sld_width_get_fixture(self, request):
         prs_cxml, expected_value = request.param
         prs = Presentation(element(prs_cxml), None)
@@ -224,9 +212,7 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def SlideMasters_(self, request, slide_masters_):
-        return class_mock(
-            request, "pptx.presentation.SlideMasters", return_value=slide_masters_
-        )
+        return class_mock(request, "pptx.presentation.SlideMasters", return_value=slide_masters_)
 
     @pytest.fixture
     def slide_master_(self, request):

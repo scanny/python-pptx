@@ -1,6 +1,8 @@
-# encoding: utf-8
-
 """Overall .pptx package."""
+
+from __future__ import annotations
+
+from typing import IO, Iterator
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
@@ -15,7 +17,7 @@ class Package(OpcPackage):
     """An overall .pptx package."""
 
     @lazyproperty
-    def core_properties(self):
+    def core_properties(self) -> CorePropertiesPart:
         """Instance of |CoreProperties| holding read/write Dublin Core doc properties.
 
         Creates a default core properties part if one is not present (not common).
@@ -27,7 +29,7 @@ class Package(OpcPackage):
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
 
-    def get_or_add_image_part(self, image_file):
+    def get_or_add_image_part(self, image_file: str | IO[bytes]):
         """
         Return an |ImagePart| object containing the image in *image_file*. If
         the image part already exists in this package, it is reused,
@@ -43,10 +45,10 @@ class Package(OpcPackage):
         """
         return self._media_parts.get_or_add_media_part(media)
 
-    def next_image_partname(self, ext):
-        """
-        Return a |PackURI| instance representing the next available image
-        partname, by sequence number. *ext* is used as the extention on the
+    def next_image_partname(self, ext: str) -> PackURI:
+        """Return a |PackURI| instance representing the next available image partname.
+
+        Partname uses the next available sequence number. *ext* is used as the extention on the
         returned partname.
         """
 
@@ -127,10 +129,8 @@ class _ImageParts(object):
         super(_ImageParts, self).__init__()
         self._package = package
 
-    def __iter__(self):
-        """
-        Generate a reference to each |ImagePart| object in the package.
-        """
+    def __iter__(self) -> Iterator[ImagePart]:
+        """Generate a reference to each |ImagePart| object in the package."""
         image_parts = []
         for rel in self._package.iter_rels():
             if rel.is_external:
@@ -143,7 +143,7 @@ class _ImageParts(object):
             image_parts.append(image_part)
             yield image_part
 
-    def get_or_add_image_part(self, image_file):
+    def get_or_add_image_part(self, image_file: str | IO[bytes]) -> ImagePart:
         """Return |ImagePart| object containing the image in `image_file`.
 
         `image_file` can be either a path to an image file or a file-like object
@@ -152,9 +152,9 @@ class _ImageParts(object):
         """
         image = Image.from_file(image_file)
         image_part = self._find_by_sha1(image.sha1)
-        return ImagePart.new(self._package, image) if image_part is None else image_part
+        return image_part if image_part else ImagePart.new(self._package, image)
 
-    def _find_by_sha1(self, sha1):
+    def _find_by_sha1(self, sha1: str) -> ImagePart | None:
         """
         Return an |ImagePart| object belonging to this package or |None| if
         no matching image part is found. The image part is identified by the

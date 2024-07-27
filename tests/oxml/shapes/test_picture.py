@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.oxml.shapes.picture` module."""
+
+from __future__ import annotations
 
 import pytest
 

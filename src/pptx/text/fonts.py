@@ -1,27 +1,24 @@
-# encoding: utf-8
-
 """Objects related to system font file lookup."""
+
+from __future__ import annotations
 
 import os
 import sys
-
 from struct import calcsize, unpack_from
 
-from ..util import lazyproperty
+from pptx.util import lazyproperty
 
 
 class FontFiles(object):
-    """
-    A class-based singleton serving as a lazy cache for system font details.
-    """
+    """A class-based singleton serving as a lazy cache for system font details."""
 
     _font_files = None
 
     @classmethod
-    def find(cls, family_name, is_bold, is_italic):
-        """
-        Return the absolute path to the installed OpenType font having
-        *family_name* and the styles *is_bold* and *is_italic*.
+    def find(cls, family_name: str, is_bold: bool, is_italic: bool) -> str:
+        """Return the absolute path to an installed OpenType font.
+
+        File is matched by `family_name` and the styles `is_bold` and `is_italic`.
         """
         if cls._font_files is None:
             cls._font_files = cls._installed_fonts()
@@ -327,9 +324,7 @@ class _NameTable(_BaseTable):
         table_bytes = self._table_bytes
 
         for idx in range(count):
-            platform_id, name_id, name = self._read_name(
-                table_bytes, idx, strings_offset
-            )
+            platform_id, name_id, name = self._read_name(table_bytes, idx, strings_offset)
             if name is None:
                 continue
             yield ((platform_id, name_id), name)
@@ -360,12 +355,8 @@ class _NameTable(_BaseTable):
         `idx` position in `bufr`. `strings_offset` is the index into `bufr` where actual
         name strings begin. The returned name is a unicode string.
         """
-        platform_id, enc_id, lang_id, name_id, length, str_offset = self._name_header(
-            bufr, idx
-        )
-        name = self._read_name_text(
-            bufr, platform_id, enc_id, strings_offset, str_offset, length
-        )
+        platform_id, enc_id, lang_id, name_id, length, str_offset = self._name_header(bufr, idx)
+        name = self._read_name_text(bufr, platform_id, enc_id, strings_offset, str_offset, length)
         return platform_id, name_id, name
 
     def _read_name_text(

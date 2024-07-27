@@ -1,29 +1,24 @@
-# encoding: utf-8
-
 """Utility functions for loading files for unit testing."""
 
 import os
 import sys
 
-
 _thisdir = os.path.split(__file__)[0]
 test_file_dir = os.path.abspath(os.path.join(_thisdir, "..", "test_files"))
 
 
-def absjoin(*paths):
+def absjoin(*paths: str):
     return os.path.abspath(os.path.join(*paths))
 
 
-def snippet_bytes(snippet_file_name):
+def snippet_bytes(snippet_file_name: str):
     """Return bytes read from snippet file having `snippet_file_name`."""
-    snippet_file_path = os.path.join(
-        test_file_dir, "snippets", "%s.txt" % snippet_file_name
-    )
+    snippet_file_path = os.path.join(test_file_dir, "snippets", "%s.txt" % snippet_file_name)
     with open(snippet_file_path, "rb") as f:
         return f.read().strip()
 
 
-def snippet_seq(name, offset=0, count=sys.maxsize):
+def snippet_seq(name: str, offset: int = 0, count: int = sys.maxsize):
     """
     Return a tuple containing the unicode text snippets read from the snippet
     file having *name*. Snippets are delimited by a blank line. If specified,
@@ -37,27 +32,25 @@ def snippet_seq(name, offset=0, count=sys.maxsize):
     return tuple(snippets[start:end])
 
 
-def snippet_text(snippet_file_name):
+def snippet_text(snippet_file_name: str):
     """
     Return the unicode text read from the test snippet file having
     *snippet_file_name*.
     """
-    snippet_file_path = os.path.join(
-        test_file_dir, "snippets", "%s.txt" % snippet_file_name
-    )
+    snippet_file_path = os.path.join(test_file_dir, "snippets", "%s.txt" % snippet_file_name)
     with open(snippet_file_path, "rb") as f:
         snippet_bytes = f.read()
     return snippet_bytes.decode("utf-8")
 
 
-def testfile(name):
+def testfile(name: str):
     """
     Return the absolute path to test file having *name*.
     """
     return absjoin(test_file_dir, name)
 
 
-def testfile_bytes(*segments):
+def testfile_bytes(*segments: str):
     """Return bytes of file at path formed by adding `segments` to test file dir."""
     path = os.path.join(test_file_dir, *segments)
     with open(path, "rb") as f:

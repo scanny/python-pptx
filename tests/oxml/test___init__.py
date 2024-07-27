@@ -1,13 +1,8 @@
-# encoding: utf-8
+"""Test suite for pptx.oxml.__init__.py module, primarily XML parser-related."""
 
-"""
-Test suite for pptx.oxml.__init__.py module, primarily XML parser-related.
-"""
-
-from __future__ import print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
-
 from lxml import etree
 
 from pptx.oxml import oxml_parser, parse_xml, register_element_cls

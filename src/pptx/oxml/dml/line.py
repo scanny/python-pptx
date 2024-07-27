@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """lxml custom element classes for DrawingML line-related XML elements."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from pptx.enum.dml import MSO_LINE_DASH_STYLE
 from pptx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute

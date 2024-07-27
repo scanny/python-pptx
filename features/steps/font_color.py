@@ -1,19 +1,13 @@
-# encoding: utf-8
+"""Gherkin step implementations for font color features."""
 
-"""
-Gherkin step implementations for font color features
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
-
-from helpers import test_pptx
-
 
 font_color_pptx_path = test_pptx("font-color")
 
@@ -31,9 +25,7 @@ def step_given_font_with_color_type(context, color_type):
 
 @given("a font with a color brightness setting of {setting}")
 def step_font_with_color_brightness(context, setting):
-    textbox_idx = {"no brightness adjustment": 2, "25% darker": 3, "40% lighter": 4}[
-        setting
-    ]
+    textbox_idx = {"no brightness adjustment": 2, "25% darker": 3, "40% lighter": 4}[setting]
     context.prs = Presentation(font_color_pptx_path)
     textbox = context.prs.slides[0].shapes[textbox_idx]
     context.font = textbox.text_frame.paragraphs[0].runs[0].font

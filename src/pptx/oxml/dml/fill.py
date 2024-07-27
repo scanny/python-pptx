@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""lxml custom element classes for DrawingML-related XML elements."""
 
-"""
-lxml custom element classes for DrawingML-related XML elements.
-"""
-
-from __future__ import absolute_import
+from __future__ import annotations
 
 from pptx.enum.dml import MSO_PATTERN_TYPE
 from pptx.oxml import parse_xml
@@ -165,17 +161,13 @@ class CT_PatternFillProperties(BaseOxmlElement):
 
     def _new_bgClr(self):
         """Override default to add minimum subtree."""
-        xml = (
-            "<a:bgClr %s>\n" ' <a:srgbClr val="FFFFFF"/>\n' "</a:bgClr>\n"
-        ) % nsdecls("a")
+        xml = ("<a:bgClr %s>\n" ' <a:srgbClr val="FFFFFF"/>\n' "</a:bgClr>\n") % nsdecls("a")
         bgClr = parse_xml(xml)
         return bgClr
 
     def _new_fgClr(self):
         """Override default to add minimum subtree."""
-        xml = (
-            "<a:fgClr %s>\n" ' <a:srgbClr val="000000"/>\n' "</a:fgClr>\n"
-        ) % nsdecls("a")
+        xml = ("<a:fgClr %s>\n" ' <a:srgbClr val="000000"/>\n' "</a:fgClr>\n") % nsdecls("a")
         fgClr = parse_xml(xml)
         return fgClr
 

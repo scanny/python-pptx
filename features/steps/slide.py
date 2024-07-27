@@ -1,15 +1,11 @@
-# encoding: utf-8
-
 """Gherkin step implementations for slide-related features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then
-
-from pptx import Presentation
-
 from helpers import test_pptx
 
+from pptx import Presentation
 
 # given ===================================================
 
@@ -144,9 +140,7 @@ def then_slide_background_is_a_Background_object(context):
 def then_slide_follow_master_background_is_value(context, value):
     expected_value = {"True": True, "False": False}[value]
     actual_value = context.slide.follow_master_background
-    assert actual_value is expected_value, (
-        "slide.follow_master_background is %s" % actual_value
-    )
+    assert actual_value is expected_value, "slide.follow_master_background is %s" % actual_value
 
 
 @then("slide.has_notes_slide is {value}")
@@ -173,18 +167,14 @@ def then_slide_notes_slide_is_a_NotesSlide_object(context):
 def then_slide_placeholders_is_a_clsname_object(context, clsname):
     actual_clsname = context.slide.placeholders.__class__.__name__
     expected_clsname = clsname
-    assert actual_clsname == expected_clsname, (
-        "slide.placeholders is a %s object" % actual_clsname
-    )
+    assert actual_clsname == expected_clsname, "slide.placeholders is a %s object" % actual_clsname
 
 
 @then("slide.shapes is a {clsname} object")
 def then_slide_shapes_is_a_clsname_object(context, clsname):
     actual_clsname = context.slide.shapes.__class__.__name__
     expected_clsname = clsname
-    assert actual_clsname == expected_clsname, (
-        "slide.shapes is a %s object" % actual_clsname
-    )
+    assert actual_clsname == expected_clsname, "slide.shapes is a %s object" % actual_clsname
 
 
 @then("slide.slide_id is 256")

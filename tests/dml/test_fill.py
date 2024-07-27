@@ -1,14 +1,16 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
 """Unit-test suite for `pptx.dml.fill` module."""
+
+from __future__ import annotations
 
 import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import (
+    FillFormat,
     _BlipFill,
     _Fill,
-    FillFormat,
     _GradFill,
     _GradientStop,
     _GradientStops,
@@ -94,9 +96,7 @@ class DescribeFillFormat(object):
 
         assert grad_fill_.gradient_angle == 42.24
 
-    def it_provides_access_to_the_gradient_stops(
-        self, type_prop_, grad_fill_, gradient_stops_
-    ):
+    def it_provides_access_to_the_gradient_stops(self, type_prop_, grad_fill_, gradient_stops_):
         type_prop_.return_value = MSO_FILL.GRADIENT
         grad_fill_.gradient_stops = gradient_stops_
         fill = FillFormat(None, grad_fill_)
@@ -618,9 +618,7 @@ class Describe_PattFill(object):
 
     @pytest.fixture
     def ColorFormat_from_colorchoice_parent_(self, request):
-        return method_mock(
-            request, ColorFormat, "from_colorchoice_parent", autospec=False
-        )
+        return method_mock(request, ColorFormat, "from_colorchoice_parent", autospec=False)
 
     @pytest.fixture
     def color_(self, request):
@@ -662,9 +660,7 @@ class Describe_SolidFill(object):
 
     @pytest.fixture
     def ColorFormat_from_colorchoice_parent_(self, request):
-        return method_mock(
-            request, ColorFormat, "from_colorchoice_parent", autospec=False
-        )
+        return method_mock(request, ColorFormat, "from_colorchoice_parent", autospec=False)
 
     @pytest.fixture
     def color_(self, request):

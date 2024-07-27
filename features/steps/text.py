@@ -1,17 +1,13 @@
-# encoding: utf-8
-
 """Gherkin step implementations for text-related features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from behave import given, when, then
+from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Emu
-
-from helpers import test_pptx
-
 
 # given ===================================================
 
@@ -38,9 +34,7 @@ def given_a_paragraph_having_line_spacing_of_setting(context, setting):
 
 
 @given("a paragraph having space {before_after} of {setting}")
-def given_a_paragraph_having_space_before_after_of_setting(
-    context, before_after, setting
-):
+def given_a_paragraph_having_space_before_after_of_setting(context, before_after, setting):
     slide_idx = {"before": 0, "after": 1}[before_after]
     paragraph_idx = {"no explicit setting": 0, "6 pt": 1}[setting]
     prs = Presentation(test_pptx("txt-paragraph-spacing"))
@@ -126,9 +120,7 @@ def when_I_assign_value_to_paragraph_line_spacing(context, value_str):
 
 
 @when("I assign {value_str} to paragraph.space_{before_after}")
-def when_I_assign_value_to_paragraph_space_before_after(
-    context, value_str, before_after
-):
+def when_I_assign_value_to_paragraph_space_before_after(context, value_str, before_after):
     value = {"76200": 76200, "38100": 38100, "None": None}[value_str]
     attr_name = {"before": "space_before", "after": "space_after"}[before_after]
     paragraph = context.paragraph

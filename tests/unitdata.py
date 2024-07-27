@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Shared objects for unit data builder modules."""
 
-"""
-Shared objects for unit data builder modules
-"""
-
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
 
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls

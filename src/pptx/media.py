@@ -1,40 +1,38 @@
-# encoding: utf-8
-
 """Objects related to images, audio, and video."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import base64
 import hashlib
 import os
+from typing import IO
 
-from .compat import is_string
-from .opc.constants import CONTENT_TYPE as CT
-from .util import lazyproperty
+from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.util import lazyproperty
 
 
 class Video(object):
     """Immutable value object representing a video such as MP4."""
 
-    def __init__(self, blob, mime_type, filename):
+    def __init__(self, blob: bytes, mime_type: str | None, filename: str | None):
         super(Video, self).__init__()
         self._blob = blob
         self._mime_type = mime_type
         self._filename = filename
 
     @classmethod
-    def from_blob(cls, blob, mime_type, filename=None):
+    def from_blob(cls, blob: bytes, mime_type: str | None, filename: str | None = None):
         """Return a new |Video| object loaded from image binary in *blob*."""
         return cls(blob, mime_type, filename)
 
     @classmethod
-    def from_path_or_file_like(cls, movie_file, mime_type):
+    def from_path_or_file_like(cls, movie_file: str | IO[bytes], mime_type: str | None) -> Video:
         """Return a new |Video| object containing video in *movie_file*.
 
         *movie_file* can be either a path (string) or a file-like
         (e.g. StringIO) object.
         """
-        if is_string(movie_file):
+        if isinstance(movie_file, str):
             # treat movie_file as a path
             with open(movie_file, "rb") as f:
                 blob = f.read()
@@ -79,7 +77,7 @@ class Video(object):
         }.get(self._mime_type, "vid")
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         """Return a filename.ext string appropriate to this video.
 
         The base filename from the original path is used if this image was

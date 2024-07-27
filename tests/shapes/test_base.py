@@ -1,6 +1,10 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
 """Unit-test suite for `pptx.shapes.base` module."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
@@ -34,6 +38,11 @@ from ..oxml.unitdata.shape import (
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, instance_mock, loose_mock
 
+if TYPE_CHECKING:
+    from pptx.opc.package import XmlPart
+    from pptx.oxml.shapes import ShapeElement
+    from pptx.types import ProvidesPart
+
 
 class DescribeBaseShape(object):
     """Unit-test suite for `pptx.shapes.base.BaseShape` objects."""
@@ -57,10 +66,47 @@ class DescribeBaseShape(object):
         shape.name = new_value
         assert shape._element.xml == expected_xml
 
-    def it_has_a_position(self, position_get_fixture):
-        shape, expected_left, expected_top = position_get_fixture
-        assert shape.left == expected_left
-        assert shape.top == expected_top
+    @pytest.mark.parametrize(
+        ("shape_cxml", "expected_x", "expected_y"),
+        [
+            ("p:cxnSp/p:spPr", None, None),
+            ("p:cxnSp/p:spPr/a:xfrm", None, None),
+            ("p:cxnSp/p:spPr/a:xfrm/a:off{x=123,y=456}", 123, 456),
+            ("p:graphicFrame/p:xfrm", None, None),
+            ("p:graphicFrame/p:xfrm/a:off{x=123,y=456}", 123, 456),
+            ("p:grpSp/p:grpSpPr", None, None),
+            ("p:grpSp/p:grpSpPr/a:xfrm/a:off{x=123,y=456}", 123, 456),
+            ("p:pic/p:spPr", None, None),
+            ("p:pic/p:spPr/a:xfrm", None, None),
+            ("p:pic/p:spPr/a:xfrm/a:off{x=123,y=456}", 123, 456),
+            ("p:sp/p:spPr", None, None),
+            ("p:sp/p:spPr/a:xfrm", None, None),
+            ("p:sp/p:spPr/a:xfrm/a:off{x=123,y=456}", 123, 456),
+        ],
+    )
+    def it_has_a_position(
+        self,
+        shape_cxml: str,
+        expected_x: int | None,
+        expected_y: int | None,
+        provides_part: ProvidesPart,
+    ):
+        shape_elm = cast("ShapeElement", element(shape_cxml))
+
+        shape = BaseShape(shape_elm, provides_part)
+
+        assert shape.left == expected_x
+        assert shape.top == expected_y
+
+    @pytest.fixture
+    def provides_part(self) -> ProvidesPart:
+
+        class FakeProvidesPart:
+            @property
+            def part(self) -> XmlPart:
+                raise NotImplementedError
+
+        return FakeProvidesPart()
 
     def it_can_change_its_position(self, position_set_fixture):
         shape, left, top, expected_xml = position_set_fixture
@@ -274,28 +320,6 @@ class DescribeBaseShape(object):
 
     @pytest.fixture(
         params=[
-            ("sp", False),
-            ("sp_with_off", True),
-            ("pic", False),
-            ("pic_with_off", True),
-            ("graphicFrame", False),
-            ("graphicFrame_with_off", True),
-            ("grpSp", False),
-            ("grpSp_with_off", True),
-            ("cxnSp", False),
-            ("cxnSp_with_off", True),
-        ]
-    )
-    def position_get_fixture(self, request, left, top):
-        shape_elm_fixt_name, expect_values = request.param
-        shape_elm = request.getfixturevalue(shape_elm_fixt_name)
-        shape = BaseShape(shape_elm, None)
-        if not expect_values:
-            left = top = None
-        return shape, left, top
-
-    @pytest.fixture(
-        params=[
             ("sp", "sp_with_off"),
             ("pic", "pic_with_off"),
             ("graphicFrame", "graphicFrame_with_off"),
@@ -363,9 +387,7 @@ class DescribeBaseShape(object):
 
     @pytest.fixture
     def ActionSetting_(self, request, action_setting_):
-        return class_mock(
-            request, "pptx.shapes.base.ActionSetting", return_value=action_setting_
-        )
+        return class_mock(request, "pptx.shapes.base.ActionSetting", return_value=action_setting_)
 
     @pytest.fixture
     def action_setting_(self, request):
@@ -381,9 +403,7 @@ class DescribeBaseShape(object):
             a_cxnSp()
             .with_nsdecls()
             .with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
-                )
+                an_spPr().with_child(an_xfrm().with_child(an_ext().with_cx(width).with_cy(height)))
             )
         ).element
 
@@ -393,9 +413,7 @@ class DescribeBaseShape(object):
             a_cxnSp()
             .with_nsdecls()
             .with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
-                )
+                an_spPr().with_child(an_xfrm().with_child(an_off().with_x(left).with_y(top)))
             )
         ).element
 
@@ -442,9 +460,7 @@ class DescribeBaseShape(object):
             a_grpSp()
             .with_nsdecls("p", "a")
             .with_child(
-                a_grpSpPr().with_child(
-                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
-                )
+                a_grpSpPr().with_child(an_xfrm().with_child(an_off().with_x(left).with_y(top)))
             )
         ).element
 
@@ -466,9 +482,7 @@ class DescribeBaseShape(object):
             a_pic()
             .with_nsdecls()
             .with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
-                )
+                an_spPr().with_child(an_xfrm().with_child(an_off().with_x(left).with_y(top)))
             )
         ).element
 
@@ -478,9 +492,7 @@ class DescribeBaseShape(object):
             a_pic()
             .with_nsdecls()
             .with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
-                )
+                an_spPr().with_child(an_xfrm().with_child(an_ext().with_cx(width).with_cy(height)))
             )
         ).element
 
@@ -536,9 +548,7 @@ class DescribeBaseShape(object):
             an_sp()
             .with_nsdecls()
             .with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(an_ext().with_cx(width).with_cy(height))
-                )
+                an_spPr().with_child(an_xfrm().with_child(an_ext().with_cx(width).with_cy(height)))
             )
         ).element
 
@@ -548,9 +558,7 @@ class DescribeBaseShape(object):
             an_sp()
             .with_nsdecls()
             .with_child(
-                an_spPr().with_child(
-                    an_xfrm().with_child(an_off().with_x(left).with_y(top))
-                )
+                an_spPr().with_child(an_xfrm().with_child(an_off().with_x(left).with_y(top)))
             )
         ).element
 

@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.parts.presentation` module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -62,9 +62,7 @@ class DescribePresentationPart(object):
 
         The notes master present case is just above.
         """
-        NotesMasterPart_ = class_mock(
-            request, "pptx.parts.presentation.NotesMasterPart"
-        )
+        NotesMasterPart_ = class_mock(request, "pptx.parts.presentation.NotesMasterPart")
         NotesMasterPart_.create_default.return_value = notes_master_part_
         part_related_by_.side_effect = KeyError
         prs_part = PresentationPart(None, None, package_, None)
@@ -72,9 +70,7 @@ class DescribePresentationPart(object):
         notes_master_part = prs_part.notes_master_part
 
         NotesMasterPart_.create_default.assert_called_once_with(package_)
-        relate_to_.assert_called_once_with(
-            prs_part, notes_master_part_, RT.NOTES_MASTER
-        )
+        relate_to_.assert_called_once_with(prs_part, notes_master_part_, RT.NOTES_MASTER)
         assert notes_master_part is notes_master_part_
 
     def it_provides_access_to_its_notes_master(self, request, notes_master_part_):
@@ -100,12 +96,8 @@ class DescribePresentationPart(object):
         related_part_.assert_called_once_with(prs_part, "rId42")
         assert slide is slide_
 
-    def it_provides_access_to_a_related_master(
-        self, request, slide_master_, related_part_
-    ):
-        slide_master_part_ = instance_mock(
-            request, SlideMasterPart, slide_master=slide_master_
-        )
+    def it_provides_access_to_a_related_master(self, request, slide_master_, related_part_):
+        slide_master_part_ = instance_mock(request, SlideMasterPart, slide_master=slide_master_)
         related_part_.return_value = slide_master_part_
         prs_part = PresentationPart(None, None, None, None)
 
@@ -131,14 +123,10 @@ class DescribePresentationPart(object):
         PresentationPart(None, None, package_, None).save("prs.pptx")
         package_.save.assert_called_once_with("prs.pptx")
 
-    def it_can_add_a_new_slide(
-        self, request, package_, slide_part_, slide_, relate_to_
-    ):
+    def it_can_add_a_new_slide(self, request, package_, slide_part_, slide_, relate_to_):
         slide_layout_ = instance_mock(request, SlideLayout)
         partname = PackURI("/ppt/slides/slide9.xml")
-        property_mock(
-            request, PresentationPart, "_next_slide_partname", return_value=partname
-        )
+        property_mock(request, PresentationPart, "_next_slide_partname", return_value=partname)
         SlidePart_ = class_mock(request, "pptx.parts.presentation.SlidePart")
         SlidePart_.new.return_value = slide_part_
         relate_to_.return_value = "rId42"
@@ -181,9 +169,7 @@ class DescribePresentationPart(object):
             prs_part.slide_id(slide_part_)
 
     @pytest.mark.parametrize("is_present", (True, False))
-    def it_finds_a_slide_by_slide_id(
-        self, is_present, slide_, slide_part_, related_part_
-    ):
+    def it_finds_a_slide_by_slide_id(self, is_present, slide_, slide_part_, related_part_):
         prs_elm = element(
             "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="
             "b,id=257},p:sldId{r:id=c,id=258})"

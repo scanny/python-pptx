@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Axis-related chart objects."""
+
+from __future__ import annotations
 
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (

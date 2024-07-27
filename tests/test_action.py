@@ -1,15 +1,13 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.action` module."""
 
-from __future__ import unicode_literals
+from __future__ import annotations
 
 import pytest
 
 from pptx.action import ActionSetting, Hyperlink
 from pptx.enum.action import PP_ACTION
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import Part
+from pptx.opc.package import XmlPart
 from pptx.parts.slide import SlidePart
 from pptx.slide import Slide
 
@@ -51,8 +49,7 @@ class DescribeActionSetting(object):
         _clear_click_action_.assert_called_once_with(action_setting)
         part_.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
         assert action_setting._element.xml == xml(
-            "p:cNvPr{a:b=c,r:s=t}/a:hlinkClick{action=ppaction://hlinksldjump,r:id=rI"
-            "d42}",
+            "p:cNvPr{a:b=c,r:s=t}/a:hlinkClick{action=ppaction://hlinksldjump,r:id=rI" "d42}",
         )
 
     def but_it_clears_the_target_slide_if_None_is_assigned(self, _clear_click_action_):
@@ -209,9 +206,7 @@ class DescribeActionSetting(object):
         return action_setting, expected_value
 
     @pytest.fixture(params=[(PP_ACTION.NEXT_SLIDE, 2), (PP_ACTION.PREVIOUS_SLIDE, 0)])
-    def target_raise_fixture(
-        self, request, action_prop_, part_prop_, _slide_index_prop_
-    ):
+    def target_raise_fixture(self, request, action_prop_, part_prop_, _slide_index_prop_):
         action_type, slide_idx = request.param
         action_setting = ActionSetting(None, None)
         action_prop_.return_value = action_type
@@ -240,7 +235,7 @@ class DescribeActionSetting(object):
 
     @pytest.fixture
     def part_(self, request):
-        return instance_mock(request, Part)
+        return instance_mock(request, XmlPart)
 
     @pytest.fixture
     def part_prop_(self, request):

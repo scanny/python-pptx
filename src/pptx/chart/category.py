@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """Category-related objects.
 
 The |category.Categories| object is returned by ``Plot.categories`` and contains zero or
@@ -8,9 +6,9 @@ associated with the plot. Categories can be hierarchical, so there are members a
 discovery of the depth of that hierarchy and providing means to navigate it.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from pptx.compat import Sequence
+from collections.abc import Sequence
 
 
 class Categories(Sequence):

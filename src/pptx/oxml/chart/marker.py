@@ -1,14 +1,10 @@
-# encoding: utf-8
+"""Series-related oxml objects."""
 
-"""
-Series-related oxml objects.
-"""
+from __future__ import annotations
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from ...enum.chart import XL_MARKER_STYLE
-from ..simpletypes import ST_MarkerSize
-from ..xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
+from pptx.enum.chart import XL_MARKER_STYLE
+from pptx.oxml.simpletypes import ST_MarkerSize
+from pptx.oxml.xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrOne
 
 
 class CT_Marker(BaseOxmlElement):

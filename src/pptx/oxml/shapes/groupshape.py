@@ -1,8 +1,8 @@
-# encoding: utf-8
-
 """lxml custom element classes for shape-tree-related XML elements."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable, Iterator
 
 from pptx.enum.shapes import MSO_CONNECTOR_TYPE
 from pptx.oxml import parse_xml
@@ -15,15 +15,21 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 from pptx.util import Emu
 
+if TYPE_CHECKING:
+    from pptx.enum.shapes import PP_PLACEHOLDER
+    from pptx.oxml.shapes import ShapeElement
+    from pptx.oxml.shapes.shared import CT_Transform2D
+
 
 class CT_GroupShape(BaseShapeElement):
-    """
-    Used for the shape tree (``<p:spTree>``) element as well as the group
-    shape (``<p:grpSp>``) element.
-    """
+    """Used for shape tree (`p:spTree`) as well as the group shape (`p:grpSp`) elements."""
 
-    nvGrpSpPr = OneAndOnlyOne("p:nvGrpSpPr")
-    grpSpPr = OneAndOnlyOne("p:grpSpPr")
+    nvGrpSpPr: CT_GroupShapeNonVisual = OneAndOnlyOne(  # pyright: ignore[reportAssignmentType]
+        "p:nvGrpSpPr"
+    )
+    grpSpPr: CT_GroupShapeProperties = OneAndOnlyOne(  # pyright: ignore[reportAssignmentType]
+        "p:grpSpPr"
+    )
 
     _shape_tags = (
         qn("p:sp"),
@@ -34,26 +40,33 @@ class CT_GroupShape(BaseShapeElement):
         qn("p:contentPart"),
     )
 
-    def add_autoshape(self, id_, name, prst, x, y, cx, cy):
-        """
-        Append a new ``<p:sp>`` shape to the group/shapetree having the
-        properties specified in call.
-        """
+    def add_autoshape(
+        self, id_: int, name: str, prst: str, x: int, y: int, cx: int, cy: int
+    ) -> CT_Shape:
+        """Return new `p:sp` appended to the group/shapetree with specified attributes."""
         sp = CT_Shape.new_autoshape_sp(id_, name, prst, x, y, cx, cy)
         self.insert_element_before(sp, "p:extLst")
         return sp
 
-    def add_cxnSp(self, id_, name, type_member, x, y, cx, cy, flipH, flipV):
-        """
-        Append a new ``<p:cxnSp>`` shape to the group/shapetree having the
-        properties specified in call.
-        """
+    def add_cxnSp(
+        self,
+        id_: int,
+        name: str,
+        type_member: MSO_CONNECTOR_TYPE,
+        x: int,
+        y: int,
+        cx: int,
+        cy: int,
+        flipH: bool,
+        flipV: bool,
+    ) -> CT_Connector:
+        """Return new `p:cxnSp` appended to the group/shapetree with the specified attribues."""
         prst = MSO_CONNECTOR_TYPE.to_xml(type_member)
         cxnSp = CT_Connector.new_cxnSp(id_, name, prst, x, y, cx, cy, flipH, flipV)
         self.insert_element_before(cxnSp, "p:extLst")
         return cxnSp
 
-    def add_freeform_sp(self, x, y, cx, cy):
+    def add_freeform_sp(self, x: int, y: int, cx: int, cy: int) -> CT_Shape:
         """Append a new freeform `p:sp` with specified position and size."""
         shape_id = self._next_shape_id
         name = "Freeform %d" % (shape_id - 1,)
@@ -61,7 +74,7 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(sp, "p:extLst")
         return sp
 
-    def add_grpSp(self):
+    def add_grpSp(self) -> CT_GroupShape:
         """Return `p:grpSp` element newly appended to this shape tree.
 
         The element contains no sub-shapes, is positioned at (0, 0), and has
@@ -73,40 +86,34 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(grpSp, "p:extLst")
         return grpSp
 
-    def add_pic(self, id_, name, desc, rId, x, y, cx, cy):
-        """
-        Append a ``<p:pic>`` shape to the group/shapetree having properties
-        as specified in call.
-        """
+    def add_pic(
+        self, id_: int, name: str, desc: str, rId: str, x: int, y: int, cx: int, cy: int
+    ) -> CT_Picture:
+        """Append a `p:pic` shape to the group/shapetree having properties as specified in call."""
         pic = CT_Picture.new_pic(id_, name, desc, rId, x, y, cx, cy)
         self.insert_element_before(pic, "p:extLst")
         return pic
 
-    def add_placeholder(self, id_, name, ph_type, orient, sz, idx):
-        """
-        Append a newly-created placeholder ``<p:sp>`` shape having the
-        specified placeholder properties.
-        """
+    def add_placeholder(
+        self, id_: int, name: str, ph_type: PP_PLACEHOLDER, orient: str, sz: str, idx: int
+    ) -> CT_Shape:
+        """Append a newly-created placeholder `p:sp` shape having the specified properties."""
         sp = CT_Shape.new_placeholder_sp(id_, name, ph_type, orient, sz, idx)
         self.insert_element_before(sp, "p:extLst")
         return sp
 
-    def add_table(self, id_, name, rows, cols, x, y, cx, cy):
-        """
-        Append a ``<p:graphicFrame>`` shape containing a table as specified
-        in call.
-        """
+    def add_table(
+        self, id_: int, name: str, rows: int, cols: int, x: int, y: int, cx: int, cy: int
+    ) -> CT_GraphicalObjectFrame:
+        """Append a `p:graphicFrame` shape containing a table as specified in call."""
         graphicFrame = CT_GraphicalObjectFrame.new_table_graphicFrame(
             id_, name, rows, cols, x, y, cx, cy
         )
         self.insert_element_before(graphicFrame, "p:extLst")
         return graphicFrame
 
-    def add_textbox(self, id_, name, x, y, cx, cy):
-        """
-        Append a newly-created textbox ``<p:sp>`` shape having the specified
-        position and size.
-        """
+    def add_textbox(self, id_: int, name: str, x: int, y: int, cx: int, cy: int) -> CT_Shape:
+        """Append a newly-created textbox `p:sp` shape having the specified position and size."""
         sp = CT_Shape.new_textbox_sp(id_, name, x, y, cx, cy)
         self.insert_element_before(sp, "p:extLst")
         return sp
@@ -121,32 +128,27 @@ class CT_GroupShape(BaseShapeElement):
         """Descendent `p:grpSpPr/a:xfrm/a:chOff` element."""
         return self.grpSpPr.get_or_add_xfrm().get_or_add_chOff()
 
-    def get_or_add_xfrm(self):
-        """
-        Return the ``<a:xfrm>`` grandchild element, newly-added if not
-        present.
-        """
+    def get_or_add_xfrm(self) -> CT_Transform2D:
+        """Return the `a:xfrm` grandchild element, newly-added if not present."""
         return self.grpSpPr.get_or_add_xfrm()
 
     def iter_ph_elms(self):
-        """
-        Generate each placeholder shape child element in document order.
-        """
+        """Generate each placeholder shape child element in document order."""
         for e in self.iter_shape_elms():
             if e.has_ph_elm:
                 yield e
 
-    def iter_shape_elms(self):
-        """
-        Generate each child of this ``<p:spTree>`` element that corresponds
-        to a shape, in the sequence they appear in the XML.
+    def iter_shape_elms(self) -> Iterator[ShapeElement]:
+        """Generate each child of this `p:spTree` element that corresponds to a shape.
+
+        Items appear in XML document order.
         """
         for elm in self.iterchildren():
             if elm.tag in self._shape_tags:
                 yield elm
 
     @property
-    def max_shape_id(self):
+    def max_shape_id(self) -> int:
         """Maximum int value assigned as @id in this slide.
 
         This is generally a shape-id, but ids can be assigned to other
@@ -161,8 +163,8 @@ class CT_GroupShape(BaseShapeElement):
         return max(used_ids) if used_ids else 0
 
     @classmethod
-    def new_grpSp(cls, id_, name):
-        """Return new "loose" `p:grpSp` element having *id_* and *name*."""
+    def new_grpSp(cls, id_: int, name: str) -> CT_GroupShape:
+        """Return new "loose" `p:grpSp` element having `id_` and `name`."""
         xml = (
             "<p:grpSp %s>\n"
             "  <p:nvGrpSpPr>\n"
@@ -183,7 +185,7 @@ class CT_GroupShape(BaseShapeElement):
         grpSp = parse_xml(xml)
         return grpSp
 
-    def recalculate_extents(self):
+    def recalculate_extents(self) -> None:
         """Adjust x, y, cx, and cy to incorporate all contained shapes.
 
         This would typically be called when a contained shape is added,
@@ -204,14 +206,12 @@ class CT_GroupShape(BaseShapeElement):
         self.getparent().recalculate_extents()
 
     @property
-    def xfrm(self):
-        """
-        The ``<a:xfrm>`` grandchild element or |None| if not found
-        """
+    def xfrm(self) -> CT_Transform2D | None:
+        """The `a:xfrm` grandchild element or |None| if not found."""
         return self.grpSpPr.xfrm
 
     @property
-    def _child_extents(self):
+    def _child_extents(self) -> tuple[int, int, int, int]:
         """(x, y, cx, cy) tuple representing net position and size.
 
         The values are formed as a composite of the contained child shapes.
@@ -234,7 +234,7 @@ class CT_GroupShape(BaseShapeElement):
         return x, y, cx, cy
 
     @property
-    def _next_shape_id(self):
+    def _next_shape_id(self) -> int:
         """Return unique shape id suitable for use with a new shape element.
 
         The returned id is the next available positive integer drawing object
@@ -250,15 +250,15 @@ class CT_GroupShape(BaseShapeElement):
 
 
 class CT_GroupShapeNonVisual(BaseShapeElement):
-    """
-    ``<p:nvGrpSpPr>`` element.
-    """
+    """`p:nvGrpSpPr` element."""
 
     cNvPr = OneAndOnlyOne("p:cNvPr")
 
 
 class CT_GroupShapeProperties(BaseOxmlElement):
-    """p:grpSpPr element """
+    """p:grpSpPr element"""
+
+    get_or_add_xfrm: Callable[[], CT_Transform2D]
 
     _tag_seq = (
         "a:xfrm",
@@ -273,6 +273,8 @@ class CT_GroupShapeProperties(BaseOxmlElement):
         "a:scene3d",
         "a:extLst",
     )
-    xfrm = ZeroOrOne("a:xfrm", successors=_tag_seq[1:])
+    xfrm: CT_Transform2D | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:xfrm", successors=_tag_seq[1:]
+    )
     effectLst = ZeroOrOne("a:effectLst", successors=_tag_seq[8:])
     del _tag_seq

@@ -1,12 +1,11 @@
-# encoding: utf-8
-
 """Data point-related objects."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from pptx.chart.datalabel import DataLabel
 from pptx.chart.marker import Marker
-from pptx.compat import Sequence
 from pptx.dml.chtfmt import ChartFormat
 from pptx.util import lazyproperty
 

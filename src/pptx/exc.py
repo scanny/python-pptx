@@ -1,10 +1,9 @@
-# encoding: utf-8
-
-"""
-Exceptions used with python-pptx.
+"""Exceptions used with python-pptx.
 
 The base exception class is PythonPptxError.
 """
+
+from __future__ import annotations
 
 
 class PythonPptxError(Exception):

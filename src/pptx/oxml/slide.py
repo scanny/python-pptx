@@ -1,8 +1,8 @@
-# encoding: utf-8
-
 """Slide-related custom element classes, including those for masters."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable, cast
 
 from pptx.oxml import parse_from_template, parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
@@ -19,39 +19,39 @@ from pptx.oxml.xmlchemy import (
     ZeroOrOneChoice,
 )
 
+if TYPE_CHECKING:
+    from pptx.oxml.shapes.groupshape import CT_GroupShape
+
 
 class _BaseSlideElement(BaseOxmlElement):
-    """
-    Base class for the six slide types, providing common methods.
-    """
+    """Base class for the six slide types, providing common methods."""
+
+    cSld: CT_CommonSlideData
 
     @property
-    def spTree(self):
-        """
-        Return required `p:cSld/p:spTree` grandchild.
-        """
+    def spTree(self) -> CT_GroupShape:
+        """Return required `p:cSld/p:spTree` grandchild."""
         return self.cSld.spTree
 
 
 class CT_Background(BaseOxmlElement):
     """`p:bg` element."""
 
+    _insert_bgPr: Callable[[CT_BackgroundProperties], None]
+
     # ---these two are actually a choice, not a sequence, but simpler for
     # ---present purposes this way.
     _tag_seq = ("p:bgPr", "p:bgRef")
-    bgPr = ZeroOrOne("p:bgPr", successors=())
+    bgPr: CT_BackgroundProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:bgPr", successors=()
+    )
     bgRef = ZeroOrOne("p:bgRef", successors=())
     del _tag_seq
 
     def add_noFill_bgPr(self):
         """Return a new `p:bgPr` element with noFill properties."""
-        xml = (
-            "<p:bgPr %s>\n"
-            "  <a:noFill/>\n"
-            "  <a:effectLst/>\n"
-            "</p:bgPr>" % nsdecls("a", "p")
-        )
-        bgPr = parse_xml(xml)
+        xml = "<p:bgPr %s>\n" "  <a:noFill/>\n" "  <a:effectLst/>\n" "</p:bgPr>" % nsdecls("a", "p")
+        bgPr = cast(CT_BackgroundProperties, parse_xml(xml))
         self._insert_bgPr(bgPr)
         return bgPr
 
@@ -91,24 +91,31 @@ class CT_BackgroundProperties(BaseOxmlElement):
 class CT_CommonSlideData(BaseOxmlElement):
     """`p:cSld` element."""
 
-    _tag_seq = ("p:bg", "p:spTree", "p:custDataLst", "p:controls", "p:extLst")
-    bg = ZeroOrOne("p:bg", successors=_tag_seq[1:])
-    spTree = OneAndOnlyOne("p:spTree")
-    del _tag_seq
-    name = OptionalAttribute("name", XsdString, default="")
+    _remove_bg: Callable[[], None]
+    get_or_add_bg: Callable[[], CT_Background]
 
-    def get_or_add_bgPr(self):
+    _tag_seq = ("p:bg", "p:spTree", "p:custDataLst", "p:controls", "p:extLst")
+    bg: CT_Background | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:bg", successors=_tag_seq[1:]
+    )
+    spTree: CT_GroupShape = OneAndOnlyOne("p:spTree")  # pyright: ignore[reportAssignmentType]
+    del _tag_seq
+    name: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "name", XsdString, default=""
+    )
+
+    def get_or_add_bgPr(self) -> CT_BackgroundProperties:
         """Return `p:bg/p:bgPr` grandchild.
 
-        If no such grandchild is present, any existing `p:bg` child is first
-        removed and a new default `p:bg` with noFill settings is added.
+        If no such grandchild is present, any existing `p:bg` child is first removed and a new
+        default `p:bg` with noFill settings is added.
         """
         bg = self.bg
         if bg is None or bg.bgPr is None:
-            self._change_to_noFill_bg()
-        return self.bg.bgPr
+            bg = self._change_to_noFill_bg()
+        return cast(CT_BackgroundProperties, bg.bgPr)
 
-    def _change_to_noFill_bg(self):
+    def _change_to_noFill_bg(self) -> CT_Background:
         """Establish a `p:bg` child with no-fill settings.
 
         Any existing `p:bg` child is first removed.
@@ -120,55 +127,48 @@ class CT_CommonSlideData(BaseOxmlElement):
 
 
 class CT_NotesMaster(_BaseSlideElement):
-    """
-    ``<p:notesMaster>`` element, root of a notes master part
-    """
+    """`p:notesMaster` element, root of a notes master part."""
 
     _tag_seq = ("p:cSld", "p:clrMap", "p:hf", "p:notesStyle", "p:extLst")
-    cSld = OneAndOnlyOne("p:cSld")
+    cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     del _tag_seq
 
     @classmethod
-    def new_default(cls):
-        """
-        Return a new ``<p:notesMaster>`` element based on the built-in
-        default template.
-        """
-        return parse_from_template("notesMaster")
+    def new_default(cls) -> CT_NotesMaster:
+        """Return a new `p:notesMaster` element based on the built-in default template."""
+        return cast(CT_NotesMaster, parse_from_template("notesMaster"))
 
 
 class CT_NotesSlide(_BaseSlideElement):
-    """
-    ``<p:notes>`` element, root of a notes slide part
-    """
+    """`p:notes` element, root of a notes slide part."""
 
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:extLst")
-    cSld = OneAndOnlyOne("p:cSld")
+    cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     del _tag_seq
 
     @classmethod
-    def new(cls):
+    def new(cls) -> CT_NotesSlide:
+        """Return a new ``<p:notes>`` element based on the default template.
+
+        Note that the template does not include placeholders, which must be subsequently cloned
+        from the notes master.
         """
-        Return a new ``<p:notes>`` element based on the default template.
-        Note that the template does not include placeholders, which must be
-        subsequently cloned from the notes master.
-        """
-        return parse_from_template("notes")
+        return cast(CT_NotesSlide, parse_from_template("notes"))
 
 
 class CT_Slide(_BaseSlideElement):
     """`p:sld` element, root element of a slide part (XML document)."""
 
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:extLst")
-    cSld = OneAndOnlyOne("p:cSld")
+    cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     clrMapOvr = ZeroOrOne("p:clrMapOvr", successors=_tag_seq[2:])
     timing = ZeroOrOne("p:timing", successors=_tag_seq[4:])
     del _tag_seq
 
     @classmethod
-    def new(cls):
+    def new(cls) -> CT_Slide:
         """Return new `p:sld` element configured as base slide shape."""
-        return parse_xml(cls._sld_xml())
+        return cast(CT_Slide, parse_xml(cls._sld_xml()))
 
     @property
     def bg(self):
@@ -252,37 +252,37 @@ class CT_Slide(_BaseSlideElement):
 
 
 class CT_SlideLayout(_BaseSlideElement):
-    """
-    ``<p:sldLayout>`` element, root of a slide layout part
-    """
+    """`p:sldLayout` element, root of a slide layout part."""
 
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:hf", "p:extLst")
-    cSld = OneAndOnlyOne("p:cSld")
+    cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     del _tag_seq
 
 
 class CT_SlideLayoutIdList(BaseOxmlElement):
+    """`p:sldLayoutIdLst` element, child of `p:sldMaster`.
+
+    Contains references to the slide layouts that inherit from the slide master.
     """
-    ``<p:sldLayoutIdLst>`` element, child of ``<p:sldMaster>`` containing
-    references to the slide layouts that inherit from the slide master.
-    """
+
+    sldLayoutId_lst: list[CT_SlideLayoutIdListEntry]
 
     sldLayoutId = ZeroOrMore("p:sldLayoutId")
 
 
 class CT_SlideLayoutIdListEntry(BaseOxmlElement):
-    """
-    ``<p:sldLayoutId>`` element, child of ``<p:sldLayoutIdLst>`` containing
-    a reference to a slide layout.
+    """`p:sldLayoutId` element, child of `p:sldLayoutIdLst`.
+
+    Contains a reference to a slide layout.
     """
 
-    rId = RequiredAttribute("r:id", XsdString)
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
 
 
 class CT_SlideMaster(_BaseSlideElement):
-    """
-    ``<p:sldMaster>`` element, root of a slide master part
-    """
+    """`p:sldMaster` element, root of a slide master part."""
+
+    get_or_add_sldLayoutIdLst: Callable[[], CT_SlideLayoutIdList]
 
     _tag_seq = (
         "p:cSld",
@@ -294,8 +294,10 @@ class CT_SlideMaster(_BaseSlideElement):
         "p:txStyles",
         "p:extLst",
     )
-    cSld = OneAndOnlyOne("p:cSld")
-    sldLayoutIdLst = ZeroOrOne("p:sldLayoutIdLst", successors=_tag_seq[3:])
+    cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
+    sldLayoutIdLst: CT_SlideLayoutIdList = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:sldLayoutIdLst", successors=_tag_seq[3:]
+    )
     del _tag_seq
 
 

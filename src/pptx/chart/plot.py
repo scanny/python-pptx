@@ -1,20 +1,18 @@
-# encoding: utf-8
+"""Plot-related objects.
 
-"""
-Plot-related objects. A plot is known as a chart group in the MS API. A chart
-can have more than one plot overlayed on each other, such as a line plot
-layered over a bar plot.
+A plot is known as a chart group in the MS API. A chart can have more than one plot overlayed on
+each other, such as a line plot layered over a bar plot.
 """
 
-from __future__ import absolute_import, print_function, unicode_literals
+from __future__ import annotations
 
-from .category import Categories
-from .datalabel import DataLabels
-from ..enum.chart import XL_CHART_TYPE as XL
-from ..oxml.ns import qn
-from ..oxml.simpletypes import ST_BarDir, ST_Grouping
-from .series import SeriesCollection
-from ..util import lazyproperty
+from pptx.chart.category import Categories
+from pptx.chart.datalabel import DataLabels
+from pptx.chart.series import SeriesCollection
+from pptx.enum.chart import XL_CHART_TYPE as XL
+from pptx.oxml.ns import qn
+from pptx.oxml.simpletypes import ST_BarDir, ST_Grouping
+from pptx.util import lazyproperty
 
 
 class _BasePlot(object):
@@ -58,9 +56,7 @@ class _BasePlot(object):
         """
         dLbls = self._element.dLbls
         if dLbls is None:
-            raise ValueError(
-                "plot has no data labels, set has_data_labels = True first"
-            )
+            raise ValueError("plot has no data labels, set has_data_labels = True first")
         return DataLabels(dLbls)
 
     @property

@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.shapes.placeholder` module."""
+
+from __future__ import annotations
 
 import pytest
 
@@ -12,9 +12,7 @@ from pptx.parts.image import ImagePart
 from pptx.parts.slide import NotesSlidePart, SlidePart
 from pptx.shapes.placeholder import (
     BasePlaceholder,
-    _BaseSlidePlaceholder,
     ChartPlaceholder,
-    _InheritsDimensions,
     LayoutPlaceholder,
     MasterPlaceholder,
     NotesSlidePlaceholder,
@@ -22,6 +20,8 @@ from pptx.shapes.placeholder import (
     PlaceholderGraphicFrame,
     PlaceholderPicture,
     TablePlaceholder,
+    _BaseSlidePlaceholder,
+    _InheritsDimensions,
 )
 from pptx.shapes.shapetree import NotesSlidePlaceholders
 from pptx.slide import NotesMaster, SlideLayout, SlideMaster
@@ -151,9 +151,7 @@ class Describe_BaseSlidePlaceholder(object):
 
     @pytest.fixture
     def part_prop_(self, request, slide_part_):
-        return property_mock(
-            request, _BaseSlidePlaceholder, "part", return_value=slide_part_
-        )
+        return property_mock(request, _BaseSlidePlaceholder, "part", return_value=slide_part_)
 
     @pytest.fixture
     def slide_layout_(self, request):
@@ -205,9 +203,7 @@ class DescribeBasePlaceholder(object):
         placeholder = BasePlaceholder(shape_elm, None)
         return placeholder, expected_idx
 
-    @pytest.fixture(
-        params=[(None, ST_Direction.HORZ), (ST_Direction.VERT, ST_Direction.VERT)]
-    )
+    @pytest.fixture(params=[(None, ST_Direction.HORZ), (ST_Direction.VERT, ST_Direction.VERT)])
     def orient_fixture(self, request):
         orient, expected_orient = request.param
         ph_bldr = a_ph()
@@ -279,9 +275,7 @@ class DescribeBasePlaceholder(object):
             "pic": a_ph().with_type("pic").with_idx(idx),
             "tbl": a_ph().with_type("tbl").with_idx(idx),
         }[ph_type]
-        return (
-            root_bldr.with_child(nvXxPr_bldr.with_child(an_nvPr().with_child(ph_bldr)))
-        ).element
+        return (root_bldr.with_child(nvXxPr_bldr.with_child(an_nvPr().with_child(ph_bldr)))).element
 
 
 class DescribeChartPlaceholder(object):
@@ -439,9 +433,7 @@ class DescribeNotesSlidePlaceholder(object):
 
     @pytest.fixture
     def part_prop_(self, request, notes_slide_part_):
-        return property_mock(
-            request, NotesSlidePlaceholder, "part", return_value=notes_slide_part_
-        )
+        return property_mock(request, NotesSlidePlaceholder, "part", return_value=notes_slide_part_)
 
 
 class DescribePicturePlaceholder(object):
@@ -482,10 +474,7 @@ class DescribePicturePlaceholder(object):
             return_value=(42, "bar", image_size),
         )
         picture_ph = PicturePlaceholder(
-            element(
-                "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/a:ext{cx=99"
-                ",cy=99})"
-            ),
+            element("p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},p:spPr/a:xfrm/a:ext{cx=99" ",cy=99})"),
             None,
         )
 

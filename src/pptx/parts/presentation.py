@@ -1,6 +1,8 @@
-# encoding: utf-8
-
 """Presentation part, the main part in a .pptx package."""
+
+from __future__ import annotations
+
+from typing import IO, TYPE_CHECKING, Iterable
 
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
@@ -9,6 +11,10 @@ from pptx.parts.slide import NotesMasterPart, SlidePart
 from pptx.presentation import Presentation
 from pptx.util import lazyproperty
 
+if TYPE_CHECKING:
+    from pptx.parts.coreprops import CorePropertiesPart
+    from pptx.slide import NotesMaster, Slide, SlideLayout, SlideMaster
+
 
 class PresentationPart(XmlPart):
     """Top level class in object model.
@@ -16,10 +22,10 @@ class PresentationPart(XmlPart):
     Represents the contents of the /ppt directory of a .pptx file.
     """
 
-    def add_slide(self, slide_layout):
-        """
-        Return an (rId, slide) pair of a newly created blank slide that
-        inherits appearance from *slide_layout*.
+    def add_slide(self, slide_layout: SlideLayout):
+        """Return (rId, slide) pair of a newly created blank slide.
+
+        New slide inherits appearance from `slide_layout`.
         """
         partname = self._next_slide_partname
         slide_layout_part = slide_layout.part
@@ -28,14 +34,14 @@ class PresentationPart(XmlPart):
         return rId, slide_part.slide
 
     @property
-    def core_properties(self):
-        """
-        A |CoreProperties| object providing read/write access to the core
-        properties of this presentation.
+    def core_properties(self) -> CorePropertiesPart:
+        """A |CoreProperties| object for the presentation.
+
+        Provides read/write access to the Dublin Core properties of this presentation.
         """
         return self.package.core_properties
 
-    def get_slide(self, slide_id):
+    def get_slide(self, slide_id: int) -> Slide | None:
         """Return optional related |Slide| object identified by `slide_id`.
 
         Returns |None| if no slide with `slide_id` is related to this presentation.
@@ -46,7 +52,7 @@ class PresentationPart(XmlPart):
         return None
 
     @lazyproperty
-    def notes_master(self):
+    def notes_master(self) -> NotesMaster:
         """
         Return the |NotesMaster| object for this presentation. If the
         presentation does not have a notes master, one is created from
@@ -56,12 +62,11 @@ class PresentationPart(XmlPart):
         return self.notes_master_part.notes_master
 
     @lazyproperty
-    def notes_master_part(self):
-        """
-        Return the |NotesMasterPart| object for this presentation. If the
-        presentation does not have a notes master, one is created from
-        a default template. The same single instance is returned on each
-        call.
+    def notes_master_part(self) -> NotesMasterPart:
+        """Return the |NotesMasterPart| object for this presentation.
+
+        If the presentation does not have a notes master, one is created from a default template.
+        The same single instance is returned on each call.
         """
         try:
             return self.part_related_by(RT.NOTES_MASTER)
@@ -78,27 +83,27 @@ class PresentationPart(XmlPart):
         """
         return Presentation(self._element, self)
 
-    def related_slide(self, rId):
+    def related_slide(self, rId: str) -> Slide:
         """Return |Slide| object for related |SlidePart| related by `rId`."""
         return self.related_part(rId).slide
 
-    def related_slide_master(self, rId):
+    def related_slide_master(self, rId: str) -> SlideMaster:
         """Return |SlideMaster| object for |SlideMasterPart| related by `rId`."""
         return self.related_part(rId).slide_master
 
-    def rename_slide_parts(self, rIds):
+    def rename_slide_parts(self, rIds: Iterable[str]):
         """Assign incrementing partnames to the slide parts identified by `rIds`.
 
-        Partnames are like `/ppt/slides/slide9.xml` and are assigned in the order their
-        id appears in the `rIds` sequence. The name portion is always ``slide``. The
-        number part forms a continuous sequence starting at 1 (e.g. 1, 2, ... 10, ...).
-        The extension is always ``.xml``.
+        Partnames are like `/ppt/slides/slide9.xml` and are assigned in the order their id appears
+        in the `rIds` sequence. The name portion is always `slide`. The number part forms a
+        continuous sequence starting at 1 (e.g. 1, 2, ... 10, ...). The extension is always
+        `.xml`.
         """
         for idx, rId in enumerate(rIds):
             slide_part = self.related_part(rId)
             slide_part.partname = PackURI("/ppt/slides/slide%d.xml" % (idx + 1))
 
-    def save(self, path_or_stream):
+    def save(self, path_or_stream: str | IO[bytes]):
         """Save this presentation package to `path_or_stream`.
 
         `path_or_stream` can be either a path to a filesystem location (a string) or a

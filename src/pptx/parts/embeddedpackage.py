@@ -1,13 +1,18 @@
-# encoding: utf-8
-
 """Embedded Package part objects.
 
 "Package" in this context means another OPC package, i.e. a DOCX, PPTX, or XLSX "file".
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from pptx.enum.shapes import PROG_ID
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part
+
+if TYPE_CHECKING:
+    from pptx.package import Package
 
 
 class EmbeddedPackagePart(Part):
@@ -17,7 +22,7 @@ class EmbeddedPackagePart(Part):
     """
 
     @classmethod
-    def factory(cls, prog_id, object_blob, package):
+    def factory(cls, prog_id: PROG_ID | str, object_blob: bytes, package: Package):
         """Return a new |EmbeddedPackagePart| subclass instance added to *package*.
 
         The subclass is determined by `prog_id` which corresponds to the "application"
@@ -43,7 +48,7 @@ class EmbeddedPackagePart(Part):
         return EmbeddedPartCls.new(object_blob, package)
 
     @classmethod
-    def new(cls, blob, package):
+    def new(cls, blob: bytes, package: Package):
         """Return new |EmbeddedPackagePart| subclass object.
 
         The returned part object contains `blob` and is added to `package`.

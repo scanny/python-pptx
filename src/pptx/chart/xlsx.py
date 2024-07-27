@@ -1,12 +1,11 @@
-# encoding: utf-8
-
 """Chart builder and related objects."""
 
+from __future__ import annotations
+
+import io
 from contextlib import contextmanager
 
 from xlsxwriter import Workbook
-
-from ..compat import BytesIO
 
 
 class _BaseWorkbookWriter(object):
@@ -19,7 +18,7 @@ class _BaseWorkbookWriter(object):
     @property
     def xlsx_blob(self):
         """bytes for Excel file containing chart_data."""
-        xlsx_file = BytesIO()
+        xlsx_file = io.BytesIO()
         with self._open_worksheet(xlsx_file) as (workbook, worksheet):
             self._populate_worksheet(workbook, worksheet)
         return xlsx_file.getvalue()
@@ -29,7 +28,7 @@ class _BaseWorkbookWriter(object):
         """
         Enable XlsxWriter Worksheet object to be opened, operated on, and
         then automatically closed within a `with` statement. A filename or
-        stream object (such as a ``BytesIO`` instance) is expected as
+        stream object (such as an `io.BytesIO` instance) is expected as
         *xlsx_file*.
         """
         workbook = Workbook(xlsx_file, {"in_memory": True})
@@ -225,13 +224,9 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
         table, X values in column A and Y values in column B. Place the
         series label in the first (heading) cell of the column.
         """
-        chart_num_format = workbook.add_format(
-            {"num_format": self._chart_data.number_format}
-        )
+        chart_num_format = workbook.add_format({"num_format": self._chart_data.number_format})
         for series in self._chart_data:
-            series_num_format = workbook.add_format(
-                {"num_format": series.number_format}
-            )
+            series_num_format = workbook.add_format({"num_format": series.number_format})
             offset = self.series_table_row_offset(series)
             # write X values
             worksheet.write_column(offset + 1, 0, series.x_values, chart_num_format)
@@ -263,13 +258,9 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
         column C. Place the series label in the first (heading) cell of the
         values column.
         """
-        chart_num_format = workbook.add_format(
-            {"num_format": self._chart_data.number_format}
-        )
+        chart_num_format = workbook.add_format({"num_format": self._chart_data.number_format})
         for series in self._chart_data:
-            series_num_format = workbook.add_format(
-                {"num_format": series.number_format}
-            )
+            series_num_format = workbook.add_format({"num_format": series.number_format})
             offset = self.series_table_row_offset(series)
             # write X values
             worksheet.write_column(offset + 1, 0, series.x_values, chart_num_format)

@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for pptx.oxml.table module"""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -36,8 +34,7 @@ class DescribeCT_Table(object):
             "dyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      </a:txBody>"
             "\n      <a:tcPr/>\n    </a:tc>\n    <a:tc>\n      <a:txBody>\n  "
             "      <a:bodyPr/>\n        <a:lstStyle/>\n        <a:p/>\n      "
-            "</a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n</a:tbl>\n"
-            % nsdecls("a")
+            "</a:txBody>\n      <a:tcPr/>\n    </a:tc>\n  </a:tr>\n</a:tbl>\n" % nsdecls("a")
         )
         tbl = CT_Table.new_tbl(2, 3, 334, 445)
         assert tbl.xml == expected_xml
@@ -154,8 +151,7 @@ class DescribeTcRange(object):
             ("a:tbl/(a:tr/a:tc,a:tr/a:tc)", [0, 1], []),
             ("a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))", [2, 1], [1, 3]),
             (
-                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc"
-                ",a:tc))",
+                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc" ",a:tc))",
                 [0, 8],
                 [1, 2, 4, 5, 7, 8],
             ),
@@ -174,8 +170,7 @@ class DescribeTcRange(object):
             ("a:tbl/(a:tr/a:tc,a:tr/a:tc)", [0, 1], [1]),
             ("a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))", [2, 1], [2, 3]),
             (
-                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc"
-                ",a:tc))",
+                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc" ",a:tc))",
                 [0, 8],
                 [3, 4, 5, 6, 7, 8],
             ),
@@ -194,9 +189,7 @@ class DescribeTcRange(object):
         tbl = element("a:tbl/a:tr/(a:tc,a:tc)")
         other_tbl = element("a:tbl/a:tr/(a:tc,a:tc)")
         tc = tbl.xpath("//a:tc")[0]
-        other_tc = (
-            tbl.xpath("//a:tc")[1] if expected_value else other_tbl.xpath("//a:tc")[1]
-        )
+        other_tc = tbl.xpath("//a:tc")[1] if expected_value else other_tbl.xpath("//a:tc")[1]
         return tc, other_tc, expected_value
 
     @pytest.fixture(
@@ -205,8 +198,7 @@ class DescribeTcRange(object):
             ("a:tbl/(a:tr/a:tc,a:tr/a:tc)", (0, 1), (0, 1)),
             ("a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))", (2, 1), (0, 2)),
             (
-                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc"
-                ",a:tc))",
+                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc" ",a:tc))",
                 (4, 8),
                 (4, 7),
             ),
@@ -225,8 +217,7 @@ class DescribeTcRange(object):
             ('a:tbl/a:tr/(a:tc/a:txBody/a:p,a:tc/a:txBody/a:p/a:r/a:t"b")', "b"),
             ('a:tbl/a:tr/(a:tc/a:txBody/a:p/a:r/a:t"a",a:tc/a:txBody/a:p)', "a"),
             (
-                'a:tbl/a:tr/(a:tc/a:txBody/a:p/a:r/a:t"a",a:tc/a:txBody/a:p/a:r/a:t'
-                '"b")',
+                'a:tbl/a:tr/(a:tc/a:txBody/a:p/a:r/a:t"a",a:tc/a:txBody/a:p/a:r/a:t' '"b")',
                 "a\nb",
             ),
             (
@@ -250,8 +241,7 @@ class DescribeTcRange(object):
             ("a:tbl/(a:tr/a:tc,a:tr/a:tc)", (0, 1), (0,)),
             ("a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))", (2, 1), (0, 1)),
             (
-                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc"
-                ",a:tc))",
+                "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc" ",a:tc))",
                 (4, 8),
                 (4, 5),
             ),

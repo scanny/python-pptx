@@ -1,15 +1,13 @@
-# encoding: utf-8
+"""Marker-related objects.
 
-"""
-Marker-related objects. Only the line-type charts Line, XY, and Radar have
-markers.
+Only the line-type charts Line, XY, and Radar have markers.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
-from ..dml.chtfmt import ChartFormat
-from ..shared import ElementProxy
-from ..util import lazyproperty
+from pptx.dml.chtfmt import ChartFormat
+from pptx.shared import ElementProxy
+from pptx.util import lazyproperty
 
 
 class Marker(ElementProxy):

@@ -1,20 +1,16 @@
-# encoding: utf-8
-
 """Gherkin step implementations for chart plot features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from ast import literal_eval
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_MARKER_STYLE
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
-
-from helpers import test_pptx
-
 
 # given ===================================================
 

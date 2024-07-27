@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.shared` module."""
+
+from __future__ import annotations
 
 import pytest
 

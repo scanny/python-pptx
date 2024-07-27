@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """MediaPart and related objects."""
+
+from __future__ import annotations
 
 import hashlib
 

@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for `pptx.oxml.dml` module."""
 
-"""
-Test suite for pptx.oxml.dml module.
-"""
-
-from __future__ import absolute_import, print_function
+from __future__ import annotations
 
 import pytest
 

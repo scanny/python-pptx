@@ -1,19 +1,13 @@
-# encoding: utf-8
+"""Gherkin step implementations for core properties-related features."""
 
-"""
-Gherkin step implementations for core properties-related features.
-"""
-
-from __future__ import absolute_import
+from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from behave import given, when, then
+from behave import given, then, when
+from helpers import no_core_props_pptx_path, saved_pptx_path
 
 from pptx import Presentation
-
-from helpers import saved_pptx_path, no_core_props_pptx_path
-
 
 # given ===================================================
 
@@ -49,7 +43,7 @@ def step_when_set_core_doc_props_to_valid_values(context):
         ("revision", 9),
         ("subject", "Subject"),
         # --- exercise unicode-text case for Python 2.7 ---
-        ("title", u"åß∂Title°"),
+        ("title", "åß∂Title°"),
         ("version", "Version"),
     )
     for name, value in context.propvals:

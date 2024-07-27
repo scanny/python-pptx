@@ -1,15 +1,18 @@
-# encoding: utf-8
-
 """lxml custom element classes for picture-related XML elements."""
 
-from __future__ import division
+from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
 from xml.sax.saxutils import escape
 
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne
+
+if TYPE_CHECKING:
+    from pptx.oxml.shapes.shared import CT_ShapeProperties
+    from pptx.util import Length
 
 
 class CT_Picture(BaseShapeElement):
@@ -20,10 +23,10 @@ class CT_Picture(BaseShapeElement):
 
     nvPicPr = OneAndOnlyOne("p:nvPicPr")
     blipFill = OneAndOnlyOne("p:blipFill")
-    spPr = OneAndOnlyOne("p:spPr")
+    spPr: CT_ShapeProperties = OneAndOnlyOne("p:spPr")  # pyright: ignore[reportAssignmentType]
 
     @property
-    def blip_rId(self):
+    def blip_rId(self) -> str | None:
         """Value of `p:blipFill/a:blip/@r:embed`.
 
         Returns |None| if not present.
@@ -65,28 +68,38 @@ class CT_Picture(BaseShapeElement):
     @classmethod
     def new_pic(cls, shape_id, name, desc, rId, x, y, cx, cy):
         """Return new `<p:pic>` element tree configured with supplied parameters."""
-        return parse_xml(
-            cls._pic_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy)
-        )
+        return parse_xml(cls._pic_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy))
 
     @classmethod
     def new_video_pic(
-        cls, shape_id, shape_name, video_rId, media_rId, poster_frame_rId, x, y, cx, cy
-    ):
+        cls,
+        shape_id: int,
+        shape_name: str,
+        video_rId: str,
+        media_rId: str,
+        poster_frame_rId: str,
+        x: Length,
+        y: Length,
+        cx: Length,
+        cy: Length,
+    ) -> CT_Picture:
         """Return a new `p:pic` populated with the specified video."""
-        return parse_xml(
-            cls._pic_video_tmpl()
-            % (
-                shape_id,
-                shape_name,
-                video_rId,
-                media_rId,
-                poster_frame_rId,
-                x,
-                y,
-                cx,
-                cy,
-            )
+        return cast(
+            CT_Picture,
+            parse_xml(
+                cls._pic_video_tmpl()
+                % (
+                    shape_id,
+                    shape_name,
+                    video_rId,
+                    media_rId,
+                    poster_frame_rId,
+                    x,
+                    y,
+                    cx,
+                    cy,
+                )
+            ),
         )
 
     @property

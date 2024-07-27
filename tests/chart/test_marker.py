@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for the `pptx.chart.marker` module."""
 
-"""
-Unit test suite for the pptx.chart.marker module.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -131,9 +127,7 @@ class DescribeMarker(object):
 
     @pytest.fixture
     def ChartFormat_(self, request, chart_format_):
-        return class_mock(
-            request, "pptx.chart.marker.ChartFormat", return_value=chart_format_
-        )
+        return class_mock(request, "pptx.chart.marker.ChartFormat", return_value=chart_format_)
 
     @pytest.fixture
     def chart_format_(self, request):

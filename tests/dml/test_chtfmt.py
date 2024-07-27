@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Unit-test suite for `pptx.dml.chtfmt` module."""
 
-"""
-Unit test suite for the pptx.dml.chtfmt module.
-"""
-
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 

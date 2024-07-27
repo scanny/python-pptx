@@ -1,21 +1,26 @@
-# encoding: utf-8
-
 """Objects related to layout of rendered text, such as TextFitter."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from PIL import ImageFont
 
+if TYPE_CHECKING:
+    from pptx.util import Length
+
 
 class TextFitter(tuple):
-    """
-    Value object that knows how to fit text into given rectangular extents.
-    """
+    """Value object that knows how to fit text into given rectangular extents."""
 
     def __new__(cls, line_source, extents, font_file):
         width, height = extents
         return tuple.__new__(cls, (line_source, width, height, font_file))
 
     @classmethod
-    def best_fit_font_size(cls, text, extents, max_size, font_file):
+    def best_fit_font_size(
+        cls, text: str, extents: tuple[Length, Length], max_size: int, font_file: str
+    ) -> int:
         """Return whole-number best fit point size less than or equal to `max_size`.
 
         The return value is the largest whole-number point size less than or equal to
@@ -294,9 +299,7 @@ class _Fonts(object):
     @classmethod
     def font(cls, font_path, point_size):
         if (font_path, point_size) not in cls.fonts:
-            cls.fonts[(font_path, point_size)] = ImageFont.truetype(
-                font_path, point_size
-            )
+            cls.fonts[(font_path, point_size)] = ImageFont.truetype(font_path, point_size)
         return cls.fonts[(font_path, point_size)]
 
 

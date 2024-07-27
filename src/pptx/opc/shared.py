@@ -1,6 +1,6 @@
-# encoding: utf-8
-
 """Objects shared by modules in the pptx.opc sub-package."""
+
+from __future__ import annotations
 
 
 class CaseInsensitiveDict(dict):

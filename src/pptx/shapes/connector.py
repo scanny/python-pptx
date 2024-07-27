@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 """Connector (line) shape and related objects.
 
 A connector is a line shape having end-points that can be connected to other
@@ -7,7 +5,7 @@ objects (but not to other connectors). A connector can be straight, have
 elbows, or can be curved.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE

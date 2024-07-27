@@ -1,8 +1,8 @@
-# encoding: utf-8
+# pyright: reportPrivateUsage=false
 
-"""Test suite for pptx.chart.series module."""
+"""Unit-test suite for `pptx.chart.series` module."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -12,16 +12,16 @@ from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.chart.series import (
     AreaSeries,
     BarSeries,
-    _BaseCategorySeries,
-    _BaseSeries,
     BubbleSeries,
     LineSeries,
-    _MarkerMixin,
     PieSeries,
     RadarSeries,
     SeriesCollection,
-    _SeriesFactory,
     XySeries,
+    _BaseCategorySeries,
+    _BaseSeries,
+    _MarkerMixin,
+    _SeriesFactory,
 )
 from pptx.dml.chtfmt import ChartFormat
 
@@ -73,9 +73,7 @@ class Describe_BaseSeries(object):
 
     @pytest.fixture
     def ChartFormat_(self, request, chart_format_):
-        return class_mock(
-            request, "pptx.chart.series.ChartFormat", return_value=chart_format_
-        )
+        return class_mock(request, "pptx.chart.series.ChartFormat", return_value=chart_format_)
 
     @pytest.fixture
     def chart_format_(self, request):
@@ -87,9 +85,7 @@ class Describe_BaseCategorySeries(object):
         base_category_series = subclass_fixture
         assert isinstance(base_category_series, _BaseSeries)
 
-    def it_provides_access_to_its_data_labels(
-        self, data_labels_fixture, DataLabels_, data_labels_
-    ):
+    def it_provides_access_to_its_data_labels(self, data_labels_fixture, DataLabels_, data_labels_):
         ser, expected_dLbls_xml = data_labels_fixture
         DataLabels_.return_value = data_labels_
         series = _BaseCategorySeries(ser)
@@ -148,8 +144,7 @@ class Describe_BaseCategorySeries(object):
             ("c:ser/c:val/c:numRef/c:numCache", ()),
             ("c:ser/c:val/c:numRef/c:numCache/c:ptCount{val=0}", ()),
             (
-                'c:ser/c:val/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v"'
-                '1.1")',
+                'c:ser/c:val/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v"' '1.1")',
                 (1.1,),
             ),
             (
@@ -178,9 +173,7 @@ class Describe_BaseCategorySeries(object):
 
     @pytest.fixture
     def CategoryPoints_(self, request, points_):
-        return class_mock(
-            request, "pptx.chart.series.CategoryPoints", return_value=points_
-        )
+        return class_mock(request, "pptx.chart.series.CategoryPoints", return_value=points_)
 
     @pytest.fixture
     def DataLabels_(self, request):
@@ -238,15 +231,11 @@ class DescribeBarSeries(object):
         bar_series = subclass_fixture
         assert isinstance(bar_series, _BaseCategorySeries)
 
-    def it_knows_whether_it_should_invert_if_negative(
-        self, invert_if_negative_get_fixture
-    ):
+    def it_knows_whether_it_should_invert_if_negative(self, invert_if_negative_get_fixture):
         bar_series, expected_value = invert_if_negative_get_fixture
         assert bar_series.invert_if_negative == expected_value
 
-    def it_can_change_whether_it_inverts_if_negative(
-        self, invert_if_negative_set_fixture
-    ):
+    def it_can_change_whether_it_inverts_if_negative(self, invert_if_negative_set_fixture):
         bar_series, new_value, expected_xml = invert_if_negative_set_fixture
         bar_series.invert_if_negative = new_value
         assert bar_series._element.xml == expected_xml
@@ -312,9 +301,7 @@ class Describe_BubbleSeries(object):
 
     @pytest.fixture
     def BubblePoints_(self, request, points_):
-        return class_mock(
-            request, "pptx.chart.series.BubblePoints", return_value=points_
-        )
+        return class_mock(request, "pptx.chart.series.BubblePoints", return_value=points_)
 
     @pytest.fixture
     def points_(self, request):
@@ -433,8 +420,7 @@ class Describe_XySeries(object):
             ("c:ser/c:yVal/c:numRef", ()),
             ("c:ser/c:val/c:numRef/c:numCache", ()),
             (
-                "c:ser/c:yVal/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v"
-                '"1.1")',
+                "c:ser/c:yVal/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v" '"1.1")',
                 (1.1,),
             ),
             (
@@ -483,8 +469,7 @@ class DescribeSeriesCollection(object):
         params=[
             ("c:barChart/c:ser/c:order{val=42}", 0, 0),
             (
-                "c:barChart/(c:ser/c:order{val=9},c:ser/c:order{val=6},c:ser/c:orde"
-                "r{val=3})",
+                "c:barChart/(c:ser/c:order{val=9},c:ser/c:order{val=6},c:ser/c:orde" "r{val=3})",
                 2,
                 0,
             ),
@@ -509,8 +494,7 @@ class DescribeSeriesCollection(object):
             ("c:barChart", 0),
             ("c:barChart/c:ser/c:order{val=4}", 1),
             (
-                "c:barChart/(c:ser/c:order{val=4},c:ser/c:order{val=1},c:ser/c:orde"
-                "r{val=6})",
+                "c:barChart/(c:ser/c:order{val=4},c:ser/c:order{val=1},c:ser/c:orde" "r{val=6})",
                 3,
             ),
             ("c:plotArea/c:barChart", 0),
@@ -531,9 +515,7 @@ class DescribeSeriesCollection(object):
 
     @pytest.fixture
     def _SeriesFactory_(self, request, series_):
-        return function_mock(
-            request, "pptx.chart.series._SeriesFactory", return_value=series_
-        )
+        return function_mock(request, "pptx.chart.series._SeriesFactory", return_value=series_)
 
     @pytest.fixture
     def series_(self, request):

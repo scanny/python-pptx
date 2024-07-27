@@ -1,15 +1,15 @@
-# encoding: utf-8
-
 """Unit test suite for `pptx.media` module."""
+
+from __future__ import annotations
+
+import io
 
 import pytest
 
-from pptx.compat import BytesIO
 from pptx.media import Video
 
 from .unitutil.file import absjoin, test_file_dir
 from .unitutil.mock import initializer_mock, instance_mock, method_mock, property_mock
-
 
 TEST_VIDEO_PATH = absjoin(test_file_dir, "dummy.mp4")
 
@@ -87,9 +87,7 @@ class DescribeVideo(object):
         video = Video(None, mime_type, filename)
         return video, expected_value
 
-    @pytest.fixture(
-        params=[("foobar.mp4", None, "foobar.mp4"), (None, "vid", "movie.vid")]
-    )
+    @pytest.fixture(params=[("foobar.mp4", None, "foobar.mp4"), (None, "vid", "movie.vid")])
     def filename_fixture(self, request, ext_prop_):
         filename, ext, expected_value = request.param
         video = Video(None, None, filename)
@@ -105,7 +103,7 @@ class DescribeVideo(object):
     def from_stream_fixture(self, video_, from_blob_):
         with open(TEST_VIDEO_PATH, "rb") as f:
             blob = f.read()
-            movie_stream = BytesIO(blob)
+            movie_stream = io.BytesIO(blob)
         mime_type = "video/mp4"
         from_blob_.return_value = video_
         return movie_stream, mime_type, blob, video_

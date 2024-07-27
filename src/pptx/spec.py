@@ -1,23 +1,34 @@
-# encoding: utf-8
-
 """Mappings from the ISO/IEC 29500 spec.
 
 Some of these are inferred from PowerPoint application behavior
 """
 
-from pptx.enum.shapes import MSO_SHAPE
+from __future__ import annotations
 
+from typing import TYPE_CHECKING, TypedDict
+
+from pptx.enum.shapes import MSO_SHAPE
 
 GRAPHIC_DATA_URI_CHART = "http://schemas.openxmlformats.org/drawingml/2006/chart"
 GRAPHIC_DATA_URI_OLEOBJ = "http://schemas.openxmlformats.org/presentationml/2006/ole"
 GRAPHIC_DATA_URI_TABLE = "http://schemas.openxmlformats.org/drawingml/2006/table"
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+AdjustmentValue: TypeAlias = tuple[str, int]
+
+
+class ShapeSpec(TypedDict):
+    basename: str
+    avLst: tuple[AdjustmentValue, ...]
 
 
 # ============================================================================
 # AutoShape type specs
 # ============================================================================
 
-autoshape_types = {
+autoshape_types: dict[MSO_SHAPE, ShapeSpec] = {
     MSO_SHAPE.ACTION_BUTTON_BACK_OR_PREVIOUS: {
         "basename": "Action Button: Back or Previous",
         "avLst": (),

@@ -1,8 +1,6 @@
-# encoding: utf-8
-
 """Gherkin step implementations for chart data features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 import datetime
 
@@ -11,7 +9,6 @@ from behave import given, then, when
 from pptx.chart.data import BubbleChartData, Category, CategoryChartData, XyChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
-
 
 # given ===================================================
 

@@ -1,15 +1,13 @@
-# encoding: utf-8
-
 """Gherkin step implementations for click action-related features."""
 
+from __future__ import annotations
+
 from behave import given, then, when
+from helpers import test_file
 
 from pptx import Presentation
 from pptx.action import Hyperlink
 from pptx.enum.action import PP_ACTION
-
-from helpers import test_file
-
 
 # given ===================================================
 

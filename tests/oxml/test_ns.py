@@ -1,10 +1,6 @@
-# encoding: utf-8
+"""Test suite for pptx.oxml.ns.py module."""
 
-"""
-Test suite for pptx.oxml.ns.py module.
-"""
-
-from __future__ import print_function, unicode_literals
+from __future__ import annotations
 
 import pytest
 
@@ -44,16 +40,12 @@ class DescribeNsdecls(object):
 
 
 class DescribeNsuri(object):
-    def it_finds_the_namespace_uri_corresponding_to_a_namespace_prefix(
-        self, namespace_uri_a
-    ):
+    def it_finds_the_namespace_uri_corresponding_to_a_namespace_prefix(self, namespace_uri_a):
         assert nsuri("a") == namespace_uri_a
 
 
 class DescribeQn(object):
-    def it_calculates_the_clark_name_for_an_ns_prefixed_tag_string(
-        self, nsptag_str, clark_name
-    ):
+    def it_calculates_the_clark_name_for_an_ns_prefixed_tag_string(self, nsptag_str, clark_name):
         assert qn(nsptag_str) == clark_name
 
 

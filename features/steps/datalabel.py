@@ -1,16 +1,12 @@
-# encoding: utf-8
-
 """Gherkin step implementations for chart data label features."""
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.chart import XL_DATA_LABEL_POSITION
-
-from helpers import test_pptx
-
 
 # given ===================================================
 

@@ -1,19 +1,13 @@
-# encoding: utf-8
+"""Step implementations for run property (font)-related features."""
 
-"""
-Step implementations for run property (font)-related features
-"""
-
-from __future__ import absolute_import
+from __future__ import annotations
 
 from behave import given, then, when
+from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_UNDERLINE
-
-from helpers import test_pptx
-
 
 # given ===================================================
 
