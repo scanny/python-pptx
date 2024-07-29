@@ -222,7 +222,7 @@ class _ZipPkgWriter(_PhysPkgWriter):
     @lazyproperty
     def _zipf(self):
         """`ZipFile` instance open for writing."""
-        return zipfile.ZipFile(self._pkg_file, "w", compression=zipfile.ZIP_DEFLATED)
+        return zipfile.ZipFile(self._pkg_file, "w", compression=zipfile.ZIP_DEFLATED, strict_timestamps=False)
 
 
 class _ContentTypesItem(object):
