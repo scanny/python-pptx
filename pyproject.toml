@@ -1,0 +1,100 @@
+[tool.black]
+line-length = 100
+
+[tool.pyright]
+exclude = [
+    "**/__pycache__",
+    "**/.*"
+]
+include = [
+    "src/pptx",
+    "tests/"
+]
+ignore =  []
+pythonPlatform = "All"
+pythonVersion = "3.9"
+reportImportCycles = false
+reportUnnecessaryCast = true
+reportUnnecessaryTypeIgnoreComment = true
+stubPath = "./typings"
+typeCheckingMode = "strict"
+verboseOutput = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    # -- exit on any warning not explicitly ignored here --
+    "error",
+    # -- pytest-xdist plugin may warn about `looponfailroots` deprecation --
+    "ignore::DeprecationWarning:xdist",
+    # -- pytest complains when pytest-xdist is not installed --
+    "ignore:Unknown config option. looponfailroots:pytest.PytestConfigWarning",
+]
+
+looponfailroots = [
+    "src",
+    "tests",
+]
+norecursedirs = [
+    "docs",
+    "*.egg-info",
+    "features",
+    ".git",
+    "src",
+    "spec",
+    ".tox",
+]
+python_classes = [
+    "Test",
+    "Describe",
+]
+python_functions = [
+    "test_",
+    "it_",
+    "they_",
+    "but_",
+    "and_",
+]
+
+[tool.ruff]
+line-length = 100
+
+# -- don't check these locations --
+exclude = [
+    # -- docs/ - documentation Python code is incidental --
+    "docs",
+    # -- lab/ has some experimental code that is not disciplined --
+    "lab",
+    # -- ref/ is not source-code --
+    "ref",
+    # -- spec/ has some ad-hoc discovery code that is not disciplined --
+    "spec",
+]
+
+[tool.ruff.lint]
+select = [
+    "C4",       # -- flake8-comprehensions --
+    "COM",      # -- flake8-commas --
+    "E",        # -- pycodestyle errors --
+    "F",        # -- pyflakes --
+    "I",        # -- isort (imports) --
+    "PLR0402",  # -- Name compared with itself like `foo == foo` --
+    "PT",       # -- flake8-pytest-style --
+    "SIM",      # -- flake8-simplify --
+    "TCH001",   # -- detect typing-only imports not under `if TYPE_CHECKING` --
+    "UP015",    # -- redundant `open()` mode parameter (like "r" is default) --
+    "UP018",    # -- Unnecessary {literal_type} call like `str("abc")`. (rewrite as a literal) --
+    "UP032",    # -- Use f-string instead of `.format()` call --
+    "UP034",    # -- Avoid extraneous parentheses --
+    "W",        # -- Warnings, including invalid escape-sequence --
+]
+ignore = [
+    "COM812",   # -- over aggressively insists on trailing commas where not desireable --
+    "PT001",    # -- wants empty parens on @pytest.fixture where not used (essentially always) --
+    "PT005",    # -- flags mock fixtures with names intentionally matching private method name --
+    "PT011",    # -- pytest.raises({exc}) too broad, use match param or more specific exception --
+    "PT012",    # -- pytest.raises() block should contain a single simple statement --
+    "SIM117",   # -- merge `with` statements for context managers that have same scope --
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pptx"]
