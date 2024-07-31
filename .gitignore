@@ -2,7 +2,7 @@
 .cache
 .coverage
 /.tox/
-*.egg-info
+/src/*.egg-info
 *.pyc
 /dist/
 /docs/.build

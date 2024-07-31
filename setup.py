@@ -20,7 +20,7 @@ def ascii_bytes_from(path, *paths):
 
 # read required text from files
 thisdir = os.path.dirname(__file__)
-init_py = ascii_bytes_from(thisdir, "pptx", "__init__.py")
+init_py = ascii_bytes_from(thisdir, "src", "pptx", "__init__.py")
 readme = ascii_bytes_from(thisdir, "README.rst")
 history = ascii_bytes_from(thisdir, "HISTORY.rst")
 
@@ -38,7 +38,7 @@ AUTHOR = "Steve Canny"
 AUTHOR_EMAIL = "python-pptx@googlegroups.com"
 URL = "https://github.com/scanny/python-pptx"
 LICENSE = "MIT"
-PACKAGES = find_packages(exclude=["tests", "tests.*"])
+PACKAGES = find_packages(where="src")
 PACKAGE_DATA = {"pptx": ["templates/*"]}
 
 INSTALL_REQUIRES = ["lxml>=3.1.0", "Pillow>=3.3.2", "XlsxWriter>=0.5.7"]
@@ -78,6 +78,7 @@ params = {
     "license": LICENSE,
     "packages": PACKAGES,
     "package_data": PACKAGE_DATA,
+    "package_dir": {"": "src"},
     "install_requires": INSTALL_REQUIRES,
     "tests_require": TESTS_REQUIRE,
     "test_suite": TEST_SUITE,
