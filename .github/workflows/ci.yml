@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches:
+      - master
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install test dependencies
+        run: |
+          pip install .
+          pip install -r requirements-test.txt
+      - name: Test with pytest
+        run: pytest --cov=pptx --cov-report term-missing tests
+      - name: Acceptance tests with behave
+        run: behave --stop

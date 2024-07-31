@@ -1,10 +1,10 @@
-# encoding: utf-8
-
 """Unit-test suite for `pptx.parts.coreprops` module."""
 
-import pytest
+from __future__ import annotations
 
-from datetime import datetime, timedelta
+import datetime as dt
+
+import pytest
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.oxml.coreprops import CT_CoreProperties
@@ -55,16 +55,18 @@ class DescribeCorePropertiesPart(object):
         assert core_props.revision == 1
         # core_props.modified only stores time with seconds resolution, so
         # comparison needs to be a little loose (within two seconds)
-        modified_timedelta = datetime.utcnow() - core_props.modified
-        max_expected_timedelta = timedelta(seconds=2)
+        modified_timedelta = (
+            dt.datetime.now(dt.timezone.utc).replace(tzinfo=None) - core_props.modified
+        )
+        max_expected_timedelta = dt.timedelta(seconds=2)
         assert modified_timedelta < max_expected_timedelta
 
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
         params=[
-            ("created", datetime(2012, 11, 17, 16, 37, 40)),
-            ("last_printed", datetime(2014, 6, 4, 4, 28)),
+            ("created", dt.datetime(2012, 11, 17, 16, 37, 40)),
+            ("last_printed", dt.datetime(2014, 6, 4, 4, 28)),
             ("modified", None),
         ]
     )
@@ -77,21 +79,21 @@ class DescribeCorePropertiesPart(object):
             (
                 "created",
                 "dcterms:created",
-                datetime(2001, 2, 3, 4, 5),
+                dt.datetime(2001, 2, 3, 4, 5),
                 "2001-02-03T04:05:00Z",
                 ' xsi:type="dcterms:W3CDTF"',
             ),
             (
                 "last_printed",
                 "cp:lastPrinted",
-                datetime(2014, 6, 4, 4),
+                dt.datetime(2014, 6, 4, 4),
                 "2014-06-04T04:00:00Z",
                 "",
             ),
             (
                 "modified",
                 "dcterms:modified",
-                datetime(2005, 4, 3, 2, 1),
+                dt.datetime(2005, 4, 3, 2, 1),
                 "2005-04-03T02:01:00Z",
                 ' xsi:type="dcterms:W3CDTF"',
             ),
@@ -145,9 +147,7 @@ class DescribeCorePropertiesPart(object):
         expected_xml = self.coreProperties(tagname, value)
         return core_properties, prop_name, value, expected_xml
 
-    @pytest.fixture(
-        params=[("42", 42), (None, 0), ("foobar", 0), ("-17", 0), ("32.7", 0)]
-    )
+    @pytest.fixture(params=[("42", 42), (None, 0), ("foobar", 0), ("-17", 0), ("32.7", 0)])
     def revision_get_fixture(self, request):
         str_val, expected_revision = request.param
         tagname = "" if str_val is None else "cp:revision"
