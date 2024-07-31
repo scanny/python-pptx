@@ -28,7 +28,7 @@ from pptx.chart.data import (
     XySeriesData,
 )
 from pptx.chart.xlsx import CategoryWorkbookWriter
-from pptx.enum.base import EnumValue
+from pptx.enum.chart import XL_CHART_TYPE
 
 from ..unitutil.mock import call, class_mock, instance_mock, property_mock
 
@@ -74,8 +74,8 @@ class Describe_BaseChartData(object):
         return ChartXmlWriter_
 
     @pytest.fixture
-    def chart_type_(self, request):
-        return instance_mock(request, EnumValue)
+    def chart_type_(self):
+        return XL_CHART_TYPE.PIE
 
 
 class Describe_BaseSeriesData(object):
@@ -229,15 +229,11 @@ class DescribeCategoryChartData(object):
 
     @pytest.fixture
     def Categories_(self, request, categories_):
-        return class_mock(
-            request, "pptx.chart.data.Categories", return_value=categories_
-        )
+        return class_mock(request, "pptx.chart.data.Categories", return_value=categories_)
 
     @pytest.fixture
     def CategorySeriesData_(self, request, series_):
-        return class_mock(
-            request, "pptx.chart.data.CategorySeriesData", return_value=series_
-        )
+        return class_mock(request, "pptx.chart.data.CategorySeriesData", return_value=series_)
 
     @pytest.fixture
     def categories_(self, request):
@@ -245,9 +241,7 @@ class DescribeCategoryChartData(object):
 
     @pytest.fixture
     def categories_prop_(self, request, categories_):
-        return property_mock(
-            request, CategoryChartData, "categories", return_value=categories_
-        )
+        return property_mock(request, CategoryChartData, "categories", return_value=categories_)
 
     @pytest.fixture
     def category_(self, request):
@@ -357,9 +351,7 @@ class DescribeCategories(object):
             categories.add_category(label)
         return categories, expected_value
 
-    @pytest.fixture(
-        params=[((), 0), ((1,), 1), ((3,), 3), ((1, 1, 1), 1), ((3, 3, 3), 3)]
-    )
+    @pytest.fixture(params=[((), 0), ((1,), 1), ((3,), 3), ((1, 1, 1), 1), ((3, 3, 3), 3)])
     def depth_fixture(self, request):
         depths, expected_value = request.param
         categories = Categories()
@@ -392,9 +384,7 @@ class DescribeCategories(object):
         leaf_counts, expected_value = request.param
         categories = Categories()
         for leaf_count in leaf_counts:
-            categories._categories.append(
-                instance_mock(request, Category, leaf_count=leaf_count)
-            )
+            categories._categories.append(instance_mock(request, Category, leaf_count=leaf_count))
         return categories, expected_value
 
     @pytest.fixture(
@@ -525,9 +515,7 @@ class DescribeCategory(object):
     def add_sub_fixture(self, request, category_):
         category = Category(None, None)
         name = "foobar"
-        Category_ = class_mock(
-            request, "pptx.chart.data.Category", return_value=category_
-        )
+        Category_ = class_mock(request, "pptx.chart.data.Category", return_value=category_)
         return category, name, Category_, category_
 
     @pytest.fixture(params=[((), 1), ((1,), 2), ((1, 1, 1), 2), ((2, 2, 2), 3)])
@@ -535,18 +523,14 @@ class DescribeCategory(object):
         depths, expected_value = request.param
         category = Category(None, None)
         for depth in depths:
-            category._sub_categories.append(
-                instance_mock(request, Category, depth=depth)
-            )
+            category._sub_categories.append(instance_mock(request, Category, depth=depth))
         return category, expected_value
 
     @pytest.fixture
     def depth_raises_fixture(self, request):
         category = Category(None, None)
         for depth in (1, 2, 1):
-            category._sub_categories.append(
-                instance_mock(request, Category, depth=depth)
-            )
+            category._sub_categories.append(instance_mock(request, Category, depth=depth))
         return category
 
     @pytest.fixture(
@@ -594,9 +578,7 @@ class DescribeCategory(object):
         leaf_counts, expected_value = request.param
         category = Category(None, None)
         for leaf_count in leaf_counts:
-            category._sub_categories.append(
-                instance_mock(request, Category, leaf_count=leaf_count)
-            )
+            category._sub_categories.append(instance_mock(request, Category, leaf_count=leaf_count))
         return category, expected_value
 
     @pytest.fixture(
@@ -683,9 +665,7 @@ class DescribeCategorySeriesData(object):
         series_data = CategorySeriesData(None, None, None)
         expected_values = [1, 2, 3]
         for value in expected_values:
-            series_data._data_points.append(
-                instance_mock(request, CategoryDataPoint, value=value)
-            )
+            series_data._data_points.append(instance_mock(request, CategoryDataPoint, value=value))
         return series_data, expected_values
 
     @pytest.fixture
@@ -699,9 +679,7 @@ class DescribeCategorySeriesData(object):
 
     @pytest.fixture
     def CategoryDataPoint_(self, request, data_point_):
-        return class_mock(
-            request, "pptx.chart.data.CategoryDataPoint", return_value=data_point_
-        )
+        return class_mock(request, "pptx.chart.data.CategoryDataPoint", return_value=data_point_)
 
     @pytest.fixture
     def categories_(self, request):
@@ -736,9 +714,7 @@ class DescribeBubbleChartData(object):
 
     @pytest.fixture
     def BubbleSeriesData_(self, request, series_data_):
-        return class_mock(
-            request, "pptx.chart.data.BubbleSeriesData", return_value=series_data_
-        )
+        return class_mock(request, "pptx.chart.data.BubbleSeriesData", return_value=series_data_)
 
     @pytest.fixture
     def series_data_(self, request):
@@ -768,9 +744,7 @@ class DescribeXyChartData(object):
 
     @pytest.fixture
     def XySeriesData_(self, request, series_data_):
-        return class_mock(
-            request, "pptx.chart.data.XySeriesData", return_value=series_data_
-        )
+        return class_mock(request, "pptx.chart.data.XySeriesData", return_value=series_data_)
 
     @pytest.fixture
     def series_data_(self, request):
@@ -797,9 +771,7 @@ class DescribeBubbleSeriesData(object):
 
     @pytest.fixture
     def BubbleDataPoint_(self, request, data_point_):
-        return class_mock(
-            request, "pptx.chart.data.BubbleDataPoint", return_value=data_point_
-        )
+        return class_mock(request, "pptx.chart.data.BubbleDataPoint", return_value=data_point_)
 
     @pytest.fixture
     def data_point_(self, request):
@@ -842,9 +814,7 @@ class DescribeXySeriesData(object):
 
     @pytest.fixture
     def XyDataPoint_(self, request, data_point_):
-        return class_mock(
-            request, "pptx.chart.data.XyDataPoint", return_value=data_point_
-        )
+        return class_mock(request, "pptx.chart.data.XyDataPoint", return_value=data_point_)
 
 
 class DescribeCategoryDataPoint(object):

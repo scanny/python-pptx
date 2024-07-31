@@ -437,9 +437,7 @@ class _BaseGroupShapes(_BaseShapes):
         x, y = min(begin_x, end_x), min(begin_y, end_y)
         cx, cy = abs(end_x - begin_x), abs(end_y - begin_y)
 
-        return self._element.add_cxnSp(
-            id_, name, connector_type, x, y, cx, cy, flipH, flipV
-        )
+        return self._element.add_cxnSp(id_, name, connector_type, x, y, cx, cy, flipH, flipV)
 
     def _add_pic_from_image_part(self, image_part, rId, x, y, cx, cy):
         """Return a newly appended `p:pic` element as specified.
@@ -564,9 +562,7 @@ class SlideShapes(_BaseGroupShapes):
         the ``.table`` property on the returned |GraphicFrame| shape must be
         used to access the enclosed |Table| object.
         """
-        graphicFrame = self._add_graphicFrame_containing_table(
-            rows, cols, left, top, width, height
-        )
+        graphicFrame = self._add_graphicFrame_containing_table(rows, cols, left, top, width, height)
         graphic_frame = self._shape_factory(graphicFrame)
         return graphic_frame
 
@@ -788,9 +784,7 @@ class SlidePlaceholders(ParentedElementProxy):
         """
         Generate placeholder shapes in `idx` order.
         """
-        ph_elms = sorted(
-            [e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx
-        )
+        ph_elms = sorted([e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx)
         return (SlideShapeFactory(e, self) for e in ph_elms)
 
     def __len__(self):
@@ -896,9 +890,7 @@ class _MoviePicElementCreator(object):
     a object such that its helper methods can be organized here.
     """
 
-    def __init__(
-        self, shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_file, mime_type
-    ):
+    def __init__(self, shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_file, mime_type):
         super(_MoviePicElementCreator, self).__init__()
         self._shapes = shapes
         self._shape_id = shape_id
@@ -917,9 +909,7 @@ class _MoviePicElementCreator(object):
         *poster_frame_file* is None, the default "media loudspeaker" image is
         used.
         """
-        return cls(
-            shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image, mime_type
-        )._pic
+        return cls(shapes, shape_id, movie_file, x, y, cx, cy, poster_frame_image, mime_type)._pic
         return
 
     @property
@@ -965,9 +955,7 @@ class _MoviePicElementCreator(object):
         The poster frame is the image used to represent the video before it's
         played.
         """
-        _, poster_frame_rId = self._slide_part.get_or_add_image_part(
-            self._poster_frame_image_file
-        )
+        _, poster_frame_rId = self._slide_part.get_or_add_image_part(self._poster_frame_image_file)
         return poster_frame_rId
 
     @property
@@ -1101,9 +1089,7 @@ class _OleObjectElementCreator(object):
         # --- the default width is specified by the PROG_ID member if prog_id is one,
         # --- otherwise it gets the default icon width.
         return (
-            Emu(self._prog_id_arg.width)
-            if self._prog_id_arg in PROG_ID
-            else Emu(965200)
+            Emu(self._prog_id_arg.width) if isinstance(self._prog_id_arg, PROG_ID) else Emu(965200)
         )
 
     @lazyproperty
@@ -1116,9 +1102,7 @@ class _OleObjectElementCreator(object):
         # --- the default height is specified by the PROG_ID member if prog_id is one,
         # --- otherwise it gets the default icon height.
         return (
-            Emu(self._prog_id_arg.height)
-            if self._prog_id_arg in PROG_ID
-            else Emu(609600)
+            Emu(self._prog_id_arg.height) if isinstance(self._prog_id_arg, PROG_ID) else Emu(609600)
         )
 
     @lazyproperty
@@ -1132,9 +1116,7 @@ class _OleObjectElementCreator(object):
         The correct size can be determined by creating an example PPTX using PowerPoint
         and then inspecting the XML of the OLE graphics-frame (p:oleObj.imgH).
         """
-        return (
-            self._icon_height_arg if self._icon_height_arg is not None else Emu(609600)
-        )
+        return self._icon_height_arg if self._icon_height_arg is not None else Emu(609600)
 
     @lazyproperty
     def _icon_image_file(self):
@@ -1150,7 +1132,7 @@ class _OleObjectElementCreator(object):
         # --- user-specified (str) prog_id gets the default icon.
         icon_filename = (
             self._prog_id_arg.icon_filename
-            if self._prog_id_arg in PROG_ID
+            if isinstance(self._prog_id_arg, PROG_ID)
             else "generic-icon.emf"
         )
 
@@ -1195,7 +1177,7 @@ class _OleObjectElementCreator(object):
 
         # --- member of PROG_ID enumeration knows its progId keyphrase, otherwise caller
         # --- has specified it explicitly (as str)
-        return prog_id_arg.progId if prog_id_arg in PROG_ID else prog_id_arg
+        return prog_id_arg.progId if isinstance(prog_id_arg, PROG_ID) else prog_id_arg
 
     @lazyproperty
     def _shape_name(self):

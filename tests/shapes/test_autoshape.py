@@ -72,17 +72,13 @@ class DescribeAdjustmentCollection(object):
         actual_actuals = dict([(a.name, a.actual) for a in adjustments])
         assert actual_actuals == expected_actuals
 
-    def it_provides_normalized_effective_value_on_indexed_access(
-        self, indexed_access_fixture_
-    ):
+    def it_provides_normalized_effective_value_on_indexed_access(self, indexed_access_fixture_):
         prstGeom, prst, expected_values = indexed_access_fixture_
         adjustments = AdjustmentCollection(prstGeom)
         actual_values = [adjustments[idx] for idx in range(len(adjustments))]
         assert actual_values == expected_values
 
-    def it_should_update_actual_value_on_indexed_assignment(
-        self, indexed_assignment_fixture_
-    ):
+    def it_should_update_actual_value_on_indexed_assignment(self, indexed_assignment_fixture_):
         """
         Assignment to AdjustmentCollection[n] updates nth actual
         """
@@ -147,9 +143,7 @@ class DescribeAdjustmentCollection(object):
     def _adj_actuals_cases():
         gd_bldr = a_gd().with_name("adj2").with_fmla("val 25000")
         avLst_bldr = an_avLst().with_child(gd_bldr)
-        mathDivide_bldr = (
-            a_prstGeom().with_nsdecls().with_prst("mathDivide").with_child(avLst_bldr)
-        )
+        mathDivide_bldr = a_prstGeom().with_nsdecls().with_prst("mathDivide").with_child(avLst_bldr)
 
         gd_bldr = a_gd().with_name("adj").with_fmla("val 25000")
         avLst_bldr = an_avLst().with_child(gd_bldr)
@@ -158,14 +152,9 @@ class DescribeAdjustmentCollection(object):
         gd_bldr_1 = a_gd().with_name("adj1").with_fmla("val 111")
         gd_bldr_2 = a_gd().with_name("adj2").with_fmla("val 222")
         gd_bldr_3 = a_gd().with_name("adj3").with_fmla("val 333")
-        avLst_bldr = (
-            an_avLst().with_child(gd_bldr_1).with_child(gd_bldr_2).with_child(gd_bldr_3)
-        )
+        avLst_bldr = an_avLst().with_child(gd_bldr_1).with_child(gd_bldr_2).with_child(gd_bldr_3)
         wedgeRoundRectCallout_bldr = (
-            a_prstGeom()
-            .with_nsdecls()
-            .with_prst("wedgeRoundRectCallout")
-            .with_child(avLst_bldr)
+            a_prstGeom().with_nsdecls().with_prst("wedgeRoundRectCallout").with_child(avLst_bldr)
         )
 
         return [
@@ -230,9 +219,7 @@ class DescribeAdjustmentCollection(object):
     @pytest.fixture(params=_prstGeom_cases())
     def prstGeom_cases_(self, request):
         prst, expected_values = request.param
-        prstGeom = (
-            a_prstGeom().with_nsdecls().with_prst(prst).with_child(an_avLst()).element
-        )
+        prstGeom = a_prstGeom().with_nsdecls().with_prst(prst).with_child(an_avLst()).element
         return prstGeom, prst, expected_values
 
     def _effective_val_cases():
@@ -274,9 +261,7 @@ class DescribeAutoShapeType(object):
         assert autoshape_type.prst == "noSmoking"
         assert autoshape_type.basename == "&quot;No&quot; Symbol"
 
-    def it_knows_the_default_adj_vals_for_its_autoshape_type(
-        self, default_adj_vals_fixture_
-    ):
+    def it_knows_the_default_adj_vals_for_its_autoshape_type(self, default_adj_vals_fixture_):
         prst, default_adj_vals = default_adj_vals_fixture_
         _default_adj_vals = AutoShapeType.default_adjustment_values(prst)
         assert _default_adj_vals == default_adj_vals
@@ -285,7 +270,7 @@ class DescribeAutoShapeType(object):
         assert AutoShapeType.id_from_prst("rect") == MSO_SHAPE.RECTANGLE
 
     def it_raises_when_asked_for_autoshape_type_id_with_a_bad_prst(self):
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             AutoShapeType.id_from_prst("badPrst")
 
     def it_caches_autoshape_type_lookups(self):
@@ -335,9 +320,7 @@ class DescribeShape(object):
         auto_shape_type = shape.auto_shape_type
         assert auto_shape_type == expected_value
 
-    def but_it_raises_when_auto_shape_type_called_on_non_autoshape(
-        self, non_autoshape_shape_
-    ):
+    def but_it_raises_when_auto_shape_type_called_on_non_autoshape(self, non_autoshape_shape_):
         with pytest.raises(ValueError):
             non_autoshape_shape_.auto_shape_type
 
@@ -354,9 +337,7 @@ class DescribeShape(object):
     def it_knows_its_shape_type_when_its_a_placeholder(self, placeholder_shape_):
         assert placeholder_shape_.shape_type == MSO_SHAPE_TYPE.PLACEHOLDER
 
-    def and_it_knows_its_shape_type_when_its_not_a_placeholder(
-        self, non_placeholder_shapes_
-    ):
+    def and_it_knows_its_shape_type_when_its_not_a_placeholder(self, non_placeholder_shapes_):
         autoshape_shape_, textbox_shape_, freeform_ = non_placeholder_shapes_
         assert autoshape_shape_.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
         assert textbox_shape_.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
@@ -417,9 +398,7 @@ class DescribeShape(object):
         return shape, MSO_SHAPE.CHEVRON
 
     @pytest.fixture
-    def init_adjs_fixture_(
-        self, request, shape, sp_, adjustments_, AdjustmentCollection_
-    ):
+    def init_adjs_fixture_(self, request, shape, sp_, adjustments_, AdjustmentCollection_):
         return shape, adjustments_, AdjustmentCollection_, sp_
 
     @pytest.fixture
@@ -508,9 +487,7 @@ class DescribeShape(object):
 
     @pytest.fixture
     def TextFrame_(self, request, text_frame_):
-        return class_mock(
-            request, "pptx.shapes.autoshape.TextFrame", return_value=text_frame_
-        )
+        return class_mock(request, "pptx.shapes.autoshape.TextFrame", return_value=text_frame_)
 
     @pytest.fixture
     def text_frame_(self, request):

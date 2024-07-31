@@ -1,22 +1,14 @@
-# encoding: utf-8
-
 """Enumerations used by shapes and related objects."""
 
-from pptx.enum.base import (
-    alias,
-    Enumeration,
-    EnumMember,
-    ReturnValueOnlyEnumMember,
-    XmlEnumeration,
-    XmlMappedEnumMember,
-)
-from pptx.util import lazyproperty
+from __future__ import annotations
+
+import enum
+
+from pptx.enum.base import BaseEnum, BaseXmlEnum
 
 
-@alias("MSO_SHAPE")
-class MSO_AUTO_SHAPE_TYPE(XmlEnumeration):
-    """
-    Specifies a type of AutoShape, e.g. DOWN_ARROW
+class MSO_AUTO_SHAPE_TYPE(BaseXmlEnum):
+    """Specifies a type of AutoShape, e.g. DOWN_ARROW.
 
     Alias: ``MSO_SHAPE``
 
@@ -29,618 +21,703 @@ class MSO_AUTO_SHAPE_TYPE(XmlEnumeration):
         slide.shapes.add_shape(
             MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height
         )
+
+    MS API Name: `MsoAutoShapeType`
+
+    https://learn.microsoft.com/en-us/office/vba/api/Office.MsoAutoShapeType
     """
 
-    __ms_name__ = "MsoAutoShapeType"
-
-    __url__ = (
-        "http://msdn.microsoft.com/en-us/library/office/ff862770(v=office.15" ").aspx"
+    ACTION_BUTTON_BACK_OR_PREVIOUS = (
+        129,
+        "actionButtonBackPrevious",
+        "Back or Previous button. Supports mouse-click and mouse-over actions",
     )
+    """Back or Previous button. Supports mouse-click and mouse-over actions"""
 
-    __members__ = (
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_BACK_OR_PREVIOUS",
-            129,
-            "actionButtonBackPrevious",
-            "Back or Previous button. Supports " "mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_BEGINNING",
-            131,
-            "actionButtonBeginning",
-            "Beginning button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_CUSTOM",
-            125,
-            "actionButtonBlank",
-            "Button with no default picture or text. Supports mouse-click an"
-            "d mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_DOCUMENT",
-            134,
-            "actionButtonDocument",
-            "Document button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_END",
-            132,
-            "actionButtonEnd",
-            "End button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_FORWARD_OR_NEXT",
-            130,
-            "actionButtonForwardNext",
-            "Forward or Next button. Supports mouse-click and mouse-over act" "ions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_HELP",
-            127,
-            "actionButtonHelp",
-            "Help button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_HOME",
-            126,
-            "actionButtonHome",
-            "Home button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_INFORMATION",
-            128,
-            "actionButtonInformation",
-            "Information button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_MOVIE",
-            136,
-            "actionButtonMovie",
-            "Movie button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_RETURN",
-            133,
-            "actionButtonReturn",
-            "Return button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember(
-            "ACTION_BUTTON_SOUND",
-            135,
-            "actionButtonSound",
-            "Sound button. Supports mouse-click and mouse-over actions",
-        ),
-        XmlMappedEnumMember("ARC", 25, "arc", "Arc"),
-        XmlMappedEnumMember(
-            "BALLOON", 137, "wedgeRoundRectCallout", "Rounded Rectangular Callout"
-        ),
-        XmlMappedEnumMember(
-            "BENT_ARROW",
-            41,
-            "bentArrow",
-            "Block arrow that follows a curved 90-degree angle",
-        ),
-        XmlMappedEnumMember(
-            "BENT_UP_ARROW",
-            44,
-            "bentUpArrow",
-            "Block arrow that follows a sharp 90-degree angle. Points up by " "default",
-        ),
-        XmlMappedEnumMember("BEVEL", 15, "bevel", "Bevel"),
-        XmlMappedEnumMember("BLOCK_ARC", 20, "blockArc", "Block arc"),
-        XmlMappedEnumMember("CAN", 13, "can", "Can"),
-        XmlMappedEnumMember("CHART_PLUS", 182, "chartPlus", "Chart Plus"),
-        XmlMappedEnumMember("CHART_STAR", 181, "chartStar", "Chart Star"),
-        XmlMappedEnumMember("CHART_X", 180, "chartX", "Chart X"),
-        XmlMappedEnumMember("CHEVRON", 52, "chevron", "Chevron"),
-        XmlMappedEnumMember("CHORD", 161, "chord", "Geometric chord shape"),
-        XmlMappedEnumMember(
-            "CIRCULAR_ARROW",
-            60,
-            "circularArrow",
-            "Block arrow that follows a curved 180-degree angle",
-        ),
-        XmlMappedEnumMember("CLOUD", 179, "cloud", "Cloud"),
-        XmlMappedEnumMember("CLOUD_CALLOUT", 108, "cloudCallout", "Cloud callout"),
-        XmlMappedEnumMember("CORNER", 162, "corner", "Corner"),
-        XmlMappedEnumMember("CORNER_TABS", 169, "cornerTabs", "Corner Tabs"),
-        XmlMappedEnumMember("CROSS", 11, "plus", "Cross"),
-        XmlMappedEnumMember("CUBE", 14, "cube", "Cube"),
-        XmlMappedEnumMember(
-            "CURVED_DOWN_ARROW", 48, "curvedDownArrow", "Block arrow that curves down"
-        ),
-        XmlMappedEnumMember(
-            "CURVED_DOWN_RIBBON", 100, "ellipseRibbon", "Ribbon banner that curves down"
-        ),
-        XmlMappedEnumMember(
-            "CURVED_LEFT_ARROW", 46, "curvedLeftArrow", "Block arrow that curves left"
-        ),
-        XmlMappedEnumMember(
-            "CURVED_RIGHT_ARROW",
-            45,
-            "curvedRightArrow",
-            "Block arrow that curves right",
-        ),
-        XmlMappedEnumMember(
-            "CURVED_UP_ARROW", 47, "curvedUpArrow", "Block arrow that curves up"
-        ),
-        XmlMappedEnumMember(
-            "CURVED_UP_RIBBON", 99, "ellipseRibbon2", "Ribbon banner that curves up"
-        ),
-        XmlMappedEnumMember("DECAGON", 144, "decagon", "Decagon"),
-        XmlMappedEnumMember("DIAGONAL_STRIPE", 141, "diagStripe", "Diagonal Stripe"),
-        XmlMappedEnumMember("DIAMOND", 4, "diamond", "Diamond"),
-        XmlMappedEnumMember("DODECAGON", 146, "dodecagon", "Dodecagon"),
-        XmlMappedEnumMember("DONUT", 18, "donut", "Donut"),
-        XmlMappedEnumMember("DOUBLE_BRACE", 27, "bracePair", "Double brace"),
-        XmlMappedEnumMember("DOUBLE_BRACKET", 26, "bracketPair", "Double bracket"),
-        XmlMappedEnumMember("DOUBLE_WAVE", 104, "doubleWave", "Double wave"),
-        XmlMappedEnumMember(
-            "DOWN_ARROW", 36, "downArrow", "Block arrow that points down"
-        ),
-        XmlMappedEnumMember(
-            "DOWN_ARROW_CALLOUT",
-            56,
-            "downArrowCallout",
-            "Callout with arrow that points down",
-        ),
-        XmlMappedEnumMember(
-            "DOWN_RIBBON",
-            98,
-            "ribbon",
-            "Ribbon banner with center area below ribbon ends",
-        ),
-        XmlMappedEnumMember("EXPLOSION1", 89, "irregularSeal1", "Explosion"),
-        XmlMappedEnumMember("EXPLOSION2", 90, "irregularSeal2", "Explosion"),
-        XmlMappedEnumMember(
-            "FLOWCHART_ALTERNATE_PROCESS",
-            62,
-            "flowChartAlternateProcess",
-            "Alternate process flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_CARD", 75, "flowChartPunchedCard", "Card flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_COLLATE", 79, "flowChartCollate", "Collate flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_CONNECTOR",
-            73,
-            "flowChartConnector",
-            "Connector flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_DATA", 64, "flowChartInputOutput", "Data flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_DECISION", 63, "flowChartDecision", "Decision flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_DELAY", 84, "flowChartDelay", "Delay flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_DIRECT_ACCESS_STORAGE",
-            87,
-            "flowChartMagneticDrum",
-            "Direct access storage flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_DISPLAY", 88, "flowChartDisplay", "Display flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_DOCUMENT", 67, "flowChartDocument", "Document flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_EXTRACT", 81, "flowChartExtract", "Extract flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_INTERNAL_STORAGE",
-            66,
-            "flowChartInternalStorage",
-            "Internal storage flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_MAGNETIC_DISK",
-            86,
-            "flowChartMagneticDisk",
-            "Magnetic disk flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_MANUAL_INPUT",
-            71,
-            "flowChartManualInput",
-            "Manual input flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_MANUAL_OPERATION",
-            72,
-            "flowChartManualOperation",
-            "Manual operation flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_MERGE", 82, "flowChartMerge", "Merge flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_MULTIDOCUMENT",
-            68,
-            "flowChartMultidocument",
-            "Multi-document flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_OFFLINE_STORAGE",
-            139,
-            "flowChartOfflineStorage",
-            "Offline Storage",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_OFFPAGE_CONNECTOR",
-            74,
-            "flowChartOffpageConnector",
-            "Off-page connector flowchart symbol",
-        ),
-        XmlMappedEnumMember("FLOWCHART_OR", 78, "flowChartOr", '"Or" flowchart symbol'),
-        XmlMappedEnumMember(
-            "FLOWCHART_PREDEFINED_PROCESS",
-            65,
-            "flowChartPredefinedProcess",
-            "Predefined process flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_PREPARATION",
-            70,
-            "flowChartPreparation",
-            "Preparation flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_PROCESS", 61, "flowChartProcess", "Process flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_PUNCHED_TAPE",
-            76,
-            "flowChartPunchedTape",
-            "Punched tape flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_SEQUENTIAL_ACCESS_STORAGE",
-            85,
-            "flowChartMagneticTape",
-            "Sequential access storage flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_SORT", 80, "flowChartSort", "Sort flowchart symbol"
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_STORED_DATA",
-            83,
-            "flowChartOnlineStorage",
-            "Stored data flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_SUMMING_JUNCTION",
-            77,
-            "flowChartSummingJunction",
-            "Summing junction flowchart symbol",
-        ),
-        XmlMappedEnumMember(
-            "FLOWCHART_TERMINATOR",
-            69,
-            "flowChartTerminator",
-            "Terminator flowchart symbol",
-        ),
-        XmlMappedEnumMember("FOLDED_CORNER", 16, "foldedCorner", "Folded corner"),
-        XmlMappedEnumMember("FRAME", 158, "frame", "Frame"),
-        XmlMappedEnumMember("FUNNEL", 174, "funnel", "Funnel"),
-        XmlMappedEnumMember("GEAR_6", 172, "gear6", "Gear 6"),
-        XmlMappedEnumMember("GEAR_9", 173, "gear9", "Gear 9"),
-        XmlMappedEnumMember("HALF_FRAME", 159, "halfFrame", "Half Frame"),
-        XmlMappedEnumMember("HEART", 21, "heart", "Heart"),
-        XmlMappedEnumMember("HEPTAGON", 145, "heptagon", "Heptagon"),
-        XmlMappedEnumMember("HEXAGON", 10, "hexagon", "Hexagon"),
-        XmlMappedEnumMember(
-            "HORIZONTAL_SCROLL", 102, "horizontalScroll", "Horizontal scroll"
-        ),
-        XmlMappedEnumMember("ISOSCELES_TRIANGLE", 7, "triangle", "Isosceles triangle"),
-        XmlMappedEnumMember(
-            "LEFT_ARROW", 34, "leftArrow", "Block arrow that points left"
-        ),
-        XmlMappedEnumMember(
-            "LEFT_ARROW_CALLOUT",
-            54,
-            "leftArrowCallout",
-            "Callout with arrow that points left",
-        ),
-        XmlMappedEnumMember("LEFT_BRACE", 31, "leftBrace", "Left brace"),
-        XmlMappedEnumMember("LEFT_BRACKET", 29, "leftBracket", "Left bracket"),
-        XmlMappedEnumMember(
-            "LEFT_CIRCULAR_ARROW", 176, "leftCircularArrow", "Left Circular Arrow"
-        ),
-        XmlMappedEnumMember(
-            "LEFT_RIGHT_ARROW",
-            37,
-            "leftRightArrow",
-            "Block arrow with arrowheads that point both left and right",
-        ),
-        XmlMappedEnumMember(
-            "LEFT_RIGHT_ARROW_CALLOUT",
-            57,
-            "leftRightArrowCallout",
-            "Callout with arrowheads that point both left and right",
-        ),
-        XmlMappedEnumMember(
-            "LEFT_RIGHT_CIRCULAR_ARROW",
-            177,
-            "leftRightCircularArrow",
-            "Left Right Circular Arrow",
-        ),
-        XmlMappedEnumMember(
-            "LEFT_RIGHT_RIBBON", 140, "leftRightRibbon", "Left Right Ribbon"
-        ),
-        XmlMappedEnumMember(
-            "LEFT_RIGHT_UP_ARROW",
-            40,
-            "leftRightUpArrow",
-            "Block arrow with arrowheads that point left, right, and up",
-        ),
-        XmlMappedEnumMember(
-            "LEFT_UP_ARROW",
-            43,
-            "leftUpArrow",
-            "Block arrow with arrowheads that point left and up",
-        ),
-        XmlMappedEnumMember("LIGHTNING_BOLT", 22, "lightningBolt", "Lightning bolt"),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_1",
-            109,
-            "borderCallout1",
-            "Callout with border and horizontal callout line",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_1_ACCENT_BAR",
-            113,
-            "accentCallout1",
-            "Callout with vertical accent bar",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR",
-            121,
-            "accentBorderCallout1",
-            "Callout with border and vertical accent bar",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_1_NO_BORDER", 117, "callout1", "Callout with horizontal line"
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_2",
-            110,
-            "borderCallout2",
-            "Callout with diagonal straight line",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_2_ACCENT_BAR",
-            114,
-            "accentCallout2",
-            "Callout with diagonal callout line and accent bar",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR",
-            122,
-            "accentBorderCallout2",
-            "Callout with border, diagonal straight line, and accent bar",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_2_NO_BORDER",
-            118,
-            "callout2",
-            "Callout with no border and diagonal callout line",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_3", 111, "borderCallout3", "Callout with angled line"
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_3_ACCENT_BAR",
-            115,
-            "accentCallout3",
-            "Callout with angled callout line and accent bar",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR",
-            123,
-            "accentBorderCallout3",
-            "Callout with border, angled callout line, and accent bar",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_3_NO_BORDER",
-            119,
-            "callout3",
-            "Callout with no border and angled callout line",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_4",
-            112,
-            "borderCallout3",
-            "Callout with callout line segments forming a U-shape.",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_4_ACCENT_BAR",
-            116,
-            "accentCallout3",
-            "Callout with accent bar and callout line segments forming a U-s" "hape.",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR",
-            124,
-            "accentBorderCallout3",
-            "Callout with border, accent bar, and callout line segments form"
-            "ing a U-shape.",
-        ),
-        XmlMappedEnumMember(
-            "LINE_CALLOUT_4_NO_BORDER",
-            120,
-            "callout3",
-            "Callout with no border and callout line segments forming a U-sh" "ape.",
-        ),
-        XmlMappedEnumMember("LINE_INVERSE", 183, "lineInv", "Straight Connector"),
-        XmlMappedEnumMember("MATH_DIVIDE", 166, "mathDivide", "Division"),
-        XmlMappedEnumMember("MATH_EQUAL", 167, "mathEqual", "Equal"),
-        XmlMappedEnumMember("MATH_MINUS", 164, "mathMinus", "Minus"),
-        XmlMappedEnumMember("MATH_MULTIPLY", 165, "mathMultiply", "Multiply"),
-        XmlMappedEnumMember("MATH_NOT_EQUAL", 168, "mathNotEqual", "Not Equal"),
-        XmlMappedEnumMember("MATH_PLUS", 163, "mathPlus", "Plus"),
-        XmlMappedEnumMember("MOON", 24, "moon", "Moon"),
-        XmlMappedEnumMember(
-            "NON_ISOSCELES_TRAPEZOID",
-            143,
-            "nonIsoscelesTrapezoid",
-            "Non-isosceles Trapezoid",
-        ),
-        XmlMappedEnumMember(
-            "NOTCHED_RIGHT_ARROW",
-            50,
-            "notchedRightArrow",
-            "Notched block arrow that points right",
-        ),
-        XmlMappedEnumMember("NO_SYMBOL", 19, "noSmoking", '"No" Symbol'),
-        XmlMappedEnumMember("OCTAGON", 6, "octagon", "Octagon"),
-        XmlMappedEnumMember("OVAL", 9, "ellipse", "Oval"),
-        XmlMappedEnumMember(
-            "OVAL_CALLOUT", 107, "wedgeEllipseCallout", "Oval-shaped callout"
-        ),
-        XmlMappedEnumMember("PARALLELOGRAM", 2, "parallelogram", "Parallelogram"),
-        XmlMappedEnumMember("PENTAGON", 51, "homePlate", "Pentagon"),
-        XmlMappedEnumMember("PIE", 142, "pie", "Pie"),
-        XmlMappedEnumMember("PIE_WEDGE", 175, "pieWedge", "Pie"),
-        XmlMappedEnumMember("PLAQUE", 28, "plaque", "Plaque"),
-        XmlMappedEnumMember("PLAQUE_TABS", 171, "plaqueTabs", "Plaque Tabs"),
-        XmlMappedEnumMember(
-            "QUAD_ARROW",
-            39,
-            "quadArrow",
-            "Block arrows that point up, down, left, and right",
-        ),
-        XmlMappedEnumMember(
-            "QUAD_ARROW_CALLOUT",
-            59,
-            "quadArrowCallout",
-            "Callout with arrows that point up, down, left, and right",
-        ),
-        XmlMappedEnumMember("RECTANGLE", 1, "rect", "Rectangle"),
-        XmlMappedEnumMember(
-            "RECTANGULAR_CALLOUT", 105, "wedgeRectCallout", "Rectangular callout"
-        ),
-        XmlMappedEnumMember("REGULAR_PENTAGON", 12, "pentagon", "Pentagon"),
-        XmlMappedEnumMember(
-            "RIGHT_ARROW", 33, "rightArrow", "Block arrow that points right"
-        ),
-        XmlMappedEnumMember(
-            "RIGHT_ARROW_CALLOUT",
-            53,
-            "rightArrowCallout",
-            "Callout with arrow that points right",
-        ),
-        XmlMappedEnumMember("RIGHT_BRACE", 32, "rightBrace", "Right brace"),
-        XmlMappedEnumMember("RIGHT_BRACKET", 30, "rightBracket", "Right bracket"),
-        XmlMappedEnumMember("RIGHT_TRIANGLE", 8, "rtTriangle", "Right triangle"),
-        XmlMappedEnumMember("ROUNDED_RECTANGLE", 5, "roundRect", "Rounded rectangle"),
-        XmlMappedEnumMember(
-            "ROUNDED_RECTANGULAR_CALLOUT",
-            106,
-            "wedgeRoundRectCallout",
-            "Rounded rectangle-shaped callout",
-        ),
-        XmlMappedEnumMember(
-            "ROUND_1_RECTANGLE", 151, "round1Rect", "Round Single Corner Rectangle"
-        ),
-        XmlMappedEnumMember(
-            "ROUND_2_DIAG_RECTANGLE",
-            153,
-            "round2DiagRect",
-            "Round Diagonal Corner Rectangle",
-        ),
-        XmlMappedEnumMember(
-            "ROUND_2_SAME_RECTANGLE",
-            152,
-            "round2SameRect",
-            "Round Same Side Corner Rectangle",
-        ),
-        XmlMappedEnumMember("SMILEY_FACE", 17, "smileyFace", "Smiley face"),
-        XmlMappedEnumMember(
-            "SNIP_1_RECTANGLE", 155, "snip1Rect", "Snip Single Corner Rectangle"
-        ),
-        XmlMappedEnumMember(
-            "SNIP_2_DIAG_RECTANGLE",
-            157,
-            "snip2DiagRect",
-            "Snip Diagonal Corner Rectangle",
-        ),
-        XmlMappedEnumMember(
-            "SNIP_2_SAME_RECTANGLE",
-            156,
-            "snip2SameRect",
-            "Snip Same Side Corner Rectangle",
-        ),
-        XmlMappedEnumMember(
-            "SNIP_ROUND_RECTANGLE",
-            154,
-            "snipRoundRect",
-            "Snip and Round Single Corner Rectangle",
-        ),
-        XmlMappedEnumMember("SQUARE_TABS", 170, "squareTabs", "Square Tabs"),
-        XmlMappedEnumMember("STAR_10_POINT", 149, "star10", "10-Point Star"),
-        XmlMappedEnumMember("STAR_12_POINT", 150, "star12", "12-Point Star"),
-        XmlMappedEnumMember("STAR_16_POINT", 94, "star16", "16-point star"),
-        XmlMappedEnumMember("STAR_24_POINT", 95, "star24", "24-point star"),
-        XmlMappedEnumMember("STAR_32_POINT", 96, "star32", "32-point star"),
-        XmlMappedEnumMember("STAR_4_POINT", 91, "star4", "4-point star"),
-        XmlMappedEnumMember("STAR_5_POINT", 92, "star5", "5-point star"),
-        XmlMappedEnumMember("STAR_6_POINT", 147, "star6", "6-Point Star"),
-        XmlMappedEnumMember("STAR_7_POINT", 148, "star7", "7-Point Star"),
-        XmlMappedEnumMember("STAR_8_POINT", 93, "star8", "8-point star"),
-        XmlMappedEnumMember(
-            "STRIPED_RIGHT_ARROW",
-            49,
-            "stripedRightArrow",
-            "Block arrow that points right with stripes at the tail",
-        ),
-        XmlMappedEnumMember("SUN", 23, "sun", "Sun"),
-        XmlMappedEnumMember("SWOOSH_ARROW", 178, "swooshArrow", "Swoosh Arrow"),
-        XmlMappedEnumMember("TEAR", 160, "teardrop", "Teardrop"),
-        XmlMappedEnumMember("TRAPEZOID", 3, "trapezoid", "Trapezoid"),
-        XmlMappedEnumMember("UP_ARROW", 35, "upArrow", "Block arrow that points up"),
-        XmlMappedEnumMember(
-            "UP_ARROW_CALLOUT",
-            55,
-            "upArrowCallout",
-            "Callout with arrow that points up",
-        ),
-        XmlMappedEnumMember(
-            "UP_DOWN_ARROW", 38, "upDownArrow", "Block arrow that points up and down"
-        ),
-        XmlMappedEnumMember(
-            "UP_DOWN_ARROW_CALLOUT",
-            58,
-            "upDownArrowCallout",
-            "Callout with arrows that point up and down",
-        ),
-        XmlMappedEnumMember(
-            "UP_RIBBON",
-            97,
-            "ribbon2",
-            "Ribbon banner with center area above ribbon ends",
-        ),
-        XmlMappedEnumMember(
-            "U_TURN_ARROW", 42, "uturnArrow", "Block arrow forming a U shape"
-        ),
-        XmlMappedEnumMember(
-            "VERTICAL_SCROLL", 101, "verticalScroll", "Vertical scroll"
-        ),
-        XmlMappedEnumMember("WAVE", 103, "wave", "Wave"),
+    ACTION_BUTTON_BEGINNING = (
+        131,
+        "actionButtonBeginning",
+        "Beginning button. Supports mouse-click and mouse-over actions",
     )
+    """Beginning button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_CUSTOM = (
+        125,
+        "actionButtonBlank",
+        "Button with no default picture or text. Supports mouse-click and mouse-over actions",
+    )
+    """Button with no default picture or text. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_DOCUMENT = (
+        134,
+        "actionButtonDocument",
+        "Document button. Supports mouse-click and mouse-over actions",
+    )
+    """Document button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_END = (
+        132,
+        "actionButtonEnd",
+        "End button. Supports mouse-click and mouse-over actions",
+    )
+    """End button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_FORWARD_OR_NEXT = (
+        130,
+        "actionButtonForwardNext",
+        "Forward or Next button. Supports mouse-click and mouse-over actions",
+    )
+    """Forward or Next button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_HELP = (
+        127,
+        "actionButtonHelp",
+        "Help button. Supports mouse-click and mouse-over actions",
+    )
+    """Help button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_HOME = (
+        126,
+        "actionButtonHome",
+        "Home button. Supports mouse-click and mouse-over actions",
+    )
+    """Home button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_INFORMATION = (
+        128,
+        "actionButtonInformation",
+        "Information button. Supports mouse-click and mouse-over actions",
+    )
+    """Information button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_MOVIE = (
+        136,
+        "actionButtonMovie",
+        "Movie button. Supports mouse-click and mouse-over actions",
+    )
+    """Movie button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_RETURN = (
+        133,
+        "actionButtonReturn",
+        "Return button. Supports mouse-click and mouse-over actions",
+    )
+    """Return button. Supports mouse-click and mouse-over actions"""
+
+    ACTION_BUTTON_SOUND = (
+        135,
+        "actionButtonSound",
+        "Sound button. Supports mouse-click and mouse-over actions",
+    )
+    """Sound button. Supports mouse-click and mouse-over actions"""
+
+    ARC = (25, "arc", "Arc")
+    """Arc"""
+
+    BALLOON = (137, "wedgeRoundRectCallout", "Rounded Rectangular Callout")
+    """Rounded Rectangular Callout"""
+
+    BENT_ARROW = (41, "bentArrow", "Block arrow that follows a curved 90-degree angle")
+    """Block arrow that follows a curved 90-degree angle"""
+
+    BENT_UP_ARROW = (
+        44,
+        "bentUpArrow",
+        "Block arrow that follows a sharp 90-degree angle. Points up by default",
+    )
+    """Block arrow that follows a sharp 90-degree angle. Points up by default"""
+
+    BEVEL = (15, "bevel", "Bevel")
+    """Bevel"""
+
+    BLOCK_ARC = (20, "blockArc", "Block arc")
+    """Block arc"""
+
+    CAN = (13, "can", "Can")
+    """Can"""
+
+    CHART_PLUS = (182, "chartPlus", "Chart Plus")
+    """Chart Plus"""
+
+    CHART_STAR = (181, "chartStar", "Chart Star")
+    """Chart Star"""
+
+    CHART_X = (180, "chartX", "Chart X")
+    """Chart X"""
+
+    CHEVRON = (52, "chevron", "Chevron")
+    """Chevron"""
+
+    CHORD = (161, "chord", "Geometric chord shape")
+    """Geometric chord shape"""
+
+    CIRCULAR_ARROW = (60, "circularArrow", "Block arrow that follows a curved 180-degree angle")
+    """Block arrow that follows a curved 180-degree angle"""
+
+    CLOUD = (179, "cloud", "Cloud")
+    """Cloud"""
+
+    CLOUD_CALLOUT = (108, "cloudCallout", "Cloud callout")
+    """Cloud callout"""
+
+    CORNER = (162, "corner", "Corner")
+    """Corner"""
+
+    CORNER_TABS = (169, "cornerTabs", "Corner Tabs")
+    """Corner Tabs"""
+
+    CROSS = (11, "plus", "Cross")
+    """Cross"""
+
+    CUBE = (14, "cube", "Cube")
+    """Cube"""
+
+    CURVED_DOWN_ARROW = (48, "curvedDownArrow", "Block arrow that curves down")
+    """Block arrow that curves down"""
+
+    CURVED_DOWN_RIBBON = (100, "ellipseRibbon", "Ribbon banner that curves down")
+    """Ribbon banner that curves down"""
+
+    CURVED_LEFT_ARROW = (46, "curvedLeftArrow", "Block arrow that curves left")
+    """Block arrow that curves left"""
+
+    CURVED_RIGHT_ARROW = (45, "curvedRightArrow", "Block arrow that curves right")
+    """Block arrow that curves right"""
+
+    CURVED_UP_ARROW = (47, "curvedUpArrow", "Block arrow that curves up")
+    """Block arrow that curves up"""
+
+    CURVED_UP_RIBBON = (99, "ellipseRibbon2", "Ribbon banner that curves up")
+    """Ribbon banner that curves up"""
+
+    DECAGON = (144, "decagon", "Decagon")
+    """Decagon"""
+
+    DIAGONAL_STRIPE = (141, "diagStripe", "Diagonal Stripe")
+    """Diagonal Stripe"""
+
+    DIAMOND = (4, "diamond", "Diamond")
+    """Diamond"""
+
+    DODECAGON = (146, "dodecagon", "Dodecagon")
+    """Dodecagon"""
+
+    DONUT = (18, "donut", "Donut")
+    """Donut"""
+
+    DOUBLE_BRACE = (27, "bracePair", "Double brace")
+    """Double brace"""
+
+    DOUBLE_BRACKET = (26, "bracketPair", "Double bracket")
+    """Double bracket"""
+
+    DOUBLE_WAVE = (104, "doubleWave", "Double wave")
+    """Double wave"""
+
+    DOWN_ARROW = (36, "downArrow", "Block arrow that points down")
+    """Block arrow that points down"""
+
+    DOWN_ARROW_CALLOUT = (56, "downArrowCallout", "Callout with arrow that points down")
+    """Callout with arrow that points down"""
+
+    DOWN_RIBBON = (98, "ribbon", "Ribbon banner with center area below ribbon ends")
+    """Ribbon banner with center area below ribbon ends"""
+
+    EXPLOSION1 = (89, "irregularSeal1", "Explosion")
+    """Explosion"""
+
+    EXPLOSION2 = (90, "irregularSeal2", "Explosion")
+    """Explosion"""
+
+    FLOWCHART_ALTERNATE_PROCESS = (
+        62,
+        "flowChartAlternateProcess",
+        "Alternate process flowchart symbol",
+    )
+    """Alternate process flowchart symbol"""
+
+    FLOWCHART_CARD = (75, "flowChartPunchedCard", "Card flowchart symbol")
+    """Card flowchart symbol"""
+
+    FLOWCHART_COLLATE = (79, "flowChartCollate", "Collate flowchart symbol")
+    """Collate flowchart symbol"""
+
+    FLOWCHART_CONNECTOR = (73, "flowChartConnector", "Connector flowchart symbol")
+    """Connector flowchart symbol"""
+
+    FLOWCHART_DATA = (64, "flowChartInputOutput", "Data flowchart symbol")
+    """Data flowchart symbol"""
+
+    FLOWCHART_DECISION = (63, "flowChartDecision", "Decision flowchart symbol")
+    """Decision flowchart symbol"""
+
+    FLOWCHART_DELAY = (84, "flowChartDelay", "Delay flowchart symbol")
+    """Delay flowchart symbol"""
+
+    FLOWCHART_DIRECT_ACCESS_STORAGE = (
+        87,
+        "flowChartMagneticDrum",
+        "Direct access storage flowchart symbol",
+    )
+    """Direct access storage flowchart symbol"""
+
+    FLOWCHART_DISPLAY = (88, "flowChartDisplay", "Display flowchart symbol")
+    """Display flowchart symbol"""
+
+    FLOWCHART_DOCUMENT = (67, "flowChartDocument", "Document flowchart symbol")
+    """Document flowchart symbol"""
+
+    FLOWCHART_EXTRACT = (81, "flowChartExtract", "Extract flowchart symbol")
+    """Extract flowchart symbol"""
+
+    FLOWCHART_INTERNAL_STORAGE = (
+        66,
+        "flowChartInternalStorage",
+        "Internal storage flowchart symbol",
+    )
+    """Internal storage flowchart symbol"""
+
+    FLOWCHART_MAGNETIC_DISK = (86, "flowChartMagneticDisk", "Magnetic disk flowchart symbol")
+    """Magnetic disk flowchart symbol"""
+
+    FLOWCHART_MANUAL_INPUT = (71, "flowChartManualInput", "Manual input flowchart symbol")
+    """Manual input flowchart symbol"""
+
+    FLOWCHART_MANUAL_OPERATION = (
+        72,
+        "flowChartManualOperation",
+        "Manual operation flowchart symbol",
+    )
+    """Manual operation flowchart symbol"""
+
+    FLOWCHART_MERGE = (82, "flowChartMerge", "Merge flowchart symbol")
+    """Merge flowchart symbol"""
+
+    FLOWCHART_MULTIDOCUMENT = (68, "flowChartMultidocument", "Multi-document flowchart symbol")
+    """Multi-document flowchart symbol"""
+
+    FLOWCHART_OFFLINE_STORAGE = (139, "flowChartOfflineStorage", "Offline Storage")
+    """Offline Storage"""
+
+    FLOWCHART_OFFPAGE_CONNECTOR = (
+        74,
+        "flowChartOffpageConnector",
+        "Off-page connector flowchart symbol",
+    )
+    """Off-page connector flowchart symbol"""
+
+    FLOWCHART_OR = (78, "flowChartOr", '"Or" flowchart symbol')
+    """\"Or\" flowchart symbol"""
+
+    FLOWCHART_PREDEFINED_PROCESS = (
+        65,
+        "flowChartPredefinedProcess",
+        "Predefined process flowchart symbol",
+    )
+    """Predefined process flowchart symbol"""
+
+    FLOWCHART_PREPARATION = (70, "flowChartPreparation", "Preparation flowchart symbol")
+    """Preparation flowchart symbol"""
+
+    FLOWCHART_PROCESS = (61, "flowChartProcess", "Process flowchart symbol")
+    """Process flowchart symbol"""
+
+    FLOWCHART_PUNCHED_TAPE = (76, "flowChartPunchedTape", "Punched tape flowchart symbol")
+    """Punched tape flowchart symbol"""
+
+    FLOWCHART_SEQUENTIAL_ACCESS_STORAGE = (
+        85,
+        "flowChartMagneticTape",
+        "Sequential access storage flowchart symbol",
+    )
+    """Sequential access storage flowchart symbol"""
+
+    FLOWCHART_SORT = (80, "flowChartSort", "Sort flowchart symbol")
+    """Sort flowchart symbol"""
+
+    FLOWCHART_STORED_DATA = (83, "flowChartOnlineStorage", "Stored data flowchart symbol")
+    """Stored data flowchart symbol"""
+
+    FLOWCHART_SUMMING_JUNCTION = (
+        77,
+        "flowChartSummingJunction",
+        "Summing junction flowchart symbol",
+    )
+    """Summing junction flowchart symbol"""
+
+    FLOWCHART_TERMINATOR = (69, "flowChartTerminator", "Terminator flowchart symbol")
+    """Terminator flowchart symbol"""
+
+    FOLDED_CORNER = (16, "foldedCorner", "Folded corner")
+    """Folded corner"""
+
+    FRAME = (158, "frame", "Frame")
+    """Frame"""
+
+    FUNNEL = (174, "funnel", "Funnel")
+    """Funnel"""
+
+    GEAR_6 = (172, "gear6", "Gear 6")
+    """Gear 6"""
+
+    GEAR_9 = (173, "gear9", "Gear 9")
+    """Gear 9"""
+
+    HALF_FRAME = (159, "halfFrame", "Half Frame")
+    """Half Frame"""
+
+    HEART = (21, "heart", "Heart")
+    """Heart"""
+
+    HEPTAGON = (145, "heptagon", "Heptagon")
+    """Heptagon"""
+
+    HEXAGON = (10, "hexagon", "Hexagon")
+    """Hexagon"""
+
+    HORIZONTAL_SCROLL = (102, "horizontalScroll", "Horizontal scroll")
+    """Horizontal scroll"""
+
+    ISOSCELES_TRIANGLE = (7, "triangle", "Isosceles triangle")
+    """Isosceles triangle"""
+
+    LEFT_ARROW = (34, "leftArrow", "Block arrow that points left")
+    """Block arrow that points left"""
+
+    LEFT_ARROW_CALLOUT = (54, "leftArrowCallout", "Callout with arrow that points left")
+    """Callout with arrow that points left"""
+
+    LEFT_BRACE = (31, "leftBrace", "Left brace")
+    """Left brace"""
+
+    LEFT_BRACKET = (29, "leftBracket", "Left bracket")
+    """Left bracket"""
+
+    LEFT_CIRCULAR_ARROW = (176, "leftCircularArrow", "Left Circular Arrow")
+    """Left Circular Arrow"""
+
+    LEFT_RIGHT_ARROW = (
+        37,
+        "leftRightArrow",
+        "Block arrow with arrowheads that point both left and right",
+    )
+    """Block arrow with arrowheads that point both left and right"""
+
+    LEFT_RIGHT_ARROW_CALLOUT = (
+        57,
+        "leftRightArrowCallout",
+        "Callout with arrowheads that point both left and right",
+    )
+    """Callout with arrowheads that point both left and right"""
+
+    LEFT_RIGHT_CIRCULAR_ARROW = (177, "leftRightCircularArrow", "Left Right Circular Arrow")
+    """Left Right Circular Arrow"""
+
+    LEFT_RIGHT_RIBBON = (140, "leftRightRibbon", "Left Right Ribbon")
+    """Left Right Ribbon"""
+
+    LEFT_RIGHT_UP_ARROW = (
+        40,
+        "leftRightUpArrow",
+        "Block arrow with arrowheads that point left, right, and up",
+    )
+    """Block arrow with arrowheads that point left, right, and up"""
+
+    LEFT_UP_ARROW = (43, "leftUpArrow", "Block arrow with arrowheads that point left and up")
+    """Block arrow with arrowheads that point left and up"""
+
+    LIGHTNING_BOLT = (22, "lightningBolt", "Lightning bolt")
+    """Lightning bolt"""
+
+    LINE_CALLOUT_1 = (109, "borderCallout1", "Callout with border and horizontal callout line")
+    """Callout with border and horizontal callout line"""
+
+    LINE_CALLOUT_1_ACCENT_BAR = (113, "accentCallout1", "Callout with vertical accent bar")
+    """Callout with vertical accent bar"""
+
+    LINE_CALLOUT_1_BORDER_AND_ACCENT_BAR = (
+        121,
+        "accentBorderCallout1",
+        "Callout with border and vertical accent bar",
+    )
+    """Callout with border and vertical accent bar"""
+
+    LINE_CALLOUT_1_NO_BORDER = (117, "callout1", "Callout with horizontal line")
+    """Callout with horizontal line"""
+
+    LINE_CALLOUT_2 = (110, "borderCallout2", "Callout with diagonal straight line")
+    """Callout with diagonal straight line"""
+
+    LINE_CALLOUT_2_ACCENT_BAR = (
+        114,
+        "accentCallout2",
+        "Callout with diagonal callout line and accent bar",
+    )
+    """Callout with diagonal callout line and accent bar"""
+
+    LINE_CALLOUT_2_BORDER_AND_ACCENT_BAR = (
+        122,
+        "accentBorderCallout2",
+        "Callout with border, diagonal straight line, and accent bar",
+    )
+    """Callout with border, diagonal straight line, and accent bar"""
+
+    LINE_CALLOUT_2_NO_BORDER = (118, "callout2", "Callout with no border and diagonal callout line")
+    """Callout with no border and diagonal callout line"""
+
+    LINE_CALLOUT_3 = (111, "borderCallout3", "Callout with angled line")
+    """Callout with angled line"""
+
+    LINE_CALLOUT_3_ACCENT_BAR = (
+        115,
+        "accentCallout3",
+        "Callout with angled callout line and accent bar",
+    )
+    """Callout with angled callout line and accent bar"""
+
+    LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR = (
+        123,
+        "accentBorderCallout3",
+        "Callout with border, angled callout line, and accent bar",
+    )
+    """Callout with border, angled callout line, and accent bar"""
+
+    LINE_CALLOUT_3_NO_BORDER = (119, "callout3", "Callout with no border and angled callout line")
+    """Callout with no border and angled callout line"""
+
+    LINE_CALLOUT_4 = (
+        112,
+        "borderCallout3",
+        "Callout with callout line segments forming a U-shape.",
+    )
+    """Callout with callout line segments forming a U-shape."""
+
+    LINE_CALLOUT_4_ACCENT_BAR = (
+        116,
+        "accentCallout3",
+        "Callout with accent bar and callout line segments forming a U-shape.",
+    )
+    """Callout with accent bar and callout line segments forming a U-shape."""
+
+    LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR = (
+        124,
+        "accentBorderCallout3",
+        "Callout with border, accent bar, and callout line segments forming a U-shape.",
+    )
+    """Callout with border, accent bar, and callout line segments forming a U-shape."""
+
+    LINE_CALLOUT_4_NO_BORDER = (
+        120,
+        "callout3",
+        "Callout with no border and callout line segments forming a U-shape.",
+    )
+    """Callout with no border and callout line segments forming a U-shape."""
+
+    LINE_INVERSE = (183, "lineInv", "Straight Connector")
+    """Straight Connector"""
+
+    MATH_DIVIDE = (166, "mathDivide", "Division")
+    """Division"""
+
+    MATH_EQUAL = (167, "mathEqual", "Equal")
+    """Equal"""
+
+    MATH_MINUS = (164, "mathMinus", "Minus")
+    """Minus"""
+
+    MATH_MULTIPLY = (165, "mathMultiply", "Multiply")
+    """Multiply"""
+
+    MATH_NOT_EQUAL = (168, "mathNotEqual", "Not Equal")
+    """Not Equal"""
+
+    MATH_PLUS = (163, "mathPlus", "Plus")
+    """Plus"""
+
+    MOON = (24, "moon", "Moon")
+    """Moon"""
+
+    NON_ISOSCELES_TRAPEZOID = (143, "nonIsoscelesTrapezoid", "Non-isosceles Trapezoid")
+    """Non-isosceles Trapezoid"""
+
+    NOTCHED_RIGHT_ARROW = (50, "notchedRightArrow", "Notched block arrow that points right")
+    """Notched block arrow that points right"""
+
+    NO_SYMBOL = (19, "noSmoking", "'No' Symbol")
+    """'No' Symbol"""
+
+    OCTAGON = (6, "octagon", "Octagon")
+    """Octagon"""
+
+    OVAL = (9, "ellipse", "Oval")
+    """Oval"""
+
+    OVAL_CALLOUT = (107, "wedgeEllipseCallout", "Oval-shaped callout")
+    """Oval-shaped callout"""
+
+    PARALLELOGRAM = (2, "parallelogram", "Parallelogram")
+    """Parallelogram"""
+
+    PENTAGON = (51, "homePlate", "Pentagon")
+    """Pentagon"""
+
+    PIE = (142, "pie", "Pie")
+    """Pie"""
+
+    PIE_WEDGE = (175, "pieWedge", "Pie")
+    """Pie"""
+
+    PLAQUE = (28, "plaque", "Plaque")
+    """Plaque"""
+
+    PLAQUE_TABS = (171, "plaqueTabs", "Plaque Tabs")
+    """Plaque Tabs"""
+
+    QUAD_ARROW = (39, "quadArrow", "Block arrows that point up, down, left, and right")
+    """Block arrows that point up, down, left, and right"""
+
+    QUAD_ARROW_CALLOUT = (
+        59,
+        "quadArrowCallout",
+        "Callout with arrows that point up, down, left, and right",
+    )
+    """Callout with arrows that point up, down, left, and right"""
+
+    RECTANGLE = (1, "rect", "Rectangle")
+    """Rectangle"""
+
+    RECTANGULAR_CALLOUT = (105, "wedgeRectCallout", "Rectangular callout")
+    """Rectangular callout"""
+
+    REGULAR_PENTAGON = (12, "pentagon", "Pentagon")
+    """Pentagon"""
+
+    RIGHT_ARROW = (33, "rightArrow", "Block arrow that points right")
+    """Block arrow that points right"""
+
+    RIGHT_ARROW_CALLOUT = (53, "rightArrowCallout", "Callout with arrow that points right")
+    """Callout with arrow that points right"""
+
+    RIGHT_BRACE = (32, "rightBrace", "Right brace")
+    """Right brace"""
+
+    RIGHT_BRACKET = (30, "rightBracket", "Right bracket")
+    """Right bracket"""
+
+    RIGHT_TRIANGLE = (8, "rtTriangle", "Right triangle")
+    """Right triangle"""
+
+    ROUNDED_RECTANGLE = (5, "roundRect", "Rounded rectangle")
+    """Rounded rectangle"""
+
+    ROUNDED_RECTANGULAR_CALLOUT = (106, "wedgeRoundRectCallout", "Rounded rectangle-shaped callout")
+    """Rounded rectangle-shaped callout"""
+
+    ROUND_1_RECTANGLE = (151, "round1Rect", "Round Single Corner Rectangle")
+    """Round Single Corner Rectangle"""
+
+    ROUND_2_DIAG_RECTANGLE = (153, "round2DiagRect", "Round Diagonal Corner Rectangle")
+    """Round Diagonal Corner Rectangle"""
+
+    ROUND_2_SAME_RECTANGLE = (152, "round2SameRect", "Round Same Side Corner Rectangle")
+    """Round Same Side Corner Rectangle"""
+
+    SMILEY_FACE = (17, "smileyFace", "Smiley face")
+    """Smiley face"""
+
+    SNIP_1_RECTANGLE = (155, "snip1Rect", "Snip Single Corner Rectangle")
+    """Snip Single Corner Rectangle"""
+
+    SNIP_2_DIAG_RECTANGLE = (157, "snip2DiagRect", "Snip Diagonal Corner Rectangle")
+    """Snip Diagonal Corner Rectangle"""
+
+    SNIP_2_SAME_RECTANGLE = (156, "snip2SameRect", "Snip Same Side Corner Rectangle")
+    """Snip Same Side Corner Rectangle"""
+
+    SNIP_ROUND_RECTANGLE = (154, "snipRoundRect", "Snip and Round Single Corner Rectangle")
+    """Snip and Round Single Corner Rectangle"""
+
+    SQUARE_TABS = (170, "squareTabs", "Square Tabs")
+    """Square Tabs"""
+
+    STAR_10_POINT = (149, "star10", "10-Point Star")
+    """10-Point Star"""
+
+    STAR_12_POINT = (150, "star12", "12-Point Star")
+    """12-Point Star"""
+
+    STAR_16_POINT = (94, "star16", "16-point star")
+    """16-point star"""
+
+    STAR_24_POINT = (95, "star24", "24-point star")
+    """24-point star"""
+
+    STAR_32_POINT = (96, "star32", "32-point star")
+    """32-point star"""
+
+    STAR_4_POINT = (91, "star4", "4-point star")
+    """4-point star"""
+
+    STAR_5_POINT = (92, "star5", "5-point star")
+    """5-point star"""
+
+    STAR_6_POINT = (147, "star6", "6-Point Star")
+    """6-Point Star"""
+
+    STAR_7_POINT = (148, "star7", "7-Point Star")
+    """7-Point Star"""
+
+    STAR_8_POINT = (93, "star8", "8-point star")
+    """8-point star"""
+
+    STRIPED_RIGHT_ARROW = (
+        49,
+        "stripedRightArrow",
+        "Block arrow that points right with stripes at the tail",
+    )
+    """Block arrow that points right with stripes at the tail"""
+
+    SUN = (23, "sun", "Sun")
+    """Sun"""
+
+    SWOOSH_ARROW = (178, "swooshArrow", "Swoosh Arrow")
+    """Swoosh Arrow"""
+
+    TEAR = (160, "teardrop", "Teardrop")
+    """Teardrop"""
+
+    TRAPEZOID = (3, "trapezoid", "Trapezoid")
+    """Trapezoid"""
+
+    UP_ARROW = (35, "upArrow", "Block arrow that points up")
+    """Block arrow that points up"""
+
+    UP_ARROW_CALLOUT = (55, "upArrowCallout", "Callout with arrow that points up")
+    """Callout with arrow that points up"""
+
+    UP_DOWN_ARROW = (38, "upDownArrow", "Block arrow that points up and down")
+    """Block arrow that points up and down"""
+
+    UP_DOWN_ARROW_CALLOUT = (58, "upDownArrowCallout", "Callout with arrows that point up and down")
+    """Callout with arrows that point up and down"""
+
+    UP_RIBBON = (97, "ribbon2", "Ribbon banner with center area above ribbon ends")
+    """Ribbon banner with center area above ribbon ends"""
+
+    U_TURN_ARROW = (42, "uturnArrow", "Block arrow forming a U shape")
+    """Block arrow forming a U shape"""
+
+    VERTICAL_SCROLL = (101, "verticalScroll", "Vertical scroll")
+    """Vertical scroll"""
+
+    WAVE = (103, "wave", "Wave")
+    """Wave"""
 
 
-@alias("MSO_CONNECTOR")
-class MSO_CONNECTOR_TYPE(XmlEnumeration):
+MSO_SHAPE = MSO_AUTO_SHAPE_TYPE
+
+
+class MSO_CONNECTOR_TYPE(BaseXmlEnum):
     """
     Specifies a type of connector.
 
@@ -656,28 +733,27 @@ class MSO_CONNECTOR_TYPE(XmlEnumeration):
             MSO_CONNECTOR.STRAIGHT, Cm(2), Cm(2), Cm(10), Cm(10)
         )
         assert connector.left.cm == 2
+
+    MS API Name: `MsoConnectorType`
+
+    http://msdn.microsoft.com/en-us/library/office/ff860918.aspx
     """
 
-    __ms_name__ = "MsoConnectorType"
+    CURVE = (3, "curvedConnector3", "Curved connector.")
+    """Curved connector."""
 
-    __url__ = "http://msdn.microsoft.com/en-us/library/office/ff860918.aspx"
+    ELBOW = (2, "bentConnector3", "Elbow connector.")
+    """Elbow connector."""
 
-    __members__ = (
-        XmlMappedEnumMember("CURVE", 3, "curvedConnector3", "Curved connector."),
-        XmlMappedEnumMember("ELBOW", 2, "bentConnector3", "Elbow connector."),
-        XmlMappedEnumMember("STRAIGHT", 1, "line", "Straight line connector."),
-        ReturnValueOnlyEnumMember(
-            "MIXED",
-            -2,
-            "Return value only; indicates a combination of othe" "r states.",
-        ),
-    )
+    STRAIGHT = (1, "line", "Straight line connector.")
+    """Straight line connector."""
 
 
-@alias("MSO")
-class MSO_SHAPE_TYPE(Enumeration):
-    """
-    Specifies the type of a shape
+MSO_CONNECTOR = MSO_CONNECTOR_TYPE
+
+
+class MSO_SHAPE_TYPE(BaseEnum):
+    """Specifies the type of a shape, more specifically than the five base types.
 
     Alias: ``MSO``
 
@@ -686,47 +762,93 @@ class MSO_SHAPE_TYPE(Enumeration):
         from pptx.enum.shapes import MSO_SHAPE_TYPE
 
         assert shape.type == MSO_SHAPE_TYPE.PICTURE
+
+    MS API Name: `MsoShapeType`
+
+    http://msdn.microsoft.com/en-us/library/office/ff860759(v=office.15).aspx
     """
 
-    __ms_name__ = "MsoShapeType"
+    AUTO_SHAPE = (1, "AutoShape")
+    """AutoShape"""
 
-    __url__ = (
-        "http://msdn.microsoft.com/en-us/library/office/ff860759(v=office.15" ").aspx"
-    )
+    CALLOUT = (2, "Callout shape")
+    """Callout shape"""
 
-    __members__ = (
-        EnumMember("AUTO_SHAPE", 1, "AutoShape"),
-        EnumMember("CALLOUT", 2, "Callout shape"),
-        EnumMember("CANVAS", 20, "Drawing canvas"),
-        EnumMember("CHART", 3, "Chart, e.g. pie chart, bar chart"),
-        EnumMember("COMMENT", 4, "Comment"),
-        EnumMember("DIAGRAM", 21, "Diagram"),
-        EnumMember("EMBEDDED_OLE_OBJECT", 7, "Embedded OLE object"),
-        EnumMember("FORM_CONTROL", 8, "Form control"),
-        EnumMember("FREEFORM", 5, "Freeform"),
-        EnumMember("GROUP", 6, "Group shape"),
-        EnumMember("IGX_GRAPHIC", 24, "SmartArt graphic"),
-        EnumMember("INK", 22, "Ink"),
-        EnumMember("INK_COMMENT", 23, "Ink Comment"),
-        EnumMember("LINE", 9, "Line"),
-        EnumMember("LINKED_OLE_OBJECT", 10, "Linked OLE object"),
-        EnumMember("LINKED_PICTURE", 11, "Linked picture"),
-        EnumMember("MEDIA", 16, "Media"),
-        EnumMember("OLE_CONTROL_OBJECT", 12, "OLE control object"),
-        EnumMember("PICTURE", 13, "Picture"),
-        EnumMember("PLACEHOLDER", 14, "Placeholder"),
-        EnumMember("SCRIPT_ANCHOR", 18, "Script anchor"),
-        EnumMember("TABLE", 19, "Table"),
-        EnumMember("TEXT_BOX", 17, "Text box"),
-        EnumMember("TEXT_EFFECT", 15, "Text effect"),
-        EnumMember("WEB_VIDEO", 26, "Web video"),
-        ReturnValueOnlyEnumMember("MIXED", -2, "Mixed shape types"),
-    )
+    CANVAS = (20, "Drawing canvas")
+    """Drawing canvas"""
+
+    CHART = (3, "Chart, e.g. pie chart, bar chart")
+    """Chart, e.g. pie chart, bar chart"""
+
+    COMMENT = (4, "Comment")
+    """Comment"""
+
+    DIAGRAM = (21, "Diagram")
+    """Diagram"""
+
+    EMBEDDED_OLE_OBJECT = (7, "Embedded OLE object")
+    """Embedded OLE object"""
+
+    FORM_CONTROL = (8, "Form control")
+    """Form control"""
+
+    FREEFORM = (5, "Freeform")
+    """Freeform"""
+
+    GROUP = (6, "Group shape")
+    """Group shape"""
+
+    IGX_GRAPHIC = (24, "SmartArt graphic")
+    """SmartArt graphic"""
+
+    INK = (22, "Ink")
+    """Ink"""
+
+    INK_COMMENT = (23, "Ink Comment")
+    """Ink Comment"""
+
+    LINE = (9, "Line")
+    """Line"""
+
+    LINKED_OLE_OBJECT = (10, "Linked OLE object")
+    """Linked OLE object"""
+
+    LINKED_PICTURE = (11, "Linked picture")
+    """Linked picture"""
+
+    MEDIA = (16, "Media")
+    """Media"""
+
+    OLE_CONTROL_OBJECT = (12, "OLE control object")
+    """OLE control object"""
+
+    PICTURE = (13, "Picture")
+    """Picture"""
+
+    PLACEHOLDER = (14, "Placeholder")
+    """Placeholder"""
+
+    SCRIPT_ANCHOR = (18, "Script anchor")
+    """Script anchor"""
+
+    TABLE = (19, "Table")
+    """Table"""
+
+    TEXT_BOX = (17, "Text box")
+    """Text box"""
+
+    TEXT_EFFECT = (15, "Text effect")
+    """Text effect"""
+
+    WEB_VIDEO = (26, "Web video")
+    """Web video"""
 
 
-class PP_MEDIA_TYPE(Enumeration):
-    """
-    Indicates the OLE media type.
+MSO = MSO_SHAPE_TYPE
+
+
+class PP_MEDIA_TYPE(BaseEnum):
+    """Indicates the OLE media type.
 
     Example::
 
@@ -734,30 +856,24 @@ class PP_MEDIA_TYPE(Enumeration):
 
         movie = slide.shapes[0]
         assert movie.media_type == PP_MEDIA_TYPE.MOVIE
+
+    MS API Name: `PpMediaType`
+
+    https://msdn.microsoft.com/en-us/library/office/ff746008.aspx
     """
 
-    __ms_name__ = "PpMediaType"
+    MOVIE = (3, "Video media such as MP4.")
+    """Video media such as MP4."""
 
-    __url__ = "https://msdn.microsoft.com/en-us/library/office/ff746008.aspx"
+    OTHER = (1, "Other media types")
+    """Other media types"""
 
-    __members__ = (
-        EnumMember("MOVIE", 3, "Video media such as MP4."),
-        EnumMember("OTHER", 1, "Other media types"),
-        EnumMember("SOUND", 1, "Audio media such as MP3."),
-        ReturnValueOnlyEnumMember(
-            "MIXED",
-            -2,
-            "Return value only; indicates multiple media types,"
-            " typically for a collection of shapes. May not be applicable in"
-            " python-pptx.",
-        ),
-    )
+    SOUND = (1, "Audio media such as MP3.")
+    """Audio media such as MP3."""
 
 
-@alias("PP_PLACEHOLDER")
-class PP_PLACEHOLDER_TYPE(XmlEnumeration):
-    """
-    Specifies one of the 18 distinct types of placeholder.
+class PP_PLACEHOLDER_TYPE(BaseXmlEnum):
+    """Specifies one of the 18 distinct types of placeholder.
 
     Alias: ``PP_PLACEHOLDER``
 
@@ -767,48 +883,77 @@ class PP_PLACEHOLDER_TYPE(XmlEnumeration):
 
         placeholder = slide.placeholders[0]
         assert placeholder.type == PP_PLACEHOLDER.TITLE
+
+    MS API name: `PpPlaceholderType`
+
+    http://msdn.microsoft.com/en-us/library/office/ff860759(v=office.15 ").aspx"
     """
 
-    __ms_name__ = "PpPlaceholderType"
+    BITMAP = (9, "clipArt", "Clip art placeholder")
+    """Clip art placeholder"""
 
-    __url__ = (
-        "http://msdn.microsoft.com/en-us/library/office/ff860759(v=office.15" ").aspx"
-    )
+    BODY = (2, "body", "Body")
+    """Body"""
 
-    __members__ = (
-        XmlMappedEnumMember("BITMAP", 9, "clipArt", "Clip art placeholder"),
-        XmlMappedEnumMember("BODY", 2, "body", "Body"),
-        XmlMappedEnumMember("CENTER_TITLE", 3, "ctrTitle", "Center Title"),
-        XmlMappedEnumMember("CHART", 8, "chart", "Chart"),
-        XmlMappedEnumMember("DATE", 16, "dt", "Date"),
-        XmlMappedEnumMember("FOOTER", 15, "ftr", "Footer"),
-        XmlMappedEnumMember("HEADER", 14, "hdr", "Header"),
-        XmlMappedEnumMember("MEDIA_CLIP", 10, "media", "Media Clip"),
-        XmlMappedEnumMember("OBJECT", 7, "obj", "Object"),
-        XmlMappedEnumMember(
-            "ORG_CHART",
-            11,
-            "dgm",
-            "SmartArt placeholder. Organization char" "t is a legacy name.",
-        ),
-        XmlMappedEnumMember("PICTURE", 18, "pic", "Picture"),
-        XmlMappedEnumMember("SLIDE_IMAGE", 101, "sldImg", "Slide Image"),
-        XmlMappedEnumMember("SLIDE_NUMBER", 13, "sldNum", "Slide Number"),
-        XmlMappedEnumMember("SUBTITLE", 4, "subTitle", "Subtitle"),
-        XmlMappedEnumMember("TABLE", 12, "tbl", "Table"),
-        XmlMappedEnumMember("TITLE", 1, "title", "Title"),
-        ReturnValueOnlyEnumMember("VERTICAL_BODY", 6, "Vertical Body"),
-        ReturnValueOnlyEnumMember("VERTICAL_OBJECT", 17, "Vertical Object"),
-        ReturnValueOnlyEnumMember("VERTICAL_TITLE", 5, "Vertical Title"),
-        ReturnValueOnlyEnumMember(
-            "MIXED",
-            -2,
-            "Return value only; multiple placeholders of differ" "ing types.",
-        ),
-    )
+    CENTER_TITLE = (3, "ctrTitle", "Center Title")
+    """Center Title"""
+
+    CHART = (8, "chart", "Chart")
+    """Chart"""
+
+    DATE = (16, "dt", "Date")
+    """Date"""
+
+    FOOTER = (15, "ftr", "Footer")
+    """Footer"""
+
+    HEADER = (14, "hdr", "Header")
+    """Header"""
+
+    MEDIA_CLIP = (10, "media", "Media Clip")
+    """Media Clip"""
+
+    OBJECT = (7, "obj", "Object")
+    """Object"""
+
+    ORG_CHART = (11, "dgm", "SmartArt placeholder. Organization chart is a legacy name.")
+    """SmartArt placeholder. Organization chart is a legacy name."""
+
+    PICTURE = (18, "pic", "Picture")
+    """Picture"""
+
+    SLIDE_IMAGE = (101, "sldImg", "Slide Image")
+    """Slide Image"""
+
+    SLIDE_NUMBER = (13, "sldNum", "Slide Number")
+    """Slide Number"""
+
+    SUBTITLE = (4, "subTitle", "Subtitle")
+    """Subtitle"""
+
+    TABLE = (12, "tbl", "Table")
+    """Table"""
+
+    TITLE = (1, "title", "Title")
+    """Title"""
+
+    VERTICAL_BODY = (6, "", "Vertical Body")
+    """Vertical Body"""
+
+    VERTICAL_OBJECT = (17, "", "Vertical Object")
+    """Vertical Object"""
+
+    VERTICAL_TITLE = (5, "", "Vertical Title")
+    """Vertical Title"""
+
+    MIXED = (-2, "", "Return value only; multiple placeholders of differing types.")
+    """Return value only; multiple placeholders of differing types."""
 
 
-class _ProgIdEnum(object):
+PP_PLACEHOLDER = PP_PLACEHOLDER_TYPE
+
+
+class PROG_ID(enum.Enum):
     """One-off Enum-like object for progId values.
 
     Indicates the type of an OLE object in terms of the program used to open it.
@@ -828,54 +973,41 @@ class _ProgIdEnum(object):
         assert embedded_xlsx_shape.ole_format.prog_id == "Excel.Sheet.12"
     """
 
-    class Member(object):
-        """A particular progID with its attributes."""
+    _progId: str
+    _icon_filename: str
+    _width: int
+    _height: int
 
-        def __init__(self, name, progId, icon_filename, width, height):
-            self._name = name
-            self._progId = progId
-            self._icon_filename = icon_filename
-            self._width = width
-            self._height = height
+    def __new__(cls, value: str, progId: str, icon_filename: str, width: int, height: int):
+        self = object.__new__(cls)
+        self._value_ = value
+        self._progId = progId
+        self._icon_filename = icon_filename
+        self._width = width
+        self._height = height
+        return self
 
-        def __repr__(self):
-            return "PROG_ID.%s" % self._name
+    @property
+    def height(self):
+        return self._height
 
-        @property
-        def height(self):
-            return self._height
+    @property
+    def icon_filename(self):
+        return self._icon_filename
 
-        @property
-        def icon_filename(self):
-            return self._icon_filename
+    @property
+    def progId(self):
+        return self._progId
 
-        @property
-        def progId(self):
-            return self._progId
+    @property
+    def width(self):
+        return self._width
 
-        @property
-        def width(self):
-            return self._width
+    DOCX = ("DOCX", "Word.Document.12", "docx-icon.emf", 965200, 609600)
+    """`progId` for an embedded Word 2007+ (.docx) document."""
 
-    def __contains__(self, item):
-        return item in (self.DOCX, self.PPTX, self.XLSX,)
+    PPTX = ("PPTX", "PowerPoint.Show.12", "pptx-icon.emf", 965200, 609600)
+    """`progId` for an embedded PowerPoint 2007+ (.pptx) document."""
 
-    def __repr__(self):
-        return "%s.PROG_ID" % __name__
-
-    @lazyproperty
-    def DOCX(self):
-        return self.Member("DOCX", "Word.Document.12", "docx-icon.emf", 965200, 609600)
-
-    @lazyproperty
-    def PPTX(self):
-        return self.Member(
-            "PPTX", "PowerPoint.Show.12", "pptx-icon.emf", 965200, 609600
-        )
-
-    @lazyproperty
-    def XLSX(self):
-        return self.Member("XLSX", "Excel.Sheet.12", "xlsx-icon.emf", 965200, 609600)
-
-
-PROG_ID = _ProgIdEnum()
+    XLSX = ("XLSX", "Excel.Sheet.12", "xlsx-icon.emf", 965200, 609600)
+    """`progId` for an embedded Excel 2007+ (.xlsx) document."""

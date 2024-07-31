@@ -53,9 +53,7 @@ class DescribeLineFormat(object):
 
     # fixtures -------------------------------------------------------
 
-    @pytest.fixture(
-        params=[(MSO_FILL.SOLID, False), (MSO_FILL.BACKGROUND, True), (None, True)]
-    )
+    @pytest.fixture(params=[(MSO_FILL.SOLID, False), (MSO_FILL.BACKGROUND, True), (None, True)])
     def color_fixture(self, request, line, fill_prop_, fill_, color_):
         pre_call_fill_type, solid_call_expected = request.param
         fill_.type = pre_call_fill_type
@@ -80,7 +78,7 @@ class DescribeLineFormat(object):
     @pytest.fixture(
         params=[
             ("p:spPr{a:b=c}", MSO_LINE.DASH, "p:spPr{a:b=c}/a:ln/a:prstDash{val=dash}"),
-            ("p:spPr/a:ln", MSO_LINE.ROUND_DOT, "p:spPr/a:ln/a:prstDash{val=dot}"),
+            ("p:spPr/a:ln", MSO_LINE.ROUND_DOT, "p:spPr/a:ln/a:prstDash{val=sysDot}"),
             (
                 "p:spPr/a:ln/a:prstDash",
                 MSO_LINE.SOLID,
@@ -129,9 +127,7 @@ class DescribeLineFormat(object):
     )
     def width_set_fixture(self, request, shape_):
         initial_width, width = request.param
-        shape_.ln = shape_.get_or_add_ln.return_value = self.ln_bldr(
-            initial_width
-        ).element
+        shape_.ln = shape_.get_or_add_ln.return_value = self.ln_bldr(initial_width).element
         line = LineFormat(shape_)
         expected_xml = self.ln_bldr(width).xml()
         return line, width, expected_xml

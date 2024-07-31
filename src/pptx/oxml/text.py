@@ -69,9 +69,7 @@ class CT_RegularTextRun(BaseOxmlElement):
         (x09) and line-feed (x0A) are not escaped. All other characters in the range
         x00-x1F are escaped.
         """
-        return re.sub(
-            r"([\x00-\x08\x0B-\x1F])", lambda match: "_x%04X_" % ord(match.group(1)), s
-        )
+        return re.sub(r"([\x00-\x08\x0B-\x1F])", lambda match: "_x%04X_" % ord(match.group(1)), s)
 
 
 class CT_TextBody(BaseOxmlElement):
@@ -178,20 +176,12 @@ class CT_TextBody(BaseOxmlElement):
 
     @classmethod
     def _a_txBody_tmpl(cls):
-        return (
-            "<a:txBody %s>\n"
-            "  <a:bodyPr/>\n"
-            "  <a:p/>\n"
-            "</a:txBody>\n" % (nsdecls("a"))
-        )
+        return "<a:txBody %s>\n" "  <a:bodyPr/>\n" "  <a:p/>\n" "</a:txBody>\n" % (nsdecls("a"))
 
     @classmethod
     def _p_txBody_tmpl(cls):
         return (
-            "<p:txBody %s>\n"
-            "  <a:bodyPr/>\n"
-            "  <a:p/>\n"
-            "</p:txBody>\n" % (nsdecls("p", "a"))
+            "<p:txBody %s>\n" "  <a:bodyPr/>\n" "  <a:p/>\n" "</p:txBody>\n" % (nsdecls("p", "a"))
         )
 
     @classmethod
@@ -237,7 +227,7 @@ class CT_TextBodyProperties(BaseOxmlElement):
 
     @autofit.setter
     def autofit(self, value):
-        if value is not None and value not in MSO_AUTO_SIZE._valid_settings:
+        if value is not None and value not in MSO_AUTO_SIZE:
             raise ValueError(
                 "only None or a member of the MSO_AUTO_SIZE enumeration can "
                 "be assigned to CT_TextBodyProperties.autofit, got %s" % value
@@ -297,9 +287,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
             "a:extLst",
         ),
     )
-    hlinkClick = ZeroOrOne(
-        "a:hlinkClick", successors=("a:hlinkMouseOver", "a:rtl", "a:extLst")
-    )
+    hlinkClick = ZeroOrOne("a:hlinkClick", successors=("a:hlinkMouseOver", "a:rtl", "a:extLst"))
 
     lang = OptionalAttribute("lang", MSO_LANGUAGE_ID)
     sz = OptionalAttribute("sz", ST_TextFontSize)
