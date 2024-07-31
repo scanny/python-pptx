@@ -112,9 +112,7 @@ class NotesSlidePart(BaseSlidePart):
         one is created based on the default template.
         """
         notes_master_part = package.presentation_part.notes_master_part
-        notes_slide_part = cls._add_notes_slide_part(
-            package, slide_part, notes_master_part
-        )
+        notes_slide_part = cls._add_notes_slide_part(package, slide_part, notes_master_part)
         notes_slide = notes_slide_part.notes_slide
         notes_slide.clone_master_placeholders(notes_master_part.notes_master)
         return notes_slide_part
@@ -167,13 +165,11 @@ class SlidePart(BaseSlidePart):
         The chart depicts `chart_data` and is related to the slide contained in this
         part by `rId`.
         """
-        return self.relate_to(
-            ChartPart.new(chart_type, chart_data, self._package), RT.CHART
-        )
+        return self.relate_to(ChartPart.new(chart_type, chart_data, self._package), RT.CHART)
 
     def add_embedded_ole_object_part(self, prog_id, ole_object_file):
         """Return rId of newly-added OLE-object part formed from `ole_object_file`."""
-        relationship_type = RT.PACKAGE if prog_id in PROG_ID else RT.OLE_OBJECT
+        relationship_type = RT.PACKAGE if isinstance(prog_id, PROG_ID) else RT.OLE_OBJECT
         return self.relate_to(
             EmbeddedPackagePart.factory(
                 prog_id, self._blob_from_file(ole_object_file), self._package

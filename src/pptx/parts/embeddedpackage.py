@@ -25,7 +25,7 @@ class EmbeddedPackagePart(Part):
         bytes of `object_blob` and has the content-type also determined by `prog_id`.
         """
         # --- a generic OLE object has no subclass ---
-        if prog_id not in PROG_ID:
+        if not isinstance(prog_id, PROG_ID):
             return cls(
                 package.next_partname("/ppt/embeddings/oleObject%d.bin"),
                 CT.OFC_OLE_OBJECT,
