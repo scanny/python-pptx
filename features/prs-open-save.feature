@@ -33,3 +33,7 @@ Feature: Round-trip a presentation
       When I save and reload the presentation
       Then the external relationships are still there
        And the package has the expected number of .rels parts
+
+  Scenario: Load presentation with invalid image/jpg MIME-type
+     Given a presentation with an image/jpg MIME-type
+      Then I can access the JPEG image
