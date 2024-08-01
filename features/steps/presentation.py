@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import os
 import zipfile
+from typing import TYPE_CHECKING, cast
 
 from behave import given, then, when
 from behave.runner import Context
@@ -13,6 +14,10 @@ from helpers import saved_pptx_path, test_file, test_pptx
 from pptx import Presentation
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.util import Inches
+
+if TYPE_CHECKING:
+    from pptx import presentation
+    from pptx.shapes.picture import Picture
 
 # given ===================================================
 
@@ -36,6 +41,11 @@ def given_a_presentation_having_a_notes_master(context: Context):
 @given("a presentation having no notes master")
 def given_a_presentation_having_no_notes_master(context: Context):
     context.prs = Presentation(test_pptx("prs-properties"))
+
+
+@given("a presentation with an image/jpg MIME-type")
+def given_prs_with_image_jpg_MIME_type(context):
+    context.prs = Presentation(test_pptx("test-image-jpg-mime"))
 
 
 @given("a presentation with external relationships")
@@ -187,6 +197,17 @@ def then_the_package_has_the_expected_number_of_rels_parts(context: Context):
     with zipfile.ZipFile(saved_pptx_path, "r") as z:
         member_count = len(z.namelist())
     assert member_count == 18, "expected 18, got %d" % member_count
+
+
+@then("I can access the JPEG image")
+def then_I_can_access_the_JPEG_image(context):
+    prs = cast("presentation.Presentation", context.prs)
+    slide = prs.slides[0]
+    picture = cast("Picture", slide.shapes[0])
+    try:
+        picture.image
+    except AttributeError:
+        raise AssertionError("JPEG image not recognized")
 
 
 @then("the slide height matches the new value")

@@ -25,7 +25,7 @@ from pptx.parts.slide import (
 if TYPE_CHECKING:
     from pptx.opc.package import Part
 
-__version__ = "0.6.24-dev3"
+__version__ = "0.6.24-dev4"
 
 sys.modules["pptx.exceptions"] = exceptions
 del sys
@@ -62,6 +62,8 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.VIDEO: MediaPart,
     CT.WMV: MediaPart,
     CT.X_MS_VIDEO: MediaPart,
+    # -- accommodate "image/jpg" as an alias for "image/jpeg" --
+    "image/jpg": ImagePart,
 }
 
 PartFactory.part_type_for.update(content_type_to_part_class_map)
