@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, cast
 
 from pptx.oxml.simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
 from pptx.oxml.xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrMore, ZeroOrOne
@@ -67,14 +67,31 @@ class CT_SlideIdList(BaseOxmlElement):
         return self._add_sldId(id=self._next_id, rId=rId)
 
     @property
-    def _next_id(self):
+    def _next_id(self) -> int:
         """The next available slide ID as an `int`.
 
         Valid slide IDs start at 256. The next integer value greater than the max value in use is
         chosen, which minimizes that chance of reusing the id of a deleted slide.
         """
-        id_str_lst = self.xpath("./p:sldId/@id")
-        return max([255] + [int(id_str) for id_str in id_str_lst]) + 1
+        MIN_SLIDE_ID = 256
+        MAX_SLIDE_ID = 2147483647
+
+        used_ids = [int(s) for s in cast(list[str], self.xpath("./p:sldId/@id"))]
+        simple_next = max([MIN_SLIDE_ID - 1] + used_ids) + 1
+        if simple_next <= MAX_SLIDE_ID:
+            return simple_next
+
+        # -- fall back to search for next unused from bottom --
+        valid_used_ids = sorted(id for id in used_ids if (MIN_SLIDE_ID <= id <= MAX_SLIDE_ID))
+        return (
+            next(
+                candidate_id
+                for candidate_id, used_id in enumerate(valid_used_ids, start=MIN_SLIDE_ID)
+                if candidate_id != used_id
+            )
+            if valid_used_ids
+            else 256
+        )
 
 
 class CT_SlideMasterIdList(BaseOxmlElement):
