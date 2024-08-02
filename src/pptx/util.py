@@ -7,7 +7,7 @@ from typing import Any, Callable, Generic, TypeVar, cast
 
 
 class Length(int):
-    """Base class for length classes Inches, Emu, Cm, Mm, Pt, and Px.
+    """Base class for length classes Inches, Emu, Cm, Mm, and Pt.
 
     Provides properties for converting length values to convenient units.
     """
