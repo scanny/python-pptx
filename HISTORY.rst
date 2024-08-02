@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+0.6.24-dev0
++++++++++++++++++++
+
+- fix: #943 remove mention of a Px Length subtype
+
 0.6.23 (2023-11-02)
 +++++++++++++++++++
 
