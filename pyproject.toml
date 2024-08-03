@@ -1,3 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-pptx"
+authors = [{name = "Steve Canny", email = "stcanny@gmail.com"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Office Suites",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "Pillow>=3.3.2",
+    "XlsxWriter>=0.5.7",
+    "lxml>=3.1.0",
+    "typing_extensions>=4.9.0",
+]
+description = "Create, read, and update PowerPoint 2007+ (.pptx) files."
+dynamic = ["version"]
+keywords = ["powerpoint", "ppt", "pptx", "openxml", "office"]
+license = { text = "MIT" }
+readme = "README.rst"
+requires-python = ">=3.8"
+
+[project.urls]
+Changelog = "https://github.com/scanny/python-pptx/blob/master/HISTORY.rst"
+Documentation = "https://python-pptx.readthedocs.io/en/latest/"
+Homepage = "https://github.com/scanny/python-pptx"
+Repository = "https://github.com/scanny/python-pptx"
+
 [tool.black]
 line-length = 100
 
@@ -98,3 +140,6 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["pptx"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pptx.__version__"}

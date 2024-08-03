@@ -16,7 +16,7 @@ GRAPHIC_DATA_URI_TABLE = "http://schemas.openxmlformats.org/drawingml/2006/table
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-AdjustmentValue: TypeAlias = tuple[str, int]
+AdjustmentValue: TypeAlias = "tuple[str, int]"
 
 
 class ShapeSpec(TypedDict):

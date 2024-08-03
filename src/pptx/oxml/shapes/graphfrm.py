@@ -112,7 +112,7 @@ class CT_GraphicalObjectData(BaseShapeElement):
         choices. The last one should suit best for reading purposes because it contains the lowest
         common denominator.
         """
-        oleObjs = cast(list[CT_OleObject], self.xpath(".//p:oleObj"))
+        oleObjs = cast("list[CT_OleObject]", self.xpath(".//p:oleObj"))
         return oleObjs[-1] if oleObjs else None
 
 

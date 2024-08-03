@@ -1,0 +1,5 @@
+-r requirements-test.txt
+build
+ruff
+setuptools>=61.0.0
+twine

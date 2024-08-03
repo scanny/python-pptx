@@ -7,8 +7,7 @@ presentations to and from a .pptx file.
 from __future__ import annotations
 
 import collections
-from collections.abc import Mapping
-from typing import IO, TYPE_CHECKING, DefaultDict, Iterator, Set, cast
+from typing import IO, TYPE_CHECKING, DefaultDict, Iterator, Mapping, Set, cast
 
 from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
@@ -428,7 +427,7 @@ class XmlPart(Part):
 
     def _rel_ref_count(self, rId: str) -> int:
         """Return int count of references in this part's XML to `rId`."""
-        return len([r for r in cast(list[str], self._element.xpath("//@r:id")) if r == rId])
+        return len([r for r in cast("list[str]", self._element.xpath("//@r:id")) if r == rId])
 
 
 class PartFactory:
