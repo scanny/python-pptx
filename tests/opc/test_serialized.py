@@ -341,7 +341,9 @@ class Describe_ZipPkgWriter:
 
         zipf = pkg_writer._zipf
 
-        ZipFile_.assert_called_once_with("prs.pptx", "w", compression=zipfile.ZIP_DEFLATED)
+        ZipFile_.assert_called_once_with(
+            "prs.pptx", "w", compression=zipfile.ZIP_DEFLATED, strict_timestamps=False
+        )
         assert zipf is ZipFile_.return_value
 
     # fixtures ---------------------------------------------
