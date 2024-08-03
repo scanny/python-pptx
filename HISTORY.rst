@@ -3,10 +3,12 @@
 Release History
 ---------------
 
-0.6.24-dev0
+0.6.24-dev3
 +++++++++++++++++++
 
 - fix: #943 remove mention of a Px Length subtype
+- fix: #972 next-slide-id fails in rare cases
+- fix: #990 do not require strict timestamps for Zip
 
 0.6.23 (2023-11-02)
 +++++++++++++++++++
