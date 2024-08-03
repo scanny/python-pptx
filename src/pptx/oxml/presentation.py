@@ -76,7 +76,7 @@ class CT_SlideIdList(BaseOxmlElement):
         MIN_SLIDE_ID = 256
         MAX_SLIDE_ID = 2147483647
 
-        used_ids = [int(s) for s in cast(list[str], self.xpath("./p:sldId/@id"))]
+        used_ids = [int(s) for s in cast("list[str]", self.xpath("./p:sldId/@id"))]
         simple_next = max([MIN_SLIDE_ID - 1] + used_ids) + 1
         if simple_next <= MAX_SLIDE_ID:
             return simple_next

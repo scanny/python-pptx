@@ -5,8 +5,7 @@ from __future__ import annotations
 import os
 import posixpath
 import zipfile
-from collections.abc import Container
-from typing import IO, TYPE_CHECKING, Any, Sequence
+from typing import IO, TYPE_CHECKING, Any, Container, Sequence
 
 from pptx.exc import PackageNotFoundError
 from pptx.opc.constants import CONTENT_TYPE as CT
