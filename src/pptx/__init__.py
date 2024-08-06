@@ -25,7 +25,7 @@ from pptx.parts.slide import (
 if TYPE_CHECKING:
     from pptx.opc.package import Part
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 sys.modules["pptx.exceptions"] = exceptions
 del sys

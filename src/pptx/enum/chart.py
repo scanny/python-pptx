@@ -335,6 +335,9 @@ class XL_DATA_LABEL_POSITION(BaseXmlEnum):
     LEFT = (-4131, "l", "The data label is positioned to the left of the data point.")
     """The data label is positioned to the left of the data point."""
 
+    MIXED = (6, "", "Data labels are in multiple positions (read-only).")
+    """Data labels are in multiple positions (read-only)."""
+
     OUTSIDE_END = (
         2,
         "outEnd",
@@ -370,8 +373,8 @@ class XL_LEGEND_POSITION(BaseXmlEnum):
     CORNER = (2, "tr", "In the upper-right corner of the chart border.")
     """In the upper-right corner of the chart border."""
 
-    CUSTOM = (-4161, "", "A custom position.")
-    """A custom position."""
+    CUSTOM = (-4161, "", "A custom position (read-only).")
+    """A custom position (read-only)."""
 
     LEFT = (-4131, "l", "Left of the chart.")
     """Left of the chart."""
