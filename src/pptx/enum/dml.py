@@ -319,8 +319,8 @@ class MSO_PATTERN_TYPE(BaseXmlEnum):
     ZIG_ZAG = (38, "zigZag", "Zig Zag")
     """Zig Zag"""
 
-    MIXED = (-2, "", "Mixed pattern")
-    """Mixed pattern"""
+    MIXED = (-2, "", "Mixed pattern (read-only).")
+    """Mixed pattern (read-only)."""
 
 
 MSO_PATTERN = MSO_PATTERN_TYPE
@@ -394,8 +394,12 @@ class MSO_THEME_COLOR_INDEX(BaseXmlEnum):
     TEXT_2 = (15, "tx2", "Specifies the Text 2 theme color.")
     """Specifies the Text 2 theme color."""
 
-    MIXED = (-2, "", "Indicates multiple theme colors are used, such as in a group shape.")
-    """Indicates multiple theme colors are used, such as in a group shape."""
+    MIXED = (
+        -2,
+        "",
+        "Indicates multiple theme colors are used, such as in a group shape (read-only).",
+    )
+    """Indicates multiple theme colors are used, such as in a group shape (read-only)."""
 
 
 MSO_THEME_COLOR = MSO_THEME_COLOR_INDEX

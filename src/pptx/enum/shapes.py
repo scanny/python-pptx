@@ -748,6 +748,9 @@ class MSO_CONNECTOR_TYPE(BaseXmlEnum):
     STRAIGHT = (1, "line", "Straight line connector.")
     """Straight line connector."""
 
+    MIXED = (-2, "", "Return value only; indicates a combination of other states.")
+    """Return value only; indicates a combination of other states."""
+
 
 MSO_CONNECTOR = MSO_CONNECTOR_TYPE
 
@@ -843,6 +846,9 @@ class MSO_SHAPE_TYPE(BaseEnum):
     WEB_VIDEO = (26, "Web video")
     """Web video"""
 
+    MIXED = (-2, "Multiple shape types (read-only).")
+    """Multiple shape types (read-only)."""
+
 
 MSO = MSO_SHAPE_TYPE
 
@@ -870,6 +876,16 @@ class PP_MEDIA_TYPE(BaseEnum):
 
     SOUND = (1, "Audio media such as MP3.")
     """Audio media such as MP3."""
+
+    MIXED = (
+        -2,
+        "Return value only; indicates multiple media types, typically for a collection of shapes."
+        " May not be applicable in python-pptx.",
+    )
+    """Return value only; indicates multiple media types.
+
+    Typically for a collection of shapes. May not be applicable in python-pptx.
+    """
 
 
 class PP_PLACEHOLDER_TYPE(BaseXmlEnum):
@@ -937,14 +953,14 @@ class PP_PLACEHOLDER_TYPE(BaseXmlEnum):
     TITLE = (1, "title", "Title")
     """Title"""
 
-    VERTICAL_BODY = (6, "", "Vertical Body")
-    """Vertical Body"""
+    VERTICAL_BODY = (6, "", "Vertical Body (read-only).")
+    """Vertical Body (read-only)."""
 
-    VERTICAL_OBJECT = (17, "", "Vertical Object")
-    """Vertical Object"""
+    VERTICAL_OBJECT = (17, "", "Vertical Object (read-only).")
+    """Vertical Object (read-only)."""
 
-    VERTICAL_TITLE = (5, "", "Vertical Title")
-    """Vertical Title"""
+    VERTICAL_TITLE = (5, "", "Vertical Title (read-only).")
+    """Vertical Title (read-only)."""
 
     MIXED = (-2, "", "Return value only; multiple placeholders of differing types.")
     """Return value only; multiple placeholders of differing types."""

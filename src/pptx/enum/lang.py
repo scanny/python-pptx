@@ -680,3 +680,6 @@ class MSO_LANGUAGE_ID(BaseXmlEnum):
 
     ZULU = (1077, "zu-ZA", "The Zulu language.")
     """The Zulu language."""
+
+    MIXED = (-2, "", "More than one language in specified range (read-only).")
+    """More than one language in specified range (read-only)."""

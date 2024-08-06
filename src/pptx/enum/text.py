@@ -57,6 +57,9 @@ class MSO_AUTO_SIZE(BaseEnum):
     )
     """The font size is reduced as necessary to fit the text within the shape."""
 
+    MIXED = (-2, "Return value only; indicates a combination of automatic sizing schemes are used.")
+    """Return value only; indicates a combination of automatic sizing schemes are used."""
+
 
 class MSO_TEXT_UNDERLINE_TYPE(BaseXmlEnum):
     """
@@ -134,6 +137,9 @@ class MSO_TEXT_UNDERLINE_TYPE(BaseXmlEnum):
     WORDS = (1, "words", "Specifies underlining words.")
     """Specifies underlining words."""
 
+    MIXED = (-2, "", "Specifies a mix of underline types (read-only).")
+    """Specifies a mix of underline types (read-only)."""
+
 
 MSO_UNDERLINE = MSO_TEXT_UNDERLINE_TYPE
 
@@ -160,6 +166,9 @@ class MSO_VERTICAL_ANCHOR(BaseXmlEnum):
 
     BOTTOM = (4, "b", "Aligns text to bottom of text frame")
     """Aligns text to bottom of text frame"""
+
+    MIXED = (-2, "", "Return value only; indicates a combination of the other states.")
+    """Return value only; indicates a combination of the other states."""
 
 
 MSO_ANCHOR = MSO_VERTICAL_ANCHOR
@@ -213,6 +222,9 @@ class PP_PARAGRAPH_ALIGNMENT(BaseXmlEnum):
 
     THAI_DISTRIBUTE = (6, "thaiDist", "Thai distributed")
     """Thai distributed"""
+
+    MIXED = (-2, "", "Multiple alignments are present in a set of paragraphs (read-only).")
+    """Multiple alignments are present in a set of paragraphs (read-only)."""
 
 
 PP_ALIGN = PP_PARAGRAPH_ALIGNMENT
