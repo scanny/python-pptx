@@ -1,0 +1,59 @@
+from pptx import Presentation
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
+# Load the PowerPoint presentation
+pptx_file = "Hoc_ngu_phap_tieng_Nhat_Minna_no_Nihongo.pptx"
+prs = Presentation(pptx_file)
+
+# Create PDF file
+pdf_file = "Hoc_ngu_phap_tieng_Nhat_Minna_no_Nihongo.pdf"
+pdf_buffer = BytesIO()
+c = canvas.Canvas(pdf_buffer, pagesize=letter)
+
+# Function to draw text with proper formatting
+def draw_text(text, x, y, font_size=12, max_width=500):
+    c.setFont("Helvetica", font_size)
+    lines = text.split("\n")
+    y_position = y
+    for line in lines:
+        if c.stringWidth(line, "Helvetica", font_size) > max_width:
+            parts = []
+            part = ''
+            words = line.split()
+            for word in words:
+                if c.stringWidth(part + ' ' + word, "Helvetica", font_size) <= max_width:
+                    part += ' ' + word
+                else:
+                    parts.append(part)
+                    part = word
+            if part:
+                parts.append(part)
+            for part in parts:
+                c.drawString(x, y_position, part.strip())
+                y_position -= 1.2 * font_size
+        else:
+            c.drawString(x, y_position, line.strip())
+            y_position -= 1.2 * font_size
+
+# Iterate through slides and draw content to PDF
+for slide in prs.slides:
+    for shape in slide.shapes:
+        if hasattr(shape, "text"):
+            if shape.has_text_frame:
+                text_frame = shape.text_frame
+                paragraphs = text_frame.paragraphs
+                for paragraph in paragraphs:
+                    text = paragraph.text
+                    draw_text(text, 50, 750)  # Adjust position as needed
+
+    c.showPage()
+
+c.save()
+
+# Write PDF buffer to file
+with open(pdf_file, "wb") as f:
+    f.write(pdf_buffer.getvalue())
+
+print(f"File PDF đã được tạo thành công: {pdf_file}")
