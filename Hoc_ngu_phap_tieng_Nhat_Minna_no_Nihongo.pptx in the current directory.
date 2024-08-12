@@ -1,0 +1,75 @@
+from pptx import Presentation
+
+# Create a new PowerPoint presentation
+prs = Presentation()
+
+# List of lessons with details
+lessons = [
+    ("Bài 1: Câu khẳng định và câu hỏi với danh từ",
+     "Khẳng định: Danh từ + は + Danh từ + です\nPhủ định: Danh từ + は + Danh từ + じゃありません\nCâu hỏi: Danh từ + は + Danh từ + ですか",
+     "わたしは学生です。 (Tôi là học sinh.)\nこれは本ですか。 (Đây là sách phải không?)"),
+    # Add other lessons here...
+]
+
+# Create the introductory slides
+# Slide 1: Tiêu đề
+slide_layout = prs.slide_layouts[0]  # Title slide layout
+slide = prs.slides.add_slide(slide_layout)
+title_placeholder = slide.shapes.title
+subtitle_placeholder = slide.placeholders[1]
+title_placeholder.text = "Học ngữ pháp tiếng Nhật với giáo trình Minna no Nihongo"
+subtitle_placeholder.text = "Từ cơ bản đến nâng cao"
+
+# Slide 2: Giới thiệu
+slide_layout = prs.slide_layouts[1]  # Title and content layout
+slide = prs.slides.add_slide(slide_layout)
+title_placeholder = slide.shapes.title
+content_placeholder = slide.placeholders[1]
+title_placeholder.text = "Giới thiệu"
+content_placeholder.text = (
+    "Giáo trình Minna no Nihongo là một trong những giáo trình phổ biến nhất cho người học tiếng Nhật.\n"
+    "Ngữ pháp là nền tảng quan trọng giúp bạn nắm vững và sử dụng tiếng Nhật một cách chính xác."
+)
+
+# Create a slide for each lesson
+for title, structure, examples in lessons:
+    slide_layout = prs.slide_layouts[1]  # Title and content layout
+    slide = prs.slides.add_slide(slide_layout)
+    title_placeholder = slide.shapes.title
+    content_placeholder = slide.placeholders[1]
+    title_placeholder.text = title
+    content_placeholder.text = f"**Cấu trúc:**\n{structure}\n\n**Ví dụ:**\n{examples}"
+
+# Slide 28: Kết luận
+slide_layout = prs.slide_layouts[1]  # Title and content layout
+slide = prs.slides.add_slide(slide_layout)
+title_placeholder = slide.shapes.title
+content_placeholder = slide.placeholders[1]
+title_placeholder.text = "Kết luận"
+content_placeholder.text = (
+    "Tóm tắt những điểm chính đã học.\n"
+    "Lợi ích của việc nắm vững ngữ pháp: giúp bạn giao tiếp hiệu quả, tự tin trong các tình huống giao tiếp.\n"
+    "Lời khuyên cho việc học ngữ pháp hiệu quả: luyện tập thường xuyên, sử dụng ngữ pháp trong giao tiếp hàng ngày."
+)
+
+# Slide 29: Câu hỏi và thảo luận
+slide_layout = prs.slide_layouts[1]  # Title and content layout
+slide = prs.slides.add_slide(slide_layout)
+title_placeholder = slide.shapes.title
+content_placeholder = slide.placeholders[1]
+title_placeholder.text = "Câu hỏi và thảo luận"
+content_placeholder.text = (
+    "Mời khán giả đặt câu hỏi.\n"
+    "Thảo luận thêm về những điểm chưa rõ."
+)
+
+# Slide 30: Cảm ơn
+slide_layout = prs.slide_layouts[1]  # Title and content layout
+slide = prs.slides.add_slide(slide_layout)
+title_placeholder = slide.shapes.title
+content_placeholder = slide.placeholders[1]
+title_placeholder.text = "Cảm ơn"
+content_placeholder.text = "Cảm ơn khán giả đã lắng nghe."
+
+# Save the presentation
+prs.save("Hoc_ngu_phap_tieng_Nhat_Minna_no_Nihongo.pptx")
