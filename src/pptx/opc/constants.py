@@ -142,6 +142,7 @@ class CONTENT_TYPE:
     )
     SML_WORKSHEET = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"
     SWF = "application/x-shockwave-flash"
+    SVG = "image/svg+xml"
     TIFF = "image/tiff"
     VIDEO = "video/unknown"
     WML_COMMENTS = "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"

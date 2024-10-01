@@ -49,6 +49,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.JPEG: ImagePart,
     CT.MS_PHOTO: ImagePart,
     CT.PNG: ImagePart,
+    CT.SVG: ImagePart,
     CT.TIFF: ImagePart,
     CT.X_EMF: ImagePart,
     CT.X_WMF: ImagePart,
