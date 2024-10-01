@@ -17,7 +17,7 @@ calling signatures and behaviors.
 Hello World! example
 --------------------
 
-.. image:: /_static/img/hello-world.png
+.. image:: /docs/_static/img/hello-world.png
 
 |
 
@@ -42,7 +42,7 @@ Hello World! example
 Bullet slide example
 --------------------
 
-.. image:: /_static/img/bullet-slide.png
+.. image:: /docs/_static/img/bullet-slide.png
 
 |
 
@@ -91,7 +91,7 @@ before setting the text it contains.
 ``add_textbox()`` example
 -------------------------
 
-.. image:: /_static/img/add-textbox.png
+.. image:: /docs/_static/img/add-textbox.png
 
 |
 
@@ -126,7 +126,7 @@ before setting the text it contains.
 ``add_picture()`` example
 -------------------------
 
-.. image:: /_static/img/add-picture.png
+.. image:: /docs/_static/img/add-picture.png
 
 |
 
@@ -157,7 +157,7 @@ before setting the text it contains.
 ``add_shape()`` example
 -------------------------
 
-.. image:: /_static/img/add-shape.png
+.. image:: /docs/_static/img/add-shape.png
 
 |
 
@@ -204,7 +204,7 @@ MSO_SHAPE.ROUNDED_RECT, MSO_SHAPE.CHEVRON, etc.) are listed on the
 ``add_table()`` example
 -----------------------
 
-.. image:: /_static/img/add-table.png
+.. image:: /docs/_static/img/add-table.png
 
 |
 
