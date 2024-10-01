@@ -371,6 +371,30 @@ class _BaseGroupShapes(_BaseShapes):
         pic = self._add_pic_from_image_part(image_part, rId, left, top, width, height)
         self._recalculate_extents()
         return cast(Picture, self._shape_factory(pic))
+    
+    def add_svg_picture(
+        self,
+        svg_file: str | IO[bytes],
+        placeholder_file: str | IO[bytes],
+        left: Length,
+        top: Length,
+        width: Length | None = None,
+        height: Length | None = None,
+    ) -> Picture:
+        """Add svg picture shape displaying image in `image_file`.
+
+        `image_file` can be either a path to a file (a string) or a file-like object. The picture
+        is positioned with its top-left corner at (`top`, `left`). If `width` and `height` are
+        both |None|, the native size of the image is used. If only one of `width` or `height` is
+        used, the unspecified dimension is calculated to preserve the aspect ratio of the image.
+        If both are specified, the picture is stretched to fit, without regard to its native
+        aspect ratio.
+        """
+        svg_image_part, rId = self.part.get_or_add_image_part(svg_file)
+        _, placeholderRId = self.part.get_or_add_image_part(placeholder_file)
+        pic = self._add_pic_svg_from_image_part(svg_image_part, rId, placeholderRId, left, top, width, height)
+        self._recalculate_extents()
+        return cast(Picture, self._shape_factory(pic))
 
     def add_shape(
         self, autoshape_type_id: MSO_SHAPE, left: Length, top: Length, width: Length, height: Length
@@ -484,6 +508,29 @@ class _BaseGroupShapes(_BaseShapes):
         name = "Picture %d" % (id_ - 1)
         desc = image_part.desc
         pic = self._grpSp.add_pic(id_, name, desc, rId, x, y, scaled_cx, scaled_cy)
+        return pic
+    
+    def _add_pic_svg_from_image_part(
+        self,
+        image_part: ImagePart,
+        rId: str,
+        placeholderRId: str,
+        x: Length,
+        y: Length,
+        cx: Length | None,
+        cy: Length | None,
+    ) -> CT_Picture:
+        """Return a newly appended `p:pic` element as specified.
+
+        The `p:pic` element displays the image in `image_part` with size and position specified by
+        `x`, `y`, `cx`, and `cy`. The element is appended to the shape tree, causing it to be
+        displayed first in z-order on the slide.
+        """
+        id_ = self._next_shape_id
+        scaled_cx, scaled_cy = image_part.scale(cx, cy)
+        name = "Picture %d" % (id_ - 1)
+        desc = image_part.desc
+        pic = self._grpSp.add_svg_pic(id_, name, desc, rId, placeholderRId, x, y, scaled_cx, scaled_cy)
         return pic
 
     def _add_sp(

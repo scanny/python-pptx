@@ -69,6 +69,11 @@ class CT_Picture(BaseShapeElement):
     def new_pic(cls, shape_id, name, desc, rId, x, y, cx, cy):
         """Return new `<p:pic>` element tree configured with supplied parameters."""
         return parse_xml(cls._pic_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy))
+    
+    @classmethod
+    def new_svg_pic(cls, shape_id, name, desc, placeholderRId, rId, x, y, cx, cy):
+        """Return new `<p:pic>` element tree with embedded svg configured with supplied parameters."""
+        return parse_xml(cls._pic_svg_tmpl() % (shape_id, name, escape(desc), placeholderRId, rId, x, y, cx, cy))
 
     @classmethod
     def new_video_pic(
@@ -195,6 +200,42 @@ class CT_Picture(BaseShapeElement):
             "  </p:nvPicPr>\n"
             "  <p:blipFill>\n"
             '    <a:blip r:embed="%%s"/>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
+            '      <a:off x="%%d" y="%%d"/>\n'
+            '      <a:ext cx="%%d" cy="%%d"/>\n'
+            "    </a:xfrm>\n"
+            '    <a:prstGeom prst="rect">\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>" % nsdecls("a", "p", "r")
+        )
+    
+    @classmethod
+    def _pic_svg_tmpl(cls):
+        return (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:embed="%%s">\n'
+            '      <a:alphaModFix amt="50000" />\n'
+            "      <a:extLst>\n"
+            '        <a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">\n'
+            '          <asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="%%s" />\n'
+            "        </a:ext>\n"
+            "      </a:extLst>\n"
+            "    </a:blip>\n"
             "    <a:stretch>\n"
             "      <a:fillRect/>\n"
             "    </a:stretch>\n"
