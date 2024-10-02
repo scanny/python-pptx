@@ -119,7 +119,7 @@ the calculated "best fit" point size::
 Proposed |pp| behavior
 ----------------------
 
-The :meth:`TextFrame.fit_text` method produces the following side effects:
+The :meth:`TextFrame.autofit_text` method produces the following side effects:
 
 * :attr:`TextFrame.auto_size` is set to
   :attr:`MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE`
