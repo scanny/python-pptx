@@ -97,8 +97,8 @@ class CT_GroupShape(BaseShapeElement):
     def add_svg_pic(
         self, id_: int, name: str, desc: str, rId: str, placeholderRId: str, x: int, y: int, cx: int, cy: int
     ) -> CT_Picture:
-        """Append a `p:pic` shape to the group/shapetree having properties as specified in call."""
-        pic = CT_Picture.new_svg_pic(id_, name, desc, rId, placeholderRId, x, y, cx, cy)
+        """Append a `p:pic` shape with `asvg:svgBlip` to the group/shapetree having properties as specified in call."""
+        pic = CT_Picture.new_svg_pic(id_, name, desc, placeholderRId, rId, x, y, cx, cy)
         self.insert_element_before(pic, "p:extLst")
         return pic
 

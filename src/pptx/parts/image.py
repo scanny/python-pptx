@@ -190,6 +190,9 @@ class Image(object):
         A default value of (72, 72) is used if the dpi is not specified in the image file.
         """
 
+        if self.ext == "svg":
+            return (72, 72)
+
         def int_dpi(dpi: Any):
             """Return an integer dots-per-inch value corresponding to `dpi`.
 
@@ -230,6 +233,7 @@ class Image(object):
             "PNG": "png",
             "TIFF": "tiff",
             "WMF": "wmf",
+            "SVG": "svg"
         }
         format = self._format
         if format not in ext_map:
@@ -253,11 +257,16 @@ class Image(object):
     @lazyproperty
     def size(self) -> tuple[int, int]:
         """A (width, height) 2-tuple specifying the dimensions of this image in pixels."""
+        if (self.ext == "svg"):
+            # TODO what should the default size of an SVG be? Or maybe it should be dictated by the placeholder image?
+            return (100, 100)
         return self._pil_props[1]
 
     @property
     def _format(self) -> str | None:
         """The PIL Image format of this image, e.g. 'PNG'."""
+        if self._is_svg:
+            return "SVG"
         return self._pil_props[0]
 
     @lazyproperty
@@ -273,3 +282,13 @@ class Image(object):
         )
         stream.close()
         return (format, (width_px, height_px), dpi)
+    
+    @lazyproperty
+    def _is_svg(self) -> bool:
+        try:
+            # Decode the first 1024 bytes to text (UTF-8 is standard for SVG supposedly)
+            content = self._blob[:1024].decode('utf-8', errors='ignore')
+            # Determine if the content has an `svg` element.
+            return '<svg' in content.lower()
+        except Exception:
+            return False

@@ -381,14 +381,14 @@ class _BaseGroupShapes(_BaseShapes):
         width: Length | None = None,
         height: Length | None = None,
     ) -> Picture:
-        """Add svg picture shape displaying image in `image_file`.
+        """Add svg picture shape displaying image in `svg_file` along with a fallback placeholder image.
 
-        `image_file` can be either a path to a file (a string) or a file-like object. The picture
+        `svg_file` can be either a path to a file (a string) or a file-like object. The picture
         is positioned with its top-left corner at (`top`, `left`). If `width` and `height` are
-        both |None|, the native size of the image is used. If only one of `width` or `height` is
-        used, the unspecified dimension is calculated to preserve the aspect ratio of the image.
-        If both are specified, the picture is stretched to fit, without regard to its native
-        aspect ratio.
+        both |None|, the default size of images is used (not the size of the image itself).
+        If only one of `width` or `height` is used, the unspecified dimension is calculated to
+        preserve the aspect ratio of the image. If both are specified, the picture is stretched
+        to fit, without regard to its native aspect ratio.
         """
         svg_image_part, rId = self.part.get_or_add_image_part(svg_file)
         _, placeholderRId = self.part.get_or_add_image_part(placeholder_file)
@@ -520,11 +520,12 @@ class _BaseGroupShapes(_BaseShapes):
         cx: Length | None,
         cy: Length | None,
     ) -> CT_Picture:
-        """Return a newly appended `p:pic` element as specified.
+        """Return a newly appended `p:pic` element as specified, with an `asvg:svgBlip` for given SVG image part.
 
         The `p:pic` element displays the image in `image_part` with size and position specified by
         `x`, `y`, `cx`, and `cy`. The element is appended to the shape tree, causing it to be
         displayed first in z-order on the slide.
+        The placeholder image is referenced in the `a:blip r:embed` attribute.
         """
         id_ = self._next_shape_id
         scaled_cx, scaled_cy = image_part.scale(cx, cy)
