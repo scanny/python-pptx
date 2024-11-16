@@ -33,6 +33,14 @@ class PresentationPart(XmlPart):
         rId = self.relate_to(slide_part, RT.SLIDE)
         return rId, slide_part.slide
 
+    def remove_slide(self, slide_id: int):
+        """Remove slide with `slide_id` from this presentation."""
+        for sldId in self._element.sldIdLst:
+            if sldId.id == slide_id:
+                self.drop_rel(sldId.rId)
+                return
+        raise KeyError("no slide with id %d" % slide_id)
+
     @property
     def core_properties(self) -> CorePropertiesPart:
         """A |CoreProperties| object for the presentation.

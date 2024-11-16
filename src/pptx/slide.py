@@ -272,6 +272,11 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def remove_slide(self, slide_id: int) -> None:
+        """Remove slide with `slide_id` from this presentation."""
+        self.part.remove_slide(slide_id)
+        self._sldIdLst.remove_sldId(slide_id)
+
     def get(self, slide_id: int, default: Slide | None = None) -> Slide | None:
         """Return the slide identified by int `slide_id` in this presentation.
 

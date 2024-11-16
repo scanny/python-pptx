@@ -65,6 +65,14 @@ class CT_SlideIdList(BaseOxmlElement):
         The new `p:sldId` element has its r:id attribute set to `rId`.
         """
         return self._add_sldId(id=self._next_id, rId=rId)
+    
+    def remove_sldId(self, slide_id: int) -> None:
+        """Remove the `p:sldId` element with the specified slide ID."""
+        for sldId in self.sldId_lst:
+            if sldId.id == slide_id:
+                self.remove(sldId)
+                return
+        raise KeyError(f"no slide with id {slide_id}")
 
     @property
     def _next_id(self) -> int:
