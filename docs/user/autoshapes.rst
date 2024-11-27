@@ -105,6 +105,7 @@ from the theme palette.
 Because there are so many options, the API for fill is a bit complex. This
 code sets the fill of a shape to red::
 
+    >>> from pptx.dml.color import RGBColor
     >>> fill = shape.fill
     >>> fill.solid()
     >>> fill.fore_color.rgb = RGBColor(255, 0, 0)
