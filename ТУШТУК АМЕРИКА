@@ -1,0 +1,72 @@
+from pptx import Presentation
+
+# Презентацияны түзүү
+presentation = Presentation()
+
+# Биринчи слайд: Тема
+slide = presentation.slides.add_slide(presentation.slide_layouts[0])
+title = slide.shapes.title
+subtitle = slide.placeholders[1]
+title.text = "Түштүк Америка"
+subtitle.text = "География жана өзгөчөлүктөр"
+
+# Экинчи слайд: Жалпы маалымат
+slide = presentation.slides.add_slide(presentation.slide_layouts[1])
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "Жалпы маалымат"
+content.text = (
+    "Түштүк Америка — дүйнөнүн эң кооз континенттеринин бири. "
+    "Ал аянты боюнча төртүнчү, калкы боюнча бешинчи орунда турат."
+)
+
+# Үчүнчү слайд: Географиясы
+slide = presentation.slides.add_slide(presentation.slide_layouts[1])
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "Географиясы"
+content.text = (
+    "• Эң ири дарыя: Амазонка\n"
+    "• Эң бийик чоку: Аконкагуа (6961 м)\n"
+    "• Эң чоң чөл: Атакама\n"
+    "• Токойлор: Амазонка тропикалык токойлору"
+)
+
+# Төртүнчү слайд: Мамлекеттери
+slide = presentation.slides.add_slide(presentation.slide_layouts[1])
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "Мамлекеттери"
+content.text = (
+    "Түштүк Америкада 12 мамлекет бар, алардын ичинен эң ири өлкөлөр:\n"
+    "• Бразилия\n"
+    "• Аргентина\n"
+    "• Колумбия\n"
+    "• Перу"
+)
+
+# Бешинчи слайд: Маданияты
+slide = presentation.slides.add_slide(presentation.slide_layouts[1])
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "Маданияты"
+content.text = (
+    "• Түштүк Америкада ар түрдүү маданияттар бар.\n"
+    "• Танго (Аргентина)\n"
+    "• Самба жана карнавал (Бразилия)\n"
+    "• Инктердин байыркы тарыхы"
+)
+
+# Алтынчы слайд: Табигый байлыктар
+slide = presentation.slides.add_slide(presentation.slide_layouts[1])
+title = slide.shapes.title
+content = slide.placeholders[1]
+title.text = "Табигый байлыктар"
+content.text = (
+    "• Амазонка токойлору — дүйнөнүн 'өкмөттүк өпкөсү'.\n"
+    "• Пайдубалдуу ресурстар: мунай, газ, алтын, жез."
+)
+
+# Презентацияны сактоо
+presentation.save("Түштүк_Америка.pptx")
+print("Презентация түзүлдү!")
