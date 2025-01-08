@@ -10,6 +10,11 @@ Verdana to Arial. This aspect of a font is its *typeface*, as opposed to its
 size (e.g. 18 points) or style (e.g. bold, italic).
 
 
+.. admonition:: Custom fonts folder
+
+   |pp| will search for font files on each OS default directories. A list of custom folders can also be specified by setting the ``PYTHON_PPTX_FONT_DIRECTORY`` environment variable to a colon-separated list of the paths of each fonts folder.
+
+
 Minimum viable feature
 ----------------------
 

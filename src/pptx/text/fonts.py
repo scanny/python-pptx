@@ -43,11 +43,26 @@ class FontFiles(object):
         Return a sequence of directory paths likely to contain fonts on the
         current platform.
         """
+
+        font_dirs = []
+
+        # Colon-separated list of paths for python-pptx to find fonts
+        CUSTOM_DIRS_VAR_NAME = 'PYTHON_PPTX_FONT_DIRECTORY'
+        custom_dirs = os.getenv(CUSTOM_DIRS_VAR_NAME)
+
+        # Check it is not None, empty or whitespace
+        if custom_dirs and custom_dirs.strip():
+            font_dirs.extend(custom_dirs.split(':'))
+
         if sys.platform.startswith("darwin"):
-            return cls._os_x_font_directories()
-        if sys.platform.startswith("win32"):
-            return cls._windows_font_directories()
-        raise OSError("unsupported operating system")
+            font_dirs.extend(cls._os_x_font_directories())
+        elif sys.platform.startswith("linux"):
+            font_dirs.extend(cls._linux_font_directories())
+        elif sys.platform.startswith("win32"):
+            font_dirs.extend(cls._windows_font_directories())
+        else:
+            raise OSError("unsupported operating system")
+        return font_dirs
 
     @classmethod
     def _iter_font_files_in(cls, directory):
@@ -83,6 +98,23 @@ class FontFiles(object):
                 [os.path.join(home, "Library", "Fonts"), os.path.join(home, ".fonts")]
             )
         return os_x_font_dirs
+
+    @classmethod
+    def _linux_font_directories(cls):
+        """
+        Return a sequence of directory paths in which fonts are
+        likely to be located on most Linux.
+        """
+        linux_font_dirs = [
+            "/usr/share/fonts",
+            "/usr/local/share/fonts",
+        ]
+        home = os.environ.get("HOME")
+        if home is not None:
+            linux_font_dirs.extend(
+                [os.path.join(home, ".local", "share", "fonts"), os.path.join(home, ".fonts")]
+            )
+        return linux_font_dirs
 
     @classmethod
     def _windows_font_directories(cls):

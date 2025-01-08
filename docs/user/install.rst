@@ -23,3 +23,14 @@ Dependencies
 * lxml
 * Pillow
 * XlsxWriter (to use charting features)
+
+
+.. admonition:: Note: font availability on Linux
+
+   On most Linux distros, default PowerPoint fonts are typically unavailable. Thus, you should install them manually by either:
+
+   - Installing ``ttf-mscorefonts-installer`` package (on Ubuntu).
+   - Copying font files from the ``C:\Windows\Fonts`` folder of an existing Windows machine.
+   - Manually installing the fonts following `this guide <https://wiki.debian.org/ppviewerFonts>`_.
+
+
