@@ -26,6 +26,7 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    XsdInt,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -325,6 +326,7 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     u: MSO_TEXT_UNDERLINE_TYPE | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "u", MSO_TEXT_UNDERLINE_TYPE
     )
+    baseline: int | None = OptionalAttribute("baseline", XsdInt) # pyright: ignore[reportAssignmentType]
 
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()

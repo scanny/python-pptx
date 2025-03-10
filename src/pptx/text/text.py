@@ -397,6 +397,69 @@ class Font(object):
             self._rPr.sz = sz
 
     @property
+    def superscript(self) -> int | None:
+        """
+        Return the superscript baseline offset if set, otherwise None.
+
+        A positive integer represents the text's upward shift relative to the baseline.
+        The default superscript offset is `30000` (when set via `True`).
+        """
+        if self._rPr.baseline and self._rPr.baseline > 0 :
+            return self._rPr.baseline
+        return None
+
+    @superscript.setter
+    def superscript(self, value: bool | int | None):
+        """
+        Set or remove superscript formatting.
+
+        - `True` sets the baseline to `30000` (default superscript offset).
+        - An `int` value explicitly sets the baseline to that amount.
+        - `False` or `None` removes superscript formatting.
+        """
+        if value is True:
+            self._rPr.baseline = 30000
+        elif value is False:
+            self._rPr.baseline = None
+        elif isinstance(value, int) and value >= 0:
+            self._rPr.baseline = value
+        else:
+            self._rPr.baseline = None
+
+    @property
+    def subscript(self) -> int | None:
+        """
+        Return the subscript baseline offset if set, otherwise None.
+
+        A negative integer represents the text's downward shift relative to the baseline.
+        The default subscript offset is `-15000` (when set via `True`).
+        """
+        if self._rPr.baseline and self._rPr.baseline < 0:
+            return self._rPr.baseline
+        
+        return None
+
+    @subscript.setter
+    def subscript(self, value: bool | int | None):
+        """
+        Set or remove subscript formatting.
+
+        - `True` sets the baseline to `-15000` (default subscript offset).
+        - An `int` value explicitly sets the baseline to that amount.
+        - `False` or `None` removes subscript formatting.
+        """
+        if value is True:
+            self._rPr.baseline = -15000
+        elif value is False:
+            self._rPr.baseline = None
+        elif isinstance(value, int) and value <= 0:
+            self._rPr.baseline = value
+        else:
+            self._rPr.baseline = None
+
+
+
+    @property
     def underline(self) -> bool | MSO_TEXT_UNDERLINE_TYPE | None:
         """Indicaties the underline setting for this font.
 
