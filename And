@@ -1,0 +1,57 @@
+from pptx import Presentation
+
+# Crear una presentación
+prs = Presentation()
+
+# Diapositiva 1: Título
+slide_1 = prs.slides.add_slide(prs.slide_layouts[0])
+title = slide_1.shapes.title
+subtitle = slide_1.placeholders[1]
+
+title.text = "Mapa Conceptual de Tipos de Inversión"
+subtitle.text = "Características y Ejemplos"
+
+# Diapositiva 2: Tipos de Inversión
+slide_2 = prs.slides.add_slide(prs.slide_layouts[1])
+title = slide_2.shapes.title
+title.text = "Tipos de Inversión"
+
+# Agregar texto con tipos de inversión
+content_2 = slide_2.shapes.placeholders[1]
+content_2.text = (
+    "1. Inversiones en Acciones\n"
+    "2. Inversiones en Bonos\n"
+    "3. Bienes Raíces\n"
+    "4. Fondos de Inversión\n"
+    "5. Criptomonedas"
+)
+
+# Diapositiva 3: Características y Ejemplos
+slide_3 = prs.slides.add_slide(prs.slide_layouts[1])
+title = slide_3.shapes.title
+title.text = "Características y Ejemplos"
+
+# Agregar texto con características y ejemplos
+content_3 = slide_3.shapes.placeholders[1]
+content_3.text = (
+    "1. **Acciones**:\n"
+    "- Alta rentabilidad\n"
+    "- Ejemplo: Comprar acciones de Apple o Tesla\n\n"
+    "2. **Bonos**:\n"
+    "- Menor riesgo que las acciones\n"
+    "- Ejemplo: Bonos del gobierno o corporativos\n\n"
+    "3. **Bienes Raíces**:\n"
+    "- Estabilidad a largo plazo\n"
+    "- Ejemplo: Invertir en una propiedad\n\n"
+    "4. **Fondos de Inversión**:\n"
+    "- Diversificación de activos\n"
+    "- Ejemplo: Fondos indexados\n\n"
+    "5. **Criptomonedas**:\n"
+    "- Alta volatilidad\n"
+    "- Ejemplo: Bitcoin, Ethereum"
+)
+
+# Guardar la presentación
+prs.save("tipos_de_inversion.pptx")
+
+print("Presentación creada con éxito.")
