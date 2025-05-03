@@ -5,6 +5,8 @@ from __future__ import annotations
 import functools
 from typing import Any, Callable, Generic, TypeVar, cast
 
+from pptx.enum.text import MSO_NUMBERED_BULLET_STYLE, BulletStyleType
+
 
 class Length(int):
     """Base class for length classes Inches, Emu, Cm, Mm, and Pt.
@@ -100,6 +102,57 @@ class Pt(Length):
     def __new__(cls, points: float):
         emu = int(points * Length._EMUS_PER_PT)
         return Length.__new__(cls, emu)
+
+
+class BulletStyle:
+    """Convenience value class for styling unnumbered bullets.
+    
+    ``BulletStyle.NO_BULLET`` indicates that bullets are explicitly disabled
+    a paragraph. ``BulletStyle.DEFAULT`` indicates that whether the paragraph
+    is rendered as a bullet is defined in the slide master or layout.
+    
+    The methods ``BulletStyle.custom`` and ``BulletStyle.numbered`` can be
+    used to create ``BulletStyle``s that control what kind of bullet is used
+    for the paragraph.
+    """
+
+    NO_BULLET: BulletStyle = None
+    DEFAULT: BulletStyle = None
+
+    def __init__(self, style: BulletStyleType, value: str | MSO_NUMBERED_BULLET_STYLE | None = None):
+        self._style = style
+        self._value = value
+
+    def __eq__(self, other: object):
+        if isinstance(other, BulletStyle) and self._style == other._style:
+            return self._value == other._value
+        else:
+            return False
+
+    @property
+    def value(self) -> str | MSO_NUMBERED_BULLET_STYLE | None:
+        return self._value
+    
+    @property
+    def style(self) -> BulletStyleType:
+        return self._style
+
+    @classmethod
+    def custom(cls, bullet_string: str):
+        """Defines a bullet that is rendered as ``bullet_string``."""
+        return BulletStyle(BulletStyleType.CUSTOM, bullet_string)
+
+    @classmethod
+    def numbered(cls, style: MSO_NUMBERED_BULLET_STYLE):
+        """Defines a bullet that is numbered.
+        
+        The style of the enumeration is controlled by the ``style`` and
+        is a ``MSO_NUMBERED_BULLET_STYLE``.
+        """
+        return BulletStyle(BulletStyleType.NUMBERED, style)
+
+BulletStyle.NO_BULLET = BulletStyle(BulletStyleType.NO_BULLET)
+BulletStyle.DEFAULT = BulletStyle(BulletStyleType.DEFAULT)
 
 
 _T = TypeVar("_T")

@@ -11,12 +11,12 @@ import pytest
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_NUMBERED_BULLET_STYLE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.shapes.autoshape import Shape
 from pptx.text.text import Font, TextFrame, _Hyperlink, _Paragraph, _Run
-from pptx.util import Inches, Pt
+from pptx.util import BulletStyle, Inches, Pt
 
 from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
 from ..unitutil.cxml import element, xml
@@ -870,6 +870,16 @@ class Describe_Paragraph(object):
         assert text == expected_value
         assert isinstance(text, str)
 
+    def it_can_change_its_bullet(self, bullet_set_fixture):
+        paragraph, new_value, expected_xml = bullet_set_fixture
+        paragraph.bullet = new_value
+        assert paragraph._element.xml == expected_xml
+
+    def it_knows_its_bullet(self, bullet_get_fixture):
+        paragraph, expected_bullet = bullet_get_fixture
+        print(paragraph.bullet, expected_bullet)
+        assert paragraph.bullet == expected_bullet
+
     @pytest.mark.parametrize(
         ("p_cxml", "value", "expected_cxml"),
         [
@@ -1118,6 +1128,47 @@ class Describe_Paragraph(object):
         p_cxml, expected_value = request.param
         p = element(p_cxml)
         return p, expected_value
+
+    
+    @pytest.fixture(
+        params=[
+            ("a:p", BulletStyle.custom("x"), "a:p/a:pPr/a:buChar{char=x}"),
+            ("a:p/a:pPr/a:buChar", BulletStyle.custom("x"), "a:p/a:pPr/a:buChar{char=x}"),
+            ("a:p/a:pPr/a:buNone", BulletStyle.custom("x"), "a:p/a:pPr/a:buChar{char=x}"),
+            ("a:p/a:pPr/a:buAutoNum", BulletStyle.custom("x"), "a:p/a:pPr/a:buChar{char=x}"),
+            ("a:p", BulletStyle.NO_BULLET, "a:p/a:pPr/a:buNone"),
+            ("a:p/a:pPr/a:buChar", BulletStyle.NO_BULLET, "a:p/a:pPr/a:buNone"),
+            ("a:p/a:pPr/a:buNone", BulletStyle.NO_BULLET, "a:p/a:pPr/a:buNone"),
+            ("a:p/a:pPr/a:buAutoNum", BulletStyle.NO_BULLET, "a:p/a:pPr/a:buNone"),
+            ("a:p", BulletStyle.DEFAULT, "a:p/a:pPr"),
+            ("a:p/a:pPr/a:buNone", BulletStyle.DEFAULT, "a:p/a:pPr"),
+            ("a:p/a:pPr/a:buChar", BulletStyle.DEFAULT, "a:p/a:pPr"),
+            ("a:p/a:pPr/a:buAutoNum", BulletStyle.DEFAULT, "a:p/a:pPr"),
+            ("a:p", BulletStyle.numbered(MSO_NUMBERED_BULLET_STYLE.ROMAN_UC_PERIOD), "a:p/a:pPr/a:buAutoNum{type=romanUCPeriod}"),
+            ("a:p/a:pPr/a:buChar", BulletStyle.numbered(MSO_NUMBERED_BULLET_STYLE.ALPHA_LC_PERIOD), "a:p/a:pPr/a:buAutoNum{type=alphaLCPeriod}"),
+            ("a:p/a:pPr/a:buNone", BulletStyle.numbered(MSO_NUMBERED_BULLET_STYLE.ARABIC_ABJAD_DASH), "a:p/a:pPr/a:buAutoNum{type=arabicAbjadDash}"),
+            ("a:p/a:pPr/a:buAutoNum", BulletStyle.numbered(MSO_NUMBERED_BULLET_STYLE.TRAD_CHIN_PLAIN), "a:p/a:pPr/a:buAutoNum{type=tradChinPlain}"),
+        ]
+    )
+    def bullet_set_fixture(self, request):
+        p_cxml, new_value, expected_p_cxml = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        expected_xml = xml(expected_p_cxml)
+        return paragraph, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:p", BulletStyle.DEFAULT),
+            ("a:p/a:pPr", BulletStyle.DEFAULT),
+            ("a:p/a:pPr/a:buNone", BulletStyle.NO_BULLET),
+            ("a:p/a:pPr/a:buChar{char=x}", BulletStyle.custom("x")),
+            ("a:p/a:pPr/a:buAutoNum{type=romanUCPeriod}", BulletStyle.numbered(MSO_NUMBERED_BULLET_STYLE.ROMAN_UC_PERIOD)),
+        ]
+    )
+    def bullet_get_fixture(self, request):
+        p_cxml, expected_bullet = request.param
+        paragraph = _Paragraph(element(p_cxml), None)
+        return paragraph, expected_bullet
 
     # fixture components -----------------------------------
 

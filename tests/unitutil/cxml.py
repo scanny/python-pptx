@@ -252,7 +252,7 @@ def grammar():
 
     # np:attr_name=attr_val ----------------------
     attr_name = Word(alphas + ":")
-    attr_val = Word(alphanums + " %-./:_")
+    attr_val = Word(alphanums + u" %-./:_\u2022")
     attr_def = Group(attr_name + equal + attr_val)
     attr_list = open_brace + delimitedList(attr_def) + close_brace
 

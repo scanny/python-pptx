@@ -445,6 +445,7 @@ register_element_cls("a:tr", CT_TableRow)
 
 from pptx.oxml.text import (  # noqa: E402
     CT_RegularTextRun,
+    CT_TextAutoNumberBullet,
     CT_TextBody,
     CT_TextBodyProperties,
     CT_TextCharacterProperties,
@@ -457,6 +458,8 @@ from pptx.oxml.text import (  # noqa: E402
     CT_TextSpacing,
     CT_TextSpacingPercent,
     CT_TextSpacingPoint,
+    CT_TextNoBullet,
+    CT_TextCharBullet,
 )
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
@@ -476,6 +479,9 @@ register_element_cls("a:spcAft", CT_TextSpacing)
 register_element_cls("a:spcBef", CT_TextSpacing)
 register_element_cls("a:spcPct", CT_TextSpacingPercent)
 register_element_cls("a:spcPts", CT_TextSpacingPoint)
+register_element_cls('a:buNone', CT_TextNoBullet)
+register_element_cls('a:buAutoNum', CT_TextAutoNumberBullet)
+register_element_cls('a:buChar', CT_TextCharBullet)
 register_element_cls("a:txBody", CT_TextBody)
 register_element_cls("c:txPr", CT_TextBody)
 register_element_cls("p:txBody", CT_TextBody)

@@ -93,3 +93,16 @@ Feature: Change paragraph properties
       | "a\vb\vc" | "a\vb\vc"      |
       | "a\nb\vc" | "a\vb\vc"      |
       | "a\x1Bc"  | "a_x001B_c"    |
+
+
+  Scenario Outline: _Paragraph.bullet setter
+    Given a _Paragraph object as paragraph
+     When I assign paragraph.bullet = <value>
+     Then paragraph.bullet == <value>
+
+    Examples: _Paragraph assigned bullet replacement cases
+      | value | expected-value |
+      | x | x |
+      | No bullet | No bullet |
+      | Default  | Default  |
+      | hindiAlphaPeriod | hindiAlphaPeriod |

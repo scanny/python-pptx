@@ -8,9 +8,11 @@ from typing import TYPE_CHECKING, Callable, cast
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import (
     MSO_AUTO_SIZE,
+    MSO_NUMBERED_BULLET_STYLE,
     MSO_TEXT_UNDERLINE_TYPE,
     MSO_VERTICAL_ANCHOR,
     PP_PARAGRAPH_ALIGNMENT,
+    BulletStyleType,
 )
 from pptx.exc import InvalidXmlError
 from pptx.oxml import parse_xml
@@ -26,6 +28,7 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    XsdString,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -38,7 +41,7 @@ from pptx.oxml.xmlchemy import (
     ZeroOrOne,
     ZeroOrOneChoice,
 )
-from pptx.util import Emu, Length
+from pptx.util import BulletStyle, Emu, Length
 
 if TYPE_CHECKING:
     from pptx.oxml.action import CT_Hyperlink
@@ -466,9 +469,15 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     _add_lnSpc: Callable[[], CT_TextSpacing]
     _add_spcAft: Callable[[], CT_TextSpacing]
     _add_spcBef: Callable[[], CT_TextSpacing]
+    _add_buNone: Callable[[], CT_TextNoBullet]
+    _add_buAutoNum: Callable[[], CT_TextAutoNumberBullet]
+    _add_buChar: Callable[[], CT_TextCharBullet]
     _remove_lnSpc: Callable[[], None]
     _remove_spcAft: Callable[[], None]
     _remove_spcBef: Callable[[], None]
+    _remove_buNone: Callable[[], None]
+    _remove_buAutoNum: Callable[[], CT_TextAutoNumberBullet]
+    _remove_buChar: Callable[[], None]
 
     _tag_seq = (
         "a:lnSpc",
@@ -500,6 +509,15 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     )
     defRPr: CT_TextCharacterProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "a:defRPr", successors=_tag_seq[16:]
+    )
+    buNone: CT_TextNoBullet | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buNone", successors=_tag_seq[11:]
+    )
+    buAutoNum: CT_TextAutoNumberBullet | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buAutoNum", successors=_tag_seq[12:]
+    )
+    buChar: CT_TextCharBullet | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buChar", successors=_tag_seq[13:]
     )
     lvl: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "lvl", ST_TextIndentLevelType, default=0
@@ -533,6 +551,40 @@ class CT_TextParagraphProperties(BaseOxmlElement):
             self._add_lnSpc().set_spcPts(value)
         else:
             self._add_lnSpc().set_spcPct(value)
+
+    @property
+    def bullet(self) -> BulletStyle:
+        """The style of bullet used for this paragraph."""
+        buNone = self.buNone
+        buChar = self.buChar
+        buAutoNum = self.buAutoNum
+
+        if buChar is not None:
+            return BulletStyle.custom(buChar.char)
+        elif buAutoNum is not None:
+            return BulletStyle.numbered(buAutoNum.val)
+        elif buNone is not None:
+            return BulletStyle.NO_BULLET
+        else:
+            return BulletStyle.DEFAULT
+
+    @bullet.setter
+    def bullet(self, value: BulletStyle):
+        self._remove_buNone()
+        self._remove_buChar()
+        self._remove_buAutoNum()
+
+        if value == BulletStyle.DEFAULT:
+            return
+        elif value == BulletStyle.NO_BULLET:
+            self._add_buNone()
+        elif value.style == BulletStyleType.CUSTOM:
+            buChar = self._add_buChar()
+            buChar.char = cast(str, value.value)
+        elif value.style == BulletStyleType.NUMBERED:
+            buAutoNum = self._add_buAutoNum()
+            buAutoNum.val = cast(MSO_NUMBERED_BULLET_STYLE, value.value)
+
 
     @property
     def space_after(self) -> Length | None:
@@ -615,4 +667,32 @@ class CT_TextSpacingPoint(BaseOxmlElement):
 
     val: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
         "val", ST_TextSpacingPoint
+    )
+
+
+class CT_TextNoBullet(BaseOxmlElement):
+    """
+    <a:buNone> element, specifying that a paragraph should not be bulleted.
+    """
+    pass
+ 
+
+class CT_TextCharBullet(BaseOxmlElement):
+    """
+    <a:buChar> element, specifying that a paragraph should have a character bullet.
+    """
+
+    char: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "char", XsdString
+    )
+ 
+
+class CT_TextAutoNumberBullet(BaseOxmlElement):
+    """
+    <a:buAutoNum> element, specifying that a paragraph should have an automatically
+    incremented bullet of the specified `type`.
+    """
+
+    val: MSO_NUMBERED_BULLET_STYLE = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "type", MSO_NUMBERED_BULLET_STYLE
     )
