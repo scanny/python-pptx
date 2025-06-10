@@ -9,11 +9,12 @@ on:
       - develop
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
