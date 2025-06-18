@@ -1,0 +1,164 @@
+from pptx import Presentation
+from pptx.util import Inches
+
+def add_slide(prs, title, content_lines):
+    slide_layout = prs.slide_layouts[1]  # Title and Content layout
+    slide = prs.slides.add_slide(slide_layout)
+    slide.shapes.title.text = title
+    content = slide.placeholders[1]
+    content.text = '\n'.join(content_lines)
+
+prs = Presentation()
+
+# Title Slide
+slide_layout = prs.slide_layouts[0]
+slide = prs.slides.add_slide(slide_layout)
+slide.shapes.title.text = "Category Management, Data Analytics & Business Intelligence in Acquisition"
+slide.placeholders[1].text = "A Sustainment & Strategic Sourcing Perspective\n[Your Name] | Acquisition Data Analyst\n[Date] | [Agency/Org Name]"
+
+# Slide content
+slides = [
+    ("Purpose & Scope", [
+        "Explore how Category Management (CM) integrates with BI/Data Analytics to enable strategic sourcing.",
+        "Emphasis on:",
+        "- Sustainment and SUM/BIC strategies",
+        "- SRRB process and compliance",
+        "- Contract lifecycle (LRAE/LRAF, expirations)",
+        "- Tools (Advana, Jupiter)",
+        "- Critical data elements: available and needed"
+    ]),
+    ("Category Management (CM) for Sustainment", [
+        "CM Goal: Optimize acquisition by managing common spend categories (IT, services, etc.).",
+        "SUM (Spend Under Management):",
+        "- Focus on maximizing Tier 2 & Tier 3 spend",
+        "- Demonstrates strategic, centralized sourcing",
+        "BIC (Best-In-Class):",
+        "- Preferred, vetted solutions for performance and cost",
+        "Sustainment requires maintaining and increasing SUM & BIC adoption."
+    ]),
+    ("SRRB Compliance in Context", [
+        "SRRB: Services Requirements Review Board",
+        "Ensures service acquisitions meet performance and strategic sourcing goals.",
+        "Applies to service contracts > $10M (unless exempt).",
+        "Must review:",
+        "- CM alignment",
+        "- Spend analytics",
+        "- Workforce strategy",
+        "BI Role: Provide supporting data for SRRB justifications."
+    ]),
+    ("LRAE/LRAF and Contract Expiration Tracking", [
+        "LRAE: Long Range Acquisition Estimate",
+        "LRAF: Long Range Acquisition Forecast",
+        "CM View:",
+        "- Identify consolidation opportunities",
+        "- Align contracts with BIC vehicles",
+        "- Support strategic sourcing cycles",
+        "Expiration awareness enables proactive planning and reduces risk of non-strategic recompetes."
+    ]),
+    ("Tools: Advana & Jupiter", [
+        "Advana: DoD’s analytics platform integrating financial and contract data.",
+        "- Used for spend analysis, supplier performance, and forecasting.",
+        "Jupiter: Forecasting tool with acquisition pipeline visibility.",
+        "- Incorporates LRAF and LRAE for long-range planning.",
+        "- Supports SRRB, category management, and expiration tracking."
+    ]),
+    ("Key Data Elements – To Date and Needed", [
+        "Captured Today:",
+        "- Contract Number, Spend, Dates, Supplier Info, SUM Tier & BIC Status",
+        "Needed:",
+        "- Performance Metrics, Risk Indicators, ESG Data, FSA Tags",
+        "Key to enabling strategic CM decisions and SRRB compliance."
+    ]),
+    ("Strategic BI Dashboarding", [
+        "Combine data from Advana, Jupiter, SRRB templates.",
+        "Dashboards deliver insights on:",
+        "- SUM/BIC alignment",
+        "- LRAF pipeline & expirations",
+        "- Supplier & category performance",
+        "Support real-time strategic sourcing decisions."
+    ]),
+    ("Case Study: Strategic Recompete Using BI", [
+        "Scenario: Professional services contract expiring in 6 months.",
+        "Actions:",
+        "- Review in Jupiter (LRAF)",
+        "- Identify BIC gap",
+        "- Conduct spend analysis in Advana",
+        "- Recommend strategic sourcing path",
+        "Outcome: 12% cost savings, Tier 3 SUM alignment, SRRB approval."
+    ]),
+    ("Summary & Next Steps", [
+        "Sustain SUM/BIC through integrated analytics.",
+        "Support SRRB with defensible data insights.",
+        "Use LRAF/LRAE to inform sourcing cycles.",
+        "Leverage Advana & Jupiter effectively.",
+        "Fill key data gaps to strengthen BI capabilities."
+    ]),
+    ("Q&A / Discussion", [
+        "Let’s discuss your category management challenges, data gaps, and how BI can help."
+    ])
+]
+
+for title, content in slides:
+    add_slide(prs, title, content)
+
+prs.save("CM_Data_Analytics_BI_Presentation.pptx")
+
+from pptx import Presentation
+from pptx.chart.data import CategoryChartData
+from pptx.enum.chart import XL_CHART_TYPE
+from pptx.util import Inches
+
+prs = Presentation("CM_Data_Analytics_BI_Presentation.pptx")  # Load your base file
+
+# Helper: Add chart slide
+def add_chart_slide(title, categories, series_data, chart_type, series_names=None):
+    slide_layout = prs.slide_layouts[5]  # Title Only
+    slide = prs.slides.add_slide(slide_layout)
+    slide.shapes.title.text = title
+
+    chart_data = CategoryChartData()
+    chart_data.categories = categories
+    if not series_names:
+        series_names = ["Data"]
+    for name, data in zip(series_names, series_data):
+        chart_data.add_series(name, data)
+
+    x, y, cx, cy = Inches(1), Inches(1.5), Inches(8), Inches(4.5)
+    chart = slide.shapes.add_chart(chart_type, x, y, cx, cy, chart_data).chart
+    chart.has_legend = True
+    chart.chart_title.has_text_frame = True
+    chart.chart_title.text_frame.text = title
+
+# Add SUM/BIC compliance by category
+add_chart_slide(
+    "SUM/BIC Compliance by Category",
+    ["IT Services", "Facilities", "Logistics", "Admin Support"],
+    [
+        [65, 30, 40, 50],  # Tier 3 (BIC)
+        [20, 40, 35, 25],  # Tier 2
+        [15, 30, 25, 25]   # Tier 1 / Unmanaged
+    ],
+    XL_CHART_TYPE.COLUMN_CLUSTERED,
+    ["Tier 3 (BIC)", "Tier 2", "Tier 1 / Unmanaged"]
+)
+
+# Add contract expiration timeline
+add_chart_slide(
+    "LRAF Contract Expiration Timeline",
+    ["Q1 FY25", "Q2 FY25", "Q3 FY25", "Q4 FY25"],
+    [[12, 18, 10, 7]],
+    XL_CHART_TYPE.LINE_MARKERS
+)
+
+# Add supplier concentration
+add_chart_slide(
+    "Supplier Concentration by Category",
+    ["IT Services", "Facilities", "Logistics"],
+    [[75, 60, 85]],
+    XL_CHART_TYPE.BAR_CLUSTERED,
+    ["Top 3 Suppliers Share (%)"]
+)
+
+# Save updated presentation
+prs.save("CM_Data_Analytics_BI_Presentation_With_Dashboards.pptx")
+
