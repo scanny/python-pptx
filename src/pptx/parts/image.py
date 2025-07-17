@@ -230,6 +230,7 @@ class Image(object):
             "PNG": "png",
             "TIFF": "tiff",
             "WMF": "wmf",
+            "MPO": "jpg",
         }
         format = self._format
         if format not in ext_map:
