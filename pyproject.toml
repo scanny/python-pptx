@@ -97,9 +97,6 @@ python_functions = [
     "and_",
 ]
 
-[tool.ruff]
-line-length = 100
-
 # -- don't check these locations --
 exclude = [
     # -- docs/ - documentation Python code is incidental --
@@ -111,6 +108,10 @@ exclude = [
     # -- spec/ has some ad-hoc discovery code that is not disciplined --
     "spec",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
 
 [tool.ruff.lint]
 select = [
@@ -128,6 +129,7 @@ select = [
     "UP032",    # -- Use f-string instead of `.format()` call --
     "UP034",    # -- Avoid extraneous parentheses --
     "W",        # -- Warnings, including invalid escape-sequence --
+
 ]
 ignore = [
     "COM812",   # -- over aggressively insists on trailing commas where not desireable --
@@ -136,6 +138,14 @@ ignore = [
     "PT011",    # -- pytest.raises({exc}) too broad, use match param or more specific exception --
     "PT012",    # -- pytest.raises() block should contain a single simple statement --
     "SIM117",   # -- merge `with` statements for context managers that have same scope --
+]
+extend-select = ["E","F","I"]  # basic errors + imports
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+  "PT006","PT007","PT018",
+  "C401","C402","C404","C416","C420",
+  "UP015",
+  "E501",
 ]
 
 [tool.ruff.lint.isort]
