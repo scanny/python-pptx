@@ -370,6 +370,15 @@ class SlideLayouts(ParentedElementProxy):
         """Support len() built-in function, e.g. `len(slides) == 4`."""
         return len(self._sldLayoutIdLst)
 
+    def add_layout(self, name: str | None = "Layout %s") -> SlideLayout:
+        """Return a newly added slide layout."""
+        rId, layout = self.part.add_layout()
+        self._sldLayoutIdLst.add_sldLayoutId(rId)
+        id_ = int(rId[3:]) if rId.startswith("rId") and rId[3:].isdigit() else 0
+        if name:
+            layout.name = name % id_ if "%s" in name else name
+        return layout
+
     def get_by_name(self, name: str, default: SlideLayout | None = None) -> SlideLayout | None:
         """Return SlideLayout object having `name`, or `default` if not found."""
         for slide_layout in self:
