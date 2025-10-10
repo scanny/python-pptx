@@ -9,7 +9,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.opc.packuri import PackURI
-from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
+from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide, CT_SlideLayout
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.parts.chart import ChartPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
@@ -266,6 +266,15 @@ class SlideLayoutPart(BaseSlidePart):
     Corresponds to package files ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
 
+    @classmethod
+    def new(cls, partname, package):
+        """Return newly-created blank slide layout part.
+
+        The new slide-part has `partname` and a relationship to `slide_layout_part`.
+        """
+        slide_layout_part = cls(partname, CT.PML_SLIDE_LAYOUT, package, CT_SlideLayout.new())
+        return slide_layout_part
+
     @lazyproperty
     def slide_layout(self):
         """
@@ -285,6 +294,16 @@ class SlideMasterPart(BaseSlidePart):
     Corresponds to package files ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
 
+    def add_layout(self):
+        """
+        Return (rId, layout) pair of a newly created layout.
+        """
+        partname = self._next_slideLayout_partname
+        slide_layout_part = SlideLayoutPart.new(partname, self.package)
+        rId = self.relate_to(slide_layout_part, RT.SLIDE_LAYOUT)
+        slide_layout_part.relate_to(self.slide_master.part, RT.SLIDE_MASTER)
+        return rId, slide_layout_part.slide_layout
+
     def related_slide_layout(self, rId: str) -> SlideLayout:
         """Return |SlideLayout| related to this slide-master by key `rId`."""
         return self.related_part(rId).slide_layout
@@ -295,3 +314,10 @@ class SlideMasterPart(BaseSlidePart):
         The |SlideMaster| object representing this part.
         """
         return SlideMaster(self._element, self)
+
+    @property
+    def _next_slideLayout_partname(self):
+        """Return |PackURI| instance containing next available slideLayout partname."""
+        sldLayoutIdLst = self._element.get_or_add_sldLayoutIdLst()
+        partname_str = "/ppt/slideLayouts/slideLayout%d.xml" % (len(sldLayoutIdLst) + 1)
+        return PackURI(partname_str)

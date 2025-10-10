@@ -648,12 +648,26 @@ class SlideShapes(_BaseGroupShapes):
         return SlideShapeFactory(shape_elm, self)
 
 
-class LayoutShapes(_BaseShapes):
+class LayoutShapes(_BaseGroupShapes):
     """Sequence of shapes appearing on a slide layout.
 
     The first shape in the sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), index(), and iteration.
     """
+
+    def add_placeholder(
+        self, ph_type: PP_PLACEHOLDER, orient: str, sz: str
+    ) -> LayoutPlaceholder:
+        """Return newly added placeholder appended to this shape tree.
+
+        The placeholder having the specified properties
+        """
+        id_ = self._next_shape_id
+        ph_name = self._next_ph_name(ph_type, id_, orient)
+        sp = self._spTree.add_placeholder(id_, ph_name, ph_type, orient, sz, id_)
+        sp = cast(LayoutPlaceholder, self._shape_factory(sp))
+
+        return sp
 
     def _shape_factory(self, shape_elm: ShapeElement) -> BaseShape:
         """Return an instance of the appropriate shape proxy class for `shape_elm`."""
