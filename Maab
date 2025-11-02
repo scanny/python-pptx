@@ -1,0 +1,180 @@
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN
+
+# إنشاء عرض تقديمي جديد
+prs = Presentation()
+
+# دالة مساعدة لإضافة خلفية متدرجة (محاكاة بسيطة)
+def set_gradient_background(slide, color1, color2):
+    # python-pptx لا يدعم gradient حقيقي، لذا نستخدم مستطيل يغطي الشريحة
+    shape = slide.shapes.add_shape(
+        1, Inches(0), Inches(0), prs.slide_width, prs.slide_height
+    )
+    fill = shape.fill
+    fill.solid()
+    fill.fore_color.rgb = color1
+    shape.line.fill.background()
+    # اللون الثاني يُستخدم لتظليل النصوص أو العناوين لجعلها متناسقة
+
+# إعداد الألوان
+blue_dark = RGBColor(41, 128, 185)
+blue_light = RGBColor(52, 152, 219)
+gray_light = RGBColor(236, 240, 241)
+white = RGBColor(255, 255, 255)
+
+# إعداد الخط العام
+title_font_size = Pt(40)
+content_font_size = Pt(20)
+
+# -------------------------------
+# 1️⃣ شريحة العنوان
+# -------------------------------
+slide1 = prs.slides.add_slide(prs.slide_layouts[6])
+set_gradient_background(slide1, blue_dark, blue_light)
+
+title_box = slide1.shapes.add_textbox(Inches(1), Inches(2.5), Inches(8), Inches(1.5))
+frame = title_box.text_frame
+frame.text = "العرض التقديمي الاحترافي"
+p = frame.paragraphs[0]
+p.font.size = title_font_size
+p.font.bold = True
+p.font.color.rgb = white
+p.alignment = PP_ALIGN.CENTER
+
+subtitle_box = slide1.shapes.add_textbox(Inches(1), Inches(4), Inches(8), Inches(1))
+sub_frame = subtitle_box.text_frame
+sub_frame.text = "من إعداد: فريق العمل"
+sub = sub_frame.paragraphs[0]
+sub.font.size = Pt(24)
+sub.font.color.rgb = white
+sub.alignment = PP_ALIGN.CENTER
+
+try:
+    slide1.shapes.add_picture("icon_presentation.png", Inches(0.5), Inches(0.5), Inches(1.2), Inches(1.2))
+except FileNotFoundError:
+    pass
+
+# -------------------------------
+# 2️⃣ شريحة المقدمة
+# -------------------------------
+slide2 = prs.slides.add_slide(prs.slide_layouts[6])
+set_gradient_background(slide2, blue_light, gray_light)
+
+icon_x = Inches(0.5)
+icon_y = Inches(0.7)
+try:
+    slide2.shapes.add_picture("icon_intro.png", icon_x, icon_y, Inches(1), Inches(1))
+except FileNotFoundError:
+    pass
+
+title_box = slide2.shapes.add_textbox(Inches(2), Inches(1), Inches(8), Inches(1))
+title_frame = title_box.text_frame
+title_frame.text = "المقدمة"
+p = title_frame.paragraphs[0]
+p.font.size = title_font_size
+p.font.bold = True
+p.font.color.rgb = blue_dark
+
+content_box = slide2.shapes.add_textbox(Inches(1.2), Inches(2.5), Inches(8), Inches(3))
+content_frame = content_box.text_frame
+content_frame.text = (
+    "يتناول هذا العرض مقدمة شاملة عن الموضوع.\n"
+    "سنتعرّف على أهداف العرض والمحتوى الرئيسي بطريقة بسيطة وواضحة."
+)
+p = content_frame.paragraphs[0]
+p.font.size = content_font_size
+p.font.color.rgb = RGBColor(44, 62, 80)
+
+# -------------------------------
+# 3️⃣ شريحة الأهداف
+# -------------------------------
+slide3 = prs.slides.add_slide(prs.slide_layouts[6])
+set_gradient_background(slide3, blue_light, white)
+
+try:
+    slide3.shapes.add_picture("icon_goals.png", Inches(0.5), Inches(0.5), Inches(1), Inches(1))
+except FileNotFoundError:
+    pass
+
+title_box = slide3.shapes.add_textbox(Inches(2), Inches(1), Inches(8), Inches(1))
+title_frame = title_box.text_frame
+title_frame.text = "الأهداف"
+p = title_frame.paragraphs[0]
+p.font.size = title_font_size
+p.font.bold = True
+p.font.color.rgb = blue_dark
+
+content_box = slide3.shapes.add_textbox(Inches(1.5), Inches(2.5), Inches(8), Inches(3))
+content_frame = content_box.text_frame
+content_frame.text = (
+    "🔹 توضيح الفكرة العامة للعرض.\n"
+    "🔹 توصيل المعلومات بأسلوب مبسط وجذاب.\n"
+    "🔹 تعزيز الفهم عبر الأمثلة التطبيقية."
+)
+for p in content_frame.paragraphs:
+    p.font.size = content_font_size
+    p.font.color.rgb = RGBColor(44, 62, 80)
+
+# -------------------------------
+# 4️⃣ شريحة المحتوى
+# -------------------------------
+slide4 = prs.slides.add_slide(prs.slide_layouts[6])
+set_gradient_background(slide4, gray_light, white)
+
+try:
+    slide4.shapes.add_picture("icon_content.png", Inches(0.5), Inches(0.5), Inches(1), Inches(1))
+except FileNotFoundError:
+    pass
+
+title_box = slide4.shapes.add_textbox(Inches(2), Inches(1), Inches(8), Inches(1))
+title_frame = title_box.text_frame
+title_frame.text = "المحتوى الرئيسي"
+p = title_frame.paragraphs[0]
+p.font.size = title_font_size
+p.font.bold = True
+p.font.color.rgb = blue_dark
+
+content_box = slide4.shapes.add_textbox(Inches(1.5), Inches(2.5), Inches(8), Inches(3.5))
+content_frame = content_box.text_frame
+content_frame.text = (
+    "يتضمّن المحتوى ما يلي:\n\n"
+    "• عرض الأفكار الأساسية بشكل منظم.\n"
+    "• شرح النقاط الجوهرية بدعم بصري.\n"
+    "• إمكانية إضافة صور أو رسوم توضيحية."
+)
+for p in content_frame.paragraphs:
+    p.font.size = content_font_size
+    p.font.color.rgb = RGBColor(44, 62, 80)
+
+# -------------------------------
+# 5️⃣ شريحة الخاتمة
+# -------------------------------
+slide5 = prs.slides.add_slide(prs.slide_layouts[6])
+set_gradient_background(slide5, blue_dark, blue_light)
+
+title_box = slide5.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(1))
+frame = title_box.text_frame
+frame.text = "الخاتمة"
+p = frame.paragraphs[0]
+p.font.size = title_font_size
+p.font.bold = True
+p.font.color.rgb = white
+p.alignment = PP_ALIGN.CENTER
+
+content_box = slide5.shapes.add_textbox(Inches(1), Inches(3.2), Inches(8), Inches(2))
+content_frame = content_box.text_frame
+content_frame.text = (
+    "شكرًا لحسن الاستماع والمشاركة 💙\n\n"
+    "نتمنى أن يكون العرض مفيدًا وواضحًا للجميع."
+)
+p = content_frame.paragraphs[0]
+p.font.size = content_font_size
+p.font.color.rgb = white
+p.alignment = PP_ALIGN.CENTER
+
+# حفظ الملف
+prs.save("عرض_تقديمي_احترافي_بتصميم.pptx")
+
+print("✅ تم إنشاء العرض وحفظه باسم 'عرض_تقديمي_احترافي_بتصميم.pptx'")
