@@ -340,3 +340,48 @@ def then_the_table_appears_in_the_slide(context):
     prs = Presentation(saved_pptx_path)
     expected_table_graphic_frame = prs.slides[0].shapes[0]
     assert expected_table_graphic_frame.has_table
+
+
+# alt_text step definitions ===============================================
+
+@given("a shape with no alternative text")
+def given_a_shape_with_no_alternative_text(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    context.shape = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+    )
+
+@given('a shape with alternative text "{text}"')
+def given_a_shape_with_alternative_text(context, text):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    shape = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+    )
+    shape.alt_text = text
+    context.shape = shape
+
+@when('I set the alt_text property to "{text}"')
+def when_I_set_the_alt_text_property_to(context, text):
+    context.shape.alt_text = text
+
+@then('the alt_text property should be "{expected_text}"')
+def then_the_alt_text_property_should_be(context, expected_text):
+    assert context.shape.alt_text == expected_text
+
+@when('I set the alt_text property to an empty string')
+def when_I_set_the_alt_text_property_to_empty_string(context):
+    context.shape.alt_text = ""
+
+@then("the alt_text property should be an empty string")
+def then_the_alt_text_property_should_be_an_empty_string(context):
+    assert context.shape.alt_text == ""
+
+@when('I delete the alt_text property')
+def when_I_delete_the_alt_text_property(context):
+    del context.shape.alt_text
+
+@then("the alt_text property should be None")
+def then_the_alt_text_property_should_be_None(context):
+    assert context.shape.alt_text is None

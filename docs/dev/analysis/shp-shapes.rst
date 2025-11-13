@@ -56,6 +56,21 @@ Proposed protocol::
   >>> shape.name
   u'T501 - Foo; B. Baz; 2014'
 
+``Shape.alternative_text``
+-------------------------------------
+
+``Shape.alternative_text`` is a read-write property. It's the alternative
+text for the shape and is readable by screen readers.
+
+Proposed protocol::
+
+  >>> shape.alt_text
+  'Company Logo'
+  >>> shape.alt_text = 'Trademark'
+  >>> shape.alt_text
+  'Trademark'
+
+
 
 :attr:`Shape.rotation`
 ----------------------
