@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from io import BytesIO
 from typing import TYPE_CHECKING
+
+from openpyxl import load_workbook
 
 from pptx.chart.chart import Chart
 from pptx.opc.constants import CONTENT_TYPE as CT
@@ -73,6 +76,35 @@ class ChartWorkbook(object):
             self.xlsx_part = EmbeddedXlsxPart.new(xlsx_blob, self._chart_part.package)
             return
         xlsx_part.blob = xlsx_blob
+
+    def update_categories(self, new_categories):
+        """
+        Update category labels in the chart's embedded Excel workbook.
+
+        Args:
+            new_categories: A list of string values to replace existing category labels.
+
+        Raises:
+            ValueError: If there is no embedded Excel workbook or if the workbook cannot
+                be loaded.
+        """
+        xlsx_part = self.xlsx_part
+        if xlsx_part is None:
+            raise ValueError("Chart has no embedded Excel workbook")
+
+        # Load the Excel workbook from the binary blob
+        workbook = load_workbook(BytesIO(xlsx_part.blob))
+        sheet = workbook.active
+
+        # Update category cells (typically column A, starting from row 2)
+        # Row 1 usually contains the header
+        for idx, category in enumerate(new_categories):
+            sheet.cell(row=idx + 2, column=1, value=category)
+
+        # Save the modified workbook back to the blob
+        output = BytesIO()
+        workbook.save(output)
+        xlsx_part.blob = output.getvalue()
 
     @property
     def xlsx_part(self):

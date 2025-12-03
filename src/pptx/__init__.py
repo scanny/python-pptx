@@ -11,6 +11,13 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import PartFactory
 from pptx.parts.chart import ChartPart
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.diagram import (
+    DiagramColorsPart,
+    DiagramDataPart,
+    DiagramDrawingPart,
+    DiagramLayoutPart,
+    DiagramStylePart,
+)
 from pptx.parts.image import ImagePart
 from pptx.parts.media import MediaPart
 from pptx.parts.presentation import PresentationPart
@@ -44,6 +51,11 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
     CT.PML_SLIDE_MASTER: SlideMasterPart,
     CT.DML_CHART: ChartPart,
+    CT.DML_DIAGRAM_DATA: DiagramDataPart,
+    CT.DML_DIAGRAM_LAYOUT: DiagramLayoutPart,
+    CT.DML_DIAGRAM_COLORS: DiagramColorsPart,
+    CT.DML_DIAGRAM_STYLE: DiagramStylePart,
+    CT.DML_DIAGRAM_DRAWING: DiagramDrawingPart,
     CT.BMP: ImagePart,
     CT.GIF: ImagePart,
     CT.JPEG: ImagePart,

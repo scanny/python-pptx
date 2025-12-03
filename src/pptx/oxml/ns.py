@@ -12,6 +12,7 @@ _nsmap = {
     "dc": "http://purl.org/dc/elements/1.1/",
     "dcmitype": "http://purl.org/dc/dcmitype/",
     "dcterms": "http://purl.org/dc/terms/",
+    "dgm": "http://schemas.openxmlformats.org/drawingml/2006/diagram",
     "ep": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
     "i": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
     "m": "http://schemas.openxmlformats.org/officeDocument/2006/math",

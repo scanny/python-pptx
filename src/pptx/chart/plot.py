@@ -27,7 +27,7 @@ class _BasePlot(object):
         self._element = xChart
         self._chart = chart
 
-    @lazyproperty
+    @property
     def categories(self):
         """
         Returns a |category.Categories| sequence object containing
@@ -38,8 +38,37 @@ class _BasePlot(object):
         order they appear on the chart. |category.Categories| provides
         additional properties for dealing with hierarchical categories when
         required.
+
+        This property also supports assignment to update category labels:
+
+            plot.categories = ['Jan', 'Feb', 'Mar']
+
+        The new categories must have the same length as the existing categories.
         """
-        return Categories(self._element)
+        # Pass the chart part so Categories can update the Excel workbook
+        # If chart is None (e.g., in tests), pass None as chart_part
+        chart_part = self._chart.part if self._chart else None
+        return Categories(self._element, chart_part)
+
+    @categories.setter
+    def categories(self, values):
+        """
+        Set new category labels for this plot.
+
+        Args:
+            values: A list or tuple of string values for the new category labels.
+                Must have the same length as the current categories.
+
+        Raises:
+            ValueError: If values is not a list/tuple, or if the length doesn't match
+                the current categories length, or if there's no embedded Excel workbook.
+        """
+        if not isinstance(values, (list, tuple)):
+            raise ValueError("Categories must be a list or tuple")
+
+        # Get the current Categories object and use its update method
+        categories = self.categories
+        categories.update_all(values)
 
     @property
     def chart(self):

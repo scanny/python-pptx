@@ -13,6 +13,7 @@ from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
 from pptx.shapes.shapetree import SlideShapes
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_DIAGRAM,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
 )
@@ -77,6 +78,19 @@ class DescribeGraphicFrame(object):
         graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
         assert GraphicFrame(graphicFrame, None).has_table is expected_value
 
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, False),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
+            (GRAPHIC_DATA_URI_TABLE, False),
+            (GRAPHIC_DATA_URI_DIAGRAM, True),
+        ),
+    )
+    def it_knows_whether_it_contains_smartart(self, graphicData_uri, expected_value):
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
+        assert GraphicFrame(graphicFrame, None).has_smartart is expected_value
+
     def it_provides_access_to_the_OleFormat_object(self, request):
         ole_format_ = instance_mock(request, _OleFormat)
         _OleFormat_ = class_mock(
@@ -118,6 +132,7 @@ class DescribeGraphicFrame(object):
             (GRAPHIC_DATA_URI_OLEOBJ, "embed", MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT),
             (GRAPHIC_DATA_URI_OLEOBJ, "link", MSO_SHAPE_TYPE.LINKED_OLE_OBJECT),
             (GRAPHIC_DATA_URI_TABLE, None, MSO_SHAPE_TYPE.TABLE),
+            (GRAPHIC_DATA_URI_DIAGRAM, None, MSO_SHAPE_TYPE.SMART_ART),
             ("foobar", None, None),
         ),
     )

@@ -9,6 +9,10 @@ discovery of the depth of that hierarchy and providing means to navigate it.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pptx.parts.chart import ChartPart
 
 
 class Categories(Sequence):
@@ -18,9 +22,10 @@ class Categories(Sequence):
     categories.
     """
 
-    def __init__(self, xChart):
+    def __init__(self, xChart, chart_part=None):
         super(Categories, self).__init__()
         self._xChart = xChart
+        self._chart_part = chart_part
 
     def __getitem__(self, idx):
         pt = self._xChart.cat_pts[idx]
@@ -92,6 +97,42 @@ class Categories(Sequence):
         if cat is None:
             return []
         return [CategoryLevel(lvl) for lvl in cat.lvls]
+
+    def update_all(self, new_categories):
+        """
+        Update all category labels with new values.
+
+        This method updates both the embedded Excel workbook data and the XML string cache
+        to ensure the category labels are changed throughout the chart.
+
+        Args:
+            new_categories: A list or tuple of string values for the new category labels.
+                Must have the same length as the current categories.
+
+        Raises:
+            ValueError: If new_categories length doesn't match current length, or if
+                chart_part is not available, or if there's no embedded Excel workbook.
+        """
+        # Validate length
+        current_length = len(self)
+        if len(new_categories) != current_length:
+            raise ValueError(
+                f"New categories length ({len(new_categories)}) must match "
+                f"current length ({current_length})"
+            )
+
+        # Validate that we have access to the chart part
+        if self._chart_part is None:
+            raise ValueError("Cannot update categories: chart_part not available")
+
+        # Update the embedded Excel workbook
+        chart_workbook = self._chart_part.chart_workbook
+        chart_workbook.update_categories(new_categories)
+
+        # Update the XML string cache
+        cat = self._xChart.cat
+        if cat is not None:
+            cat.update_str_cache(new_categories)
 
     def _iter_flattened_categories(self):
         """

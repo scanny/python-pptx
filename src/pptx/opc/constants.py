@@ -231,6 +231,7 @@ class RELATIONSHIP_TYPE:
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramColors"
     )
     DIAGRAM_DATA = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramData"
+    DIAGRAM_DRAWING = "http://schemas.microsoft.com/office/2007/relationships/diagramDrawing"
     DIAGRAM_LAYOUT = (
         "http://schemas.openxmlformats.org/officeDocument/2006/relationships/diagramLayout"
     )

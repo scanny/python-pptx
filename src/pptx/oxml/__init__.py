@@ -272,6 +272,23 @@ from pptx.oxml.dml.line import CT_PresetLineDashProperties  # noqa: E402
 register_element_cls("a:prstDash", CT_PresetLineDashProperties)
 
 
+from pptx.oxml.diagram import (  # noqa: E402
+    CT_DiagramConnection,
+    CT_DiagramConnectionList,
+    CT_DiagramData,
+    CT_DiagramPoint,
+    CT_DiagramPointList,
+    CT_DiagramText,
+)
+
+register_element_cls("dgm:dataModel", CT_DiagramData)
+register_element_cls("dgm:ptLst", CT_DiagramPointList)
+register_element_cls("dgm:pt", CT_DiagramPoint)
+register_element_cls("dgm:t", CT_DiagramText)
+register_element_cls("dgm:cxnLst", CT_DiagramConnectionList)
+register_element_cls("dgm:cxn", CT_DiagramConnection)
+
+
 from pptx.oxml.presentation import (  # noqa: E402
     CT_Presentation,
     CT_SlideId,

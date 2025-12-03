@@ -32,6 +32,41 @@ class CT_AxDataSource(BaseOxmlElement):
         """
         return self.xpath(".//c:lvl")
 
+    def update_str_cache(self, new_categories):
+        """
+        Update the string cache (c:strCache or c:strRef/c:strCache) with new category labels.
+
+        This updates the cached category values in the XML, which are displayed in the chart.
+        The cache should be updated along with the Excel workbook to ensure consistency.
+
+        Args:
+            new_categories: A list of string values for the new category labels.
+        """
+        from pptx.oxml.ns import qn
+
+        # Find the strCache element (can be under strRef or directly under cat)
+        # Use xpath with proper namespace
+        str_cache_elements = self.xpath("./c:strRef/c:strCache | ./c:multiLvlStrRef/c:lvl/c:strCache")
+        if not str_cache_elements:
+            return
+
+        str_cache = str_cache_elements[0]
+
+        # Find all c:pt elements within the cache, using the qualified name
+        # We need to iterate over children since xpath on the result may not have namespace context
+        pts = [child for child in str_cache.iterchildren() if child.tag == qn("c:pt")]
+
+        # Update existing c:pt elements with new values
+        for idx, category in enumerate(new_categories):
+            if idx < len(pts):
+                # Update existing pt element
+                pt = pts[idx]
+                # Find the c:v child element
+                for child in pt.iterchildren():
+                    if child.tag == qn("c:v"):
+                        child.text = str(category)
+                        break
+
 
 class CT_DPt(BaseOxmlElement):
     """

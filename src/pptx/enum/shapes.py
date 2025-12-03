@@ -804,6 +804,9 @@ class MSO_SHAPE_TYPE(BaseEnum):
     IGX_GRAPHIC = (24, "SmartArt graphic")
     """SmartArt graphic"""
 
+    SMART_ART = (24, "SmartArt graphic")
+    """SmartArt graphic (alias for IGX_GRAPHIC)"""
+
     INK = (22, "Ink")
     """Ink"""
 

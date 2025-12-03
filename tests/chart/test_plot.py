@@ -56,7 +56,7 @@ class Describe_BasePlot(object):
     def it_provides_access_to_its_categories(self, categories_fixture):
         plot, categories_, Categories_, xChart = categories_fixture
         categories = plot.categories
-        Categories_.assert_called_once_with(xChart)
+        Categories_.assert_called_once_with(xChart, None)
         assert categories is categories_
 
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):

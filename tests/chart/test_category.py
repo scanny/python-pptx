@@ -9,7 +9,7 @@ from pptx.oxml import parse_xml
 
 from ..unitutil.cxml import element
 from ..unitutil.file import snippet_seq
-from ..unitutil.mock import call, class_mock, instance_mock
+from ..unitutil.mock import call, class_mock, instance_mock, method_mock
 
 
 class DescribeCategories(object):
@@ -247,3 +247,38 @@ class DescribeCategoryLevel(object):
     @pytest.fixture
     def category_(self, request):
         return instance_mock(request, Category)
+
+
+class DescribeCategoriesUpdate(object):
+    """Test suite for Categories.update_all() method."""
+
+    def it_raises_on_length_mismatch(self, length_mismatch_fixture):
+        categories, new_cats = length_mismatch_fixture
+        with pytest.raises(ValueError, match="must match current length"):
+            categories.update_all(new_cats)
+
+    def it_raises_when_chart_part_not_available(self, no_chart_part_fixture):
+        categories, new_cats = no_chart_part_fixture
+        with pytest.raises(ValueError, match="chart_part not available"):
+            categories.update_all(new_cats)
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def length_mismatch_fixture(self, request):
+        from unittest.mock import Mock
+
+        xChart_cxml = "c:barChart/c:ser/c:cat/(c:ptCount{val=3})"
+        xChart = element(xChart_cxml)
+        chart_part_ = Mock()
+        categories = Categories(xChart, chart_part_)
+        new_cats = ["Jan", "Feb"]  # Wrong length
+        return categories, new_cats
+
+    @pytest.fixture
+    def no_chart_part_fixture(self):
+        xChart_cxml = "c:barChart/c:ser/c:cat/(c:ptCount{val=3})"
+        xChart = element(xChart_cxml)
+        categories = Categories(xChart, None)  # No chart_part
+        new_cats = ["Jan", "Feb", "Mar"]
+        return categories, new_cats

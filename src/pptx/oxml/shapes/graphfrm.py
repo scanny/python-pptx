@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.chart import CT_Chart
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.simpletypes import XsdBoolean, XsdString
 from pptx.oxml.table import CT_Table
@@ -19,6 +19,7 @@ from pptx.oxml.xmlchemy import (
 )
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_DIAGRAM,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
 )
@@ -102,6 +103,29 @@ class CT_GraphicalObjectData(BaseShapeElement):
         return None if self._oleObj is None else self._oleObj.showAsIcon
 
     @property
+    def diagram_rIds(self) -> tuple[str, str, str, str, str | None] | None:
+        """Return diagram relationship IDs (dm, lo, qs, cs, draw).
+
+        Returns None if this graphic data does not contain a diagram.
+        Returns tuple of (data_rId, layout_rId, style_rId, colors_rId, drawing_rId).
+        The drawing_rId may be None as it's a Microsoft extension.
+        """
+        if self.uri != GRAPHIC_DATA_URI_DIAGRAM:
+            return None
+
+        relIds = self.find(qn("dgm:relIds"))
+        if relIds is None:
+            return None
+
+        return (
+            relIds.get(qn("r:dm")),
+            relIds.get(qn("r:lo")),
+            relIds.get(qn("r:qs")),
+            relIds.get(qn("r:cs")),
+            relIds.get(qn("r:draw")),
+        )
+
+    @property
     def _oleObj(self) -> CT_OleObject | None:
         """Optional `p:oleObj` element contained in this `p:graphicData' element.
 
@@ -162,6 +186,17 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
     def graphicData_uri(self) -> str:
         """str value of `uri` attribute of `a:graphicData` grandchild."""
         return self.graphic.graphicData.uri
+
+    @property
+    def diagram_data_rId(self) -> str | None:
+        """Relationship ID of diagram data part, or None if not a diagram."""
+        rIds = self.graphicData.diagram_rIds
+        return rIds[0] if rIds else None
+
+    @property
+    def has_diagram(self) -> bool:
+        """`True` for graphicFrame containing a diagram (SmartArt), `False` otherwise."""
+        return self.graphicData.uri == GRAPHIC_DATA_URI_DIAGRAM
 
     @property
     def has_oleobj(self) -> bool:
