@@ -82,6 +82,8 @@ class TextFitter(tuple):
             when rendered at `point_size` using the font defined in `font_file`.
             """
             text_lines = self._wrap_lines(self._line_source, point_size)
+            if text_lines is None:
+                return False
             cy = _rendered_size("Ty", point_size, self._font_file)[1]
             return (cy * len(text_lines)) <= self._height
 
@@ -109,10 +111,16 @@ class TextFitter(tuple):
         *line_source* wrapped within this fitter when rendered at
         *point_size*.
         """
-        text, remainder = self._break_line(line_source, point_size)
+        result = self._break_line(line_source, point_size)
+        if result is None:
+            return None
+        text, remainder = result
         lines = [text]
         if remainder:
-            lines.extend(self._wrap_lines(remainder, point_size))
+            remaining_lines = self._wrap_lines(remainder, point_size)
+            if remaining_lines is None:
+                return None
+            lines.extend(remaining_lines)
         return lines
 
 

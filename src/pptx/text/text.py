@@ -101,6 +101,44 @@ class TextFrame(Subshape):
         font_size = self._best_fit_font_size(font_family, max_size, bold, italic, font_file)
         self._apply_fit(font_family, font_size, bold, italic)
 
+    def shrink_text_to_fit(
+        self,
+        font_family: str = "Calibri",
+        max_size: int = 18,
+        bold: bool = False,
+        italic: bool = False,
+        font_file: str | None = None,
+        min_size: int = 6,
+    ):
+        """Shrink text to fit within bounds and enable TEXT_TO_FIT_SHAPE autofit.
+
+        Similar to :meth:`fit_text`, but sets :attr:`TextFrame.auto_size` to
+        :attr:`MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE` so PowerPoint will continue to
+        auto-shrink text if it's modified later.
+
+        This method calculates the best-fit font size and applies it immediately,
+        solving the issue where PowerPoint doesn't recalculate text size on file open.
+
+        :attr:`TextFrame.auto_size` is set to :attr:`MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE`.
+        The font size will not be set larger than `max_size` points or smaller than
+        `min_size` points.
+        """
+        if self.text == "":
+            return
+
+        try:
+            font_size = self._best_fit_font_size(font_family, max_size, bold, italic, font_file)
+            if font_size is None:
+                font_size = min_size
+            else:
+                font_size = max(font_size - 2, min_size)
+        except (TypeError, RecursionError):
+            font_size = min_size
+        
+        self.word_wrap = True
+        self._set_font(font_family, font_size, bold, italic)
+        self.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+
     @property
     def margin_bottom(self) -> Length:
         """|Length| value representing the inset of text from the bottom text frame border.
@@ -261,6 +299,8 @@ class TextFrame(Subshape):
 
         def iter_rPrs(txBody: CT_TextBody) -> Iterator[CT_TextCharacterProperties]:
             for p in txBody.p_lst:
+                pPr = p.get_or_add_pPr()
+                yield pPr.get_or_add_defRPr()
                 for elm in p.content_children:
                     yield elm.get_or_add_rPr()
                 # generate a:endParaRPr for each <a:p> element

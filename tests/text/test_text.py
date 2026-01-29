@@ -197,6 +197,34 @@ class DescribeTextFrame(object):
         )
         _apply_fit_.assert_called_once_with(text_frame, family, font_size, bold, italic)
 
+    def it_fits_text_and_shrinks_with_autosize_enabled(self, request):
+        """Test shrink_text_to_fit calculates font size and sets TEXT_TO_FIT_SHAPE."""
+        family, max_size, bold, italic, font_file, font_size = (
+            "family",
+            42,
+            "bold",
+            "italic",
+            "font_file",
+            21,
+        )
+        expected_font_size = font_size - 2
+        text_prop_ = property_mock(request, TextFrame, "text")
+        text_prop_.return_value = "some text"
+        _best_fit_font_size_ = method_mock(
+            request, TextFrame, "_best_fit_font_size", return_value=font_size
+        )
+        _set_font_ = method_mock(request, TextFrame, "_set_font")
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        text_frame.shrink_text_to_fit(family, max_size, bold, italic, font_file)
+
+        _best_fit_font_size_.assert_called_once_with(
+            text_frame, family, max_size, bold, italic, font_file
+        )
+        _set_font_.assert_called_once_with(text_frame, family, expected_font_size, bold, italic)
+        assert text_frame.word_wrap is True
+        assert text_frame.auto_size is MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+
     def it_calculates_its_best_fit_font_size_to_help_fit_text(self, size_font_fixture):
         text_frame, family, max_size, bold, italic = size_font_fixture[:5]
         FontFiles_, TextFitter_, text, extents = size_font_fixture[5:9]
