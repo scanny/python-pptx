@@ -21,5 +21,9 @@ python-pptx.
 .. _`python-pptx documentation`:
    https://python-pptx.readthedocs.org/en/latest/
 
+.. _`python-pptx documentation`:
+   * `docs/` -- Documentation for the python-pptx library
+   * `examples/` -- Working examples of python-pptx functionality, including mathematical equations
+
 .. _`examples with screenshots`:
    https://python-pptx.readthedocs.org/en/latest/user/quickstart.html

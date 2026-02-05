@@ -64,6 +64,7 @@ User Guide
    user/text
    user/charts
    user/table
+   user/math
    user/notes
    user/use-cases
    user/concepts
@@ -96,6 +97,7 @@ API Documentation
    api/chart-data
    api/chart
    api/text
+   api/math
    api/action
    api/dml
    api/image

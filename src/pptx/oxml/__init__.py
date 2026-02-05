@@ -368,6 +368,45 @@ register_element_cls("p:nvPicPr", CT_PictureNonVisual)
 register_element_cls("p:pic", CT_Picture)
 
 
+from pptx.oxml.math import (  # noqa: E402
+    CT_OMath,
+    CT_R,
+    CT_T,
+    CT_F,
+    CT_Num,
+    CT_Den,
+    CT_SSup,
+    CT_E,
+    CT_Rad,
+    CT_RadPr,
+    CT_Deg,
+    CT_Nary,
+    CT_NaryPr,
+    CT_Char,
+    CT_LimLoc,
+    CT_Sub,
+    CT_Sup,
+)
+
+register_element_cls("m:oMath", CT_OMath)
+register_element_cls("m:r", CT_R)
+register_element_cls("m:t", CT_T)
+register_element_cls("m:f", CT_F)
+register_element_cls("m:num", CT_Num)
+register_element_cls("m:den", CT_Den)
+register_element_cls("m:sSup", CT_SSup)
+register_element_cls("m:e", CT_E)
+register_element_cls("m:rad", CT_Rad)
+register_element_cls("m:radPr", CT_RadPr)
+register_element_cls("m:deg", CT_Deg)
+register_element_cls("m:nary", CT_Nary)
+register_element_cls("m:naryPr", CT_NaryPr)
+register_element_cls("m:chr", CT_Char)
+register_element_cls("m:limLoc", CT_LimLoc)
+register_element_cls("m:sub", CT_Sub)
+register_element_cls("m:sup", CT_Sup)
+
+
 from pptx.oxml.shapes.shared import (  # noqa: E402
     CT_ApplicationNonVisualDrawingProps,
     CT_LineProperties,
