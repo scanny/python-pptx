@@ -137,6 +137,7 @@ class CONTENT_TYPE:
         "application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml"
     )
     SML_USER_NAMES = "application/vnd.openxmlformats-officedocument.spreadsheetml.userNames+xml"
+    SVG = "image/svg+xml"
     SML_VOLATILE_DEPENDENCIES = (
         "application/vnd.openxmlformats-officedocument.spreadsheetml.volatileDependencies+xml"
     )

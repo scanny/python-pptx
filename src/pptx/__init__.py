@@ -11,7 +11,7 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import PartFactory
 from pptx.parts.chart import ChartPart
 from pptx.parts.coreprops import CorePropertiesPart
-from pptx.parts.image import ImagePart
+from pptx.parts.image import ImagePart, SvgImagePart
 from pptx.parts.media import MediaPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import (
@@ -49,6 +49,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.JPEG: ImagePart,
     CT.MS_PHOTO: ImagePart,
     CT.PNG: ImagePart,
+    CT.SVG: SvgImagePart,
     CT.TIFF: ImagePart,
     CT.X_EMF: ImagePart,
     CT.X_WMF: ImagePart,
@@ -72,6 +73,7 @@ del (
     ChartPart,
     CorePropertiesPart,
     ImagePart,
+    SvgImagePart,
     MediaPart,
     SlidePart,
     SlideLayoutPart,

@@ -331,20 +331,24 @@ class PicturePlaceholder(_BaseSlidePlaceholder):
         having an `a:xfrm` element, allowing its extents to be inherited from
         its layout placeholder.
         """
-        rId, desc, image_size = self._get_or_add_image(image_file)
+        image_part, rId, desc, image_size = self._get_or_add_image(image_file)
         shape_id, name = self.shape_id, self.name
-        pic = CT_Picture.new_ph_pic(shape_id, name, desc, rId)
+        pic = (
+            CT_Picture.new_svg_ph_pic(shape_id, name, desc, rId)
+            if image_part.ext == "svg"
+            else CT_Picture.new_ph_pic(shape_id, name, desc, rId)
+        )
         pic.crop_to_fit(image_size, (self.width, self.height))
         return pic
 
     def _get_or_add_image(self, image_file):
         """
-        Return an (rId, description, image_size) 3-tuple identifying the
+        Return an (image_part, rId, description, image_size) 4-tuple identifying the
         related image part containing *image_file* and describing the image.
         """
         image_part, rId = self.part.get_or_add_image_part(image_file)
         desc, image_size = image_part.desc, image_part._px_size
-        return rId, desc, image_size
+        return image_part, rId, desc, image_size
 
 
 class PlaceholderGraphicFrame(GraphicFrame):

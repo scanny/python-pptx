@@ -36,6 +36,16 @@ class CT_Picture(BaseShapeElement):
             return blip.rEmbed
         return None
 
+    @property
+    def svg_rId(self) -> str | None:
+        """Value of `p:blipFill/a:blip/a:extLst/a:ext/asvg:svgBlip/@r:embed`."""
+        blip = self.blipFill.blip
+        if blip is None:
+            return None
+
+        embeds = blip.xpath("./a:extLst/a:ext/asvg:svgBlip/@r:embed")
+        return cast(str | None, embeds[0] if embeds else None)
+
     def crop_to_fit(self, image_size, view_size):
         """
         Set cropping values in `p:blipFill/a:srcRect` such that an image of
@@ -66,9 +76,21 @@ class CT_Picture(BaseShapeElement):
         return parse_xml(cls._pic_ph_tmpl() % (id_, name, desc, rId))
 
     @classmethod
+    def new_svg_ph_pic(cls, id_, name, desc, rId):
+        """Return a new `p:pic` placeholder element populated with SVG image markup."""
+        return parse_xml(cls._svg_pic_ph_tmpl() % (id_, name, escape(desc), rId, rId))
+
+    @classmethod
     def new_pic(cls, shape_id, name, desc, rId, x, y, cx, cy):
         """Return new `<p:pic>` element tree configured with supplied parameters."""
         return parse_xml(cls._pic_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy))
+
+    @classmethod
+    def new_svg_pic(cls, shape_id, name, desc, rId, x, y, cx, cy):
+        """Return new `<p:pic>` element tree configured with native SVG markup."""
+        return parse_xml(
+            cls._svg_pic_tmpl() % (shape_id, name, escape(desc), rId, rId, x, y, cx, cy)
+        )
 
     @classmethod
     def new_video_pic(
@@ -195,6 +217,68 @@ class CT_Picture(BaseShapeElement):
             "  </p:nvPicPr>\n"
             "  <p:blipFill>\n"
             '    <a:blip r:embed="%%s"/>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
+            '      <a:off x="%%d" y="%%d"/>\n'
+            '      <a:ext cx="%%d" cy="%%d"/>\n'
+            "    </a:xfrm>\n"
+            '    <a:prstGeom prst="rect">\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>" % nsdecls("a", "p", "r")
+        )
+
+    @classmethod
+    def _svg_pic_ph_tmpl(cls):
+        return (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noGrp="1" noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:embed="%%s">\n'
+            "      <a:extLst>\n"
+            '        <a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">\n'
+            '          <asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="%%s"/>\n'
+            "        </a:ext>\n"
+            "      </a:extLst>\n"
+            "    </a:blip>\n"
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr/>\n"
+            "</p:pic>" % nsdecls("p", "a", "r")
+        )
+
+    @classmethod
+    def _svg_pic_tmpl(cls):
+        return (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:embed="%%s">\n'
+            "      <a:extLst>\n"
+            '        <a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">\n'
+            '          <asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="%%s"/>\n'
+            "        </a:ext>\n"
+            "      </a:extLst>\n"
+            "    </a:blip>\n"
             "    <a:stretch>\n"
             "      <a:fillRect/>\n"
             "    </a:stretch>\n"

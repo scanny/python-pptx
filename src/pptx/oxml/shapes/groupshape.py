@@ -94,6 +94,14 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(pic, "p:extLst")
         return pic
 
+    def add_svg_pic(
+        self, id_: int, name: str, desc: str, rId: str, x: int, y: int, cx: int, cy: int
+    ) -> CT_Picture:
+        """Append a `p:pic` shape containing native SVG markup."""
+        pic = CT_Picture.new_svg_pic(id_, name, desc, rId, x, y, cx, cy)
+        self.insert_element_before(pic, "p:extLst")
+        return pic
+
     def add_placeholder(
         self, id_: int, name: str, ph_type: PP_PLACEHOLDER, orient: str, sz: str, idx: int
     ) -> CT_Shape:

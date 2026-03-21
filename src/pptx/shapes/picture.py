@@ -184,7 +184,7 @@ class Picture(_BasePicture):
 
         Provides access to the properties and bytes of the image in this picture shape.
         """
-        slide_part, rId = self.part, self._pic.blip_rId
+        slide_part, rId = self.part, self._pic.svg_rId or self._pic.blip_rId
         if rId is None:
             raise ValueError("no embedded image")
         return slide_part.get_image(rId)

@@ -5,10 +5,13 @@ from __future__ import annotations
 import hashlib
 import io
 import os
+import re
 from typing import IO, TYPE_CHECKING, Any, cast
+from xml.etree import ElementTree
 
 from PIL import Image as PIL_Image
 
+from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part
 from pptx.opc.spec import image_content_types
 from pptx.util import Emu, lazyproperty
@@ -17,6 +20,13 @@ if TYPE_CHECKING:
     from pptx.opc.packuri import PackURI
     from pptx.package import Package
     from pptx.util import Length
+
+
+_SVG_NS = "http://www.w3.org/2000/svg"
+_SVG_LENGTH_RE = re.compile(
+    r"^\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)\s*([a-zA-Z%]*)\s*$"
+)
+_SVG_PX_PER_INCH = 96.0
 
 
 class ImagePart(Part):
@@ -43,7 +53,8 @@ class ImagePart(Part):
 
         `image` is an |Image| object.
         """
-        return cls(
+        part_cls = SvgImagePart if isinstance(image, Svg) else cls
+        return part_cls(
             package.next_image_partname(image.ext),
             image.content_type,
             package,
@@ -150,6 +161,8 @@ class Image(object):
     @classmethod
     def from_blob(cls, blob: bytes, filename: str | None = None) -> Image:
         """Return a new |Image| object loaded from the image binary in `blob`."""
+        if _is_svg(blob, filename):
+            return Svg(blob, filename)
         return cls(blob, filename)
 
     @classmethod
@@ -273,3 +286,149 @@ class Image(object):
         )
         stream.close()
         return (format, (width_px, height_px), dpi)
+
+
+class SvgImagePart(ImagePart):
+    """Image part subtype for native SVG images."""
+
+    @property
+    def image(self) -> Svg:
+        """A |Svg| object containing the SVG in this image part."""
+        return Svg(self._blob, self.desc)
+
+
+class Svg(Image):
+    """Immutable value object representing an SVG image."""
+
+    @lazyproperty
+    def content_type(self) -> str:
+        """MIME-type of this image."""
+        return CT.SVG
+
+    @lazyproperty
+    def dpi(self) -> tuple[int, int]:
+        """Return the effective DPI used for SVG CSS pixel sizing."""
+        return (int(_SVG_PX_PER_INCH), int(_SVG_PX_PER_INCH))
+
+    @lazyproperty
+    def ext(self) -> str:
+        """Canonical file extension for this image."""
+        return "svg"
+
+    @property
+    def _format(self) -> str:
+        """Pseudo-format string for API parity with raster images."""
+        return "SVG"
+
+    @lazyproperty
+    def size(self) -> tuple[int, int]:
+        """A (width, height) 2-tuple specifying the SVG viewport in CSS pixels."""
+        return self._px_size
+
+    @lazyproperty
+    def _px_size(self) -> tuple[int, int]:
+        """A (width, height) 2-tuple representing the SVG viewport in CSS pixels."""
+        width_px, height_px = _svg_viewport_px_size(self._root)
+        return int(round(width_px)), int(round(height_px))
+
+    @lazyproperty
+    def _root(self) -> ElementTree.Element:
+        """Root XML element for this SVG image."""
+        root = ElementTree.fromstring(self._blob)
+        if _local_name(root.tag) != "svg":
+            raise ValueError("image blob is not an SVG document")
+        return root
+
+
+def _is_svg(blob: bytes, filename: str | None) -> bool:
+    """True when `blob` appears to contain an SVG document."""
+    if filename is not None and os.path.splitext(filename)[1].lower() == ".svg":
+        return True
+
+    stripped = blob.lstrip()
+    if not stripped.startswith(b"<"):
+        return False
+
+    try:
+        root = ElementTree.fromstring(blob)
+    except ElementTree.ParseError:
+        return False
+
+    return _local_name(root.tag) == "svg"
+
+
+def _local_name(tag: str) -> str:
+    """Return the local-name portion of an XML tag."""
+    return tag.rsplit("}", 1)[-1]
+
+
+def _svg_viewbox(svg: ElementTree.Element) -> tuple[float, float] | None:
+    """Return the SVG viewBox width and height when available."""
+    view_box = svg.get("viewBox")
+    if view_box is None:
+        return None
+
+    parts = view_box.replace(",", " ").split()
+    if len(parts) != 4:
+        raise ValueError("SVG viewBox must contain four numeric values")
+
+    _, _, width, height = (float(part) for part in parts)
+    if width <= 0 or height <= 0:
+        raise ValueError("SVG viewBox dimensions must be greater than zero")
+    return width, height
+
+
+def _svg_viewport_px_size(svg: ElementTree.Element) -> tuple[float, float]:
+    """Return the SVG viewport width and height expressed in CSS pixels."""
+    viewbox = _svg_viewbox(svg)
+    width_px = _svg_length_to_px(svg.get("width"))
+    height_px = _svg_length_to_px(svg.get("height"))
+
+    if width_px is None and height_px is None and viewbox is None:
+        return 300.0, 150.0
+
+    if viewbox is not None:
+        viewbox_width, viewbox_height = viewbox
+        if width_px is None and height_px is None:
+            return viewbox_width, viewbox_height
+        if width_px is None:
+            return height_px * viewbox_width / viewbox_height, height_px
+        if height_px is None:
+            return width_px, width_px * viewbox_height / viewbox_width
+
+    if width_px is None or height_px is None:
+        raise ValueError("SVG width and height must both be specified unless viewBox is present")
+    if width_px <= 0 or height_px <= 0:
+        raise ValueError("SVG dimensions must be greater than zero")
+
+    return width_px, height_px
+
+
+def _svg_length_to_px(length: str | None) -> float | None:
+    """Convert an SVG length value into CSS pixels."""
+    if length is None:
+        return None
+
+    match = _SVG_LENGTH_RE.match(length)
+    if match is None:
+        raise ValueError(f"unsupported SVG length value '{length}'")
+
+    magnitude = float(match.group(1))
+    unit = match.group(2).lower() or "px"
+
+    if unit == "%":
+        return None
+    if unit == "px":
+        return magnitude
+    if unit == "in":
+        return magnitude * _SVG_PX_PER_INCH
+    if unit == "cm":
+        return magnitude * _SVG_PX_PER_INCH / 2.54
+    if unit == "mm":
+        return magnitude * _SVG_PX_PER_INCH / 25.4
+    if unit == "pt":
+        return magnitude * _SVG_PX_PER_INCH / 72.0
+    if unit == "pc":
+        return magnitude * _SVG_PX_PER_INCH / 6.0
+
+    raise ValueError(f"unsupported SVG length unit '{unit}'")

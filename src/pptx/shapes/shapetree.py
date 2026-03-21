@@ -372,6 +372,17 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return cast(Picture, self._shape_factory(pic))
 
+    def add_svg(
+        self,
+        svg_file: str | IO[bytes],
+        left: Length,
+        top: Length,
+        width: Length | None = None,
+        height: Length | None = None,
+    ) -> Picture:
+        """Add picture shape displaying the SVG in `svg_file`."""
+        return self.add_picture(svg_file, left, top, width, height)
+
     def add_shape(
         self, autoshape_type_id: MSO_SHAPE, left: Length, top: Length, width: Length, height: Length
     ) -> Shape:
@@ -483,7 +494,10 @@ class _BaseGroupShapes(_BaseShapes):
         scaled_cx, scaled_cy = image_part.scale(cx, cy)
         name = "Picture %d" % (id_ - 1)
         desc = image_part.desc
-        pic = self._grpSp.add_pic(id_, name, desc, rId, x, y, scaled_cx, scaled_cy)
+        if image_part.ext == "svg":
+            pic = self._grpSp.add_svg_pic(id_, name, desc, rId, x, y, scaled_cx, scaled_cy)
+        else:
+            pic = self._grpSp.add_pic(id_, name, desc, rId, x, y, scaled_cx, scaled_cy)
         return pic
 
     def _add_sp(
