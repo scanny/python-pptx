@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterator, cast
 
 from pptx.dml.fill import FillFormat
@@ -31,6 +32,19 @@ if TYPE_CHECKING:
         CT_TextParagraphProperties,
     )
     from pptx.types import ProvidesExtents, ProvidesPart
+
+
+@dataclass
+class OverflowInfo:
+    """Detailed information about text frame overflow."""
+
+    will_overflow: bool
+    required_height: Length
+    available_height: Length
+    overflow_height: Length
+    overflow_percentage: float
+    estimated_lines: int
+    fits_at_font_size: int | None
 
 
 class TextFrame(Subshape):
@@ -100,6 +114,124 @@ class TextFrame(Subshape):
 
         font_size = self._best_fit_font_size(font_family, max_size, bold, italic, font_file)
         self._apply_fit(font_family, font_size, bold, italic)
+
+    def will_overflow(
+        self,
+        font_family: str = "Calibri",
+        font_size: int | None = None,
+        bold: bool = False,
+        italic: bool = False,
+        font_file: str | None = None,
+    ) -> bool:
+        """Check if text will overflow the text frame boundaries.
+
+        Returns True if the text in this text frame will extend beyond its
+        boundaries when rendered with the specified font properties. Returns
+        False if all text fits within the frame.
+
+        Args:
+            font_family: Font family name (default: "Calibri")
+            font_size: Font size in points. If None, uses current font size(s)
+            bold: Whether to use bold variant
+            italic: Whether to use italic variant
+            font_file: Path to TrueType font file. If None, auto-locates font.
+
+        Returns:
+            Boolean indicating if text will overflow
+
+        Example:
+            >>> if text_frame.will_overflow(font_size=18):
+            ...     print("Warning: Content will be cut off!")
+        """
+        # Handle empty text frame
+        if self.text == "":
+            return False
+
+        # Determine font size if not specified
+        if font_size is None:
+            font_size = self._get_effective_font_size()
+
+        # Locate font file if not provided
+        if font_file is None:
+            font_file = FontFiles.find(font_family, bold, italic)
+
+        # Check if text fits
+        return not TextFitter.will_fit(self.text, self._extents, font_size, font_file)
+
+    def overflow_info(
+        self,
+        font_family: str = "Calibri",
+        font_size: int | None = None,
+        bold: bool = False,
+        italic: bool = False,
+        font_file: str | None = None,
+    ) -> OverflowInfo:
+        """Get detailed overflow information for this text frame.
+
+        Provides comprehensive metrics about whether and how much text
+        overflows the text frame boundaries.
+
+        Args:
+            font_family: Font family name (default: "Calibri")
+            font_size: Font size in points. If None, uses current font size(s)
+            bold: Whether to use bold variant
+            italic: Whether to use italic variant
+            font_file: Path to TrueType font file. If None, auto-locates font.
+
+        Returns:
+            OverflowInfo object with detailed metrics
+
+        Example:
+            >>> info = text_frame.overflow_info(font_size=18)
+            >>> if info.will_overflow:
+            ...     print(f"Content exceeds bounds by {info.overflow_percentage}%")
+            ...     print(f"Reduce to {info.fits_at_font_size}pt to fit")
+        """
+        # Handle empty text frame
+        if self.text == "":
+            return OverflowInfo(
+                will_overflow=False,
+                required_height=Length(0),
+                available_height=self._extents[1],
+                overflow_height=Length(0),
+                overflow_percentage=0.0,
+                estimated_lines=0,
+                fits_at_font_size=None,
+            )
+
+        # Determine font size if not specified
+        if font_size is None:
+            font_size = self._get_effective_font_size()
+
+        # Locate font file if not provided
+        if font_file is None:
+            font_file = FontFiles.find(font_family, bold, italic)
+
+        # Calculate overflow metrics
+        metrics = TextFitter.calculate_overflow_metrics(
+            self.text, self._extents, font_size, font_file
+        )
+
+        # Determine if text overflows
+        will_overflow = metrics["overflow_height"] > 0
+
+        # Calculate fits_at_font_size if overflowing
+        fits_at_font_size = None
+        if will_overflow:
+            # Use binary search to find largest fitting font size
+            fits_at_font_size = TextFitter.best_fit_font_size(
+                self.text, self._extents, font_size, font_file
+            )
+
+        return OverflowInfo(
+            will_overflow=will_overflow,
+            required_height=Length(metrics["required_height"]),
+            available_height=Length(metrics["available_height"]),
+            overflow_height=Length(metrics["overflow_height"]),
+            overflow_percentage=metrics["overflow_percentage"],
+            estimated_lines=metrics["estimated_lines"],
+            fits_at_font_size=fits_at_font_size,
+        )
 
     @property
     def margin_bottom(self) -> Length:
@@ -255,6 +387,35 @@ class TextFrame(Subshape):
             Length(parent.width - self.margin_left - self.margin_right),
             Length(parent.height - self.margin_top - self.margin_bottom),
         )
+
+    def _get_effective_font_size(self) -> int:
+        """Determine the effective font size for text in this text frame.
+
+        Returns the font size in points. If all runs have the same explicit font size,
+        returns that size. Otherwise, raises ValueError asking user to specify font_size.
+
+        Raises:
+            ValueError: If font sizes are mixed or cannot be determined
+        """
+        font_sizes = set()
+
+        for paragraph in self.paragraphs:
+            for run in paragraph.runs:
+                if run.font.size is not None:
+                    font_sizes.add(run.font.size.pt)
+
+        if len(font_sizes) == 0:
+            # No explicit font sizes set, use default
+            return 18  # PowerPoint default
+        elif len(font_sizes) == 1:
+            # All runs have the same font size
+            return int(font_sizes.pop())
+        else:
+            # Mixed font sizes
+            raise ValueError(
+                "Text frame contains multiple font sizes. "
+                "Please specify font_size parameter explicitly."
+            )
 
     def _set_font(self, family: str, size: int, bold: bool, italic: bool):
         """Set the font properties of all the text in this text frame."""

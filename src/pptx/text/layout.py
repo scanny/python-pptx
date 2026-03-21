@@ -31,6 +31,92 @@ class TextFitter(tuple):
         text_fitter = cls(line_source, extents, font_file)
         return text_fitter._best_fit_font_size(max_size)
 
+    @classmethod
+    def will_fit(
+        cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str
+    ) -> bool:
+        """Return True if text will fit within extents at the given font size.
+
+        Args:
+            text: The text to check
+            extents: (width, height) tuple in EMUs
+            font_size: Font size in points
+            font_file: Path to TrueType font file
+
+        Returns:
+            Boolean indicating if text fits completely within extents
+        """
+        line_source = _LineSource(text)
+        text_fitter = cls(line_source, extents, font_file)
+        predicate = text_fitter._fits_inside_predicate
+        return predicate(font_size)
+
+    @classmethod
+    def measure_text_height(
+        cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str
+    ) -> int:
+        """Calculate the height required to render text at the given font size.
+
+        Args:
+            text: The text to measure
+            extents: (width, height) tuple in EMUs
+            font_size: Font size in points
+            font_file: Path to TrueType font file
+
+        Returns:
+            Required height in EMUs to fit all text
+        """
+        line_source = _LineSource(text)
+        text_fitter = cls(line_source, extents, font_file)
+        text_lines = text_fitter._wrap_lines(line_source, font_size)
+        line_height = _rendered_size("Ty", font_size, font_file)[1]
+        return line_height * len(text_lines)
+
+    @classmethod
+    def calculate_overflow_metrics(
+        cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str
+    ) -> dict:
+        """Calculate detailed overflow metrics for text.
+
+        Args:
+            text: The text to analyze
+            extents: (width, height) tuple in EMUs
+            font_size: Font size in points
+            font_file: Path to TrueType font file
+
+        Returns:
+            Dictionary with keys:
+                - required_height: Height needed in EMUs
+                - available_height: Available height in EMUs
+                - overflow_height: How much text exceeds bounds (0 if fits)
+                - overflow_percentage: Percentage of overflow
+                - estimated_lines: Number of wrapped lines
+        """
+        line_source = _LineSource(text)
+        text_fitter = cls(line_source, extents, font_file)
+
+        # Calculate required height
+        text_lines = text_fitter._wrap_lines(line_source, font_size)
+        line_height = _rendered_size("Ty", font_size, font_file)[1]
+        required_height = line_height * len(text_lines)
+
+        # Get available height from extents
+        available_height = extents[1]
+
+        # Calculate overflow
+        overflow_height = max(0, required_height - available_height)
+        overflow_percentage = (
+            (overflow_height / available_height * 100) if available_height > 0 else 0
+        )
+
+        return {
+            "required_height": required_height,
+            "available_height": available_height,
+            "overflow_height": overflow_height,
+            "overflow_percentage": overflow_percentage,
+            "estimated_lines": len(text_lines),
+        }
+
     def _best_fit_font_size(self, max_size):
         """
         Return the largest whole-number point size less than or equal to

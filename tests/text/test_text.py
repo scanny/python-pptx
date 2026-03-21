@@ -232,6 +232,106 @@ class DescribeTextFrame(object):
         text_frame._set_font(family, size, bold, italic)
         assert text_frame._element.xml == expected_xml
 
+    def it_can_detect_text_overflow(self, request, text_prop_):
+        from pptx.text.text import OverflowInfo
+
+        family, font_size, bold, italic, font_file = "Family", 18, False, False, "font.ttf"
+        text_prop_.return_value = "some text"
+        FontFiles_ = class_mock(request, "pptx.text.text.FontFiles")
+        FontFiles_.find.return_value = font_file
+        TextFitter_ = class_mock(request, "pptx.text.text.TextFitter")
+        TextFitter_.will_fit.return_value = False  # Text overflows
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 2000))
+        text_frame = TextFrame(None, None)
+
+        result = text_frame.will_overflow(family, font_size, bold, italic, None)
+
+        FontFiles_.find.assert_called_once_with(family, bold, italic)
+        TextFitter_.will_fit.assert_called_once_with("some text", (1000, 2000), font_size, font_file)
+        assert result is True
+
+    def it_returns_false_for_overflow_on_empty_text(self, request, text_prop_):
+        text_prop_.return_value = ""
+        text_frame = TextFrame(None, None)
+
+        result = text_frame.will_overflow()
+
+        assert result is False
+
+    def it_can_get_detailed_overflow_info(self, request, text_prop_):
+        from pptx.text.text import OverflowInfo
+
+        family, font_size, bold, italic, font_file = "Family", 18, False, False, "font.ttf"
+        text_prop_.return_value = "some text"
+        FontFiles_ = class_mock(request, "pptx.text.text.FontFiles")
+        FontFiles_.find.return_value = font_file
+        TextFitter_ = class_mock(request, "pptx.text.text.TextFitter")
+        TextFitter_.calculate_overflow_metrics.return_value = {
+            "required_height": 300,
+            "available_height": 200,
+            "overflow_height": 100,
+            "overflow_percentage": 50.0,
+            "estimated_lines": 5,
+        }
+        TextFitter_.best_fit_font_size.return_value = 12
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 200))
+        text_frame = TextFrame(None, None)
+
+        info = text_frame.overflow_info(family, font_size, bold, italic, None)
+
+        assert isinstance(info, OverflowInfo)
+        assert info.will_overflow is True
+        assert info.required_height == 300
+        assert info.available_height == 200
+        assert info.overflow_height == 100
+        assert info.overflow_percentage == 50.0
+        assert info.estimated_lines == 5
+        assert info.fits_at_font_size == 12
+
+    def it_returns_no_overflow_info_for_empty_text(self, request, text_prop_):
+        from pptx.text.text import OverflowInfo
+
+        text_prop_.return_value = ""
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 2000))
+        text_frame = TextFrame(None, None)
+
+        info = text_frame.overflow_info()
+
+        assert isinstance(info, OverflowInfo)
+        assert info.will_overflow is False
+        assert info.required_height == 0
+        assert info.overflow_height == 0
+        assert info.estimated_lines == 0
+        assert info.fits_at_font_size is None
+
+    def it_can_get_effective_font_size(self):
+        # Test with uniform font size
+        sp_cxml = (
+            "p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,cy=914400}),"
+            "p:txBody/(a:bodyPr,a:p/a:r/a:rPr{sz=3600}/a:t\"text\"))"
+        )
+        text_frame = Shape(element(sp_cxml), None).text_frame
+        assert text_frame._get_effective_font_size() == 36
+
+    def it_raises_on_mixed_font_sizes(self):
+        # Test with mixed font sizes
+        sp_cxml = (
+            "p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,cy=914400}),"
+            "p:txBody/(a:bodyPr,a:p/(a:r/a:rPr{sz=3600}/a:t\"foo\",a:r/a:rPr{sz=2400}/a:t\"bar\")))"
+        )
+        text_frame = Shape(element(sp_cxml), None).text_frame
+        with pytest.raises(ValueError, match="multiple font sizes"):
+            text_frame._get_effective_font_size()
+
+    def it_uses_default_font_size_when_none_set(self):
+        # Test with no explicit font size
+        sp_cxml = (
+            "p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,cy=914400}),"
+            "p:txBody/(a:bodyPr,a:p/a:r/a:t\"text\"))"
+        )
+        text_frame = Shape(element(sp_cxml), None).text_frame
+        assert text_frame._get_effective_font_size() == 18  # PowerPoint default
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(

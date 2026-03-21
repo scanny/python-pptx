@@ -44,6 +44,57 @@ def given_a_text_frame_with_more_text_than_will_fit(context):
     context.text_frame = shape.text_frame
 
 
+@given("a text frame with text that will overflow at 18pt")
+def given_a_text_frame_with_text_that_will_overflow_at_18pt(context):
+    prs = Presentation(test_pptx("txt-fit-text"))
+    shape = prs.slides[0].shapes[0]
+    context.text_frame = shape.text_frame
+
+
+@given("a text frame with text that will fit at 10pt")
+def given_a_text_frame_with_text_that_will_fit_at_10pt(context):
+    prs = Presentation(test_pptx("txt-fit-text"))
+    shape = prs.slides[0].shapes[0]
+    context.text_frame = shape.text_frame
+
+
+@given("an empty text frame")
+def given_an_empty_text_frame(context):
+    prs = Presentation(test_pptx("txt-text-frame"))
+    shape = prs.slides[0].shapes[0]
+    context.text_frame = shape.text_frame
+    context.text_frame.clear()
+
+
+@given("a text frame with uniform 14pt text")
+def given_a_text_frame_with_uniform_14pt_text(context):
+    prs = Presentation()
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
+    textbox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(3))
+    context.text_frame = textbox.text_frame
+    context.text_frame.text = "Test text"
+    for paragraph in context.text_frame.paragraphs:
+        for run in paragraph.runs:
+            run.font.size = Pt(14)
+
+
+@given("a text frame with mixed font sizes")
+def given_a_text_frame_with_mixed_font_sizes(context):
+    prs = Presentation()
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
+    textbox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(3))
+    context.text_frame = textbox.text_frame
+    p = context.text_frame.paragraphs[0]
+    r1 = p.add_run()
+    r1.text = "First"
+    r1.font.size = Pt(14)
+    r2 = p.add_run()
+    r2.text = "Second"
+    r2.font.size = Pt(18)
+
+
 # when ====================================================
 
 
@@ -82,6 +133,50 @@ def when_I_call_TextFrame_fit_text(context):
     font_file = test_file("calibriz.ttf")
     context.text_frame.fit_text(bold=True, italic=True, font_file=font_file)
     # context.text_frame.fit_text(font_family='Arial', bold=True, italic=True)
+
+
+@when("I call text_frame.will_overflow(font_size={font_size})")
+def when_I_call_text_frame_will_overflow_with_font_size(context, font_size):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    context.result = context.text_frame.will_overflow(
+        bold=True, italic=True, font_size=int(font_size), font_file=font_file
+    )
+
+
+@when("I call text_frame.will_overflow() without specifying font_size")
+def when_I_call_text_frame_will_overflow_without_font_size(context):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    try:
+        context.result = context.text_frame.will_overflow(
+            bold=True, italic=True, font_file=font_file
+        )
+        context.exception = None
+    except Exception as e:
+        context.exception = e
+
+
+@when("I call text_frame.will_overflow()")
+def when_I_call_text_frame_will_overflow(context):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    context.result = context.text_frame.will_overflow(
+        bold=True, italic=True, font_file=font_file
+    )
+
+
+@when("I call text_frame.overflow_info(font_size={font_size})")
+def when_I_call_text_frame_overflow_info_with_font_size(context, font_size):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    context.info = context.text_frame.overflow_info(
+        bold=True, italic=True, font_size=int(font_size), font_file=font_file
+    )
 
 
 # then ====================================================
@@ -127,3 +222,61 @@ def then_the_size_of_the_text_is_10pt(context):
     for paragraph in text_frame.paragraphs:
         for run in paragraph.runs:
             assert run.font.size in (Pt(10.0), Pt(11.0)), "got %s" % run.font.size.pt
+
+
+@then("it returns True")
+def then_it_returns_true(context):
+    assert context.result is True, "Expected True, got %s" % context.result
+
+
+@then("it returns False")
+def then_it_returns_false(context):
+    assert context.result is False, "Expected False, got %s" % context.result
+
+
+@then("info.will_overflow is True")
+def then_info_will_overflow_is_true(context):
+    assert context.info.will_overflow is True
+
+
+@then("info.will_overflow is False")
+def then_info_will_overflow_is_false(context):
+    assert context.info.will_overflow is False
+
+
+@then("info.required_height is greater than info.available_height")
+def then_info_required_height_is_greater_than_available_height(context):
+    assert context.info.required_height > context.info.available_height
+
+
+@then("info.overflow_percentage is greater than 0")
+def then_info_overflow_percentage_is_greater_than_0(context):
+    assert context.info.overflow_percentage > 0
+
+
+@then("info.fits_at_font_size is less than 18")
+def then_info_fits_at_font_size_is_less_than_18(context):
+    assert context.info.fits_at_font_size < 18
+
+
+@then("info.overflow_height is 0")
+def then_info_overflow_height_is_0(context):
+    assert context.info.overflow_height == 0
+
+
+@then("info.fits_at_font_size is None")
+def then_info_fits_at_font_size_is_none(context):
+    assert context.info.fits_at_font_size is None
+
+
+@then("it uses 14pt as the font size")
+def then_it_uses_14pt_as_font_size(context):
+    # This is verified by not raising an exception
+    assert context.exception is None
+
+
+@then("it raises ValueError")
+def then_it_raises_value_error(context):
+    assert context.exception is not None
+    assert isinstance(context.exception, ValueError)
+    assert "multiple font sizes" in str(context.exception)

@@ -40,6 +40,60 @@ class DescribeTextFitter(object):
         _best_fit_font_size_.assert_called_once_with(ANY, max_size)
         assert font_size == 36
 
+    def it_can_check_if_text_will_fit(self, request, line_source_):
+        _LineSource_ = class_mock(
+            request, "pptx.text.layout._LineSource", return_value=line_source_
+        )
+        _init_ = initializer_mock(request, TextFitter)
+        _fits_inside_predicate_ = property_mock(
+            request, TextFitter, "_fits_inside_predicate", return_value=lambda x: x < 20
+        )
+        extents = (1000, 2000)
+
+        # Test when text fits
+        result = TextFitter.will_fit("Foobar", extents, 18, "foobar.ttf")
+
+        _LineSource_.assert_called_once_with("Foobar")
+        _init_.assert_called_once_with(line_source_, extents, "foobar.ttf")
+        assert result is True
+
+    def it_can_measure_text_height(self, request, line_source_, _rendered_size_):
+        _LineSource_ = class_mock(
+            request, "pptx.text.layout._LineSource", return_value=line_source_
+        )
+        _init_ = initializer_mock(request, TextFitter)
+        _wrap_lines_ = method_mock(
+            request, TextFitter, "_wrap_lines", return_value=["line1", "line2", "line3"]
+        )
+        _rendered_size_.return_value = (100, 50)  # (width, height) per line
+        extents = (1000, 2000)
+
+        height = TextFitter.measure_text_height("Foobar", extents, 18, "foobar.ttf")
+
+        _LineSource_.assert_called_once_with("Foobar")
+        _init_.assert_called_once_with(line_source_, extents, "foobar.ttf")
+        _rendered_size_.assert_called_once_with("Ty", 18, "foobar.ttf")
+        assert height == 150  # 50 * 3 lines
+
+    def it_can_calculate_overflow_metrics(self, request, line_source_, _rendered_size_):
+        _LineSource_ = class_mock(
+            request, "pptx.text.layout._LineSource", return_value=line_source_
+        )
+        _init_ = initializer_mock(request, TextFitter)
+        _wrap_lines_ = method_mock(
+            request, TextFitter, "_wrap_lines", return_value=["line1", "line2", "line3"]
+        )
+        _rendered_size_.return_value = (100, 50)  # (width, height) per line
+        extents = (1000, 100)  # Available height is 100
+
+        metrics = TextFitter.calculate_overflow_metrics("Foobar", extents, 18, "foobar.ttf")
+
+        assert metrics["required_height"] == 150  # 50 * 3 lines
+        assert metrics["available_height"] == 100
+        assert metrics["overflow_height"] == 50  # 150 - 100
+        assert metrics["overflow_percentage"] == 50.0  # (50/100) * 100
+        assert metrics["estimated_lines"] == 3
+
     def it_finds_best_fit_font_size_to_help_best_fit(self, _best_fit_fixture):
         text_fitter, max_size, _BinarySearchTree_ = _best_fit_fixture[:3]
         sizes_, predicate_, font_size_ = _best_fit_fixture[3:]
