@@ -94,6 +94,84 @@ class DescribeTextFitter(object):
         assert metrics["overflow_percentage"] == 50.0  # (50/100) * 100
         assert metrics["estimated_lines"] == 3
 
+    def it_can_check_if_text_will_fit_width_with_word_wrap(self, _rendered_size_):
+        _rendered_size_.side_effect = [
+            (80, 20),   # "This" fits
+            (100, 20),  # "is" fits
+            (120, 20),  # "a" fits
+            (200, 20),  # "very-long-url.example.com" exceeds 150
+        ]
+        extents = (150, 500)
+        text = "This is a very-long-url.example.com"
+
+        result = TextFitter.will_fit_width(text, extents, 18, "foobar.ttf", word_wrap=True)
+
+        assert result is False  # One word doesn't fit
+
+    def it_can_check_if_text_will_fit_width_without_word_wrap(self, _rendered_size_):
+        _rendered_size_.side_effect = [
+            (100, 20),  # "First line" fits
+            (250, 20),  # "Second very long line" exceeds 200
+        ]
+        extents = (200, 500)
+        text = "First line\nSecond very long line"
+
+        result = TextFitter.will_fit_width(text, extents, 18, "foobar.ttf", word_wrap=False)
+
+        assert result is False  # One line doesn't fit
+
+    def it_can_measure_text_width_with_word_wrap(self, _rendered_size_):
+        _rendered_size_.side_effect = [
+            (80, 20),   # "This"
+            (100, 20),  # "is"
+            (120, 20),  # "a"
+            (200, 20),  # "test" - widest word
+        ]
+        extents = (150, 500)
+        text = "This is a test"
+
+        max_width, widest = TextFitter.measure_text_width(
+            text, extents, 18, "foobar.ttf", word_wrap=True
+        )
+
+        assert max_width == 200
+        assert widest == "test"
+
+    def it_can_measure_text_width_without_word_wrap(self, _rendered_size_):
+        _rendered_size_.side_effect = [
+            (100, 20),  # "First line"
+            (250, 20),  # "Second very long line" - widest
+            (150, 20),  # "Third"
+        ]
+        extents = (200, 500)
+        text = "First line\nSecond very long line\nThird"
+
+        max_width, widest = TextFitter.measure_text_width(
+            text, extents, 18, "foobar.ttf", word_wrap=False
+        )
+
+        assert max_width == 250
+        assert widest == "Second very long line"
+
+    def it_can_calculate_horizontal_overflow_metrics(self, _rendered_size_):
+        _rendered_size_.side_effect = [
+            (80, 20),   # "This"
+            (100, 20),  # "is"
+            (250, 20),  # "https://very-long-url.example.com" - widest, causes overflow
+        ]
+        extents = (200, 500)  # Available width is 200
+        text = "This is https://very-long-url.example.com"
+
+        metrics = TextFitter.calculate_horizontal_overflow_metrics(
+            text, extents, 18, "foobar.ttf", word_wrap=True
+        )
+
+        assert metrics["required_width"] == 250
+        assert metrics["available_width"] == 200
+        assert metrics["overflow_width"] == 50  # 250 - 200
+        assert metrics["overflow_percentage"] == 25.0  # (50/200) * 100
+        assert metrics["widest_element"] == "https://very-long-url.example.com"
+
     def it_finds_best_fit_font_size_to_help_best_fit(self, _best_fit_fixture):
         text_fitter, max_size, _BinarySearchTree_ = _best_fit_fixture[:3]
         sizes_, predicate_, font_size_ = _best_fit_fixture[3:]

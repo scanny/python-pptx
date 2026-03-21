@@ -117,6 +117,120 @@ class TextFitter(tuple):
             "estimated_lines": len(text_lines),
         }
 
+    @classmethod
+    def will_fit_width(
+        cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str, word_wrap: bool = True
+    ) -> bool:
+        """Check if text will fit horizontally within width constraints.
+
+        Args:
+            text: Text to check
+            extents: (width, height) tuple in EMUs
+            font_size: Font size in points
+            font_file: Path to TrueType font file
+            word_wrap: Whether word wrapping is enabled
+
+        Returns:
+            True if all text fits within width, False otherwise
+        """
+        available_width = extents[0]
+
+        if word_wrap:
+            # Check if all individual words fit within width
+            words = text.split()
+            for word in words:
+                word_width = _rendered_size(word, font_size, font_file)[0]
+                if word_width > available_width:
+                    return False
+            return True
+        else:
+            # Check if all lines/paragraphs fit within width
+            paragraphs = text.split('\n')
+            for para in paragraphs:
+                para_width = _rendered_size(para, font_size, font_file)[0]
+                if para_width > available_width:
+                    return False
+            return True
+
+    @classmethod
+    def measure_text_width(
+        cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str, word_wrap: bool = True
+    ) -> tuple[int, str]:
+        """Calculate the maximum width required for text.
+
+        Args:
+            text: Text to measure
+            extents: (width, height) tuple in EMUs
+            font_size: Font size in points
+            font_file: Path to TrueType font file
+            word_wrap: Whether word wrapping is enabled
+
+        Returns:
+            Tuple of (max_width_emu, widest_element_text)
+            - If word_wrap=True: widest single word
+            - If word_wrap=False: widest line/paragraph
+        """
+        max_width = 0
+        widest_element = ""
+
+        if word_wrap:
+            # Find widest word
+            words = text.split()
+            for word in words:
+                word_width = _rendered_size(word, font_size, font_file)[0]
+                if word_width > max_width:
+                    max_width = word_width
+                    widest_element = word
+        else:
+            # Find widest line/paragraph
+            paragraphs = text.split('\n')
+            for para in paragraphs:
+                para_width = _rendered_size(para, font_size, font_file)[0]
+                if para_width > max_width:
+                    max_width = para_width
+                    widest_element = para
+
+        return max_width, widest_element
+
+    @classmethod
+    def calculate_horizontal_overflow_metrics(
+        cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str, word_wrap: bool = True
+    ) -> dict:
+        """Calculate detailed horizontal overflow metrics.
+
+        Args:
+            text: Text to analyze
+            extents: (width, height) tuple in EMUs
+            font_size: Font size in points
+            font_file: Path to TrueType font file
+            word_wrap: Whether word wrapping is enabled
+
+        Returns:
+            Dictionary with keys:
+                - required_width: Maximum width needed in EMUs
+                - available_width: Available width in EMUs
+                - overflow_width: How much exceeds bounds (0 if fits)
+                - overflow_percentage: Percentage of width overflow
+                - widest_element: The text of the widest word/line
+        """
+        required_width, widest_element = cls.measure_text_width(
+            text, extents, font_size, font_file, word_wrap
+        )
+        available_width = extents[0]
+
+        overflow_width = max(0, required_width - available_width)
+        overflow_percentage = (
+            (overflow_width / available_width * 100) if available_width > 0 else 0
+        )
+
+        return {
+            "required_width": required_width,
+            "available_width": available_width,
+            "overflow_width": overflow_width,
+            "overflow_percentage": overflow_percentage,
+            "widest_element": widest_element,
+        }
+
     def _best_fit_font_size(self, max_size):
         """
         Return the largest whole-number point size less than or equal to
