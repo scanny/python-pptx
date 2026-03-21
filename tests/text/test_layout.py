@@ -172,6 +172,32 @@ class DescribeTextFitter(object):
         assert metrics["overflow_percentage"] == 25.0  # (50/200) * 100
         assert metrics["widest_element"] == "https://very-long-url.example.com"
 
+    def it_reports_text_fits_width_when_all_words_fit(self, _rendered_size_):
+        _rendered_size_.side_effect = [
+            (80, 20),   # "This"
+            (60, 20),   # "fits"
+        ]
+        extents = (150, 500)
+        text = "This fits"
+
+        result = TextFitter.will_fit_width(text, extents, 18, "foobar.ttf", word_wrap=True)
+
+        assert result is True
+
+    def it_can_check_will_fit_returns_false(self, request, line_source_):
+        _LineSource_ = class_mock(
+            request, "pptx.text.layout._LineSource", return_value=line_source_
+        )
+        _init_ = initializer_mock(request, TextFitter)
+        _fits_inside_predicate_ = property_mock(
+            request, TextFitter, "_fits_inside_predicate", return_value=lambda x: x < 10
+        )
+        extents = (1000, 2000)
+
+        result = TextFitter.will_fit("Foobar", extents, 18, "foobar.ttf")
+
+        assert result is False
+
     def it_finds_best_fit_font_size_to_help_best_fit(self, _best_fit_fixture):
         text_fitter, max_size, _BinarySearchTree_ = _best_fit_fixture[:3]
         sizes_, predicate_, font_size_ = _best_fit_fixture[3:]

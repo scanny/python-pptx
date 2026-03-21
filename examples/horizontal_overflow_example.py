@@ -7,19 +7,24 @@ which occurs when:
 2. Word wrap is disabled: Entire lines exceed the available width
 """
 
+import sys
+
 from pptx import Presentation
 from pptx.util import Inches, Pt
 
-# Create a presentation
 prs = Presentation()
 slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-# Get a text frame from a placeholder
 shape = slide.shapes.placeholders[1]
 text_frame = shape.text_frame
 
-# Use a common system font for this example
-font_file = "/System/Library/Fonts/Geneva.ttf"
+# Font path varies by platform - adjust for your system
+if sys.platform == "darwin":
+    font_file = "/System/Library/Fonts/Geneva.ttf"
+elif sys.platform == "win32":
+    font_file = "C:\\Windows\\Fonts\\arial.ttf"
+else:
+    font_file = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 print("=" * 70)
 print("Horizontal Overflow Detection Examples")

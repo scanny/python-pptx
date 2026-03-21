@@ -53,10 +53,10 @@ if text_frame.will_overflow(font_family="Arial", font_size=desired_size):
     print(f"\nWarning: Cannot use {desired_size}pt - would overflow!")
     info = text_frame.overflow_info(font_family="Arial", font_size=desired_size)
     print(f"Using recommended size: {info.fits_at_font_size}pt instead")
-    # Apply the recommended size
-    for paragraph in text_frame.paragraphs:
-        for run in paragraph.runs:
-            run.font.size = Pt(info.fits_at_font_size)
+    if info.fits_at_font_size is not None:
+        for paragraph in text_frame.paragraphs:
+            for run in paragraph.runs:
+                run.font.size = Pt(info.fits_at_font_size)
 else:
     # Apply the desired size
     for paragraph in text_frame.paragraphs:

@@ -244,7 +244,9 @@ class DescribeTextFrame(object):
         _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 2000))
         text_frame = TextFrame(None, None)
 
-        result = text_frame.will_overflow(family, font_size, bold, italic, None)
+        result = text_frame.will_overflow(
+            font_family=family, font_size=font_size, bold=bold, italic=italic, font_file=None
+        )
 
         FontFiles_.find.assert_called_once_with(family, bold, italic)
         TextFitter_.will_fit.assert_called_once_with("some text", (1000, 2000), font_size, font_file)
@@ -275,9 +277,14 @@ class DescribeTextFrame(object):
         }
         TextFitter_.best_fit_font_size.return_value = 12
         _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 200))
+        _get_word_wrap_ = method_mock(
+            request, TextFrame, "_get_word_wrap_setting", return_value=True
+        )
         text_frame = TextFrame(None, None)
 
-        info = text_frame.overflow_info(family, font_size, bold, italic, None)
+        info = text_frame.overflow_info(
+            font_family=family, font_size=font_size, bold=bold, italic=italic, font_file=None
+        )
 
         assert isinstance(info, OverflowInfo)
         assert info.will_overflow is True
@@ -324,13 +331,120 @@ class DescribeTextFrame(object):
             text_frame._get_effective_font_size()
 
     def it_uses_default_font_size_when_none_set(self):
-        # Test with no explicit font size
         sp_cxml = (
             "p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=914400},a:ext{cx=914400,cy=914400}),"
             "p:txBody/(a:bodyPr,a:p/a:r/a:t\"text\"))"
         )
         text_frame = Shape(element(sp_cxml), None).text_frame
-        assert text_frame._get_effective_font_size() == 18  # PowerPoint default
+        assert text_frame._get_effective_font_size() == 18
+
+    def it_can_detect_horizontal_overflow(self, request, text_prop_):
+        family, font_size, bold, italic, font_file = "Family", 18, False, False, "font.ttf"
+        text_prop_.return_value = "some text"
+        FontFiles_ = class_mock(request, "pptx.text.text.FontFiles")
+        FontFiles_.find.return_value = font_file
+        TextFitter_ = class_mock(request, "pptx.text.text.TextFitter")
+        TextFitter_.will_fit_width.return_value = False
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 2000))
+        _get_word_wrap_ = method_mock(
+            request, TextFrame, "_get_word_wrap_setting", return_value=True
+        )
+        text_frame = TextFrame(None, None)
+
+        result = text_frame.will_overflow(
+            direction='horizontal', font_family=family, font_size=font_size,
+            bold=bold, italic=italic, font_file=None
+        )
+
+        TextFitter_.will_fit_width.assert_called_once_with(
+            "some text", (1000, 2000), font_size, font_file, True
+        )
+        assert result is True
+
+    def it_can_detect_overflow_in_both_directions(self, request, text_prop_):
+        family, font_size, font_file = "Family", 18, "font.ttf"
+        text_prop_.return_value = "some text"
+        FontFiles_ = class_mock(request, "pptx.text.text.FontFiles")
+        FontFiles_.find.return_value = font_file
+        TextFitter_ = class_mock(request, "pptx.text.text.TextFitter")
+        TextFitter_.will_fit.return_value = True
+        TextFitter_.will_fit_width.return_value = False
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 2000))
+        _get_word_wrap_ = method_mock(
+            request, TextFrame, "_get_word_wrap_setting", return_value=True
+        )
+        text_frame = TextFrame(None, None)
+
+        result = text_frame.will_overflow(
+            direction='both', font_family=family, font_size=font_size, font_file=None
+        )
+
+        assert result is True
+
+    def it_short_circuits_both_on_vertical_overflow(self, request, text_prop_):
+        text_prop_.return_value = "some text"
+        FontFiles_ = class_mock(request, "pptx.text.text.FontFiles")
+        FontFiles_.find.return_value = "font.ttf"
+        TextFitter_ = class_mock(request, "pptx.text.text.TextFitter")
+        TextFitter_.will_fit.return_value = False  # vertical overflows
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(1000, 2000))
+        text_frame = TextFrame(None, None)
+
+        result = text_frame.will_overflow(direction='both', font_size=18, font_file=None)
+
+        assert result is True
+        TextFitter_.will_fit_width.assert_not_called()
+
+    def it_raises_on_invalid_direction(self, text_prop_):
+        text_prop_.return_value = "some text"
+        text_frame = TextFrame(None, None)
+
+        with pytest.raises(ValueError, match="direction must be one of"):
+            text_frame.will_overflow(direction='diagonal', font_size=18)
+
+    def it_raises_on_invalid_direction_for_overflow_info(self, text_prop_):
+        text_prop_.return_value = "some text"
+        text_frame = TextFrame(None, None)
+
+        with pytest.raises(ValueError, match="direction must be one of"):
+            text_frame.overflow_info(direction='diagonal', font_size=18)
+
+    def it_can_get_horizontal_overflow_info(self, request, text_prop_):
+        from pptx.text.text import OverflowInfo
+
+        family, font_size, font_file = "Family", 18, "font.ttf"
+        text_prop_.return_value = "some text"
+        FontFiles_ = class_mock(request, "pptx.text.text.FontFiles")
+        FontFiles_.find.return_value = font_file
+        TextFitter_ = class_mock(request, "pptx.text.text.TextFitter")
+        TextFitter_.calculate_horizontal_overflow_metrics.return_value = {
+            "required_width": 500,
+            "available_width": 300,
+            "overflow_width": 200,
+            "overflow_percentage": 66.7,
+            "widest_element": "longword",
+        }
+        TextFitter_.best_fit_font_size_width.return_value = 10
+        _extents_ = property_mock(request, TextFrame, "_extents", return_value=(300, 2000))
+        _get_word_wrap_ = method_mock(
+            request, TextFrame, "_get_word_wrap_setting", return_value=True
+        )
+        text_frame = TextFrame(None, None)
+
+        info = text_frame.overflow_info(
+            direction='horizontal', font_family=family, font_size=font_size, font_file=None
+        )
+
+        assert isinstance(info, OverflowInfo)
+        assert info.will_overflow is True
+        assert info.will_overflow_horizontally is True
+        assert info.required_width == 500
+        assert info.overflow_width == 200
+        assert info.widest_element == "longword"
+        assert info.fits_at_font_size_horizontal == 10
+        assert info.required_height is None
+        assert info.available_height is None
+        assert info.checked_direction == 'horizontal'
 
     # fixtures ---------------------------------------------
 

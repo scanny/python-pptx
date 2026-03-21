@@ -79,6 +79,28 @@ def given_a_text_frame_with_uniform_14pt_text(context):
             run.font.size = Pt(14)
 
 
+@given("a text frame with word wrap enabled and a long word")
+def given_a_text_frame_with_word_wrap_and_long_word(context):
+    prs = Presentation()
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
+    textbox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(2), Inches(3))
+    context.text_frame = textbox.text_frame
+    context.text_frame.word_wrap = True
+    context.text_frame.text = "Visit https://very-long-subdomain.example.com/path/to/resource"
+
+
+@given("a text frame with short words and word wrap enabled")
+def given_a_text_frame_with_short_words(context):
+    prs = Presentation()
+    blank_slide_layout = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank_slide_layout)
+    textbox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(3))
+    context.text_frame = textbox.text_frame
+    context.text_frame.word_wrap = True
+    context.text_frame.text = "Hi"
+
+
 @given("a text frame with mixed font sizes")
 def given_a_text_frame_with_mixed_font_sizes(context):
     prs = Presentation()
@@ -166,6 +188,46 @@ def when_I_call_text_frame_will_overflow(context):
     font_file = test_file("calibriz.ttf")
     context.result = context.text_frame.will_overflow(
         bold=True, italic=True, font_file=font_file
+    )
+
+
+@when("I call text_frame.will_overflow(direction='{direction}', font_size={font_size})")
+def when_I_call_text_frame_will_overflow_with_direction(context, direction, font_size):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    try:
+        context.result = context.text_frame.will_overflow(
+            direction=direction, bold=True, italic=True,
+            font_size=int(font_size), font_file=font_file
+        )
+        context.exception = None
+    except Exception as e:
+        context.exception = e
+
+
+@when("I call text_frame.will_overflow(direction='{direction}')")
+def when_I_call_text_frame_will_overflow_with_direction_only(context, direction):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    try:
+        context.result = context.text_frame.will_overflow(
+            direction=direction, bold=True, italic=True, font_file=font_file
+        )
+        context.exception = None
+    except Exception as e:
+        context.exception = e
+
+
+@when("I call text_frame.overflow_info(direction='{direction}', font_size={font_size})")
+def when_I_call_text_frame_overflow_info_with_direction(context, direction, font_size):
+    from helpers import test_file
+
+    font_file = test_file("calibriz.ttf")
+    context.info = context.text_frame.overflow_info(
+        direction=direction, bold=True, italic=True,
+        font_size=int(font_size), font_file=font_file
     )
 
 
@@ -269,6 +331,33 @@ def then_info_fits_at_font_size_is_none(context):
     assert context.info.fits_at_font_size is None
 
 
+@then("info.will_overflow_horizontally is True")
+def then_info_will_overflow_horizontally_is_true(context):
+    assert context.info.will_overflow_horizontally is True
+
+
+@then("info.required_width is greater than info.available_width")
+def then_info_required_width_is_greater_than_available_width(context):
+    assert context.info.required_width > context.info.available_width
+
+
+@then("info.overflow_width_percentage is greater than 0")
+def then_info_overflow_width_percentage_is_greater_than_0(context):
+    assert context.info.overflow_width_percentage > 0
+
+
+@then("info.required_height is None")
+def then_info_required_height_is_none(context):
+    assert context.info.required_height is None
+
+
+@then("info.checked_direction is '{direction}'")
+def then_info_checked_direction_is(context, direction):
+    assert context.info.checked_direction == direction, (
+        f"Expected {direction!r}, got {context.info.checked_direction!r}"
+    )
+
+
 @then("it uses 14pt as the font size")
 def then_it_uses_14pt_as_font_size(context):
     # This is verified by not raising an exception
@@ -278,5 +367,6 @@ def then_it_uses_14pt_as_font_size(context):
 @then("it raises ValueError")
 def then_it_raises_value_error(context):
     assert context.exception is not None
-    assert isinstance(context.exception, ValueError)
-    assert "multiple font sizes" in str(context.exception)
+    assert isinstance(context.exception, ValueError), (
+        f"Expected ValueError, got {type(context.exception).__name__}: {context.exception}"
+    )

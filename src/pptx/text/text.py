@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterator, cast
+from typing import TYPE_CHECKING, Iterator, Literal, cast
 
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
@@ -34,14 +34,23 @@ if TYPE_CHECKING:
     from pptx.types import ProvidesExtents, ProvidesPart
 
 
-@dataclass
+@dataclass(frozen=True)
 class OverflowInfo:
-    """Detailed information about text frame overflow."""
+    """Detailed information about text frame overflow.
 
-    # Overall overflow indicator
+    Fields are populated based on `checked_direction`:
+    - 'vertical': vertical fields populated, horizontal fields are None
+    - 'horizontal': horizontal fields populated, vertical fields are None
+    - 'both': all fields populated
+
+    `will_overflow` is the aggregate flag — True if overflow in ANY checked direction.
+    Dimensional fields (`required_height`, `available_height`, etc.) use EMU units.
+    `fits_at_font_size` / `fits_at_font_size_horizontal` are None when no overflow
+    is detected in that direction (or when no font size can make the text fit).
+    """
+
     will_overflow: bool
 
-    # Vertical overflow fields (None if direction='horizontal')
     required_height: Length | None
     available_height: Length | None
     overflow_height: Length | None
@@ -49,7 +58,6 @@ class OverflowInfo:
     estimated_lines: int | None
     fits_at_font_size: int | None
 
-    # Horizontal overflow fields (None if direction='vertical')
     will_overflow_horizontally: bool | None
     required_width: Length | None
     available_width: Length | None
@@ -58,8 +66,7 @@ class OverflowInfo:
     widest_element: str | None
     fits_at_font_size_horizontal: int | None
 
-    # Direction indicator
-    checked_direction: str
+    checked_direction: Literal['vertical', 'horizontal', 'both']
 
 
 class TextFrame(Subshape):
@@ -132,7 +139,7 @@ class TextFrame(Subshape):
 
     def will_overflow(
         self,
-        direction: str = 'vertical',
+        direction: Literal['vertical', 'horizontal', 'both'] = 'vertical',
         font_family: str = "Calibri",
         font_size: int | None = None,
         bold: bool = False,
@@ -148,42 +155,30 @@ class TextFrame(Subshape):
         Args:
             direction: 'vertical', 'horizontal', or 'both' (default: 'vertical')
             font_family: Font family name (default: "Calibri")
-            font_size: Font size in points. If None, uses current font size(s)
+            font_size: Font size in points. If None, uses current font size if
+                uniform; raises ValueError if runs have mixed sizes.
             bold: Whether to use bold variant
             italic: Whether to use italic variant
             font_file: Path to TrueType font file. If None, auto-locates font.
 
         Returns:
             Boolean indicating if text will overflow in the specified direction(s)
-
-        Examples:
-            >>> text_frame.will_overflow(direction='vertical', font_size=18)
-            True
-            >>> text_frame.will_overflow(direction='horizontal', font_size=18)
-            False
-            >>> text_frame.will_overflow(direction='both', font_size=18)
-            True  # Overflows in at least one direction
         """
-        # Validate direction parameter
         valid_directions = {'vertical', 'horizontal', 'both'}
         if direction not in valid_directions:
             raise ValueError(
                 f"direction must be one of {valid_directions}, got {direction!r}"
             )
 
-        # Handle empty text frame
         if self.text == "":
             return False
 
-        # Determine font size if not specified
         if font_size is None:
             font_size = self._get_effective_font_size()
 
-        # Locate font file if not provided
         if font_file is None:
             font_file = FontFiles.find(font_family, bold, italic)
 
-        # Check overflow based on direction
         if direction == 'vertical':
             return not TextFitter.will_fit(self.text, self._extents, font_size, font_file)
         elif direction == 'horizontal':
@@ -202,7 +197,7 @@ class TextFrame(Subshape):
 
     def overflow_info(
         self,
-        direction: str = 'vertical',
+        direction: Literal['vertical', 'horizontal', 'both'] = 'vertical',
         font_family: str = "Calibri",
         font_size: int | None = None,
         bold: bool = False,
@@ -217,32 +212,21 @@ class TextFrame(Subshape):
         Args:
             direction: 'vertical', 'horizontal', or 'both' (default: 'vertical')
             font_family: Font family name (default: "Calibri")
-            font_size: Font size in points. If None, uses current font size(s)
+            font_size: Font size in points. If None, uses current font size if
+                uniform; raises ValueError if runs have mixed sizes.
             bold: Whether to use bold variant
             italic: Whether to use italic variant
             font_file: Path to TrueType font file. If None, auto-locates font.
 
         Returns:
             OverflowInfo object with detailed metrics
-
-        Examples:
-            >>> info = text_frame.overflow_info(direction='vertical', font_size=18)
-            >>> if info.will_overflow:
-            ...     print(f"Content exceeds bounds by {info.overflow_percentage}%")
-            ...     print(f"Reduce to {info.fits_at_font_size}pt to fit")
-
-            >>> info = text_frame.overflow_info(direction='horizontal', font_size=18)
-            >>> if info.will_overflow_horizontally:
-            ...     print(f"Widest element: {info.widest_element}")
         """
-        # Validate direction parameter
         valid_directions = {'vertical', 'horizontal', 'both'}
         if direction not in valid_directions:
             raise ValueError(
                 f"direction must be one of {valid_directions}, got {direction!r}"
             )
 
-        # Handle empty text frame
         if self.text == "":
             return OverflowInfo(
                 will_overflow=False,
@@ -257,26 +241,20 @@ class TextFrame(Subshape):
                 available_width=self._extents[0] if direction in {'horizontal', 'both'} else None,
                 overflow_width=Length(0) if direction in {'horizontal', 'both'} else None,
                 overflow_width_percentage=0.0 if direction in {'horizontal', 'both'} else None,
-                widest_element=None if direction in {'horizontal', 'both'} else None,
+                widest_element="" if direction in {'horizontal', 'both'} else None,
                 fits_at_font_size_horizontal=None,
                 checked_direction=direction,
             )
 
-        # Determine font size if not specified
         if font_size is None:
             font_size = self._get_effective_font_size()
 
-        # Locate font file if not provided
         if font_file is None:
             font_file = FontFiles.find(font_family, bold, italic)
 
-        # Get word wrap setting for horizontal overflow
         word_wrap = self._get_word_wrap_setting()
-
-        # Initialize variables
         will_overflow = False
 
-        # Vertical metrics (only if checking vertical or both)
         if direction in {'vertical', 'both'}:
             v_metrics = TextFitter.calculate_overflow_metrics(
                 self.text, self._extents, font_size, font_file
@@ -284,7 +262,6 @@ class TextFrame(Subshape):
             v_overflow = v_metrics["overflow_height"] > 0
             will_overflow = will_overflow or v_overflow
 
-            # Calculate fits_at_font_size if vertically overflowing
             v_fits_at_font_size = None
             if v_overflow:
                 v_fits_at_font_size = TextFitter.best_fit_font_size(
@@ -305,7 +282,6 @@ class TextFrame(Subshape):
             estimated_lines = None
             fits_at_font_size = None
 
-        # Horizontal metrics (only if checking horizontal or both)
         if direction in {'horizontal', 'both'}:
             h_metrics = TextFitter.calculate_horizontal_overflow_metrics(
                 self.text, self._extents, font_size, font_file, word_wrap
@@ -313,7 +289,6 @@ class TextFrame(Subshape):
             h_overflow = h_metrics["overflow_width"] > 0
             will_overflow = will_overflow or h_overflow
 
-            # Calculate fits_at_font_size_horizontal if horizontally overflowing
             h_fits_at_font_size = None
             if h_overflow:
                 h_fits_at_font_size = TextFitter.best_fit_font_size_width(
@@ -512,11 +487,12 @@ class TextFrame(Subshape):
     def _get_effective_font_size(self) -> int:
         """Determine the effective font size for text in this text frame.
 
-        Returns the font size in points. If all runs have the same explicit font size,
-        returns that size. Otherwise, raises ValueError asking user to specify font_size.
+        Returns the font size in points. If no explicit sizes are set, returns 18
+        (common PowerPoint default). If all runs share one explicit size, returns
+        that size. If runs have mixed sizes, raises ValueError.
 
         Raises:
-            ValueError: If font sizes are mixed or cannot be determined
+            ValueError: If runs have mixed font sizes
         """
         font_sizes = set()
 
@@ -526,8 +502,7 @@ class TextFrame(Subshape):
                     font_sizes.add(run.font.size.pt)
 
         if len(font_sizes) == 0:
-            # No explicit font sizes set, use default
-            return 18  # PowerPoint default
+            return 18  # common default for body text; may vary by theme/placeholder
         elif len(font_sizes) == 1:
             # All runs have the same font size
             return int(font_sizes.pop())

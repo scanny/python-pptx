@@ -120,15 +120,11 @@ class TextFitter(tuple):
         line_source = _LineSource(text)
         text_fitter = cls(line_source, extents, font_file)
 
-        # Calculate required height
         text_lines = text_fitter._wrap_lines(line_source, font_size)
         line_height = _rendered_size("Ty", font_size, font_file)[1]
         required_height = line_height * len(text_lines)
-
-        # Get available height from extents
         available_height = extents[1]
 
-        # Calculate overflow
         overflow_height, overflow_percentage = _calculate_overflow(
             required_height, available_height
         )
@@ -160,7 +156,6 @@ class TextFitter(tuple):
         available_width = extents[0]
 
         if word_wrap:
-            # Check if all individual words fit within width
             words = text.split()
             for word in words:
                 word_width = _rendered_size(word, font_size, font_file)[0]
@@ -168,8 +163,7 @@ class TextFitter(tuple):
                     return False
             return True
         else:
-            # Check if all lines/paragraphs fit within width
-            paragraphs = text.split('\n')
+            paragraphs = [p for p in text.split('\n') if p]
             for para in paragraphs:
                 para_width = _rendered_size(para, font_size, font_file)[0]
                 if para_width > available_width:
@@ -198,7 +192,6 @@ class TextFitter(tuple):
         widest_element = ""
 
         if word_wrap:
-            # Find widest word
             words = text.split()
             for word in words:
                 word_width = _rendered_size(word, font_size, font_file)[0]
@@ -206,8 +199,7 @@ class TextFitter(tuple):
                     max_width = word_width
                     widest_element = word
         else:
-            # Find widest line/paragraph
-            paragraphs = text.split('\n')
+            paragraphs = [p for p in text.split('\n') if p]
             for para in paragraphs:
                 para_width = _rendered_size(para, font_size, font_file)[0]
                 if para_width > max_width:
@@ -534,10 +526,14 @@ def _calculate_overflow(required: int, available: int) -> tuple[int, float]:
         available: Available dimension in EMUs
 
     Returns:
-        Tuple of (overflow_amount, overflow_percentage)
+        Tuple of (overflow_amount, overflow_percentage). Percentage is
+        `float('inf')` when available is zero or negative and overflow exists.
     """
     overflow = max(0, required - available)
-    percentage = (overflow / available * 100) if available > 0 else 0
+    if available <= 0:
+        percentage = float('inf') if overflow > 0 else 0.0
+    else:
+        percentage = overflow / available * 100
     return overflow, percentage
 
 
@@ -547,6 +543,9 @@ def _rendered_size(text, point_size, font_file):
     Metric Units (EMU) when rendered at *point_size* in the font defined in
     *font_file*.
     """
+    if not text:
+        return 0, 0
+
     emu_per_inch = 914400
     px_per_inch = 72.0
 

@@ -42,3 +42,33 @@ Feature: Detect text overflow
     Given a text frame with mixed font sizes
      When I call text_frame.will_overflow() without specifying font_size
      Then it raises ValueError
+
+  Scenario: Detect horizontal overflow with word wrap
+    Given a text frame with word wrap enabled and a long word
+     When I call text_frame.will_overflow(direction='horizontal', font_size=18)
+     Then it returns True
+
+  Scenario: No horizontal overflow when words fit
+    Given a text frame with short words and word wrap enabled
+     When I call text_frame.will_overflow(direction='horizontal', font_size=10)
+     Then it returns False
+
+  Scenario: Detect overflow in both directions
+    Given a text frame with text that will overflow at 18pt
+     When I call text_frame.will_overflow(direction='both', font_size=18)
+     Then it returns True
+
+  Scenario: Get horizontal overflow info
+    Given a text frame with word wrap enabled and a long word
+     When I call text_frame.overflow_info(direction='horizontal', font_size=18)
+     Then info.will_overflow is True
+      And info.will_overflow_horizontally is True
+      And info.required_width is greater than info.available_width
+      And info.overflow_width_percentage is greater than 0
+      And info.required_height is None
+      And info.checked_direction is 'horizontal'
+
+  Scenario: Reject invalid direction parameter
+    Given a text frame with text that will fit at 10pt
+     When I call text_frame.will_overflow(direction='diagonal')
+     Then it raises ValueError
