@@ -32,6 +32,31 @@ class TextFitter(tuple):
         return text_fitter._best_fit_font_size(max_size)
 
     @classmethod
+    def best_fit_font_size_width(
+        cls, text: str, extents: tuple[Length, Length], max_size: int,
+        font_file: str, word_wrap: bool = True
+    ) -> int:
+        """Return whole-number best fit point size for width constraints.
+
+        The return value is the largest whole-number point size less than or equal to
+        `max_size` that allows `text` to fit horizontally within `extents` when rendered
+        using font defined in `font_file`.
+
+        Args:
+            text: The text to fit
+            extents: (width, height) tuple in EMUs
+            max_size: Maximum font size in points
+            font_file: Path to TrueType font file
+            word_wrap: Whether word wrapping is enabled
+
+        Returns:
+            Largest font size in points that fits within width
+        """
+        predicate = lambda size: cls.will_fit_width(text, extents, size, font_file, word_wrap)
+        sizes = _BinarySearchTree.from_ordered_sequence(range(1, int(max_size) + 1))
+        return sizes.find_max(predicate)
+
+    @classmethod
     def will_fit(
         cls, text: str, extents: tuple[Length, Length], font_size: int, font_file: str
     ) -> bool:
@@ -104,9 +129,8 @@ class TextFitter(tuple):
         available_height = extents[1]
 
         # Calculate overflow
-        overflow_height = max(0, required_height - available_height)
-        overflow_percentage = (
-            (overflow_height / available_height * 100) if available_height > 0 else 0
+        overflow_height, overflow_percentage = _calculate_overflow(
+            required_height, available_height
         )
 
         return {
@@ -218,9 +242,8 @@ class TextFitter(tuple):
         )
         available_width = extents[0]
 
-        overflow_width = max(0, required_width - available_width)
-        overflow_percentage = (
-            (overflow_width / available_width * 100) if available_width > 0 else 0
+        overflow_width, overflow_percentage = _calculate_overflow(
+            required_width, available_width
         )
 
         return {
@@ -501,6 +524,21 @@ class _Fonts(object):
         if (font_path, point_size) not in cls.fonts:
             cls.fonts[(font_path, point_size)] = ImageFont.truetype(font_path, point_size)
         return cls.fonts[(font_path, point_size)]
+
+
+def _calculate_overflow(required: int, available: int) -> tuple[int, float]:
+    """Calculate overflow amount and percentage.
+
+    Args:
+        required: Required dimension in EMUs
+        available: Available dimension in EMUs
+
+    Returns:
+        Tuple of (overflow_amount, overflow_percentage)
+    """
+    overflow = max(0, required - available)
+    percentage = (overflow / available * 100) if available > 0 else 0
+    return overflow, percentage
 
 
 def _rendered_size(text, point_size, font_file):

@@ -192,14 +192,13 @@ class TextFrame(Subshape):
                 self.text, self._extents, font_size, font_file, word_wrap
             )
         else:  # direction == 'both'
-            vertical_overflow = not TextFitter.will_fit(
-                self.text, self._extents, font_size, font_file
-            )
+            # Short-circuit: return True as soon as one overflow is detected
+            if not TextFitter.will_fit(self.text, self._extents, font_size, font_file):
+                return True
             word_wrap = self._get_word_wrap_setting()
-            horizontal_overflow = not TextFitter.will_fit_width(
+            return not TextFitter.will_fit_width(
                 self.text, self._extents, font_size, font_file, word_wrap
             )
-            return vertical_overflow or horizontal_overflow
 
     def overflow_info(
         self,
@@ -317,13 +316,9 @@ class TextFrame(Subshape):
             # Calculate fits_at_font_size_horizontal if horizontally overflowing
             h_fits_at_font_size = None
             if h_overflow:
-                # Binary search for font size that fits horizontally
-                for test_size in range(font_size, 0, -1):
-                    if TextFitter.will_fit_width(
-                        self.text, self._extents, test_size, font_file, word_wrap
-                    ):
-                        h_fits_at_font_size = test_size
-                        break
+                h_fits_at_font_size = TextFitter.best_fit_font_size_width(
+                    self.text, self._extents, font_size, font_file, word_wrap
+                )
 
             will_overflow_horizontally = h_overflow
             required_width = Length(h_metrics["required_width"])
