@@ -7,6 +7,7 @@ from __future__ import annotations
 import collections
 import io
 import itertools
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -425,6 +426,14 @@ class DescribePart:
 
     def it_can_load_a_blob_from_a_file_path_to_help(self):
         path = absjoin(test_file_dir, "minimal.pptx")
+        with open(path, "rb") as f:
+            file_bytes = f.read()
+        part = Part(None, None, None, None)
+
+        assert part._blob_from_file(path) == file_bytes
+
+    def it_can_load_a_blob_from_a_pathlike_to_help(self):
+        path = Path(absjoin(test_file_dir, "minimal.pptx"))
         with open(path, "rb") as f:
             file_bytes = f.read()
         part = Part(None, None, None, None)
