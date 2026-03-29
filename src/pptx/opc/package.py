@@ -7,6 +7,7 @@ presentations to and from a .pptx file.
 from __future__ import annotations
 
 import collections
+import os
 from typing import IO, TYPE_CHECKING, DefaultDict, Iterator, Mapping, Set, cast
 
 from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
@@ -360,11 +361,11 @@ class Part(_RelatableMixin):
         # --- this must be public to allow the part graph to be traversed ---
         return self._rels
 
-    def _blob_from_file(self, file: str | IO[bytes]) -> bytes:
-        """Return bytes of `file`, which is either a str path or a file-like object."""
-        # --- a str `file` is assumed to be a path ---
-        if isinstance(file, str):
-            with open(file, "rb") as f:
+    def _blob_from_file(self, file: str | os.PathLike[str] | IO[bytes]) -> bytes:
+        """Return bytes of `file`, which is either a path or a file-like object."""
+        # --- a path-like `file` is assumed to be a path ---
+        if isinstance(file, (str, os.PathLike)):
+            with open(os.fspath(file), "rb") as f:
                 return f.read()
 
         # --- otherwise, assume `file` is a file-like object

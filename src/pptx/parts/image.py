@@ -158,11 +158,12 @@ class Image(object):
 
         `image_file` can be either a path (str) or a file-like object.
         """
-        if isinstance(image_file, str):
+        if isinstance(image_file, (str, os.PathLike)):
             # treat image_file as a path
-            with open(image_file, "rb") as f:
+            image_path = os.fspath(image_file)
+            with open(image_path, "rb") as f:
                 blob = f.read()
-            filename = os.path.basename(image_file)
+            filename = os.path.basename(image_path)
         else:
             # assume image_file is a file-like object
             # ---reposition file cursor if it has one---
