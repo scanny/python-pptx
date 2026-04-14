@@ -70,6 +70,22 @@ class FillFormat(object):
         """
         return self._fill.fore_color
 
+    @property
+    def transparency(self):
+        """
+        Read/write float value between 0.0 and 1.0 indicating the transparency
+        of this fill, e.g. 0.0 is completely opaque and 1.0 is completely
+        transparent. 0.5 is 50% transparent.
+
+        This property is only applicable to solid fills. For other fill types,
+        accessing this property will raise a TypeError.
+        """
+        return self._fill.transparency
+
+    @transparency.setter
+    def transparency(self, value):
+        self._fill.transparency = value
+
     def gradient(self):
         """Sets the fill type to gradient.
 
@@ -203,6 +219,18 @@ class _Fill(object):
     def pattern(self):
         """Raise TypeError for fills that do not override this property."""
         tmpl = "fill type %s has no pattern, call .patterned() first"
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @property
+    def transparency(self):
+        """Raise TypeError for fills that do not override this property."""
+        tmpl = "fill type %s has no transparency, call .solid() first"
+        raise TypeError(tmpl % self.__class__.__name__)
+
+    @transparency.setter
+    def transparency(self, value):
+        """Raise TypeError for fills that do not override this property."""
+        tmpl = "fill type %s has no transparency, call .solid() first"
         raise TypeError(tmpl % self.__class__.__name__)
 
     @property
@@ -342,6 +370,18 @@ class _SolidFill(_Fill):
     def fore_color(self):
         """Return |ColorFormat| object controlling fill color."""
         return ColorFormat.from_colorchoice_parent(self._solidFill)
+
+    @property
+    def transparency(self):
+        """
+        Read/write float value between 0.0 and 1.0 indicating the transparency
+        of this solid fill. 0.0 is completely opaque, 1.0 is completely transparent.
+        """
+        return self.fore_color.transparency
+
+    @transparency.setter
+    def transparency(self, value):
+        self.fore_color.transparency = value
 
     @property
     def type(self):

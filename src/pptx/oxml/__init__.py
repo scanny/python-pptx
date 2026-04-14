@@ -221,6 +221,7 @@ from pptx.oxml.dml.color import (  # noqa: E402
     CT_Color,
     CT_HslColor,
     CT_Percentage,
+    CT_PositiveFixedPercentage,
     CT_PresetColor,
     CT_SchemeColor,
     CT_ScRgbColor,
@@ -228,6 +229,9 @@ from pptx.oxml.dml.color import (  # noqa: E402
     CT_SystemColor,
 )
 
+register_element_cls("a:alpha", CT_PositiveFixedPercentage)
+register_element_cls("a:alphaOff", CT_PositiveFixedPercentage)
+register_element_cls("a:alphaMod", CT_PositiveFixedPercentage)
 register_element_cls("a:bgClr", CT_Color)
 register_element_cls("a:fgClr", CT_Color)
 register_element_cls("a:hslClr", CT_HslColor)

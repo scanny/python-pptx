@@ -70,6 +70,18 @@ def a_lumOff():
     return CT_PercentageBuilder("a:lumOff")
 
 
+def a_alpha():
+    return CT_PercentageBuilder("a:alpha")
+
+
+def a_alphaOff():
+    return CT_PercentageBuilder("a:alphaOff")
+
+
+def a_alphaMod():
+    return CT_PercentageBuilder("a:alphaMod")
+
+
 def a_prstClr():
     return CT_PresetColorBuilder()
 
