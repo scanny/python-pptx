@@ -273,6 +273,8 @@ register_element_cls("a:prstDash", CT_PresetLineDashProperties)
 
 
 from pptx.oxml.presentation import (  # noqa: E402
+    CT_NotesMasterIdList,
+    CT_NotesMasterIdListEntry,
     CT_Presentation,
     CT_SlideId,
     CT_SlideIdList,
@@ -281,6 +283,8 @@ from pptx.oxml.presentation import (  # noqa: E402
     CT_SlideSize,
 )
 
+register_element_cls("p:notesMasterId", CT_NotesMasterIdListEntry)
+register_element_cls("p:notesMasterIdLst", CT_NotesMasterIdList)
 register_element_cls("p:presentation", CT_Presentation)
 register_element_cls("p:sldId", CT_SlideId)
 register_element_cls("p:sldIdLst", CT_SlideIdList)

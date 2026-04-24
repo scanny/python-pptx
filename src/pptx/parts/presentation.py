@@ -72,7 +72,8 @@ class PresentationPart(XmlPart):
             return self.part_related_by(RT.NOTES_MASTER)
         except KeyError:
             notes_master_part = NotesMasterPart.create_default(self.package)
-            self.relate_to(notes_master_part, RT.NOTES_MASTER)
+            rId = self.relate_to(notes_master_part, RT.NOTES_MASTER)
+            self._element.get_or_add_notesMasterIdLst().add_notesMasterId(rId)
             return notes_master_part
 
     @lazyproperty

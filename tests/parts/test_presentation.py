@@ -65,13 +65,21 @@ class DescribePresentationPart(object):
         NotesMasterPart_ = class_mock(request, "pptx.parts.presentation.NotesMasterPart")
         NotesMasterPart_.create_default.return_value = notes_master_part_
         part_related_by_.side_effect = KeyError
-        prs_part = PresentationPart(None, None, package_, None)
+        relate_to_.return_value = "rId42"
+        prs_elm = element("p:presentation/p:sldMasterIdLst")
+        prs_part = PresentationPart(None, None, package_, prs_elm)
 
         notes_master_part = prs_part.notes_master_part
 
         NotesMasterPart_.create_default.assert_called_once_with(package_)
         relate_to_.assert_called_once_with(prs_part, notes_master_part_, RT.NOTES_MASTER)
         assert notes_master_part is notes_master_part_
+        # --- notesMasterIdLst element was added to presentation.xml ---
+        notesMasterIdLst = prs_elm.notesMasterIdLst
+        assert notesMasterIdLst is not None
+        notesMasterId = notesMasterIdLst.notesMasterId
+        assert notesMasterId is not None
+        assert notesMasterId.rId == "rId42"
 
     def it_provides_access_to_its_notes_master(self, request, notes_master_part_):
         notes_master_ = instance_mock(request, NotesMaster)
