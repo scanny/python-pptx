@@ -17,12 +17,24 @@ class CT_Presentation(BaseOxmlElement):
     get_or_add_sldSz: Callable[[], CT_SlideSize]
     get_or_add_sldIdLst: Callable[[], CT_SlideIdList]
     get_or_add_sldMasterIdLst: Callable[[], CT_SlideMasterIdList]
+    get_or_add_notesMasterIdLst: Callable[[], CT_NotesMasterIdList]
 
     sldMasterIdLst: CT_SlideMasterIdList | None = (
         ZeroOrOne(  # pyright: ignore[reportAssignmentType]
             "p:sldMasterIdLst",
             successors=(
                 "p:notesMasterIdLst",
+                "p:handoutMasterIdLst",
+                "p:sldIdLst",
+                "p:sldSz",
+                "p:notesSz",
+            ),
+        )
+    )
+    notesMasterIdLst: CT_NotesMasterIdList | None = (
+        ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+            "p:notesMasterIdLst",
+            successors=(
                 "p:handoutMasterIdLst",
                 "p:sldIdLst",
                 "p:sldSz",
@@ -110,6 +122,30 @@ class CT_SlideMasterIdListEntry(BaseOxmlElement):
     """
     ``<p:sldMasterId>`` element, child of ``<p:sldMasterIdLst>`` containing
     a reference to a slide master.
+    """
+
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
+
+
+class CT_NotesMasterIdList(BaseOxmlElement):
+    """`p:notesMasterIdLst` element.
+
+    Child of `p:presentation` containing a reference to the notes master that belongs to the
+    presentation.
+    """
+
+    _add_notesMasterId: Callable[..., CT_NotesMasterIdListEntry]
+    notesMasterId = ZeroOrOne("p:notesMasterId")
+
+    def add_notesMasterId(self, rId: str) -> CT_NotesMasterIdListEntry:
+        """Create and return a new `p:notesMasterId` child element with r:id set to `rId`."""
+        return self._add_notesMasterId(rId=rId)
+
+
+class CT_NotesMasterIdListEntry(BaseOxmlElement):
+    """`p:notesMasterId` element.
+
+    Child of `p:notesMasterIdLst` containing an `rId` reference to the notes master part.
     """
 
     rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
