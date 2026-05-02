@@ -99,3 +99,15 @@ Feature: Connector properties and methods
      When I assign 0.25 to connector.adjustments[0]
      Then connector.adjustments[0] == 0.25
       And the connector has an `a:gd` with name 'adj1' and fmla 'val 25000'
+
+
+  Scenario: Connector.line exposes arrow-head configuration (#657)
+    Given a straight connector and its line as line
+     When I assign MSO_LINE_END_TYPE.TRIANGLE to line.end_arrow.type
+      And I assign MSO_LINE_END_WIDTH.LARGE to line.end_arrow.width
+      And I assign MSO_LINE_END_LENGTH.LARGE to line.end_arrow.length
+      And I assign MSO_LINE_END_TYPE.OVAL to line.begin_arrow.type
+     Then line.end_arrow.type is MSO_LINE_END_TYPE.TRIANGLE
+      And line.end_arrow.width is MSO_LINE_END_WIDTH.LARGE
+      And line.end_arrow.length is MSO_LINE_END_LENGTH.LARGE
+      And line.begin_arrow.type is MSO_LINE_END_TYPE.OVAL

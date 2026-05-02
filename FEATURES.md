@@ -150,6 +150,9 @@ slide1.shapes.title.text = "First"
 slide2 = prs.slides.add_slide(blank_layout)
 slide2.is_hidden = True
 
+# insert a slide at a specific position (index= added in 2026.05.0)
+intro = prs.slides.add_slide(title_layout, index=0)
+
 # duplicate and move
 dup = prs.slides.duplicate(slide1)
 prs.slides.move_slide(dup, 1)
@@ -161,7 +164,7 @@ prs.save("out.pptx")
 ```
 
 - `Presentation.slides` — `Slides` sequence.
-- `Slides.add_slide(slide_layout)` — Append a slide bound to `slide_layout`.
+- `Slides.add_slide(slide_layout, index=None)` — Add a slide bound to `slide_layout`; append by default, or insert at zero-based `index` (negative counts from end, out-of-range clamps). The `index` keyword was added in 2026.05.0 (#194).
 - `Slides.duplicate(slide, index=None)` — Clone a slide within the presentation, optionally at `index`. `[Added in 2026.05.0]`
 - `Slides.delete(slide)` — Remove a slide from the deck and drop its part. `[Added in 2026.05.0]`
 - `Slides.move_slide(slide, new_idx)` — Reorder a slide to `new_idx`. `[Added in 2026.05.0]`
@@ -182,7 +185,7 @@ prs.save("out.pptx")
 - `Slide.find_shapes_by_xpath(xpath_expr)` — Evaluate an XPath against this slide's shape tree and return matching `BaseShape` proxies. `[Added in 2026.05.0]`
 
 - `Presentation.slides` — `Slides` collection (sequence).
-- `Slides.add_slide(slide_layout)` — Append a new slide.
+- `Slides.add_slide(slide_layout, index=None)` — Append a new slide (or insert it at zero-based `index`; ``index`` keyword added in 2026.05.0, #194).
 - `Slides.duplicate(slide, index=None)` — Deep-clone an existing slide within the presentation. `[Added in 1.0.2.dev0]`
 - `Slides.delete(slide)` — Remove a slide. `[Added in 1.0.2.dev0]`
 - `Slides.move_slide(slide, new_idx)` — Reorder. `[Added in 1.0.2.dev0]`
@@ -569,6 +572,15 @@ adds `MSO_SHAPE.LINE` (so `.auto_shape_type` on a straight-line `prst="line"`
 resolves cleanly), read/write `Connector.adjustments` for elbow and curved
 connectors, and line-end arrow configuration via `LineFormat.begin_arrow` /
 `.end_arrow`.
+
+PowerPoint's Insert Shapes lists *Connector with Arrow*, *Connector with
+Double Arrow*, *Curved with Arrow*, and *Elbow with Arrow* as separate
+gallery tiles, but internally those are just an `MSO_CONNECTOR` geometry
+(`STRAIGHT` / `ELBOW` / `CURVE`) whose `a:ln` carries an `a:headEnd` and/or
+`a:tailEnd` decoration. To author any of the arrow variants, set
+`connector.line.begin_arrow.type` / `.end_arrow.type` after
+`add_connector(...)` — there is no separate connector-type enum for arrow
+variants (#657).
 
 ```python
 from pptx import Presentation

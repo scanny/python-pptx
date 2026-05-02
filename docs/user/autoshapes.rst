@@ -212,6 +212,22 @@ Assigning ``None`` to any sub-property removes that attribute from the line-end
 element. When all three attributes are cleared, the line-end element itself is
 removed.
 
+To author the PowerPoint Insert-Shapes variants *Connector with Arrow*,
+*Connector with Double Arrow*, and their curved/elbow siblings, combine any
+``MSO_CONNECTOR`` geometry with ``begin_arrow`` / ``end_arrow`` on the
+connector's line. The three ``MSO_CONNECTOR`` members
+(``STRAIGHT`` / ``ELBOW`` / ``CURVE``) supply the geometry; the arrow-head
+decoration is an outline property, not a separate connector type::
+
+    >>> from pptx.enum.shapes import MSO_CONNECTOR
+    >>> from pptx.enum.dml import MSO_LINE_END_TYPE, MSO_LINE_END_WIDTH
+    >>> conn = slide.shapes.add_connector(
+    ...     MSO_CONNECTOR.STRAIGHT, Inches(1), Inches(1), Inches(4), Inches(1)
+    ... )
+    >>> conn.line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE  # "Connector with Arrow"
+    >>> conn.line.begin_arrow.type = MSO_LINE_END_TYPE.TRIANGLE  # "Double Arrow"
+    >>> conn.line.end_arrow.width = MSO_LINE_END_WIDTH.LARGE
+
 
 Adjusting an autoshape
 ----------------------

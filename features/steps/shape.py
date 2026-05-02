@@ -106,6 +106,13 @@ def given_an_elbow_connector(context):
     )
 
 
+@given("a straight connector and its line as line")
+def given_a_straight_connector_and_its_line_as_line(context):
+    prs = Presentation(test_pptx("shp-connector-props"))
+    context.connector = prs.slides[0].shapes[0]
+    context.line = context.connector.line
+
+
 @given("an empty GroupShape object as shape")
 def given_an_empty_GroupShape_object_as_shape(context):
     prs = Presentation(test_pptx("shp-common-props"))
