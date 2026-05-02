@@ -26,6 +26,12 @@ Feature: Access an individual slide
       And slide.slide_layout is the one passed in the call
 
 
+  Scenario: Slides.add_slide() preserves customized layout placeholder name
+    Given a Presentation with a layout placeholder renamed to "Agenda Title"
+     When I call slides.add_slide() with that layout
+     Then the new slide has a placeholder named "Agenda Title"
+
+
   Scenario: Slides.get()
     Given a Slides object containing 3 slides
      Then slides.get(256) is slides[0]

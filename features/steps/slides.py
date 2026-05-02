@@ -29,6 +29,19 @@ def given_a_Slides_object_containing_3_slides(context):
     context.slides = prs.slides
 
 
+@given('a Presentation with a layout placeholder renamed to "Agenda Title"')
+def given_a_presentation_with_layout_placeholder_renamed(context):
+    prs = Presentation(test_pptx("prs-add-slide"))
+    layout = prs.slide_masters[0].slide_layouts[0]
+    # --- rename the title placeholder on the layout to a custom name ---
+    for ph in layout.placeholders:
+        if ph.placeholder_format.idx == 0:
+            ph.name = "Agenda Title"
+            break
+    context.prs = prs
+    context.slide_layout = layout
+
+
 # when ====================================================
 
 
@@ -36,6 +49,11 @@ def given_a_Slides_object_containing_3_slides(context):
 def when_I_call_slides_add_slide(context):
     context.slide_layout = context.prs.slide_masters[0].slide_layouts[0]
     context.slides.add_slide(context.slide_layout)
+
+
+@when("I call slides.add_slide() with that layout")
+def when_I_call_slides_add_slide_with_that_layout(context):
+    context.slide = context.prs.slides.add_slide(context.slide_layout)
 
 
 @when("I call slide_layouts.remove(slide_layouts[1])")
@@ -140,3 +158,9 @@ def then_slides_get_666_default_slides_2_is_slides_2(context):
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides
     assert type(slides[2]).__name__ == "Slide"
+
+
+@then('the new slide has a placeholder named "Agenda Title"')
+def then_new_slide_has_agenda_title_placeholder(context):
+    names = [ph.name for ph in context.slide.placeholders]
+    assert "Agenda Title" in names, "got %r" % names

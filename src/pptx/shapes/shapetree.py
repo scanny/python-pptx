@@ -109,11 +109,25 @@ class _BaseShapes(ParentedElementProxy):
         return len(shape_elms)
 
     def clone_placeholder(self, placeholder: LayoutPlaceholder) -> None:
-        """Add a new placeholder shape based on `placeholder`."""
+        """Add a new placeholder shape based on `placeholder`.
+
+        The cloned placeholder preserves the `name` of the source layout placeholder when
+        that name is not already in use on this shape tree. This allows user-customized
+        placeholder names authored on the slide layout (e.g. "Agenda Title") to flow through
+        to slides created from that layout. If the layout's placeholder name would collide
+        with an existing shape on this tree, a unique name is generated from the standard
+        placeholder basename instead (preserving the pre-existing behavior for that case).
+        """
         sp = placeholder.element
         ph_type, orient, sz, idx = (sp.ph_type, sp.ph_orient, sp.ph_sz, sp.ph_idx)
         id_ = self._next_shape_id
-        name = self._next_ph_name(ph_type, id_, orient)
+        # --- preserve layout placeholder's `name` when available and non-colliding ---
+        layout_name = sp.shape_name
+        existing_names = self._spTree.xpath("//p:cNvPr/@name")
+        if layout_name and layout_name not in existing_names:
+            name = layout_name
+        else:
+            name = self._next_ph_name(ph_type, id_, orient)
         self._spTree.add_placeholder(id_, name, ph_type, orient, sz, idx)
 
     def ph_basename(self, ph_type: PP_PLACEHOLDER) -> str:
