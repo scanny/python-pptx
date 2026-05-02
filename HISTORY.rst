@@ -55,6 +55,19 @@ Unreleased
   source graphic-frame), and survives a save + reload round-trip. Adds
   a regression suite ``DescribeIssue640RegressionChartDuplicate`` under
   ``tests/test_issue_640_chart_duplicate.py`` that pins this behaviour.
+- verify: #1033 (set arrow type of LINE object) resolved by
+  ``feat/issue-375-line-arrows`` (Wave 1) together with
+  ``fix/issue-749-auto-shape-type-line`` (Wave 2). #375 introduced
+  ``LineFormat.begin_arrow`` / ``LineFormat.end_arrow`` with read/write
+  ``type`` / ``width`` / ``length`` sub-properties and the
+  ``MSO_LINE_END_TYPE`` / ``MSO_LINE_END_WIDTH`` / ``MSO_LINE_END_LENGTH``
+  enumerations; #749 added ``MSO_SHAPE.LINE`` so a straight-line
+  auto-shape can be added via ``shapes.add_shape(MSO_SHAPE.LINE, ...)``.
+  Adds a regression test (``tests/test_issue_1033_line_arrow.py``) that
+  authors a LINE shape, sets ``line.end_arrow.type =
+  MSO_LINE_END_TYPE.TRIANGLE`` (plus width / length), round-trips the
+  presentation through save + reopen, and asserts every arrow attribute
+  survives — covering the exact flow the #1033 reporter asked for.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
