@@ -23,20 +23,6 @@ sys.path.insert(0, os.path.abspath(".."))
 from pptx import __version__  # noqa: E402
 
 
-# -- Allow nonlocal image URI's to accommodate travis-ci status image -------
-
-import sphinx.environment  # noqa: E402
-from docutils.utils import get_source_line  # noqa: E402
-
-
-def _warn_node(self, msg, node, **kwargs):
-    if not msg.startswith("nonlocal image URI found:"):
-        self._warnfunc(msg, "%s:%s" % get_source_line(node), **kwargs)
-
-
-sphinx.environment.BuildEnvironment.warn_node = _warn_node
-
-
 # -- General configuration --------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -421,15 +407,12 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "armstrong"
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [".themes"]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -461,9 +444,8 @@ html_static_path = ["_static"]
 # html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {
-    "**": ["localtoc.html", "relations.html", "sidebarlinks.html", "searchbox.html"]
-}
+# Note: sphinx_rtd_theme provides its own sidebar layout; leave this unset.
+# html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
