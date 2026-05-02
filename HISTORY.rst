@@ -76,6 +76,8 @@ Unreleased
   misplaced ``c:tx/c:rich`` path. ``data_labels.text_frame.word_wrap = False``
   now round-trips through PowerPoint as intended.
 - #502 support audio MIME types / docs clarification
+- feat: #752 accept arbitrary `prog_id` + `extension` in
+  `SlideShapes.add_ole_object()` to embed zip/pdf/html/custom files
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

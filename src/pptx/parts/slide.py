@@ -177,13 +177,30 @@ class SlidePart(BaseSlidePart):
         return self.relate_to(ChartPart.new(chart_type, chart_data, self._package), RT.CHART)
 
     def add_embedded_ole_object_part(
-        self, prog_id: PROG_ID | str, ole_object_file: str | IO[bytes]
+        self,
+        prog_id: PROG_ID | str,
+        ole_object_file: str | IO[bytes],
+        extension: str | None = None,
     ):
-        """Return rId of newly-added OLE-object part formed from `ole_object_file`."""
-        relationship_type = RT.PACKAGE if isinstance(prog_id, PROG_ID) else RT.OLE_OBJECT
+        """Return rId of newly-added OLE-object part formed from `ole_object_file`.
+
+        `extension` is an optional file-extension hint (without the leading dot, e.g.
+        ``"zip"``) passed through to the |EmbeddedPackagePart| factory to produce a
+        readable part-name for generic OLE-object embeds.
+        """
+        # -- MS-Office "package" file-types (DOCX/PPTX/XLSX members of PROG_ID) get
+        # -- the RT.PACKAGE relationship-type; every other case -- including non-Office
+        # -- PROG_ID members and arbitrary str progIds -- gets RT.OLE_OBJECT.
+        is_office_package = (
+            isinstance(prog_id, PROG_ID) and prog_id.is_office_package
+        )
+        relationship_type = RT.PACKAGE if is_office_package else RT.OLE_OBJECT
         return self.relate_to(
             EmbeddedPackagePart.factory(
-                prog_id, self._blob_from_file(ole_object_file), self._package
+                prog_id,
+                self._blob_from_file(ole_object_file),
+                self._package,
+                extension,
             ),
             relationship_type,
         )

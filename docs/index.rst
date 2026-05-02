@@ -67,6 +67,7 @@ User Guide
    user/table
    user/media
    user/notes
+   user/ole-objects
    user/use-cases
    user/concepts
 

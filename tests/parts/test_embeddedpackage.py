@@ -58,6 +58,50 @@ class DescribeEmbeddedPackagePart(object):
         _init_.assert_called_once_with(ANY, partname_, CT.OFC_OLE_OBJECT, package_, object_blob_)
         assert isinstance(ole_object_part, EmbeddedPackagePart)
 
+    @pytest.mark.parametrize(
+        ("extension", "expected_tmpl"),
+        [
+            ("zip", "/ppt/embeddings/oleObject%d.zip"),
+            ("pdf", "/ppt/embeddings/oleObject%d.pdf"),
+            ("html", "/ppt/embeddings/oleObject%d.html"),
+            # -- invalid (non-ASCII-alphanum) falls back to .bin ---
+            ("../../etc", "/ppt/embeddings/oleObject%d.bin"),
+            ("", "/ppt/embeddings/oleObject%d.bin"),
+        ],
+    )
+    def and_it_uses_the_caller_supplied_extension_for_a_str_progId(
+        self, request: FixtureRequest, extension: str, expected_tmpl: str
+    ):
+        """Arbitrary progId + caller-supplied extension produces matching part-name."""
+        progId = "Foo.Bar.42"
+        object_blob_ = b"0123456789"
+        package_ = instance_mock(request, OpcPackage)
+        _init_ = initializer_mock(request, EmbeddedPackagePart, autospec=True)
+        partname_ = instance_mock(request, PackURI)
+        package_.next_partname.return_value = partname_
+
+        ole_object_part = EmbeddedPackagePart.factory(
+            progId, object_blob_, package_, extension
+        )
+
+        package_.next_partname.assert_called_once_with(expected_tmpl)
+        _init_.assert_called_once_with(ANY, partname_, CT.OFC_OLE_OBJECT, package_, object_blob_)
+        assert isinstance(ole_object_part, EmbeddedPackagePart)
+
+    def it_uses_the_enum_extension_for_a_generic_PROG_ID_member(self, request: FixtureRequest):
+        """Non-Office PROG_ID members (ZIP, PDF, DOC, HTML) carry their own extension."""
+        object_blob_ = b"0123456789"
+        package_ = instance_mock(request, OpcPackage)
+        _init_ = initializer_mock(request, EmbeddedPackagePart, autospec=True)
+        partname_ = instance_mock(request, PackURI)
+        package_.next_partname.return_value = partname_
+
+        ole_object_part = EmbeddedPackagePart.factory(PROG_ID.ZIP, object_blob_, package_)
+
+        package_.next_partname.assert_called_once_with("/ppt/embeddings/oleObject%d.zip")
+        _init_.assert_called_once_with(ANY, partname_, CT.OFC_OLE_OBJECT, package_, object_blob_)
+        assert isinstance(ole_object_part, EmbeddedPackagePart)
+
     def it_provides_a_contructor_classmethod_for_subclasses(self, request: FixtureRequest):
         blob_ = b"0123456789"
         package_ = instance_mock(request, OpcPackage)
