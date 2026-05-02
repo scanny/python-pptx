@@ -347,6 +347,71 @@ hierarchy, call :meth:`._BulletFormat.clear_color`::
     bullet property should follow the text rather than inherit from the style
     hierarchy, and are relatively uncommon. Use the underlying XML via
     ``paragraph._pPr`` if you need them in the interim.
+
+
+Numbered lists
+--------------
+
+The paragraph-level ``bullet.auto_number()`` API is the building block for
+numbered lists: call it on each paragraph you want numbered, passing a scheme
+from :class:`PP_AUTO_NUMBER`. PowerPoint auto-numbers consecutive paragraphs
+that share a scheme — the second ``ARABIC_PERIOD`` paragraph below renders as
+``2.``, the third as ``3.``, etc.::
+
+    from pptx import Presentation
+    from pptx.util import Inches
+    from pptx.enum.text import PP_AUTO_NUMBER
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    tb = slide.shapes.add_textbox(
+        Inches(1), Inches(1), Inches(5), Inches(3)
+    )
+    tf = tb.text_frame
+
+    tf.text = "First item"
+    tf.add_paragraph().text = "Second item"
+    tf.add_paragraph().text = "Third item"
+
+    for paragraph in tf.paragraphs:
+        paragraph.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+
+A one-liner equivalent for existing text is to loop over
+``text_frame.paragraphs`` after populating text::
+
+    for p in text_frame.paragraphs:
+        p.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+
+The loop idiom is deliberately the recommended spelling — it reads cleanly,
+mirrors the per-paragraph bullet API exactly, and makes per-paragraph
+exceptions trivial. To skip a heading paragraph, for example, just branch on
+the index::
+
+    for i, p in enumerate(text_frame.paragraphs):
+        if i == 0:
+            continue  # leave paragraph 0 un-numbered as a heading
+        p.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+
+To start numbering at a value other than 1, pass ``start_at`` on the first
+numbered paragraph only. PowerPoint treats ``start_at`` as the *first*
+numbered paragraph's ordinal and increments from there across subsequent
+paragraphs using the same scheme — so every paragraph can pass the same
+``start_at`` without conflict::
+
+    for p in text_frame.paragraphs:
+        p.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD, start_at=5)
+
+Interleaving numbered and unnumbered paragraphs works by clearing the bullet
+on the paragraphs that should carry none — PowerPoint resumes counting on the
+next numbered paragraph::
+
+    from pptx.enum.text import PP_AUTO_NUMBER
+
+    tf.paragraphs[0].bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+    tf.paragraphs[1].bullet.none()        # blank spacer paragraph
+    tf.paragraphs[2].bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+
+
 Setting a typeface for East-Asian or complex-script text
 --------------------------------------------------------
 

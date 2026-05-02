@@ -995,7 +995,7 @@ prs.save("out.pptx")
 
 - `_Paragraph.bullet` — `_BulletFormat`. `[Added in 2026.05.0]`
 - `_BulletFormat.character(char)` — Set bullet to a literal character.
-- `_BulletFormat.auto_number(scheme, start_at=None)` — Set auto-number bullet with a `PP_AUTO_NUMBER_SCHEME`.
+- `_BulletFormat.auto_number(scheme, start_at=None)` — Set auto-number bullet with a `PP_AUTO_NUMBER_SCHEME`. For a whole-text-frame numbered list, loop `for p in text_frame.paragraphs: p.bullet.auto_number(scheme)` — see the "Numbered lists" recipe in `docs/user/text.rst` (issue #655).
 - `_BulletFormat.none()` — Remove the bullet.
 - `_BulletFormat.clear()` — Clear every bullet property (inherit from layout / master).
 - `_BulletFormat.font` — Bullet font family.
