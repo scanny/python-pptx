@@ -163,7 +163,7 @@ prs.save("out.pptx")
 - `Presentation.slides` — `Slides` sequence.
 - `Slides.add_slide(slide_layout)` — Append a slide bound to `slide_layout`.
 - `Slides.duplicate(slide, index=None)` — Clone a slide within the presentation, optionally at `index`. `[Added in 2026.05.0]`
-- `Slides.delete(slide)` — Remove a slide from the deck and drop its part. `[Added in 2026.05.0]`
+- `Slides.delete(slide)` — Remove a slide from the deck and drop its part. Parts uniquely referenced by the deleted slide (its notes slide, images, charts, embedded workbooks, media) are garbage-collected at save time via rels-graph reachability, so they do not linger in the saved ``.pptx`` zip. Parts shared with another slide (e.g. an image on a duplicate) are preserved. Verified by `tests/test_issue_956_delete_slide_cleanup.py`. `[Added in 2026.05.0]`
 - `Slides.move_slide(slide, new_idx)` — Reorder a slide to `new_idx`. `[Added in 2026.05.0]`
 - `Slides.add_slide_from_external(source_slide, slide_layout)` — Copy a slide from another presentation, rewiring images, media, and other part-level dependencies. `[Added in 2026.05.0]`
 - `Slides.get(slide_id, default=None)` / `Slides.index(slide)` — Slide-id and position lookups.
