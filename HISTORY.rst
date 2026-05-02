@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #776 Point.invert_if_negative
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

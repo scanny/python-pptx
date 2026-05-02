@@ -19,3 +19,19 @@ Feature: Get and set point properties
   Scenario: Get Point.marker
     Given a point
      Then point.marker is a Marker object
+
+
+  Scenario: Get Point.invert_if_negative
+    Given a point
+     Then point.invert_if_negative is True
+
+
+  Scenario Outline: Set Point.invert_if_negative
+    Given a point
+     When I assign <value> to point.invert_if_negative
+     Then point.invert_if_negative is <value>
+
+    Examples: values
+      | value |
+      | True  |
+      | False |
