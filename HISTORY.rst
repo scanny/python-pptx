@@ -12,6 +12,14 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #1077 Add :attr:`._Hyperlink.target_slide` so a run of text can jump
+  to another slide in the same presentation (the run-level equivalent of
+  :attr:`ActionSetting.target_slide`). Assigning a |Slide| writes an
+  ``a:hlinkClick`` with ``action="ppaction://hlinksldjump"`` and a slide
+  relationship; assigning |None| or using ``del`` removes any hyperlink on
+  the run. :attr:`._Hyperlink.address` now returns |None| for a slide-jump
+  hyperlink so the URL and slide-jump surfaces remain strictly separate.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /

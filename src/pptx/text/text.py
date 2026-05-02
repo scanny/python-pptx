@@ -35,6 +35,8 @@ if TYPE_CHECKING:
         CT_TextParagraph,
         CT_TextParagraphProperties,
     )
+    from pptx.parts.slide import SlidePart
+    from pptx.slide import Slide
     from pptx.types import ProvidesExtents, ProvidesPart
 
 
@@ -928,10 +930,22 @@ class _Hyperlink(Subshape):
         """The URL of the hyperlink.
 
         Read/write. URL can be on http, https, mailto, or file scheme; others may work.
+        Returns |None| when no hyperlink is defined, or when the hyperlink is an internal
+        slide-jump rather than an external URL -- see :attr:`target_slide`.
         """
-        if self._hlinkClick is None:
+        hlinkClick = self._hlinkClick
+        if hlinkClick is None:
             return None
-        return self.part.target_ref(self._hlinkClick.rId)
+        rId = hlinkClick.rId
+        # -- a slide-jump hyperlink (ppaction://hlinksldjump) uses an internal
+        # -- relationship and has no external URL. Return None in that case so
+        # -- `.address` stays strictly external-URL. Use `.target_slide` to
+        # -- access the slide-jump target.
+        if not rId:
+            return None
+        if hlinkClick.action == "ppaction://hlinksldjump":
+            return None
+        return self.part.target_ref(rId)
 
     @address.setter
     def address(self, url: str | None):
@@ -940,6 +954,55 @@ class _Hyperlink(Subshape):
             self._remove_hlinkClick()
         if url:
             self._add_hlinkClick(url)
+
+    @property
+    def target_slide(self) -> "Slide | None":
+        """The |Slide| this run jumps to when clicked, or |None|.
+
+        Read/write. When the run's ``a:hlinkClick`` carries
+        ``action="ppaction://hlinksldjump"`` and targets another slide in the
+        presentation, returns that |Slide|. Returns |None| when the run has no
+        hyperlink, when the hyperlink is an external URL, or when any other
+        click action is present.
+
+        Assigning a |Slide| adds (or replaces) an ``a:hlinkClick`` that
+        navigates to that slide during a slide show -- equivalent to
+        PowerPoint's "Insert > Hyperlink > Place in This Document". Assigning
+        |None| removes any hyperlink on the run (whether slide-jump or URL);
+        use :attr:`address` to set an external URL.
+
+        .. versionadded:: 2026.05.0
+        """
+        hlinkClick = self._hlinkClick
+        if hlinkClick is None:
+            return None
+        if hlinkClick.action != "ppaction://hlinksldjump":
+            return None
+        rId = hlinkClick.rId
+        if not rId:
+            return None
+        slide_part = cast("SlidePart", self.part.related_part(rId))
+        return slide_part.slide
+
+    @target_slide.setter
+    def target_slide(self, slide: "Slide | None"):
+        # -- always clear any existing hlinkClick first; this mirrors
+        # -- ActionSetting._clear_click_action so swapping from URL to
+        # -- slide-jump (or vice-versa) correctly drops the prior rel.
+        if self._hlinkClick is not None:
+            self._remove_hlinkClick()
+        if slide is None:
+            return
+        rId = self.part.relate_to(slide.part, RT.SLIDE)
+        hlinkClick = self._rPr.get_or_add_hlinkClick()
+        hlinkClick.action = "ppaction://hlinksldjump"
+        hlinkClick.rId = rId
+
+    @target_slide.deleter
+    def target_slide(self):
+        # -- `del run.hyperlink.target_slide` is a convenient alias for
+        # -- assigning None; it removes any hyperlink on the run.
+        self.target_slide = None
 
     def _add_hlinkClick(self, url: str):
         rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
@@ -951,7 +1014,9 @@ class _Hyperlink(Subshape):
 
     def _remove_hlinkClick(self):
         assert self._hlinkClick is not None
-        self.part.drop_rel(self._hlinkClick.rId)
+        rId = self._hlinkClick.rId
+        if rId:
+            self.part.drop_rel(rId)
         self._rPr._remove_hlinkClick()  # pyright: ignore[reportPrivateUsage]
 
 

@@ -210,6 +210,34 @@ A run can also be made into a hyperlink by providing a target URL::
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
 
 
+Jumping to another slide from a word in a paragraph
+---------------------------------------------------
+
+PowerPoint's *Insert → Hyperlink → Place in This Document* creates an
+``a:hlinkClick`` with ``action="ppaction://hlinksldjump"`` on the run of text
+the user selected. Assigning a |Slide| to ``run.hyperlink.target_slide``
+produces the same XML, so a single word in a paragraph can act as a
+click-to-jump into another slide::
+
+    prs = Presentation("deck.pptx")
+    overview_slide = prs.slides[0]
+    detail_slide = prs.slides[3]
+
+    paragraph = overview_slide.shapes[0].text_frame.paragraphs[0]
+    paragraph.text = "Click here for details"
+
+    # the last run in the paragraph is "details"; give it a slide-jump
+    details_run = paragraph.add_run()
+    details_run.text = " (jump)"
+    details_run.hyperlink.target_slide = detail_slide
+
+Reading :attr:`._Hyperlink.target_slide` returns the target |Slide| when the
+run carries a slide-jump, and |None| otherwise. To remove a slide-jump on a
+run, assign |None| or ``del run.hyperlink.target_slide``. The URL-based
+:attr:`._Hyperlink.address` and the slide-jump :attr:`._Hyperlink.target_slide`
+are mutually exclusive -- setting one clears the other.
+
+
 Text highlight (background) color
 ---------------------------------
 

@@ -247,3 +247,26 @@ Feature: Change appearance of font used to render text
     Given a text run having a hyperlink
      When I assign None to hyperlink.address
      Then run.text is not a hyperlink
+
+
+  Scenario: Set run hyperlink to jump to another slide in the deck
+    Given a text run
+      And another slide in the deck as target_slide
+     When I assign target_slide to run.hyperlink.target_slide
+     Then run.hyperlink.target_slide is target_slide
+      And run.hyperlink.address is None
+
+
+  Scenario: Clear a run slide-jump hyperlink by assigning None
+    Given a text run with a slide-jump hyperlink to another slide
+     When I assign None to run.hyperlink.target_slide
+     Then run.hyperlink.target_slide is None
+      And run.hyperlink.address is None
+
+
+  Scenario: Setting a slide-jump hyperlink replaces an existing URL hyperlink
+    Given a text run having a hyperlink
+      And another slide in the deck as target_slide
+     When I assign target_slide to run.hyperlink.target_slide
+     Then run.hyperlink.target_slide is target_slide
+      And run.hyperlink.address is None
