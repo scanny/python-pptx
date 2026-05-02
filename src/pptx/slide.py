@@ -829,6 +829,31 @@ class SlideLayout(_BaseSlide):
             if ph.element.ph_type not in latent_ph_types:
                 yield ph
 
+    @property
+    def name(self) -> str:
+        """String representing the internal name of this slide layout.
+
+        PowerPoint writes a descriptive name on every layout (e.g. ``"Title Slide"``,
+        ``"Blank"``). Google Slides exports frequently leave ``p:cSld/@name`` empty
+        or assign non-standard names, defeating lookups like
+        ``slide_layouts.get_by_name("Blank")`` (see issue #864). To keep
+        ``SlideLayout.name`` a usable identifier, this property falls back to a
+        positional name of the form ``"Layout N"`` (1-based index in the master's
+        ``slide_layouts`` collection) when no explicit name is set. Assigning a
+        non-empty string persists it to ``p:cSld/@name`` and subsequent reads
+        return that explicit value verbatim. Assigning an empty string or |None|
+        clears the attribute and restores the positional fallback.
+        """
+        explicit_name = self._element.cSld.name
+        if explicit_name:
+            return explicit_name
+        return self._positional_name()
+
+    @name.setter
+    def name(self, value: str | None):
+        new_value = "" if value is None else value
+        self._element.cSld.name = new_value
+
     @lazyproperty
     def placeholders(self) -> LayoutPlaceholders:
         """Sequence of placeholder shapes in this slide layout.
@@ -843,6 +868,24 @@ class SlideLayout(_BaseSlide):
         return LayoutShapes(self._element.spTree, self)
 
     @property
+    def slide_layout_type(self) -> str:
+        """Layout-kind token recorded in ``p:sldLayout/@type``.
+
+        Returns a string drawn from ``ST_SlideLayoutType`` — ``"title"``,
+        ``"obj"``, ``"twoObj"``, ``"titleOnly"``, ``"blank"``, ``"secHead"``,
+        ``"picTx"``, ``"cust"``, and so on (see ECMA-376 Part 1 §19.7.15 for
+        the full vocabulary). The attribute is optional on ``p:sldLayout`` and
+        defaults to ``"cust"``; this property returns that default when the
+        attribute is absent, which is the common case for Google Slides exports
+        (see issue #864).
+
+        Useful for locating a layout by kind when the layout names are empty
+        or custom (e.g. when round-tripping a deck that originated in Google
+        Slides). See also :meth:`SlideLayouts.get_by_type`.
+        """
+        return self._element.type
+
+    @property
     def slide_master(self) -> SlideMaster:
         """Slide master from which this slide-layout inherits properties."""
         return self.part.slide_master
@@ -853,6 +896,29 @@ class SlideLayout(_BaseSlide):
         # ---getting Slides collection requires going around the horn a bit---
         slides = self.part.package.presentation_part.presentation.slides
         return tuple(s for s in slides if s.slide_layout == self)
+
+    def _positional_name(self) -> str:
+        """Return a positional name like ``"Layout 3"`` for this slide layout.
+
+        Used as a fallback when ``p:cSld/@name`` is empty, which is common for
+        Google-Slides-authored layouts (see issue #864). The index is 1-based
+        and matches this layout's zero-based position within its parent
+        master's ``slide_layouts`` collection. Falls back to ``"Layout"`` (no
+        index) when the layout has been detached from its master or the master
+        context cannot be located — this keeps a ``.name`` read on a
+        standalone |SlideLayout| built from a raw XML element from crashing.
+        """
+        part = self.part
+        if part is None:
+            return "Layout"
+        try:
+            master = part.slide_master
+        except (AttributeError, KeyError):  # pragma: no cover - defensive
+            return "Layout"
+        for idx, layout in enumerate(master.slide_layouts):
+            if layout is self or layout._element is self._element:
+                return "Layout %d" % (idx + 1)
+        return "Layout"
 
 
 class SlideLayouts(ParentedElementProxy):
@@ -888,6 +954,29 @@ class SlideLayouts(ParentedElementProxy):
         """Return SlideLayout object having `name`, or `default` if not found."""
         for slide_layout in self:
             if slide_layout.name == name:
+                return slide_layout
+        return default
+
+    def get_by_type(
+        self, layout_type: str, default: SlideLayout | None = None
+    ) -> SlideLayout | None:
+        """Return the first SlideLayout whose ``@type`` equals ``layout_type``.
+
+        ``layout_type`` is a token from ``ST_SlideLayoutType`` such as
+        ``"title"``, ``"obj"``, ``"twoObj"``, ``"titleOnly"``, ``"blank"``,
+        ``"secHead"``, ``"picTx"``, or ``"cust"``. See ECMA-376 Part 1 §19.7.15
+        for the full vocabulary.
+
+        Intended as the layout-lookup path of choice when ``get_by_name()`` is
+        unreliable because the source deck was authored in Google Slides (issue
+        #864): Google Slides exports leave ``p:cSld/@name`` empty or assign
+        non-standard names, but they do preserve the ``@type`` tokens on each
+        layout it understands.
+
+        Returns ``default`` (``None`` by default) when no layout matches.
+        """
+        for slide_layout in self:
+            if slide_layout.slide_layout_type == layout_type:
                 return slide_layout
         return default
 

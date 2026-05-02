@@ -1054,6 +1054,81 @@ class DescribeSlideLayout(object):
 
         assert used_by_slides == expected_value
 
+    def it_returns_an_explicit_name_verbatim(self):
+        slide_layout = SlideLayout(element("p:sldLayout/p:cSld{name=Blank}"), None)
+
+        assert slide_layout.name == "Blank"
+
+    def it_falls_back_to_a_positional_name_when_no_explicit_name(self, request):
+        """Regression for issue #864.
+
+        Google Slides exports leave ``p:cSld/@name`` empty on a slide layout.
+        The property should fall back to a 1-based ``"Layout N"`` derived from
+        this layout's position in the parent master's ``slide_layouts``
+        collection rather than returning ``""``.
+        """
+        sldLayout = element("p:sldLayout/p:cSld")
+        slide_layout = SlideLayout(sldLayout, None)
+        method_mock(
+            request, SlideLayout, "_positional_name", autospec=True, return_value="Layout 3"
+        )
+
+        assert slide_layout.name == "Layout 3"
+
+    def it_computes_a_positional_name_from_the_parent_master(
+        self, request, part_prop_, slide_layout_part_, slide_master_
+    ):
+        """Positional fallback resolves the 1-based index in master.slide_layouts."""
+        sldLayout = element("p:sldLayout/p:cSld")
+        other_sldLayout = element("p:sldLayout/p:cSld")
+        slide_layout = SlideLayout(sldLayout, None)
+        other_layout = SlideLayout(other_sldLayout, None)
+        part_prop_.return_value = slide_layout_part_
+        slide_layout_part_.slide_master = slide_master_
+        slide_master_.slide_layouts = [other_layout, slide_layout]
+
+        assert slide_layout.name == "Layout 2"
+
+    def it_returns_Layout_when_detached_from_a_master(self):
+        """Fallback when the layout has no part (e.g. constructed from raw XML)."""
+        slide_layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        assert slide_layout.name == "Layout"
+
+    def it_can_change_its_name(self):
+        """Setter writes `p:cSld/@name`; a read then returns the explicit value."""
+        slide_layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+
+        slide_layout.name = "Title Slide"
+
+        assert slide_layout._element.xml == xml("p:sldLayout/p:cSld{name=Title Slide}")
+        assert slide_layout.name == "Title Slide"
+
+    def it_clears_the_name_when_assigned_empty_string_or_None(self, request):
+        """Assigning '' or None clears @name and restores positional fallback."""
+        slide_layout = SlideLayout(element("p:sldLayout/p:cSld{name=X}"), None)
+        method_mock(
+            request, SlideLayout, "_positional_name", autospec=True, return_value="Layout 1"
+        )
+
+        slide_layout.name = None
+
+        assert slide_layout._element.xml == xml("p:sldLayout/p:cSld")
+        assert slide_layout.name == "Layout 1"
+
+    @pytest.mark.parametrize(
+        "sldLayout_cxml, expected_value",
+        [
+            ("p:sldLayout{type=title}/p:cSld", "title"),
+            ("p:sldLayout{type=blank}/p:cSld", "blank"),
+            ("p:sldLayout{type=twoObj}/p:cSld", "twoObj"),
+            # -- attribute absent defaults to "cust" (Google Slides case) --
+            ("p:sldLayout/p:cSld", "cust"),
+        ],
+    )
+    def it_knows_its_slide_layout_type(self, sldLayout_cxml, expected_value):
+        slide_layout = SlideLayout(element(sldLayout_cxml), None)
+        assert slide_layout.slide_layout_type == expected_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -1209,6 +1284,30 @@ class DescribeSlideLayouts(object):
         # ---but default can be specified---
         slide_layout = slide_layouts.get_by_name("pick me!", "default-value")
         assert slide_layout == "default-value"
+
+    def it_can_find_a_slide_layout_by_type(self, _iter_, slide_layout_, slide_layout_2_):
+        """Issue #864: layout lookup by ``@type`` for Google-Slides-origin decks."""
+        _iter_.return_value = iter((slide_layout_, slide_layout_2_))
+        slide_layout_.slide_layout_type = "title"
+        slide_layout_2_.slide_layout_type = "blank"
+        slide_layouts = SlideLayouts(None, None)
+
+        slide_layout = slide_layouts.get_by_type("blank")
+
+        assert slide_layout is slide_layout_2_
+
+    def but_get_by_type_returns_default_when_no_layout_matches(
+        self, _iter_, slide_layout_, slide_layout_2_
+    ):
+        _iter_.return_value = iter((slide_layout_, slide_layout_2_))
+        slide_layout_.slide_layout_type = "cust"
+        slide_layout_2_.slide_layout_type = "cust"
+        slide_layouts = SlideLayouts(None, None)
+
+        # -- default-default is None --
+        assert slide_layouts.get_by_type("title") is None
+        # -- default can be specified --
+        assert slide_layouts.get_by_type("title", "fallback") == "fallback"
 
     def it_knows_the_index_of_each_of_its_slide_layouts(
         self, _iter_, slide_layout_, slide_layout_2_

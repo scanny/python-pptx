@@ -316,6 +316,24 @@ prs.save("out.pptx")
 - `BaseShape.has_math_equation` / `.math_equation_xml` — OMML inspection. `[Added in 2026.05.0]`
 - `BaseShape.placeholder_format` — `_PlaceholderFormat` with `.idx` and `.type`.
 
+- `Presentation.slide_masters` — `SlideMasters` sequence.
+- `Presentation.slide_layouts` — `SlideLayouts` sequence on the primary master.
+- `SlideMaster.shapes` / `SlideMaster.placeholders` — Shape tree (write-enabled `[Added in 1.0.2.dev0]`).
+- `SlideMaster.name` (read/write) — `[Added in 1.0.2.dev0]`. Returns `"Master N"` positional fallback when `p:cSld/@name` is empty.
+- `SlideMaster.slide_layouts` — Child layouts.
+- `SlideMaster.background` / `SlideMaster.theme_colors` — Master-level theming.
+- `SlideMaster.header_footer` — Default header/footer overrides.
+- `SlideLayouts.get_by_name(name, default=None)` — Name lookup.
+- `SlideLayouts.get_by_type(layout_type, default=None)` — Lookup by `ST_SlideLayoutType` token (`"title"`, `"blank"`, `"cust"`, ...). Useful for Google-Slides-origin decks where names are unreliable. `[Added in 1.0.2.dev0]`
+- `SlideLayouts.index(slide_layout)` — Positional lookup.
+- `SlideLayouts.remove(slide_layout)` — Delete an unused layout.
+- `SlideLayout.shapes` / `SlideLayout.placeholders` — Shape tree (write-enabled `[Added in 1.0.2.dev0]`).
+- `SlideLayout.name` (read/write) — `[Updated in 1.0.2.dev0]`. Returns `"Layout N"` positional fallback when `p:cSld/@name` is empty (common for Google Slides exports — issue #864).
+- `SlideLayout.slide_layout_type` — `ST_SlideLayoutType` token (`"title"`, `"obj"`, `"blank"`, `"cust"`, ...); defaults to `"cust"` when the attribute is absent. `[Added in 1.0.2.dev0]`
+- `SlideLayout.used_by_slides` / `SlideLayout.slide_master` / `SlideLayout.header_footer`.
+- `SlideLayout.iter_cloneable_placeholders()` — Placeholders new slides inherit.
+- `MasterShapes` / `LayoutShapes` — Shape collections; inherit `add_shape`, `add_picture`, `add_textbox`, `add_connector`, `add_group_shape`, `build_freeform`. `[Added in 1.0.2.dev0]`
+
 ---
 
 ## Placeholders
