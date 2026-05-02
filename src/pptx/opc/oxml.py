@@ -33,15 +33,41 @@ nsmap = {
 }
 
 
+def _normalize_xml_decl_quotes(xml_bytes: bytes) -> bytes:
+    """Rewrite the leading XML-declaration in `xml_bytes` to use double quotes.
+
+    lxml emits the XML declaration with single quotes (e.g.
+    ``<?xml version='1.0' encoding='UTF-8' standalone='yes'?>``) while element
+    attributes use double quotes. Microsoft Office and strict validators expect
+    double quotes throughout. This helper replaces the single-quoted attributes
+    in the declaration with double-quoted ones so the emitted XML has
+    consistent quoting without altering element-attribute quoting (which lxml
+    already emits with double quotes).
+
+    A no-op when `xml_bytes` has no XML declaration.
+    """
+    if not xml_bytes.startswith(b"<?xml"):
+        return xml_bytes
+    end = xml_bytes.find(b"?>")
+    if end == -1:
+        return xml_bytes
+    decl = xml_bytes[: end + 2]
+    rest = xml_bytes[end + 2 :]
+    # -- only rewrite attribute-value quotes inside the declaration --
+    decl = decl.replace(b"'", b'"')
+    return decl + rest
+
+
 def oxml_to_encoded_bytes(
     element: BaseOxmlElement,
     encoding: str = "utf-8",
     pretty_print: bool = False,
     standalone: bool | None = None,
 ) -> bytes:
-    return etree.tostring(
+    xml = etree.tostring(
         element, encoding=encoding, pretty_print=pretty_print, standalone=standalone
     )
+    return _normalize_xml_decl_quotes(xml)
 
 
 def oxml_tostring(
@@ -50,15 +76,20 @@ def oxml_tostring(
     pretty_print: bool = False,
     standalone: bool | None = None,
 ):
-    return etree.tostring(elm, encoding=encoding, pretty_print=pretty_print, standalone=standalone)
+    xml = etree.tostring(elm, encoding=encoding, pretty_print=pretty_print, standalone=standalone)
+    if isinstance(xml, bytes):
+        return _normalize_xml_decl_quotes(xml)
+    return xml
 
 
 def serialize_part_xml(part_elm: BaseOxmlElement) -> bytes:
     """Produce XML-file bytes for `part_elm`, suitable for writing directly to a `.xml` file.
 
-    Includes XML-declaration header.
+    Includes XML-declaration header. The declaration uses double quotes for
+    its pseudo-attributes so the quoting is consistent with element-attribute
+    quoting elsewhere in the output.
     """
-    return etree.tostring(part_elm, encoding="UTF-8", standalone=True)
+    return _normalize_xml_decl_quotes(etree.tostring(part_elm, encoding="UTF-8", standalone=True))
 
 
 class CT_Default(BaseOxmlElement):
