@@ -8,6 +8,7 @@ from pptx.oxml.simpletypes import (
     ST_SlideId,
     ST_SlideSizeCoordinate,
     ST_SlideSizeType,
+    XsdInt,
     XsdString,
 )
 from pptx.oxml.xmlchemy import (
@@ -67,6 +68,13 @@ class CT_Presentation(BaseOxmlElement):
         )
     )
     extLst: CT_ExtensionList | None = ZeroOrOne("p:extLst")  # pyright: ignore[reportAssignmentType]
+
+    # -- `@firstSlideNum` — the display-number of the first slide (issue #94).
+    # -- Defaults to 1 per ECMA-376 CT_Presentation. PowerPoint's "number slides
+    # -- from" setting (File ▸ Page Setup ▸ Number slides from) writes this.
+    firstSlideNum: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "firstSlideNum", XsdInt, default=1
+    )
 
     # -- URI identifying the 2010 sections extension (p14:sectionLst) --
     _SECTION_LIST_EXT_URI = "{521415D9-36F7-43E2-AB2F-B90AF26B5E84}"

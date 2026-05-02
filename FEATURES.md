@@ -51,6 +51,7 @@ other item is inherited from the upstream base.
 - [Placeholders](#placeholders)
 - [Font embedding](#font-embedding)
 - [Document properties](#document-properties)
+- [Presentation open-settings](#presentation-open-settings)
 - [Slide-level tags](#slide-level-tags)
 - [Security](#security)
 - [Rendering](#rendering)
@@ -1394,6 +1395,55 @@ prs.save("out.pptx")
 - `Presentation.core_properties` — `CoreProperties` (`author`, `title`, `subject`, `keywords`, `category`, `comments`, `content_status`, `identifier`, `language`, `version`, `created`, `last_modified_by`, `last_printed`, `modified`, `revision`).
 - `Presentation.custom_properties` — `CustomProperties` dict-like store for typed user-defined properties. Supports `str` / `int` (32-bit signed) / `float` / `bool` / `datetime.datetime`. Full mapping interface: `__getitem__`, `__setitem__`, `__delitem__`, `__contains__`, `__iter__`, `__len__`, `keys()`, `items()`, `values()`, `update()`, `clear()`, `pop()`, `setdefault()`. `[Added in 1.0.2.dev0]`
 - `Presentation.extended_properties` — `ExtendedPropertiesPart` for `docProps/app.xml`. Exposes typed accessors (`company`, `manager`, `hyperlink_base`, `application`, `app_version`, `presentation_format`, `template`, `slide_count`, `notes_count`, `title_of_parts`, `heading_pairs`, ...). `slide_count` is automatically refreshed at save-time from the live `sldIdLst`. `[Added in 1.0.2.dev0]`
+
+---
+
+## Presentation open-settings
+
+The editor-view settings PowerPoint restores when the presentation is
+re-opened — stored in the `ppt/viewProps.xml` part (`p:viewPr`) — are
+surfaced through `Presentation.view_props`. Related is
+`Presentation.first_slide_num`, which controls the display-number of
+the first slide (the "Number slides from" setting). See issue #94.
+
+```python
+from pptx import Presentation
+from pptx.enum.presentation import PP_VIEW_TYPE
+
+prs = Presentation()
+
+# editor view that PowerPoint will restore on re-open
+prs.view_props.view_type = PP_VIEW_TYPE.OUTLINE
+
+# hide the comments pane
+prs.view_props.show_comments = False
+
+# per-view zoom (1.0 = 100%)
+prs.view_props.slide_view_zoom = 1.5
+prs.view_props.notes_view_zoom = 0.85
+prs.view_props.outline_view_zoom = 1.0
+prs.view_props.sorter_view_zoom = 0.75
+
+# slide-sorter text-formatting toggle
+prs.view_props.show_formatting = False
+
+# first slide number displayed in slide-number placeholders
+prs.first_slide_num = 3
+
+prs.save("out.pptx")
+```
+
+All members in this section are `[Added in 1.0.2.dev0]`.
+
+- `Presentation.view_props` — `ViewProps` facade over the `ppt/viewProps.xml` part. Created lazily if the package does not already contain one.
+- `ViewProps.view_type` — `PP_VIEW_TYPE` value of `p:viewPr/@lastView`; the editor view PowerPoint restores when the deck is re-opened.
+- `ViewProps.show_comments` — `bool` value of `p:viewPr/@showComments`; whether the comments pane is visible.
+- `ViewProps.show_formatting` — `bool` value of `p:sorterViewPr/@showFormatting`; whether slide-sorter thumbnails render text formatting.
+- `ViewProps.slide_view_zoom` / `notes_view_zoom` / `outline_view_zoom` / `sorter_view_zoom` — `float` zoom (1.0 = 100%) for each editor view.
+- `ViewProps.element` — underlying `p:viewPr` lxml element (escape-hatch for attributes not yet modelled by the MVP).
+- `ViewProps.part` — underlying `ViewPropsPart` (`ppt/viewProps.xml`).
+- `Presentation.first_slide_num` — `int` value of `p:presentation/@firstSlideNum`; display-number of the first slide (the "Number slides from" setting).
+- `pptx.enum.presentation.PP_VIEW_TYPE` — enum of editor-view tokens (`NORMAL`, `SLIDE_MASTER`, `NOTES_PAGE`, `HANDOUT`, `NOTES_MASTER`, `OUTLINE`, `SLIDE_SORTER`, `SLIDE_THUMBNAIL`).
 
 ---
 

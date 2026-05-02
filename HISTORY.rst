@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #94 :attr:`Presentation.view_props` (editor-view settings that
+  PowerPoint restores on re-open — :attr:`.ViewProps.view_type`,
+  :attr:`.ViewProps.show_comments`, :attr:`.ViewProps.show_formatting`,
+  plus per-view zoom properties) and :attr:`Presentation.first_slide_num`
+  (``p:presentation/@firstSlideNum``, the "Number slides from" setting).
+  Backed by a new :class:`.ViewPropsPart` (``ppt/viewProps.xml``) which
+  is created lazily when the package does not already contain one. Adds
+  :class:`pptx.enum.presentation.PP_VIEW_TYPE` (value-space of
+  ``p:viewPr/@lastView``) and companion design notes at
+  ``docs/dev/analysis/view-props.rst``.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and

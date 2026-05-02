@@ -35,6 +35,7 @@ can be found here:
    PpTransitionSideDirection
    PpTransitionSpeed
    PpTransitionType
+   PpViewType
 
    XlAxisCrosses
    XlAxisPosition

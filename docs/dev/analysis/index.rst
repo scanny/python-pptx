@@ -131,6 +131,7 @@ Presentation
 
    prs-properties
    f7-sections
+   view-props
 
 
 DrawingML

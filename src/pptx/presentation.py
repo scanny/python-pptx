@@ -6,6 +6,7 @@ import re
 import uuid
 from typing import IO, TYPE_CHECKING, Iterable, Iterator, cast
 
+from pptx.enum.presentation import PP_VIEW_TYPE
 from pptx.shared import PartElementProxy
 from pptx.slide import SlideMasters, Slides
 from pptx.util import lazyproperty
@@ -17,8 +18,16 @@ if TYPE_CHECKING:
         CT_Section,
         CT_SlideId,
     )
+    from pptx.oxml.viewprops import (
+        CT_CommonSlideViewProperties,
+        CT_CommonViewProperties,
+        CT_OutlineViewProperties,
+        CT_SlideSorterViewProperties,
+        CT_ViewProperties,
+    )
     from pptx.parts.extprops import ExtendedPropertiesPart
     from pptx.parts.presentation import PresentationPart
+    from pptx.parts.viewprops import ViewPropsPart
     from pptx.slide import NotesMaster, Slide, SlideLayouts
     from pptx.util import Length
 
@@ -93,6 +102,48 @@ class Presentation(PartElementProxy):
         package does not already contain one.
         """
         return self.part.extended_properties
+
+    @property
+    def first_slide_num(self) -> int:
+        """Display number PowerPoint uses for the first slide (read/write).
+
+        Corresponds to ``p:presentation/@firstSlideNum`` and the "Number
+        slides from" field under *Design → Slide Size → Custom Slide
+        Size…*. Defaults to ``1`` when the attribute is absent (the
+        schema default). Setting it to ``1`` removes the attribute.
+
+        This controls slide-number *display only* (the slide-number
+        placeholder on each slide); it does not reorder slides. See
+        issue #94.
+        """
+        return self._element.firstSlideNum
+
+    @first_slide_num.setter
+    def first_slide_num(self, value: int) -> None:
+        if isinstance(
+            value, bool
+        ) or not isinstance(  # pyright: ignore[reportUnnecessaryIsInstance]
+            value, int
+        ):
+            raise TypeError("first_slide_num must be an int, got %s" % type(value).__name__)
+        self._element.firstSlideNum = value
+
+    @lazyproperty
+    def view_props(self) -> ViewProps:
+        """|ViewProps| accessor for the view-properties part of this package.
+
+        Provides read/write access to editor-view settings that PowerPoint
+        restores when the presentation is re-opened: the last-active view
+        (:attr:`ViewProps.view_type`), whether the comments pane is visible
+        (:attr:`ViewProps.show_comments`), the slide-sorter's
+        formatting toggle (:attr:`ViewProps.show_formatting`), and the
+        per-view zoom (:attr:`ViewProps.slide_view_zoom`,
+        :attr:`ViewProps.notes_view_zoom`, :attr:`ViewProps.outline_view_zoom`,
+        :attr:`ViewProps.sorter_view_zoom`). The underlying
+        ``ppt/viewProps.xml`` part is created lazily if the package does
+        not already contain one. See issue #94.
+        """
+        return ViewProps(self.part.package.view_props_part)
 
     def embed_font(
         self,
@@ -190,8 +241,7 @@ class Presentation(PartElementProxy):
         else:
             if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
                 raise TypeError(
-                    "seconds must be a non-negative number or None, got %s"
-                    % type(seconds).__name__
+                    "seconds must be a non-negative number or None, got %s" % type(seconds).__name__
                 )
             if seconds < 0:
                 raise ValueError(
@@ -856,3 +906,218 @@ class Section:
                 if self._prs_part.related_slide(sldId.rId) == slide:
                     return sldId.id
         raise ValueError("slide does not belong to the owning presentation")
+
+
+class ViewProps:
+    """Editor-view settings for a presentation — issue #94 MVP.
+
+    Wraps the ``p:viewPr`` element (``ppt/viewProps.xml``) and exposes the
+    most commonly-used fields: the last-active view (:attr:`view_type`),
+    the comments-pane toggle (:attr:`show_comments`), the slide-sorter's
+    text-formatting toggle (:attr:`show_formatting`), and the per-view
+    zoom properties (:attr:`slide_view_zoom`, :attr:`notes_view_zoom`,
+    :attr:`outline_view_zoom`, :attr:`sorter_view_zoom`).
+
+    Not constructed directly; obtain an instance via
+    :attr:`Presentation.view_props`. The underlying part is created
+    lazily the first time :attr:`Presentation.view_props` is read.
+
+    Raw :attr:`element` access is provided as an escape-hatch for callers
+    that need to read or write attributes that the MVP does not yet model
+    (e.g. ``showOutlineIcons`` on ``p:normalViewPr``).
+    """
+
+    def __init__(self, part: ViewPropsPart):
+        super().__init__()
+        self._part = part
+
+    @property
+    def element(self) -> CT_ViewProperties:
+        """The underlying ``p:viewPr`` lxml element (round-trip escape hatch)."""
+        return self._part._element  # pyright: ignore[reportPrivateUsage]
+
+    @property
+    def part(self) -> ViewPropsPart:
+        """The underlying |ViewPropsPart| (``ppt/viewProps.xml``)."""
+        return self._part
+
+    # -- `@lastView` on `p:viewPr` — which editor view PowerPoint will
+    # -- restore on the next open.
+
+    @property
+    def view_type(self) -> PP_VIEW_TYPE:
+        """The :class:`.PP_VIEW_TYPE` value of ``p:viewPr/@lastView``.
+
+        Defaults to :attr:`PP_VIEW_TYPE.NORMAL` (``sldView``) when the
+        attribute is absent, per the schema.
+        """
+        return PP_VIEW_TYPE.from_xml(self.element.lastView)
+
+    @view_type.setter
+    def view_type(self, value: PP_VIEW_TYPE) -> None:
+        if not isinstance(value, PP_VIEW_TYPE):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                "view_type must be a PP_VIEW_TYPE member, got %s" % type(value).__name__
+            )
+        xml_value = value.xml_value
+        if xml_value is None:
+            raise ValueError("PP_VIEW_TYPE member %r has no XML mapping" % value.name)
+        self.element.lastView = xml_value
+
+    # -- `@showComments` on `p:viewPr` — whether the comments pane is
+    # -- visible when PowerPoint opens the deck.
+
+    @property
+    def show_comments(self) -> bool:
+        """``bool`` value of ``p:viewPr/@showComments``. Defaults to ``True``."""
+        return self.element.showComments
+
+    @show_comments.setter
+    def show_comments(self, value: bool) -> None:
+        if not isinstance(value, bool):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError("show_comments must be a bool, got %s" % type(value).__name__)
+        self.element.showComments = value
+
+    # -- `@showFormatting` on `p:sorterViewPr` — whether slide-sorter
+    # -- thumbnails render text formatting.
+
+    @property
+    def show_formatting(self) -> bool:
+        """``bool`` value of ``p:sorterViewPr/@showFormatting``. Defaults to ``True``.
+
+        Controls whether slide-sorter thumbnails render text formatting.
+        Reading returns the schema default (``True``) when the
+        ``p:sorterViewPr`` element is absent.
+        """
+        sorter = self.element.sorterViewPr
+        if sorter is None:
+            return True
+        return sorter.showFormatting
+
+    @show_formatting.setter
+    def show_formatting(self, value: bool) -> None:
+        if not isinstance(value, bool):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError("show_formatting must be a bool, got %s" % type(value).__name__)
+        sorter = self.element.get_or_add_sorterViewPr()
+        sorter.showFormatting = value
+
+    # -- per-view zoom --
+
+    @property
+    def slide_view_zoom(self) -> float:
+        """Zoom of the slide-editing view as a ratio, e.g. ``1.0`` = 100%.
+
+        Reads ``p:slideViewPr/p:cSldViewPr/p:cViewPr/p:scale/a:sx``;
+        returns ``1.0`` when any element in the chain is absent.
+        """
+        slide_view = self.element.slideViewPr
+        if slide_view is None or slide_view.cSldViewPr is None:
+            return 1.0
+        cViewPr = slide_view.cSldViewPr.cViewPr
+        return _zoom_of(cViewPr)
+
+    @slide_view_zoom.setter
+    def slide_view_zoom(self, value: float) -> None:
+        _validate_zoom(value)
+        slide_view = self.element.get_or_add_slideViewPr()
+        cSldViewPr = slide_view.get_or_add_cSldViewPr()
+        _set_zoom_on(cSldViewPr, value)
+
+    @property
+    def notes_view_zoom(self) -> float:
+        """Zoom of the notes-page view as a ratio. See :attr:`slide_view_zoom`."""
+        notes_view = self.element.notesViewPr
+        if notes_view is None or notes_view.cSldViewPr is None:
+            return 1.0
+        return _zoom_of(notes_view.cSldViewPr.cViewPr)
+
+    @notes_view_zoom.setter
+    def notes_view_zoom(self, value: float) -> None:
+        _validate_zoom(value)
+        notes_view = self.element.get_or_add_notesViewPr()
+        cSldViewPr = notes_view.get_or_add_cSldViewPr()
+        _set_zoom_on(cSldViewPr, value)
+
+    @property
+    def outline_view_zoom(self) -> float:
+        """Zoom of the outline view as a ratio. See :attr:`slide_view_zoom`."""
+        outline_view = self.element.outlineViewPr
+        if outline_view is None:
+            return 1.0
+        return _zoom_of(outline_view.cViewPr)
+
+    @outline_view_zoom.setter
+    def outline_view_zoom(self, value: float) -> None:
+        _validate_zoom(value)
+        outline_view = self.element.get_or_add_outlineViewPr()
+        _set_zoom_on_cviewpr_parent(outline_view, value)
+
+    @property
+    def sorter_view_zoom(self) -> float:
+        """Zoom of the slide-sorter view as a ratio. See :attr:`slide_view_zoom`."""
+        sorter = self.element.sorterViewPr
+        if sorter is None:
+            return 1.0
+        return _zoom_of(sorter.cViewPr)
+
+    @sorter_view_zoom.setter
+    def sorter_view_zoom(self, value: float) -> None:
+        _validate_zoom(value)
+        sorter = self.element.get_or_add_sorterViewPr()
+        _set_zoom_on_cviewpr_parent(sorter, value)
+
+
+def _validate_zoom(value: float) -> None:
+    """Raise for any value that cannot be encoded as a ``CT_Ratio``."""
+    if isinstance(value, bool) or not isinstance(  # pyright: ignore[reportUnnecessaryIsInstance]
+        value, (int, float)
+    ):
+        raise TypeError("zoom must be a non-negative number, got %s" % type(value).__name__)
+    if value <= 0:
+        raise ValueError("zoom must be > 0, got %r" % (value,))
+
+
+def _zoom_of(cViewPr: CT_CommonViewProperties | None) -> float:
+    """Return the `float` zoom read from ``cViewPr/p:scale/a:sx``, or ``1.0``.
+
+    Returns ``1.0`` when `cViewPr` is |None| or when the ``p:scale`` child
+    is absent.
+    """
+    if cViewPr is None:
+        return 1.0
+    scale = cViewPr.scale
+    if scale is None:
+        return 1.0
+    return scale.zoom
+
+
+def _set_zoom_on(cSldViewPr: CT_CommonSlideViewProperties, value: float) -> None:
+    """Set `value` as the zoom on ``cSldViewPr/p:cViewPr/p:scale``."""
+    from pptx.oxml.viewprops import CT_CommonViewProperties as _CT_CVP
+
+    cViewPr = cSldViewPr.cViewPr
+    if cViewPr is None:
+        cViewPr = _CT_CVP.new_default()
+        cSldViewPr.append(cViewPr)
+    scale = cViewPr.get_or_add_scale()
+    scale.set_zoom(value)
+
+
+def _set_zoom_on_cviewpr_parent(
+    parent: CT_OutlineViewProperties | CT_SlideSorterViewProperties,
+    value: float,
+) -> None:
+    """Set zoom on a view element that carries a direct ``p:cViewPr`` child.
+
+    Used for ``p:outlineViewPr`` and ``p:sorterViewPr``, which wrap
+    ``p:cViewPr`` directly (unlike ``p:slideViewPr`` / ``p:notesViewPr``
+    which go through an intermediate ``p:cSldViewPr``).
+    """
+    from pptx.oxml.viewprops import CT_CommonViewProperties as _CT_CVP
+
+    cViewPr = parent.cViewPr
+    if cViewPr is None:
+        cViewPr = _CT_CVP.new_default()
+        parent.append(cViewPr)
+    scale = cViewPr.get_or_add_scale()
+    scale.set_zoom(value)
