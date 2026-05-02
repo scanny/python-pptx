@@ -145,6 +145,21 @@ Unreleased
   runs), and save+reopen round-trips of placeholder, table-cell, and
   theme-coloured scenarios to cover #765's "read after loading" framing.
 
+- fix: #740 ``_Paragraph.font.size`` (and every other paragraph-level default
+  run-property assignment) no longer lands in the wrong position when the
+  paragraph already contains an ``a:br`` line-break. The ``a:pPr`` insertion
+  walked the declared successor list tag-by-tag, returning the first
+  successor type that was present rather than the earliest-positioned
+  child. When ``paragraph.text = "\nHello"`` ran before
+  ``paragraph.font.size = Pt(24)``, the paragraph already contained
+  ``[a:br, a:r]``; ``a:pPr`` would then be inserted *after* ``a:br`` (the
+  first ``a:r`` being found before the first ``a:br`` in the successor
+  tuple), producing ``<a:p><a:br/><a:pPr/>…</a:p>``. PowerPoint silently
+  discards the out-of-order ``a:pPr`` on load, so the caller's font size
+  vanished. ``BaseOxmlElement.insert_element_before`` now picks the
+  earliest existing child whose tag is in the successor set, preserving
+  schema order regardless of which successor types are present.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
