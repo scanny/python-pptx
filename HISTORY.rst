@@ -3,6 +3,17 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #652 Errors when loading a SVG image into a picture placeholder.
+  ``SlideShapes.add_picture()`` and ``PicturePlaceholder.insert_picture()``
+  now detect SVG content in the incoming image and raise the new
+  ``pptx.exc.UnsupportedImageTypeError`` with a message pointing the caller
+  at the pre-rasterize workaround. Previously, an opaque
+  ``PIL.UnidentifiedImageError`` bubbled up from Pillow. See the new
+  "Inserting SVG images" section of the user guide.
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

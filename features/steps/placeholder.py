@@ -11,6 +11,7 @@ from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+from pptx.exc import UnsupportedImageTypeError
 from pptx.shapes.base import _PlaceholderFormat
 
 # given ===================================================
@@ -138,9 +139,16 @@ def when_I_call_placeholder_insert_chart(context):
 def when_I_call_placeholder_insert_picture(context, filename):
     placeholder = context.shape
     path = test_file(filename)
-    with open(path, "rb") as f:
-        context.image_sha1 = hashlib.sha1(f.read()).hexdigest()
-    context.placeholder = placeholder.insert_picture(path)
+    try:
+        with open(path, "rb") as f:
+            context.image_sha1 = hashlib.sha1(f.read()).hexdigest()
+    except OSError:
+        context.image_sha1 = None
+    context.insert_picture_exc = None
+    try:
+        context.placeholder = placeholder.insert_picture(path)
+    except Exception as exc:  # noqa: BLE001 — later `then` step asserts on type
+        context.insert_picture_exc = exc
 
 
 @when("I call placeholder.insert_table(rows=2, cols=3)")
@@ -310,3 +318,17 @@ def step_then_text_appears_in_title_placeholder(context):
     title_shape = prs.slides[0].shapes.title
     title_text = title_shape.text_frame.paragraphs[0].runs[0].text
     assert title_text == test_text
+
+
+@then("it raises UnsupportedImageTypeError mentioning rasterization")
+def then_it_raises_unsupported_image_type_error(context):
+    exc = getattr(context, "insert_picture_exc", None)
+    assert exc is not None, "insert_picture unexpectedly returned without raising"
+    assert isinstance(exc, UnsupportedImageTypeError), (
+        "expected UnsupportedImageTypeError, got %s: %s" % (type(exc).__name__, exc)
+    )
+    message = str(exc).lower()
+    assert "svg" in message, "expected message to mention SVG, got: %s" % exc
+    assert "rasterize" in message or "raster" in message, (
+        "expected message to mention rasterization, got: %s" % exc
+    )

@@ -31,3 +31,9 @@ Feature: Insert a shape into a placeholder
       Then the return value is a PlaceholderGraphicFrame object
        And the placeholder contains the chart
        And the chart is a pie chart
+
+
+  Scenario: Insert an SVG image into a picture placeholder raises a clear error
+     Given an unpopulated picture placeholder shape
+      When I call placeholder.insert_picture('logo.svg')
+      Then it raises UnsupportedImageTypeError mentioning rasterization
