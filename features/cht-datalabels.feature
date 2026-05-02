@@ -141,6 +141,13 @@ Feature: Access and modify data labels properties
       | inside-base | OUTSIDE_END | OUTSIDE_END    |
       | inside-base | None        | None           |
 
+  Scenario: DataLabels.format exposes fill and line for color customization
+    Given a DataLabels object with inherited position as data_labels
+     Then data_labels.format is a ChartFormat object
+      And data_labels.format.fill is a FillFormat object
+      And data_labels.format.line is a LineFormat object
+
+
   Scenario: DataLabels.text_frame returns a TextFrame wrapping c:dLbls/c:txPr
     Given a DataLabels object with inherited position as data_labels
      Then data_labels.text_frame is a TextFrame object
