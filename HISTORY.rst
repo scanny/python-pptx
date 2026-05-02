@@ -9,6 +9,14 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- docs: F4 foundation + #583 scaffold — design analysis for the chartex
+  (``cx:``) namespace at ``docs/dev/analysis/chartex-foundation.rst``,
+  documenting the content type, relationship type, part class, OXML element
+  hierarchy, ``XL_CHART_TYPE`` layoutId mapping, and spec references
+  required before Office 2016+ extended chart types (funnel, treemap,
+  sunburst, waterfall, histogram, box-and-whisker, map) can be created or
+  read in detail. Companion to #386 (chartex passthrough) which ships the
+  ``UNSUPPORTED_CHARTEX`` sentinel.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and

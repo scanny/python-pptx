@@ -148,6 +148,7 @@ Package
    pkg-svg-picture
    enumerations
    opc-rel-cloner
+   chartex-foundation
 
 
 Major discovery sources
