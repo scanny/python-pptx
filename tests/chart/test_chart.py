@@ -1219,6 +1219,80 @@ class DescribeChartTitle(object):
         TextFrame_.assert_called_once_with(chart_title._element.tx.rich, chart_title)
         assert text_frame is text_frame_
 
+    @pytest.mark.parametrize(
+        ("title_cxml", "expected_value"),
+        [
+            ("c:title", None),
+            ("c:title/c:layout", None),
+            ("c:title/c:layout/c:manualLayout", None),
+            (
+                "c:title/c:layout/c:manualLayout/(c:x{val=0.3},c:y{val=0.4})",
+                None,
+            ),
+            (
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode,c:x{val=0.25},c:y{val=0.5})",
+                None,
+            ),
+            (
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.25},c:y{val=0.5})",
+                (0.25, 0.5),
+            ),
+            (
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode{val=edge},c:yMode,c:x{val=0.1},c:y{val=0.2})",
+                None,
+            ),
+        ],
+    )
+    def it_knows_its_position(self, title_cxml, expected_value):
+        chart_title = ChartTitle(element(title_cxml))
+        assert chart_title.position == expected_value
+
+    @pytest.mark.parametrize(
+        ("title_cxml", "value", "expected_cxml"),
+        [
+            (
+                "c:title",
+                (0.3, 0.5),
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.5})",
+            ),
+            (
+                "c:title/c:overlay{val=0}",
+                (0.0, 0.0),
+                "c:title/(c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.0},c:y{val=0.0}),c:overlay{val=0})",
+            ),
+            (
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.2})",
+                (0.7, 0.8),
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.7},c:y{val=0.8})",
+            ),
+            (
+                "c:title/c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.2})",
+                None,
+                "c:title",
+            ),
+            ("c:title", None, "c:title"),
+        ],
+    )
+    def it_can_change_its_position(self, title_cxml, value, expected_cxml):
+        chart_title = ChartTitle(element(title_cxml))
+        chart_title.position = value
+        assert chart_title._element.xml == xml(expected_cxml)
+
+    def it_raises_on_invalid_position_assignment(self):
+        chart_title = ChartTitle(element("c:title"))
+        with pytest.raises(ValueError):
+            chart_title.position = (0.5,)
+        with pytest.raises(ValueError):
+            chart_title.position = 0.5
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
