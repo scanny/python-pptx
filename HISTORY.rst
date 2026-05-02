@@ -6,6 +6,24 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #259 custom document properties. Adds
+  ``Presentation.custom_properties`` as a dict-like accessor for the
+  ``/docProps/custom.xml`` OPC part (the "Custom" tab of PowerPoint's
+  Document-Properties dialog and the store a ``{ DOCPROPERTY }`` field
+  code reads from). Supports get / set / delete / ``__contains__`` /
+  ``__iter__`` / ``keys`` / ``items`` / ``values`` / ``update`` /
+  ``clear`` / ``pop`` / ``setdefault``; value types ``str`` /
+  ``int`` (32-bit signed) / ``float`` / ``bool`` / ``datetime.datetime``
+  are serialized as ``vt:lpwstr`` / ``vt:i4`` / ``vt:r8`` / ``vt:bool``
+  / ``vt:filetime`` respectively. New ``CustomPropertiesPart``
+  (``src/pptx/parts/customprops.py``) and ``CT_CustomProperties``
+  (``src/pptx/oxml/custprops.py``) mirror the Wave-2 #131
+  ``ExtendedPropertiesPart`` pattern. Reads against a package with no
+  custom-properties part are no-ops; writes create the part lazily so a
+  presentation that doesn't use custom properties round-trips without
+  gaining a stray ``docProps/custom.xml`` entry. Regression suite in
+  ``tests/test_issue_259_custom_properties.py`` plus unit coverage in
+  ``tests/oxml/test_custprops.py`` and ``tests/parts/test_customprops.py``.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
