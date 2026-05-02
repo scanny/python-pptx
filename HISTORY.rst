@@ -6,6 +6,12 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #309 look up slide shapes by name. Adds
+  ``SlideShapes.get_by_name(name)`` which returns the first shape in the
+  slide whose ``@name`` matches (or |None| when none do) and
+  ``SlideShapes.find_all_by_name(name)`` which returns every matching
+  shape in z-order. An explicit method pair was chosen over overloading
+  ``__getitem__`` with a string key to keep indexed access unambiguous.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
