@@ -103,6 +103,7 @@ Shape
    omml-parsing
    placeholders/index
    shp-preset-geom
+   f9-smartart
 
 
 Text

@@ -14,6 +14,20 @@ Unreleased
   ``Sections.remove``, ``Sections.get_by_id``, ``Sections.get_by_name``,
   and per-section ``Section.name``, ``Section.id`` (GUID), ``Section.slides``,
   ``Section.add_slide``, and ``Section.remove_slide``.
+- Foundation: SmartArt scaffolding (F9 — MVP). Surfaces SmartArt graphic
+  frames in ``slide.shapes`` via new ``GraphicFrame.has_smart_art``,
+  ``GraphicFrame.smart_art``, and ``shape_type ==
+  MSO_SHAPE_TYPE.IGX_GRAPHIC`` branches, plus a ``SmartArt`` proxy
+  exposing the four interlinked parts (``data_xml`` / ``layout_xml`` /
+  ``colors_xml`` / ``quick_style_xml``) as read-only raw bytes. Adds
+  ``GRAPHIC_DATA_URI_SMART_ART`` spec constant, the ``dgm:`` namespace,
+  and a ``CT_DgmRelIds`` oxml class for the four-rId child of
+  ``a:graphicData``. Round-trip preservation of the diagramData /
+  diagramLayout / diagramColors / diagramQuickStyle parts is automatic
+  via the ``PartFactory`` fallthrough. Structured node-tree authoring
+  and layout selection are out of scope for this foundation and remain
+  open under #83; see ``docs/dev/analysis/f9-smartart.rst`` for the
+  per-subsystem roadmap.
 - Foundation: animations/transitions XML layer (F8 — MVP). Adds element
   classes for ``p:timing`` / ``p:tnLst`` / ``p:par`` / ``p:seq`` / ``p:cTn``
   and the ``p:transition`` subtree (including the ``p14:morph`` Office 2010
