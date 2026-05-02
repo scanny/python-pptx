@@ -1015,6 +1015,7 @@ refresh helpers.
 from pptx import Presentation
 from pptx.util import Inches
 from pptx.chart.data import CategoryChartData, XyChartData
+from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 
 prs = Presentation()
@@ -1038,6 +1039,21 @@ line_data = CategoryChartData()
 line_data.categories = ["Q1", "Q2", "Q3", "Q4"]
 line_data.add_series("Target", (11, 12, 12, 13))
 chart.add_plot(XL_CHART_TYPE.LINE, line_data)
+
+# series lines on a stacked column plot (connects segment tops across series)
+stacked_data = CategoryChartData()
+stacked_data.categories = ["Q1", "Q2", "Q3"]
+stacked_data.add_series("2023", (1, 2, 3))
+stacked_data.add_series("2024", (2, 3, 4))
+stacked_slide = prs.slides.add_slide(prs.slide_layouts[6])
+stacked_chart = stacked_slide.shapes.add_chart(
+    XL_CHART_TYPE.COLUMN_STACKED,
+    Inches(1), Inches(1), Inches(6), Inches(3),
+    stacked_data,
+).chart
+stacked_plot = stacked_chart.plots[0]
+stacked_plot.has_series_lines = True
+stacked_plot.series_lines.format.line.color.rgb = RGBColor(0xFF, 0x00, 0x00)
 
 # chart style (plain 1..48 or extended 49..255 via c14:style)
 chart.chart_style = 6
@@ -1104,6 +1120,8 @@ prs.save("out.pptx")
 - `Series.values` / `Series.categories` / `Series.name` / `Series.format` / `Series.marker` / `Series.points`.
 - `Series.has_error_bars` / `Series.error_bars` / `Series.set_error_bars(type, amount, include, direction)` — Error bars (fixed value / percentage / std deviation / std error). `[Added in 1.0.2.dev0]`
 - `Series.trendlines` / `Series.add_trendline(trendline_type, order, period, forward, backward, intercept, display_equation, display_r_squared)` / `Trendline.delete()` — Fitted-curve overlays on a series: linear / logarithmic / polynomial (order 2..6) / power / exponential / moving-average. Each trendline exposes `.trendline_type`, `.order`, `.period`, `.forward`, `.backward`, `.intercept`, `.display_equation`, `.display_r_squared`, `.name`, and `.format` (a `ChartFormat` for fill / line / shadow). `[Added in 1.0.2.dev0]`
+- `BarPlot.gap_width` / `BarPlot.overlap` — Bar / column spacing and overlap (integer percentage of bar width).
+- `BarPlot.has_series_lines` / `BarPlot.series_lines` — Read/write boolean and `SeriesLines` accessor for series lines (`c:serLines`) on a stacked bar or stacked column plot; `plot.series_lines.format` returns a `ChartFormat` so the connecting line's color, width, and dash style are configured through the familiar `.format.line` API. Setting `has_series_lines = False` removes the element. `[Added in 1.0.2.dev0]`
 - `Point.format` / `Point.marker` / `Point.data_label` / `Point.invert_if_negative` — Per-point formatting.
 - `DataLabel.text_frame` / `DataLabel.font` / `DataLabel.position` / `DataLabel.show_*`.
 - `DataLabel.format` — `ChartFormat` wrapping this single `c:dLbl` with `.fill` / `.line` / `.shadow`. `[Added in 1.0.2.dev0]`

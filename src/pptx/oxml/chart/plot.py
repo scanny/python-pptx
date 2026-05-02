@@ -166,6 +166,7 @@ class CT_BarChart(BaseChartElement):
     dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[5:])
     gapWidth = ZeroOrOne("c:gapWidth", successors=_tag_seq[6:])
     overlap = ZeroOrOne("c:overlap", successors=_tag_seq[7:])
+    serLines = ZeroOrOne("c:serLines", successors=_tag_seq[8:])
     del _tag_seq
 
     @property

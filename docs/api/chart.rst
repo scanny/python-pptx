@@ -174,6 +174,20 @@ The following properties are only present on bubble-type plots.
    :undoc-members:
 
 
+|SeriesLines| objects
+~~~~~~~~~~~~~~~~~~~~~
+
+A |SeriesLines| object provides access to the formatting of series lines
+on a bar or column plot. Series lines connect segment tops across adjacent
+series in a stacked bar / stacked column chart, making segment-to-segment
+change easier to compare visually.
+
+.. autoclass:: pptx.chart.plot.SeriesLines()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |category.Categories| objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

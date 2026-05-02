@@ -9,9 +9,11 @@ from __future__ import annotations
 from pptx.chart.category import Categories
 from pptx.chart.datalabel import DataLabels
 from pptx.chart.series import SeriesCollection
+from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE as XL
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_BarDir, ST_Grouping
+from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
 
 
@@ -145,6 +147,40 @@ class BarPlot(_BasePlot):
         gapWidth.val = value
 
     @property
+    def has_series_lines(self):
+        """Read/write |bool| specifying whether this plot has series lines.
+
+        Series lines connect the tops of stacked bars or columns across
+        series, making it easier to compare segment-to-segment change in a
+        stacked bar or stacked column chart. Assigning |True| adds a
+        ``c:serLines`` element (if not already present). Assigning |False|
+        removes any existing ``c:serLines`` element.
+
+        Series lines only render in PowerPoint on stacked and 100%-stacked
+        bar/column plots; the XML element is accepted but ignored on
+        clustered plots.
+        """
+        return self._element.serLines is not None
+
+    @has_series_lines.setter
+    def has_series_lines(self, value):
+        if bool(value) is False:
+            self._element._remove_serLines()
+        else:
+            self._element.get_or_add_serLines()
+
+    @lazyproperty
+    def series_lines(self):
+        """|SeriesLines| object providing access to series-line formatting.
+
+        Accessing this property is destructive in the sense that it adds
+        a ``c:serLines`` child to the plot XML if one is not already
+        present. Use :attr:`has_series_lines` to test for presence of
+        series lines non-destructively.
+        """
+        return SeriesLines(self._element)
+
+    @property
     def overlap(self):
         """
         Read/write int value in range -100..100 specifying a percentage of
@@ -225,6 +261,33 @@ class XyPlot(_BasePlot):
     """
     An XY (scatter) plot.
     """
+
+
+class SeriesLines(ElementProxy):
+    """Provides access to the formatting of series lines on a bar plot.
+
+    Series lines connect segment tops across adjacent series in a stacked
+    bar or stacked column chart. A |SeriesLines| instance is returned by
+    :attr:`BarPlot.series_lines`. Its :attr:`format` attribute gives a
+    |ChartFormat| for line color / width / dash style via
+    ``format.line``.
+    """
+
+    def __init__(self, xChart):
+        super(SeriesLines, self).__init__(xChart)
+        self._xChart = xChart  # c:barChart element
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| proxy for the ``c:serLines`` element.
+
+        Provides ``format.line`` and ``format.fill`` access to the
+        series-line visual properties (the ``c:spPr`` child of
+        ``c:serLines``). Accessing this property adds a ``c:serLines``
+        child to the plot if one is not already present.
+        """
+        serLines = self._xChart.get_or_add_serLines()
+        return ChartFormat(serLines)
 
 
 def PlotFactory(xChart, chart):

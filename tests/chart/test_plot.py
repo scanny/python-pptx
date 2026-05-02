@@ -20,10 +20,12 @@ from pptx.chart.plot import (
     PlotFactory,
     PlotTypeInspector,
     RadarPlot,
+    SeriesLines,
     XyPlot,
     _BasePlot,
 )
 from pptx.chart.series import SeriesCollection
+from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE as XL
 
 from ..unitutil.cxml import element, xml
@@ -222,6 +224,21 @@ class DescribeBarPlot(object):
         bar_plot.overlap = new_value
         assert bar_plot._element.xml == expected_xml
 
+    def it_knows_whether_it_has_series_lines(self, has_series_lines_get_fixture):
+        bar_plot, expected_value = has_series_lines_get_fixture
+        assert bar_plot.has_series_lines is expected_value
+
+    def it_can_change_whether_it_has_series_lines(self, has_series_lines_set_fixture):
+        bar_plot, new_value, expected_xml = has_series_lines_set_fixture
+        bar_plot.has_series_lines = new_value
+        assert bar_plot._element.xml == expected_xml
+
+    def it_provides_access_to_its_series_lines(self, series_lines_fixture):
+        bar_plot, SeriesLines_, barChart, series_lines_ = series_lines_fixture
+        series_lines = bar_plot.series_lines
+        SeriesLines_.assert_called_once_with(barChart)
+        assert series_lines is series_lines_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -277,6 +294,53 @@ class DescribeBarPlot(object):
         bar_plot = BarPlot(element(barChart_cxml), None)
         expected_xml = xml(expected_barChart_cxml)
         return bar_plot, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("c:barChart", False),
+            ("c:barChart/c:serLines", True),
+            ("c:barChart/(c:gapWidth,c:overlap,c:serLines)", True),
+        ]
+    )
+    def has_series_lines_get_fixture(self, request):
+        barChart_cxml, expected_value = request.param
+        bar_plot = BarPlot(element(barChart_cxml), None)
+        return bar_plot, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:barChart", True, "c:barChart/c:serLines"),
+            ("c:barChart/c:serLines", True, "c:barChart/c:serLines"),
+            ("c:barChart/c:serLines", False, "c:barChart"),
+            ("c:barChart", False, "c:barChart"),
+            (
+                "c:barChart/(c:gapWidth,c:overlap)",
+                True,
+                "c:barChart/(c:gapWidth,c:overlap,c:serLines)",
+            ),
+        ]
+    )
+    def has_series_lines_set_fixture(self, request):
+        barChart_cxml, new_value, expected_cxml = request.param
+        bar_plot = BarPlot(element(barChart_cxml), None)
+        expected_xml = xml(expected_cxml)
+        return bar_plot, new_value, expected_xml
+
+    @pytest.fixture
+    def series_lines_fixture(self, request, SeriesLines_, series_lines_):
+        barChart = element("c:barChart")
+        bar_plot = BarPlot(barChart, None)
+        return bar_plot, SeriesLines_, barChart, series_lines_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def SeriesLines_(self, request, series_lines_):
+        return class_mock(request, "pptx.chart.plot.SeriesLines", return_value=series_lines_)
+
+    @pytest.fixture
+    def series_lines_(self, request):
+        return instance_mock(request, SeriesLines)
 
 
 class DescribeBubblePlot(object):
@@ -473,3 +537,36 @@ class DescribePlotTypeInspector(object):
         xChart_cxml, expected_chart_type = request.param
         plot = PlotFactory(element(xChart_cxml), None)
         return plot, expected_chart_type
+
+
+class DescribeSeriesLines(object):
+    def it_provides_access_to_its_format(self, format_fixture):
+        series_lines, expected_xml, ChartFormat_, format_ = format_fixture
+        format = series_lines.format
+        assert series_lines._xChart.xml == expected_xml
+        ChartFormat_.assert_called_once_with(series_lines._xChart.xpath("c:serLines")[0])
+        assert format is format_
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture(
+        params=[
+            ("c:barChart", "c:barChart/c:serLines"),
+            ("c:barChart/c:serLines", "c:barChart/c:serLines"),
+        ]
+    )
+    def format_fixture(self, request, ChartFormat_, format_):
+        barChart_cxml, expected_cxml = request.param
+        series_lines = SeriesLines(element(barChart_cxml))
+        expected_xml = xml(expected_cxml)
+        return series_lines, expected_xml, ChartFormat_, format_
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, format_):
+        return class_mock(request, "pptx.chart.plot.ChartFormat", return_value=format_)
+
+    @pytest.fixture
+    def format_(self, request):
+        return instance_mock(request, ChartFormat)
