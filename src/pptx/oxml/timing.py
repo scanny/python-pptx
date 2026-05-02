@@ -30,10 +30,20 @@ Key design notes:
   use case. The remaining 20 attributes specified on the type in
   pml.xsd are preserved by lxml automatically but are not surfaced as
   Python descriptors yet.
+* Issue #861 extends ``CT_TLCommonTimeNodeData`` with ``stCondLst`` /
+  ``endCondLst`` child descriptors and a convenience ``delay`` property
+  that reads/writes the ``p:cond/@delay`` attribute on the first
+  ``p:stCondLst/p:cond`` child. PowerPoint canonically emits a single
+  ``p:cond`` per ``p:stCondLst`` for click / with-previous / after-previous
+  triggers, so the convenience targets that common case. New
+  ``CT_TLTimeCondition`` and ``CT_TLTimeConditionList`` classes surface
+  the schema types so downstream work on full animation trees (#102,
+  #264, #1106) can build on them.
 """
 
 from __future__ import annotations
 
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.simpletypes import BaseSimpleType, XsdString, XsdUnsignedInt
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -152,14 +162,35 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
     #861 / #376). The remaining 21 attributes round-trip transparently
     through lxml.
 
+    Issue #861 additionally surfaces the ``p:stCondLst`` and
+    ``p:endCondLst`` children plus a convenience :attr:`delay` property
+    that reads/writes the start-delay (in ms, or ``"indefinite"``) on the
+    first ``p:stCondLst/p:cond`` child. PowerPoint canonically emits a
+    single ``p:cond`` inside ``p:stCondLst`` so this convenience covers
+    the overwhelming majority of real-world animation trees.
+
     Downstream extension points (see the F8 analysis doc):
 
     * #102 / #1106: add per-effect presetID / presetClass / presetSubtype
       descriptors so entrance/exit presets can be authored.
-    * #861: surface ``stCondLst`` / ``endCondLst`` for delay read/write.
+    * #264: expose full ``p:cond`` list semantics (multiple conditions,
+      ``@evt``, and the ``tgtEl`` / ``tn`` / ``rtn`` choice child) for
+      click vs with-previous vs after-previous triggers.
     * #954: wrap in ``mc:AlternateContent`` for PowerPoint 2010+
       extensibility.
     """
+
+    _tag_seq = (
+        "p:stCondLst",
+        "p:endCondLst",
+        "p:endSync",
+        "p:iterate",
+        "p:childTnLst",
+        "p:subTnLst",
+    )
+    stCondLst = ZeroOrOne("p:stCondLst", successors=_tag_seq[1:])
+    endCondLst = ZeroOrOne("p:endCondLst", successors=_tag_seq[2:])
+    del _tag_seq
 
     id: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "id", XsdUnsignedInt
@@ -168,6 +199,59 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         "nodeType", XsdString
     )
     dur = OptionalAttribute("dur", ST_TLTime)
+
+    @property
+    def delay(self):
+        """Start-delay of this time node, or ``None`` when unspecified.
+
+        Reads the ``@delay`` attribute of the first ``p:cond`` child of
+        ``p:stCondLst``. The value is an ``int`` (milliseconds) or the
+        sentinel string ``"indefinite"`` when the animation waits for an
+        external trigger (e.g. a click).
+
+        Returns ``None`` when no ``p:stCondLst`` is present, when it has
+        no ``p:cond`` child, or when the first ``p:cond`` has no
+        ``@delay`` attribute.
+        """
+        stCondLst = self.stCondLst
+        if stCondLst is None:
+            return None
+        conds = stCondLst.findall(qn("p:cond"))
+        if not conds:
+            return None
+        return conds[0].delay
+
+    @delay.setter
+    def delay(self, value):
+        """Write the start-delay for this time node.
+
+        Setting ``None`` clears the ``@delay`` attribute on the first
+        ``p:cond`` child of ``p:stCondLst`` (but leaves the ``p:cond``
+        and ``p:stCondLst`` in place — they may carry ``@evt`` or other
+        attributes a caller wants to preserve). If no ``p:stCondLst`` /
+        ``p:cond`` exists, setting ``None`` is a no-op.
+
+        Setting an ``int`` (milliseconds, must be non-negative) or the
+        string ``"indefinite"`` writes that value, adding a
+        ``p:stCondLst`` and a blank ``p:cond`` child as needed.
+        """
+        if value is None:
+            stCondLst = self.stCondLst
+            if stCondLst is None:
+                return
+            conds = stCondLst.findall(qn("p:cond"))
+            if not conds:
+                return
+            conds[0].delay = None
+            return
+        ST_TLTime.validate(value)
+        stCondLst = self.get_or_add_stCondLst()
+        conds = stCondLst.findall(qn("p:cond"))
+        if not conds:
+            cond = stCondLst.add_cond()
+        else:
+            cond = conds[0]
+        cond.delay = value
 
 
 class CT_TLTimeNodeParallel(BaseOxmlElement):
@@ -200,3 +284,57 @@ class CT_TLTimeNodeSequence(BaseOxmlElement):
     prevCondLst = ZeroOrOne("p:prevCondLst", successors=_tag_seq[2:])
     nextCondLst = ZeroOrOne("p:nextCondLst", successors=())
     del _tag_seq
+
+
+class CT_TLTimeCondition(BaseOxmlElement):
+    """`p:cond` element — a single time condition.
+
+    Schema excerpt (from pml.xsd ``CT_TLTimeCondition``)::
+
+        <xsd:choice minOccurs="0" maxOccurs="1">
+          <xsd:element name="tgtEl" .../>
+          <xsd:element name="tn"    .../>
+          <xsd:element name="rtn"   .../>
+        </xsd:choice>
+        <xsd:attribute name="evt"   type="ST_TLTriggerEvent" .../>
+        <xsd:attribute name="delay" type="ST_TLTime" .../>
+
+    Issue #861 surfaces ``delay`` (as an :class:`ST_TLTime` value —
+    ``int`` milliseconds or the string ``"indefinite"``) and ``evt``
+    (as a plain string — the enumerated values live in pml.xsd's
+    ``ST_TLTriggerEvent`` but are not validated here because the full
+    event-name catalog is only needed by the higher-level animation
+    API planned for #264 / #1106).
+
+    The choice-child (``p:tgtEl`` / ``p:tn`` / ``p:rtn``) is not
+    surfaced here — it round-trips via lxml's default element handling.
+    """
+
+    delay = OptionalAttribute("delay", ST_TLTime)
+    evt: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "evt", XsdString
+    )
+
+
+class CT_TLTimeConditionList(BaseOxmlElement):
+    """`p:stCondLst` / `p:endCondLst` element — ordered list of conditions.
+
+    Holds one or more ``p:cond`` children (``minOccurs=1`` per the
+    schema, but like the rest of the F8 MVP we tolerate empty lists so
+    unit-test fixtures can construct one incrementally).
+
+    The :meth:`add_cond` helper appends a new empty ``p:cond`` and
+    returns it, for callers that want to build a condition imperatively.
+    """
+
+    def add_cond(self):
+        """Append a new empty ``p:cond`` child and return it.
+
+        The new element has no attributes and no child — callers assign
+        ``@delay`` / ``@evt`` / choice-child afterwards.
+        """
+        from pptx.oxml import parse_xml
+
+        cond = parse_xml("<p:cond %s/>" % nsdecls("p"))
+        self.append(cond)
+        return cond

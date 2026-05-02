@@ -8,6 +8,8 @@ from pptx.oxml.timing import (
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLCommonTimeNodeData,
+    CT_TLTimeCondition,
+    CT_TLTimeConditionList,
     CT_TLTimeNodeParallel,
     CT_TLTimeNodeSequence,
     ST_TLTime,
@@ -117,6 +119,140 @@ class DescribeCT_TLCommonTimeNodeData(object):
     def and_dur_is_None_when_absent(self):
         cTn = element("p:cTn")
         assert cTn.dur is None
+
+    # -- stCondLst / endCondLst descriptors (#861) -------------------
+
+    def it_exposes_an_optional_stCondLst_child(self):
+        cTn = element("p:cTn/p:stCondLst")
+        assert cTn.stCondLst is not None
+
+    def and_stCondLst_is_None_when_absent(self):
+        cTn = element("p:cTn")
+        assert cTn.stCondLst is None
+
+    def it_exposes_an_optional_endCondLst_child(self):
+        cTn = element("p:cTn/p:endCondLst")
+        assert cTn.endCondLst is not None
+
+    # -- delay read ---------------------------------------------------
+
+    def it_reads_delay_from_the_first_stCondLst_cond(self):
+        cTn = element("p:cTn/p:stCondLst/p:cond{delay=500}")
+        assert cTn.delay == 500
+
+    def and_reads_indefinite_delay_as_string(self):
+        cTn = element("p:cTn/p:stCondLst/p:cond{delay=indefinite}")
+        assert cTn.delay == "indefinite"
+
+    def and_delay_is_None_when_stCondLst_is_absent(self):
+        cTn = element("p:cTn")
+        assert cTn.delay is None
+
+    def and_delay_is_None_when_stCondLst_has_no_cond(self):
+        cTn = element("p:cTn/p:stCondLst")
+        assert cTn.delay is None
+
+    def and_delay_is_None_when_cond_has_no_delay_attr(self):
+        cTn = element("p:cTn/p:stCondLst/p:cond{evt=onClick}")
+        assert cTn.delay is None
+
+    # -- delay write --------------------------------------------------
+
+    def it_writes_delay_by_adding_stCondLst_and_cond(self):
+        cTn = element("p:cTn")
+        cTn.delay = 1000
+        assert cTn.delay == 1000
+        assert cTn.stCondLst is not None
+
+    def and_writes_indefinite_delay(self):
+        cTn = element("p:cTn")
+        cTn.delay = "indefinite"
+        assert cTn.delay == "indefinite"
+
+    def and_overwrites_an_existing_delay_without_adding_a_new_cond(self):
+        cTn = element("p:cTn/p:stCondLst/p:cond{delay=500,evt=onClick}")
+        cTn.delay = 2000
+        assert cTn.delay == 2000
+        # -- @evt on the existing cond is preserved (we mutated, not appended) --
+        from pptx.oxml.ns import qn
+
+        conds = cTn.stCondLst.findall(qn("p:cond"))
+        assert len(conds) == 1
+        assert conds[0].evt == "onClick"
+
+    def and_setting_None_clears_the_delay_attribute_in_place(self):
+        cTn = element("p:cTn/p:stCondLst/p:cond{delay=500,evt=onClick}")
+        cTn.delay = None
+        assert cTn.delay is None
+        # -- cond itself is retained so caller-set @evt survives --
+        from pptx.oxml.ns import qn
+
+        conds = cTn.stCondLst.findall(qn("p:cond"))
+        assert len(conds) == 1
+        assert conds[0].evt == "onClick"
+
+    def and_setting_None_is_a_no_op_when_no_stCondLst_is_present(self):
+        cTn = element("p:cTn")
+        cTn.delay = None
+        assert cTn.stCondLst is None
+
+    def it_rejects_negative_int_delay(self):
+        cTn = element("p:cTn")
+        with pytest.raises(ValueError, match="non-negative"):
+            cTn.delay = -1
+
+    def and_rejects_non_int_non_indefinite_delay(self):
+        cTn = element("p:cTn")
+        with pytest.raises(ValueError, match="non-negative"):
+            cTn.delay = "soon"
+
+
+class DescribeCT_TLTimeCondition(object):
+    """Unit-test suite for `pptx.oxml.timing.CT_TLTimeCondition`."""
+
+    def it_is_used_for_p_cond(self):
+        cond = element("p:cond")
+        assert isinstance(cond, CT_TLTimeCondition)
+
+    def it_reads_its_delay_attribute_as_int(self):
+        cond = element("p:cond{delay=750}")
+        assert cond.delay == 750
+
+    def and_reads_indefinite_delay_as_string(self):
+        cond = element("p:cond{delay=indefinite}")
+        assert cond.delay == "indefinite"
+
+    def and_delay_is_None_when_absent(self):
+        cond = element("p:cond")
+        assert cond.delay is None
+
+    def it_writes_its_delay_attribute(self):
+        cond = element("p:cond")
+        cond.delay = 250
+        assert cond.delay == 250
+
+    def it_reads_its_evt_attribute(self):
+        cond = element("p:cond{evt=onClick}")
+        assert cond.evt == "onClick"
+
+
+class DescribeCT_TLTimeConditionList(object):
+    """Unit-test suite for `pptx.oxml.timing.CT_TLTimeConditionList`."""
+
+    def it_is_used_for_p_stCondLst(self):
+        stCondLst = element("p:stCondLst")
+        assert isinstance(stCondLst, CT_TLTimeConditionList)
+
+    def it_is_used_for_p_endCondLst(self):
+        endCondLst = element("p:endCondLst")
+        assert isinstance(endCondLst, CT_TLTimeConditionList)
+
+    def it_can_add_a_blank_cond_child(self):
+        stCondLst = element("p:stCondLst")
+        cond = stCondLst.add_cond()
+        assert isinstance(cond, CT_TLTimeCondition)
+        assert cond.delay is None
+        assert cond.getparent() is stCondLst
 
 
 class DescribeCT_TLTimeNodeParallel(object):
