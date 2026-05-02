@@ -6,8 +6,10 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
+from pptx.dml.color import RGBColor  # noqa # pyright: ignore[reportUnusedImport]
+from pptx.enum.dml import MSO_LINE  # noqa # pyright: ignore[reportUnusedImport]
 from pptx.enum.text import MSO_ANCHOR  # noqa # pyright: ignore[reportUnusedImport]
-from pptx.util import Inches
+from pptx.util import Inches, Pt  # noqa # pyright: ignore[reportUnusedImport]
 
 # given ===================================================
 
@@ -85,6 +87,14 @@ def given_a_Column_object_as_column(context):
 @when("I assign cell.margin_{side} = {value}")
 def when_I_assign_cell_margin_side_eq_value(context, value, side):
     setattr(context.cell, "margin_%s" % side, eval(value))
+
+
+@when("I set cell.border_left to a red, 1.5pt, dashed line")
+def when_I_set_cell_border_left_to_red_dashed(context):
+    border = context.cell.border_left
+    border.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    border.width = Pt(1.5)
+    border.dash_style = MSO_LINE.DASH
 
 
 @when('I assign cell.text = "test text"')
@@ -178,6 +188,34 @@ def then_cell_fill_is_a_FillFormat_object(context):
     actual = type(context.cell.fill).__name__
     expected = "FillFormat"
     assert actual == expected, "cell.fill is a %s object" % actual
+
+
+@then("cell.{border} is a LineFormat object")
+def then_cell_border_is_a_LineFormat_object(context, border):
+    actual = type(getattr(context.cell, border)).__name__
+    expected = "LineFormat"
+    assert actual == expected, "cell.%s is a %s object" % (border, actual)
+
+
+@then("cell.border_left.color.rgb is RGBColor({r}, {g}, {b})")
+def then_cell_border_left_color_rgb_eq(context, r, g, b):
+    actual = context.cell.border_left.color.rgb
+    expected = RGBColor(int(r, 16), int(g, 16), int(b, 16))
+    assert actual == expected, "cell.border_left.color.rgb == %s" % actual
+
+
+@then("cell.border_left.width == Pt({num_lit})")
+def then_cell_border_left_width_eq(context, num_lit):
+    actual = context.cell.border_left.width
+    expected = Pt(float(num_lit))
+    assert actual == expected, "cell.border_left.width == %s EMU" % actual
+
+
+@then("cell.border_left.dash_style == MSO_LINE.{name}")
+def then_cell_border_left_dash_style_eq(context, name):
+    actual = context.cell.border_left.dash_style
+    expected = getattr(MSO_LINE, name)
+    assert actual == expected, "cell.border_left.dash_style == %s" % actual
 
 
 @then("cell.margin_{side} == Inches({num_lit})")

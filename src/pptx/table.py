@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Iterator
 
 from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
 from pptx.oxml.table import TcRange
 from pptx.shapes import Subshape
 from pptx.text.text import TextFrame
@@ -12,6 +13,7 @@ from pptx.util import Emu, lazyproperty
 
 if TYPE_CHECKING:
     from pptx.enum.text import MSO_VERTICAL_ANCHOR
+    from pptx.oxml.shapes.shared import CT_LineProperties
     from pptx.oxml.table import CT_Table, CT_TableCell, CT_TableCol, CT_TableRow
     from pptx.parts.slide import BaseSlidePart
     from pptx.shapes.graphfrm import GraphicFrame
@@ -217,6 +219,67 @@ class _Cell(Subshape):
         if not isinstance(other, type(self)):
             return True
         return self._tc is not other._tc
+
+    @lazyproperty
+    def border_bottom(self) -> LineFormat:
+        """|LineFormat| for the bottom border of this cell (`a:lnB`).
+
+        Assigning a color, width, or dash-style to this line causes the cell
+        to draw an explicit bottom border in that style, overriding any
+        border inherited from the table style. Reading properties from the
+        returned |LineFormat| reports the explicitly-applied values; values
+        inherited from a table style are not reported here.
+        """
+        return LineFormat(_CellBorder(self._tc, "lnB"))
+
+    @lazyproperty
+    def border_diagonal_down(self) -> LineFormat:
+        """|LineFormat| for the top-left to bottom-right diagonal (`a:lnTlToBr`).
+
+        Diagonal borders are drawn across the interior of the cell rather
+        than along one of its edges; PowerPoint exposes them in the table
+        styles dialog as "Borders > Diagonal Down". Behaves otherwise the
+        same as the edge-border properties.
+        """
+        return LineFormat(_CellBorder(self._tc, "lnTlToBr"))
+
+    @lazyproperty
+    def border_diagonal_up(self) -> LineFormat:
+        """|LineFormat| for the bottom-left to top-right diagonal (`a:lnBlToTr`).
+
+        Diagonal borders are drawn across the interior of the cell rather
+        than along one of its edges; PowerPoint exposes them in the table
+        styles dialog as "Borders > Diagonal Up".
+        """
+        return LineFormat(_CellBorder(self._tc, "lnBlToTr"))
+
+    @lazyproperty
+    def border_left(self) -> LineFormat:
+        """|LineFormat| for the left border of this cell (`a:lnL`).
+
+        Assigning a color, width, or dash-style to this line causes the cell
+        to draw an explicit left border in that style, overriding any border
+        inherited from the table style. Reading properties from the returned
+        |LineFormat| reports the explicitly-applied values; values inherited
+        from a table style are not reported here.
+        """
+        return LineFormat(_CellBorder(self._tc, "lnL"))
+
+    @lazyproperty
+    def border_right(self) -> LineFormat:
+        """|LineFormat| for the right border of this cell (`a:lnR`).
+
+        See :attr:`border_left` for semantics.
+        """
+        return LineFormat(_CellBorder(self._tc, "lnR"))
+
+    @lazyproperty
+    def border_top(self) -> LineFormat:
+        """|LineFormat| for the top border of this cell (`a:lnT`).
+
+        See :attr:`border_left` for semantics.
+        """
+        return LineFormat(_CellBorder(self._tc, "lnT"))
 
     @lazyproperty
     def fill(self) -> FillFormat:
@@ -425,6 +488,41 @@ class _Cell(Subshape):
         if not isinstance(margin_value, int) and margin_value is not None:
             tmpl = "margin value must be integer or None, got '%s'"
             raise TypeError(tmpl % margin_value)
+
+
+class _CellBorder(object):
+    """Adapter that exposes one of the six `a:tcPr` border children as an `a:ln`.
+
+    A |LineFormat| instance expects its parent to provide an ``ln`` property
+    and a ``get_or_add_ln()`` method. The table-cell border elements
+    (``a:lnL``, ``a:lnR``, ``a:lnT``, ``a:lnB``, ``a:lnTlToBr``,
+    ``a:lnBlToTr``) share the ``CT_LineProperties`` type with ``a:ln`` but
+    appear under different tag names, so this shim translates the access to
+    the correct descriptor on ``a:tcPr`` for the requested side.
+    """
+
+    _VALID_SIDES = ("lnL", "lnR", "lnT", "lnB", "lnTlToBr", "lnBlToTr")
+
+    def __init__(self, tc: CT_TableCell, side: str):
+        if side not in self._VALID_SIDES:
+            raise ValueError(
+                "side must be one of %s, got %r" % (self._VALID_SIDES, side)
+            )
+        self._tc = tc
+        self._side = side
+
+    @property
+    def ln(self) -> CT_LineProperties | None:
+        """Return the `a:lnX` child of `a:tcPr`, or |None| if not present."""
+        tcPr = self._tc.tcPr
+        if tcPr is None:
+            return None
+        return getattr(tcPr, self._side)
+
+    def get_or_add_ln(self) -> CT_LineProperties:
+        """Return the `a:lnX` child, adding it (and `a:tcPr`) if needed."""
+        tcPr = self._tc.get_or_add_tcPr()
+        return getattr(tcPr, "get_or_add_" + self._side)()
 
 
 class _Column(Subshape):

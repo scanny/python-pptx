@@ -23,6 +23,7 @@ from pptx.oxml.xmlchemy import (
 from pptx.util import Emu, lazyproperty
 
 if TYPE_CHECKING:
+    from pptx.oxml.shapes.shared import CT_LineProperties
     from pptx.util import Length
 
 
@@ -394,6 +395,52 @@ class CT_TableCell(BaseOxmlElement):
 class CT_TableCellProperties(BaseOxmlElement):
     """`a:tcPr` custom element class"""
 
+    get_or_add_lnL: Callable[[], CT_LineProperties]
+    get_or_add_lnR: Callable[[], CT_LineProperties]
+    get_or_add_lnT: Callable[[], CT_LineProperties]
+    get_or_add_lnB: Callable[[], CT_LineProperties]
+    get_or_add_lnTlToBr: Callable[[], CT_LineProperties]
+    get_or_add_lnBlToTr: Callable[[], CT_LineProperties]
+
+    # -- per dml-main.xsd CT_TableCellProperties, child sequence is: lnL, lnR, lnT, lnB,
+    # -- lnTlToBr, lnBlToTr, cell3D, EG_FillProperties, headers, extLst. `cell3D` is not
+    # -- modeled by python-pptx but must appear in the successors list for the preceding
+    # -- elements so a newly inserted border lands in the right position.
+    _tag_seq = (
+        "a:lnL",
+        "a:lnR",
+        "a:lnT",
+        "a:lnB",
+        "a:lnTlToBr",
+        "a:lnBlToTr",
+        "a:cell3D",
+        "a:noFill",
+        "a:solidFill",
+        "a:gradFill",
+        "a:blipFill",
+        "a:pattFill",
+        "a:grpFill",
+        "a:headers",
+        "a:extLst",
+    )
+    lnL: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:lnL", successors=_tag_seq[1:]
+    )
+    lnR: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:lnR", successors=_tag_seq[2:]
+    )
+    lnT: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:lnT", successors=_tag_seq[3:]
+    )
+    lnB: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:lnB", successors=_tag_seq[4:]
+    )
+    lnTlToBr: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:lnTlToBr", successors=_tag_seq[5:]
+    )
+    lnBlToTr: CT_LineProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:lnBlToTr", successors=_tag_seq[6:]
+    )
     eg_fillProperties = ZeroOrOneChoice(
         (
             Choice("a:noFill"),
@@ -403,8 +450,9 @@ class CT_TableCellProperties(BaseOxmlElement):
             Choice("a:pattFill"),
             Choice("a:grpFill"),
         ),
-        successors=("a:headers", "a:extLst"),
+        successors=_tag_seq[13:],
     )
+    del _tag_seq
     anchor: MSO_VERTICAL_ANCHOR | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "anchor", MSO_VERTICAL_ANCHOR
     )

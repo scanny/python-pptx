@@ -114,6 +114,65 @@ class DescribeCT_Table(object):
         assert tbl.tc(1, 1) is tcs[3]
 
 
+class DescribeCT_TableCellProperties(object):
+    """Unit-test suite for `pptx.oxml.table.CT_TableCellProperties` border descriptors."""
+
+    @pytest.mark.parametrize(
+        ("attr_name", "expected_tag"),
+        [
+            ("lnL", "a:lnL"),
+            ("lnR", "a:lnR"),
+            ("lnT", "a:lnT"),
+            ("lnB", "a:lnB"),
+            ("lnTlToBr", "a:lnTlToBr"),
+            ("lnBlToTr", "a:lnBlToTr"),
+        ],
+    )
+    def it_has_border_descriptors_for_each_side(self, attr_name, expected_tag):
+        tcPr = element("a:tcPr/%s" % expected_tag)
+        border = getattr(tcPr, attr_name)
+        assert border is not None
+        assert border.tag == (
+            "{http://schemas.openxmlformats.org/drawingml/2006/main}" + attr_name
+        )
+
+    @pytest.mark.parametrize(
+        "attr_name",
+        ["lnL", "lnR", "lnT", "lnB", "lnTlToBr", "lnBlToTr"],
+    )
+    def and_absent_border_is_reported_as_None(self, attr_name):
+        tcPr = element("a:tcPr")
+        assert getattr(tcPr, attr_name) is None
+
+    def it_inserts_borders_in_schema_order(self):
+        """The six border children must appear in the order required by the schema.
+
+        When a consumer adds borders in an arbitrary order, the descriptors must
+        place each new child so the final sequence is lnL, lnR, lnT, lnB,
+        lnTlToBr, lnBlToTr — otherwise PowerPoint rejects the file.
+        """
+        tcPr = element("a:tcPr")
+        # -- add out of schema order
+        tcPr.get_or_add_lnBlToTr()
+        tcPr.get_or_add_lnB()
+        tcPr.get_or_add_lnL()
+        tcPr.get_or_add_lnT()
+        tcPr.get_or_add_lnTlToBr()
+        tcPr.get_or_add_lnR()
+        expected_xml = xml(
+            "a:tcPr/(a:lnL,a:lnR,a:lnT,a:lnB,a:lnTlToBr,a:lnBlToTr)"
+        )
+        assert tcPr.xml == expected_xml
+
+    def it_preserves_fill_element_ordering_when_adding_border(self):
+        """A newly-inserted border must precede existing fill/headers children."""
+        tcPr = element("a:tcPr/a:solidFill")
+        tcPr.get_or_add_lnL()
+        # -- lnL must appear before solidFill
+        expected_xml = xml("a:tcPr/(a:lnL,a:solidFill)")
+        assert tcPr.xml == expected_xml
+
+
 class DescribeTcRange(object):
     def it_knows_when_the_range_contains_a_merged_cell(self, contains_merge_fixture):
         tc, other_tc, expected_value = contains_merge_fixture

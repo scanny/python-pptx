@@ -53,6 +53,13 @@ Unreleased
   ``direction``, ``color``) in addition to ``inherit``, and a new
   ``ChartFormat.shadow`` property surfaces the same API on chart elements like
   ``Axis.format``, ``Series.format``, and ``MajorGridlines.format``.
+- feat: #71 cell borders. ``_Cell`` gains ``border_left``, ``border_right``,
+  ``border_top``, ``border_bottom``, ``border_diagonal_down`` and
+  ``border_diagonal_up`` |LineFormat| properties, each writing to the
+  corresponding ``a:lnL`` / ``a:lnR`` / ``a:lnT`` / ``a:lnB`` / ``a:lnTlToBr``
+  / ``a:lnBlToTr`` child of ``a:tcPr`` so explicit per-cell edge and diagonal
+  borders can be set in color, width, and dash style. Borders inherited from
+  the applied table style are not reported by these properties.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and

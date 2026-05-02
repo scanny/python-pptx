@@ -21,6 +21,28 @@ Feature: Table cell proxy objects
      Then cell.fill is a FillFormat object
 
 
+  Scenario Outline: _Cell.border_{side} is a LineFormat object
+    Given a _Cell object as cell
+     Then cell.<border> is a LineFormat object
+
+    Examples: Cell border sides
+      | border                |
+      | border_left           |
+      | border_right          |
+      | border_top            |
+      | border_bottom         |
+      | border_diagonal_down  |
+      | border_diagonal_up    |
+
+
+  Scenario: _Cell.border_{side} round-trips a color, width, and dash
+    Given a _Cell object as cell
+     When I set cell.border_left to a red, 1.5pt, dashed line
+     Then cell.border_left.color.rgb is RGBColor(0xFF, 0x00, 0x00)
+      And cell.border_left.width == Pt(1.5)
+      And cell.border_left.dash_style == MSO_LINE.DASH
+
+
   Scenario Outline: Cell role discovery
     Given a <role> _Cell object as cell
      Then cell.is_merge_origin is <is_merge_origin>

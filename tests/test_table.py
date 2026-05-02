@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 
 from pptx.dml.fill import FillFormat
+from pptx.dml.line import LineFormat
 from pptx.enum.text import MSO_ANCHOR
 from pptx.oxml.ns import qn
 from pptx.oxml.table import CT_Table, CT_TableCell, TcRange
@@ -14,6 +15,7 @@ from pptx.shapes.graphfrm import GraphicFrame
 from pptx.table import (
     Table,
     _Cell,
+    _CellBorder,
     _CellCollection,
     _Column,
     _ColumnCollection,
@@ -263,6 +265,67 @@ class Describe_Cell(object):
     def it_has_a_fill(self, fill_fixture):
         cell = fill_fixture
         assert isinstance(cell.fill, FillFormat)
+
+    @pytest.mark.parametrize(
+        ("prop_name", "expected_tag"),
+        [
+            ("border_left", "a:lnL"),
+            ("border_right", "a:lnR"),
+            ("border_top", "a:lnT"),
+            ("border_bottom", "a:lnB"),
+            ("border_diagonal_down", "a:lnTlToBr"),
+            ("border_diagonal_up", "a:lnBlToTr"),
+        ],
+    )
+    def it_has_a_LineFormat_for_each_border_side(self, prop_name, expected_tag):
+        cell = _Cell(element("a:tc"), None)
+
+        line = getattr(cell, prop_name)
+
+        assert isinstance(line, LineFormat)
+        # -- the LineFormat parent is a `_CellBorder` adapter; reading
+        # -- its `ln` should report None since no border yet exists
+        assert line._ln is None
+
+    @pytest.mark.parametrize(
+        "prop_name",
+        [
+            "border_left",
+            "border_right",
+            "border_top",
+            "border_bottom",
+            "border_diagonal_down",
+            "border_diagonal_up",
+        ],
+    )
+    def it_returns_the_same_LineFormat_instance_on_repeat_access(self, prop_name):
+        cell = _Cell(element("a:tc"), None)
+        assert getattr(cell, prop_name) is getattr(cell, prop_name)
+
+    def it_adds_a_lnL_child_when_border_left_color_is_set(self):
+        from pptx.dml.color import RGBColor
+
+        cell = _Cell(element("a:tc"), None)
+        cell.border_left.color.rgb = RGBColor(0x12, 0x34, 0x56)
+
+        # -- `a:lnL` is now present under `a:tcPr` with a solid fill color
+        tcPr = cell._tc.tcPr
+        assert tcPr is not None
+        assert tcPr.lnL is not None
+        srgbClr = tcPr.lnL.xpath("./a:solidFill/a:srgbClr")
+        assert len(srgbClr) == 1
+        assert srgbClr[0].get("val") == "123456"
+
+    def it_adds_a_lnB_child_when_border_bottom_width_is_set(self):
+        cell = _Cell(element("a:tc"), None)
+        cell.border_bottom.width = Pt(1.5)
+
+        tcPr = cell._tc.tcPr
+        assert tcPr is not None
+        assert tcPr.lnB is not None
+        # -- 1.5 pt = 19050 EMU (12700 EMU/pt)
+        assert int(tcPr.lnB.get("w")) == 19050
+
 
     def it_knows_its_row_and_col_idx_in_the_table(self, row_col_idx_fixture):
         tc, expected_row_idx, expected_col_idx = row_col_idx_fixture
@@ -587,6 +650,45 @@ class Describe_Cell(object):
     @pytest.fixture
     def text_frame_prop_(self, request):
         return property_mock(request, _Cell, "text_frame")
+
+
+class Describe_CellBorder(object):
+    """Unit-test suite for `pptx.table._CellBorder` adapter."""
+
+    @pytest.mark.parametrize(
+        "side", ["lnL", "lnR", "lnT", "lnB", "lnTlToBr", "lnBlToTr"]
+    )
+    def it_accepts_the_six_legal_sides(self, side):
+        tc = element("a:tc")
+        _CellBorder(tc, side)  # does not raise
+
+    def it_raises_on_invalid_side(self):
+        with pytest.raises(ValueError):
+            _CellBorder(element("a:tc"), "lnX")
+
+    def it_reports_None_for_ln_when_tcPr_absent(self):
+        adapter = _CellBorder(element("a:tc"), "lnL")
+        assert adapter.ln is None
+
+    def it_reports_None_for_ln_when_side_child_absent(self):
+        adapter = _CellBorder(element("a:tc/a:tcPr"), "lnL")
+        assert adapter.ln is None
+
+    def it_returns_existing_side_child_when_present(self):
+        tc = element("a:tc/a:tcPr/a:lnR")
+        adapter = _CellBorder(tc, "lnR")
+        assert adapter.ln is tc.tcPr.lnR
+
+    def it_creates_tcPr_and_side_child_on_get_or_add_ln(self):
+        tc = element("a:tc")
+        adapter = _CellBorder(tc, "lnT")
+
+        ln = adapter.get_or_add_ln()
+
+        assert tc.tcPr is not None
+        assert tc.tcPr.lnT is ln
+        # -- a subsequent call returns the same element
+        assert adapter.get_or_add_ln() is ln
 
 
 class Describe_CellCollection(object):

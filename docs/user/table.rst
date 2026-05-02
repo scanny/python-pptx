@@ -339,6 +339,50 @@ This limitation is tracked as `issue #296`_ and is a known wontfix for the
 reasons above.
 
 .. _issue #296: https://github.com/scanny/python-pptx/issues/296
+
+
+Cell borders
+------------
+
+An individual cell can carry explicit borders on each of its four edges and on
+each of its two diagonals. Each border is exposed as a |LineFormat| object
+reached through one of six properties on the cell:
+
+* ``cell.border_left``      — left edge         (``a:lnL``)
+* ``cell.border_right``     — right edge        (``a:lnR``)
+* ``cell.border_top``       — top edge          (``a:lnT``)
+* ``cell.border_bottom``    — bottom edge       (``a:lnB``)
+* ``cell.border_diagonal_down`` — top-left to bottom-right (``a:lnTlToBr``)
+* ``cell.border_diagonal_up``   — bottom-left to top-right (``a:lnBlToTr``)
+
+Each |LineFormat| supports the usual color, width, and dash-style settings::
+
+    >>> from pptx.util import Pt
+    >>> from pptx.dml.color import RGBColor
+    >>> from pptx.enum.dml import MSO_LINE
+
+    >>> cell = table.cell(0, 0)
+    >>> cell.border_bottom.color.rgb = RGBColor(0xC0, 0x00, 0x00)  # dark red
+    >>> cell.border_bottom.width = Pt(1.5)
+    >>> cell.border_bottom.dash_style = MSO_LINE.DASH
+
+Reading a border property reports only values that have been *explicitly*
+applied to that edge. Borders inherited from the applied table style
+(``Table.style_id``) are not reflected here — PowerPoint resolves those at
+render time from its ``tableStyles.xml`` definitions, and python-pptx does not
+currently read that part. To force an explicit border to always render, set
+color and width on the relevant side. To clear an explicit border, set the
+width to ``0`` (which removes the visible line) or assign ``None`` to the
+dash style to remove a previously-set preset.
+
+.. note::
+
+   PowerPoint always draws the full rectangular edge of a cell; there is no
+   way to draw only part of an edge via ``a:lnL`` / ``a:lnR`` / ``a:lnT`` /
+   ``a:lnB``. Diagonal borders (``a:lnTlToBr``, ``a:lnBlToTr``) are drawn
+   across the cell's interior, not along an edge.
+
+
 Applying a table style
 ----------------------
 
