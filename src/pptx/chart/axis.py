@@ -347,6 +347,48 @@ class DateAxis(_BaseAxis):
         """
         return XL_CATEGORY_TYPE.TIME_SCALE
 
+    @property
+    def major_unit(self):
+        """The float number of units between major tick marks on this date axis.
+
+        |None| corresponds to the 'Auto' setting in the UI, and indicates the
+        value should be calculated by PowerPoint based on the date range of
+        the chart data. The unit of measure is determined by the associated
+        ``c:majorTimeUnit`` element (days by default).
+        """
+        majorUnit = self._element.majorUnit
+        if majorUnit is None:
+            return None
+        return majorUnit.val
+
+    @major_unit.setter
+    def major_unit(self, value):
+        self._element._remove_majorUnit()
+        if value is None:
+            return
+        self._element._add_majorUnit(val=value)
+
+    @property
+    def minor_unit(self):
+        """The float number of units between minor tick marks on this date axis.
+
+        |None| corresponds to the 'Auto' setting in the UI, and indicates the
+        value should be calculated by PowerPoint based on the date range of
+        the chart data. The unit of measure is determined by the associated
+        ``c:minorTimeUnit`` element (days by default).
+        """
+        minorUnit = self._element.minorUnit
+        if minorUnit is None:
+            return None
+        return minorUnit.val
+
+    @minor_unit.setter
+    def minor_unit(self, value):
+        self._element._remove_minorUnit()
+        if value is None:
+            return
+        self._element._add_minorUnit(val=value)
+
 
 class MajorGridlines(ElementProxy):
     """Provides access to the properties of the major gridlines appearing on an axis."""

@@ -191,6 +191,8 @@ class CT_DateAx(BaseAxisElement):
     crosses = ZeroOrOne("c:crosses", successors=_tag_seq[15:])
     crossesAt = ZeroOrOne("c:crossesAt", successors=_tag_seq[16:])
     lblOffset = ZeroOrOne("c:lblOffset", successors=_tag_seq[18:])
+    majorUnit = ZeroOrOne("c:majorUnit", successors=_tag_seq[20:])
+    minorUnit = ZeroOrOne("c:minorUnit", successors=_tag_seq[22:])
     del _tag_seq
 
 
