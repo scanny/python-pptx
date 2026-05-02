@@ -378,6 +378,143 @@ class DescribeMovie(object):
         cond = sld.xpath(".//p:cond")[0]
         assert cond.delay == 1000
 
+    def it_can_delete_itself_and_clean_up_its_rels_and_timing(
+        self, part_prop_, slide_part_
+    ):
+        # -- issue #974: removing a movie used to corrupt the file because the
+        # -- p:video timing entry and the three media-related rels were left
+        # -- dangling. Verify the override drops all three rels and removes
+        # -- the matching p:video. --
+        part_prop_.return_value = slide_part_
+        sld = parse_xml(
+            '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '       xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:cSld>"
+            "    <p:spTree>"
+            "      <p:pic>"
+            "        <p:nvPicPr>"
+            '          <p:cNvPr id="42" name="m"/>'
+            "          <p:cNvPicPr/>"
+            "          <p:nvPr>"
+            '            <a:videoFile r:link="rId3"/>'
+            "            <p:extLst>"
+            '              <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
+            '                <p14:media xmlns:p14="http://schemas.microsoft.com/'
+            'office/powerpoint/2010/main" r:embed="rId2"/>'
+            "              </p:ext>"
+            "            </p:extLst>"
+            "          </p:nvPr>"
+            "        </p:nvPicPr>"
+            '        <p:blipFill><a:blip r:embed="rId4"/></p:blipFill>'
+            "      </p:pic>"
+            "    </p:spTree>"
+            "  </p:cSld>"
+            "  <p:timing>"
+            "    <p:tnLst>"
+            "      <p:par>"
+            '        <p:cTn id="1" nodeType="tmRoot">'
+            "          <p:childTnLst>"
+            "            <p:video>"
+            "              <p:cMediaNode>"
+            '                <p:cTn id="2"/>'
+            "                <p:tgtEl>"
+            '                  <p:spTgt spid="42"/>'
+            "                </p:tgtEl>"
+            "              </p:cMediaNode>"
+            "            </p:video>"
+            "          </p:childTnLst>"
+            "        </p:cTn>"
+            "      </p:par>"
+            "    </p:tnLst>"
+            "  </p:timing>"
+            "</p:sld>"
+        )
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        movie.delete()
+
+        # -- p:pic gone from spTree --
+        assert sld.xpath(".//p:pic") == []
+        # -- p:video timing entry for this shape removed --
+        assert sld.xpath(".//p:video") == []
+        # -- all three media-related rels dropped --
+        dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
+        assert dropped == {"rId2", "rId3", "rId4"}
+
+    def it_can_delete_an_audio_movie_and_drop_its_link_rel(
+        self, part_prop_, slide_part_
+    ):
+        # -- audio clips use <a:audioFile> instead of <a:videoFile>; both should be
+        # -- picked up by the rId-collection xpath. --
+        part_prop_.return_value = slide_part_
+        sld = parse_xml(
+            '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '       xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:cSld>"
+            "    <p:spTree>"
+            "      <p:pic>"
+            "        <p:nvPicPr>"
+            '          <p:cNvPr id="7" name="a"/>'
+            "          <p:cNvPicPr/>"
+            "          <p:nvPr>"
+            '            <a:audioFile r:link="rId11"/>'
+            "          </p:nvPr>"
+            "        </p:nvPicPr>"
+            "        <p:blipFill/>"
+            "      </p:pic>"
+            "    </p:spTree>"
+            "  </p:cSld>"
+            "</p:sld>"
+        )
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        movie.delete()
+
+        dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
+        assert dropped == {"rId11"}
+
+    def it_deletes_cleanly_when_no_timing_node_is_present(
+        self, part_prop_, slide_part_
+    ):
+        # -- some pre-existing movies (loaded from files authored elsewhere) may
+        # -- have no p:video timing entry; delete() must tolerate that. --
+        part_prop_.return_value = slide_part_
+        sld = parse_xml(
+            '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '       xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:cSld>"
+            "    <p:spTree>"
+            "      <p:pic>"
+            "        <p:nvPicPr>"
+            '          <p:cNvPr id="5" name="m"/>'
+            "          <p:cNvPicPr/>"
+            "          <p:nvPr>"
+            '            <a:videoFile r:link="rId9"/>'
+            "          </p:nvPr>"
+            "        </p:nvPicPr>"
+            '        <p:blipFill><a:blip r:embed="rId8"/></p:blipFill>'
+            "      </p:pic>"
+            "    </p:spTree>"
+            "  </p:cSld>"
+            "</p:sld>"
+        )
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        movie.delete()
+
+        assert sld.xpath(".//p:pic") == []
+        dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
+        assert dropped == {"rId8", "rId9"}
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
