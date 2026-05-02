@@ -6,6 +6,18 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #777 resolved by ``feat/issue-752-ole-embed-generic``. Embedding
+  an HTML file as an OLE object now works via the generic
+  ``add_ole_object(html_path, prog_id="MSHtml.MHT", ..., extension="html")``
+  path delivered by #752 (or via the ``PROG_ID.HTML`` convenience member
+  which uses the alternate ``"htmlfile"`` progId). Both variants
+  round-trip through save + reopen with the HTML bytes preserved
+  byte-for-byte and the embedded part written under
+  ``/ppt/embeddings/oleObject*.html`` with the generic OLE content-type.
+  Adds an end-to-end regression suite
+  ``DescribeIssue777EmbedHtmlOleObject`` under
+  ``tests/test_issue_777_html_ole_embed.py`` that pins the flow for both
+  a str path and a ``BytesIO`` caller.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
