@@ -156,6 +156,23 @@ Feature: Access an individual slide
     Given a SlideMasters object containing 2 masters
      Then len(slide_masters) is 2
 
+
+  Scenario: SlideMaster.add_layout_from() imports a layout from another master (#1028)
+    Given two presentations with different slide masters
+     When I call master.add_layout_from() with a layout from the other master
+     Then the destination master has one more layout
+      And the new layout's name matches the source layout's name
+      And the new layout's slide_master is the destination master
+      And the presentation round-trips cleanly after add_layout_from
+
+
+  Scenario: SlideMaster.add_layout_from() raises on a name collision (#1028)
+    Given two presentations with different slide masters
+     When I call master.add_layout_from() with a layout whose name already exists
+     Then a ValueError is raised with a clear message
+      And the destination master layout count is unchanged
+
+
   Scenario: Adding many slides assigns unique sequential partnames (#644)
     Given a Presentation with no slides
      When I add 100 slides

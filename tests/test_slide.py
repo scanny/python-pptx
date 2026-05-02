@@ -1726,6 +1726,53 @@ class DescribeSlideMaster(object):
         assert slide_master._element.xml == xml("p:sldMaster/p:cSld")
         assert slide_master.name == "Master 1"
 
+    def it_can_add_a_layout_from_another_master(self, request):
+        """add_layout_from() clones a layout and appends a p:sldLayoutId."""
+        # -- seed an existing entry so the r: namespace is bound on the parent --
+        sldMaster = element(
+            "p:sldMaster/p:sldLayoutIdLst/p:sldLayoutId{id=2147483649,r:id=rId1}"
+        )
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(sldMaster, slide_master_part_)
+        # -- stub out slide_layouts so the name-collision check sees an empty master --
+        property_mock(request, SlideMaster, "slide_layouts", return_value=())
+        source_layout_ = instance_mock(request, SlideLayout)
+        source_layout_.name = "New Layout"
+        new_layout_ = instance_mock(request, SlideLayout)
+        slide_master_part_.add_layout_from.return_value = ("rId77", new_layout_)
+
+        result = slide_master.add_layout_from(source_layout_)
+
+        slide_master_part_.add_layout_from.assert_called_once_with(source_layout_)
+        # -- a fresh p:sldLayoutId was appended with the new rId and next id --
+        assert sldMaster.sldLayoutIdLst.xml == xml(
+            "p:sldLayoutIdLst/("
+            "p:sldLayoutId{id=2147483649,r:id=rId1},"
+            "p:sldLayoutId{id=2147483650,r:id=rId77}"
+            ")"
+        )
+        assert result is new_layout_
+
+    def it_raises_when_destination_master_already_has_that_layout_name(self, request):
+        """add_layout_from() raises ValueError on a name collision."""
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(
+            element("p:sldMaster/p:sldLayoutIdLst"), slide_master_part_
+        )
+        existing_layout_ = instance_mock(request, SlideLayout)
+        existing_layout_.name = "Custom Layout"
+        property_mock(
+            request, SlideMaster, "slide_layouts", return_value=[existing_layout_]
+        )
+        source_layout_ = instance_mock(request, SlideLayout)
+        source_layout_.name = "Custom Layout"
+
+        with pytest.raises(ValueError, match="already has a layout named"):
+            slide_master.add_layout_from(source_layout_)
+
+        # -- the part-level clone must not have been invoked --
+        slide_master_part_.add_layout_from.assert_not_called()
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

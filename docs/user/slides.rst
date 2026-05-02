@@ -221,18 +221,57 @@ layouts). Callers who need strict per-slide layout control can reassign
 drive :meth:`Slides.add_slide_from_external` per-slide.
 
 
-Importing slide layouts from another presentation
--------------------------------------------------
+Importing a slide layout from another master
+--------------------------------------------
 
-python-pptx does not offer a direct "copy this layout into my deck" API
-because importing a layout from deck A into deck B requires resolving its
-slide-master, theme, and color / font / format scheme relationships into
-B's package -- a deeper-reaching cross-package clone than the shipped
-slide-copy pipeline.
+:meth:`.SlideMaster.add_layout_from` clones a slide layout from any other
+master -- whether that master belongs to a different presentation or is a
+second master inside the same deck -- onto this master. This addresses
+the "I want to apply a layout from deck A to a slide in deck B" workflow
+tracked by issue #1028::
 
-The practical workaround is to open the presentation that *owns the
-desired layouts* as the base, merge content-carrying decks into it, and
-delete any unwanted starter slides::
+    from pptx import Presentation
+
+    source = Presentation("branded-template.pptx")
+    target = Presentation("quarterly-deck.pptx")
+
+    # -- bring a custom layout from the branded template onto the target deck --
+    source_layout = source.slide_masters[0].slide_layouts.get_by_name(
+        "Executive Summary"
+    )
+    target_master = target.slide_masters[0]
+    new_layout = target_master.add_layout_from(source_layout)
+
+    # -- the newly-added layout is appended to the target master's layouts --
+    assert new_layout is target_master.slide_layouts[-1]
+
+    # -- and a slide can now inherit from it --
+    slide = target.slides.add_slide(new_layout)
+    target.save("quarterly-deck.pptx")
+
+The clone carries over:
+
+* the layout's ``p:cSld`` shape tree (placeholders, geometry, text content),
+* image relationships baked into the layout (deduplicated against images
+  already in the target package), and
+* any external hyperlink relationships.
+
+The cloned layout inherits its *theme* -- the color scheme, font scheme,
+and effect scheme -- from the **destination master**, not from the
+source's original master. This matches PowerPoint's behavior when a user
+drags a layout between masters in *Slide Master* view: the layout's
+structure moves, but it adopts the receiving master's palette and typography.
+
+:meth:`.SlideMaster.add_layout_from` raises :class:`ValueError` when the
+destination master already contains a layout with the same name. Rename
+the source or destination layout first to distinguish them; once they
+have distinct names :meth:`~.SlideLayouts.get_by_name` can tell them
+apart.
+
+The "use an existing deck as a template" workflow remains useful for
+bulk content merges -- open the layout-owning deck as the base, merge
+content-carrying decks with :meth:`.Presentation.merge`, and drop any
+unwanted starter slides::
 
     from pptx import Presentation
 

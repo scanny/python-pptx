@@ -316,10 +316,7 @@ class CT_Slide(_BaseSlideElement):
         False when there is no transition, or when the transition is a
         plain child of `p:sld`.
         """
-        return (
-            self.transition is None
-            and self.transition_effective is not None
-        )
+        return self.transition is None and self.transition_effective is not None
 
     @property
     def _transition_alt_content_lst(self) -> list[BaseOxmlElement]:
@@ -375,9 +372,7 @@ class CT_Slide(_BaseSlideElement):
         # -- from the fallback because the `p14` namespace is exactly what
         # -- the fallback is *not* expected to understand.
         fallback_attr_str = "".join(
-            ' %s="%s"' % (k, v)
-            for k, v in inner.attrib.items()
-            if not k.startswith("{")
+            ' %s="%s"' % (k, v) for k, v in inner.attrib.items() if not k.startswith("{")
         )
 
         ac_xml = (
@@ -617,7 +612,37 @@ class CT_SlideLayoutIdList(BaseOxmlElement):
 
     sldLayoutId_lst: list[CT_SlideLayoutIdListEntry]
 
+    _add_sldLayoutId: Callable[..., CT_SlideLayoutIdListEntry]
     sldLayoutId = ZeroOrMore("p:sldLayoutId")
+
+    def add_sldLayoutId(self, rId: str) -> CT_SlideLayoutIdListEntry:
+        """Create and return a new `p:sldLayoutId` child referencing `rId`.
+
+        The new entry receives a freshly-allocated `@id` attribute in the
+        ST_SlideLayoutId range (2147483648 .. 4294967295). The next integer
+        above the highest value currently in use is picked; when that would
+        overflow the range, the lowest unused value from the bottom is chosen.
+        """
+        return self._add_sldLayoutId(id=self._next_id, rId=rId)
+
+    @property
+    def _next_id(self) -> int:
+        """Next available `p:sldLayoutId/@id` value as an `int`."""
+        MIN_LAYOUT_ID = 2147483648
+        MAX_LAYOUT_ID = 4294967295
+
+        used_ids = [int(s) for s in cast("list[str]", self.xpath("./p:sldLayoutId/@id"))]
+        simple_next = max([MIN_LAYOUT_ID - 1] + used_ids) + 1
+        if simple_next <= MAX_LAYOUT_ID:
+            return simple_next
+
+        # -- fall back to search for next unused from bottom --
+        valid_used_ids = sorted(id for id in used_ids if MIN_LAYOUT_ID <= id <= MAX_LAYOUT_ID)
+        return next(
+            candidate_id
+            for candidate_id, used_id in enumerate(valid_used_ids, start=MIN_LAYOUT_ID)
+            if candidate_id != used_id
+        )
 
 
 class CT_SlideLayoutIdListEntry(BaseOxmlElement):

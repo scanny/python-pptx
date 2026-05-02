@@ -244,6 +244,24 @@ Unreleased
   relationship; assigning |None| or using ``del`` removes any hyperlink on
   the run. :attr:`._Hyperlink.address` now returns |None| for a slide-jump
   hyperlink so the URL and slide-jump surfaces remain strictly separate.
+- Add #1028 :meth:`.SlideMaster.add_layout_from` — clone a slide layout
+  from any other master (in this presentation or another) into this
+  master. Addresses the "apply a layout from one master in another
+  master" request from the #1028 reporter. The cloned layout is
+  appended to the destination master's ``slide_layouts`` with a fresh
+  ``p:sldLayoutId``; image relationships and external hyperlinks are
+  materialised in the target package (images are content-deduplicated
+  against existing parts). The clone inherits its theme (color / font
+  / effect scheme) from the *destination* master, matching PowerPoint's
+  behavior when a layout is dragged between masters in Slide Master
+  view. Raises :class:`ValueError` when the destination master already
+  contains a layout with the same name; rename one of them first. The
+  accompanying oxml helpers include an ``add_sldLayoutId`` method on
+  :class:`.CT_SlideLayoutIdList` that auto-allocates a fresh
+  ST_SlideLayoutId (minimum 2147483648) for each new entry, and a
+  :meth:`SlideLayoutPart.clone_from` classmethod that composes with
+  the F1 relationship cloner to move images and other layout-owned
+  parts across packages.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use

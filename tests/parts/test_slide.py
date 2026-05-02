@@ -817,6 +817,65 @@ class DescribeSlideLayoutPart(object):
         SlideLayout_.assert_called_once_with(sldLayout, slide_layout_part)
         assert slide_layout is slide_layout_
 
+    def it_can_be_cloned_from_another_layout(self, request):
+        """SlideLayoutPart.clone_from deep-copies the layout and re-relates it.
+
+        Verifies the layout's image rel is cloned into the target package,
+        the SLIDE_MASTER rel is dropped/rewritten to the target master, and
+        the `r:embed` attribute on the cloned XML is remapped.
+        """
+        from unittest.mock import MagicMock
+
+        # -- Source SlideLayoutPart with: master rel + image rel + hyperlink rel. --
+        src_sldLayout = element(
+            "p:sldLayout/p:cSld/p:spTree/p:pic/p:blipFill/a:blip{r:embed=rId9}"
+        )
+        src_part = SlideLayoutPart(
+            PackURI("/ppt/slideLayouts/slideLayout1.xml"),
+            CT.PML_SLIDE_LAYOUT,
+            None,
+            src_sldLayout,
+        )
+        master_rel = MagicMock(reltype=RT.SLIDE_MASTER, is_external=False)
+        image_rel = MagicMock(reltype=RT.IMAGE, is_external=False)
+        image_rel.target_part = instance_mock(request, ImagePart, blob=b"PNGBYTES")
+        hl_rel = MagicMock(
+            reltype=RT.HYPERLINK, is_external=True, target_ref="https://example.com/"
+        )
+        src_part.rels._rels.update(  # type: ignore[attr-defined]
+            {"rId1": master_rel, "rId9": image_rel, "rId7": hl_rel}
+        )
+
+        # -- Target package: stub clone_image_part to return a fake image part. --
+        target_package_ = instance_mock(request, Package)
+        target_image_part_ = instance_mock(request, ImagePart)
+        target_package_.get_or_add_image_part.return_value = target_image_part_
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        # -- Stub SlideLayoutPart.relate_to so no real relationship graph is touched.
+        # -- Calls: (1) master rel -> "rIdM", (2) image rel -> "rIdI",
+        # -- (3) hyperlink rel -> "rIdH".
+        relate_to_ = method_mock(request, SlideLayoutPart, "relate_to", autospec=True)
+        relate_to_.side_effect = ["rIdM", "rIdI", "rIdH"]
+
+        partname = PackURI("/ppt/slideLayouts/slideLayout12.xml")
+        new_part = SlideLayoutPart.clone_from(
+            src_part, partname, target_package_, slide_master_part_
+        )
+
+        assert isinstance(new_part, SlideLayoutPart)
+        assert new_part.partname == partname
+        # -- shape tree is deep-copied, not aliased --
+        assert new_part._element is not src_sldLayout
+        # -- `r:embed` on the cloned blip was remapped from rId9 to the new image rId --
+        embed_attr = new_part._element.xpath(".//a:blip/@r:embed")[0]
+        assert embed_attr == "rIdI"
+        # -- master rel went through the destination master, not the source --
+        assert relate_to_.call_args_list[0] == call(
+            new_part, slide_master_part_, RT.SLIDE_MASTER
+        )
+        # -- target package was asked for an image part --
+        target_package_.get_or_add_image_part.assert_called_once()
+
 
 class DescribeSlideMasterPart(object):
     """Unit-test suite for `pptx.parts.slide.SlideMasterPart` objects."""
@@ -846,3 +905,49 @@ class DescribeSlideMasterPart(object):
 
         related_part_.assert_called_once_with(slide_master_part, "rId42")
         assert slide_layout is slide_layout_
+
+    def it_can_add_a_layout_cloned_from_another_master(self, request):
+        """add_layout_from() clones the layout part and establishes SLIDE_LAYOUT rel."""
+        package_ = instance_mock(request, Package)
+        package_.next_partname.return_value = PackURI(
+            "/ppt/slideLayouts/slideLayout42.xml"
+        )
+        source_layout_part_ = instance_mock(request, SlideLayoutPart)
+        new_layout_ = instance_mock(request, SlideLayout)
+        new_layout_part_ = instance_mock(
+            request, SlideLayoutPart, slide_layout=new_layout_
+        )
+        source_layout_ = instance_mock(request, SlideLayout, part=source_layout_part_)
+        clone_from_ = method_mock(
+            request,
+            SlideLayoutPart,
+            "clone_from",
+            return_value=new_layout_part_,
+            autospec=False,
+        )
+        relate_to_ = method_mock(
+            request, SlideMasterPart, "relate_to", return_value="rIdX", autospec=True
+        )
+        slide_master_part = SlideMasterPart(
+            PackURI("/ppt/slideMasters/slideMaster1.xml"),
+            CT.PML_SLIDE_MASTER,
+            package_,
+            None,
+        )
+
+        rId, new_layout = slide_master_part.add_layout_from(source_layout_)
+
+        package_.next_partname.assert_called_once_with(
+            "/ppt/slideLayouts/slideLayout%d.xml"
+        )
+        clone_from_.assert_called_once_with(
+            source_layout_part_,
+            PackURI("/ppt/slideLayouts/slideLayout42.xml"),
+            package_,
+            slide_master_part,
+        )
+        relate_to_.assert_called_once_with(
+            slide_master_part, new_layout_part_, RT.SLIDE_LAYOUT
+        )
+        assert rId == "rIdX"
+        assert new_layout is new_layout_
