@@ -6,6 +6,7 @@ import pytest
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.oxml import parse_xml
 from pptx.parts.image import Image
 from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import Movie, Picture, _BasePicture, _MediaFormat
@@ -13,6 +14,60 @@ from pptx.util import Pt
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import call, class_mock, instance_mock, property_mock
+
+
+def _sld_with_movie_cond(shape_id, cond_cxml):
+    """Return a `p:sld` element containing a movie and a `p:cond` inside its timing node.
+
+    *cond_cxml* is a cxml fragment like ``"p:cond{delay=indefinite}"`` that
+    is rendered into the ``p:stCondLst`` of the video's ``p:cTn``.
+    """
+    cond_xml = xml(cond_cxml)
+    # -- strip the outer xmlns decl that xml() adds so the fragment nests cleanly --
+    cond_frag = cond_xml.split("?>", 1)[-1].strip()
+    # -- rendered element has its own default-namespace decl; remove it so the
+    #    resulting parse doesn't choke on duplicate ns prefixes --
+    cond_frag = cond_frag.replace(
+        ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"', ""
+    )
+    sld_xml = (
+        '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
+        "  <p:cSld>"
+        "    <p:spTree>"
+        "      <p:pic>"
+        "        <p:nvPicPr>"
+        '          <p:cNvPr id="%d" name="m"/>'
+        "          <p:cNvPicPr/>"
+        "          <p:nvPr/>"
+        "        </p:nvPicPr>"
+        "      </p:pic>"
+        "    </p:spTree>"
+        "  </p:cSld>"
+        "  <p:timing>"
+        "    <p:tnLst>"
+        "      <p:par>"
+        '        <p:cTn id="1" nodeType="tmRoot">'
+        "          <p:childTnLst>"
+        "            <p:video>"
+        "              <p:cMediaNode>"
+        '                <p:cTn id="2">'
+        "                  <p:stCondLst>"
+        "                    %s"
+        "                  </p:stCondLst>"
+        "                </p:cTn>"
+        "                <p:tgtEl>"
+        '                  <p:spTgt spid="%d"/>'
+        "                </p:tgtEl>"
+        "              </p:cMediaNode>"
+        "            </p:video>"
+        "          </p:childTnLst>"
+        "        </p:cTn>"
+        "      </p:par>"
+        "    </p:tnLst>"
+        "  </p:timing>"
+        "</p:sld>" % (shape_id, cond_frag, shape_id)
+    )
+    return parse_xml(sld_xml)
 
 
 class Describe_BasePicture(object):
@@ -162,6 +217,166 @@ class DescribeMovie(object):
         poster_frame = movie.poster_frame
         assert slide_part_.get_image.call_args_list == calls
         assert poster_frame == expected_value
+
+    @pytest.mark.parametrize(
+        ("cond_cxml", "expected_condition", "expected_start_time"),
+        [
+            # -- default PowerPoint encoding: onClick, no explicit delay --
+            ('p:cond{delay=indefinite}', "onClick", None),
+            # -- explicit evt="onClick" with numeric delay --
+            ('p:cond{evt=onClick,delay=3000}', "onClick", 3.0),
+            # -- no evt, delay=0 is PowerPoint "with previous" --
+            ('p:cond{delay=0}', "withPrevious", 0.0),
+            # -- no evt, numeric delay is with-previous + offset --
+            ('p:cond{delay=1500}', "withPrevious", 1.5),
+            # -- evt=onEnd is "after previous" --
+            ('p:cond{evt=onEnd,delay=0}', "afterPrevious", 0.0),
+            ('p:cond{evt=onEnd,delay=2500}', "afterPrevious", 2.5),
+        ],
+    )
+    def it_reads_its_start_condition_and_start_time(
+        self, cond_cxml, expected_condition, expected_start_time
+    ):
+        sld = _sld_with_movie_cond(shape_id=42, cond_cxml=cond_cxml)
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        assert movie.start_condition == expected_condition
+        assert movie.start_time == expected_start_time
+
+    def it_returns_defaults_when_no_timing_node_is_present(self):
+        # -- a p:pic under p:sld/p:cSld/p:spTree but no p:timing --
+        sld = parse_xml(
+            '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
+            "  <p:cSld>"
+            "    <p:spTree>"
+            "      <p:pic>"
+            "        <p:nvPicPr>"
+            '          <p:cNvPr id="42" name="m"/>'
+            "          <p:cNvPicPr/>"
+            "          <p:nvPr/>"
+            "        </p:nvPicPr>"
+            "      </p:pic>"
+            "    </p:spTree>"
+            "  </p:cSld>"
+            "</p:sld>"
+        )
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        assert movie.start_condition == "onClick"
+        assert movie.start_time is None
+
+    @pytest.mark.parametrize(
+        ("condition", "expected_evt", "expected_delay"),
+        [
+            ("onClick", None, "indefinite"),
+            ("withPrevious", None, 0),
+            ("afterPrevious", "onEnd", 0),
+        ],
+    )
+    def it_can_change_its_start_condition(self, condition, expected_evt, expected_delay):
+        sld = _sld_with_movie_cond(shape_id=42, cond_cxml="p:cond{delay=indefinite}")
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        movie.start_condition = condition
+
+        cond = sld.xpath(".//p:cond")[0]
+        assert cond.evt == expected_evt
+        assert cond.delay == expected_delay
+
+    def it_preserves_a_numeric_start_time_when_start_condition_changes(self):
+        sld = _sld_with_movie_cond(shape_id=42, cond_cxml="p:cond{delay=2500}")
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+        assert movie.start_time == 2.5
+
+        movie.start_condition = "afterPrevious"
+
+        cond = sld.xpath(".//p:cond")[0]
+        assert cond.evt == "onEnd"
+        assert cond.delay == 2500
+        assert movie.start_time == 2.5
+        assert movie.start_condition == "afterPrevious"
+
+    @pytest.mark.parametrize(
+        ("value", "expected_delay"),
+        [
+            (0, 0),
+            (1.5, 1500),
+            (2, 2000),
+            (None, "indefinite"),
+        ],
+    )
+    def it_can_change_its_start_time(self, value, expected_delay):
+        sld = _sld_with_movie_cond(shape_id=42, cond_cxml="p:cond{delay=indefinite}")
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        movie.start_time = value
+
+        cond = sld.xpath(".//p:cond")[0]
+        assert cond.delay == expected_delay
+
+    def it_raises_on_invalid_start_condition(self):
+        sld = _sld_with_movie_cond(shape_id=42, cond_cxml="p:cond{delay=indefinite}")
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        with pytest.raises(ValueError, match="start_condition must be"):
+            movie.start_condition = "nope"
+
+    def it_raises_on_invalid_start_time(self):
+        sld = _sld_with_movie_cond(shape_id=42, cond_cxml="p:cond{delay=indefinite}")
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        with pytest.raises(ValueError, match="start_time must be"):
+            movie.start_time = -1.0
+
+    def it_adds_a_cond_element_when_stCondLst_is_empty_on_write(self):
+        # -- a p:video exists but its stCondLst has no p:cond yet --
+        sld = parse_xml(
+            '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
+            "  <p:cSld>"
+            "    <p:spTree>"
+            "      <p:pic>"
+            "        <p:nvPicPr>"
+            '          <p:cNvPr id="42" name="m"/>'
+            "          <p:cNvPicPr/>"
+            "          <p:nvPr/>"
+            "        </p:nvPicPr>"
+            "      </p:pic>"
+            "    </p:spTree>"
+            "  </p:cSld>"
+            "  <p:timing>"
+            "    <p:tnLst>"
+            "      <p:par>"
+            '        <p:cTn id="1" nodeType="tmRoot">'
+            "          <p:childTnLst>"
+            "            <p:video>"
+            "              <p:cMediaNode>"
+            '                <p:cTn id="2"/>'
+            "                <p:tgtEl>"
+            '                  <p:spTgt spid="42"/>'
+            "                </p:tgtEl>"
+            "              </p:cMediaNode>"
+            "            </p:video>"
+            "          </p:childTnLst>"
+            "        </p:cTn>"
+            "      </p:par>"
+            "    </p:tnLst>"
+            "  </p:timing>"
+            "</p:sld>"
+        )
+        pic = sld.xpath(".//p:pic")[0]
+        movie = Movie(pic, None)
+
+        movie.start_time = 1.0
+
+        cond = sld.xpath(".//p:cond")[0]
+        assert cond.delay == 1000
 
     # fixtures -------------------------------------------------------
 

@@ -8,6 +8,8 @@ from pptx.oxml.timing import (
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLCommonTimeNodeData,
+    CT_TLTimeCondition,
+    CT_TLTimeConditionList,
     CT_TLTimeNodeParallel,
     CT_TLTimeNodeSequence,
     ST_TLTime,
@@ -117,6 +119,65 @@ class DescribeCT_TLCommonTimeNodeData(object):
     def and_dur_is_None_when_absent(self):
         cTn = element("p:cTn")
         assert cTn.dur is None
+
+    def it_exposes_an_optional_stCondLst_child(self):
+        cTn = element("p:cTn/p:stCondLst")
+        assert cTn.stCondLst is not None
+
+    def and_stCondLst_is_None_when_absent(self):
+        cTn = element("p:cTn")
+        assert cTn.stCondLst is None
+
+    def it_can_get_or_add_a_stCondLst_child(self):
+        cTn = element("p:cTn")
+        stCondLst = cTn.get_or_add_stCondLst()
+        assert isinstance(stCondLst, CT_TLTimeConditionList)
+        assert cTn.stCondLst is stCondLst
+
+
+class DescribeCT_TLTimeConditionList(object):
+    """Unit-test suite for `pptx.oxml.timing.CT_TLTimeConditionList`."""
+
+    def it_is_used_for_the_p_stCondLst_element(self):
+        stCondLst = element("p:stCondLst")
+        assert isinstance(stCondLst, CT_TLTimeConditionList)
+
+    def it_is_used_for_the_p_endCondLst_element(self):
+        endCondLst = element("p:endCondLst")
+        assert isinstance(endCondLst, CT_TLTimeConditionList)
+
+    def it_can_add_a_cond_child(self):
+        stCondLst = element("p:stCondLst")
+        cond = stCondLst.add_cond()
+        assert isinstance(cond, CT_TLTimeCondition)
+
+
+class DescribeCT_TLTimeCondition(object):
+    """Unit-test suite for `pptx.oxml.timing.CT_TLTimeCondition`."""
+
+    def it_is_used_for_the_p_cond_element(self):
+        cond = element("p:cond")
+        assert isinstance(cond, CT_TLTimeCondition)
+
+    def it_reads_its_evt_attribute(self):
+        cond = element("p:cond{evt=onClick}")
+        assert cond.evt == "onClick"
+
+    def and_evt_is_None_when_absent(self):
+        cond = element("p:cond")
+        assert cond.evt is None
+
+    def it_reads_its_delay_as_int(self):
+        cond = element("p:cond{delay=1500}")
+        assert cond.delay == 1500
+
+    def and_reads_indefinite_as_string(self):
+        cond = element("p:cond{delay=indefinite}")
+        assert cond.delay == "indefinite"
+
+    def and_delay_is_None_when_absent(self):
+        cond = element("p:cond")
+        assert cond.delay is None
 
 
 class DescribeCT_TLTimeNodeParallel(object):

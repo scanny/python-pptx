@@ -34,10 +34,11 @@ Key design notes:
 
 from __future__ import annotations
 
-from pptx.oxml.simpletypes import BaseSimpleType, XsdString, XsdUnsignedInt
+from pptx.oxml.simpletypes import BaseSimpleType, XsdString, XsdToken, XsdUnsignedInt
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
+    OneOrMore,
     OptionalAttribute,
     ZeroOrOne,
 )
@@ -156,10 +157,21 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
 
     * #102 / #1106: add per-effect presetID / presetClass / presetSubtype
       descriptors so entrance/exit presets can be authored.
-    * #861: surface ``stCondLst`` / ``endCondLst`` for delay read/write.
+    * #861: full delay read/write on the stCondLst (see below) plus
+      ``endCondLst`` round-trip.
     * #954: wrap in ``mc:AlternateContent`` for PowerPoint 2010+
       extensibility.
+
+    ``stCondLst`` is surfaced here as a ``ZeroOrOne`` descriptor for
+    issue #811 (start-time for ``add_movie``). The schema allows
+    ``stCondLst``, ``endCondLst``, ``endSync``, and ``iterate`` as
+    children of ``p:cTn``; only ``stCondLst`` is typed — the remaining
+    three round-trip through lxml.
     """
+
+    _tag_seq = ("p:stCondLst", "p:endCondLst", "p:endSync", "p:iterate")
+    stCondLst = ZeroOrOne("p:stCondLst", successors=_tag_seq[1:])
+    del _tag_seq
 
     id: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "id", XsdUnsignedInt
@@ -168,6 +180,32 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         "nodeType", XsdString
     )
     dur = OptionalAttribute("dur", ST_TLTime)
+
+
+class CT_TLTimeConditionList(BaseOxmlElement):
+    """`p:stCondLst` or `p:endCondLst` element — list of `p:cond` triggers.
+
+    Per ``CT_TLTimeConditionList`` in pml.xsd, holds one or more ``p:cond``
+    children. Surfaced on this class for issue #811; downstream #861 will
+    build a richer ``Delay`` proxy atop the same descriptors.
+    """
+
+    cond = OneOrMore("p:cond")
+
+
+class CT_TLTimeCondition(BaseOxmlElement):
+    """`p:cond` element — single time-trigger condition.
+
+    MVP surfaces the two attributes issue #811 needs: ``evt`` (trigger
+    event, e.g. ``"onClick"`` / ``"onEnd"``) and ``delay`` (``ST_TLTime``,
+    milliseconds or the token ``"indefinite"``). The three child-element
+    choices (``p:tgtEl`` / ``p:tn`` / ``p:rtn``) round-trip transparently
+    through lxml; downstream items (#264 shape-animation control) will
+    surface them when needed.
+    """
+
+    evt = OptionalAttribute("evt", XsdToken)
+    delay = OptionalAttribute("delay", ST_TLTime)
 
 
 class CT_TLTimeNodeParallel(BaseOxmlElement):
