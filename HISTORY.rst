@@ -16,6 +16,15 @@ Unreleased
   structure a funnel chart writer must emit. Documents the issue as
   blocked on full F4 (chartex foundation) with a concrete
   unblock-and-ship checklist.
+- docs: #407 rewrite ``Chart.chart_style`` docstring to reflect the two-tier
+  reality (plain 1-48 via ``c:style`` vs. extended 49-255 via
+  ``c14:style`` wrapped in ``mc:AlternateContent``) shipped with #516. Adds
+  examples of common PowerPoint-UI-displayed plain styles (style 6 = the
+  Accent-5 monochrome variant, etc.) and a note that the numeric-to-visual
+  mapping depends on the theme applied (the six ``a:accentN`` colours from
+  ``theme1.xml``) as well as the PowerPoint version, so the reliable
+  workflow for hitting a specific visual is to set the style in PowerPoint
+  and read back ``Chart.chart_style`` to learn the integer to use in code.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

@@ -139,20 +139,72 @@ class Chart(PartElementProxy):
     def chart_style(self):
         """Read/write integer index of chart style used to format this chart.
 
-        Plain chart styles are in the range 1 to 48. Starting with Office 2010, an *extended*
-        style index in the range 101 to 148 is also supported; this index is serialised in a
-        `c14:style` element wrapped in `mc:AlternateContent` and is what PowerPoint writes
-        when you pick one of the "Accent-N" chart-style variants that keep each series in a
-        pure accent colour (instead of shaded alternates) for charts with six or more series
-        (issue #516).
+        Chart styles live in two tiers in the OOXML schema, and this property spans both:
 
-        Returns the extended (`c14:style`) value when present, otherwise the plain
-        (`c:style`) value, otherwise `None` (the default style is used).
+        * **Plain styles (1-48)** — the `ST_Style` range defined in ISO/IEC 29500-1
+          §21.2.3.46. These are serialised as a bare ``c:style val="N"`` child of
+          ``c:chartSpace`` and correspond to the 48-slot chart-style gallery shipped
+          with Office 2007 / PowerPoint 2010-2011. Assigning a value in 1..48 writes a
+          plain ``c:style``.
+        * **Extended styles (49-255)** — an Office 2010+ range carried in a
+          ``c14:style`` element (namespace
+          ``http://schemas.microsoft.com/office/drawing/2007/8/2/chart``). To stay
+          backward-compatible the ``c14:style`` is wrapped in
+          ``mc:AlternateContent`` with an ``mc:Choice Requires="c14"`` holding the
+          extended value and an ``mc:Fallback`` holding a plain ``c:style`` so
+          Office 2007-era readers still render the chart. Assigning a value in
+          49..255 writes this wrapper; the fallback ``c:style`` is derived from
+          the extended value (``value - 100`` when ``value > 100``, else ``value``,
+          clamped to 1..48). PowerPoint emits values in this tier — for example
+          118 = the "Accent-N" variant of plain style 18 — to keep each series in a
+          pure accent colour for charts with six or more series (issue #516).
 
-        Assigning `None` removes any explicit setting (plain and extended). Assigning a value
-        in 1..48 writes a plain `c:style`; assigning 49..255 writes an `mc:AlternateContent`
-        wrapper carrying the extended `c14:style` value and a `c:style` fallback set to
-        `value % 100` (so Office 2007-era readers still render the chart).
+        Returns the extended (``c14:style``) value when an ``mc:AlternateContent``
+        wrapper is present, otherwise the plain (``c:style``) value, otherwise
+        ``None`` (no explicit style — PowerPoint applies its default).
+
+        Assigning ``None`` removes any explicit setting, dropping both the bare
+        ``c:style`` and any ``mc:AlternateContent`` wrapper.
+
+        Examples of common PowerPoint-UI-displayed values in the plain tier
+        (as typically seen in the Office 2007 / PowerPoint 2010-2011 48-slot
+        gallery, which lays the styles out as six rows of eight slots, each row
+        a different format level and each column a different accent slot):
+
+        =====  =====================================================
+        Value  Visual (approximate — see Note below)
+        =====  =====================================================
+        1      Monochrome (theme ``dk1`` / ``lt1``)
+        2      Colourful, each series filled with a different accent
+        3      Accent 1 shaded across series
+        4      Accent 2 shaded across series
+        5      Accent 3 shaded across series
+        6      Accent 4 shaded across series
+        7      Accent 5 shaded across series
+        8      Accent 6 shaded across series
+        42     Darker fills, Accent 2
+        118    Extended: pure-Accent variant of plain style 18
+        =====  =====================================================
+
+        So, for example, ``chart.chart_style = 118`` writes the Office-2010+
+        ``mc:AlternateContent`` / ``c14:style val="118"`` wrapper with a
+        ``c:style val="18"`` fallback; ``chart.chart_style = 6`` writes a
+        plain ``c:style val="6"``.
+
+        Note
+        ----
+        The numeric-to-visual mapping **depends on the theme applied to the
+        presentation** (the six ``a:accent1..a:accent6`` colours and the
+        ``a:lt1`` / ``a:dk1`` pair from ``theme1.xml``): the style index selects
+        a recipe, not fixed RGB values, so style 6 on a presentation themed in
+        blues produces a different rendering than style 6 on a presentation
+        themed in greens. The mapping also varies between PowerPoint versions
+        (PowerPoint 2011 for Mac exposes all 48 plain slots, while PowerPoint
+        2016+ groups them behind a shorter gallery whose entries depend on the
+        chart type — see issue #407). When you need a specific visual, the most
+        reliable workflow is to set the style in PowerPoint, then read back
+        ``chart.chart_style`` (or inspect the chart part's XML) to learn the
+        integer to use in code.
         """
         return self._chartSpace.chart_style_ex_val
 
