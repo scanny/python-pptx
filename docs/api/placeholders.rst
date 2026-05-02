@@ -33,6 +33,17 @@ complex and varied behaviors.
    :undoc-members:
 
 
+SlidePlaceholder objects
+------------------------
+
+.. autoclass:: pptx.shapes.placeholder.SlidePlaceholder()
+   :members:
+   :exclude-members:
+      has_chart, has_table, has_text_frame, part
+   :inherited-members:
+   :undoc-members:
+
+
 ChartPlaceholder objects
 ------------------------
 

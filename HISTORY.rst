@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- feat: #199 add ``SlidePlaceholder.insert_chart()`` so a chart can be
+  inserted into any slide placeholder, not just a specialized
+  ``ChartPlaceholder``.
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

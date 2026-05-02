@@ -147,6 +147,26 @@ class _BaseSlidePlaceholder(_InheritsDimensions, Shape):
         """
         return MSO_SHAPE_TYPE.PLACEHOLDER
 
+    def insert_chart(self, chart_type, chart_data):
+        """Return a |PlaceholderGraphicFrame| object containing a new chart.
+
+        The new chart is of `chart_type`, depicts `chart_data`, and has the same position
+        and size as this placeholder. `chart_type` is one of the :ref:`XlChartType`
+        enumeration values. `chart_data` is a |ChartData| object populated with the
+        categories and series values for the chart. Note that the new |Chart| object is
+        not returned directly. The chart object may be accessed using the
+        :attr:`~.PlaceholderGraphicFrame.chart` property of the returned
+        |PlaceholderGraphicFrame| object. Like other placeholder rich-content insertion
+        methods, this placeholder reference becomes invalid after this call; use the
+        return value (or re-fetch the placeholder by idx) to interact with the new shape.
+        """
+        rId = self.part.add_chart_part(chart_type, chart_data)
+        graphicFrame = self._new_chart_graphicFrame(
+            rId, self.left, self.top, self.width, self.height
+        )
+        self._replace_placeholder_with(graphicFrame)
+        return PlaceholderGraphicFrame(graphicFrame, self._parent)
+
     @property
     def _base_placeholder(self):
         """
@@ -156,6 +176,15 @@ class _BaseSlidePlaceholder(_InheritsDimensions, Shape):
         """
         layout, idx = self.part.slide_layout, self._element.ph_idx
         return layout.placeholders.get(idx=idx)
+
+    def _new_chart_graphicFrame(self, rId, x, y, cx, cy):
+        """Return a newly created `p:graphicFrame` element.
+
+        The returned element has the specified position and size and contains the chart
+        identified by `rId`.
+        """
+        id_, name = self.shape_id, self.name
+        return CT_GraphicalObjectFrame.new_chart_graphicFrame(id_, name, rId, x, y, cx, cy)
 
     def _replace_placeholder_with(self, element):
         """
@@ -271,41 +300,24 @@ class NotesSlidePlaceholder(_InheritsDimensions, Shape):
 
 
 class SlidePlaceholder(_BaseSlidePlaceholder):
-    """
-    Placeholder shape on a slide. Inherits shape properties from its
-    corresponding slide layout placeholder.
+    """Placeholder shape on a slide.
+
+    Inherits shape properties from its corresponding slide layout placeholder. Provides
+    the :meth:`~._BaseSlidePlaceholder.insert_chart` method (inherited) to replace the
+    placeholder with a chart; this allows inserting a chart into any slide placeholder,
+    for example a generic body placeholder, not just a specialized
+    :class:`.ChartPlaceholder`.
     """
 
 
 class ChartPlaceholder(_BaseSlidePlaceholder):
-    """Placeholder shape that can only accept a chart."""
+    """Placeholder shape that can only accept a chart.
 
-    def insert_chart(self, chart_type, chart_data):
-        """
-        Return a |PlaceholderGraphicFrame| object containing a new chart of
-        *chart_type* depicting *chart_data* and having the same position and
-        size as this placeholder. *chart_type* is one of the
-        :ref:`XlChartType` enumeration values. *chart_data* is a |ChartData|
-        object populated with the categories and series values for the chart.
-        Note that the new |Chart| object is not returned directly. The chart
-        object may be accessed using the
-        :attr:`~.PlaceholderGraphicFrame.chart` property of the returned
-        |PlaceholderGraphicFrame| object.
-        """
-        rId = self.part.add_chart_part(chart_type, chart_data)
-        graphicFrame = self._new_chart_graphicFrame(
-            rId, self.left, self.top, self.width, self.height
-        )
-        self._replace_placeholder_with(graphicFrame)
-        return PlaceholderGraphicFrame(graphicFrame, self._parent)
-
-    def _new_chart_graphicFrame(self, rId, x, y, cx, cy):
-        """
-        Return a newly created `p:graphicFrame` element having the specified
-        position and size and containing the chart identified by *rId*.
-        """
-        id_, name = self.shape_id, self.name
-        return CT_GraphicalObjectFrame.new_chart_graphicFrame(id_, name, rId, x, y, cx, cy)
+    The :meth:`~._BaseSlidePlaceholder.insert_chart` method is inherited from
+    :class:`._BaseSlidePlaceholder` and is also available on generic
+    :class:`.SlidePlaceholder` instances so that charts may be inserted into any
+    slide placeholder, not only specialized chart placeholders.
+    """
 
 
 class PicturePlaceholder(_BaseSlidePlaceholder):
