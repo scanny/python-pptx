@@ -657,7 +657,8 @@ preserves origin-run formatting), `TextFrame.font_scale` and
 `_Paragraph.replace_text()`, `_Paragraph.delete()`, `_Run.delete()`,
 a full `Font.effective_color` resolver that walks style inheritance (para
 `a:defRPr` → body `a:lstStyle` → master `p:txStyles` → theme
-`a:clrScheme`), `Font.strikethrough`, `Font.use_theme_hyperlink_color`,
+`a:clrScheme`), `Font.strikethrough`, `Font.highlight_color`,
+`Font.use_theme_hyperlink_color`,
 `Font.name_ea` / `name_cs` (East-Asian and complex-script slots), and a
 complete bullet-format API via `_Paragraph.bullet`.
 
@@ -690,6 +691,10 @@ r.font.shadow.blur_radius = Emu(50800)
 r.font.shadow.distance = Emu(38100)
 r.font.shadow.direction = 45.0
 r.font.shadow.color.rgb = RGBColor(0x80, 0x80, 0x80)
+
+# text highlight / background color (issue #675)
+r.font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+# r.font.clear_highlight_color()  # to remove an explicit highlight
 
 # template-style replacement (cross-run safe, origin-run formatting wins)
 tf.replace_text("{NAME}", "World")
@@ -731,6 +736,7 @@ prs.save("out.pptx")
 - `Font.use_theme_hyperlink_color` — Tri-state `bool` toggling `a:uFill`/`uFillTx` on a hyperlink run. `[Added in 1.0.2.dev0]`
 - `Font.shadow` — `ShadowFormat` for the run's text-shadow. Full read/write `.inherit` / `.blur_radius` / `.distance` / `.direction` / `.color` API, backed by `a:rPr/a:effectLst/a:outerShdw` (see [Fills, colors, and effects](#fills-colors-and-effects)). Issue #546. `[Added in 1.0.2.dev0]`
 - `Font.effect_format` — `EffectFormat` exposing the full `a:effectLst` family (`.shadow` / `.glow` / `.reflection` / `.soft_edge`) on the run's `a:rPr`. `[Added in 1.0.2.dev0]`
+- `Font.highlight_color` / `Font.clear_highlight_color()` — Read/write `ColorFormat` for the text-highlight (text-background) swatch PowerPoint exposes on the Home ribbon. Accepts both `.rgb = RGBColor(...)` and `.theme_color = MSO_THEME_COLOR.ACCENT_1`. Backed by `a:rPr/a:highlight`. Issue #675. `[Added in 1.0.2.dev0]`
 - `_Hyperlink.address` — Run-level hyperlink URL (setter creates/clears the `a:hlinkClick`).
 
 ---

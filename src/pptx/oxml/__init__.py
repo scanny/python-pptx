@@ -332,6 +332,7 @@ from pptx.oxml.dml.color import (  # noqa: E402
 register_element_cls("a:alpha", CT_PositiveFixedPercentage)
 register_element_cls("a:bgClr", CT_Color)
 register_element_cls("a:fgClr", CT_Color)
+register_element_cls("a:highlight", CT_Color)
 register_element_cls("a:hslClr", CT_HslColor)
 register_element_cls("a:lumMod", CT_Percentage)
 register_element_cls("a:lumOff", CT_Percentage)

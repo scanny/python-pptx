@@ -817,6 +817,72 @@ class DescribeFont(object):
     def it_provides_access_to_its_fill(self, font):
         assert isinstance(font.fill, FillFormat)
 
+    # -- highlight_color (issue #675) -----------------------------------
+
+    def it_provides_a_ColorFormat_for_the_highlight_color(self):
+        font = Font(element("a:rPr"))
+
+        color = font.highlight_color
+
+        assert isinstance(color, ColorFormat)
+        # -- the accessor is a lazyproperty; same instance is returned --
+        assert font.highlight_color is color
+
+    def it_creates_highlight_on_access_and_allows_setting_rgb(self):
+        rPr = element("a:rPr")
+        font = Font(rPr)
+
+        font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+
+        assert rPr.xml == xml("a:rPr/a:highlight/a:srgbClr{val=FFFF00}")
+
+    def it_allows_setting_highlight_theme_color(self):
+        from pptx.enum.dml import MSO_THEME_COLOR
+
+        rPr = element("a:rPr")
+        font = Font(rPr)
+
+        font.highlight_color.theme_color = MSO_THEME_COLOR.ACCENT_1
+
+        assert rPr.xml == xml("a:rPr/a:highlight/a:schemeClr{val=accent1}")
+
+    def it_reads_an_existing_highlight_color(self):
+        rPr = element("a:rPr/a:highlight/a:srgbClr{val=ABCDEF}")
+        font = Font(rPr)
+
+        assert font.highlight_color.rgb == RGBColor(0xAB, 0xCD, 0xEF)
+
+    def it_can_clear_its_highlight_color(self):
+        rPr = element("a:rPr/a:highlight/a:srgbClr{val=FF0000}")
+        font = Font(rPr)
+
+        return_value = font.clear_highlight_color()
+
+        assert rPr.xml == xml("a:rPr")
+        assert return_value is font
+
+    def it_is_a_no_op_to_clear_highlight_when_none_is_present(self):
+        rPr = element("a:rPr")
+        font = Font(rPr)
+
+        font.clear_highlight_color()
+
+        assert rPr.xml == xml("a:rPr")
+
+    def it_preserves_sibling_rPr_children_when_setting_highlight(self):
+        cxml = "a:rPr/(a:solidFill/a:srgbClr{val=112233},a:latin{typeface=Calibri})"
+        rPr = element(cxml)
+        font = Font(rPr)
+
+        font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+
+        # -- highlight lands between solidFill and latin per spec order --
+        expected = xml(
+            "a:rPr/(a:solidFill/a:srgbClr{val=112233},"
+            "a:highlight/a:srgbClr{val=FFFF00},a:latin{typeface=Calibri})"
+        )
+        assert rPr.xml == expected
+
     # -- shadow / effect_format (issue #546) ----------------------------
 
     def it_provides_access_to_its_shadow(self):

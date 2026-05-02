@@ -429,6 +429,55 @@ class Font(object):
         return FillFormat.from_fill_parent(self._rPr, self._parent)
 
     @lazyproperty
+    def highlight_color(self) -> ColorFormat:
+        """|ColorFormat| proxy for the text-highlight (text-background) color.
+
+        Corresponds to `a:rPr/a:highlight` — the "text highlighting" swatch
+        PowerPoint exposes on the Home ribbon as the text background-color
+        marker. A |ColorFormat| is always returned, whether or not an
+        `a:highlight` element is already present; the `a:highlight` element is
+        created on first access and populated with a default black `a:srgbClr`
+        when it has no color-choice child, so callers immediately see a usable
+        :attr:`ColorFormat.rgb` / :attr:`ColorFormat.theme_color` surface.
+
+        Typical use::
+
+            run.font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+            run.font.highlight_color.theme_color = MSO_THEME_COLOR.ACCENT_1
+
+        To remove an explicit highlight entirely (so the run inherits — which
+        in practice means "no highlight"), call
+        :meth:`clear_highlight_color`. See issue #675.
+        """
+        from pptx.dml.color import ColorFormat as _ColorFormat
+
+        highlight = self._rPr.get_or_add_highlight()
+        # -- ensure a concrete color-choice is present so callers get a usable
+        # -- ColorFormat immediately; default to a black a:srgbClr that will be
+        # -- overwritten by the caller's `.rgb = ...` / `.theme_color = ...`.
+        # -- (same shape as `_BulletFormat.color` below; descriptor-typed
+        # -- attrs aren't visible to pyright strict without extra hints.)
+        if highlight.eg_colorChoice is None:  # pyright: ignore[reportUnnecessaryComparison]
+            highlight.get_or_change_to_srgbClr()  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        return _ColorFormat.from_colorchoice_parent(  # pyright: ignore[reportUnknownMemberType]
+            highlight
+        )
+
+    def clear_highlight_color(self) -> Font:
+        """Remove any explicit text-highlight color from this run.
+
+        Removes any `a:highlight` child under the run's `a:rPr`, causing the
+        text to render with no highlight (the inherited default). Returns
+        self to support chaining. Safe to call when no `a:highlight` is
+        present. See issue #675.
+        """
+        self._rPr._remove_highlight()  # pyright: ignore[reportPrivateUsage]
+        # -- invalidate the lazyproperty cache so a fresh ColorFormat is
+        # -- created on the next access (over a newly-added a:highlight).
+        self.__dict__.pop("highlight_color", None)
+        return self
+
+    @lazyproperty
     def effect_format(self) -> EffectFormat:
         """|EffectFormat| instance providing access to visual effects on this font.
 

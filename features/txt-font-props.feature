@@ -208,6 +208,29 @@ Feature: Change appearance of font used to render text
       And font.shadow.blur_radius is None
 
 
+  Scenario: Set a text highlight color by RGB (#675)
+    Given a font
+     When I set font.highlight_color.rgb to FFFF00
+      And I save and reload the font's presentation
+     Then font.highlight_color.type is RGB
+      And font.highlight_color.rgb is FFFF00
+
+
+  Scenario: Set a text highlight color by theme color (#675)
+    Given a font
+     When I set font.highlight_color.theme_color to MSO_THEME_COLOR.ACCENT_1
+      And I save and reload the font's presentation
+     Then font.highlight_color.type is SCHEME
+      And font.highlight_color.theme_color is MSO_THEME_COLOR.ACCENT_1
+
+
+  Scenario: Clear a text highlight color (#675)
+    Given a font with a yellow RGB highlight color
+     When I call font.clear_highlight_color()
+      And I save and reload the font's presentation
+     Then the run has no a:highlight element
+
+
   Scenario: Add hyperlink
     Given a text run
      When I set the hyperlink address

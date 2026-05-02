@@ -210,6 +210,30 @@ A run can also be made into a hyperlink by providing a target URL::
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
 
 
+Text highlight (background) color
+---------------------------------
+
+|Font| exposes the text-highlight color — the swatch PowerPoint presents
+on the Home ribbon as the text background-color marker — as the
+``.highlight_color`` property. It corresponds to the ``a:rPr/a:highlight``
+element and behaves like any other |ColorFormat|: both ``.rgb`` and
+``.theme_color`` can be assigned.
+
+::
+
+    from pptx.dml.color import RGBColor
+    from pptx.enum.dml import MSO_THEME_COLOR
+
+    run.font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+    # -- or, theme-driven --
+    run.font.highlight_color.theme_color = MSO_THEME_COLOR.ACCENT_1
+
+To remove an explicit highlight entirely (so the run renders with no
+background-color marker), call :meth:`.Font.clear_highlight_color`::
+
+    run.font.clear_highlight_color()
+
+
 Paragraph bullets
 -----------------
 
