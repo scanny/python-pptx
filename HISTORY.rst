@@ -7,6 +7,8 @@ Unreleased
 ++++++++++
 
 - Foundation: cross-part rel cloning helper
+- feat: #752 accept arbitrary `prog_id` + `extension` in
+  `SlideShapes.add_ole_object()` to embed zip/pdf/html/custom files
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

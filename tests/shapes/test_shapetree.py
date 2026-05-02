@@ -394,6 +394,7 @@ class Describe_BaseGroupShapes(object):
             "test.xlsx",
             Inches(0.5),
             Inches(0.75),
+            None,
         )
         assert shapes._spTree[-1] is graphicFrame
         _recalculate_extents_.assert_called_once_with(shapes)
@@ -2101,6 +2102,7 @@ class Describe_OleObjectElementCreator(object):
             "icon.png",
             Inches(0.5),
             Inches(0.75),
+            None,
         )
         _graphicFrame_prop_.assert_called_once_with()
         assert graphicFrame is graphicFrame_
@@ -2282,7 +2284,7 @@ class Describe_OleObjectElementCreator(object):
         rId = element_creator._ole_object_rId
 
         slide_part_.add_embedded_ole_object_part.assert_called_once_with(
-            PROG_ID.DOCX, ole_object_file
+            PROG_ID.DOCX, ole_object_file, "xlsx"
         )
         assert rId == "rId14"
 
@@ -2315,6 +2317,40 @@ class Describe_OleObjectElementCreator(object):
         )
 
         assert element_creator._slide_part is slide_part_
+
+    @pytest.mark.parametrize(
+        ("extension_arg", "ole_object_file", "expected_value"),
+        (
+            # -- explicit extension arg wins over anything else --
+            ("pdf", "archive.zip", "pdf"),
+            ("zip", None, "zip"),
+            # -- str path falls back to its filename extension --
+            (None, "archive.zip", "zip"),
+            (None, "/path/to/doc.html", "html"),
+            # -- no path, no arg -> None (factory will default to "bin") --
+            (None, None, None),
+            # -- str path with no extension -> None --
+            (None, "README", None),
+        ),
+    )
+    def it_derives_the_embedded_part_extension_to_help(
+        self, extension_arg, ole_object_file, expected_value
+    ):
+        element_creator = _OleObjectElementCreator(
+            None,
+            None,
+            ole_object_file,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            extension_arg,
+        )
+        assert element_creator._extension == expected_value
 
     # fixture components ---------------------------------------------
 

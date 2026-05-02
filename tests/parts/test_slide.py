@@ -341,7 +341,9 @@ class DescribeSlidePart(object):
         _rId = slide_part.add_embedded_ole_object_part(prog_id, "workbook.xlsx")
 
         _blob_from_file_.assert_called_once_with(slide_part, "workbook.xlsx")
-        EmbeddedPackagePart_.factory.assert_called_once_with(prog_id, b"012345", package_)
+        EmbeddedPackagePart_.factory.assert_called_once_with(
+            prog_id, b"012345", package_, None
+        )
         relate_to_.assert_called_once_with(slide_part, embedded_package_part_, rel_type)
         assert _rId == "rId9"
 

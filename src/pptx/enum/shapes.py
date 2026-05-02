@@ -975,8 +975,15 @@ class PROG_ID(enum.Enum):
     Indicates the type of an OLE object in terms of the program used to open it.
 
     A member of this enumeration can be used in a `SlideShapes.add_ole_object()` call to
-    specify a Microsoft Office file-type (Excel, PowerPoint, or Word), which will
-    then not require several of the arguments required to embed other object types.
+    specify a well-known embedded-object file type. Using a member is a convenience --
+    any arbitrary progId string can also be passed to `add_ole_object()` directly when
+    the required file type is not represented here.
+
+    The Microsoft Office members (`DOCX`, `PPTX`, `XLSX`) are "registered" package types
+    that produce a distinct Office content-type in the output package. The remaining
+    members (`ZIP`, `PDF`, `DOC`, `HTML`) are convenience wrappers around the generic
+    OLE-object content-type and embed the file bytes verbatim with a progId that causes
+    PowerPoint to launch the file's default handler when the icon is double-clicked.
 
     Example::
 
@@ -987,21 +994,49 @@ class PROG_ID(enum.Enum):
             "workbook.xlsx", PROG_ID.XLSX, left=Inches(1), top=Inches(1)
         )
         assert embedded_xlsx_shape.ole_format.prog_id == "Excel.Sheet.12"
+
+        embedded_zip_shape = slide.shapes.add_ole_object(
+            "archive.zip", PROG_ID.ZIP, left=Inches(1), top=Inches(1)
+        )
+        assert embedded_zip_shape.ole_format.prog_id == "Package"
     """
 
     _progId: str
     _icon_filename: str
     _width: int
     _height: int
+    _extension: str
+    _is_office_package: bool
 
-    def __new__(cls, value: str, progId: str, icon_filename: str, width: int, height: int):
+    def __new__(
+        cls,
+        value: str,
+        progId: str,
+        icon_filename: str,
+        width: int,
+        height: int,
+        extension: str = "bin",
+        is_office_package: bool = False,
+    ):
         self = object.__new__(cls)
         self._value_ = value
         self._progId = progId
         self._icon_filename = icon_filename
         self._width = width
         self._height = height
+        self._extension = extension
+        self._is_office_package = is_office_package
         return self
+
+    @property
+    def extension(self):
+        """File extension (without the leading dot) used for this file type.
+
+        This is the extension used for the part name of a generic (non-MS-Office) embedded
+        object, e.g. ``"zip"`` or ``"pdf"``. Office package types return ``"bin"`` as a
+        placeholder since they use a different part-name template chosen by their subclass.
+        """
+        return self._extension
 
     @property
     def height(self):
@@ -1012,6 +1047,15 @@ class PROG_ID(enum.Enum):
         return self._icon_filename
 
     @property
+    def is_office_package(self):
+        """True when this progId represents a Microsoft Office package file-type.
+
+        Office package types (`DOCX`, `PPTX`, `XLSX`) use a distinct content-type and
+        part-name template; non-Office members are embedded as generic OLE objects.
+        """
+        return self._is_office_package
+
+    @property
     def progId(self):
         return self._progId
 
@@ -1019,11 +1063,27 @@ class PROG_ID(enum.Enum):
     def width(self):
         return self._width
 
-    DOCX = ("DOCX", "Word.Document.12", "docx-icon.emf", 965200, 609600)
+    DOC = ("DOC", "Word.Document.8", "generic-icon.emf", 965200, 609600, "doc", False)
+    """`progId` for an embedded legacy (binary) Word 97-2003 (.doc) document."""
+
+    DOCX = ("DOCX", "Word.Document.12", "docx-icon.emf", 965200, 609600, "docx", True)
     """`progId` for an embedded Word 2007+ (.docx) document."""
 
-    PPTX = ("PPTX", "PowerPoint.Show.12", "pptx-icon.emf", 965200, 609600)
+    HTML = ("HTML", "htmlfile", "generic-icon.emf", 965200, 609600, "html", False)
+    """`progId` for an embedded HTML (.html) document."""
+
+    PDF = ("PDF", "AcroExch.Document.DC", "generic-icon.emf", 965200, 609600, "pdf", False)
+    """`progId` for an embedded PDF (.pdf) document."""
+
+    PPTX = ("PPTX", "PowerPoint.Show.12", "pptx-icon.emf", 965200, 609600, "pptx", True)
     """`progId` for an embedded PowerPoint 2007+ (.pptx) document."""
 
-    XLSX = ("XLSX", "Excel.Sheet.12", "xlsx-icon.emf", 965200, 609600)
+    XLSX = ("XLSX", "Excel.Sheet.12", "xlsx-icon.emf", 965200, 609600, "xlsx", True)
     """`progId` for an embedded Excel 2007+ (.xlsx) document."""
+
+    ZIP = ("ZIP", "Package", "generic-icon.emf", 965200, 609600, "zip", False)
+    """`progId` for an embedded zip (.zip) archive.
+
+    Uses the generic ``"Package"`` progId so PowerPoint delegates to the operating
+    system's default zip handler when the icon is double-clicked.
+    """

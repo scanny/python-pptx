@@ -67,6 +67,17 @@ def given_a_PROG_ID_member_file_as_ole_object_file(context, PROG_ID_member):
     context.PROG_ID_member = PROG_ID_member
 
 
+@given("an in-memory zip archive as ole_object_file")
+def given_an_in_memory_zip_archive_as_ole_object_file(context):
+    """Build a tiny zip archive in memory to exercise the generic-embed path (#752)."""
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("hello.txt", b"hello world")
+    context.ole_object_file = io.BytesIO(buf.getvalue())
+
+
 @given("a SlidePlaceholders object of length 2 as shapes")
 def given_a_SlidePlaceholders_object_of_length_2_as_shapes(context):
     prs = Presentation(test_pptx("shp-shapes"))
@@ -167,6 +178,22 @@ def when_I_assign_shapes_add_group_shape_to_shape(context):
 def when_I_assign_shapes_add_ole_object_to_shape(context):
     context.shape = context.shapes.add_ole_object(
         context.ole_object_file, getattr(PROG_ID, context.PROG_ID_member), 4, 3, 2, 1
+    )
+
+
+@when(
+    'I assign shapes.add_ole_object(ole_object_file, "{prog_id}", "{extension}") to shape'
+)
+def when_I_assign_shapes_add_ole_object_generic_to_shape(context, prog_id, extension):
+    """Exercise the arbitrary-progId path added in #752."""
+    context.shape = context.shapes.add_ole_object(
+        context.ole_object_file,
+        prog_id,
+        4,
+        3,
+        2,
+        1,
+        extension=extension,
     )
 
 

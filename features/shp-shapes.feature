@@ -250,6 +250,18 @@ Feature: Access a shape on a slide
       | XLSX    | "Excel.Sheet.12"     |
 
 
+  Scenario: SlideShapes.add_ole_object() with arbitrary prog_id and extension (#752)
+    Given a SlideShapes object as shapes
+      And an in-memory zip archive as ole_object_file
+     When I assign shapes.add_ole_object(ole_object_file, "MyApp.Archive.1", "zip") to shape
+      And I assign shape.ole_format to ole_format
+     Then shapes[-1] == shape
+      And shape is a GraphicFrame object
+      And shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT
+      And ole_format.prog_id == "MyApp.Archive.1"
+      And ole_format.blob matches ole_object_file byte-for-byte
+
+
   Scenario Outline: SlideShapes.add_picture() (using filename)
     Given a blank slide
      When I add the image <filename> using shapes.add_picture()

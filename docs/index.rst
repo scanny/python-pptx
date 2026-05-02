@@ -65,6 +65,7 @@ User Guide
    user/charts
    user/table
    user/notes
+   user/ole-objects
    user/use-cases
    user/concepts
 
