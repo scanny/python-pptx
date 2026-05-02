@@ -236,6 +236,20 @@ class Describe_DoughnutChartXmlWriter(object):
         xml_writer, expected_xml = xml_fixture
         assert xml_writer.xml == expected_xml
 
+    @pytest.mark.parametrize("enum_member", ["DOUGHNUT", "DOUGHNUT_EXPLODED"])
+    def it_writes_dLbls_with_showVal_visible_by_default_issue_347(self, enum_member):
+        # -- issue #347: doughnut charts emitted `c:showVal val="0"` in the
+        # -- default `c:dLbls` block, so PowerPoint displayed no data labels.
+        # -- The default template now sets `showVal val="1"` so the numeric
+        # -- values render when a doughnut chart is first created.
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(cat_count=3, cat_type=str, ser_count=1)
+
+        xml = _DoughnutChartXmlWriter(chart_type, chart_data).xml
+
+        assert '<c:showVal val="1"/>' in xml
+        assert '<c:showVal val="0"/>' not in xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

@@ -55,6 +55,17 @@ Feature: Plot properties
       | not having    | True  | True           |
 
 
+  Scenario Outline: Newly-added doughnut chart renders data labels (issue #347)
+    Given a blank slide
+     When I add a <type> chart with 3 categories and 2 series
+     Then the chart's first plot has data labels with show_value True
+
+    Examples: doughnut chart types
+      | type              |
+      | Doughnut          |
+      | Exploded Doughnut |
+
+
   Scenario Outline: Get bar_plot.gap_width
     Given a bar plot having gap width of <gap-width>
      Then plot.gap_width is <expected-value>

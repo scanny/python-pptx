@@ -9,6 +9,12 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- fix: #347 Doughnut chart not displaying data labels. The default
+  ``c:dLbls`` block emitted for a newly-added doughnut or exploded-doughnut
+  chart set ``c:showVal val="0"``, so PowerPoint had the element wired up
+  but every show-flag turned off and drew no labels. The default now emits
+  ``c:showVal val="1"`` so the numeric values render the first time the
+  chart is opened, matching PowerPoint's own "Add Data Labels" behavior.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and
