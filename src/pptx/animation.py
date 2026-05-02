@@ -163,6 +163,8 @@ class AnimationEffect(ElementProxy):
     is read-only in the MVP; this keeps the semantics of "authored by
     set_animation, introspected by .animation" unambiguous and avoids
     shipping half-implemented mutators.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, par_elm):  # par_elm: CT_TLTimeNodeParallel
@@ -177,6 +179,8 @@ class AnimationEffect(ElementProxy):
         and returns it. In practice every MVP-authored effect has
         exactly one ``p:spTgt`` descendant; effects with multiple
         targets (not authored by python-pptx) return the first.
+
+        .. versionadded:: 2026.05.0
         """
         spids = self._par.xpath(".//p:spTgt/@spid")
         if not spids:
@@ -191,6 +195,8 @@ class AnimationEffect(ElementProxy):
         ``presetID`` / ``presetClass`` attributes are absent or do not
         match one of the five MVP presets (e.g. a PowerPoint-authored
         motion-path effect).
+
+        .. versionadded:: 2026.05.0
         """
         # -- presetID / presetClass live on the outer clickEffect's p:cTn --
         cTn = self._par.cTn
@@ -220,6 +226,8 @@ class AnimationEffect(ElementProxy):
         * ``afterEffect`` -> :attr:`AFTER_PREVIOUS`
         * anything else -> :attr:`ON_CLICK` (the safe default — the
           effect will still play when the slide is advanced).
+
+        .. versionadded:: 2026.05.0
         """
         node_type = self._par.cTn.nodeType
         if node_type == "afterEffect":
@@ -236,6 +244,8 @@ class AnimationEffect(ElementProxy):
         main-sequence root cTn, not by individual effects) is returned
         as ``0`` in the MVP — callers wanting the raw token should
         inspect the XML directly via :attr:`pptx.slide.Slide.timing_xml`.
+
+        .. versionadded:: 2026.05.0
         """
         stCondLst = self._par.cTn.stCondLst
         if stCondLst is None:

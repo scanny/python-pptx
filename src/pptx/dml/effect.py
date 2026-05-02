@@ -30,6 +30,8 @@ class EffectFormat(object):
     An `EffectFormat` surfaces each of the independent effect sub-families
     (`.shadow`, `.glow`, `.reflection`, `.soft_edge`) using a shared writer for
     `a:effectLst` so any shape, chart, or text container exposes effects uniformly.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, spPr):
@@ -57,22 +59,34 @@ class EffectFormat(object):
 
     @lazyproperty
     def shadow(self) -> ShadowFormat:
-        """|ShadowFormat| object providing access to shadow-effect settings."""
+        """|ShadowFormat| object providing access to shadow-effect settings.
+
+        .. versionadded:: 2026.05.0
+        """
         return ShadowFormat(self._element)
 
     @lazyproperty
     def glow(self) -> GlowFormat:
-        """|GlowFormat| object providing access to glow-effect settings."""
+        """|GlowFormat| object providing access to glow-effect settings.
+
+        .. versionadded:: 2026.05.0
+        """
         return GlowFormat(self._element)
 
     @lazyproperty
     def reflection(self) -> ReflectionFormat:
-        """|ReflectionFormat| object providing access to reflection-effect settings."""
+        """|ReflectionFormat| object providing access to reflection-effect settings.
+
+        .. versionadded:: 2026.05.0
+        """
         return ReflectionFormat(self._element)
 
     @lazyproperty
     def soft_edge(self) -> SoftEdgeFormat:
-        """|SoftEdgeFormat| object providing access to soft-edge-effect settings."""
+        """|SoftEdgeFormat| object providing access to soft-edge-effect settings.
+
+        .. versionadded:: 2026.05.0
+        """
         return SoftEdgeFormat(self._element)
 
 
@@ -278,6 +292,8 @@ class ShadowFormat(_EffectChildFormat):
         The `a:outerShdw` (and `a:effectLst`) are created on first access to satisfy the
         required color-choice child group; the initial color is black
         (`<a:srgbClr val="000000"/>`).
+
+        .. versionadded:: 2026.05.0
         """
         outer = cast("CT_OuterShadowEffect", self._get_or_add_child())
         if outer.eg_colorChoice is None:
@@ -288,7 +304,10 @@ class ShadowFormat(_EffectChildFormat):
 
 
 class GlowFormat(_EffectChildFormat):
-    """Provides access to glow-effect settings (`a:glow`) on a shape-like element."""
+    """Provides access to glow-effect settings (`a:glow`) on a shape-like element.
+
+    .. versionadded:: 2026.05.0
+    """
 
     _child_tag = "glow"
 
@@ -320,6 +339,8 @@ class GlowFormat(_EffectChildFormat):
 
         The `a:glow` (and `a:effectLst`) are created on first access to satisfy the
         required color-choice child group; initial color is black.
+
+        .. versionadded:: 2026.05.0
         """
         glow = cast("CT_GlowEffect", self._get_or_add_child())
         if glow.eg_colorChoice is None:
@@ -330,7 +351,10 @@ class GlowFormat(_EffectChildFormat):
 
 
 class ReflectionFormat(_EffectChildFormat):
-    """Provides access to reflection-effect settings (`a:reflection`)."""
+    """Provides access to reflection-effect settings (`a:reflection`).
+
+    .. versionadded:: 2026.05.0
+    """
 
     _child_tag = "reflection"
 
@@ -374,7 +398,10 @@ class ReflectionFormat(_EffectChildFormat):
 
 
 class SoftEdgeFormat(_EffectChildFormat):
-    """Provides access to soft-edge-effect settings (`a:softEdge`)."""
+    """Provides access to soft-edge-effect settings (`a:softEdge`).
+
+    .. versionadded:: 2026.05.0
+    """
 
     _child_tag = "softEdge"
 

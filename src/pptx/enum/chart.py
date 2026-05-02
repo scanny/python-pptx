@@ -317,6 +317,8 @@ class XL_ERROR_BAR_DIRECTION(BaseXmlEnum):
     MS API Name: `XlErrorBarDirection`
 
     https://learn.microsoft.com/en-us/office/vba/api/excel.xlerrorbardirection
+
+    .. versionadded:: 2026.05.0
     """
 
     X = (0, "x", "Error bars extend in the X direction (horizontal).")
@@ -338,6 +340,8 @@ class XL_ERROR_BAR_INCLUDE(BaseXmlEnum):
     MS API Name: `XlErrorBarInclude`
 
     https://learn.microsoft.com/en-us/office/vba/api/excel.xlerrorbarinclude
+
+    .. versionadded:: 2026.05.0
     """
 
     BOTH = (1, "both", "Show both positive and negative error bars.")
@@ -362,6 +366,8 @@ class XL_ERROR_BAR_TYPE(BaseXmlEnum):
     MS API Name: `XlErrorBarType`
 
     https://learn.microsoft.com/en-us/office/vba/api/excel.xlerrorbartype
+
+    .. versionadded:: 2026.05.0
     """
 
     CUSTOM = (-4114, "cust", "Values are provided by `plus`/`minus` references (custom per-point).")
@@ -392,6 +398,8 @@ class XL_TRENDLINE_TYPE(BaseXmlEnum):
     MS API Name: `XlTrendlineType`
 
     https://learn.microsoft.com/en-us/office/vba/api/excel.xltrendlinetype
+
+    .. versionadded:: 2026.05.0
     """
 
     EXPONENTIAL = (5, "exp", "Exponential trendline (`y = a * e^(b*x)`).")
@@ -631,6 +639,8 @@ class XL_AXIS_POSITION(BaseXmlEnum):
     MS API Name: `XlAxisPosition`
 
     https://learn.microsoft.com/en-us/office/vba/api/excel.xlaxisposition
+
+    .. versionadded:: 2026.05.0
     """
 
     BOTTOM = (-4107, "b", "Axis is drawn at the bottom of the plot area.")
@@ -662,6 +672,8 @@ class XL_CROSS_BETWEEN(BaseXmlEnum):
 
     MS API Name: `XlCategoryType` (no exact MS API enum exists; modeled on
     the Excel chart UI "between tick marks" / "on tick marks" radio control).
+
+    .. versionadded:: 2026.05.0
     """
 
     BETWEEN = (2, "between", "Value axis crosses the category axis between categories.")
@@ -695,6 +707,8 @@ class XL_DISPLAY_BLANKS_AS(BaseXmlEnum):
     MS API Name: `XlDisplayBlanksAs`
 
     https://learn.microsoft.com/en-us/office/vba/api/excel.xldisplayblanksas
+
+    .. versionadded:: 2026.05.0
     """
 
     GAPS = (1, "gap", "Blank cells are not plotted (leave a gap in the chart).")

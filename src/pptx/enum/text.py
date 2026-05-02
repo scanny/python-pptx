@@ -161,6 +161,8 @@ class MSO_TEXT_STRIKE_TYPE(BaseXmlEnum):
     MS API Name: `MsoTextStrikeType`
 
     http://msdn.microsoft.com/en-us/library/aa432639.aspx
+
+    .. versionadded:: 2026.05.0
     """
 
     NONE = (0, "noStrike", "Specifies no strikethrough.")
@@ -280,6 +282,8 @@ class PP_AUTO_NUMBER_SCHEME(BaseXmlEnum):
         paragraph.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
 
     MS API Name: `PpAutoNumberScheme` (mapped from OOXML ``ST_TextAutonumberScheme``).
+
+    .. versionadded:: 2026.05.0
     """
 
     ALPHA_LC_PAREN_BOTH = (

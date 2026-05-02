@@ -632,6 +632,8 @@ class SlideShapes(_BaseGroupShapes):
         ratio calculation is possible. When either value is |None|, it defaults to 1 inch
         (914400 EMU). To preserve the image's native aspect ratio, callers should supply
         both `width` and `height` explicitly.
+
+        .. versionadded:: 2026.05.0
         """
         default = Emu(914400)
         cx = width if width is not None else default
@@ -729,6 +731,8 @@ class SlideShapes(_BaseGroupShapes):
         an empty list when no shape has the given name. The search is restricted
         to direct members of this slide's shape tree; shapes nested inside a
         group are not included.
+
+        .. versionadded:: 2026.05.0
         """
         return [shape for shape in self if shape.name == name]
 
@@ -740,6 +744,8 @@ class SlideShapes(_BaseGroupShapes):
         :meth:`find_all_by_name` to retrieve every match. An explicit method is
         provided instead of overloading ``__getitem__`` because the subscript
         operator is already defined for integer indexing.
+
+        .. versionadded:: 2026.05.0
         """
         for shape in self:
             if shape.name == name:
@@ -959,6 +965,8 @@ class SlidePlaceholders(ParentedElementProxy):
         This is the non-raising counterpart to `placeholders[idx]` and provides a convenient way
         to locate a specific placeholder (e.g. a picture placeholder with `idx == 1`) without
         needing a try/except. `idx` is the ``p:ph/@idx`` attribute value, not a list position.
+
+        .. versionadded:: 2026.05.0
         """
         for e in self._element.iter_ph_elms():
             if e.ph_idx == idx:

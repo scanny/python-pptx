@@ -227,6 +227,8 @@ class TextFrame(Subshape):
 
         Returns the number of replacements performed. `find` must be a
         non-empty string (raises `ValueError` otherwise). See issue #836.
+
+        .. versionadded:: 2026.05.0
         """
         return sum(p.replace_text(find, replace) for p in self.paragraphs)
 
@@ -434,6 +436,8 @@ class Font(object):
 
         Exposes the full `a:effectLst` family (`shadow`, `glow`, `reflection`,
         `soft_edge`) on this run's `a:rPr/a:effectLst`. See issue #546.
+
+        .. versionadded:: 2026.05.0
         """
         return EffectFormat(self._rPr)
 
@@ -447,6 +451,8 @@ class Font(object):
         ``color``). A |ShadowFormat| object is always returned, even when no
         shadow is explicitly defined on this run (i.e. the run inherits its
         shadow from the style hierarchy). See issue #546.
+
+        .. versionadded:: 2026.05.0
         """
         return ShadowFormat(self._rPr)
 
@@ -474,6 +480,8 @@ class Font(object):
         walk can't reach a slide-master, or when a scheme color is encountered
         but the target theme entry is missing. Callers that need finer-grained
         control can use :attr:`color` + :meth:`ColorFormat.to_rgb` directly.
+
+        .. versionadded:: 2026.05.0
         """
         theme_colors = self._theme_colors
         # -- 1. direct run rPr --

@@ -123,6 +123,8 @@ class Movie(_BasePicture):
         produces a dangling ``p:spTgt/@spid`` reference that causes PowerPoint to flag the file
         as corrupt on open (issue #974). The matching ``p:video`` element is located by the
         shape's id and removed.
+
+        .. versionadded:: 2026.05.0
         """
         # -- capture shape_id BEFORE removing the p:pic from the tree --
         shape_id = self.shape_id
@@ -224,6 +226,8 @@ class Movie(_BasePicture):
         Mirrors :attr:`Picture.image` + :attr:`Image.blob` for the movie
         case; useful for extracting embedded audio / video from an existing
         presentation without going through the package internals.
+
+        .. versionadded:: 2026.05.0
         """
         media_part = self._media_part
         if media_part is None:
@@ -238,6 +242,8 @@ class Movie(_BasePicture):
         (the value recorded in ``[Content_Types].xml`` for the media
         partname). Returns |None| when no media part is associated with
         this shape.
+
+        .. versionadded:: 2026.05.0
         """
         media_part = self._media_part
         if media_part is None:
@@ -254,6 +260,8 @@ class Movie(_BasePicture):
         is chosen by :meth:`Video.ext` / :meth:`Audio.ext` at add-time based
         on the supplied filename or MIME type. Returns |None| when no media
         part is associated with this shape.
+
+        .. versionadded:: 2026.05.0
         """
         media_part = self._media_part
         if media_part is None:
@@ -305,6 +313,8 @@ class Movie(_BasePicture):
         modality should use :meth:`SlideShapes.add_movie` to create a fresh
         shape. The old media part becomes eligible for garbage-collection on
         save once nothing else references its rIds.
+
+        .. versionadded:: 2026.05.0
         """
         # -- read the new media file into a Video value object (handles both
         #    audio and video payloads via the same MediaPart pipeline) --
@@ -494,6 +504,8 @@ class Picture(_BasePicture):
         referenced elsewhere in the slide part (reference count < 2), the matching relationship
         is also removed, which allows the image part to be garbage-collected on save if no other
         part refers to it.
+
+        .. versionadded:: 2026.05.0
         """
         rId = self._pic.blip_rId
         if rId is not None:
@@ -565,6 +577,8 @@ class Picture(_BasePicture):
         Raises |ValueError| if this picture has no embedded image (i.e.
         its ``a:blip`` element lacks an ``r:embed`` reference); such a
         picture is malformed and has no "current" image to replace.
+
+        .. versionadded:: 2026.05.0
         """
         blipFill = self._pic.blipFill
         blip = blipFill.blip if blipFill is not None else None

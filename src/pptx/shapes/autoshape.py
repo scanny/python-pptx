@@ -336,6 +336,8 @@ class Shape(BaseShape):
           whose `a:avLst` carries adjustment values or whose definition uses computed
           guides), this property returns |None|. See `docs/user/autoshapes.rst` for the full
           list of supported presets.
+
+        .. versionadded:: 2026.05.0
         """
         return PathGeometry.from_shape(self._sp)
 

@@ -45,6 +45,8 @@ class ConnectorAdjustmentCollection:
 
     Straight connectors and two-segment connectors have no adjustments, so the collection will
     be empty (``len(adjustments) == 0``) for those preset types.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, prstGeom: CT_PresetGeometry2D | None):
@@ -118,6 +120,8 @@ class Connector(BaseShape):
         connector's `a:avLst` that control the position of bend points on elbow (bent) and
         curved connectors. Straight connectors and two-segment connectors have no adjustments;
         the collection is empty (``len == 0``) for those preset types.
+
+        .. versionadded:: 2026.05.0
         """
         return ConnectorAdjustmentCollection(self._element.spPr.prstGeom)
 

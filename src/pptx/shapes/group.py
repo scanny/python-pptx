@@ -56,6 +56,8 @@ class GroupShape(BaseShape):
         original's name.
 
         Fixes issue #1085.
+
+        .. versionadded:: 2026.05.0
         """
         # -- `_parent` is a `_BaseShapes` (concretely `SlideShapes`/`GroupShapes`) --
         # -- exposing `_spTree`, `_next_shape_id`, and `_shape_factory`. The       --

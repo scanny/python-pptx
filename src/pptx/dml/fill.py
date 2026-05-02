@@ -92,6 +92,8 @@ class FillFormat(object):
         Raises |ValueError| when this |FillFormat| was created without a part
         reference (only shape, cell, font, line, chart element, and slide
         background fills support :meth:`blip_fill`).
+
+        .. versionadded:: 2026.05.0
         """
         if self._part is None:
             raise ValueError(

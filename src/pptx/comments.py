@@ -29,6 +29,8 @@ class CommentAuthor:
 
     Exposes read-only properties for the stable author metadata and the integer id
     used to link comments back to this author.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, cmAuthor: CT_CommentAuthor):
@@ -36,17 +38,26 @@ class CommentAuthor:
 
     @property
     def id(self) -> int:
-        """The stable integer id that slide-level comments reference."""
+        """The stable integer id that slide-level comments reference.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._element.id
 
     @property
     def name(self) -> str:
-        """The author's display name."""
+        """The author's display name.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._element.name
 
     @property
     def initials(self) -> str:
-        """The author's initials, shown in the PowerPoint comments pane."""
+        """The author's initials, shown in the PowerPoint comments pane.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._element.initials
 
 
@@ -57,6 +68,8 @@ class CommentAuthors:
     added with :meth:`add_author`. There is at most one author-list part per package;
     if one does not yet exist when it is first accessed through the high-level API,
     one is created lazily.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, part: CommentAuthorsPart):
@@ -74,18 +87,27 @@ class CommentAuthors:
         return CommentAuthor(self._element.cmAuthor_lst[idx])
 
     def add_author(self, name: str, initials: str) -> CommentAuthor:
-        """Append a new author with `name`/`initials` and return its proxy."""
+        """Append a new author with `name`/`initials` and return its proxy.
+
+        .. versionadded:: 2026.05.0
+        """
         return CommentAuthor(self._element.add_author(name, initials))
 
     def get_by_id(self, author_id: int) -> CommentAuthor | None:
-        """Return the author having `author_id`, or |None| if not present."""
+        """Return the author having `author_id`, or |None| if not present.
+
+        .. versionadded:: 2026.05.0
+        """
         cmAuthor = self._element.get_by_id(author_id)
         if cmAuthor is None:
             return None
         return CommentAuthor(cmAuthor)
 
     def get_or_add(self, name: str, initials: str) -> CommentAuthor:
-        """Return an existing author matching `name` + `initials`, else add one."""
+        """Return an existing author matching `name` + `initials`, else add one.
+
+        .. versionadded:: 2026.05.0
+        """
         for author in self:
             if author.name == name and author.initials == initials:
                 return author
@@ -93,7 +115,10 @@ class CommentAuthors:
 
 
 class Comment:
-    """Proxy for a single `p:cm` element — one comment on one slide."""
+    """Proxy for a single `p:cm` element — one comment on one slide.
+
+    .. versionadded:: 2026.05.0
+    """
 
     def __init__(self, cm: CT_Comment, authors: CommentAuthors):
         self._element = cm
@@ -110,17 +135,26 @@ class Comment:
 
     @property
     def author_id(self) -> int:
-        """Integer id linking this comment to its `CommentAuthor`."""
+        """Integer id linking this comment to its `CommentAuthor`.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._element.authorId
 
     @property
     def author(self) -> CommentAuthor | None:
-        """The |CommentAuthor| referenced by this comment, or |None| if not present."""
+        """The |CommentAuthor| referenced by this comment, or |None| if not present.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._authors.get_by_id(self._element.authorId)
 
     @property
     def idx(self) -> int:
-        """Per-author sequence index of this comment, starting at 1."""
+        """Per-author sequence index of this comment, starting at 1.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._element.idx
 
     @property
@@ -148,6 +182,8 @@ class Comments:
     Supports ``len()``, iteration, and indexed access. A new comment is added via
     :meth:`add_comment`, which requires a `CommentAuthor` so the comment's
     `authorId` reference is well-formed.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, slide: Slide, part: CommentsPart, authors: CommentAuthors):
@@ -177,6 +213,8 @@ class Comments:
 
         The new comment is tagged with `author`'s id; `text`, `position` (EMU), and
         the optional `datetime_value` are written directly.
+
+        .. versionadded:: 2026.05.0
         """
         cm = self._element.add_comment(
             author_id=author.id,

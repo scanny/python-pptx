@@ -34,6 +34,8 @@ class PP_TRANSITION_TYPE(BaseXmlEnum):
     ``p:transition`` element.
 
     MS API Name: *none — this enum is python-pptx-specific.*
+
+    .. versionadded:: 2026.05.0
     """
 
     NONE = (0, "", "No transition variant child element is present.")
@@ -128,6 +130,8 @@ class PP_TRANSITION_SPEED(BaseXmlEnum):
     ``p14:dur`` attribute (in milliseconds) in the 2010 extension
     namespace and is what :attr:`.Transition.duration` writes / reads in
     the MVP.
+
+    .. versionadded:: 2026.05.0
     """
 
     SLOW = (1, "slow", "Slow — approximately 1.6 seconds.")
@@ -147,6 +151,8 @@ class PP_TRANSITION_SIDE_DIRECTION(BaseXmlEnum):
     It is the value-space for the ``@dir`` attribute on the
     ``p:wipe`` and ``p:push`` transition variants (i.e. the direction
     the content slides *from*). The schema default is ``"l"`` (left).
+
+    .. versionadded:: 2026.05.0
     """
 
     LEFT = (1, "l", "Left — content enters from / moves toward the left.")

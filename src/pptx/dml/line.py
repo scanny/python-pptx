@@ -36,6 +36,8 @@ class LineFormat(object):
         Provides access to the line-end decoration (arrowhead) at the
         *beginning* of the line (the `a:headEnd` child element). Read/write
         sub-properties are ``type``, ``width``, and ``length``.
+
+        .. versionadded:: 2026.05.0
         """
         return LineEndFormat(self, "headEnd")
 
@@ -46,6 +48,8 @@ class LineFormat(object):
         Provides access to the line-end decoration (arrowhead) at the *end*
         of the line (the `a:tailEnd` child element). Read/write
         sub-properties are ``type``, ``width``, and ``length``.
+
+        .. versionadded:: 2026.05.0
         """
         return LineEndFormat(self, "tailEnd")
 
@@ -137,6 +141,8 @@ class LineEndFormat(object):
     An instance is obtained via the ``line.begin_arrow`` or
     ``line.end_arrow`` properties. Each instance exposes ``type``, ``width``,
     and ``length`` read/write properties.
+
+    .. versionadded:: 2026.05.0
     """
 
     _VALID_END_TAGS = ("headEnd", "tailEnd")

@@ -149,6 +149,8 @@ class MSO_LINE_END_TYPE(BaseXmlEnum):
         shape.line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE
 
     Corresponds to the `ST_LineEndType` simple type in DrawingML.
+
+    .. versionadded:: 2026.05.0
     """
 
     NONE = (1, "none", "No line-end decoration.")
@@ -180,6 +182,8 @@ class MSO_LINE_END_WIDTH(BaseXmlEnum):
         shape.line.end_arrow.width = MSO_LINE_END_WIDTH.MEDIUM
 
     Corresponds to the `ST_LineEndWidth` simple type in DrawingML.
+
+    .. versionadded:: 2026.05.0
     """
 
     SMALL = (1, "sm", "Small arrowhead width.")
@@ -202,6 +206,8 @@ class MSO_LINE_END_LENGTH(BaseXmlEnum):
         shape.line.end_arrow.length = MSO_LINE_END_LENGTH.LARGE
 
     Corresponds to the `ST_LineEndLength` simple type in DrawingML.
+
+    .. versionadded:: 2026.05.0
     """
 
     SMALL = (1, "sm", "Small arrowhead length.")

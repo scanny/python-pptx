@@ -75,6 +75,8 @@ class BaseShape(object):
         `p:spTree` (or `p:grpSp` when the shape belongs to a group). The first shape
         in document order is the backmost and the last is the frontmost. If the shape
         is already the frontmost of its siblings this call is a no-op.
+
+        .. versionadded:: 2026.05.0
         """
         siblings = self._zorder_siblings
         idx = siblings.index(self._element)
@@ -92,6 +94,8 @@ class BaseShape(object):
         The shape becomes the last shape child under its owning `p:spTree` or
         `p:grpSp` (but before any trailing `p:extLst`). If the shape is already
         frontmost this call is a no-op.
+
+        .. versionadded:: 2026.05.0
         """
         siblings = self._zorder_siblings
         if siblings[-1] is self._element:
@@ -149,6 +153,8 @@ class BaseShape(object):
 
         See :mod:`pptx.animation` for the supported preset set and the
         list of deferred (complex) effects.
+
+        .. versionadded:: 2026.05.0
         """
         from pptx.animation import AnimationEffect, _find_effect_par_for_spid
 
@@ -210,6 +216,8 @@ class BaseShape(object):
 
         See ``docs/dev/analysis/f8-animations-transitions.rst`` for
         the downstream items that will expand the supported set.
+
+        .. versionadded:: 2026.05.0
         """
         from pptx.animation import (
             _find_effect_par_for_spid,
@@ -294,6 +302,8 @@ class BaseShape(object):
         part for a picture shape.
 
         Subsequent use of this shape object is undefined; most operations will raise an exception.
+
+        .. versionadded:: 2026.05.0
         """
         self._element.getparent().remove(self._element)
 
@@ -315,6 +325,8 @@ class BaseShape(object):
         After this call returns, this shape should not be used further — its XML element has
         been removed from the shape-tree (and any subclass-specific cleanup, such as dropping
         a picture's image relationship, has run).
+
+        .. versionadded:: 2026.05.0
         """
         if other_shape is self or other_shape._element is self._element:
             raise ValueError("cannot replace a shape with itself")
@@ -363,6 +375,8 @@ class BaseShape(object):
         which overrides this method to clone the whole subtree via
         :class:`~pptx.opc.package.PartRelationshipCloner` and place the duplicate at the
         original's slide-relative effective rectangle (see :attr:`effective_left`).
+
+        .. versionadded:: 2026.05.0
         """
         sp_tag = qn("p:sp")
         cxnSp_tag = qn("p:cxnSp")
@@ -449,6 +463,8 @@ class BaseShape(object):
         Equivalent to ``shape.flip_horizontal = not shape.flip_horizontal``.
         Provided for parity with the PowerPoint UI's ``Flip Horizontal``
         command, which mirrors the shape left-to-right on each invocation.
+
+        .. versionadded:: 2026.05.0
         """
         self._element.flipH = not bool(self._element.flipH)
 
@@ -458,6 +474,8 @@ class BaseShape(object):
         Equivalent to ``shape.flip_vertical = not shape.flip_vertical``.
         Provided for parity with the PowerPoint UI's ``Flip Vertical``
         command, which mirrors the shape top-to-bottom on each invocation.
+
+        .. versionadded:: 2026.05.0
         """
         self._element.flipV = not bool(self._element.flipV)
 
@@ -484,6 +502,8 @@ class BaseShape(object):
 
         This is a read-only, MVP-scope property. Writing OMML and converting to/from
         LaTeX are explicitly deferred (see `math_equation_xml`).
+
+        .. versionadded:: 2026.05.0
         """
         return bool(self._element.xpath(".//m:oMath"))
 
@@ -510,6 +530,8 @@ class BaseShape(object):
 
         Until then, callers who need to modify an equation must edit the underlying
         XML element directly (via `shape.element`) and re-save the presentation.
+
+        .. versionadded:: 2026.05.0
         """
         oMath_elms = self._element.xpath(".//m:oMath")
         if not oMath_elms:
@@ -558,6 +580,8 @@ class BaseShape(object):
         raw XML value which is expressed in the enclosing group's child coordinate
         system and can differ from the rendered size when the group has been
         resized in PowerPoint.
+
+        .. versionadded:: 2026.05.0
         """
         return self._effective_geometry[3]
 
@@ -574,6 +598,8 @@ class BaseShape(object):
 
         Returns |None| when the shape has no ``a:off`` of its own (i.e. its raw
         :attr:`left` would also be |None|).
+
+        .. versionadded:: 2026.05.0
         """
         return self._effective_geometry[0]
 
@@ -582,6 +608,8 @@ class BaseShape(object):
         """Slide-relative top coordinate of this shape after group-transform compositing.
 
         See :attr:`effective_left` for the transform details.
+
+        .. versionadded:: 2026.05.0
         """
         return self._effective_geometry[1]
 
@@ -590,6 +618,8 @@ class BaseShape(object):
         """Slide-relative width of this shape after group-transform compositing.
 
         See :attr:`effective_height` for the transform details.
+
+        .. versionadded:: 2026.05.0
         """
         return self._effective_geometry[2]
 
@@ -671,6 +701,8 @@ class BaseShape(object):
         The shape moves one slot earlier in the document order of its parent
         `p:spTree` or `p:grpSp`. If the shape is already the backmost of its
         siblings this call is a no-op.
+
+        .. versionadded:: 2026.05.0
         """
         siblings = self._zorder_siblings
         idx = siblings.index(self._element)
@@ -688,6 +720,8 @@ class BaseShape(object):
         The shape becomes the first shape child under its owning `p:spTree` or
         `p:grpSp` (but after any leading non-shape elements such as `p:nvGrpSpPr`
         and `p:grpSpPr`). If the shape is already backmost this call is a no-op.
+
+        .. versionadded:: 2026.05.0
         """
         siblings = self._zorder_siblings
         if siblings[0] is self._element:
@@ -799,6 +833,8 @@ class BaseShape(object):
 
         To change a shape's z-order use :meth:`bring_to_front`,
         :meth:`send_to_back`, :meth:`bring_forward`, or :meth:`send_backward`.
+
+        .. versionadded:: 2026.05.0
         """
         return self._zorder_siblings.index(self._element)
 

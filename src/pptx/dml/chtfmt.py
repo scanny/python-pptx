@@ -49,6 +49,8 @@ class ChartFormat(ElementProxy):
         chart element's ``c:spPr/a:effectLst/a:outerShdw``. A |ShadowFormat| object is
         always returned, even when no shadow is explicitly defined on this chart element
         (i.e. it inherits its shadow behavior from the theme/style hierarchy).
+
+        .. versionadded:: 2026.05.0
         """
         spPr = self._element.get_or_add_spPr()
         return ShadowFormat(spPr)

@@ -28,6 +28,8 @@ class ErrorBars(object):
     or a fixed or percentage magnitude.
 
     An |ErrorBars| instance wraps a single ``c:errBars`` element.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, errBars):
@@ -79,7 +81,10 @@ class ErrorBars(object):
 
     @lazyproperty
     def format(self):
-        """The |ChartFormat| object providing line/fill properties for the bars."""
+        """The |ChartFormat| object providing line/fill properties for the bars.
+
+        .. versionadded:: 2026.05.0
+        """
         return ChartFormat(self._errBars)
 
     @property
@@ -174,6 +179,8 @@ class Trendline(object):
     enumerated via :attr:`_BaseSeries.trendlines`. Assigning properties on
     this object updates the underlying XML in place; to delete the
     trendline, call :meth:`delete`.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, trendline):
@@ -350,11 +357,17 @@ class Trendline(object):
 
     @lazyproperty
     def format(self):
-        """The |ChartFormat| object providing line/fill properties for this trendline."""
+        """The |ChartFormat| object providing line/fill properties for this trendline.
+
+        .. versionadded:: 2026.05.0
+        """
         return ChartFormat(self._trendline)
 
     def delete(self):
-        """Remove this ``c:trendline`` from its parent series."""
+        """Remove this ``c:trendline`` from its parent series.
+
+        .. versionadded:: 2026.05.0
+        """
         parent = self._trendline.getparent()
         if parent is not None:
             parent.remove(self._trendline)

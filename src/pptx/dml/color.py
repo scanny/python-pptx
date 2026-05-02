@@ -141,6 +141,8 @@ class ColorFormat(object):
         Raises :class:`ValueError` for a scheme color when `theme_colors` is
         not provided or does not contain the required entry, and for a
         preset color whose name is not recognized.
+
+        .. versionadded:: 2026.05.0
         """
         return self._color.to_rgb(theme_colors)
 

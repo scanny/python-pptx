@@ -91,6 +91,8 @@ class Chart(PartElementProxy):
         front of them.
 
         Returns the newly-created |BarPlot| or |LinePlot| object.
+
+        .. versionadded:: 2026.05.0
         """
         plotArea = self._chartSpace.plotArea
         xCharts = plotArea.xCharts
@@ -189,6 +191,8 @@ class Chart(PartElementProxy):
         Raises :class:`ValueError` when the template is not a valid ZIP
         package or does not contain a recognizable ``c:chartSpace`` XML
         part.
+
+        .. versionadded:: 2026.05.0
         """
         template_chartSpace = _CrtxReader(template).chartSpace
         _ChartTemplateApplier(self._chartSpace, template_chartSpace).apply()
@@ -414,6 +418,8 @@ class Chart(PartElementProxy):
         Implements issue #298. Mirrors the ``format`` pattern already in
         place on :class:`ChartTitle`, :class:`~pptx.chart.datalabel.DataLabel`,
         and :class:`~pptx.chart.datalabel.DataLabels`.
+
+        .. versionadded:: 2026.05.0
         """
         return PlotArea(self._chartSpace.chart.plotArea)
 
@@ -506,6 +512,8 @@ class Chart(PartElementProxy):
 
         Returns the number of cells that were written (i.e. excluding
         formula cells that were skipped).
+
+        .. versionadded:: 2026.05.0
         """
         self._validate_chart_data_type(chart_data)
         workbook_bytes = self.workbook
@@ -599,6 +607,8 @@ class Chart(PartElementProxy):
 
         This is a no-op for charts that do not have an embedded workbook
         (i.e. ``<c:externalData>`` is absent from the chart XML).
+
+        .. versionadded:: 2026.05.0
         """
         xlsx_part = self._workbook.xlsx_part
         if xlsx_part is None:
@@ -638,6 +648,8 @@ class Chart(PartElementProxy):
         a secondary value axis (typically rendered on the right side of the chart
         in a category-based chart). Always |False| for an XY/scatter chart, where
         a second `c:valAx` identifies the X-axis rather than a secondary axis.
+
+        .. versionadded:: 2026.05.0
         """
         return self._chartSpace.plotArea.secondary_valAx is not None
 
@@ -654,6 +666,8 @@ class Chart(PartElementProxy):
         series may be plotted, allowing two data ranges on different scales to
         be compared on the same chart. An XY/scatter chart has two value axes
         but neither is considered "secondary" in this sense; both are primary.
+
+        .. versionadded:: 2026.05.0
         """
         secondary_valAx = self._chartSpace.plotArea.secondary_valAx
         if secondary_valAx is None:
@@ -695,6 +709,8 @@ class Chart(PartElementProxy):
         containing the duplicated chart; reach the duplicate :class:`Chart`
         via the returned graphic-frame's
         :attr:`~pptx.shapes.graphfrm.GraphicFrame.chart` property.
+
+        .. versionadded:: 2026.05.0
         """
         return shapes.clone_chart(self, x, y, cx, cy)
 
@@ -712,6 +728,8 @@ class Chart(PartElementProxy):
         MVP scope (issue #351) is read-only inspection; see
         :attr:`user_shapes` and the
         ``docs/dev/analysis/chart-user-shapes.rst`` analysis for context.
+
+        .. versionadded:: 2026.05.0
         """
         user_shapes = self.user_shapes
         if user_shapes is None:
@@ -739,6 +757,8 @@ class Chart(PartElementProxy):
         Returns ``None`` when the chart has no ``chartUserShapes``
         relationship (the common case for charts authored through this
         library, since python-pptx does not add one).
+
+        .. versionadded:: 2026.05.0
         """
         try:
             return self.part.part_related_by(RT.CHART_USER_SHAPES)
@@ -901,6 +921,8 @@ class PlotArea(ElementProxy):
     by the chart's axes.
 
     Access via :attr:`Chart.plot_area` (issue #298).
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, plotArea):
@@ -916,6 +938,8 @@ class PlotArea(ElementProxy):
         :attr:`~pptx.dml.chtfmt.ChartFormat.fill`,
         :attr:`~pptx.dml.chtfmt.ChartFormat.line`, and
         :attr:`~pptx.dml.chtfmt.ChartFormat.shadow`.
+
+        .. versionadded:: 2026.05.0
         """
         return ChartFormat(self._plotArea)
 
@@ -967,6 +991,8 @@ def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):
       ``Chart.update_cached_values()`` pass.
 
     Returns the updated xlsx blob bytes (also now stored on the chart).
+
+    .. versionadded:: 2026.05.0
     """
     workbook_bytes = chart.workbook
     if workbook_bytes is None:

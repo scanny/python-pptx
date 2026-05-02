@@ -39,6 +39,8 @@ class DataLabels(object):
         color of their containing rectangle. The formatting applies to every
         data label in the collection unless overridden on an individual
         |DataLabel|.
+
+        .. versionadded:: 2026.05.0
         """
         return ChartFormat(self._element)
 
@@ -166,6 +168,8 @@ class DataLabels(object):
         Note this is *not* a text container for custom data-label text; the spec requires
         collection-level text properties to live at ``c:dLbls/c:txPr`` (a ``CT_TextBody``),
         not at ``c:dLbls/c:tx/c:rich``. Addresses issue #1072.
+
+        .. versionadded:: 2026.05.0
         """
         txPr = self._element.get_or_add_txPr()
         return TextFrame(txPr, self)
@@ -202,6 +206,8 @@ class DataLabel(object):
 
         Return the |ChartFormat| object providing shape formatting properties
         for this data label, such as its line color and fill.
+
+        .. versionadded:: 2026.05.0
         """
         dLbl = self._get_or_add_dLbl()
         return ChartFormat(dLbl)

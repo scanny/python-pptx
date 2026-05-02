@@ -18,6 +18,8 @@ class PP_VIEW_TYPE(BaseXmlEnum):
     restore when the presentation is re-opened).
 
     MS API Name: *none — this enum is python-pptx-specific.*
+
+    .. versionadded:: 2026.05.0
     """
 
     NORMAL = (1, "sldView", "Normal (slide-editing) view.")

@@ -31,6 +31,8 @@ def parse_a1_cell(a1_ref):
     sheet-qualified reference (e.g. ``"Sheet1!B2"``) is not accepted here —
     callers that need to parse a sheet-qualified reference should use
     :func:`parse_sheet_range_ref` and extract the first cell.
+
+    .. versionadded:: 2026.05.0
     """
     if a1_ref is None:
         raise ValueError("a1_ref must be a non-empty string")
@@ -187,6 +189,8 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         each hierarchy level plus the series-name heading and one cell per
         series value. Rows and columns are 1-based to match
         :class:`WorkbookUpdater`.
+
+        .. versionadded:: 2026.05.0
         """
         sheet = self._data_sheet_name
         categories = self._chart_data.categories
@@ -318,6 +322,8 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
 
         Mirrors :meth:`_populate_worksheet` — a two-column table per
         series, X in column A and series name + Y values in column B.
+
+        .. versionadded:: 2026.05.0
         """
         sheet = self._data_sheet_name
         for series in self._chart_data:
@@ -373,6 +379,8 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
 
         Extends the XY layout with a third column C carrying the bubble
         sizes, headed by a literal ``"Size"`` label.
+
+        .. versionadded:: 2026.05.0
         """
         sheet = self._data_sheet_name
         for series in self._chart_data:
@@ -422,6 +430,8 @@ def parse_sheet_range_ref(ref):
     for `ref` values that don't match the expected pattern (e.g. multi-range
     references joined with commas or broken inputs) so that callers can skip
     rewriting caches they can't resolve.
+
+    .. versionadded:: 2026.05.0
     """
     if ref is None:
         return None
@@ -466,6 +476,8 @@ class WorkbookReader(object):
     `XlsxWriter` actually emit for chart data. Formula results are read from
     the cached `<c:v>` child when present (XlsxWriter does not emit
     formulas).
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, xlsx_blob):
@@ -505,6 +517,8 @@ class WorkbookReader(object):
         present in the workbook, when the cell has no value, or when the
         cell's stored value is an empty string. Numeric cells are returned
         as `float`, string cells (inline or shared) as `str`.
+
+        .. versionadded:: 2026.05.0
         """
         self._open()
         self._load_workbook_meta()
@@ -523,6 +537,8 @@ class WorkbookReader(object):
         the first worksheet when `sheet_name` cannot be resolved — matching
         :meth:`cell_value` semantics for chart workbooks whose data lives on
         ``Sheet1`` even when the tab was renamed.
+
+        .. versionadded:: 2026.05.0
         """
         self._open()
         self._load_workbook_meta()
@@ -718,6 +734,8 @@ class WorkbookUpdater(object):
     Call :meth:`set_cell` one or more times, then :meth:`blob` to get the
     rewritten bytes. The updater is single-use and idempotent over its
     lifetime (calling ``blob`` twice returns the same bytes).
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, xlsx_blob):
@@ -740,6 +758,8 @@ class WorkbookUpdater(object):
           which is the safe default for chart data edits.
 
         Multiple writes to the same cell collapse to the last one.
+
+        .. versionadded:: 2026.05.0
         """
         self._pending.setdefault(sheet_name, {})[(int(row), int(col))] = value
 
@@ -748,6 +768,8 @@ class WorkbookUpdater(object):
 
         Applies every pending :meth:`set_cell` call to a copy of the source
         blob and returns the zip bytes. The source blob is not mutated.
+
+        .. versionadded:: 2026.05.0
         """
         if not self._pending:
             return self._xlsx_blob

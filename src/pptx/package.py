@@ -37,6 +37,8 @@ class Package(OpcPackage):
         """The package's legacy |CommentAuthorsPart|, or None if not present.
 
         The relationship lives on the presentation part per ECMA-376 §13.3.3.
+
+        .. versionadded:: 2026.05.0
         """
         try:
             return cast(
@@ -50,6 +52,8 @@ class Package(OpcPackage):
         """Return this package's legacy comment-authors part, adding one if needed.
 
         The relationship is attached to the presentation part.
+
+        .. versionadded:: 2026.05.0
         """
         part = self.comment_authors_part
         if part is not None:
@@ -80,6 +84,8 @@ class Package(OpcPackage):
         / ``items`` / ``update`` / ``clear`` / ``pop`` / ``setdefault``). Reads against a
         package that has no custom-properties part behave as though it were empty; writes
         materialize the part lazily on first use. See issue #259.
+
+        .. versionadded:: 2026.05.0
         """
         return CustomProperties(self)
 
@@ -90,6 +96,8 @@ class Package(OpcPackage):
         Creates a default (empty) custom-properties part if one is not present, wires up
         the relationship from the package root, and returns it. Most callers should use
         the higher-level :attr:`custom_properties` dict-facade instead of this part.
+
+        .. versionadded:: 2026.05.0
         """
         try:
             return self.part_related_by(RT.CUSTOM_PROPERTIES)
@@ -105,6 +113,8 @@ class Package(OpcPackage):
         Creates a default extended-properties part if one is not present. This part holds
         application-level properties such as the slide count (which python-pptx updates at
         save-time so downstream consumers like Gmail's attachment preview render correctly).
+
+        .. versionadded:: 2026.05.0
         """
         try:
             return self.part_related_by(RT.EXTENDED_PROPERTIES)
@@ -126,6 +136,8 @@ class Package(OpcPackage):
         a ``viewProps`` relationship, not to the package root. Creates a
         default (empty) part and wires up the relationship if one is not
         already present.
+
+        .. versionadded:: 2026.05.0
         """
         try:
             return cast(
@@ -223,6 +235,8 @@ class Package(OpcPackage):
         timestamps continue to work when the Presentation-level Package override is active.
         `password` is forwarded likewise (see issue #668) so the package can be written
         password-protected. Both keywords may be combined.
+
+        .. versionadded:: 2026.05.0
         """
         # -- trigger lazy creation of the part (no-op if already present) so that it is
         # -- included in the package walk performed by the base-class save.

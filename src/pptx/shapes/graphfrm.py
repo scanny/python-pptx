@@ -77,6 +77,8 @@ class GraphicFrame(BaseShape):
         2016+ extended (``cx:``) charts, which this library does not yet read in detail, the
         value is :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX`. Raises |ValueError| if this
         graphic frame does not contain a chart.
+
+        .. versionadded:: 2026.05.0
         """
         if self.has_chartex:
             return XL_CHART_TYPE.UNSUPPORTED_CHARTEX
@@ -102,6 +104,8 @@ class GraphicFrame(BaseShape):
         Extended chart types include funnel, treemap, sunburst, waterfall, histogram,
         box-and-whisker, and map. These shapes are surfaced for discoverability and
         round-trip preservation; detailed read/write is not yet supported.
+
+        .. versionadded:: 2026.05.0
         """
         return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_CHARTEX
 
@@ -114,6 +118,8 @@ class GraphicFrame(BaseShape):
         and *round-trip-preserved*, but full read/write of the diagram tree, layout, and
         styling requires the four-part feature work that layers on top of this foundation.
         See ``docs/dev/analysis/f9-smartart.rst`` for the roadmap.
+
+        .. versionadded:: 2026.05.0
         """
         return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_SMART_ART
 
@@ -184,6 +190,8 @@ class GraphicFrame(BaseShape):
         graphic (data, layout, colors, quickStyle) as raw-bytes accessors. This is a
         Foundation-F9 MVP: structured authoring / editing of SmartArt nodes and layout
         selection is not yet implemented; see ``docs/dev/analysis/f9-smartart.rst``.
+
+        .. versionadded:: 2026.05.0
         """
         if not self.has_smart_art:
             raise ValueError("shape does not contain SmartArt")
@@ -260,6 +268,8 @@ class SmartArt(ParentedElementProxy):
     |None| when the corresponding rId is missing or unresolvable. No structured
     editing API is provided at this tier; see ``docs/dev/analysis/f9-smartart.rst`` for
     the per-subsystem roadmap.
+
+    .. versionadded:: 2026.05.0
     """
 
     part: BaseSlidePart  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -270,7 +280,10 @@ class SmartArt(ParentedElementProxy):
 
     @property
     def colors_xml(self) -> bytes | None:
-        """Raw XML bytes of the diagramColors part, or |None| if unresolvable."""
+        """Raw XML bytes of the diagramColors part, or |None| if unresolvable.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._related_blob("cs_rId")
 
     @property
@@ -279,17 +292,25 @@ class SmartArt(ParentedElementProxy):
 
         This is the authoring surface of a SmartArt graphic — the ``dgm:dataModel``
         element and its tree of ``dgm:pt`` (points / nodes) and ``dgm:cxn`` (connections).
+
+        .. versionadded:: 2026.05.0
         """
         return self._related_blob("dm_rId")
 
     @property
     def layout_xml(self) -> bytes | None:
-        """Raw XML bytes of the diagramLayout part, or |None| if unresolvable."""
+        """Raw XML bytes of the diagramLayout part, or |None| if unresolvable.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._related_blob("lo_rId")
 
     @property
     def quick_style_xml(self) -> bytes | None:
-        """Raw XML bytes of the diagramQuickStyle part, or |None| if unresolvable."""
+        """Raw XML bytes of the diagramQuickStyle part, or |None| if unresolvable.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._related_blob("qs_rId")
 
     def _related_blob(self, rId_attr: str) -> bytes | None:

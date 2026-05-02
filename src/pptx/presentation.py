@@ -87,6 +87,8 @@ class Presentation(PartElementProxy):
         ones PowerPoint surfaces under *File → Info → Properties → Advanced → Custom* and
         that ``{ DOCPROPERTY }`` field codes resolve against. Supported value types are
         ``str``, ``int``, ``float``, ``bool``, and ``datetime.datetime``. See issue #259.
+
+        .. versionadded:: 2026.05.0
         """
         return self.part.package.custom_properties
 
@@ -100,6 +102,8 @@ class Presentation(PartElementProxy):
         in practice -- the count is refreshed automatically at save-time from the
         presentation's slide list; see issue #131). The part is created lazily if the
         package does not already contain one.
+
+        .. versionadded:: 2026.05.0
         """
         return self.part.extended_properties
 
@@ -142,6 +146,8 @@ class Presentation(PartElementProxy):
         :attr:`ViewProps.sorter_view_zoom`). The underlying
         ``ppt/viewProps.xml`` part is created lazily if the package does
         not already contain one. See issue #94.
+
+        .. versionadded:: 2026.05.0
         """
         return ViewProps(self.part.package.view_props_part)
 
@@ -168,6 +174,8 @@ class Presentation(PartElementProxy):
         Does not automatically set ``embedTrueTypeFonts``/``saveSubsetFonts`` on
         the presentation element; PowerPoint treats presence of an
         ``embeddedFontLst`` entry as authoritative.
+
+        .. versionadded:: 2026.05.0
         """
         if style not in _VALID_FONT_STYLES:
             raise ValueError("style must be one of %r, got %r" % (list(_VALID_FONT_STYLES), style))
@@ -194,6 +202,8 @@ class Presentation(PartElementProxy):
         """Tuple of typeface names embedded in this presentation, or empty tuple.
 
         The typeface names are returned in document order.
+
+        .. versionadded:: 2026.05.0
         """
         embeddedFontLst = self._element.embeddedFontLst
         if embeddedFontLst is None:
@@ -235,6 +245,8 @@ class Presentation(PartElementProxy):
         Only slides currently in the deck are updated; slides added after this call
         use their schema-default advance behavior until configured individually or
         via another ``set_auto_advance`` invocation.
+
+        .. versionadded:: 2026.05.0
         """
         if seconds is None:
             advance_after_time_ms: int | None = None
@@ -286,6 +298,8 @@ class Presentation(PartElementProxy):
         Raises |TypeError| if `other_presentation` is not a |Presentation| and
         |ValueError| when called with ``self`` as the argument (to avoid
         inadvertently doubling a presentation's slide count).
+
+        .. versionadded:: 2026.05.0
         """
         if not isinstance(other_presentation, Presentation):
             raise TypeError(
@@ -351,6 +365,8 @@ class Presentation(PartElementProxy):
 
         Calling :meth:`strip_slides` on a presentation that already has no
         slides is a no-op (returns ``self`` unchanged).
+
+        .. versionadded:: 2026.05.0
         """
         # -- Drop every slide using the public delete() API so reference-
         # -- counting and part cleanup run identically to per-slide deletes.
@@ -411,6 +427,8 @@ class Presentation(PartElementProxy):
         for writing bytes. `zip_date_time` and `password` behave exactly as
         they do for :meth:`save` (reproducible timestamps and ECMA-376 Agile
         Encryption, respectively). See issue #438.
+
+        .. versionadded:: 2026.05.0
         """
         self.part.save_ppsx(file, zip_date_time, password=password)
 
@@ -429,6 +447,8 @@ class Presentation(PartElementProxy):
         for writing bytes. Unlike :meth:`save`, this method does not accept
         ``zip_date_time`` or ``password`` -- the Flat OPC format is an XML
         document, not a zip archive, and is not password-protectable.
+
+        .. versionadded:: 2026.05.0
         """
         self.part.save_flat_xml(file)
 
@@ -502,6 +522,8 @@ class Presentation(PartElementProxy):
         Supports iteration, ``len()``, and indexed access. Returns an empty collection when
         the presentation has no sections defined. Adding the first section creates the
         ``p:extLst/p:ext/p14:sectionLst`` chain on demand.
+
+        .. versionadded:: 2026.05.0
         """
         return Sections(self._element, self.part)
 
@@ -513,6 +535,8 @@ class Sections:
     via :meth:`add_section` and remove them with :meth:`remove`. Sections are
     identified by a GUID in the PowerPoint-canonical string form
     ``"{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"``.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, prs_element: CT_Presentation, prs_part: PresentationPart | None):
@@ -562,6 +586,8 @@ class Sections:
         ``"{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"``; when omitted a fresh GUID is
         generated. A |ValueError| is raised if `id` is supplied but malformed,
         or if it duplicates an existing section's id.
+
+        .. versionadded:: 2026.05.0
         """
         if id is None:
             section_id = _new_section_id()
@@ -596,6 +622,8 @@ class Sections:
         assigned to any section (e.g. it was added to the deck after the last
         section was created). Raises |ValueError| if `slide` does not belong to
         this presentation.
+
+        .. versionadded:: 2026.05.0
         """
         sldIdLst = self._prs_element.sldIdLst
         if sldIdLst is None or self._prs_part is None:
@@ -614,7 +642,10 @@ class Sections:
         return None
 
     def get_by_id(self, id: str) -> Section | None:
-        """Return the section whose GUID equals `id` (case-insensitive), or |None|."""
+        """Return the section whose GUID equals `id` (case-insensitive), or |None|.
+
+        .. versionadded:: 2026.05.0
+        """
         target = id.lower()
         for section in self:
             if section.id.lower() == target:
@@ -626,6 +657,8 @@ class Sections:
 
         Section names are *not* required to be unique in the presentation; the first
         match in document order is returned.
+
+        .. versionadded:: 2026.05.0
         """
         for section in self:
             if section.name == name:
@@ -636,6 +669,8 @@ class Sections:
         """Return the zero-based position of `section` in this collection.
 
         Raises |ValueError| if `section` does not belong to this presentation.
+
+        .. versionadded:: 2026.05.0
         """
         sectionLst = self._prs_element.sectionLst
         if sectionLst is not None:
@@ -652,6 +687,8 @@ class Sections:
         pruned as well, leaving the `p:extLst` clean.
 
         Raises |ValueError| if `section` does not belong to this presentation.
+
+        .. versionadded:: 2026.05.0
         """
         sectionLst = self._prs_element.sectionLst
         if sectionLst is None or section.element not in list(sectionLst.section_lst):
@@ -678,6 +715,8 @@ class Section:
     :attr:`slides`, a tuple of the slides currently assigned to this section.
     Not intended to be constructed directly; obtain |Section| instances via
     :attr:`Presentation.sections`.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(
@@ -701,7 +740,10 @@ class Section:
 
     @property
     def element(self) -> CT_Section:
-        """The underlying `p14:section` oxml element for this section."""
+        """The underlying `p14:section` oxml element for this section.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._element
 
     @property
@@ -710,6 +752,8 @@ class Section:
 
         Read-only; ids are assigned when the section is added and are not modified
         afterwards (matching PowerPoint's behavior).
+
+        .. versionadded:: 2026.05.0
         """
         return self._element.id
 
@@ -719,6 +763,8 @@ class Section:
 
         Raises |ValueError| if the section has been removed from its presentation
         (e.g. still held in a local variable after :meth:`Sections.remove`).
+
+        .. versionadded:: 2026.05.0
         """
         sectionLst = self._prs_element.sectionLst
         if sectionLst is not None:
@@ -747,6 +793,8 @@ class Section:
         Slides referenced by a `p14:sldId/@id` value that does not match any slide
         currently in the presentation (e.g. stale reference left by third-party
         tools) are silently skipped rather than raising.
+
+        .. versionadded:: 2026.05.0
         """
         sldIdLst = self._prs_element.sldIdLst
         if sldIdLst is None or self._prs_part is None:
@@ -772,6 +820,8 @@ class Section:
         to a *different* section, |ValueError| is raised; call
         :meth:`Section.remove_slide` on that section (or :meth:`move_slide` on the
         target section) before re-assigning.
+
+        .. versionadded:: 2026.05.0
         """
         # -- locate the `p:sldId` for `slide` to obtain its id value --
         slide_id = self._resolve_slide_id(slide)
@@ -798,6 +848,8 @@ class Section:
         `other` must belong to the same presentation. Moving a section before or
         after itself is a no-op. Raises |ValueError| if either section is not a
         member of this presentation's section list.
+
+        .. versionadded:: 2026.05.0
         """
         self._reposition(other, before=False)
 
@@ -807,6 +859,8 @@ class Section:
         `other` must belong to the same presentation. Moving a section before or
         after itself is a no-op. Raises |ValueError| if either section is not a
         member of this presentation's section list.
+
+        .. versionadded:: 2026.05.0
         """
         self._reposition(other, before=True)
 
@@ -816,6 +870,8 @@ class Section:
         Convenience for the common "move this slide into section X" workflow.
         If `slide` is already a member of this section, the call is a no-op.
         Raises |ValueError| if `slide` does not belong to the owning presentation.
+
+        .. versionadded:: 2026.05.0
         """
         slide_id = self._resolve_slide_id(slide)
         if slide_id in self._section_slide_ids:
@@ -834,6 +890,8 @@ class Section:
         Raises |ValueError| if `slide` is not assigned to this section. The slide
         itself is left untouched in the presentation; only the section-membership
         reference is removed.
+
+        .. versionadded:: 2026.05.0
         """
         slide_id = self._resolve_slide_id(slide)
 
@@ -925,6 +983,8 @@ class ViewProps:
     Raw :attr:`element` access is provided as an escape-hatch for callers
     that need to read or write attributes that the MVP does not yet model
     (e.g. ``showOutlineIcons`` on ``p:normalViewPr``).
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, part: ViewPropsPart):
@@ -933,12 +993,18 @@ class ViewProps:
 
     @property
     def element(self) -> CT_ViewProperties:
-        """The underlying ``p:viewPr`` lxml element (round-trip escape hatch)."""
+        """The underlying ``p:viewPr`` lxml element (round-trip escape hatch).
+
+        .. versionadded:: 2026.05.0
+        """
         return self._part._element  # pyright: ignore[reportPrivateUsage]
 
     @property
     def part(self) -> ViewPropsPart:
-        """The underlying |ViewPropsPart| (``ppt/viewProps.xml``)."""
+        """The underlying |ViewPropsPart| (``ppt/viewProps.xml``).
+
+        .. versionadded:: 2026.05.0
+        """
         return self._part
 
     # -- `@lastView` on `p:viewPr` — which editor view PowerPoint will

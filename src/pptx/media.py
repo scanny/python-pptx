@@ -16,6 +16,8 @@ class Audio(object):
 
     This is used by click-action sound support to carry the audio payload from the user
     into the package as a media part.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, blob: bytes, mime_type: str | None, filename: str | None):
@@ -28,7 +30,10 @@ class Audio(object):
     def from_blob(
         cls, blob: bytes, mime_type: str | None = None, filename: str | None = None
     ) -> Audio:
-        """Return a new |Audio| object for binary audio data in `blob`."""
+        """Return a new |Audio| object for binary audio data in `blob`.
+
+        .. versionadded:: 2026.05.0
+        """
         return cls(blob, mime_type, filename)
 
     @classmethod
@@ -40,6 +45,8 @@ class Audio(object):
         `audio_file` may be either a path (string) or a file-like object. When a path is
         provided, the base filename is preserved so the ``name`` attribute of the
         ``a:snd`` element round-trips correctly.
+
+        .. versionadded:: 2026.05.0
         """
         if isinstance(audio_file, str):
             with open(audio_file, "rb") as f:
@@ -53,7 +60,10 @@ class Audio(object):
 
     @property
     def blob(self) -> bytes:
-        """The bytestream of the audio "file"."""
+        """The bytestream of the audio "file".
+
+        .. versionadded:: 2026.05.0
+        """
         return self._blob
 
     @property
@@ -62,6 +72,8 @@ class Audio(object):
 
         Defaults to ``audio/wav`` when none was provided, matching the PowerPoint
         convention of using WAV-format audio for click-action sounds.
+
+        .. versionadded:: 2026.05.0
         """
         return self._mime_type or CT.WAV
 
@@ -71,6 +83,8 @@ class Audio(object):
 
         Uses the actual filename when known; otherwise falls back to ``'wav'`` (the
         default format expected in click-action ``a:snd`` elements).
+
+        .. versionadded:: 2026.05.0
         """
         if self._filename:
             return os.path.splitext(self._filename)[1].lstrip(".") or "wav"
@@ -82,6 +96,8 @@ class Audio(object):
 
         The original filename is used if the audio was loaded from the filesystem.
         Otherwise the fallback ``'sound.<ext>'`` is produced.
+
+        .. versionadded:: 2026.05.0
         """
         if self._filename is not None:
             return self._filename
@@ -89,7 +105,10 @@ class Audio(object):
 
     @lazyproperty
     def sha1(self) -> str:
-        """The SHA1 hash digest for the binary "file" of this audio clip."""
+        """The SHA1 hash digest for the binary "file" of this audio clip.
+
+        .. versionadded:: 2026.05.0
+        """
         return hashlib.sha1(self._blob).hexdigest()
 
 

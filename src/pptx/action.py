@@ -129,6 +129,8 @@ class ActionSetting(Subshape):
         Returns |None| when no ``a:snd`` child element is present on the click/hover
         action. When present, the returned |Sound| provides read-only access to the
         sound name and the embedded audio blob.
+
+        .. versionadded:: 2026.05.0
         """
         hlink = self._sound_hlink()
         if hlink is None:
@@ -159,6 +161,8 @@ class ActionSetting(Subshape):
         in-memory streams).
 
         Returns the newly-created |Sound| object.
+
+        .. versionadded:: 2026.05.0
         """
         if isinstance(audio_file, Audio):
             audio = audio_file
@@ -190,6 +194,8 @@ class ActionSetting(Subshape):
         when no sound is currently set. The enclosing ``a:hlinkClick`` /
         ``a:hlinkHover`` element itself is preserved because it may still carry a
         separate hyperlink or action.
+
+        .. versionadded:: 2026.05.0
         """
         hlink = self._sound_hlink()
         if hlink is None:
@@ -415,6 +421,8 @@ class Sound(object):
     A |Sound| object provides read-only access to an existing click-action sound; use
     :meth:`ActionSetting.set_sound` to create or replace one and
     :meth:`ActionSetting.remove_sound` to delete it.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, snd: CT_EmbeddedWAVAudioFile, part: SlidePart):
@@ -424,7 +432,10 @@ class Sound(object):
 
     @property
     def blob(self) -> bytes:
-        """The bytestream of the embedded audio "file"."""
+        """The bytestream of the embedded audio "file".
+
+        .. versionadded:: 2026.05.0
+        """
         return self._media_part.blob
 
     @property
@@ -433,12 +444,17 @@ class Sound(object):
 
         This is the display name PowerPoint shows for the sound; it typically matches
         the original filename (for example ``'applause.wav'``).
+
+        .. versionadded:: 2026.05.0
         """
         return self._snd.name or ""
 
     @property
     def rId(self) -> str:
-        """The ``r:embed`` relationship id pointing at the embedded audio part."""
+        """The ``r:embed`` relationship id pointing at the embedded audio part.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._snd.rEmbed
 
     @property

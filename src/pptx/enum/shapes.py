@@ -1046,6 +1046,8 @@ class PROG_ID(enum.Enum):
         This is the extension used for the part name of a generic (non-MS-Office) embedded
         object, e.g. ``"zip"`` or ``"pdf"``. Office package types return ``"bin"`` as a
         placeholder since they use a different part-name template chosen by their subclass.
+
+        .. versionadded:: 2026.05.0
         """
         return self._extension
 
@@ -1063,6 +1065,8 @@ class PROG_ID(enum.Enum):
 
         Office package types (`DOCX`, `PPTX`, `XLSX`) use a distinct content-type and
         part-name template; non-Office members are embedded as generic OLE objects.
+
+        .. versionadded:: 2026.05.0
         """
         return self._is_office_package
 

@@ -211,6 +211,8 @@ class Slide(_BaseSlide):
         If the slide does not yet have a comments part, a new one is created (and,
         if necessary, the package-level comment-authors part as well). The same
         |Comments| instance is returned on subsequent calls.
+
+        .. versionadded:: 2026.05.0
         """
         # -- local import avoids circular import between slide and comments --
         from pptx.comments import CommentAuthors, Comments
@@ -228,6 +230,8 @@ class Slide(_BaseSlide):
         A comments part is created by :attr:`comments` when first accessed; use this
         property to test whether a comments part already exists without the side
         effect of creating one.
+
+        .. versionadded:: 2026.05.0
         """
         return self.part.comments_part is not None
 
@@ -240,6 +244,8 @@ class Slide(_BaseSlide):
         through :attr:`tags` is side-effect free; use this property to
         distinguish a slide that currently has no tags from one that has
         an empty tags part.
+
+        .. versionadded:: 2026.05.0
         """
         return self.part.tags_part is not None
 
@@ -265,6 +271,8 @@ class Slide(_BaseSlide):
         ``__delitem__`` / ``__contains__`` / ``__iter__`` / ``__len__``
         plus the read-only ``get`` convenience method, matching the
         most-frequently-used subset of the built-in ``dict`` API.
+
+        .. versionadded:: 2026.05.0
         """
         return SlideTags(self.part)
 
@@ -376,6 +384,8 @@ class Slide(_BaseSlide):
         Example - every non-group shape anywhere in the tree::
 
             shapes = slide.find_shapes_by_xpath(".//p:sp")
+
+        .. versionadded:: 2026.05.0
         """
         from pptx.shapes.shapetree import SlideShapeFactory
 
@@ -433,6 +443,8 @@ class Slide(_BaseSlide):
         exit / emphasis / motion-path / MORPH effects) is deferred to
         downstream items #102, #264, #861, and #1106. See
         ``docs/dev/analysis/f8-animations-transitions.rst``.
+
+        .. versionadded:: 2026.05.0
         """
         timing = self._element.timing
         if timing is None:
@@ -451,6 +463,8 @@ class Slide(_BaseSlide):
         for the animation items stacked on F8) can do so without
         reaching into ``slide._element``. The returned value is the
         serialized XML exactly as stored.
+
+        .. versionadded:: 2026.05.0
         """
         timing = self._element.timing
         if timing is None:
@@ -484,6 +498,8 @@ class Slide(_BaseSlide):
         ``p:timing`` element on access. See
         ``docs/dev/analysis/f8-animations-transitions.rst`` for the
         full animation-tree design map.
+
+        .. versionadded:: 2026.05.0
         """
         from pptx.oxml.timing import iter_main_sequence_effects
 
@@ -509,6 +525,8 @@ class Slide(_BaseSlide):
         to the larger Wave-7 lift (#264 full, #102, #861, #1106). See
         ``docs/dev/analysis/f8-animations-transitions.rst`` for the
         extension-point map.
+
+        .. versionadded:: 2026.05.0
         """
         timing = self._element.timing
         if timing is None:
@@ -565,6 +583,8 @@ class Slide(_BaseSlide):
         on media, MORPH option selection) is deferred — see
         ``docs/dev/analysis/f8-animations-transitions.rst`` and the
         downstream-items matrix.
+
+        .. versionadded:: 2026.05.0
         """
         return Transition(self._element)
 
@@ -633,6 +653,8 @@ class Slides(ParentedElementProxy):
         demand.
 
         Raises |ValueError| if `slide` is not a member of this collection.
+
+        .. versionadded:: 2026.05.0
         """
         # -- Locate `slide` in this collection (raises ValueError on miss). --
         self.index(slide)
@@ -664,6 +686,8 @@ class Slides(ParentedElementProxy):
         Subsequent use of `slide` is undefined; most operations will raise an exception.
 
         Raises |ValueError| if `slide` is not a member of this collection.
+
+        .. versionadded:: 2026.05.0
         """
         # -- locate the p:sldId entry for `slide` --
         target_idx = self.index(slide)
@@ -698,6 +722,8 @@ class Slides(ParentedElementProxy):
         relationship is dropped (a notes slide carries a back-reference to
         its owning slide). See :meth:`Presentation.merge` for appending every
         slide of another presentation in one call.
+
+        .. versionadded:: 2026.05.0
         """
         rId, slide = self.part.add_slide_from_external(source_slide, slide_layout)
         self._sldIdLst.add_sldId(rId)
@@ -731,6 +757,8 @@ class Slides(ParentedElementProxy):
         moves it to the end. Negative values count from the end in the usual Python way.
 
         Raises |ValueError| if `slide` is not a member of this collection.
+
+        .. versionadded:: 2026.05.0
         """
         # -- locate the corresponding p:sldId child element --
         current_idx = self.index(slide)
@@ -782,6 +810,8 @@ class SlideLayout(_BaseSlide):
 
         When absent, the layout inherits its master's header/footer settings; accessing this
         property does not itself add a `p:hf` element to the layout XML. See |_HeaderFooter|.
+
+        .. versionadded:: 2026.05.0
         """
         return _HeaderFooter(self._element)
 
@@ -941,6 +971,8 @@ class SlideMaster(_BaseMaster):
         master's ``p:clrMap`` (``"bg1"``, ``"bg2"``, ``"tx1"``, ``"tx2"``).
 
         Useful for calling :meth:`ColorFormat.to_rgb` on a scheme color.
+
+        .. versionadded:: 2026.05.0
         """
         return _resolve_theme_colors(self.part)
 
@@ -1122,6 +1154,8 @@ class Transition(ElementProxy):
       ``@spokes`` on ``p:wheel`` — these follow the same pattern as
       :attr:`wipe_direction` and can be added incrementally.
     * Sound-action ``p:sndAc`` (not tracked as a separate item).
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, sld: CT_Slide):
@@ -1413,6 +1447,8 @@ class AnimationEffectView(ElementProxy):
        ``AnimationEffect`` remains available on ``pptx.slide`` as a
        deprecated alias for one release; new code should use
        ``AnimationEffectView``.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, par):
@@ -1429,6 +1465,8 @@ class AnimationEffectView(ElementProxy):
         color-scheme changes, or effects targeting a graphic-frame
         sub-element via ``p:subSpTgt``) do not carry a ``p:spTgt`` at
         all; ``None`` is returned for those.
+
+        .. versionadded:: 2026.05.0
         """
         from pptx.oxml.timing import first_spTgt_spid
 
@@ -1446,6 +1484,8 @@ class AnimationEffectView(ElementProxy):
         ``p:cTn`` is missing or the attribute is absent (both unusual
         since :func:`iter_main_sequence_effects` filters on its
         presence).
+
+        .. versionadded:: 2026.05.0
         """
         cTn = self._par.find(qn("p:cTn"))
         if cTn is None:
@@ -1462,6 +1502,8 @@ class AnimationEffectView(ElementProxy):
         ``fly-in``, ``10`` is ``fade``, etc.). Values correspond to
         the ``presetID`` column in Microsoft's ``[MS-PPTX]`` animation
         preset documentation.
+
+        .. versionadded:: 2026.05.0
         """
         cTn = self._par.find(qn("p:cTn"))
         if cTn is None:
@@ -1478,6 +1520,8 @@ class AnimationEffectView(ElementProxy):
         ``4`` = from-top, etc.). A value of ``0`` typically means the
         default variant for the selected preset. ``None`` when the
         attribute is absent.
+
+        .. versionadded:: 2026.05.0
         """
         cTn = self._par.find(qn("p:cTn"))
         if cTn is None:
@@ -1502,6 +1546,8 @@ class AnimationEffectView(ElementProxy):
         overwhelming majority of PowerPoint-authored effects (full
         ``p:cond`` list semantics — multiple conditions, ``@evt``,
         trigger-by-shape — are downstream #264 / #861).
+
+        .. versionadded:: 2026.05.0
         """
         cTn = self._par.find(qn("p:cTn"))
         if cTn is None:
@@ -1560,6 +1606,8 @@ class ShapeAnimation(ElementProxy):
     Write support (adjusting delay, adding new entrance effects, etc.)
     is deferred — see ``docs/dev/analysis/f8-animations-transitions.rst``
     and the downstream-items matrix.
+
+    .. versionadded:: 2026.05.0
     """
 
     _SHAPE_EFFECT_TAGS = {
@@ -1579,12 +1627,18 @@ class ShapeAnimation(ElementProxy):
 
     @property
     def shape_id(self) -> int:
-        """``int`` ``@spid`` of the shape this effect targets."""
+        """``int`` ``@spid`` of the shape this effect targets.
+
+        .. versionadded:: 2026.05.0
+        """
         return self._shape_id
 
     @property
     def effect_type(self) -> str:
-        """Local name of the behaviour element (e.g. ``"anim"``, ``"set"``)."""
+        """Local name of the behaviour element (e.g. ``"anim"``, ``"set"``).
+
+        .. versionadded:: 2026.05.0
+        """
         tag = self._effect.tag
         # -- strip the namespace prefix — tag looks like
         # -- "{http://.../main}anim"
@@ -1603,6 +1657,8 @@ class ShapeAnimation(ElementProxy):
         ("is there a way to modify the delay of shape animations?").
         A write accessor is tracked under #861 and layered onto this
         proxy when it lands.
+
+        .. versionadded:: 2026.05.0
         """
         cTn = self._cTn
         if cTn is None:
@@ -1622,6 +1678,8 @@ class ShapeAnimation(ElementProxy):
         """``@dur`` of the effect's ``p:cTn`` child, or ``None`` when absent.
 
         ``int`` milliseconds, or the string ``"indefinite"``.
+
+        .. versionadded:: 2026.05.0
         """
         cTn = self._cTn
         if cTn is None:
@@ -1647,6 +1705,8 @@ class ShapeAnimation(ElementProxy):
 
         Exposed so callers can hand-edit the XML today; the full typed
         authoring API is deferred.
+
+        .. versionadded:: 2026.05.0
         """
         return self._effect
 
@@ -1752,6 +1812,8 @@ class SlideTags:
     Tag names and values are ``str`` per the ECMA-376 ``CT_StringTag``
     schema. A tag name is unique within a slide; writing an existing
     name overwrites the stored value.
+
+    .. versionadded:: 2026.05.0
     """
 
     def __init__(self, slide_part: SlidePart):
@@ -1808,6 +1870,8 @@ class SlideTags:
 
         Mirrors :meth:`dict.get`. Never raises ``KeyError`` for a missing
         tag, and never materializes a tags part.
+
+        .. versionadded:: 2026.05.0
         """
         if not isinstance(name, str):
             return default
@@ -1820,18 +1884,27 @@ class SlideTags:
         return tag.val
 
     def keys(self) -> list[str]:
-        """Return a list of tag names in document order."""
+        """Return a list of tag names in document order.
+
+        .. versionadded:: 2026.05.0
+        """
         return list(iter(self))
 
     def values(self) -> list[str]:
-        """Return a list of tag values in document order."""
+        """Return a list of tag values in document order.
+
+        .. versionadded:: 2026.05.0
+        """
         tag_list = self._tag_list_or_none
         if tag_list is None:
             return []
         return [tag.val for tag in tag_list.tag_lst]
 
     def items(self) -> list[tuple[str, str]]:
-        """Return a list of ``(name, value)`` pairs in document order."""
+        """Return a list of ``(name, value)`` pairs in document order.
+
+        .. versionadded:: 2026.05.0
+        """
         tag_list = self._tag_list_or_none
         if tag_list is None:
             return []

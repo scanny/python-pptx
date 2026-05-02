@@ -29,6 +29,8 @@ class MSO_ANIMATION_TYPE(BaseXmlEnum):
     :meth:`pptx.animation.AnimationEffect._type_from_preset` and friends.
 
     MS API Name: *none — this enum is python-pptx-specific.*
+
+    .. versionadded:: 2026.05.0
     """
 
     NONE = (0, "", "No animation effect is bound to the shape.")
@@ -81,6 +83,8 @@ class MSO_ANIMATION_TRIGGER(BaseXmlEnum):
     The ``WITH_PREVIOUS`` / ``ON_MOUSE_OVER`` / ``ON_MOUSE_OUT`` /
     ``ON_DOUBLE_CLICK`` triggers are out of MVP scope and will be added
     by downstream issue #264.
+
+    .. versionadded:: 2026.05.0
     """
 
     ON_CLICK = (0, "clickEffect", "Effect plays on mouse click.")
