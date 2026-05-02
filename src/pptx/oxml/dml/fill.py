@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pptx.enum.dml import MSO_PATTERN_TYPE
 from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.simpletypes import (
     ST_Percentage,
     ST_PositiveFixedAngle,
@@ -38,6 +38,7 @@ class CT_BlipFillProperties(BaseOxmlElement):
     _tag_seq = ("a:blip", "a:srcRect", "a:tile", "a:stretch")
     blip = ZeroOrOne("a:blip", successors=_tag_seq[1:])
     srcRect = ZeroOrOne("a:srcRect", successors=_tag_seq[2:])
+    stretch = ZeroOrOne("a:stretch", successors=())
     del _tag_seq
 
     def crop(self, cropping):
@@ -46,6 +47,27 @@ class CT_BlipFillProperties(BaseOxmlElement):
         """
         srcRect = self._add_srcRect()
         srcRect.l, srcRect.t, srcRect.r, srcRect.b = cropping
+
+    def set_blip_rId_with_stretch(self, rId: str) -> None:
+        """Wire up this `a:blipFill` to reference image part via *rId*.
+
+        Ensures an `a:blip` child is present with its `r:embed` attribute set
+        to *rId* and an `a:stretch/a:fillRect` subtree (the default for a
+        picture fill that fills the shape without tiling).
+        """
+        # -- remove any existing blip then add a freshly-built one so the
+        # -- `r:` namespace is declared on the blip element itself, avoiding
+        # -- the auto-generated `ns0:` prefix lxml emits when serialising an
+        # -- attribute whose namespace is not bound anywhere in scope. --
+        if self.blip is not None:
+            self.remove(self.blip)
+        blip_xml = '<a:blip %s r:embed="%s"/>' % (nsdecls("a", "r"), rId)
+        new_blip = parse_xml(blip_xml)
+        self.insert(0, new_blip)
+        stretch = self.get_or_add_stretch()
+        # -- add a:fillRect only when absent; re-adding would duplicate --
+        if stretch.find(qn("a:fillRect")) is None:
+            stretch.append(parse_xml("<a:fillRect %s/>" % nsdecls("a")))
 
 
 class CT_GradientFillProperties(BaseOxmlElement):

@@ -6,6 +6,21 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #234 ``FillFormat.blip_fill(image_file)`` — picture (image) fill.
+  Adds a new ``blip_fill(image_file)`` method to |FillFormat| that embeds
+  *image_file* as an ``ImagePart`` on the containing part (reusing an
+  existing image part when the bytes match) and rewrites the underlying
+  ``EG_FillProperties`` as ``<a:blipFill><a:blip r:embed="…"/>
+  <a:stretch><a:fillRect/></a:stretch></a:blipFill>``. Works for auto-shape
+  fills, table-cell fills, slide background fills, font fills, and line
+  fills — any |FillFormat| whose factory call passes through a part
+  reference. Raises |ValueError| when called on a |FillFormat| created
+  without a part context (e.g. ``ChartFormat.fill``). Adds an end-to-end
+  regression suite ``DescribeIssue234BlipFill`` under
+  ``tests/test_issue_234_blip_fill.py`` that authors a rectangle shape,
+  applies ``shape.fill.blip_fill("tests/test_files/python-powered.png")``,
+  round-trips the presentation through save + reopen, and asserts both
+  the ``MSO_FILL.PICTURE`` fill type and the embedded image bytes survive.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a

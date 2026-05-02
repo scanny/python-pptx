@@ -404,7 +404,7 @@ class Font(object):
 
         Provides access to fill properties such as fill color.
         """
-        return FillFormat.from_fill_parent(self._rPr)
+        return FillFormat.from_fill_parent(self._rPr, self._parent)
 
     @property
     def effective_color(self) -> RGBColor | None:

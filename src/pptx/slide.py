@@ -65,7 +65,7 @@ class _BaseSlide(PartElementProxy):
         The same |_Background| object is returned on every call for the same
         slide object.
         """
-        return _Background(self._element.cSld)
+        return _Background(self._element.cSld, self)
 
     @property
     def name(self) -> str:
@@ -1658,9 +1658,17 @@ class _Background(ElementProxy):
     has a |_Background| object.
     """
 
-    def __init__(self, cSld: CT_CommonSlideData):
+    def __init__(self, cSld: CT_CommonSlideData, parent: _BaseSlide | None = None):
         super(_Background, self).__init__(cSld)
         self._cSld = cSld
+        self._parent = parent
+
+    @property
+    def part(self):
+        """The package part containing this background (the slide/master/layout part)."""
+        if self._parent is None:
+            raise ValueError("background has no parent slide")
+        return self._parent.part
 
     @lazyproperty
     def fill(self):
@@ -1689,7 +1697,8 @@ class _Background(ElementProxy):
         makes no changes to the current background.
         """
         bgPr = self._cSld.get_or_add_bgPr()
-        return FillFormat.from_fill_parent(bgPr)
+        part = self._parent if self._parent is not None else None
+        return FillFormat.from_fill_parent(bgPr, part)
 
 
 def _parse_theme_element(theme_part: Part) -> BaseOxmlElement | None:

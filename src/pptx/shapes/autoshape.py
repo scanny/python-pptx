@@ -293,7 +293,7 @@ class Shape(BaseShape):
 
         Provides access to fill properties such as fill color.
         """
-        return FillFormat.from_fill_parent(self._sp.spPr)
+        return FillFormat.from_fill_parent(self._sp.spPr, self)
 
     def get_or_add_ln(self):
         """Return the `a:ln` element containing the line format properties XML for this shape."""
