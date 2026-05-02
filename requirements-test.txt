@@ -1,5 +1,6 @@
 -r requirements.txt
 behave>=1.2.3
+msoffcrypto-tool>=5.0.0
 pyparsing>=3.1.0
 pytest>=2.5
 pytest-coverage
