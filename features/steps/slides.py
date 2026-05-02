@@ -140,3 +140,73 @@ def then_slides_get_666_default_slides_2_is_slides_2(context):
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides
     assert type(slides[2]).__name__ == "Slide"
+
+# #644 — partname allocation scenario ----------------------
+
+
+@given("a Presentation with no slides")
+def given_a_Presentation_with_no_slides(context):
+    prs = Presentation()
+    context.prs = prs
+    context.slides = prs.slides
+    context.slide_layout = prs.slide_masters[0].slide_layouts[0]
+
+
+@when("I add {count:d} slides")
+def when_I_add_count_slides(context, count):
+    layout = context.slide_layout
+    context.added_slides = [context.slides.add_slide(layout) for _ in range(count)]
+
+
+@then("each slide partname is unique")
+def then_each_slide_partname_is_unique(context):
+    partnames = [s.part.partname for s in context.added_slides]
+    assert len(set(partnames)) == len(partnames), (
+        "duplicate partname(s) detected: %r" % partnames
+    )
+
+
+@then('slide partnames are "{first}" through "{last}"')
+def then_slide_partnames_are_first_through_last(context, first, last):
+    partnames = [s.part.partname for s in context.added_slides]
+    assert partnames[0] == first, "first partname is %r, expected %r" % (
+        partnames[0],
+        first,
+    )
+    assert partnames[-1] == last, "last partname is %r, expected %r" % (
+        partnames[-1],
+        last,
+    )
+
+
+@when("I reference notes_slide on each of them")
+def when_I_reference_notes_slide_on_each(context):
+    # Touching `.notes_slide` causes a NotesSlidePart to be created for each
+    # slide via `Package.next_partname("/ppt/notesSlides/notesSlide%d.xml")`.
+    context.notes_slides = [s.notes_slide for s in context.added_slides]
+
+
+@then("each notes-slide partname is unique")
+def then_each_notes_slide_partname_is_unique(context):
+    partnames = [ns.part.partname for ns in context.notes_slides]
+    assert len(set(partnames)) == len(partnames), (
+        "duplicate notes-slide partname(s) detected: %r" % partnames
+    )
+
+
+@then("notes-slide partnames are numbered 1 through {n:d}")
+def then_notes_slide_partnames_are_numbered(context, n):
+    partnames = sorted(
+        ns.part.partname for ns in context.notes_slides
+    )
+    expected = [
+        "/ppt/notesSlides/notesSlide%d.xml" % i for i in range(1, n + 1)
+    ]
+    # sorting by string puts "10" before "2"; sort by the numeric suffix instead
+    partnames.sort(
+        key=lambda p: int(
+            p.rsplit("notesSlide", 1)[1].rsplit(".xml", 1)[0]
+        )
+    )
+    assert partnames == expected, "got %r, expected %r" % (partnames, expected)
+

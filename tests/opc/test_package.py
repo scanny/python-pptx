@@ -245,6 +245,60 @@ class DescribeOpcPackage:
         PackURI_.assert_called_once_with(next_partname)
         assert partname == next_partname
 
+    def it_caches_allocated_partnames_to_avoid_O_N_squared_scans(self, request):
+        """Successive calls for the same tmpl must not rescan `iter_parts()`.
+
+        The first call populates the per-tmpl cache; all subsequent calls rely on
+        it, giving O(1) amortized allocation. The test verifies both the call-count
+        invariant and that the returned partname sequence is unique and contiguous.
+        """
+        tmpl = "/ppt/slides/slide%d.xml"
+        iter_parts_ = method_mock(
+            request, OpcPackage, "iter_parts", return_value=iter(())
+        )
+        package = OpcPackage(None)
+
+        partnames = [package.next_partname(tmpl) for _ in range(50)]
+
+        # -- `iter_parts()` is consulted exactly once for a given template --
+        assert iter_parts_.call_count == 1
+        # -- returned partnames are unique --
+        assert len(set(partnames)) == 50
+        # -- and form an unbroken ascending sequence starting at 1 --
+        assert partnames == [PackURI(tmpl % n) for n in range(1, 51)]
+
+    def it_caches_each_tmpl_independently(self, request):
+        """A separate cache entry is created per distinct template string."""
+        tmpl_a, tmpl_b = "/ppt/slides/slide%d.xml", "/ppt/charts/chart%d.xml"
+        iter_parts_ = method_mock(
+            request, OpcPackage, "iter_parts", return_value=iter(())
+        )
+        package = OpcPackage(None)
+
+        # -- first call per template causes one `iter_parts()` call each --
+        a1 = package.next_partname(tmpl_a)
+        b1 = package.next_partname(tmpl_b)
+        a2 = package.next_partname(tmpl_a)
+        b2 = package.next_partname(tmpl_b)
+
+        assert iter_parts_.call_count == 2
+        assert a1 == tmpl_a % 1
+        assert a2 == tmpl_a % 2
+        assert b1 == tmpl_b % 1
+        assert b2 == tmpl_b % 2
+
+    def it_fills_numbering_gaps_when_allocating_a_partname(self, request):
+        """Cached allocator preserves the original gap-filling behavior."""
+        tmpl = "/x%d.xml"
+        existing = (instance_mock(request, Part, partname=tmpl % n) for n in (1, 4))
+        method_mock(request, OpcPackage, "iter_parts", return_value=existing)
+        package = OpcPackage(None)
+
+        # -- first free slot at len+1=3 is taken, then fills gap at 2, then 5 --
+        assert package.next_partname(tmpl) == tmpl % 3
+        assert package.next_partname(tmpl) == tmpl % 2
+        assert package.next_partname(tmpl) == tmpl % 5
+
     def it_can_save_to_a_pkg_file(self, request, _rels_prop_, relationships_):
         _rels_prop_.return_value = relationships_
         parts_ = tuple(instance_mock(request, Part) for _ in range(3))

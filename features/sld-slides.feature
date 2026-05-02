@@ -76,3 +76,17 @@ Feature: Access an individual slide
   Scenario: SlideMasters.__len__()
     Given a SlideMasters object containing 2 masters
      Then len(slide_masters) is 2
+
+  Scenario: Adding many slides assigns unique sequential partnames (#644)
+    Given a Presentation with no slides
+     When I add 100 slides
+     Then each slide partname is unique
+      And slide partnames are "/ppt/slides/slide1.xml" through "/ppt/slides/slide100.xml"
+
+
+  Scenario: Creating many notes-slide parts via Package.next_partname (#644)
+    Given a Presentation with no slides
+     When I add 50 slides
+      And I reference notes_slide on each of them
+     Then each notes-slide partname is unique
+      And notes-slide partnames are numbered 1 through 50
