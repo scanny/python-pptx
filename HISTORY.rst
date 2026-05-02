@@ -6,6 +6,20 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #874 resolved by Foundation F3 (``mc:AlternateContent`` traversal)
+  plus #126 (OMML equation read API). The original bug — a shape whose text
+  contained ``"500-7,000 m^3  per day."`` was silently dropped from
+  ``slide.shapes`` — was caused by PowerPoint wrapping the equation-bearing
+  ``p:sp`` in an ``mc:AlternateContent`` envelope the pre-F3 shape iterator
+  didn't know how to descend into. F3 teaches ``CT_GroupShape.iter_shape_elms``
+  to walk into ``mc:Choice`` transparently (preserving ``mc:Fallback`` for
+  round-trip) and #126 adds ``BaseShape.has_math_equation`` /
+  ``math_equation_xml`` so callers can detect and read the embedded OMML.
+  Adds a regression test ``DescribeIssue874EquationInShapeText`` under
+  ``tests/test_issue_874_shape_list_equation.py`` that opens the reporter's
+  exact ``Presentation2.pptx`` attachment, confirms all six shapes surface
+  (including the one whose ``m^3`` superscript forced the wrapping), and
+  pins the ``mc:Fallback`` round-trip invariant.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
