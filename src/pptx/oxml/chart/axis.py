@@ -10,7 +10,7 @@ from pptx.enum.chart import (
     XL_TICK_MARK,
 )
 from pptx.oxml.chart.shared import CT_Title
-from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset, ST_Orientation
+from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset, ST_Orientation, ST_Skip
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -119,6 +119,8 @@ class CT_CatAx(BaseAxisElement):
     crosses = ZeroOrOne("c:crosses", successors=_tag_seq[15:])
     crossesAt = ZeroOrOne("c:crossesAt", successors=_tag_seq[16:])
     lblOffset = ZeroOrOne("c:lblOffset", successors=_tag_seq[19:])
+    tickLblSkip = ZeroOrOne("c:tickLblSkip", successors=_tag_seq[20:])
+    tickMarkSkip = ZeroOrOne("c:tickMarkSkip", successors=_tag_seq[21:])
     del _tag_seq
 
 
@@ -200,6 +202,17 @@ class CT_LblOffset(BaseOxmlElement):
     """`c:lblOffset` custom element class."""
 
     val = OptionalAttribute("val", ST_LblOffset, default=100)
+
+
+class CT_Skip(BaseOxmlElement):
+    """`c:tickLblSkip` and `c:tickMarkSkip` element class.
+
+    Defines the integer skip count for category-axis tick labels or major tick
+    marks — the interval at which categories are drawn (e.g. `val="2"` skips
+    every second category). Minimum value is 1 (ECMA-376 Part 1 `ST_Skip`).
+    """
+
+    val = RequiredAttribute("val", ST_Skip)
 
 
 class CT_Orientation(BaseOxmlElement):

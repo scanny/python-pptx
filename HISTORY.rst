@@ -288,6 +288,15 @@ Unreleased
   ``showMasterSp`` ``OptionalAttribute`` on ``CT_Slide`` plus unit,
   acceptance, and documentation coverage.
 
+- feat: #886 Add :attr:`.CategoryAxis.tick_mark_skip` and
+  :attr:`.CategoryAxis.tick_label_skip` read/write ``int`` properties
+  exposing ``c:catAx/c:tickMarkSkip/@val`` and ``c:catAx/c:tickLblSkip/@val``.
+  These thin out dense category axes by drawing a major tick / tick-label
+  only every Nth category (``1`` — the default — draws every one; ``2``
+  draws every other, and so on). Assigning ``1`` removes the backing
+  element so the XML stays minimal; a value less than ``1`` raises
+  :class:`ValueError` (ECMA-376 ``ST_Skip`` mandates a positive integer).
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

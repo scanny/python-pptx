@@ -261,3 +261,49 @@ Feature: Axis properties
     Given a category axis
      When I assign non-bool value to axis.visible
      Then ValueError is raised
+
+
+  Scenario: Get CategoryAxis.tick_label_skip default
+    Given a category axis
+     Then category_axis.tick_label_skip is 1
+
+
+  Scenario Outline: Set CategoryAxis.tick_label_skip
+    Given a category axis
+     When I assign <value> to category_axis.tick_label_skip
+     Then category_axis.tick_label_skip is <value>
+
+    Examples: CategoryAxis.tick_label_skip assignment cases
+      | value |
+      | 1     |
+      | 2     |
+      | 7     |
+
+
+  Scenario: CategoryAxis.tick_label_skip raises on assignment less than 1
+    Given a category axis
+     When I assign 0 to category_axis.tick_label_skip
+     Then ValueError is raised
+
+
+  Scenario: Get CategoryAxis.tick_mark_skip default
+    Given a category axis
+     Then category_axis.tick_mark_skip is 1
+
+
+  Scenario Outline: Set CategoryAxis.tick_mark_skip
+    Given a category axis
+     When I assign <value> to category_axis.tick_mark_skip
+     Then category_axis.tick_mark_skip is <value>
+
+    Examples: CategoryAxis.tick_mark_skip assignment cases
+      | value |
+      | 1     |
+      | 3     |
+      | 12    |
+
+
+  Scenario: CategoryAxis.tick_mark_skip raises on assignment less than 1
+    Given a category axis
+     When I assign 0 to category_axis.tick_mark_skip
+     Then ValueError is raised

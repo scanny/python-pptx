@@ -96,6 +96,7 @@ from pptx.oxml.chart.axis import (  # noqa: E402
     CT_LblOffset,
     CT_Orientation,
     CT_Scaling,
+    CT_Skip,
     CT_TickLblPos,
     CT_TickMark,
     CT_ValAx,
@@ -115,6 +116,8 @@ register_element_cls("c:minorUnit", CT_AxisUnit)
 register_element_cls("c:orientation", CT_Orientation)
 register_element_cls("c:scaling", CT_Scaling)
 register_element_cls("c:tickLblPos", CT_TickLblPos)
+register_element_cls("c:tickLblSkip", CT_Skip)
+register_element_cls("c:tickMarkSkip", CT_Skip)
 register_element_cls("c:valAx", CT_ValAx)
 
 

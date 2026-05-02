@@ -1014,6 +1014,557 @@ refresh helpers.
 ```python
 from pptx import Presentation
 from pptx.util import Inches
+from pptx.chart.data import CategoryChartData, XyChartData
+from pptx.enum.chart import XL_CHART_TYPE
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# 2D column chart
+data = CategoryChartData()
+data.categories = ["Q1", "Q2", "Q3", "Q4"]
+data.add_series("North", (10, 12, 14, 11))
+data.add_series("South", (8, 13, 9, 15))
+
+gf = slide.shapes.add_chart(
+    XL_CHART_TYPE.COLUMN_CLUSTERED,
+    Inches(1), Inches(1), Inches(6), Inches(3),
+    data,
+)
+chart = gf.chart
+
+# overlay a line on the same axes to make a combo chart
+line_data = CategoryChartData()
+line_data.categories = ["Q1", "Q2", "Q3", "Q4"]
+line_data.add_series("Target", (11, 12, 12, 13))
+chart.add_plot(XL_CHART_TYPE.LINE, line_data)
+
+# chart style (plain 1..48 or extended 49..255 via c14:style)
+chart.chart_style = 6
+
+# chart title, positioned manually (factor-space, 0..1)
+chart.has_title = True
+chart.chart_title.text_frame.text = "Results"
+chart.chart_title.position = (0.2, 0.02)
+
+# replace data later, preserving number formats and author formulas
+chart.replace_data(data)
+# chart.replace_data_preserve_formulas(data)
+
+# refresh cached values from the embedded workbook
+chart.update_cached_values()
+
+# 3D column chart (fork addition — previously raised NotImplementedError)
+data3d = CategoryChartData()
+data3d.categories = ["A", "B", "C"]
+data3d.add_series("Series 1", (1, 2, 3))
+slide2 = prs.slides.add_slide(prs.slide_layouts[6])
+slide2.shapes.add_chart(
+    XL_CHART_TYPE.THREE_D_COLUMN_CLUSTERED,
+    Inches(1), Inches(1), Inches(6), Inches(3),
+    data3d,
+)
+
+# XY scatter
+xy_data = XyChartData()
+series = xy_data.add_series("XY")
+for i in range(5):
+    series.add_data_point(i, i * i)
+
+prs.save("out.pptx")
+```
+
+- `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Append a chart. Supports every `XL_CHART_TYPE` variant except a small set of chartex-only types; 3D variants and additional chartex passthrough are `[Added in 1.0.2.dev0]`.
+- `Chart.chart_type` / `Chart.has_title` / `Chart.has_legend` — Basic properties.
+- `Chart.chart_title` — `ChartTitle` proxy.
+- `Chart.chart_style` — Integer style index. Plain 1..48 via `c:style`; extended 49..255 via `c14:style` wrapped in `mc:AlternateContent` `[Added in 1.0.2.dev0]`.
+- `Chart.display_blanks_as` — Read/write member of `XL_DISPLAY_BLANKS_AS` (`GAPS` / `ZERO` / `INTERPOLATED`) controlling PowerPoint's "Hidden and Empty Cells" / "Show empty cells as" setting (`c:dispBlanksAs`). Suppress zero-valued bars in a stacked bar chart (issue #859) by assigning `XL_DISPLAY_BLANKS_AS.GAPS`; assigning the XSD default `ZERO` removes the element. `[Added in 1.0.2.dev0]`
+- `Chart.plots` / `Chart.series` / `Chart.category_axis` / `Chart.value_axis` — Chart anatomy.
+- `Chart.plot_area` — `PlotArea` proxy for `c:plotArea`; `.format` exposes `ChartFormat` (`.fill`, `.line`, `.shadow`) so the plot-area rectangle can be filled, outlined, or shadowed without dropping into XML. `[Added in 1.0.2.dev0]`
+- `Chart.has_secondary_value_axis` / `Chart.secondary_value_axis` — Secondary Y axis. `[Added in 1.0.2.dev0]`
+- `Chart.add_plot(chart_type, chart_data)` — Add a second plot to an existing chart (combo charts). `[Added in 1.0.2.dev0]`
+- `Chart.apply_template(template)` — Apply a `.crtx` chart template (path, bytes, or file-like) onto an existing chart. `[Added in 1.0.2.dev0]`
+- `Chart.clone_to(shapes, x, y, cx, cy)` — Deep-copy the chart onto another slide (same or different presentation) with a fresh distinct embedded workbook. `[Added in 1.0.2.dev0]`
+- `Chart.replace_data(chart_data)` — Rewrite data in place, preserving author-set number formats `[Added in 1.0.2.dev0]`, validating chart-data type match (raises `ValueError` for mismatches) `[Added in 1.0.2.dev0]`, and cycling accent colors on added series `[Added in 1.0.2.dev0]`.
+- `Chart.replace_data_preserve_formulas(chart_data)` — Data-only refresh that leaves embedded-workbook cells carrying a formula (`<f>`) untouched. `[Added in 1.0.2.dev0]`
+- `Chart.update_cached_values()` — Re-read the embedded workbook and rewrite `c:numCache` / `c:strCache`. `[Added in 1.0.2.dev0]`
+- `Chart.workbook` — `ChartWorkbook` proxy; exposes `.xlsx_part` and a full workbook read/write path.
+- `Chart.has_user_shapes` / `Chart.user_shapes` — Read-only access to the chart's annotation-shapes (`c:userShapes`) drawing: `has_user_shapes` is a non-destructive boolean probe, `user_shapes` returns a `ChartDrawingPart` (or `None`) whose `iter_anchor_elements()` / `anchor_count` enumerate the raw `cdr:relSizeAnchor` / `cdr:absSizeAnchor` anchors. Authoring is deferred; see `docs/dev/analysis/chart-user-shapes.rst`. `[Added in 1.0.2.dev0]`
+- `Chart.font` — `Font` proxy for chart-space default text properties.
+- `ChartTitle.text_frame` / `ChartTitle.format` / `ChartTitle.has_text_frame` — Title body.
+- `ChartTitle.position` — `(x, y)` tuple in factor-space `[0, 1]`, or `None` for auto layout. `[Added in 1.0.2.dev0]`
+- `Axis.format` / `Axis.tick_labels` / `Axis.major_gridlines` / `Axis.minor_gridlines` / `Axis.axis_title`.
+- `Axis.position` — Read/write `XL_AXIS_POSITION`. `[Added in 1.0.2.dev0]`
+- `Axis.visible` — Read/write `bool` toggling axis visibility via the `c:delete` element. Writes `val="1"` / `val="0"` explicitly so PowerPoint honors the setting (see issue #852). `[Fixed in 1.0.2.dev0]`
+- `TickLabels.rotation` — Read/write clockwise rotation (degrees) of axis tick labels, mapping to `c:txPr/a:bodyPr/@rot`. Accepts `int` or `float`; default `0.0`. `[Added in 1.0.2.dev0]`
+- `CategoryAxis.tick_label_skip` / `CategoryAxis.tick_mark_skip` — Read/write `int` (>=1) thinning out how often a category-axis label or major tick is drawn (`c:tickLblSkip/@val` and `c:tickMarkSkip/@val`). `1` (default) draws every category; `2` draws every other; and so on. Assigning `1` removes the backing element; values `<1` raise `ValueError`. `[Added in 1.0.2.dev0]`
+- `ValueAxis.crosses` / `.crosses_at` / `.major_unit` / `.minor_unit`.
+- `DateAxis.major_unit` / `.minor_unit` — Time-axis spacing. `[Added in 1.0.2.dev0]`
+- `Series.values` / `Series.categories` / `Series.name` / `Series.format` / `Series.marker` / `Series.points`.
+- `Series.has_error_bars` / `Series.error_bars` / `Series.set_error_bars(type, amount, include, direction)` — Error bars (fixed value / percentage / std deviation / std error). `[Added in 1.0.2.dev0]`
+- `Series.trendlines` / `Series.add_trendline(trendline_type, order, period, forward, backward, intercept, display_equation, display_r_squared)` / `Trendline.delete()` — Fitted-curve overlays on a series: linear / logarithmic / polynomial (order 2..6) / power / exponential / moving-average. Each trendline exposes `.trendline_type`, `.order`, `.period`, `.forward`, `.backward`, `.intercept`, `.display_equation`, `.display_r_squared`, `.name`, and `.format` (a `ChartFormat` for fill / line / shadow). `[Added in 1.0.2.dev0]`
+- `Point.format` / `Point.marker` / `Point.data_label` / `Point.invert_if_negative` — Per-point formatting.
+- `DataLabel.text_frame` / `DataLabel.font` / `DataLabel.position` / `DataLabel.show_*`.
+- `DataLabel.format` — `ChartFormat` wrapping this single `c:dLbl` with `.fill` / `.line` / `.shadow`. `[Added in 1.0.2.dev0]`
+- `DataLabels.text_frame` / `DataLabels.font` / `DataLabels.show_*` / `DataLabels.number_format`.
+- `DataLabels.format` — `ChartFormat` wrapping `c:dLbls` (collection-scope fill / line / shadow). `[Added in 1.0.2.dev0]`
+- `ChartFormat.fill` / `ChartFormat.line` / `ChartFormat.shadow` — Format block for a chart element. `shadow` is `[Added in 1.0.2.dev0]`.
+- `pptx.enum.chart.XL_CHART_TYPE` — Full chart-type enum including 2D, 3D, XY, bubble, radar, doughnut, area, and a chartex passthrough sentinel (`UNSUPPORTED_CHARTEX`) for unknown `cx:` types `[Added in 1.0.2.dev0]`.
+- `pptx.enum.chart.XL_ERROR_BAR_TYPE` / `XL_ERROR_BAR_INCLUDE` / `XL_ERROR_BAR_DIRECTION` — Error-bar configuration. `[Added in 1.0.2.dev0]`
+- `pptx.enum.chart.XL_DISPLAY_BLANKS_AS` — How blank cells render (`GAPS` / `ZERO` / `INTERPOLATED`), used by `Chart.display_blanks_as`. `[Added in 1.0.2.dev0]`
+
+- `pptx.enum.chart.XL_TRENDLINE_TYPE` — Trendline regression type (LINEAR, LOGARITHMIC, POLYNOMIAL, POWER, EXPONENTIAL, MOVING_AVG). `[Added in 1.0.2.dev0]`
+- `pptx.chart.data.CategoryChartData` / `XyChartData` / `BubbleChartData` — Chart-data builders.
+
+---
+
+## Fills, colors, and effects
+
+`FillFormat` handles solid / gradient / pattern / picture / no-fill /
+background fills. The fork adds picture fills via `FillFormat.blip_fill()`
+and full `ShadowFormat` configuration (`blur_radius`, `distance`,
+`direction`, `color` in addition to `.inherit`), plus a universal
+`ColorFormat.to_rgb()` resolver with tint / shade and a
+`ColorFormat.alpha` accessor for per-color transparency.
+
+```python
+from pptx import Presentation
+from pptx.util import Inches, Pt, Emu
+from pptx.dml.color import RGBColor
+from pptx.enum.shapes import MSO_SHAPE
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+rect = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE,
+    Inches(1), Inches(1), Inches(4), Inches(2),
+)
+
+# solid fill with 50 % transparency
+rect.fill.solid()
+rect.fill.fore_color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+rect.fill.fore_color.alpha = 0.5
+
+# resolve a color to its actual rendered RGB (universal, handles tint/shade)
+print(rect.fill.fore_color.to_rgb())
+
+# picture (blip) fill — any FillFormat tied to a part
+# rect.fill.blip_fill("tests/test_files/python-powered.png")
+
+# gradient fill (overwrites the solid fill above)
+rect.fill.gradient()
+rect.fill.gradient_angle = 45.0
+
+# shadow (full configuration, not just .inherit)
+sh = rect.shadow
+sh.inherit = False
+sh.blur_radius = Pt(4)
+sh.distance = Pt(2)
+sh.direction = 45.0
+sh.color.rgb = RGBColor(0x00, 0x00, 0x00)
+
+# line fill
+rect.line.fill.solid()
+rect.line.fill.fore_color.rgb = RGBColor(0, 0, 0)
+rect.line.width = Emu(12700)
+
+prs.save("out.pptx")
+```
+
+- `FillFormat.solid()` / `FillFormat.gradient()` / `FillFormat.patterned()` / `FillFormat.background()` — Fill-type setters.
+- `FillFormat.blip_fill(image_file)` — Embed a picture-fill referencing `image_file`. `[Added in 1.0.2.dev0]`
+- `FillFormat.fore_color` / `FillFormat.back_color` — `ColorFormat` proxies.
+- `FillFormat.gradient_stops` / `FillFormat.gradient_angle` — Gradient controls.
+- `FillFormat.pattern` — `MSO_PATTERN_TYPE`.
+- `FillFormat.type` — `MSO_FILL_TYPE`.
+- `ColorFormat.rgb` / `ColorFormat.theme_color` / `ColorFormat.brightness` — Base color and luminance.
+- `ColorFormat.alpha` — Per-color transparency in `[0.0, 1.0]`. `[Added in 1.0.2.dev0]`
+- `ColorFormat.to_rgb(theme_colors=None)` — Resolve to the rendered `RGBColor` after tint / shade / theme lookup. `[Added in 1.0.2.dev0]`
+- `ColorFormat.type` — `MSO_COLOR_TYPE`.
+- `EffectFormat` — `shadow` / `glow` / `reflection` / `soft_edge` accessors.
+- `ShadowFormat.inherit` (setter also clears sibling `a:effectRef/@idx`) `[Added in 1.0.2.dev0]`, `.blur_radius` / `.distance` / `.direction` / `.color` — Outer-shadow configuration. All four knobs are `[Added in 1.0.2.dev0]`.
+- `GlowFormat.size` / `.color` — Outer glow. `[Added in 1.0.2.dev0]`
+- `ReflectionFormat.blur_radius` / `.distance` — Reflection effect. `[Added in 1.0.2.dev0]`
+- `SoftEdgeFormat.size` — Soft-edge radius. `[Added in 1.0.2.dev0]`
+
+---
+
+## Animations and transitions
+
+Every slide exposes `Slide.transition` — a `Transition` proxy that reads /
+writes the transition type (23 variants including `MORPH`, wrapped in
+`mc:AlternateContent` with a `p:fade` fallback for pre-2013 viewers),
+duration, advance-on-click, advance-after-time, PowerPoint speed preset
+(SLOW / MEDIUM / FAST), `morph_option` granularity
+(`byObject` / `byWord` / `byChar`), and per-variant directional accessors
+like `wipe_direction`. Shape animations can be authored via
+`Shape.set_animation(type, trigger, delay)` for the five common presets
+(APPEAR / FADE_IN / FLY_IN / PULSE / FADE_OUT), read back via
+`Shape.animation`, and enumerated via `Slide.iter_shape_animations()` and
+`Slide.animation_sequence`.
+
+```python
+from pptx import Presentation
+from pptx.util import Inches
+from pptx.enum.shapes import MSO_SHAPE
+from pptx.enum.transition import (
+    PP_TRANSITION_TYPE,
+    PP_TRANSITION_SPEED,
+    PP_TRANSITION_SIDE_DIRECTION,
+)
+from pptx.enum.animation import MSO_ANIMATION_TYPE, MSO_ANIMATION_TRIGGER
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# slide transition
+t = slide.transition
+t.type = PP_TRANSITION_TYPE.WIPE
+t.wipe_direction = PP_TRANSITION_SIDE_DIRECTION.LEFT
+t.speed = PP_TRANSITION_SPEED.FAST
+t.duration = 750           # milliseconds (via p14:dur)
+t.advance_on_click = True
+t.advance_after_time = 5000   # also advance automatically after 5 s
+
+# MORPH transition (wrapped in mc:AlternateContent with p:fade fallback)
+slide2 = prs.slides.add_slide(prs.slide_layouts[6])
+slide2.transition.type = PP_TRANSITION_TYPE.MORPH
+slide2.transition.morph_option = "byObject"
+
+# author an entrance animation on a shape
+rect = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE,
+    Inches(1), Inches(1), Inches(3), Inches(1),
+)
+rect.set_animation(
+    MSO_ANIMATION_TYPE.FADE_IN,
+    trigger=MSO_ANIMATION_TRIGGER.ON_CLICK,
+    delay=500,
+)
+
+# read existing animation
+for anim in slide.iter_shape_animations():
+    print(anim.shape_id, anim.effect_type, anim.delay_ms, anim.duration_ms)
+
+for effect in slide.animation_sequence:
+    print(effect.shape_id, effect.preset_class, effect.preset_id, effect.delay)
+
+# bulk auto-advance the whole deck
+prs.set_auto_advance(seconds=8, advance_on_click=False)
+
+prs.save("out.pptx")
+```
+
+All members in this section are `[Added in 1.0.2.dev0]`.
+
+- `Slide.transition` — `Transition` proxy.
+- `Transition.type` — `PP_TRANSITION_TYPE` (NONE, CUT, FADE, WIPE, PUSH, COVER, SPLIT, RANDOM_BARS, SHAPE, UNCOVER, WHEEL, MORPH, and ~12 more).
+- `Transition.duration` — Milliseconds via `p14:dur`, or `None`.
+- `Transition.speed` — `PP_TRANSITION_SPEED` (SLOW / MEDIUM / FAST) mapping `@spd`.
+- `Transition.advance_on_click` — `bool`.
+- `Transition.advance_after_time` — Milliseconds via `@advTm`, or `None`.
+- `Transition.morph_option` — `"byObject"` / `"byWord"` / `"byChar"` (only meaningful when `type == MORPH`).
+- `Transition.wipe_direction` — `PP_TRANSITION_SIDE_DIRECTION` on `p:wipe`/`p:push`.
+- `BaseShape.animation` — Read-only `AnimationEffect` proxy.
+- `BaseShape.set_animation(effect_type, trigger="onClick", delay=0)` — Author a preset effect.
+- `AnimationEffect.type` — `MSO_ANIMATION_TYPE` (APPEAR, FADE_IN, FLY_IN, PULSE, FADE_OUT).
+- `AnimationEffect.trigger` — `MSO_ANIMATION_TRIGGER` (ON_CLICK, AFTER_PREVIOUS).
+- `AnimationEffect.delay` — Milliseconds.
+- `AnimationEffect.shape_id` — Owning shape ID.
+- `Slide.iter_shape_animations()` — Read-only iterator of `ShapeAnimation` proxies.
+- `ShapeAnimation.shape_id` / `.effect_type` / `.delay_ms` / `.duration_ms` / `.element`.
+- `Slide.animation_sequence` — Tuple of `AnimationEffectView` for the main sequence.
+- `AnimationEffectView.shape_id` / `.preset_class` / `.preset_id` / `.preset_subtype` / `.delay`.
+- `Slide.has_animations` / `Slide.timing_xml` — Round-trip introspection.
+- `Presentation.set_auto_advance(seconds, advance_on_click=False)` — Bulk-set `advance_after_time` + `advance_on_click` across every slide.
+- `pptx.enum.animation.MSO_ANIMATION_TYPE` / `MSO_ANIMATION_TRIGGER`.
+- `pptx.enum.transition.PP_TRANSITION_TYPE` / `PP_TRANSITION_SPEED` / `PP_TRANSITION_SIDE_DIRECTION`.
+
+---
+
+## Comments
+
+Legacy PowerPoint comments (`p:cmLst`) are readable and writable. Each
+`Slide` exposes `Slide.has_comments` and `Slide.comments`; the collection
+supports `add_comment()` with automatic `CommentAuthor` bookkeeping.
+
+```python
+import datetime as dt
+
+from pptx import Presentation
+from pptx.comments import CommentAuthors
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# register the author once at the package level, then anchor a comment to it
+authors_part = prs.part.package.get_or_add_comment_authors_part()
+authors = CommentAuthors(authors_part)
+author = authors.get_or_add(name="Ben", initials="BH")
+
+slide.comments.add_comment(
+    author=author,
+    text="Reviewer note",
+    position=(1000, 1000),                # EMU-scaled (x, y)
+    datetime_value=dt.datetime(2026, 5, 2, 10, 0, 0),
+)
+
+for comment in slide.comments:
+    who = comment.author
+    print(who.name if who else "?", comment.text, comment.datetime)
+
+prs.save("out.pptx")
+```
+
+All members in this section are `[Added in 1.0.2.dev0]`.
+
+- `Slide.comments` — `Comments` collection (iterable, indexable, `len()`).
+- `Slide.has_comments` — `True` when a `CommentsPart` is attached.
+- `Comments.add_comment(author, text, position=(0, 0), datetime_value=None)` — Append a comment anchored to a pre-registered `CommentAuthor`.
+- `Comment.text` (read/write) / `Comment.author` / `Comment.author_id` / `Comment.idx` / `Comment.datetime` (read/write) / `Comment.position` (read/write `(x, y)` EMU).
+- `CommentAuthor.id` / `.name` / `.initials`.
+- `CommentAuthors.add_author(name, initials)` / `CommentAuthors.get_by_id(id)` / `CommentAuthors.get_or_add(name, initials)` — Access via `slide.part.comment_authors`.
+
+---
+
+## Math equations
+
+OMML equations are read via `Shape.has_math_equation` and
+`Shape.math_equation_xml`, and written into a text-frame paragraph via
+`_Paragraph.add_math_equation(omml_xml)` which wraps the fragment in the
+`mc:AlternateContent/mc:Choice[Requires="a14"]/a14:m` scaffolding PowerPoint
+emits for an inline equation (with an `mc:Fallback/a:r` run carrying the
+OMML reduced to its visible text). The caller is responsible for producing
+the OMML; conversion between OMML / MathML / LaTeX is out of scope.
+
+```python
+from pptx import Presentation
+from pptx.util import Inches
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(6), Inches(2))
+p = tb.text_frame.paragraphs[0]
+r = p.add_run()
+r.text = "Pythagoras: "
+
+# literal OMML fragment (in practice, often produced by MML2OMML.XSL)
+omml_xml = (
+    '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+    '<m:r><m:t>a^2 + b^2 = c^2</m:t></m:r>'
+    '</m:oMath>'
+)
+p.add_math_equation(omml_xml)
+
+# read it back off any shape
+for shape in slide.shapes:
+    if shape.has_math_equation:
+        print(shape.math_equation_xml[:80], "...")
+
+prs.save("out.pptx")
+```
+
+All members in this section are `[Added in 1.0.2.dev0]`.
+
+- `_Paragraph.add_math_equation(omml_xml)` — Append an inline equation wrapped in the `a14:m` / `mc:Fallback` scaffolding PowerPoint uses.
+- `BaseShape.has_math_equation` — `True` when the shape contains an `a14:m` equation (descends into `mc:AlternateContent/mc:Choice`).
+- `BaseShape.math_equation_xml` — Raw OMML fragment (`m:oMath` element text) or `None`.
+
+---
+
+## SmartArt
+
+SmartArt is preserved on round-trip — the four diagram parts
+(`diagramData`, `diagramLayout`, `diagramColors`, `diagramQuickStyle`) are
+lifted across save / reload automatically. A `GraphicFrame` that contains a
+diagram reports `has_smart_art == True` and exposes the diagram via
+`.smart_art`; the four XML parts are readable as raw bytes. Structured
+node-tree authoring is intentionally out of scope for the MVP.
+
+```python
+from pptx import Presentation
+
+# open a deck containing SmartArt
+# prs = Presentation("with-smartart.pptx")
+prs = Presentation()  # (no SmartArt in a fresh deck)
+
+for slide in prs.slides:
+    for shape in slide.shapes:
+        if shape.has_smart_art:
+            diagram = shape.smart_art
+            print(len(diagram.data_xml), "bytes of diagramData")
+            # diagram.data_xml / layout_xml / colors_xml / quick_style_xml
+```
+
+All members in this section are `[Added in 1.0.2.dev0]`.
+
+- `GraphicFrame.has_smart_art` — `True` for SmartArt diagrams.
+- `GraphicFrame.smart_art` — `SmartArt` proxy.
+- `SmartArt.data_xml` / `.layout_xml` / `.colors_xml` / `.quick_style_xml` — Raw bytes of the four diagram parts.
+- `MSO_SHAPE_TYPE.IGX_GRAPHIC` — `shape_type` discriminator for SmartArt.
+
+---
+
+## OLE embedding
+
+`SlideShapes.add_ole_object()` embeds arbitrary OLE / package files.
+Upstream already supported common Office progIds (Excel, Word); the fork
+broadens this to accept any `prog_id` plus an explicit `extension` so
+arbitrary ZIP / PDF / HTML / DOC payloads can be embedded as clickable
+icons.
+
+```python
+import io
+from pptx import Presentation
+from pptx.util import Inches
+from pptx.enum.shapes import PROG_ID
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# minimal payload bytes
+pdf_bytes = io.BytesIO(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+icon_png = io.BytesIO(
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xcf"
+    b"\xc0\x00\x00\x00\x03\x00\x01\xde\xfb\xc4f\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+# convenience: well-known progIds from PROG_ID enum
+# (these include XLSX, DOCX, PDF, ...)
+
+# generic path: any prog_id string + extension
+slide.shapes.add_ole_object(
+    pdf_bytes,
+    prog_id="Package",
+    left=Inches(1), top=Inches(1),
+    width=Inches(1), height=Inches(1),
+    icon_file=icon_png,
+    icon_width=Inches(1), icon_height=Inches(1),
+    extension="pdf",
+)
+
+prs.save("out.pptx")
+```
+
+- `SlideShapes.add_ole_object(object_file, prog_id, left, top, width=None, height=None, icon_file=None, icon_width=None, icon_height=None, extension=None)` — Embed an OLE / package object with a custom icon. Accepts well-known `PROG_ID` enum members or arbitrary strings; when `prog_id` is not a known member, `extension` becomes required and the package content-type is emitted. `[Added in 1.0.2.dev0]` for the arbitrary `prog_id` / `extension` path.
+- `pptx.enum.shapes.PROG_ID` — Convenience enum of commonly-embedded progIds (XLSX, DOCX, PDF, HTML, ...). Extended set is `[Added in 1.0.2.dev0]`.
+- `GraphicFrame.has_chart` / `GraphicFrame.has_table` / `GraphicFrame.has_smart_art` — Type probes.
+- OLE objects produced by `add_ole_object()` appear in `shape.shape_type == MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT`.
+
+---
+
+## Hyperlinks and click actions
+
+Shapes and runs support click-actions and hyperlinks. `ActionSetting`
+covers both a plain hyperlink and the PowerPoint-specific "click actions"
+(jump to slide, run program, play sound, etc.). The fork adds
+`ActionSetting.screen_tip` (hover tooltip), `set_sound()` /
+`remove_sound()` / `sound`, jump-to-named-slide targets for runs, and
+`Font.use_theme_hyperlink_color` to override the hyperlink color.
+
+```python
+from pptx import Presentation
+from pptx.util import Inches
+from pptx.enum.action import PP_ACTION
+from pptx.enum.shapes import MSO_SHAPE
+
+prs = Presentation()
+slide1 = prs.slides.add_slide(prs.slide_layouts[6])
+slide2 = prs.slides.add_slide(prs.slide_layouts[6])
+
+rect = slide1.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE,
+    Inches(1), Inches(1), Inches(2), Inches(1),
+)
+
+# hyperlink
+rect.click_action.hyperlink.address = "https://example.com/"
+rect.click_action.screen_tip = "Open example.com"
+
+# jump-to-slide action
+rect2 = slide1.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE,
+    Inches(4), Inches(1), Inches(2), Inches(1),
+)
+rect2.click_action.target_slide = slide2
+
+# run-level hyperlink via a run's font / hyperlink
+tb = slide1.shapes.add_textbox(Inches(1), Inches(3), Inches(4), Inches(0.5))
+p = tb.text_frame.paragraphs[0]
+run = p.add_run()
+run.text = "jump"
+run.hyperlink.address = "https://example.org/"
+run.font.use_theme_hyperlink_color = False  # keep the run's own color
+
+prs.save("out.pptx")
+```
+
+- `BaseShape.click_action` — `ActionSetting`.
+- `ActionSetting.hyperlink` — `Hyperlink` proxy with `.address` (read/write URL).
+- `ActionSetting.action` — `PP_ACTION` (HYPERLINK, FIRST_SLIDE, NEXT_SLIDE, PREVIOUS_SLIDE, LAST_SLIDE, NAMED_SLIDE, END_SHOW, RUN_PROGRAM, ...).
+- `ActionSetting.target_slide` — Read/write `Slide` (auto-sets `action` to `NAMED_SLIDE`).
+- `ActionSetting.screen_tip` — Read/write hover-tooltip text. `[Added in 1.0.2.dev0]`
+- `ActionSetting.set_sound(sound_file, filename=None)` / `ActionSetting.remove_sound()` / `ActionSetting.sound` — Click-action sound attachment. `[Added in 1.0.2.dev0]`
+- `Sound.blob` / `Sound.name` / `Sound.rId` — Embedded click-sound payload. `[Added in 1.0.2.dev0]`
+- `_Run.hyperlink` — Run-scoped hyperlink with `.address`.
+- `Font.use_theme_hyperlink_color` — Tri-state `bool` to toggle the theme hyperlink color override. `[Added in 1.0.2.dev0]`
+- `ThemePart.theme.hlink_color` / `ThemePart.theme.folHlink_color` — Theme hyperlink / followed-hyperlink colors (read-only). `[Added in 1.0.2.dev0]`
+
+---
+
+## Headers, footers, slide numbers, and date fields
+
+Masters, layouts, and notes masters expose `header_footer` so the default
+footer / slide-number / date visibility can be set centrally; per-slide
+footer text is authored by inserting a paragraph-level `_Field` whose
+`field_type` encodes an auto-refresh value (slide number, date/time).
+
+```python
+from pptx import Presentation
+from pptx.util import Inches
+
+prs = Presentation()
+
+# central defaults on the master
+hf = prs.slide_masters[0].header_footer
+hf.footer_visible = True
+hf.slide_number_visible = True
+hf.date_visible = True
+
+# per-slide footer text
+slide = prs.slides.add_slide(prs.slide_layouts[0])
+
+# insert an auto-refresh slide-number field into a textbox on the slide
+tb = slide.shapes.add_textbox(Inches(9), Inches(7), Inches(1), Inches(0.3))
+p = tb.text_frame.paragraphs[0]
+fld = p.add_field("slidenum", text="#")
+
+prs.save("out.pptx")
+```
+
+All members in this section are `[Added in 1.0.2.dev0]`.
+
+- `SlideMaster.header_footer` / `SlideLayout.header_footer` / `NotesMaster.header_footer` — `_HeaderFooter` proxy.
+- `_HeaderFooter.slide_number_visible` / `.footer_visible` / `.header_visible` / `.date_visible` — Tri-state toggles mapping `p:hf`.
+- `_Paragraph.add_field(field_type, text="")` — Insert an auto-refresh `a:fld` (e.g. `slidenum`, `datetime`, `datetime1`...`datetime13`).
+- `_Field.field_type` / `_Field.text` / `_Field.font` — Field accessors.
+
+---
+
+## Placeholders
+
+The generic `SlidePlaceholder` — returned for content, body, and object
+placeholders — now supports the full `insert_chart()` /
+`insert_picture()` / `insert_table()` rich-content insertion API. The
+specialized `ChartPlaceholder` / `PicturePlaceholder` / `TablePlaceholder`
+subclasses still exist for backwards compatibility. `PicturePlaceholder`
+now takes a `crop=False` keyword to fit the image inside the placeholder
+bounds without cropping. Placeholders are looked up by `idx` on
+`slide.placeholders`.
+
+```python
+from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 
