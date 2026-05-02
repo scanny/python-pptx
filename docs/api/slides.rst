@@ -62,6 +62,22 @@ This class is not intended to be constructed directly.
    :exclude-members: iter_cloneable_placeholders
 
 
+|_HeaderFooter| objects
+-----------------------
+
+A ``_HeaderFooter`` object is returned by the ``header_footer`` property on a
+|SlideMaster|, |SlideLayout|, or |NotesMaster|. It provides Boolean toggles for the
+slide-number, header, footer, and date placeholders (the four attributes of the
+``<p:hf>`` element). A value of ``False`` hides the corresponding placeholder; the
+default for each toggle is ``True`` (placeholder visible) to match the XSD default.
+
+This class is not intended to be constructed directly.
+
+.. autoclass:: pptx.slide._HeaderFooter()
+   :members:
+   :undoc-members:
+
+
 |SlideMasters| objects
 ----------------------
 

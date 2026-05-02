@@ -15,7 +15,7 @@ from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.shapes.autoshape import Shape
-from pptx.text.text import Font, TextFrame, _Hyperlink, _Paragraph, _Run
+from pptx.text.text import Font, TextFrame, _Field, _Hyperlink, _Paragraph, _Run
 from pptx.util import Inches, Pt
 
 from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
@@ -798,6 +798,19 @@ class Describe_Paragraph(object):
         assert paragraph._p.xml == p_with_r_xml
         assert isinstance(run, _Run)
 
+    def it_can_add_an_auto_refresh_field(self, paragraph):
+        field = paragraph.add_field("slidenum", "#")
+
+        assert isinstance(field, _Field)
+        assert field.field_type == "slidenum"
+        assert field.text == "#"
+        # ---field is attached into the paragraph XML---
+        assert len(paragraph._p.fld_lst) == 1
+        fld = paragraph._p.fld_lst[0]
+        assert fld.type == "slidenum"
+        # ---auto-assigned id looks like a GUID in braces---
+        assert fld.id.startswith("{") and fld.id.endswith("}") and len(fld.id) == 38
+
     def it_knows_its_horizontal_alignment(self, alignment_get_fixture):
         paragraph, expected_value = alignment_get_fixture
         assert paragraph.alignment == expected_value
@@ -1212,3 +1225,41 @@ class Describe_Run(object):
     @pytest.fixture
     def hlink_(self, request):
         return instance_mock(request, _Hyperlink)
+
+
+class Describe_Field(object):
+    """Unit-test suite for `pptx.text.text._Field` object."""
+
+    def it_knows_its_field_type(self):
+        fld = element('a:fld{id=1,type=slidenum}/a:t"#"')
+        field = _Field(fld, None)
+        assert field.field_type == "slidenum"
+
+    def it_can_change_its_field_type(self):
+        fld = element('a:fld{id=1,type=slidenum}/a:t"#"')
+        field = _Field(fld, None)
+
+        field.field_type = "datetime"
+
+        assert field.field_type == "datetime"
+        assert fld.type == "datetime"
+
+    def it_knows_the_display_text_of_the_field(self):
+        fld = element('a:fld{id=1,type=slidenum}/a:t"42"')
+        field = _Field(fld, None)
+        assert field.text == "42"
+
+    def it_can_set_the_display_text_of_the_field(self):
+        fld = element("a:fld{id=1,type=slidenum}")
+        field = _Field(fld, None)
+
+        field.text = "‹#›"
+
+        assert field.text == "‹#›"
+
+    def it_provides_access_to_its_font(self):
+        fld = element("a:fld{id=1,type=slidenum}")
+        field = _Field(fld, None)
+        font = field.font
+        assert isinstance(font, Font)
+        assert fld.rPr is not None

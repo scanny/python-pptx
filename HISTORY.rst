@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #201 slide numbers / date / footer via p:hf and a:fld
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

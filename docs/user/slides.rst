@@ -97,6 +97,40 @@ another turns out to be pretty hard to get right in the general case, so that
 probably won't come until more of the backlog is burned down.
 
 
+Header, footer, slide number, and date placeholders
+---------------------------------------------------
+
+Slide masters, slide layouts, and the notes master carry a small `<p:hf>`
+element with four Boolean attributes controlling whether the header,
+footer, slide-number, and date placeholders are visible on descendant
+slides. python-pptx exposes each attribute through a ``header_footer`` property::
+
+    >>> prs = Presentation()
+    >>> master = prs.slide_master
+    >>> master.header_footer.slide_number_visible
+    True
+    >>> master.header_footer.slide_number_visible = False       # hide slide numbers
+    >>> master.header_footer.footer_visible = False             # hide footers too
+
+The same attribute exists on every |SlideLayout|, letting you override a
+master-level choice for an individual layout. PowerPoint treats an absent
+``<p:hf>`` element as "all placeholders visible" — python-pptx keeps the XML
+minimal and only writes a ``<p:hf>`` when at least one toggle is ``False``.
+
+To display the *current* slide number inside a text frame, add an
+auto-refresh field to a paragraph::
+
+    >>> tf = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(1), Inches(0.5)).text_frame
+    >>> field = tf.paragraphs[0].add_field("slidenum", "#")
+    >>> field.field_type
+    'slidenum'
+
+Use ``"datetime"``, ``"datetimeFigureOut"``, or any of ``"datetime1"`` …
+``"datetime13"`` for automatically-refreshing date fields, and ``"footer"`` for a
+footer field. The ``text`` argument is the placeholder string PowerPoint shows
+until the field is refreshed.
+
+
 Up next ...
 -----------
 
