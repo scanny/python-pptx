@@ -25,7 +25,7 @@ from pptx.util import lazyproperty
 if TYPE_CHECKING:
     from pptx.opc.package import Part
     from pptx.comments import Comments
-    from pptx.oxml.presentation import CT_SlideIdList, CT_SlideMasterIdList
+    from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList
     from pptx.oxml.slide import (
         CT_CommonSlideData,
         CT_NotesMaster,
@@ -357,17 +357,7 @@ class Slides(ParentedElementProxy):
         new_sldId = self._sldIdLst.add_sldId(rId)
 
         if index is not None:
-            # -- Normalize negative / out-of-range indices identically to move_slide. --
-            n = len(self._sldIdLst)
-            # -- The just-appended sldId is currently at position n-1. --
-            target_idx = max(0, index + n) if index < 0 else min(index, n - 1)
-            if target_idx != n - 1:
-                self._sldIdLst.remove(new_sldId)
-                siblings = self._sldIdLst.sldId_lst
-                if target_idx >= len(siblings):
-                    self._sldIdLst.append(new_sldId)
-                else:
-                    siblings[target_idx].addprevious(new_sldId)
+            self._reposition_sldId(new_sldId, index)
 
         return new_slide
 
@@ -404,6 +394,7 @@ class Slides(ParentedElementProxy):
         # -- uniquely-referenced images, media, charts), unreachable from the package root
         # -- and therefore omitted from the saved package.
         self.part.drop_rel(rId)
+
     def add_slide_from_external(self, source_slide: Slide, slide_layout: SlideLayout) -> Slide:
         """Return a new slide cloned from `source_slide` in another presentation.
 
@@ -456,21 +447,35 @@ class Slides(ParentedElementProxy):
         current_idx = self.index(slide)
         sldId = self._sldIdLst.sldId_lst[current_idx]
 
-        # -- normalize negative indices and clamp to collection bounds --
-        n = len(self._sldIdLst)
-        new_idx = max(0, new_idx + n) if new_idx < 0 else min(new_idx, n - 1)
+        self._reposition_sldId(sldId, new_idx)
 
-        # -- no-op when the slide is already at the target position --
-        if new_idx == current_idx:
+    def _reposition_sldId(self, sldId: CT_SlideId, new_idx: int) -> None:
+        """Move `sldId` to zero-based position `new_idx` within `p:sldIdLst`.
+
+        Index normalization matches Python list semantics: negative values count from the
+        end, and out-of-range values clamp to the first / last position. This helper is
+        shared by :meth:`move_slide` and :meth:`duplicate` so that both operations
+        interpret `new_idx` identically. It does not allocate or alter the ``id``
+        attribute of `sldId` — sldId-value allocation is exclusively the job of
+        :meth:`CT_SlideIdList.add_sldId`.
+        """
+        # -- Normalize `new_idx` against the current sldIdLst length. Both callers hold a
+        # -- live reference to `sldId` that is already a child of self._sldIdLst, so `n`
+        # -- already counts it. --
+        n = len(self._sldIdLst)
+        target_idx = max(0, new_idx + n) if new_idx < 0 else min(new_idx, n - 1)
+
+        # -- no-op when `sldId` is already at the target position --
+        if self._sldIdLst.sldId_lst.index(sldId) == target_idx:
             return
 
         # -- reposition the p:sldId element within p:sldIdLst --
         self._sldIdLst.remove(sldId)
         siblings = self._sldIdLst.sldId_lst
-        if new_idx >= len(siblings):
+        if target_idx >= len(siblings):
             self._sldIdLst.append(sldId)
         else:
-            siblings[new_idx].addprevious(sldId)
+            siblings[target_idx].addprevious(sldId)
 
 
 class SlideLayout(_BaseSlide):

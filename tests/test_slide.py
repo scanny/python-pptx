@@ -738,6 +738,57 @@ class DescribeSlides(object):
 
         part_prop_.return_value.drop_rel.assert_not_called()
 
+    def it_allocates_a_unique_sldId_after_delete_move_and_insert(self, part_prop_):
+        """Regression for Foundation F6.
+
+        After a sequence of move_slide, delete, duplicate (with index), and
+        add_slide_from_external, the `id` attribute on every `p:sldId` remains
+        unique. In particular, the slide-id of a just-deleted slide is never
+        reused while a higher-valued id is still in play: ``CT_SlideIdList._next_id``
+        always returns ``max(used) + 1`` for the common case, so the only way to
+        observe a collision would be a helper that assigns ids on its own --
+        this test pins that invariant on the F6 API surface.
+        """
+        # --- starting layout: three slides at 256, 257, 258 ---
+        sldIdLst = element(
+            "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},p:sldId{r:id=c,id=258})"
+        )
+        slides = Slides(sldIdLst, None)
+        _slides = [Slide(element("p:sld"), None) for _ in range(3)]
+        part_ = part_prop_.return_value
+        # -- related_slide is called once per iteration of .index() / __iter__; the
+        # -- scenario invokes index() six times on up-to-three-element collections, so
+        # -- we return the canonical slide for each rId encountered.
+        part_.related_slide.side_effect = lambda rId: {
+            "a": _slides[0],
+            "b": _slides[1],
+            "c": _slides[2],
+            "rIdDup": _slides[0],  # duplicate of slide a
+            "rIdExt": _slides[1],  # external slide bound to layout
+        }[rId]
+
+        # --- 1. move slide c to position 0 -> (c,a,b) with ids (258,256,257) ---
+        slides.move_slide(_slides[2], 0)
+
+        # --- 2. delete slide a -> (c,b) with ids (258,257) ---
+        slides.delete(_slides[0])
+
+        # --- 3. duplicate slide b at the beginning. _next_id must skip the re-usable
+        # --- but-deleted 256 and pick 259, because 258 is still in play. ---
+        part_.duplicate_slide.return_value = ("rIdDup", _slides[0])
+        slides.duplicate(_slides[1], index=0)
+
+        # --- 4. add a slide cloned from another presentation; it appends and gets 260. ---
+        part_.add_slide_from_external.return_value = ("rIdExt", _slides[1])
+        slides.add_slide_from_external(_slides[1], None)  # type: ignore[arg-type]
+
+        # --- assertion: every id is unique and monotonically above min-slide-id ---
+        ids = [s.id for s in sldIdLst.sldId_lst]
+        assert len(ids) == len(set(ids)), f"duplicate sldId values: {ids}"
+        assert all(i >= 256 for i in ids)
+        # --- the deleted slide's id (256) must not have been recycled while 258 is live ---
+        assert 256 not in ids
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

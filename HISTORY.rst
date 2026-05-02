@@ -49,6 +49,14 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- Foundation F6: consolidation docs for slide-id management (shipped via
+  #68/#67/#132/#1036). Extracted the shared reposition logic used by
+  ``Slides.move_slide`` and ``Slides.duplicate(index=...)`` into a single
+  ``Slides._reposition_sldId`` helper, added a regression test covering a
+  move → delete → duplicate → external-insert sequence to pin the
+  "deleted-id not recycled while a higher-numbered slide survives"
+  invariant, and documented the sldId allocator, the F6 API surface, and
+  its interaction with F1 at ``docs/dev/analysis/f6-slide-id-manager.rst``.
 - fix: #490 ``Chart.replace_data`` raised ``KeyError: 'rId3'`` when the chart's
   ``c:externalData`` element referenced a relationship that wasn't present in
   the chart-part's rels (charts pasted from pre-2007 ``.xls`` workbooks, or
