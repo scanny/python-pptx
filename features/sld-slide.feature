@@ -54,6 +54,26 @@ Feature: slide properties
       And after a save/load round-trip slide.is_hidden is False
 
 
+  Scenario: Slide.show_master_shapes defaults to True on a fresh slide
+    Given a slide
+     Then slide.show_master_shapes is True
+
+
+  Scenario: Slide.show_master_shapes can be set to False and round-trips
+    Given a slide
+     When I set slide.show_master_shapes to False
+     Then slide.show_master_shapes is False
+      And after a save/load round-trip slide.show_master_shapes is False
+
+
+  Scenario: Slide.show_master_shapes can be restored and round-trips
+    Given a slide
+     When I set slide.show_master_shapes to False
+      And I set slide.show_master_shapes to True
+     Then slide.show_master_shapes is True
+      And after a save/load round-trip slide.show_master_shapes is True
+
+
   Scenario Outline: Slide.name
     Given a slide having name <name>
      Then slide.name is <value>

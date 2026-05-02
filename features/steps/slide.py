@@ -131,6 +131,15 @@ def when_I_set_slide_is_hidden_to_value(context, value):
     context.slide.is_hidden = {"True": True, "False": False}[value]
 
 
+@when("I set slide.show_master_shapes to {value}")
+def when_I_set_slide_show_master_shapes_to_value(context, value):
+    # -- ensure we have a Presentation for a later save/load round-trip --
+    if not hasattr(context, "prs") or context.prs is None:
+        context.prs = Presentation(test_pptx("shp-shapes"))
+        context.slide = context.prs.slides[0]
+    context.slide.show_master_shapes = {"True": True, "False": False}[value]
+
+
 # then ====================================================
 
 
@@ -217,6 +226,28 @@ def then_after_save_load_slide_is_hidden_is(context, value):
     reopened = Presentation(buf)
     actual_value = reopened.slides[0].is_hidden
     assert actual_value is expected_value, "slide.is_hidden is %s" % actual_value
+
+
+@then("slide.show_master_shapes is {value}")
+def then_slide_show_master_shapes_is_value(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    actual_value = context.slide.show_master_shapes
+    assert actual_value is expected_value, (
+        "slide.show_master_shapes is %s" % actual_value
+    )
+
+
+@then("after a save/load round-trip slide.show_master_shapes is {value}")
+def then_after_save_load_slide_show_master_shapes_is(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    actual_value = reopened.slides[0].show_master_shapes
+    assert actual_value is expected_value, (
+        "slide.show_master_shapes is %s" % actual_value
+    )
 
 
 @then("slide.name is {value}")

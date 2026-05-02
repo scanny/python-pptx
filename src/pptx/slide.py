@@ -322,6 +322,38 @@ class Slide(_BaseSlide):
         self._element.show = not value
 
     @property
+    def show_master_shapes(self) -> bool:
+        """`True` when shapes on the master are shown on this slide.
+
+        Reflects the ``p:sld/@showMasterSp`` attribute. PowerPoint's
+        *Hide Background Graphics* checkbox (under *Design > Format
+        Background*) writes ``showMasterSp="0"`` on a slide that opts out
+        of rendering the master-level decorative shapes (e.g. a company
+        logo, a footer bar, or any other shape baked into the master's
+        shape tree). Master *placeholders* continue to inherit normally;
+        only non-placeholder master shapes are affected by this toggle.
+
+        * Reading returns ``True`` when the attribute is absent or any
+          truthy value and ``False`` only when ``@showMasterSp="0"``.
+        * Assigning ``True`` (the schema default) removes the attribute
+          if present so the XML round-trips to the default-visible state.
+        * Assigning ``False`` writes ``showMasterSp="0"`` on the ``p:sld``
+          element.
+        """
+        return self._element.showMasterSp
+
+    @show_master_shapes.setter
+    def show_master_shapes(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError(
+                "show_master_shapes must be a bool, got %s" % type(value).__name__
+            )
+        # -- CT_Slide.showMasterSp is an OptionalAttribute(default=True);
+        # -- assigning True (the default) removes the attribute, assigning
+        # -- False writes showMasterSp="0".
+        self._element.showMasterSp = value
+
+    @property
     def has_notes_slide(self) -> bool:
         """`True` if this slide has a notes slide, `False` otherwise.
 

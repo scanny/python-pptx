@@ -374,6 +374,48 @@ class DescribeSlide(object):
         with pytest.raises(TypeError, match="is_hidden must be a bool"):
             slide.is_hidden = 1  # type: ignore[assignment]
 
+    @pytest.mark.parametrize(
+        ("sld_cxml", "expected_value"),
+        [
+            # -- attribute absent => schema default True --
+            ("p:sld/p:cSld", True),
+            ('p:sld{showMasterSp=1}/p:cSld', True),
+            ('p:sld{showMasterSp=true}/p:cSld', True),
+            ('p:sld{showMasterSp=0}/p:cSld', False),
+            ('p:sld{showMasterSp=false}/p:cSld', False),
+        ],
+    )
+    def it_knows_whether_master_shapes_are_shown(self, sld_cxml, expected_value):
+        slide = Slide(element(sld_cxml), None)
+        assert slide.show_master_shapes is expected_value
+
+    @pytest.mark.parametrize(
+        ("initial_cxml", "value", "expected_cxml"),
+        [
+            # -- setting False on a default slide writes showMasterSp="0" --
+            ("p:sld/p:cSld", False, 'p:sld{showMasterSp=0}/p:cSld'),
+            # -- setting True on a default slide is a no-op (attr stays absent) --
+            ("p:sld/p:cSld", True, "p:sld/p:cSld"),
+            # -- setting True on a hidden-master slide removes the attr --
+            ('p:sld{showMasterSp=0}/p:cSld', True, "p:sld/p:cSld"),
+            # -- setting False on an already-hidden-master slide is idempotent --
+            (
+                'p:sld{showMasterSp=0}/p:cSld',
+                False,
+                'p:sld{showMasterSp=0}/p:cSld',
+            ),
+        ],
+    )
+    def it_can_set_show_master_shapes(self, initial_cxml, value, expected_cxml):
+        slide = Slide(element(initial_cxml), None)
+        slide.show_master_shapes = value
+        assert slide._element.xml == xml(expected_cxml)
+
+    def it_raises_TypeError_on_non_bool_show_master_shapes(self):
+        slide = Slide(element("p:sld/p:cSld"), None)
+        with pytest.raises(TypeError, match="show_master_shapes must be a bool"):
+            slide.show_master_shapes = 1  # type: ignore[assignment]
+
     def it_knows_its_slide_id(self, slide_id_fixture):
         slide, expected_value = slide_id_fixture
         assert slide.slide_id == expected_value

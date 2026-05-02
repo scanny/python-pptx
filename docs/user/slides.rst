@@ -294,6 +294,23 @@ internal name on ``<p:cSld>`` — PowerPoint leaves it empty for most
 slides, so for human-readable identification you usually have to fall
 back to the slide layout or the title text (see below).
 
+**Hiding background graphics from the master**::
+
+    >>> slide.show_master_shapes
+    True
+    >>> # hide the master's decorative shapes (e.g. a company logo) on this slide
+    >>> slide.show_master_shapes = False
+
+:attr:`.Slide.show_master_shapes` is the read/write boolean backing
+PowerPoint's *Hide Background Graphics* checkbox (under *Design >
+Format Background*). Assigning |False| writes ``p:sld/@showMasterSp="0"``
+on the slide so the non-placeholder shapes baked into the master (a
+company logo, a footer bar, and so on) no longer render underneath
+this slide's content. Master *placeholders* continue to inherit
+normally; only decorative master shapes are affected. Assigning |True|
+(the schema default) removes the attribute, restoring the default
+master-shapes-visible behavior.
+
 **The slide layout**::
 
     >>> layout = slide.slide_layout
