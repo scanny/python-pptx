@@ -20,6 +20,13 @@ Unreleased
   authoring.
 
 - verify: #1106 entrance/exit animations resolved by #102 set_animation API
+
+- docs: #963 "save slide as image" — close as out-of-scope (python-pptx
+  does not render slides). Extend the LibreOffice headless example in the
+  ``Rendering to video, PDF, or image formats`` section of
+  ``docs/user/use-cases.rst`` with the ``--convert-to png`` /
+  ``pdftoppm`` / ImageMagick ``convert`` recipe for exporting every slide
+  as an image (``--convert-to png`` alone only writes the first slide).
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
