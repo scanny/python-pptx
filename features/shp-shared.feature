@@ -151,6 +151,44 @@ Feature: Common shape properties
       | Connector    |  50.0 |      50.0      |
 
 
+  Scenario Outline: Get shape.flip_horizontal and shape.flip_vertical (defaults)
+    Given a <shape-type> object as shape
+     Then shape.flip_horizontal is False
+      And shape.flip_vertical is False
+
+    Examples: Shape types
+      | shape-type |
+      | Shape      |
+      | Picture    |
+      | Connector  |
+
+
+  Scenario Outline: Set shape.flip_horizontal and shape.flip_vertical
+    Given a <shape-type> object as shape
+     When I assign True to shape.flip_horizontal
+      And I assign True to shape.flip_vertical
+     Then shape.flip_horizontal is True
+      And shape.flip_vertical is True
+
+    Examples: Shape types
+      | shape-type |
+      | Shape      |
+      | Picture    |
+      | Connector  |
+
+
+  Scenario: Toggle shape.flip_horizontal and shape.flip_vertical
+    Given a Shape object as shape
+     When I call shape.flip_horizontally()
+      And I call shape.flip_vertically()
+     Then shape.flip_horizontal is True
+      And shape.flip_vertical is True
+     When I call shape.flip_horizontally()
+      And I call shape.flip_vertically()
+     Then shape.flip_horizontal is False
+      And shape.flip_vertical is False
+
+
   Scenario Outline: shape.shadow
     Given a <shape-type> object as shape
      Then shape.shadow is a ShadowFormat object

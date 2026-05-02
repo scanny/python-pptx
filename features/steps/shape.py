@@ -395,6 +395,26 @@ def when_I_assign_value_to_shape_name(context, value):
     context.shape.name = value
 
 
+@when("I assign True to shape.flip_horizontal")
+def when_I_assign_True_to_shape_flip_horizontal(context):
+    context.shape.flip_horizontal = True
+
+
+@when("I assign True to shape.flip_vertical")
+def when_I_assign_True_to_shape_flip_vertical(context):
+    context.shape.flip_vertical = True
+
+
+@when("I call shape.flip_horizontally()")
+def when_I_call_shape_flip_horizontally(context):
+    context.shape.flip_horizontally()
+
+
+@when("I call shape.flip_vertically()")
+def when_I_call_shape_flip_vertically(context):
+    context.shape.flip_vertically()
+
+
 @when("I assign {value} to shape.rotation")
 def when_I_assign_value_to_shape_rotation(context, value):
     context.shape.rotation = float(value)
@@ -798,6 +818,34 @@ def then_shape_part_is_a_SlidePart_object(context):
 @then("shape.part is slide.part")
 def then_shape_part_is_slide_part(context):
     assert context.shape.part is context.slide.part
+
+
+@then("shape.flip_horizontal is False")
+def then_shape_flip_horizontal_is_False(context):
+    assert context.shape.flip_horizontal is False, (
+        "shape.flip_horizontal == %r" % context.shape.flip_horizontal
+    )
+
+
+@then("shape.flip_horizontal is True")
+def then_shape_flip_horizontal_is_True(context):
+    assert context.shape.flip_horizontal is True, (
+        "shape.flip_horizontal == %r" % context.shape.flip_horizontal
+    )
+
+
+@then("shape.flip_vertical is False")
+def then_shape_flip_vertical_is_False(context):
+    assert context.shape.flip_vertical is False, (
+        "shape.flip_vertical == %r" % context.shape.flip_vertical
+    )
+
+
+@then("shape.flip_vertical is True")
+def then_shape_flip_vertical_is_True(context):
+    assert context.shape.flip_vertical is True, (
+        "shape.flip_vertical == %r" % context.shape.flip_vertical
+    )
 
 
 @then("shape.rotation == {value}")
