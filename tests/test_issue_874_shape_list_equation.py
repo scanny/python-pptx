@@ -41,63 +41,7 @@ from __future__ import annotations
 
 from os.path import abspath, dirname, join
 
-import pytest
-
 from pptx import Presentation
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from other tests that mutate `PartFactory.part_type_for`.
-
-    In particular, `tests/opc/test_package.py::DescribePartFactory` overwrites
-    entries in ``PartFactory.part_type_for`` with Mocks and does not restore
-    them. Without this guard, running this module after ``tests/opc/test_package.py``
-    causes ``Presentation(...)`` part instantiation to return a Mock instead of
-    a real Part. See the identical fixture in ``tests/test_issue_400_animation_umbrella.py``
-    and ``tests/test_comments.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
 
 
 def _fixture_path() -> str:
@@ -119,7 +63,7 @@ class DescribeIssue874EquationInShapeText(object):
     dropped.
     """
 
-    def it_surfaces_equation_wrapped_shapes_in_slide_shapes(self, _restore_part_factory):
+    def it_surfaces_equation_wrapped_shapes_in_slide_shapes(self):
         """Core repro: the shape whose text contains ``m^3`` (which
         PowerPoint auto-formatted into an OMML equation and wrapped in
         ``mc:AlternateContent``) must appear in ``slide.shapes`` just
@@ -160,7 +104,7 @@ class DescribeIssue874EquationInShapeText(object):
         assert "500-7,000" in eq_shape.text_frame.text
 
     def it_exposes_the_embedded_OMML_subtree_for_the_wrapped_shape(
-        self, _restore_part_factory
+        self
     ):
         """Follow-up from the issue thread: the reporter asked to be
         able to *extract data* from the equation-bearing shape rather
@@ -191,7 +135,7 @@ class DescribeIssue874EquationInShapeText(object):
         assert "<m:sSup" in oMath_xml or "m:sSup" in oMath_xml
 
     def it_preserves_mc_Fallback_round_trip_for_wrapped_equation_shape(
-        self, _restore_part_factory
+        self
     ):
         """Iterating ``slide.shapes`` must not destructively strip the
         ``mc:Fallback`` subtree — the equation-bearing shape surfaces
@@ -222,7 +166,7 @@ class DescribeIssue874EquationInShapeText(object):
         fallback_after = ac_nodes_after[0].find("{%s}Fallback" % mc_ns)
         assert fallback_after is not None
 
-    def it_reports_the_reporter_title_text_on_the_wrapped_shape(self, _restore_part_factory):
+    def it_reports_the_reporter_title_text_on_the_wrapped_shape(self):
         """The issue's title pins the exact string the user typed:
         ``"500-7,000 m^3  per day."`` (note the double-space before
         ``per``). The ``m^3`` part became an OMML run so it doesn't

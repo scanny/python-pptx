@@ -37,66 +37,10 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against cross-test mutation of ``PartFactory.part_type_for``.
-
-    Same pattern used by ``tests/test_comments.py`` and other issue-regression
-    modules — other suites (notably ``tests/opc/test_package.py``) replace
-    registry entries with Mocks and don't restore them.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-        CT.WAV: MediaPart,
-        CT.AUDIO_MPEG: MediaPart,
-        CT.AUDIO_WAV: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
 
 
 def _chart_in(slide):
@@ -136,7 +80,7 @@ def _build_chart_with_format(fmt):
 class DescribeIssue666ReplaceDataPreservesNumberFormat:
     """End-to-end coverage for #666."""
 
-    def it_preserves_the_val_formatCode_across_replace_data(self, _restore_part_factory):
+    def it_preserves_the_val_formatCode_across_replace_data(self):
         # -- author a chart with the percent format the reporter used --
         prs = _build_chart_with_format("0.00%")
         chart = _chart_in(prs.slides[0])
@@ -161,7 +105,7 @@ class DescribeIssue666ReplaceDataPreservesNumberFormat:
         assert _val_format_codes(reloaded_chart) == ["0.00%"]
 
     def it_lets_an_explicit_number_format_override_the_preserved_one(
-        self, _restore_part_factory
+        self
     ):
         # -- start from a chart with "0.00%" authored on every series --
         prs = _build_chart_with_format("0.00%")
@@ -183,7 +127,7 @@ class DescribeIssue666ReplaceDataPreservesNumberFormat:
 
         assert _val_format_codes(reloaded_chart) == ["#,##0"]
 
-    def it_preserves_format_across_multiple_existing_series(self, _restore_part_factory):
+    def it_preserves_format_across_multiple_existing_series(self):
         """Every series's format is preserved, not just the first one."""
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])

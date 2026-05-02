@@ -32,75 +32,16 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.picture import Movie
 from pptx.util import Inches
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against cross-test mutation of ``PartFactory.part_type_for``.
-
-    Same pattern used by ``tests/test_comments.py`` and
-    ``tests/test_issue_400_animation_umbrella.py`` — other suites (notably
-    ``tests/opc/test_package.py``) replace registry entries with Mocks and
-    don't restore them, which causes real Presentation() construction to
-    return Mocks when test-module ordering puts this module after those
-    suites.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-        CT.WAV: MediaPart,
-        CT.AUDIO_MPEG: MediaPart,
-        CT.AUDIO_WAV: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue784RegressionReplaceAudio:
     """End-to-end coverage for :meth:`Movie.replace_media`."""
 
-    def it_swaps_the_media_blob_in_place(self, _restore_part_factory):
+    def it_swaps_the_media_blob_in_place(self):
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank layout
         audio_bytes_v1 = b"\x52\x49\x46\x46" + b"\x00" * 36  # fake "RIFF" wav-ish
@@ -160,7 +101,7 @@ class DescribeIssue784RegressionReplaceAudio:
         assert reloaded_movie.width == original_width
         assert reloaded_movie.height == original_height
 
-    def it_preserves_the_audio_tag_after_replace(self, _restore_part_factory):
+    def it_preserves_the_audio_tag_after_replace(self):
         """Audio-shape semantics survive a replace — the ``a:audioFile`` tag stays."""
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[6])
