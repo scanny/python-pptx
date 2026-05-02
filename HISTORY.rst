@@ -6,6 +6,10 @@ Release History
 Unreleased
 ++++++++++
 
+- docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
+  with its current support level (create / read / round-trip / not yet),
+  including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
+  reference to that issue's chartex roadmap.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
