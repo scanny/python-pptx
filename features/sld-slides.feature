@@ -30,6 +30,13 @@ Feature: Access an individual slide
     Given a Presentation with a layout placeholder renamed to "Agenda Title"
      When I call slides.add_slide() with that layout
      Then the new slide has a placeholder named "Agenda Title"
+  Scenario: Slides.add_slide_from_external()
+    Given a source slide with two pictures
+      And an empty target Presentation
+     When I call slides.add_slide_from_external() on the target
+     Then len(target.slides) is 1
+      And the cloned slide's picture shape names match the source slide
+      And the cloned slide is bound to the target presentation's slide layout
 
 
   Scenario: Slides.get()

@@ -40,6 +40,15 @@ def given_a_presentation_with_layout_placeholder_renamed(context):
             break
     context.prs = prs
     context.slide_layout = layout
+@given("a source slide with two pictures")
+def given_a_source_slide_with_two_pictures(context):
+    context.source_prs = Presentation(test_pptx("shp-picture"))
+    context.source_slide = context.source_prs.slides[0]
+
+
+@given("an empty target Presentation")
+def given_an_empty_target_presentation(context):
+    context.target_prs = Presentation()
 
 
 # when ====================================================
@@ -66,6 +75,12 @@ def when_I_call_slides_delete(context):
     # -- capture identity of the slide that should survive at the ends --
     context.surviving_slide_ids = (slides[0].slide_id, slides[2].slide_id)
     slides.delete(slides[1])
+@when("I call slides.add_slide_from_external() on the target")
+def when_I_call_slides_add_slide_from_external_on_target(context):
+    context.target_layout = context.target_prs.slide_layouts[5]  # -- blank layout --
+    context.cloned_slide = context.target_prs.slides.add_slide_from_external(
+        context.source_slide, context.target_layout
+    )
 
 
 @when("I call slide_layouts.remove(slide_layouts[1])")
@@ -292,3 +307,19 @@ def then_presentation_round_trips_after_delete(context):
         "expected slide_ids %r after round-trip, got %r"
         % (context.surviving_slide_ids, reopened_ids)
     )
+
+@then("len(target.slides) is {count}")
+def then_len_target_slides_is_count(context, count):
+    assert len(context.target_prs.slides) == int(count)
+
+
+@then("the cloned slide's picture shape names match the source slide")
+def then_cloned_slide_picture_names_match(context):
+    cloned = [sh.name for sh in context.cloned_slide.shapes]
+    source = [sh.name for sh in context.source_slide.shapes]
+    assert cloned == source, "cloned=%r source=%r" % (cloned, source)
+
+
+@then("the cloned slide is bound to the target presentation's slide layout")
+def then_cloned_slide_layout_matches(context):
+    assert context.cloned_slide.slide_layout is context.target_layout

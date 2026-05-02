@@ -377,6 +377,88 @@ class DescribeSlidePart(object):
         )
         assert isinstance(slide_part, SlidePart)
 
+    def it_can_clone_a_slide_part_from_another_presentation(self, request):
+        from unittest.mock import MagicMock
+
+        # -- Source SlidePart with: layout rel + image rel + hyperlink rel. --
+        src_sld = element("p:sld/p:cSld/p:spTree/p:pic/p:blipFill/a:blip{r:embed=rId9}")
+        src_part = SlidePart(PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, src_sld)
+        layout_rel = MagicMock(reltype=RT.SLIDE_LAYOUT, is_external=False)
+        image_rel = MagicMock(reltype=RT.IMAGE, is_external=False)
+        image_rel.target_part = instance_mock(request, ImagePart, blob=b"PNGBYTES")
+        hl_rel = MagicMock(
+            reltype=RT.HYPERLINK, is_external=True, target_ref="https://example.com/"
+        )
+        src_part.rels._rels.update(  # type: ignore[attr-defined]
+            {"rId1": layout_rel, "rId9": image_rel, "rId7": hl_rel}
+        )
+
+        # -- Target package: stub get_or_add_image_part to return a fake image part. --
+        target_package_ = instance_mock(request, Package)
+        target_image_part_ = instance_mock(request, ImagePart)
+        target_package_.get_or_add_image_part.return_value = target_image_part_
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+        # -- Stub SlidePart.relate_to so no real relationship graph is touched. --
+        relate_to_ = method_mock(request, SlidePart, "relate_to", autospec=True)
+        relate_to_.side_effect = ["rIdL", "rIdH", "rIdI"]
+
+        partname = PackURI("/ppt/slides/slide2.xml")
+        new_part = SlidePart.clone_from(src_part, partname, target_package_, slide_layout_part_)
+
+        assert isinstance(new_part, SlidePart)
+        assert new_part.partname == partname
+        # -- Shape tree is deep-copied, not aliased. --
+        assert new_part._element is not src_sld
+        # -- `r:embed` on the cloned blip was remapped from rId9 to the new image rId. --
+        embed_attr = new_part._element.xpath(".//a:blip/@r:embed")[0]
+        assert embed_attr == "rIdH"
+        # -- Image part was fetched from target package, not the source. --
+        target_package_.get_or_add_image_part.assert_called_once()
+
+    def it_drops_the_notes_slide_when_cloning(self, request):
+        from unittest.mock import MagicMock
+
+        src_sld = element("p:sld/p:cSld/p:spTree")
+        src_part = SlidePart(PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, src_sld)
+        src_part.rels._rels.update(  # type: ignore[attr-defined]
+            {
+                "rId1": MagicMock(reltype=RT.SLIDE_LAYOUT, is_external=False),
+                "rId2": MagicMock(reltype=RT.NOTES_SLIDE, is_external=False),
+            }
+        )
+        target_package_ = instance_mock(request, Package)
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+        relate_to_ = method_mock(request, SlidePart, "relate_to", autospec=True)
+        relate_to_.return_value = "rIdL"
+
+        new_part = SlidePart.clone_from(
+            src_part,
+            PackURI("/ppt/slides/slide2.xml"),
+            target_package_,
+            slide_layout_part_,
+        )
+
+        # -- No notes-slide relationship is established on the new part. --
+        relate_to_.assert_called_once_with(new_part, slide_layout_part_, RT.SLIDE_LAYOUT)
+
+    def it_raises_when_cloning_a_slide_with_unsupported_rels(self):
+        from unittest.mock import MagicMock
+
+        src_part = SlidePart(
+            PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, element("p:sld")
+        )
+        src_part.rels._rels["rId2"] = MagicMock(  # type: ignore[attr-defined]
+            reltype=RT.CHART, is_external=False
+        )
+
+        with pytest.raises(NotImplementedError, match="Foundation F1"):
+            SlidePart.clone_from(
+                src_part,
+                PackURI("/ppt/slides/slide2.xml"),
+                None,  # -- never reached (preflight raises first) --
+                None,  # -- never reached --
+            )
+
     def it_provides_access_to_its_slide(self, slide_fixture):
         slide_part, Slide_, sld, slide_ = slide_fixture
         slide = slide_part.slide

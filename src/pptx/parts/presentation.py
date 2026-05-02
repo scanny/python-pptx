@@ -34,6 +34,29 @@ class PresentationPart(XmlPart):
         rId = self.relate_to(slide_part, RT.SLIDE)
         return rId, slide_part.slide
 
+    def add_slide_from_external(
+        self, source_slide: Slide, slide_layout: SlideLayout
+    ) -> tuple[str, Slide]:
+        """Return (rId, slide) pair for a slide cloned from `source_slide`.
+
+        The new slide is added to this presentation with appearance inherited
+        from `slide_layout` (which must belong to this presentation). The
+        returned |Slide| contains a deep copy of the shape tree of
+        `source_slide`; image parts are copied into this package (or reused
+        when a matching image is already present).
+
+        Raises |NotImplementedError| when the source slide references a part
+        type not handled by the basic (F1-independent) copy path -- currently
+        anything other than slide-layout, image, hyperlink, or notes-slide
+        relationships.
+        """
+        partname = self._next_slide_partname
+        slide_part = SlidePart.clone_from(
+            source_slide.part, partname, self.package, slide_layout.part
+        )
+        rId = self.relate_to(slide_part, RT.SLIDE)
+        return rId, slide_part.slide
+
     @property
     def core_properties(self) -> CorePropertiesPart:
         """A |CoreProperties| object for the presentation.

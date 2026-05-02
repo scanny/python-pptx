@@ -102,6 +102,7 @@ Unreleased
 - #41 Shape.delete() method
 - #533 Shape.duplicate() for simple shapes
 - #515 Expose preset-shape path geometry
+- #1036 move slide across presentations (basic)
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

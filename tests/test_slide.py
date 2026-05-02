@@ -496,6 +496,21 @@ class DescribeSlides(object):
         assert slides._sldIdLst.xml == expected_xml
         assert slide is slide_
 
+    def it_can_add_a_slide_cloned_from_another_presentation(
+        self, part_prop_, slide_, slide_layout_
+    ):
+        slides = Slides(element("p:sldIdLst/p:sldId{r:id=rId1}"), None)
+        part_ = part_prop_.return_value
+        source_slide_ = slide_  # reuse mock for brevity
+        part_.add_slide_from_external.return_value = ("rId2", slide_)
+        expected_xml = xml("p:sldIdLst/(p:sldId{r:id=rId1},p:sldId{r:id=rId2,id=256})")
+
+        new_slide = slides.add_slide_from_external(source_slide_, slide_layout_)
+
+        part_.add_slide_from_external.assert_called_once_with(source_slide_, slide_layout_)
+        assert slides._sldIdLst.xml == expected_xml
+        assert new_slide is slide_
+
     def it_finds_a_slide_by_slide_id(self, get_fixture):
         slides, slide_id, default, prs_part_, expected_value = get_fixture
         slide = slides.get(slide_id, default)
