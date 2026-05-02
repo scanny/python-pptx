@@ -14,6 +14,15 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #586 extended_properties company/manager coverage. Pins
+  :attr:`Presentation.extended_properties` against silent breakage of
+  the #586 ask — reading and writing ``company`` and ``manager`` under
+  ``/docProps/app.xml`` — with a round-trip through
+  :meth:`Presentation.save`, confirmation that the neighbouring
+  ``application`` / ``app_version`` / ``slide_count`` fields remain
+  accessible, and cross-part isolation from
+  :attr:`Presentation.core_properties`. See
+  ``tests/test_issue_586_company_manager_verify.py``.
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
