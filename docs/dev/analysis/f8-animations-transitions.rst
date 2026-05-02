@@ -260,9 +260,9 @@ in place for the downstream work.
 ``#256`` — programmatic slide-timing authoring
     *Wave 4. Effort XL.* **Partially delivered (Wave 5, read-only MVP).**
     ``Slide.animation_sequence`` returns a read-only tuple of
-    ``AnimationEffect`` describing each effect in the slide's main
+    ``AnimationEffectView`` describing each effect in the slide's main
     sequence (``p:seq`` whose ``p:cTn/@nodeType == "mainSeq"``). Each
-    ``AnimationEffect`` exposes ``shape_id`` (``p:spTgt/@spid``),
+    ``AnimationEffectView`` exposes ``shape_id`` (``p:spTgt/@spid``),
     ``preset_class`` / ``preset_id`` / ``preset_subtype``, and
     ``delay`` (first ``p:cond/@delay``). The supporting oxml layer
     adds ``CT_TLShapeTargetElement`` (for ``p:spTgt``), the three
@@ -271,7 +271,12 @@ in place for the downstream work.
     and :func:`~pptx.oxml.timing.first_spTgt_spid`.
     Authoring (add / remove / reorder / retarget effects) is still
     deferred to #102, #264, #1106 — they layer mutation methods
-    atop the read surface without further oxml changes.
+    atop the read surface without further oxml changes. (The class
+    was originally shipped as ``AnimationEffect`` and renamed to
+    ``AnimationEffectView`` to avoid collision with the authoring
+    proxy :class:`pptx.animation.AnimationEffect` delivered by #102;
+    ``pptx.slide.AnimationEffect`` remains a deprecated alias for one
+    release.)
 
 ``#102`` — animations on shapes
     *Wave 3. Effort M.*
@@ -316,7 +321,7 @@ in place for the downstream work.
     ``"indefinite"``. New ``CT_TLTimeCondition`` (``p:cond``) and
     ``CT_TLTimeConditionList`` (``p:stCondLst`` / ``p:endCondLst``)
     element classes are registered so the condition tree is typed.
-    A user-facing ``AnimationEffect.delay`` / ``.duration`` wrapper is
+    A user-facing ``AnimationEffectView.delay`` / ``.duration`` wrapper is
     deferred to whatever animation-proxy API lands with #102 / #1106;
     until then, delays are read/written via the ``p:cTn.delay``
     descriptor on each timing node.
