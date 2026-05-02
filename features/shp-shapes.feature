@@ -389,3 +389,11 @@ Feature: Access a shape on a slide
      Then len(slide.shapes) counts the choice-wrapped shape
       And slide.shapes surfaces the choice-wrapped shape by name
       And saving the presentation preserves the mc:Fallback subtree
+
+
+  Scenario: Shape exposes read-only access to an OMML equation
+    Given a slide with a math-equation shape
+     Then shape.has_math_equation is True for the equation shape
+      And shape.has_math_equation is False for non-equation shapes
+      And shape.math_equation_xml returns the raw OMML XML
+      And shape.math_equation_xml is None for non-equation shapes
