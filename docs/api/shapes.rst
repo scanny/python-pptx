@@ -193,6 +193,21 @@ The following properties and methods are defined for picture shapes.
    :member-order: bysource
 
 
+|Movie| objects
+---------------
+
+A |Movie| is a picture-shape variant that places a video (or audio clip
+with poster-frame) on a slide. Movie shapes are added with
+:meth:`SlideShapes.add_movie` and expose media-specific properties
+alongside the shared |Picture| surface.
+
+.. autoclass:: pptx.shapes.picture.Movie()
+   :inherited-members:
+   :members:
+   :exclude-members: get_or_add_ln, ln
+   :member-order: bysource
+
+
 |GraphicFrame| objects
 ----------------------
 
@@ -206,6 +221,23 @@ A graphic frame is the shape containing a table, chart, or smart art.
        chart_part, has_text_frame, is_placeholder, part, placeholder_format,
        shape_type
    :inherited-members:
+
+
+|SmartArt| objects
+------------------
+
+The |SmartArt| proxy provides read-only access to the four XML parts
+that define a SmartArt graphic — *diagramData*, *diagramLayout*,
+*diagramColors*, and *diagramQuickStyle*. It is obtained from
+:attr:`GraphicFrame.smart_art` when the graphic frame contains a
+SmartArt diagram. The MVP exposes the raw bytes of each part; a
+structured editing API is not provided at this tier (see
+``docs/dev/analysis/f9-smartart.rst`` for the downstream roadmap).
+
+.. autoclass:: pptx.shapes.graphfrm.SmartArt()
+   :members:
+   :member-order: bysource
+   :undoc-members:
 
 
 |GroupShape| objects

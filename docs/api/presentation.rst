@@ -243,3 +243,20 @@ This behavior is intentionally transparent — there is no public API to
 opt out, and the other application-level fields (``<Application>``,
 ``<Company>``, ``<TitlesOfParts>``, …) are left untouched if present and
 are not populated if absent.
+
+
+|Video| objects
+---------------
+
+A |Video| is an immutable value object that carries a video (or
+media-file) bytestream from the caller into the package as a media
+part. It is accepted by :meth:`SlideShapes.add_movie` (indirectly, when
+a path or file-like is passed) and is the value type a caller may
+pre-construct via :meth:`Video.from_path_or_file_like` or
+:meth:`Video.from_blob` to control the ``filename`` / ``content_type``
+written into the package.
+
+.. autoclass:: pptx.media.Video()
+   :members:
+   :member-order: bysource
+   :undoc-members:

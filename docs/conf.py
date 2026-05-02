@@ -74,6 +74,10 @@ rst_epilog = """
 
 .. |Adjustment| replace:: :class:`.Adjustment`
 
+.. |AnimationEffect| replace:: :class:`.AnimationEffect`
+
+.. |AnimationEffectView| replace:: :class:`.AnimationEffectView`
+
 .. |AdjustmentCollection| replace:: :class:`.AdjustmentCollection`
 
 .. |AnimationEffect| replace:: :class:`.AnimationEffect`
@@ -407,6 +411,8 @@ rst_epilog = """
 .. |ValueAxis| replace:: :class:`.ValueAxis`
 
 .. |ValueError| replace:: :exc:`ValueError`
+
+.. |Video| replace:: :class:`.Video`
 
 .. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
 
