@@ -140,6 +140,14 @@ Unreleased
   (PowerPoint's defaults: rotX=15, rotY=20, rAngAx=1, depthPercent=100).
   MVP — per-chart rotation/perspective customization deferred to a
   follow-up.
+- feat: #144 add ``_Run.delete()`` and ``_Paragraph.delete()`` to remove a
+  single run (``a:r``) from its paragraph and a single paragraph (``a:p``)
+  from its text frame. The paragraph variant preserves the PowerPoint
+  invariant that every text frame contains at least one ``<a:p>`` — when the
+  paragraph being deleted is the last one, a fresh empty ``<a:p/>`` is added
+  in its place. Both the ``p:txBody`` (shape) and ``a:txBody`` (table-cell)
+  forms are handled. Subsequent use of a deleted ``_Run`` or ``_Paragraph``
+  object is undefined.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
