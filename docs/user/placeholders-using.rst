@@ -140,6 +140,23 @@ If it is wider, its left and right sides are cropped evenly. Cropping can be
 adjusted using the crop properties on the placeholder, such as
 :attr:`~.PlaceholderPicture.crop_bottom`.
 
+Fit image without cropping
+..........................
+
+Pass `crop=False` to insert the image at its full content without cropping.
+The image is scaled to fit entirely inside the placeholder bounds preserving
+its aspect ratio, and centered horizontally and vertically::
+
+    >>> picture = placeholder.insert_picture('my-image.png', crop=False)
+
+This corresponds to PowerPoint's "Fit" picture layout (as opposed to the
+default "Fill" layout). It is especially useful for logos, charts, and
+screenshots where clipping any part of the image would obscure meaningful
+content. When `crop=False` is used, the resulting picture's position and
+size on the slide will not inherit from the layout placeholder; instead an
+explicit position and size are written into the slide XML so the aspect
+ratio is preserved regardless of the placeholder's aspect ratio.
+
 :meth:`.TablePlaceholder.insert_table`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
