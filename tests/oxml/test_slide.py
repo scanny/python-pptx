@@ -281,3 +281,121 @@ class DescribeCT_TransitionMorph(object):
 
         morph = parse_xml("<p14:morph %s/>" % nsdecls("p14"))
         assert morph.option == "byObject"
+
+    @pytest.mark.parametrize("option", ["byObject", "byWord", "byChar"])
+    def it_accepts_any_of_the_three_valid_options(self, option: str):
+        from pptx.oxml.ns import nsdecls
+
+        from pptx.oxml import parse_xml
+
+        morph = parse_xml("<p14:morph %s/>" % nsdecls("p14"))
+        morph.option = option
+        assert morph.option == option
+
+    def it_rejects_an_invalid_option(self):
+        from pptx.oxml.ns import nsdecls
+
+        from pptx.oxml import parse_xml
+
+        morph = parse_xml("<p14:morph %s/>" % nsdecls("p14"))
+        with pytest.raises(ValueError):
+            morph.option = "byParagraph"
+
+
+class DescribeCT_Slide_transition_alt_content(object):
+    """Unit-test suite for the mc:AlternateContent helpers (issue #942).
+
+    See ``CT_Slide.transition_effective`` /
+    ``wrap_transition_in_alt_content`` / ``unwrap_transition_from_alt_content``.
+    """
+
+    def it_returns_the_direct_transition_as_effective(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        assert sld.transition_effective is not None
+        assert sld.transition_effective.variant_tag == "p:fade"
+        assert sld.transition_is_alt_content_wrapped is False
+
+    def it_returns_None_effective_for_a_slide_with_no_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        assert sld.transition_effective is None
+        assert sld.transition_is_alt_content_wrapped is False
+
+    def it_resolves_a_wrapped_transition(self):
+        from pptx.oxml.ns import nsdecls
+
+        from pptx.oxml import parse_xml
+
+        xml_str = (
+            "<p:sld %s>\n"
+            "  <p:cSld><p:spTree/></p:cSld>\n"
+            '  <mc:AlternateContent>\n'
+            '    <mc:Choice Requires="p14">\n'
+            '      <p:transition spd="slow">\n'
+            '        <p14:morph option="byWord"/>\n'
+            "      </p:transition>\n"
+            "    </mc:Choice>\n"
+            "    <mc:Fallback>\n"
+            "      <p:transition><p:fade/></p:transition>\n"
+            "    </mc:Fallback>\n"
+            "  </mc:AlternateContent>\n"
+            "</p:sld>\n"
+        ) % nsdecls("p", "p14", "mc")
+        sld = parse_xml(xml_str)
+
+        assert sld.transition is None
+        assert sld.transition_effective is not None
+        assert sld.transition_effective.variant_tag == "p14:morph"
+        assert sld.transition_is_alt_content_wrapped is True
+
+    def it_can_wrap_a_direct_transition_preserving_attrs(self):
+        sld = element(
+            "p:sld/(p:cSld/p:spTree,p:transition{spd=med,advClick=0}/p:fade)"
+        )
+        inner = sld.wrap_transition_in_alt_content()
+        assert sld.transition is None
+        assert sld.transition_is_alt_content_wrapped is True
+        # -- inner is the mc:Choice/p:transition; attributes preserved --
+        assert inner.spd == "med"
+        assert inner.advClick is False
+        # -- mc:Fallback carries a p:transition/p:fade that mirrors attrs --
+        ac = sld._transition_alt_content_lst[0]
+        fallback = ac.find(qn("mc:Fallback"))
+        assert fallback is not None
+        fb_transition = fallback.find(qn("p:transition"))
+        assert fb_transition is not None
+        assert fb_transition.find(qn("p:fade")) is not None
+        assert fb_transition.get("spd") == "med"
+        assert fb_transition.get("advClick") == "0"
+
+    def it_is_idempotent_on_wrap(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        first = sld.wrap_transition_in_alt_content()
+        second = sld.wrap_transition_in_alt_content()
+        assert first is second
+        # -- only one mc:AlternateContent wrapper in the transition slot --
+        assert len(sld._transition_alt_content_lst) == 1
+
+    def it_can_unwrap_a_wrapped_transition(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        sld.wrap_transition_in_alt_content()
+        assert sld.transition_is_alt_content_wrapped is True
+
+        sld.unwrap_transition_from_alt_content()
+        assert sld.transition_is_alt_content_wrapped is False
+        assert sld.transition is not None
+        assert sld.transition.variant_tag == "p:fade"
+        # -- and no mc:AlternateContent remains in transition slot --
+        assert sld._transition_alt_content_lst == []
+
+    def it_is_a_noop_to_unwrap_when_not_wrapped(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        result = sld.unwrap_transition_from_alt_content()
+        assert result is sld.transition
+        assert sld.transition_is_alt_content_wrapped is False
+
+    def it_removes_both_forms_on_remove_transition_effective(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        sld.wrap_transition_in_alt_content()
+        sld.remove_transition_effective()
+        assert sld.transition_effective is None
+        assert sld.transition_is_alt_content_wrapped is False

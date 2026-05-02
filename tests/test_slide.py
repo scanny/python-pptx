@@ -25,6 +25,7 @@ from pptx.shapes.shapetree import (
     SlideShapes,
 )
 from pptx.enum.transition import PP_TRANSITION_TYPE
+from pptx.oxml.ns import qn
 from pptx.slide import (
     NotesMaster,
     NotesSlide,
@@ -1603,13 +1604,17 @@ class DescribeTransition(object):
         assert sld.transition is not None
         assert sld.transition.variant_tag == "p:fade"
 
-    def it_sets_the_p14_morph_variant(self):
+    def it_sets_the_p14_morph_variant_wrapped_in_alt_content(self):
+        # -- setting MORPH moves the p:transition inside an
+        # -- mc:AlternateContent, so the direct-child descriptor is None.
         sld = element("p:sld/p:cSld/p:spTree")
         transition = Transition(sld)
         transition.type = PP_TRANSITION_TYPE.MORPH
         assert transition.type is PP_TRANSITION_TYPE.MORPH
-        assert sld.transition is not None
-        assert sld.transition.variant_tag == "p14:morph"
+        assert sld.transition is None  # no direct child now
+        assert sld.transition_effective is not None
+        assert sld.transition_is_alt_content_wrapped is True
+        assert sld.transition_effective.variant_tag == "p14:morph"
 
     def it_replaces_an_existing_variant(self):
         sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
@@ -1714,3 +1719,172 @@ class DescribeTransition(object):
         transition = Transition(sld)
         with pytest.raises(ValueError, match="non-negative"):
             transition.advance_after_time = -1
+
+
+class DescribeTransition_morph_option_942(object):
+    """Unit-test suite for Transition MORPH support (issue #942)."""
+
+    # -- .morph_option read ----------------------------------------------
+
+    def it_returns_None_morph_option_when_transition_is_not_MORPH(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        transition = Transition(sld)
+        assert transition.morph_option is None
+
+    def it_returns_None_morph_option_when_no_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.morph_option is None
+
+    def it_defaults_morph_option_to_byObject_on_a_MORPH_transition(self):
+        from pptx.oxml.ns import nsdecls
+
+        from pptx.oxml import parse_xml
+
+        # -- slide with a wrapped MORPH transition but no @option attr --
+        sld = parse_xml(
+            "<p:sld %s>"
+            "  <p:cSld><p:spTree/></p:cSld>"
+            "  <mc:AlternateContent>"
+            '    <mc:Choice Requires="p14">'
+            '      <p:transition><p14:morph/></p:transition>'
+            "    </mc:Choice>"
+            "    <mc:Fallback><p:transition><p:fade/></p:transition></mc:Fallback>"
+            "  </mc:AlternateContent>"
+            "</p:sld>" % nsdecls("p", "p14", "mc")
+        )
+        transition = Transition(sld)
+        assert transition.morph_option == "byObject"
+
+    @pytest.mark.parametrize("option", ["byObject", "byWord", "byChar"])
+    def it_reads_an_explicit_morph_option(self, option: str):
+        from pptx.oxml.ns import nsdecls
+
+        from pptx.oxml import parse_xml
+
+        sld = parse_xml(
+            "<p:sld %s>"
+            "  <p:cSld><p:spTree/></p:cSld>"
+            "  <mc:AlternateContent>"
+            '    <mc:Choice Requires="p14">'
+            '      <p:transition><p14:morph option="%s"/></p:transition>'
+            "    </mc:Choice>"
+            "    <mc:Fallback><p:transition><p:fade/></p:transition></mc:Fallback>"
+            "  </mc:AlternateContent>"
+            "</p:sld>" % (nsdecls("p", "p14", "mc"), option)
+        )
+        transition = Transition(sld)
+        assert transition.morph_option == option
+
+    # -- .morph_option write ---------------------------------------------
+
+    @pytest.mark.parametrize("option", ["byObject", "byWord", "byChar"])
+    def it_writes_the_morph_option(self, option: str):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        transition.morph_option = option
+        assert transition.morph_option == option
+
+    def it_rejects_an_unknown_morph_option(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        with pytest.raises(ValueError, match="morph_option must be one of"):
+            transition.morph_option = "byParagraph"
+
+    def it_rejects_morph_option_write_when_not_a_MORPH_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.FADE
+        with pytest.raises(ValueError, match="only applies to a MORPH"):
+            transition.morph_option = "byWord"
+
+    # -- type = MORPH wraps in mc:AlternateContent ----------------------
+
+    def it_wraps_in_alt_content_when_type_is_set_to_MORPH(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        assert sld.transition_is_alt_content_wrapped is True
+        # -- mc:Fallback contains a p:transition/p:fade --
+        ac = sld._transition_alt_content_lst[0]
+        fallback = ac.find(qn("mc:Fallback"))
+        assert fallback is not None
+        fb_transition = fallback.find(qn("p:transition"))
+        assert fb_transition is not None
+        assert fb_transition.find(qn("p:fade")) is not None
+
+    def it_wraps_an_existing_fade_transition_when_switching_to_MORPH(self):
+        # -- the preceding p:transition's attrs (e.g. advClick) are
+        # -- preserved on the mc:Choice/p:transition and copied onto the
+        # -- mc:Fallback/p:transition --
+        sld = element(
+            "p:sld/(p:cSld/p:spTree,p:transition{advClick=0}/p:fade)"
+        )
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        assert sld.transition_is_alt_content_wrapped is True
+        effective = sld.transition_effective
+        assert effective is not None
+        assert effective.advClick is False
+        # -- fallback carries the same advance-control --
+        ac = sld._transition_alt_content_lst[0]
+        fb_transition = ac.find(qn("mc:Fallback")).find(qn("p:transition"))
+        assert fb_transition.get("advClick") == "0"
+
+    def it_unwraps_when_switching_from_MORPH_to_a_plain_variant(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        assert sld.transition_is_alt_content_wrapped is True
+
+        transition.type = PP_TRANSITION_TYPE.FADE
+        assert sld.transition_is_alt_content_wrapped is False
+        assert sld.transition is not None
+        assert sld.transition.variant_tag == "p:fade"
+
+    def it_removes_the_wrapper_when_set_to_NONE_from_MORPH(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        transition.type = PP_TRANSITION_TYPE.NONE
+        assert transition.type is PP_TRANSITION_TYPE.NONE
+        assert sld.transition_effective is None
+        assert sld._transition_alt_content_lst == []
+
+    # -- duration and advance still work on a wrapped MORPH -------------
+
+    def it_reads_and_writes_duration_through_the_wrapper(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        transition.duration = 2000
+        assert transition.duration == 2000
+
+    def it_reads_and_writes_advance_on_click_through_the_wrapper(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        transition.advance_on_click = False
+        assert transition.advance_on_click is False
+
+    def it_reads_MORPH_as_the_type_of_a_wrapped_transition(self):
+        from pptx.oxml.ns import nsdecls
+
+        from pptx.oxml import parse_xml
+
+        sld = parse_xml(
+            "<p:sld %s>"
+            "  <p:cSld><p:spTree/></p:cSld>"
+            "  <mc:AlternateContent>"
+            '    <mc:Choice Requires="p14">'
+            '      <p:transition><p14:morph option="byWord"/></p:transition>'
+            "    </mc:Choice>"
+            "    <mc:Fallback><p:transition><p:fade/></p:transition></mc:Fallback>"
+            "  </mc:AlternateContent>"
+            "</p:sld>" % nsdecls("p", "p14", "mc")
+        )
+        transition = Transition(sld)
+        assert transition.type is PP_TRANSITION_TYPE.MORPH
+        assert transition.morph_option == "byWord"

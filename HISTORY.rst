@@ -6,6 +6,18 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #942 activate MORPH slide transition. ``Slide.transition.type =
+  PP_TRANSITION_TYPE.MORPH`` now writes the ``p14:morph`` variant wrapped
+  in an ``mc:AlternateContent`` container with a ``p:fade`` fallback (the
+  form PowerPoint itself emits) so Office 2013+ viewers apply MORPH and
+  older viewers render a graceful fade. Adds ``Transition.morph_option``
+  for selecting the matching granularity (one of ``"byObject"`` /
+  ``"byWord"`` / ``"byChar"``, default ``"byObject"``). Switching the
+  transition away from MORPH (to any plain variant or to ``NONE``)
+  automatically unwraps the ``mc:AlternateContent``. The ``Transition``
+  proxy now also reads/writes ``duration`` / ``advance_on_click`` /
+  ``advance_after_time`` transparently on a wrapped or direct
+  ``p:transition`` element.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

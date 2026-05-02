@@ -817,7 +817,7 @@ class Transition(ElementProxy):
     first time a setter is invoked (or :meth:`_get_or_add_transition`
     is called internally by the proxy).
 
-    MVP surface:
+    Public surface:
 
     * :attr:`type` — :class:`.PP_TRANSITION_TYPE` enum member.
       Reading returns :attr:`PP_TRANSITION_TYPE.NONE` when there is
@@ -828,12 +828,25 @@ class Transition(ElementProxy):
       expose a separate speed accessor.
     * :attr:`advance_on_click` — bool, ``p:transition/@advClick``.
     * :attr:`advance_after_time` — int ms or `None`, ``p:transition/@advTm``.
+    * :attr:`morph_option` — the matching granularity for a MORPH
+      transition (one of ``"byObject"``, ``"byWord"``, ``"byChar"``;
+      default ``"byObject"``). Only meaningful when :attr:`type` is
+      :attr:`PP_TRANSITION_TYPE.MORPH`.
 
-    Out-of-scope (see ``docs/dev/analysis/f8-animations-transitions.rst``):
+    MORPH and ``mc:AlternateContent`` wrapping. Assigning
+    :attr:`PP_TRANSITION_TYPE.MORPH` wraps the ``p:transition`` in an
+    ``mc:AlternateContent`` that carries a ``p:fade`` fallback — this
+    is how PowerPoint emits a MORPH transition so that viewers
+    without the Office 2010 ``p14`` extension render a graceful
+    fade instead of dropping the transition silently. Assigning any
+    other transition type (or ``NONE``) unwraps it back to a plain
+    ``p:transition`` child. See issue #942 and
+    ``docs/dev/analysis/f8-animations-transitions.rst``.
+
+    Out-of-scope (see the F8 analysis doc):
 
     * Per-variant attributes such as ``@dir`` on ``p:fade`` or
       ``p:cover`` (downstream #1004).
-    * ``mc:AlternateContent`` wrapping for MORPH (downstream #942).
     * Sound-action ``p:sndAc`` (not tracked as a separate item).
     """
 
@@ -848,11 +861,11 @@ class Transition(ElementProxy):
         """The :class:`.PP_TRANSITION_TYPE` selected on this slide.
 
         Returns :attr:`PP_TRANSITION_TYPE.NONE` when the slide has no
-        ``p:transition`` element, or when ``p:transition`` has no
-        variant child (it is valid for ``p:transition`` to carry only
-        attributes such as ``@advTm``).
+        ``p:transition`` element (direct or mc-wrapped), or when the
+        ``p:transition`` has no variant child (it is valid for
+        ``p:transition`` to carry only attributes such as ``@advTm``).
         """
-        transition = self._sld.transition
+        transition = self._sld.transition_effective
         if transition is None:
             return PP_TRANSITION_TYPE.NONE
         variant_tag = transition.variant_tag
@@ -869,8 +882,13 @@ class Transition(ElementProxy):
     @type.setter
     def type(self, value: PP_TRANSITION_TYPE | None) -> None:
         if value is None or value == PP_TRANSITION_TYPE.NONE:
-            transition = self._sld.transition
+            transition = self._sld.transition_effective
             if transition is None:
+                return
+            # -- MORPH was wrapped in mc:AlternateContent; drop the whole
+            # -- wrapper on clear-to-NONE.
+            if self._sld.transition_is_alt_content_wrapped:
+                self._sld.remove_transition_effective()
                 return
             transition._remove_variant()
             # -- if the transition element is now empty of attributes and
@@ -879,12 +897,64 @@ class Transition(ElementProxy):
                 self._sld.remove(transition)
             return
         PP_TRANSITION_TYPE.validate(value)
-        transition = self._sld.get_or_add_transition()
-        # -- MORPH lives in the p14 namespace; everything else in p: --
         if value is PP_TRANSITION_TYPE.MORPH:
+            # -- ensure the transition is mc:AlternateContent-wrapped and
+            # -- then switch its variant to p14:morph --
+            transition = self._sld.get_or_add_transition_effective()
+            if not self._sld.transition_is_alt_content_wrapped:
+                transition = self._sld.wrap_transition_in_alt_content()
             transition.set_variant("p14:morph")
         else:
+            # -- unwrap from any existing mc:AlternateContent before
+            # -- switching to a plain p: variant (the wrapper is only
+            # -- needed for the p14:morph child).
+            if self._sld.transition_is_alt_content_wrapped:
+                self._sld.unwrap_transition_from_alt_content()
+            transition = self._sld.get_or_add_transition()
             transition.set_variant("p:%s" % value.xml_value)
+
+    # -- morph_option (MORPH-only) -----------------------------------
+
+    _MORPH_OPTIONS = ("byObject", "byWord", "byChar")
+
+    @property
+    def morph_option(self) -> str | None:
+        """Matching-granularity token for a MORPH transition.
+
+        Returns one of ``"byObject"``, ``"byWord"``, or ``"byChar"``.
+        Returns ``None`` when :attr:`type` is not
+        :attr:`PP_TRANSITION_TYPE.MORPH`.
+
+        The default (schema-level) when a MORPH transition is authored
+        without an explicit ``@option`` attribute is ``"byObject"``.
+        """
+        transition = self._sld.transition_effective
+        if transition is None:
+            return None
+        if transition.variant_tag != "p14:morph":
+            return None
+        morph = transition.find(qn("p14:morph"))
+        if morph is None:
+            return None
+        # -- CT_TransitionMorph.option defaults to "byObject" when absent --
+        return morph.option
+
+    @morph_option.setter
+    def morph_option(self, value: str) -> None:
+        if value not in self._MORPH_OPTIONS:
+            raise ValueError(
+                "morph_option must be one of %r, got %r"
+                % (self._MORPH_OPTIONS, value)
+            )
+        transition = self._sld.transition_effective
+        if transition is None or transition.variant_tag != "p14:morph":
+            raise ValueError(
+                "morph_option only applies to a MORPH transition; "
+                "set transition.type = PP_TRANSITION_TYPE.MORPH first"
+            )
+        morph = transition.find(qn("p14:morph"))
+        assert morph is not None  # invariant: variant_tag check above
+        morph.option = value
 
     # -- duration (ms) -----------------------------------------------
 
@@ -897,7 +967,7 @@ class Transition(ElementProxy):
         back to a default derived from ``@spd`` (slow=1600ms,
         med=1000ms, fast=500ms).
         """
-        transition = self._sld.transition
+        transition = self._sld.transition_effective
         if transition is None:
             return None
         return transition.dur
@@ -905,14 +975,18 @@ class Transition(ElementProxy):
     @duration.setter
     def duration(self, value: int | None) -> None:
         if value is None:
-            transition = self._sld.transition
+            transition = self._sld.transition_effective
             if transition is None:
                 return
             transition.dur = None
-            if not transition.attrib and len(transition) == 0:
+            if (
+                not transition.attrib
+                and len(transition) == 0
+                and not self._sld.transition_is_alt_content_wrapped
+            ):
                 self._sld.remove(transition)
             return
-        transition = self._sld.get_or_add_transition()
+        transition = self._sld.get_or_add_transition_effective()
         transition.dur = value
 
     # -- advance_on_click --------------------------------------------
@@ -925,7 +999,7 @@ class Transition(ElementProxy):
         (schema default) when no ``p:transition`` element exists or
         the attribute is absent.
         """
-        transition = self._sld.transition
+        transition = self._sld.transition_effective
         if transition is None:
             return True
         return transition.advClick
@@ -936,7 +1010,7 @@ class Transition(ElementProxy):
             raise TypeError(
                 "advance_on_click must be a bool, got %s" % type(value).__name__
             )
-        transition = self._sld.get_or_add_transition()
+        transition = self._sld.get_or_add_transition_effective()
         transition.advClick = value
 
     # -- advance_after_time ------------------------------------------
@@ -949,7 +1023,7 @@ class Transition(ElementProxy):
         the slide only advances on click; setting the property to
         ``None`` removes the attribute, restoring click-only advance.
         """
-        transition = self._sld.transition
+        transition = self._sld.transition_effective
         if transition is None:
             return None
         return transition.advTm
@@ -957,12 +1031,16 @@ class Transition(ElementProxy):
     @advance_after_time.setter
     def advance_after_time(self, value: int | None) -> None:
         if value is None:
-            transition = self._sld.transition
+            transition = self._sld.transition_effective
             if transition is None:
                 return
             if "advTm" in transition.attrib:
                 del transition.attrib["advTm"]
-            if not transition.attrib and len(transition) == 0:
+            if (
+                not transition.attrib
+                and len(transition) == 0
+                and not self._sld.transition_is_alt_content_wrapped
+            ):
                 self._sld.remove(transition)
             return
         if not isinstance(value, int) or value < 0:
@@ -970,7 +1048,7 @@ class Transition(ElementProxy):
                 "advance_after_time must be a non-negative int (milliseconds), got %r"
                 % (value,)
             )
-        transition = self._sld.get_or_add_transition()
+        transition = self._sld.get_or_add_transition_effective()
         transition.advTm = value
 
 

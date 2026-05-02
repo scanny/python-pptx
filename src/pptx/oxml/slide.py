@@ -7,7 +7,12 @@ from typing import TYPE_CHECKING, Callable, cast
 from pptx.oxml import parse_from_template, parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls, nsuri, qn
-from pptx.oxml.simpletypes import XsdBoolean, XsdString, XsdUnsignedInt
+from pptx.oxml.simpletypes import (
+    XsdBoolean,
+    XsdString,
+    XsdStringEnumeration,
+    XsdUnsignedInt,
+)
 from pptx.oxml.timing import (
     CT_SlideTiming,
     CT_TimeNodeList,
@@ -237,6 +242,200 @@ class CT_Slide(_BaseSlideElement):
     def bg(self):
         """Return `p:bg` grandchild or None if not present."""
         return self.cSld.bg
+
+    # -- transition resolution (mc:AlternateContent-aware) ----------------
+    #
+    # PowerPoint writes a MORPH transition wrapped in an
+    # `mc:AlternateContent` container — the `mc:Choice` carries the
+    # `p:transition/p14:morph` subtree, the `mc:Fallback` carries a
+    # `p:transition/p:fade` for pre-2010 viewers. The helpers below let
+    # the downstream `Transition` proxy treat a wrapped and a plain
+    # `p:transition` uniformly. They live on ``CT_Slide`` (rather than
+    # on ``CT_SlideTransition``) because the wrap/unwrap operations
+    # must mutate the slide's children.
+
+    @property
+    def transition_effective(self) -> CT_SlideTransition | None:
+        """The effective `p:transition` element, wherever it lives on this slide.
+
+        Returns the direct `p:sld/p:transition` child when present.
+        When no direct child exists but an `mc:AlternateContent`
+        wrapper is in `p:transition`'s slot (i.e. a child of this
+        `p:sld`) whose first `mc:Choice` holds a `p:transition`,
+        returns that wrapped `p:transition`. Returns ``None`` when
+        neither form is present. See issue #942 and
+        ``docs/dev/analysis/f8-animations-transitions.rst``.
+        """
+        direct = self.transition
+        if direct is not None:
+            return direct
+        for ac in self._transition_alt_content_lst:
+            choices = list(ac.iterchildren(qn("mc:Choice")))
+            if not choices:
+                continue
+            wrapped = choices[0].find(qn("p:transition"))
+            if wrapped is not None:
+                return cast(CT_SlideTransition, wrapped)
+        return None
+
+    def get_or_add_transition_effective(self) -> CT_SlideTransition:
+        """Return the effective `p:transition`, adding a direct child if none exists.
+
+        When a wrapped transition already exists (inside
+        `mc:AlternateContent`) it is returned as-is. Otherwise a new
+        direct `p:transition` child is appended.
+        """
+        effective = self.transition_effective
+        if effective is not None:
+            return effective
+        return self.get_or_add_transition()
+
+    @property
+    def transition_is_alt_content_wrapped(self) -> bool:
+        """True when the effective `p:transition` sits inside an `mc:AlternateContent`.
+
+        False when there is no transition, or when the transition is a
+        plain child of `p:sld`.
+        """
+        return (
+            self.transition is None
+            and self.transition_effective is not None
+        )
+
+    @property
+    def _transition_alt_content_lst(self) -> list[BaseOxmlElement]:
+        """`mc:AlternateContent` children of `p:sld` that sit in the transition slot.
+
+        An `mc:AlternateContent` wraps a `p:transition` when its first
+        `mc:Choice` contains a `p:transition`. PowerPoint puts the
+        wrapper in between `p:clrMapOvr` and `p:timing` — i.e. exactly
+        where a bare `p:transition` would otherwise sit.
+        """
+        return cast(
+            "list[BaseOxmlElement]",
+            [
+                ac
+                for ac in self.iterchildren(qn("mc:AlternateContent"))
+                if self._ac_wraps_transition(ac)
+            ],
+        )
+
+    @staticmethod
+    def _ac_wraps_transition(ac: BaseOxmlElement) -> bool:
+        """True when the first `mc:Choice` of `ac` contains a `p:transition`."""
+        choices = list(ac.iterchildren(qn("mc:Choice")))
+        if not choices:
+            return False
+        return choices[0].find(qn("p:transition")) is not None
+
+    def wrap_transition_in_alt_content(self) -> CT_SlideTransition:
+        """Wrap the direct `p:transition` child in an `mc:AlternateContent`.
+
+        Moves the existing direct `p:transition` into an
+        ``mc:Choice Requires="p14"`` and adds a sibling
+        ``mc:Fallback`` containing a minimal ``p:transition/p:fade``
+        so viewers that don't understand the 2010 extension render
+        a plain fade instead of silently dropping the transition.
+
+        If the transition is already wrapped, this is a no-op and the
+        existing wrapped `p:transition` is returned. If there is no
+        transition at all, a new direct one is created first.
+
+        Returns the effective `p:transition` after wrapping.
+        """
+        # -- already wrapped? nothing to do --
+        if self.transition_is_alt_content_wrapped:
+            return cast(CT_SlideTransition, self.transition_effective)
+
+        # -- ensure there is a direct transition to wrap --
+        inner = self.get_or_add_transition()
+
+        # -- copy plain-namespace transition attributes (spd/advClick/advTm)
+        # -- onto the fallback so an older viewer still gets the same
+        # -- advance / speed behaviour. @p14:dur is intentionally omitted
+        # -- from the fallback because the `p14` namespace is exactly what
+        # -- the fallback is *not* expected to understand.
+        fallback_attr_str = "".join(
+            ' %s="%s"' % (k, v)
+            for k, v in inner.attrib.items()
+            if not k.startswith("{")
+        )
+
+        ac_xml = (
+            '<mc:AlternateContent xmlns:mc="%s">\n'
+            '  <mc:Choice xmlns:p14="%s" Requires="p14">\n'
+            "    <_placeholder_/>\n"
+            "  </mc:Choice>\n"
+            "  <mc:Fallback>\n"
+            '    <p:transition xmlns:p="%s"%s>\n'
+            "      <p:fade/>\n"
+            "    </p:transition>\n"
+            "  </mc:Fallback>\n"
+            "</mc:AlternateContent>"
+        ) % (nsuri("mc"), nsuri("p14"), nsuri("p"), fallback_attr_str)
+
+        ac = parse_xml(ac_xml)
+        # -- replace the placeholder inside mc:Choice with the real transition --
+        choice = ac.find(qn("mc:Choice"))
+        placeholder = choice.find("_placeholder_")
+        # -- detach inner from its current (direct-child) slot first --
+        self.remove(inner)
+        choice.replace(placeholder, inner)
+
+        # -- insert the wrapper where the direct transition used to be --
+        # -- successors are p:timing, p:extLst. --
+        inserted = False
+        for tag in ("p:timing", "p:extLst"):
+            sibling = self.find(qn(tag))
+            if sibling is not None:
+                sibling.addprevious(ac)
+                inserted = True
+                break
+        if not inserted:
+            self.append(ac)
+
+        return cast(CT_SlideTransition, inner)
+
+    def unwrap_transition_from_alt_content(self) -> CT_SlideTransition | None:
+        """Move a wrapped `p:transition` back to being a direct `p:sld` child.
+
+        If there's no wrapping `mc:AlternateContent`, this is a no-op.
+        The `mc:Fallback` content is discarded. Returns the (now-direct)
+        `p:transition` element, or ``None`` when no transition existed.
+        """
+        ac_lst = self._transition_alt_content_lst
+        if not ac_lst:
+            return self.transition
+        ac = ac_lst[0]
+        choices = list(ac.iterchildren(qn("mc:Choice")))
+        inner = choices[0].find(qn("p:transition")) if choices else None
+        if inner is None:
+            # -- nothing to recover; just drop the wrapper --
+            self.remove(ac)
+            return self.transition
+        # -- detach inner transition from mc:Choice, remove the whole
+        # -- mc:AlternateContent, then re-insert the transition in its
+        # -- schema-correct position.
+        choices[0].remove(inner)
+        self.remove(ac)
+        # -- also remove any stale direct p:transition (shouldn't happen
+        # -- in normal operation but guard against double-insertion). --
+        existing = self.transition
+        if existing is not None:
+            self.remove(existing)
+        self._insert_transition(inner)
+        return cast(CT_SlideTransition, inner)
+
+    def remove_transition_effective(self) -> None:
+        """Remove any `p:transition` from this slide, whether direct or mc-wrapped.
+
+        A no-op if no transition is present.
+        """
+        for ac in list(self._transition_alt_content_lst):
+            self.remove(ac)
+        direct = self.transition
+        if direct is not None:
+            self.remove(direct)
 
     def get_or_add_childTnLst(self):
         """Return parent element for a new `p:video` child element.
@@ -565,16 +764,35 @@ class CT_TransitionVariant(BaseOxmlElement):
     """
 
 
+class ST_TransitionMorphOption(XsdStringEnumeration):
+    """Valid values for ``p14:morph/@option``.
+
+    PowerPoint emits one of three tokens (``byObject``, ``byWord``,
+    ``byChar``) when a MORPH transition carries an explicit matching
+    granularity. The default (when the attribute is absent) is
+    ``byObject``.
+    """
+
+    BY_OBJECT = "byObject"
+    BY_WORD = "byWord"
+    BY_CHAR = "byChar"
+
+    _members = (BY_OBJECT, BY_WORD, BY_CHAR)
+
+
 class CT_TransitionMorph(CT_TransitionVariant):
     """`p14:morph` — the Office 2010 MORPH transition element.
 
-    Carries the ``@option`` attribute (``byObject`` / ``byWord`` /
-    ``byChar``). This class exists so MORPH transitions are typed
-    when encountered; a full authoring API (wrapping in
-    ``mc:AlternateContent`` and selecting the option) is downstream
-    issue #942.
+    Carries the ``@option`` attribute, one of ``byObject`` /
+    ``byWord`` / ``byChar`` (default ``byObject``). Assignments are
+    validated against :class:`ST_TransitionMorphOption`.
+
+    The higher-level proxy is :attr:`pptx.slide.Transition.morph_option`.
+    See issue #942 and ``docs/dev/analysis/f8-animations-transitions.rst``
+    for the full plan, including the ``mc:AlternateContent`` wrapper
+    that wraps a written MORPH transition.
     """
 
     option: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
-        "option", XsdString, default="byObject"
+        "option", ST_TransitionMorphOption, default="byObject"
     )
