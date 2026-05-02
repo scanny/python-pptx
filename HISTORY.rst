@@ -134,6 +134,20 @@ Unreleased
   ``Slide.timing_xml`` for round-trip debugging. Structured entrance /
   exit / emphasis / motion-path / MORPH authoring APIs layer onto this
   foundation incrementally; see ``docs/dev/analysis/f8-animations-transitions.rst``.
+- #102 shape animations (MVP). Adds ``Shape.animation`` read-only proxy
+  and ``Shape.set_animation(effect_type, trigger='onClick', delay=0)``
+  writer for the five common presets ``APPEAR``, ``FADE_IN``, ``FLY_IN``,
+  ``PULSE``, and ``FADE_OUT`` via two new enums
+  ``MSO_ANIMATION_TYPE`` / ``MSO_ANIMATION_TRIGGER`` in
+  ``pptx.enum.animation``. Effects are authored into the slide's
+  ``p:timing/p:tnLst/p:par[tmRoot]/p:cTn/p:childTnLst/p:seq[mainSeq]``
+  sub-tree using the F8 foundation. ``trigger`` accepts
+  ``'onClick'`` / ``'onPrev'`` string aliases or
+  ``MSO_ANIMATION_TRIGGER.ON_CLICK`` / ``.AFTER_PREVIOUS``;
+  ``delay`` is a non-negative int (milliseconds). Out of MVP scope and
+  reserved for downstream issues: motion-paths (#264), broader preset
+  sets and color-emphasis (#1106), ``withEffect`` /
+  ``onMouseOver`` / interactive sequences (#264).
 - docs: #1049 PPT ---> MP4: Automation — add a "Rendering to video, PDF,
   or image formats" section to the user guide clarifying that python-pptx
   does not render slides and pointing at ``libreoffice --headless

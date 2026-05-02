@@ -583,6 +583,30 @@ register_element_cls("p:wipe", CT_SideDirectionTransition)
 # -- Office 2010 MORPH transition extension (different namespace) --
 register_element_cls("p14:morph", CT_TransitionMorph)
 
+# -- Shape-animation behavior elements (issue #102 MVP) --
+from pptx.oxml.animation import (  # noqa: E402
+    CT_TLAnimateBehavior,
+    CT_TLAnimateEffectBehavior,
+    CT_TLCommonBehaviorData,
+    CT_TLSetBehavior,
+    CT_TLShapeTargetElement,
+    CT_TLTimeCondition,
+    CT_TLTimeConditionList,
+    CT_TLTimeTargetElement,
+)
+
+register_element_cls("p:anim", CT_TLAnimateBehavior)
+register_element_cls("p:animEffect", CT_TLAnimateEffectBehavior)
+register_element_cls("p:cBhvr", CT_TLCommonBehaviorData)
+register_element_cls("p:cond", CT_TLTimeCondition)
+register_element_cls("p:endCondLst", CT_TLTimeConditionList)
+register_element_cls("p:nextCondLst", CT_TLTimeConditionList)
+register_element_cls("p:prevCondLst", CT_TLTimeConditionList)
+register_element_cls("p:set", CT_TLSetBehavior)
+register_element_cls("p:spTgt", CT_TLShapeTargetElement)
+register_element_cls("p:stCondLst", CT_TLTimeConditionList)
+register_element_cls("p:tgtEl", CT_TLTimeTargetElement)
+
 
 from pptx.oxml.table import (  # noqa: E402
     CT_Table,

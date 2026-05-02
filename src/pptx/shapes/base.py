@@ -16,10 +16,13 @@ from pptx.util import Emu, lazyproperty
 if TYPE_CHECKING:
     from typing import Protocol
 
+    from pptx.animation import AnimationEffect
+    from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
     from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
     from pptx.oxml.shapes import ShapeElement
     from pptx.oxml.shapes.groupshape import CT_GroupShape
     from pptx.oxml.shapes.shared import CT_Placeholder
+    from pptx.oxml.slide import CT_Slide
     from pptx.parts.slide import BaseSlidePart
     from pptx.types import ProvidesPart
     from pptx.util import Length
@@ -98,6 +101,154 @@ class BaseShape(object):
         parent.remove(self._element)
         # -- insert before a trailing p:extLst if present, otherwise append --
         parent.insert_element_before(self._element, "p:extLst")
+
+    @property
+    def animation(self) -> AnimationEffect | None:
+        """|AnimationEffect| for this shape's animation, or |None| if none.
+
+        Returns an :class:`~pptx.animation.AnimationEffect` proxy for
+        the entrance / emphasis / exit effect currently bound to this
+        shape by the slide's ``p:timing`` subtree. Returns ``None`` when
+        the shape has no animation, when the shape is not on a slide
+        (e.g. a shape on a layout or master), or when the slide's
+        timing tree is present but contains no effect targeting this
+        shape's id.
+
+        Only the first matching effect is returned; the MVP
+        :meth:`set_animation` replaces any prior effect so there is
+        normally at most one effect per shape.
+
+        The returned proxy is read-only in the MVP. To change an
+        animation, call :meth:`set_animation` (which replaces the
+        effect with a fresh one) or delete ``shape.animation`` by
+        calling ``shape.set_animation(None)``.
+
+        See :mod:`pptx.animation` for the supported preset set and the
+        list of deferred (complex) effects.
+        """
+        from pptx.animation import AnimationEffect, _find_effect_par_for_spid
+
+        sld = self._owning_sld
+        if sld is None:
+            return None
+        try:
+            spid = self.shape_id
+        except Exception:  # pragma: no cover - defensive
+            return None
+        par_elm = _find_effect_par_for_spid(sld, spid)
+        if par_elm is None:
+            return None
+        return AnimationEffect(par_elm)
+
+    def set_animation(
+        self,
+        effect_type: MSO_ANIMATION_TYPE | None,
+        trigger: MSO_ANIMATION_TRIGGER | str = "onClick",
+        delay: int = 0,
+    ) -> AnimationEffect | None:
+        """Bind an animation preset to this shape.
+
+        Replaces any existing animation on the shape. Passing
+        ``effect_type=None`` removes the animation (if any) and returns
+        ``None``.
+
+        Arguments:
+
+        * ``effect_type`` — a member of
+          :class:`~pptx.enum.animation.MSO_ANIMATION_TYPE` selecting
+          one of the MVP presets (:attr:`APPEAR`, :attr:`FADE_IN`,
+          :attr:`FLY_IN`, :attr:`PULSE`, :attr:`FADE_OUT`), or
+          ``None`` to remove the existing animation. Presets outside
+          this set raise :class:`NotImplementedError` — see
+          :mod:`pptx.animation` for the deferred-items list.
+        * ``trigger`` — either a member of
+          :class:`~pptx.enum.animation.MSO_ANIMATION_TRIGGER` or one
+          of the strings ``"onClick"`` (default) or ``"onPrev"``
+          (an alias for
+          :attr:`MSO_ANIMATION_TRIGGER.AFTER_PREVIOUS` accepted for
+          parity with the PowerPoint XML token). The string
+          ``"afterEffect"`` is also accepted.
+        * ``delay`` — non-negative int, milliseconds from the trigger
+          firing to when the effect starts. Defaults to 0.
+
+        Raises ``ValueError`` if the shape is not on a slide (it has
+        no ``p:timing`` parent to write to), or if ``delay`` is
+        negative.
+
+        Returns the new :class:`~pptx.animation.AnimationEffect` proxy
+        for the effect, or ``None`` when ``effect_type=None``.
+
+        Out of scope (raises :class:`NotImplementedError`):
+
+        * Motion-path effects.
+        * Triggers other than ``onClick`` / ``onPrev`` / ``afterEffect``.
+        * MORPH (transition-level, not a shape animation).
+
+        See ``docs/dev/analysis/f8-animations-transitions.rst`` for
+        the downstream items that will expand the supported set.
+        """
+        from pptx.animation import (
+            _find_effect_par_for_spid,
+            _remove_effect_par,
+            _set_animation,
+        )
+        from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
+
+        sld = self._owning_sld
+        if sld is None:
+            raise ValueError(
+                "shape is not on a slide — animations can only be set on"
+                " slide-level shapes (not on masters, layouts, or"
+                " group-shape descendants)."
+            )
+        spid = self.shape_id
+
+        if effect_type is None:
+            existing = _find_effect_par_for_spid(sld, spid)
+            if existing is not None:
+                _remove_effect_par(sld, existing)
+            return None
+
+        # -- Normalize trigger arg: accept string aliases and enum members. --
+        if isinstance(trigger, str):
+            if trigger == "onClick" or trigger == "clickEffect":
+                trigger_enum = MSO_ANIMATION_TRIGGER.ON_CLICK
+            elif trigger == "onPrev" or trigger == "afterEffect":
+                trigger_enum = MSO_ANIMATION_TRIGGER.AFTER_PREVIOUS
+            else:
+                raise ValueError(
+                    "unrecognized trigger %r — use 'onClick', 'onPrev', or a"
+                    " member of MSO_ANIMATION_TRIGGER" % (trigger,)
+                )
+        else:
+            trigger_enum = trigger
+
+        if not isinstance(effect_type, MSO_ANIMATION_TYPE):
+            raise TypeError(
+                "effect_type must be an MSO_ANIMATION_TYPE member or None, got"
+                " %s" % type(effect_type).__name__
+            )
+
+        return _set_animation(sld, spid, effect_type, trigger_enum, delay)
+
+    @property
+    def _owning_sld(self) -> CT_Slide | None:
+        """The owning ``p:sld`` element, or ``None`` for non-slide shapes.
+
+        Walks up the shape's ancestor chain until a ``p:sld`` is found.
+        Returns ``None`` for shapes living on a slide layout or master
+        (they cannot have animations) and for shapes not yet attached
+        to a shape-tree.
+        """
+        from pptx.oxml.ns import qn
+
+        elm = self._element
+        sld_tag = qn("p:sld")
+        while elm is not None:
+            if elm.tag == sld_tag:
+                return elm  # type: ignore[return-value]
+            elm = elm.getparent()
+        return None
 
     @lazyproperty
     def click_action(self) -> ActionSetting:

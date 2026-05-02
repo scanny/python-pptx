@@ -1276,6 +1276,187 @@ class DescribeBaseShape(object):
         return 321
 
 
+class DescribeBaseShape_animation(object):
+    """Unit-test suite for `BaseShape.animation` / `.set_animation` (issue #102)."""
+
+    def it_returns_None_when_the_slide_has_no_timing_element(self):
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        assert shape.animation is None
+
+    def it_returns_None_when_slide_has_timing_but_no_effect_for_shape(self):
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        s1 = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        s2 = slide.shapes.add_shape(
+            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
+        )
+        s1.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
+        # -- s2 has no animation bound --
+        assert s2.animation is None
+
+    def it_returns_the_effect_proxy_when_bound(self):
+        from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        shape.set_animation(
+            MSO_ANIMATION_TYPE.FADE_IN, trigger="onClick", delay=250
+        )
+        effect = shape.animation
+        assert effect is not None
+        assert effect.type is MSO_ANIMATION_TYPE.FADE_IN
+        assert effect.trigger is MSO_ANIMATION_TRIGGER.ON_CLICK
+        assert effect.delay == 250
+        assert effect.shape_id == shape.shape_id
+
+    def it_accepts_onPrev_trigger_alias(self):
+        from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        shape.set_animation(MSO_ANIMATION_TYPE.APPEAR, trigger="onPrev")
+        assert shape.animation.trigger is MSO_ANIMATION_TRIGGER.AFTER_PREVIOUS
+
+    def it_removes_animation_when_effect_type_is_None(self):
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
+        assert shape.animation is not None
+
+        shape.set_animation(None)
+        assert shape.animation is None
+
+    def it_replaces_any_prior_effect_on_the_same_shape(self):
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
+        shape.set_animation(MSO_ANIMATION_TYPE.PULSE)
+        effect = shape.animation
+        assert effect.type is MSO_ANIMATION_TYPE.PULSE
+        # -- Only one p:spTgt for this shape --
+        sld = slide._element
+        matches = sld.xpath(
+            ".//p:spTgt[@spid='%d']" % shape.shape_id
+        )
+        assert len(matches) == 1
+
+    def it_raises_when_effect_type_is_not_an_enum_member(self):
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        with pytest.raises(TypeError, match="MSO_ANIMATION_TYPE"):
+            shape.set_animation("fade_in")  # type: ignore[arg-type]
+
+    def it_raises_for_unrecognized_trigger_string(self):
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        with pytest.raises(ValueError, match="trigger"):
+            shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN, trigger="onBogus")
+
+    def it_raises_for_negative_delay(self):
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        with pytest.raises(ValueError, match="non-negative"):
+            shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN, delay=-5)
+
+    def it_round_trips_through_save_and_reopen(self, _restore_part_factory):
+        import io
+
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        shape.set_animation(MSO_ANIMATION_TYPE.FLY_IN, delay=300)
+        orig_spid = shape.shape_id
+
+        buf = io.BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+
+        prs2 = Presentation(buf)
+        slide2 = prs2.slides[0]
+        shape2 = next(s for s in slide2.shapes if s.shape_id == orig_spid)
+        effect = shape2.animation
+        assert effect is not None
+        assert effect.type is MSO_ANIMATION_TYPE.FLY_IN
+        assert effect.delay == 300
+
+    def it_enables_slide_has_animations_after_set(self):
+        from pptx.enum.animation import MSO_ANIMATION_TYPE
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        assert slide.has_animations is False
+        shape.set_animation(MSO_ANIMATION_TYPE.APPEAR)
+        assert slide.has_animations is True
+
+
 class DescribeSubshape(object):
     def it_knows_the_part_it_belongs_to(self, subshape_with_parent_):
         subshape, parent_ = subshape_with_parent_
