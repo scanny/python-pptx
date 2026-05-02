@@ -117,9 +117,16 @@ Example::
     prs.save("branded.pptx")
 
 ``embed_font()`` accepts either a filesystem path or any file-like object
-opened for binary reading, so an in-memory ``BytesIO`` also works. Licensing
-for font embedding is the caller's responsibility; see your font's
-end-user license agreement.
+opened for binary reading, so an in-memory ``BytesIO`` also works. Both
+``.ttf`` (TrueType) and ``.otf`` (OpenType) font files are supported;
+python-pptx treats the file bytes as an opaque blob and writes them into
+the OOXML ``application/x-fontdata`` part, the same envelope PowerPoint
+uses for both formats::
+
+    prs.embed_font("fonts/Inter-Regular.otf", "Inter")   # OpenType works too
+
+Licensing for font embedding is the caller's responsibility; see your
+font's end-user license agreement.
 
 
 |CoreProperties| objects

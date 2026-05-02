@@ -98,6 +98,21 @@ Unreleased
   cross-contamination and no duplicate ``c:dPt`` with the same
   ``c:idx``), and round-trips the authored colours through
   ``Presentation.save`` + reopen.
+- verify: #830 (embed custom ``.otf`` font) resolved by
+  ``feat/issue-355-font-embedding`` (Wave 3). The
+  :meth:`.Presentation.embed_font` API treats its ``font_file``
+  argument as an opaque byte blob and writes it into a ``FontPart``
+  with content-type ``application/x-fontdata`` — the same OOXML
+  envelope PowerPoint uses for both TrueType (``.ttf``) and
+  OpenType (``.otf``) embedded-font containers. OpenType files
+  therefore embed, save, and round-trip byte-identically under the
+  same API, with no ``.otf``-specific code path required. Adds a
+  regression suite ``DescribeIssue830OtfFont`` under
+  ``tests/test_issue_830_otf_font.py`` that pins the path + stream
+  intake for ``.otf`` files, the ``application/x-fontdata``
+  content-type, a save + reopen round-trip (bytes preserved
+  verbatim), and multi-style (regular + bold) OTF embedding under
+  a single typeface.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
