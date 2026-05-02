@@ -343,6 +343,69 @@ Things to note:
 argument (to prevent inadvertently doubling a deck's slide count).
 
 
+Applying a POTX/PPTX template to existing content
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A recurring request (issue #1095) is to apply a corporate ``.potx`` — or
+any branded ``.pptx`` — to a deck of existing content slides, the way
+PowerPoint's "Design → Reuse Slides / Apply Template" flow does. |pp|
+does not expose a single "apply template" call, but the three pieces
+needed to express the workflow are each first-class:
+
+* opening a PowerPoint template (``.potx``) or slideshow (``.ppsx``)
+  package with :func:`Presentation` (see `REALLY opening a presentation`_),
+* :meth:`~pptx.presentation.Presentation.strip_slides` to keep only the
+  template's masters / layouts / theme,
+* :meth:`~pptx.presentation.Presentation.merge` to graft each content
+  slide into the stripped template deck.
+
+Composed, the recipe is::
+
+    from pptx import Presentation
+
+    # -- 1. Open the branded template and keep only its masters / layouts. --
+    target = Presentation("brand.potx").strip_slides()
+
+    # -- 2. Open the source content deck. --
+    content = Presentation("quarterly-results.pptx")
+
+    # -- 3. Append every content slide into the template deck. --
+    target.merge(content)
+
+    # -- 4. Save as a regular .pptx (see note on content type below). --
+    target.save("quarterly-results-rebranded.pptx")
+
+What this preserves and what it does not:
+
+* **Preserved from the template:** slide masters, slide layouts, theme,
+  embedded fonts, default table styles, and any other template-level
+  resources in ``brand.potx``.
+* **Preserved from the content:** each slide's shape tree, image/media
+  parts, charts (each retaining its own embedded workbook), embedded
+  OLE objects, and external hyperlinks — per :meth:`Presentation.merge`.
+* **Layout binding:** each cloned slide binds to the layout at the *same
+  index* in the target master as its source's layout occupied in the
+  source master. If the template has fewer layouts the last layout is
+  used as a fallback. When you need strict layout mapping — e.g.
+  re-mapping a "Title and Content" slide from the source onto a named
+  "Content" layout in the template — iterate the source slides and use
+  :meth:`Slides.add_slide_from_external` with an explicit target layout
+  instead of :meth:`merge`.
+* **Notes slides are dropped** on merged slides (a notes slide back-
+  references its owning slide and so cannot be shared) — re-attach
+  speaker notes after the merge if you need them.
+* **Output file extension / content type:** :meth:`Presentation.save`
+  always writes a regular ``.pptx`` package. If you opened a ``.potx``
+  for the template and want the result to remain a template, you will
+  need to rewrite the ``[Content_Types].xml`` main-document entry
+  yourself after saving — see the opening-a-presentation note above.
+
+Calling ``strip_slides()`` before ``merge()`` is important. Skipping it
+would leave the slides that happened to ship inside the ``.potx`` (most
+corporate templates include a title / agenda sample) sitting ahead of
+the merged content in the output deck.
+
+
 Extended document properties are synced on save
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
