@@ -429,6 +429,33 @@ normally; only decorative master shapes are affected. Assigning |True|
 (the schema default) removes the attribute, restoring the default
 master-shapes-visible behavior.
 
+**Inspecting and copying raw background XML**::
+
+    >>> # read-only, side-effect-free access to the p:bg element
+    >>> slide.background.bg_element
+    None                                  # inherited background
+    >>> other.background.bg_element.tag   # explicit background
+    '{http://schemas.openxmlformats.org/presentationml/2006/main}bg'
+
+    >>> # propagate one slide's background markup onto another
+    >>> slide.copy_background_from(other)
+
+The ``background.bg_element`` property on :attr:`.Slide.background`
+returns the underlying ``p:bg`` element or |None| when the slide
+inherits its background from the master or layout. Unlike
+:attr:`.Slide.background.fill`, reading ``bg_element`` does *not*
+materialize a ``p:bg`` subtree when none is present, so inheritance
+stays intact. Use it for raw-XML inspection or for hand-rolled
+manipulation outside the :class:`.FillFormat` abstraction.
+
+:meth:`.Slide.copy_background_from` deep-copies the source slide's
+``p:bg`` subtree onto this slide. Passing a source that inherits (has
+no explicit ``p:bg``) removes any explicit background on this slide and
+restores inheritance. The copy is purely XML-level: a ``p:bgRef`` style
+reference keyed on the master theme is copied verbatim, so copying a
+theme-bound background between presentations with different masters may
+yield unresolved style references.
+
 **The slide layout**::
 
     >>> layout = slide.slide_layout

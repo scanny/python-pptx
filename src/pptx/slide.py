@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, Iterator, cast
 
 from pptx.dml.color import RGBColor
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
     from pptx.comments import Comments
     from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList
     from pptx.oxml.slide import (
+        CT_Background,
         CT_CommonSlideData,
         CT_NotesMaster,
         CT_NotesSlide,
@@ -289,6 +291,31 @@ class Slide(_BaseSlide):
         deleted and inheritance from the master restored.
         """
         return self._element.bg is None
+
+    def copy_background_from(self, source_slide: _BaseSlide) -> None:
+        """Deep-copy the background markup of `source_slide` onto this slide.
+
+        Any explicit background on this slide is replaced. If `source_slide`
+        has no explicit ``p:bg`` (i.e. it inherits from its master / layout),
+        any explicit background on this slide is removed and background
+        inheritance is restored.
+
+        `source_slide` may be any slide-like object — a |Slide|, |SlideLayout|,
+        or |SlideMaster| — since each carries a ``p:cSld/p:bg`` in the same
+        shape. The copy is purely XML-level: a ``p:bgRef`` style reference
+        keyed on the master theme is copied as-is without rewriting the
+        theme reference, so copying between presentations may yield
+        unresolved style references.
+
+        .. versionadded:: 2026.05.0
+        """
+        cSld = self._element.cSld
+        cSld._remove_bg()  # pyright: ignore[reportPrivateUsage]
+        source_bg = source_slide._element.cSld.bg
+        if source_bg is not None:
+            cSld._insert_bg(  # pyright: ignore[reportPrivateUsage]
+                copy.deepcopy(source_bg)
+            )
 
     @property
     def is_hidden(self) -> bool:
@@ -2256,6 +2283,19 @@ class _Background(ElementProxy):
         super(_Background, self).__init__(cSld)
         self._cSld = cSld
         self._parent = parent
+
+    @property
+    def bg_element(self) -> CT_Background | None:
+        """The underlying ``p:bg`` element, or ``None`` when the background is inherited.
+
+        Use this property for raw-XML operations such as copying the background
+        markup from one slide to another. Unlike :attr:`fill`, reading this
+        property does not materialize a ``p:bg`` subtree when none is present,
+        so inheritance from the master or layout remains intact.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._cSld.bg
 
     @property
     def part(self):
