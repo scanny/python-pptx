@@ -287,6 +287,47 @@ class DescribeTextFrame(object):
         with pytest.raises(TypeError):
             text_frame.margin_bottom = "0.1"
 
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "expected_value"),
+        [
+            # -- default (no rot attribute) is 0.0 --
+            ("p:txBody/a:bodyPr", 0.0),
+            # -- 45 degrees = 45 * 60000 = 2700000 --
+            ("p:txBody/a:bodyPr{rot=2700000}", 45.0),
+            # -- 90 degrees = 5400000 --
+            ("p:txBody/a:bodyPr{rot=5400000}", 90.0),
+            # -- 270 degrees = 16200000 --
+            ("p:txBody/a:bodyPr{rot=16200000}", 270.0),
+        ],
+    )
+    def it_knows_its_rotation(self, txBody_cxml: str, expected_value: float):
+        text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
+        assert text_frame.rotation == expected_value
+
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "new_value", "expected_cxml"),
+        [
+            # -- adds rot attribute when not present --
+            ("p:txBody/a:bodyPr", 45, "p:txBody/a:bodyPr{rot=2700000}"),
+            # -- updates existing rot attribute --
+            (
+                "p:txBody/a:bodyPr{rot=2700000}",
+                90,
+                "p:txBody/a:bodyPr{rot=5400000}",
+            ),
+            # -- negative rotation normalizes to positive equivalent --
+            ("p:txBody/a:bodyPr", -45, "p:txBody/a:bodyPr{rot=18900000}"),
+            # -- float values accepted (e.g. 45.5 degrees) --
+            ("p:txBody/a:bodyPr", 45.5, "p:txBody/a:bodyPr{rot=2730000}"),
+        ],
+    )
+    def it_can_change_its_rotation(
+        self, txBody_cxml: str, new_value: float, expected_cxml: str
+    ):
+        text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
+        text_frame.rotation = new_value
+        assert text_frame._element.xml == xml(expected_cxml)
+
     def it_knows_the_part_it_belongs_to(self, text_frame_with_parent_):
         text_frame, parent_ = text_frame_with_parent_
         part = text_frame.part
