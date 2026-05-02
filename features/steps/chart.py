@@ -818,3 +818,124 @@ def then_cached_series_name_matches_the_embedded_workbook(context):
     chart = context.chart
     series = chart.series[0]
     assert series.name == "New-Series", series.name
+
+
+# --- F5: embedded-workbook handler ----------------------------------
+
+@given("a chart with an embedded workbook")
+def given_a_chart_with_an_embedded_workbook(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    chart_data.add_series("S1", (1.0, 2.0, 3.0))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        chart_data,
+    ).chart
+    context.chart = chart
+
+
+@then("chart.workbook is the bytes of the embedded xlsx")
+def then_chart_workbook_is_bytes_of_embedded_xlsx(context):
+    blob = context.chart.workbook
+    assert isinstance(blob, bytes), type(blob)
+    assert blob == context.chart._workbook.xlsx_part.blob
+
+
+@then("chart.workbook reads the .xlsx zip magic")
+def then_chart_workbook_reads_xlsx_zip_magic(context):
+    # --- every .xlsx is a zip; zip files begin with 'PK\x03\x04' ---
+    assert context.chart.workbook[:4] == b"PK\x03\x04"
+
+
+@when("I assign new bytes to chart.workbook")
+def when_I_assign_new_bytes_to_chart_workbook(context):
+    # --- round-trip the original blob with a trivial rewrite: we
+    # --- use the existing xlsx bytes so the chart remains valid,
+    # --- then prepend a zip comment-safe byte (simulated by just
+    # --- setting identical bytes). A simpler probe is to assign a
+    # --- captured snapshot; the getter/setter semantics are the
+    # --- test focus here. ---
+    context._new_bytes = b"x-new-bytes"
+    context.chart.workbook = context._new_bytes
+
+
+@then("chart.workbook returns the new bytes")
+def then_chart_workbook_returns_new_bytes(context):
+    assert context.chart.workbook == context._new_bytes
+
+
+@when('I call update_embedded_xlsx_cell(chart, "Sheet1", "B2", 42.0)')
+def when_I_call_update_embedded_xlsx_cell(context):
+    from pptx.chart.chart import update_embedded_xlsx_cell
+
+    update_embedded_xlsx_cell(context.chart, "Sheet1", "B2", 42.0)
+
+
+@then("the workbook's Sheet1!B2 cell reads 42.0")
+def then_workbook_B2_reads_42(context):
+    from pptx.chart.xlsx import WorkbookReader
+
+    with WorkbookReader(context.chart.workbook) as reader:
+        assert reader.cell_value("Sheet1", 2, 2) == 42.0
+
+
+@then("the first series' first value reads 42.0")
+def then_first_series_first_value_reads_42(context):
+    assert tuple(context.chart.series[0].values)[0] == 42.0
+
+
+@given("two charts in the same presentation")
+def given_two_charts_in_same_presentation(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    cd_a = CategoryChartData()
+    cd_a.categories = ["A", "B"]
+    cd_a.add_series("S", (1.0, 2.0))
+    chart_a = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(4),
+        Inches(3),
+        cd_a,
+    ).chart
+    cd_b = CategoryChartData()
+    cd_b.categories = ["X"]
+    cd_b.add_series("T", (9.0,))
+    chart_b = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(5),
+        Inches(4),
+        Inches(3),
+        cd_b,
+    ).chart
+    context.source_chart = chart_a
+    context.target_chart = chart_b
+
+
+@when("I call clone_embedded_xlsx(source_chart.part, target_chart.part)")
+def when_I_call_clone_embedded_xlsx(context):
+    from pptx.parts.embeddedpackage import clone_embedded_xlsx
+
+    context._source_xlsx_part = context.source_chart.part.chart_workbook.xlsx_part
+    clone_embedded_xlsx(context.source_chart.part, context.target_chart.part)
+
+
+@then("target_chart.workbook equals source_chart.workbook")
+def then_target_workbook_equals_source(context):
+    assert context.target_chart.workbook == context.source_chart.workbook
+
+
+@then("the target chart's xlsx part is not the source's xlsx part")
+def then_target_xlsx_part_differs_from_source(context):
+    assert (
+        context.target_chart.part.chart_workbook.xlsx_part
+        is not context._source_xlsx_part
+    )

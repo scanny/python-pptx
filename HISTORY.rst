@@ -6,6 +6,7 @@ Release History
 Unreleased
 ++++++++++
 
+- Foundation: cross-part embedded-workbook handler (F5)
 - docs: #1049 PPT ---> MP4: Automation — add a "Rendering to video, PDF,
   or image formats" section to the user guide clarifying that python-pptx
   does not render slides and pointing at ``libreoffice --headless

@@ -7,11 +7,13 @@ import pytest
 from pptx.enum.shapes import PROG_ID
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import OpcPackage, PackURI
+from pptx.parts.chart import ChartPart, ChartWorkbook
 from pptx.parts.embeddedpackage import (
     EmbeddedDocxPart,
     EmbeddedPackagePart,
     EmbeddedPptxPart,
     EmbeddedXlsxPart,
+    clone_embedded_xlsx,
 )
 
 from ..unitutil.mock import ANY, FixtureRequest, class_mock, initializer_mock, instance_mock
@@ -116,3 +118,46 @@ class DescribeEmbeddedPackagePart(object):
             xlsx_part, partname_, EmbeddedXlsxPart.content_type, package_, blob_
         )
         assert isinstance(xlsx_part, EmbeddedXlsxPart)
+
+
+class Describe_clone_embedded_xlsx(object):
+    """Unit-test suite for `pptx.parts.embeddedpackage.clone_embedded_xlsx`."""
+
+    def it_duplicates_the_workbook_part_onto_the_target_chart(self, request: FixtureRequest):
+        # --- source chart has an embedded workbook with known bytes ---
+        source_xlsx_part_ = instance_mock(request, EmbeddedXlsxPart, blob=b"source-blob")
+        source_workbook_ = instance_mock(request, ChartWorkbook, xlsx_part=source_xlsx_part_)
+        source_chart_part_ = instance_mock(request, ChartPart, chart_workbook=source_workbook_)
+        # --- target chart owns a distinct package ---
+        target_package_ = instance_mock(request, OpcPackage)
+        target_workbook_ = instance_mock(request, ChartWorkbook)
+        target_chart_part_ = instance_mock(
+            request, ChartPart, chart_workbook=target_workbook_, package=target_package_
+        )
+        new_xlsx_part_ = instance_mock(request, EmbeddedXlsxPart)
+        EmbeddedXlsxPart_ = class_mock(
+            request, "pptx.parts.embeddedpackage.EmbeddedXlsxPart"
+        )
+        EmbeddedXlsxPart_.new.return_value = new_xlsx_part_
+
+        result = clone_embedded_xlsx(source_chart_part_, target_chart_part_)
+
+        EmbeddedXlsxPart_.new.assert_called_once_with(b"source-blob", target_package_)
+        # --- clone attaches new part to target chart's workbook ---
+        assert target_workbook_.xlsx_part == new_xlsx_part_
+        assert result is new_xlsx_part_
+
+    def but_it_returns_None_when_source_has_no_embedded_workbook(
+        self, request: FixtureRequest
+    ):
+        source_workbook_ = instance_mock(request, ChartWorkbook, xlsx_part=None)
+        source_chart_part_ = instance_mock(request, ChartPart, chart_workbook=source_workbook_)
+        target_chart_part_ = instance_mock(request, ChartPart)
+        EmbeddedXlsxPart_ = class_mock(
+            request, "pptx.parts.embeddedpackage.EmbeddedXlsxPart"
+        )
+
+        result = clone_embedded_xlsx(source_chart_part_, target_chart_part_)
+
+        assert result is None
+        EmbeddedXlsxPart_.new.assert_not_called()

@@ -62,6 +62,8 @@ Chart
    cht-access-xlsx
    cht-axes
    cht-chart-shape
+   combo-chart
+   f5-embedded-workbook
 
 
 Table

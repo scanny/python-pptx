@@ -21,8 +21,11 @@ from pptx.chart.xlsx import (
     BubbleWorkbookWriter,
     CategoryWorkbookWriter,
     WorkbookReader,
+    WorkbookUpdater,
     XyWorkbookWriter,
     _BaseWorkbookWriter,
+    _row_col_to_a1,
+    parse_a1_cell,
     parse_sheet_range_ref,
 )
 
@@ -585,6 +588,208 @@ class DescribeWorkbookReader(object):
             # --- returned for any requested sheet name. This also proves
             # --- the parser did not hang or abort on the entity payload.
             assert reader.cell_value("Sheet1", 1, 1) == 1.0
+
+
+class Describe_parse_a1_cell(object):
+    """Unit-test suite for `pptx.chart.xlsx.parse_a1_cell`."""
+
+    @pytest.mark.parametrize(
+        ("ref", "expected"),
+        [
+            ("A1", (1, 1)),
+            ("$A$1", (1, 1)),
+            ("$B$2", (2, 2)),
+            ("AA1", (1, 27)),
+            ("  c3 ", (3, 3)),
+        ],
+    )
+    def it_parses_cell_refs(self, ref, expected):
+        assert parse_a1_cell(ref) == expected
+
+    @pytest.mark.parametrize(
+        "ref",
+        [None, "", "A1:B2", "Sheet1!A1", "1A", "$1", "A$"],
+    )
+    def it_raises_on_malformed_refs(self, ref):
+        with pytest.raises(ValueError):
+            parse_a1_cell(ref)
+
+
+class Describe_row_col_to_a1(object):
+    """Unit-test suite for `pptx.chart.xlsx._row_col_to_a1`."""
+
+    @pytest.mark.parametrize(
+        ("row", "col", "expected"),
+        [
+            (1, 1, "A1"),
+            (2, 2, "B2"),
+            (1, 27, "AA1"),
+            (10, 26, "Z10"),
+            (5, 28, "AB5"),
+            (1, 702, "ZZ1"),
+        ],
+    )
+    def it_formats_address(self, row, col, expected):
+        assert _row_col_to_a1(row, col) == expected
+
+
+class DescribeWorkbookUpdater(object):
+    """Unit-test suite for `pptx.chart.xlsx.WorkbookUpdater`."""
+
+    def it_returns_the_source_blob_unchanged_when_no_writes(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>1</v></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        assert updater.blob() is blob
+
+    def it_writes_a_numeric_cell(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>1</v></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 1, 1, 99)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == 99.0
+
+    def it_writes_a_string_cell_as_inlineStr(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData/></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 2, 1, "Hello")
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 2, 1) == "Hello"
+
+    def it_writes_a_boolean_cell(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData/></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 1, 1, True)
+        updater.set_cell("Sheet1", 2, 1, False)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) is True
+            assert reader.cell_value("Sheet1", 2, 1) is False
+
+    def it_clears_a_cell_when_value_is_None(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>42</v></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 1, 1, None)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) is None
+
+    def it_adds_a_new_row_when_one_is_not_present(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>1</v></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 5, 3, 7)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 5, 3) == 7.0
+            # -- prior cells survive --
+            assert reader.cell_value("Sheet1", 1, 1) == 1.0
+
+    def it_coalesces_repeated_writes_to_the_last_value(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData/></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 1, 1, 1)
+        updater.set_cell("Sheet1", 1, 1, 2)
+        updater.set_cell("Sheet1", 1, 1, 3)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == 3.0
+
+    def it_falls_back_to_first_sheet_when_sheet_name_unknown(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData/></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Bogus", 1, 1, 42)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == 42.0
+
+    def it_preserves_existing_cells_in_the_same_row(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>1</v></c>'
+                '<c r="C1"><v>3</v></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        updater = WorkbookUpdater(blob)
+        updater.set_cell("Sheet1", 1, 2, 2)
+        new_blob = updater.blob()
+        with WorkbookReader(new_blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == 1.0
+            assert reader.cell_value("Sheet1", 1, 2) == 2.0
+            assert reader.cell_value("Sheet1", 1, 3) == 3.0
 
 
 def _make_xlsx_blob(sheet, shared_strings):

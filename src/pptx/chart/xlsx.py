@@ -18,6 +18,30 @@ _xlsx_xml_parser = etree.XMLParser(
 )
 
 
+# --- A1 cell reference parsing -----------------------------------------------------
+
+_a1_cell_re = re.compile(r"^\$?([A-Za-z]+)\$?(\d+)$")
+
+
+def parse_a1_cell(a1_ref):
+    """Return 1-based ``(row, col)`` tuple for a single-cell A1 reference.
+
+    Accepts optional ``$`` absolute markers (e.g. ``"$B$2"`` or ``"B2"``).
+    Raises :class:`ValueError` for malformed input or a multi-cell range. A
+    sheet-qualified reference (e.g. ``"Sheet1!B2"``) is not accepted here —
+    callers that need to parse a sheet-qualified reference should use
+    :func:`parse_sheet_range_ref` and extract the first cell.
+    """
+    if a1_ref is None:
+        raise ValueError("a1_ref must be a non-empty string")
+    m = _a1_cell_re.match(a1_ref.strip())
+    if m is None:
+        raise ValueError("%r is not a valid A1 cell reference" % a1_ref)
+    col = _column_letters_to_index(m.group(1))
+    row = int(m.group(2))
+    return row, col
+
+
 class _BaseWorkbookWriter(object):
     """Base class for workbook writers, providing shared members."""
 
@@ -532,3 +556,221 @@ class WorkbookReader(object):
                     cells[(row, col)] = raw
         self._sheet_cache[sheet_name] = cells
         return cells
+
+
+# --- Workbook updater --------------------------------------------------------------
+
+
+def _row_col_to_a1(row, col):
+    """Return the A1 address string for 1-based `(row, col)`.
+
+    e.g. ``_row_col_to_a1(2, 1)`` -> ``"A2"``, ``_row_col_to_a1(1, 27)`` ->
+    ``"AA1"``. Used when writing new cells to a worksheet.
+    """
+    letters = ""
+    n = col
+    while n:
+        n, r = divmod(n - 1, 26)
+        letters = chr(ord("A") + r) + letters
+    return "%s%d" % (letters, row)
+
+
+class WorkbookUpdater(object):
+    """Rewrite individual cells in an embedded chart xlsx blob.
+
+    This is the targeted counterpart to :class:`WorkbookReader`: instead of
+    re-authoring a fresh workbook from a :class:`ChartData` object, it
+    preserves the existing ``.xlsx`` bytes (including styles, shared strings,
+    docProps, etc.) and rewrites just the cells the caller asks to change.
+    That surgical approach is what makes it safe to use from
+    :func:`update_embedded_xlsx_cell` during a combo-chart build or an
+    ``update_cell``-style edit — the workbook that PowerPoint opens in
+    "Edit Data" stays byte-compatible apart from the cells that changed.
+
+    Call :meth:`set_cell` one or more times, then :meth:`blob` to get the
+    rewritten bytes. The updater is single-use and idempotent over its
+    lifetime (calling ``blob`` twice returns the same bytes).
+    """
+
+    def __init__(self, xlsx_blob):
+        self._xlsx_blob = xlsx_blob
+        # --- dict[str, dict[(row,col), value]] — pending writes per sheet. ---
+        self._pending = {}
+
+    # -- public API -------------------------------------------------------
+
+    def set_cell(self, sheet_name, row, col, value):
+        """Schedule a write of `value` to cell (`row`, `col`) on `sheet_name`.
+
+        `row` and `col` are 1-based. `value` may be:
+
+        * ``None``  — the cell is cleared (``<c>`` removed).
+        * ``bool``  — written as a boolean cell (``t="b"``).
+        * ``int`` / ``float`` — written as a numeric cell.
+        * ``str``   — written as an inline string (``t="inlineStr"``). Inline
+          strings avoid having to keep the shared-strings table in sync,
+          which is the safe default for chart data edits.
+
+        Multiple writes to the same cell collapse to the last one.
+        """
+        self._pending.setdefault(sheet_name, {})[(int(row), int(col))] = value
+
+    def blob(self):
+        """Return the rewritten xlsx blob bytes.
+
+        Applies every pending :meth:`set_cell` call to a copy of the source
+        blob and returns the zip bytes. The source blob is not mutated.
+        """
+        if not self._pending:
+            return self._xlsx_blob
+        with zipfile.ZipFile(io.BytesIO(self._xlsx_blob)) as zin:
+            files = {n: zin.read(n) for n in zin.namelist()}
+        # --- resolve sheet-name -> internal path via workbook.xml + rels ---
+        sheet_paths = self._resolve_sheet_paths(files)
+        for sheet_name, cells in self._pending.items():
+            path = sheet_paths.get(sheet_name)
+            # -- Fall back to the first sheet if the name isn't found. Chart
+            # -- workbooks are single-sheet and callers routinely pass the
+            # -- literal "Sheet1" even after an external renamer has changed
+            # -- the tab title. --
+            if path is None and sheet_paths:
+                path = next(iter(sheet_paths.values()))
+            if path is None or path not in files:
+                continue
+            files[path] = self._apply_cells(files[path], cells)
+        out = io.BytesIO()
+        with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zout:
+            for n, b in files.items():
+                zout.writestr(n, b)
+        return out.getvalue()
+
+    # -- internal helpers ------------------------------------------------
+
+    @staticmethod
+    def _resolve_sheet_paths(files):
+        """Return dict mapping sheet-name -> internal zip path for each sheet."""
+        wb_bytes = files.get("xl/workbook.xml")
+        if not wb_bytes:
+            return {}
+        wb = etree.fromstring(wb_bytes, _xlsx_xml_parser)
+        rid_by_name = {}
+        for s in wb.findall(f"{{{_SML_NS}}}sheets/{{{_SML_NS}}}sheet"):
+            name = s.get("name")
+            rid = s.get(f"{{{_OFC_REL_NS}}}id")
+            if name and rid:
+                rid_by_name[name] = rid
+        rels_bytes = files.get("xl/_rels/workbook.xml.rels", b"")
+        target_by_rid = {}
+        if rels_bytes:
+            rels = etree.fromstring(rels_bytes, _xlsx_xml_parser)
+            for rel in rels.findall(f"{{{_OPC_REL_NS}}}Relationship"):
+                target_by_rid[rel.get("Id")] = rel.get("Target")
+        sheet_paths = {}
+        for name, rid in rid_by_name.items():
+            target = target_by_rid.get(rid)
+            if target is None:
+                continue
+            path = target.lstrip("/") if target.startswith("/") else "xl/" + target
+            sheet_paths[name] = path
+        return sheet_paths
+
+    @classmethod
+    def _apply_cells(cls, sheet_bytes, cells):
+        """Return a new sheet-xml blob with `cells` applied to `sheet_bytes`."""
+        ws = etree.fromstring(sheet_bytes, _xlsx_xml_parser)
+        sheetData = ws.find(f"{{{_SML_NS}}}sheetData")
+        if sheetData is None:
+            sheetData = etree.SubElement(ws, f"{{{_SML_NS}}}sheetData")
+        for (row, col), value in cells.items():
+            cls._apply_single_cell(sheetData, row, col, value)
+        return etree.tostring(
+            ws, xml_declaration=True, encoding="UTF-8", standalone=True
+        )
+
+    @classmethod
+    def _apply_single_cell(cls, sheetData, row, col, value):
+        """Write `value` into cell (`row`, `col`) inside `sheetData`."""
+        addr = _row_col_to_a1(row, col)
+        row_elm = cls._get_or_add_row(sheetData, row)
+        cell_elm = None
+        for c in row_elm.findall(f"{{{_SML_NS}}}c"):
+            if c.get("r") == addr:
+                cell_elm = c
+                break
+        if value is None:
+            if cell_elm is not None:
+                row_elm.remove(cell_elm)
+            return
+        if cell_elm is None:
+            cell_elm = etree.SubElement(row_elm, f"{{{_SML_NS}}}c")
+            cell_elm.set("r", addr)
+            # -- keep cells in column order so Excel / xlsxwriter readers
+            # -- don't complain. --
+            cls._reorder_cells(row_elm)
+        # -- strip existing type + value children before rewriting --
+        if "t" in cell_elm.attrib:
+            del cell_elm.attrib["t"]
+        for child in list(cell_elm):
+            cell_elm.remove(child)
+        if isinstance(value, bool):
+            cell_elm.set("t", "b")
+            v_elm = etree.SubElement(cell_elm, f"{{{_SML_NS}}}v")
+            v_elm.text = "1" if value else "0"
+        elif isinstance(value, (int, float)):
+            # -- numeric cells have no `t` attribute; omit it. --
+            v_elm = etree.SubElement(cell_elm, f"{{{_SML_NS}}}v")
+            if isinstance(value, float) and value.is_integer():
+                v_elm.text = str(int(value))
+            elif isinstance(value, int):
+                v_elm.text = str(value)
+            else:
+                v_elm.text = repr(float(value))
+        else:
+            cell_elm.set("t", "inlineStr")
+            is_elm = etree.SubElement(cell_elm, f"{{{_SML_NS}}}is")
+            t_elm = etree.SubElement(is_elm, f"{{{_SML_NS}}}t")
+            t_elm.text = str(value)
+
+    @staticmethod
+    def _get_or_add_row(sheetData, row):
+        """Return the ``<row r=row>`` child of `sheetData`, creating it if absent."""
+        for r in sheetData.findall(f"{{{_SML_NS}}}row"):
+            try:
+                if int(r.get("r", "0")) == row:
+                    return r
+            except ValueError:
+                continue
+        # -- not found; insert in row-numbered order --
+        new_row = etree.Element(f"{{{_SML_NS}}}row")
+        new_row.set("r", str(row))
+        rows = list(sheetData.findall(f"{{{_SML_NS}}}row"))
+        inserted = False
+        for r in rows:
+            try:
+                r_num = int(r.get("r", "0"))
+            except ValueError:
+                r_num = 0
+            if r_num > row:
+                r.addprevious(new_row)
+                inserted = True
+                break
+        if not inserted:
+            sheetData.append(new_row)
+        return new_row
+
+    @staticmethod
+    def _reorder_cells(row_elm):
+        """Sort the ``<c>`` children of `row_elm` by their column index."""
+        cells = list(row_elm.findall(f"{{{_SML_NS}}}c"))
+
+        def _sort_key(c):
+            m = re.match(r"([A-Za-z]+)(\d+)", c.get("r", ""))
+            if m is None:
+                return 0
+            return _column_letters_to_index(m.group(1))
+
+        cells.sort(key=_sort_key)
+        for c in cells:
+            row_elm.remove(c)
+        for c in cells:
+            row_elm.append(c)
