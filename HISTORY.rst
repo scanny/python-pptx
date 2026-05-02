@@ -133,6 +133,18 @@ Unreleased
   issue, e.g.
   ``slide.find_shapes_by_xpath(".//p:sp[p:nvSpPr/p:cNvPr/@name='Title 1']")``.
 
+- feat: #806 add ``SlideShapes.add_picture_link(url, left, top, width=None,
+  height=None)`` for inserting a picture shape that *links* to an external
+  image URL instead of embedding its bytes. Creates an external relationship
+  of type ``http://schemas.openxmlformats.org/officeDocument/2006/
+  relationships/image`` with ``Target=url`` / ``TargetMode="External"`` on
+  the slide part and emits ``<a:blip r:link="rIdX"/>`` in place of the usual
+  ``r:embed``. No image bytes are read or stored in the package; PowerPoint
+  fetches the URL at render time. When ``width`` / ``height`` are omitted
+  they default to one inch each (no aspect-ratio computation is possible
+  without inspecting the image bytes, so callers should supply explicit
+  dimensions to match the target image). End-to-end coverage lives in
+  ``tests/test_issue_806_linked_picture.py``.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

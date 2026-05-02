@@ -1360,6 +1360,39 @@ class DescribeSlideShapes(object):
         assert _shape_factory_.call_args_list == calls
         assert title_placeholder is shape_
 
+    def it_can_add_a_linked_picture(self, linked_pic_fixture):
+        shapes, url, x, y, cx, cy, slide_part_, picture_ = linked_pic_fixture
+
+        picture = shapes.add_picture_link(url, x, y, cx, cy)
+
+        slide_part_.relate_to.assert_called_once_with(url, RT.IMAGE, is_external=True)
+        pic = shapes._element.xpath("p:pic")[0]
+        shapes._shape_factory.assert_called_once_with(shapes, pic)
+        assert picture is picture_
+        # -- the new element uses r:link instead of r:embed --
+        blip = shapes._element.xpath("p:pic/p:blipFill/a:blip")[0]
+        r_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        assert blip.get("{%s}link" % r_ns) == "rId9"
+        assert blip.get("{%s}embed" % r_ns) is None
+        # -- size reflects the supplied cx/cy --
+        ext = shapes._element.xpath("p:pic/p:spPr/a:xfrm/a:ext")[0]
+        assert ext.get("cx") == str(cx)
+        assert ext.get("cy") == str(cy)
+
+    def it_defaults_linked_picture_size_when_width_and_height_omitted(
+        self, part_prop_, slide_part_, _shape_factory_, picture_
+    ):
+        shapes = SlideShapes(element("p:spTree"), None)
+        part_prop_.return_value = slide_part_
+        slide_part_.relate_to.return_value = "rId7"
+        _shape_factory_.return_value = picture_
+
+        shapes.add_picture_link("http://example.com/img.png", 0, 0)
+
+        ext = shapes._element.xpath("p:pic/p:spPr/a:xfrm/a:ext")[0]
+        assert ext.get("cx") == "914400"
+        assert ext.get("cy") == "914400"
+
     def it_can_add_a_movie(self, movie_fixture):
         shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
         poster_frame_image, mime_type, shape_id_ = movie_fixture[6:9]
@@ -1432,6 +1465,26 @@ class DescribeSlideShapes(object):
         shapes = SlideShapes(None, None)
         sp = element("p:sp")
         return shapes, sp, SlideShapeFactory_, shape_
+
+    @pytest.fixture
+    def linked_pic_fixture(
+        self,
+        part_prop_,
+        slide_part_,
+        _shape_factory_,
+        picture_,
+        _next_shape_id_prop_,
+        _recalculate_extents_,
+    ):
+        shapes = SlideShapes(element("p:spTree"), None)
+        url, x, y, cx, cy = "http://example.com/img.png", 10, 11, 12, 13
+
+        part_prop_.return_value = slide_part_
+        slide_part_.relate_to.return_value = "rId9"
+        _shape_factory_.return_value = picture_
+        _next_shape_id_prop_.return_value = 42
+
+        return shapes, url, x, y, cx, cy, slide_part_, picture_
 
     @pytest.fixture
     def movie_fixture(
@@ -1535,8 +1588,20 @@ class DescribeSlideShapes(object):
         return property_mock(request, SlideShapes, "_next_shape_id", return_value=shape_id_)
 
     @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, _BaseGroupShapes, "part")
+
+    @pytest.fixture
+    def picture_(self, request):
+        return instance_mock(request, Picture)
+
+    @pytest.fixture
     def placeholder_(self, request):
         return instance_mock(request, Shape)
+
+    @pytest.fixture
+    def _recalculate_extents_(self, request):
+        return method_mock(request, _BaseGroupShapes, "_recalculate_extents", autospec=True)
 
     @pytest.fixture
     def shape_(self, request):
@@ -1555,6 +1620,10 @@ class DescribeSlideShapes(object):
     @pytest.fixture
     def slide_layout_(self, request):
         return instance_mock(request, SlideLayout)
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
 
     @pytest.fixture
     def SlideShapeFactory_(self, request, shape_):

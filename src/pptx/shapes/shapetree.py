@@ -610,6 +610,39 @@ class SlideShapes(_BaseGroupShapes):
 
     parent: Slide  # pyright: ignore[reportIncompatibleMethodOverride]
 
+    def add_picture_link(
+        self,
+        url: str,
+        left: Length,
+        top: Length,
+        width: Length | None = None,
+        height: Length | None = None,
+    ) -> Picture:
+        """Add picture shape that *links* to the image at `url` instead of embedding it.
+
+        An external relationship of type
+        ``http://schemas.openxmlformats.org/officeDocument/2006/relationships/image``
+        with ``Target=url`` and ``TargetMode="External"`` is added to the slide part and
+        referenced via ``<a:blip r:link="rIdX"/>``. No image bytes are downloaded or stored
+        in the package; PowerPoint resolves the URL when the slide is displayed.
+
+        `url` is a string URL (typically ``http://`` or ``https://``). `left` and `top`
+        specify the position of the top-left corner of the picture. `width` and `height`
+        specify the display size; because the image is not available locally, no aspect-
+        ratio calculation is possible. When either value is |None|, it defaults to 1 inch
+        (914400 EMU). To preserve the image's native aspect ratio, callers should supply
+        both `width` and `height` explicitly.
+        """
+        default = Emu(914400)
+        cx = width if width is not None else default
+        cy = height if height is not None else default
+        rId = self.part.relate_to(url, RT.IMAGE, is_external=True)
+        shape_id = self._next_shape_id
+        name = "Picture %d" % (shape_id - 1)
+        pic = self._grpSp.add_pic_link(shape_id, name, url, rId, left, top, cx, cy)
+        self._recalculate_extents()
+        return cast(Picture, self._shape_factory(pic))
+
     def add_movie(
         self,
         movie_file: str | IO[bytes],
