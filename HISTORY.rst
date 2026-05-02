@@ -148,6 +148,20 @@ Unreleased
   in its place. Both the ``p:txBody`` (shape) and ``a:txBody`` (table-cell)
   forms are handled. Subsequent use of a deleted ``_Run`` or ``_Paragraph``
   object is undefined.
+- feat: #528 add ``_Paragraph.add_math_equation(omml_xml)`` so callers can
+  insert an OMML equation (typically the output of Microsoft's
+  ``MML2OMML.XSL``) directly into a text-frame paragraph. The fragment is
+  wrapped in the ``mc:AlternateContent/mc:Choice[Requires="a14"]/a14:m``
+  scaffolding PowerPoint emits for an inline equation, accompanied by an
+  ``mc:Fallback/a:r`` run carrying the OMML reduced to its visible text
+  (concatenated ``m:t`` children) so pre-2010 consumers render something
+  readable. Existing runs, line-breaks and fields in the paragraph are
+  preserved -- the equation is appended before any ``a:endParaRPr``. The
+  companion read side is ``BaseShape.math_equation_xml`` /
+  ``has_math_equation`` (#126). Converting between OMML and LaTeX /
+  MathML remains out of scope -- the caller is responsible for producing
+  the OMML. Registers the ``a14`` namespace (``http://schemas.microsoft.com
+  /office/drawing/2010/main``) in ``pptx.oxml.ns``.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a

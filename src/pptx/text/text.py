@@ -1097,6 +1097,28 @@ class _Paragraph(Subshape):
         """Add line break at end of this paragraph."""
         self._p.add_br()
 
+    def add_math_equation(self, omml_xml: str) -> None:
+        """Append an Office-Math (OMML) equation to this paragraph.
+
+        `omml_xml` is a string of caller-provided OMML -- typically the output of Microsoft's
+        ``MML2OMML.XSL`` transform (converting MathML to OMML) or another OMML producer. Its
+        root element must be ``m:oMath`` or ``m:oMathPara`` and must declare the ``m``
+        namespace (``http://schemas.openxmlformats.org/officeDocument/2006/math``) on the root.
+
+        The OMML fragment is wrapped in the ``mc:AlternateContent/mc:Choice[Requires="a14"]
+        /a14:m`` scaffolding PowerPoint emits for an equation embedded inline in a paragraph,
+        paired with an ``mc:Fallback`` run that carries the OMML reduced to its visible text
+        (concatenated ``m:t`` children) so pre-2010 consumers render *something* readable. Any
+        existing runs, line-breaks, or fields already on the paragraph are preserved -- the
+        equation is appended to the end of its content (before any ``a:endParaRPr``).
+
+        The companion read-side is :attr:`BaseShape.math_equation_xml` / :attr:`has_math_equation`
+        (see issue #126). Converting between OMML and LaTeX / MathML is **not** in scope -- the
+        caller is responsible for producing the OMML. Raises ``ValueError`` when ``omml_xml`` is
+        not well-formed XML or its root is neither ``m:oMath`` nor ``m:oMathPara``.
+        """
+        self._p.add_math_equation(omml_xml)
+
     def add_run(self) -> _Run:
         """Return a new run appended to the runs in this paragraph."""
         r = self._p.add_r()

@@ -552,6 +552,45 @@ class CT_TextParagraph(BaseOxmlElement):
             fld.text = text
         return fld
 
+    def add_math_equation(self, omml_xml: str) -> BaseOxmlElement:
+        """Append an `mc:AlternateContent` wrapping `omml_xml` to this `a:p`.
+
+        `omml_xml` is caller-provided Office Math Markup Language (typically the output of
+        Microsoft's `MML2OMML.XSL`) -- either a serialized `m:oMath` element or a `m:oMathPara`
+        wrapper containing one or more `m:oMath` children. It must declare the `m` namespace
+        (`http://schemas.openxmlformats.org/officeDocument/2006/math`) on its root element.
+
+        The method wraps the fragment in the `mc:AlternateContent/mc:Choice[Requires="a14"]/a14:m`
+        scaffolding that PowerPoint emits for an equation embedded inline in a paragraph,
+        accompanied by a `mc:Fallback/a:r` run carrying the OMML reduced to its visible text
+        characters (concatenated `m:t` contents). Any existing runs / line-breaks / fields in the
+        paragraph are preserved -- the `mc:AlternateContent` is appended after them and before
+        any `a:endParaRPr`.
+
+        Returns the newly inserted `mc:AlternateContent` element. Raises `ValueError` when
+        `omml_xml` cannot be parsed as XML, does not carry a recognisable `m:oMath` element, or
+        its root is not `m:oMath` / `m:oMathPara`.
+        """
+        oMath_or_para = _parse_omml_fragment(omml_xml)
+        fallback_text = _extract_fallback_text(oMath_or_para)
+
+        # -- build the mc:AlternateContent scaffolding with the caller's OMML embedded --
+        ac = parse_xml(_AC_WRAPPER_XML.format(fallback=fallback_text))
+        # -- locate the a14:m element and append the (re-parsed) OMML fragment --
+        a14_m = ac.find(
+            ".//{http://schemas.microsoft.com/office/drawing/2010/main}m"
+        )
+        assert a14_m is not None  # pragma: no cover  (guaranteed by template)
+        a14_m.append(oMath_or_para)
+
+        # -- insert before any endParaRPr so schema order is preserved --
+        endParaRPr = self.endParaRPr
+        if endParaRPr is not None:
+            endParaRPr.addprevious(ac)
+        else:
+            self.append(ac)
+        return cast("BaseOxmlElement", ac)
+
     def add_r(self, text: str | None = None) -> CT_RegularTextRun:
         """Return a newly appended `a:r` element."""
         r = self._add_r()
@@ -594,6 +633,68 @@ class CT_TextParagraph(BaseOxmlElement):
     def _new_r(self):
         r_xml = "<a:r %s><a:t/></a:r>" % nsdecls("a")
         return parse_xml(r_xml)
+
+
+# -- mc:AlternateContent template used by CT_TextParagraph.add_math_equation --
+#
+# The caller's OMML fragment is appended under the `a14:m` wrapper and the fallback
+# run's `a:t` child is populated with the visible text extracted from the OMML.
+_AC_WRAPPER_XML = (
+    '<mc:AlternateContent '
+    'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
+    '<mc:Choice '
+    'xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" '
+    'Requires="a14">'
+    "<a14:m/>"
+    "</mc:Choice>"
+    "<mc:Fallback>"
+    '<a:r xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+    "<a:t>{fallback}</a:t>"
+    "</a:r>"
+    "</mc:Fallback>"
+    "</mc:AlternateContent>"
+)
+
+
+def _parse_omml_fragment(omml_xml: str) -> BaseOxmlElement:
+    """Return parsed OMML `m:oMath` or `m:oMathPara` element from `omml_xml`.
+
+    Raises `ValueError` on malformed input or when the root is not `m:oMath` / `m:oMathPara`.
+    """
+    from pptx.oxml.ns import qn
+
+    try:
+        elm = parse_xml(omml_xml)
+    except Exception as exc:  # noqa: BLE001 -- any parse failure is user error
+        raise ValueError(f"`omml_xml` is not well-formed XML: {exc}") from exc
+    oMath_tag = qn("m:oMath")
+    oMathPara_tag = qn("m:oMathPara")
+    if elm.tag not in (oMath_tag, oMathPara_tag):
+        raise ValueError(
+            "`omml_xml` root element must be `m:oMath` or `m:oMathPara`, got "
+            f"{elm.tag!r}"
+        )
+    # -- require at least one m:oMath somewhere (either the root, or inside m:oMathPara) --
+    if elm.tag == oMathPara_tag and elm.find(oMath_tag) is None:
+        raise ValueError("`omml_xml` must contain at least one `m:oMath` element")
+    return cast("BaseOxmlElement", elm)
+
+
+def _extract_fallback_text(oMath_or_para: BaseOxmlElement) -> str:
+    """Return a best-effort plain-text rendering of an `m:oMath` subtree.
+
+    Concatenates the text content of every `m:t` descendant, with XML-special characters
+    escaped so the returned string is safe to embed in an `a:t` element's text content.
+    Empty string is returned (producing an empty fallback run) when no `m:t` children are
+    found.
+    """
+    from xml.sax.saxutils import escape as _xml_escape
+
+    from pptx.oxml.ns import qn
+
+    t_tag = qn("m:t")
+    parts = [t.text or "" for t in oMath_or_para.iter(t_tag)]
+    return _xml_escape("".join(parts))
 
 
 class CT_TextParagraphProperties(BaseOxmlElement):

@@ -39,23 +39,62 @@ The resulting OMML can be fed into an external library such as
 LaTeX, MathML, or an image.
 
 
+Inserting an equation
+---------------------
+
+`#528 <https://github.com/scanny/python-pptx/issues/528>`_ adds the write
+counterpart to the read surface above.
+
+``_Paragraph.add_math_equation(omml_xml)``
+    Append an OMML equation to the paragraph. ``omml_xml`` is a Unicode
+    string whose root element is ``m:oMath`` or ``m:oMathPara`` (and
+    declares the ``m`` math namespace on the root). The method wraps the
+    fragment in the ``mc:AlternateContent`` / ``mc:Choice[Requires="a14"]``
+    / ``a14:m`` scaffolding PowerPoint emits for an inline equation, and
+    pairs it with an ``mc:Fallback`` run that carries a plain-text
+    rendering (the concatenated ``m:t`` contents of the OMML) so
+    pre-2010 consumers see *something* readable. Existing runs,
+    line-breaks, and fields already in the paragraph are preserved.
+
+Example -- insert ``E=mc²`` after a label run::
+
+    from pptx import Presentation
+    from pptx.util import Inches
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    shape = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+    paragraph = shape.text_frame.paragraphs[0]
+    paragraph.text = "Einstein: "
+    paragraph.add_math_equation(
+        '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+        '<m:r><m:t>E=mc^2</m:t></m:r>'
+        '</m:oMath>'
+    )
+    prs.save("einstein.pptx")
+
+Producing the OMML itself is **not** in scope for python-pptx. The
+simplest approach is to write the equation as MathML and transform it
+with Microsoft's `MML2OMML.XSL` (shipped with Microsoft Office) or a
+third-party library. The caller-supplied OMML string is written verbatim
+into the ``a14:m`` wrapper.
+
+
 Scope -- deferred functionality
 -------------------------------
 
-The initial MVP for `#126
-<https://github.com/scanny/python-pptx/issues/126>`_ is **read-only**. The
-following are explicitly deferred to a later iteration:
+The following are explicitly deferred:
 
-- **Programmatic equation creation.** There is no supported API for inserting
-  or replacing an equation in a shape. Callers who need to modify OMML must
-  edit the XML element directly via ``shape.element`` and save the
-  presentation; this is effectively an unsupported escape hatch.
 - **LaTeX / MathML conversion.** python-pptx does not translate between OMML
   and LaTeX (or MathML). Use an external tool such as pandoc or the
   `omml.xsl` XSLT shipped by Microsoft Office.
 - **Structured equation proxy.** There is no typed ``Equation`` class exposing
   run/fraction/root sub-elements. Callers work directly with the serialized
   XML string.
+- **Replacing / editing an existing equation.** ``add_math_equation`` appends
+  a new equation to a paragraph. To replace an existing equation, clear the
+  paragraph (or the relevant ``mc:AlternateContent`` child) via the raw XML
+  element first.
 
 Round-trip fidelity for equation-bearing shapes is provided by Foundation F3:
 the surrounding ``mc:AlternateContent`` (including the ``mc:Fallback``
