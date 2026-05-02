@@ -28,3 +28,9 @@ Feature: Read/write access to a chart's embedded Excel workbook
      When I call clone_embedded_xlsx(source_chart.part, target_chart.part)
      Then target_chart.workbook equals source_chart.workbook
       And the target chart's xlsx part is not the source's xlsx part
+
+  Scenario: replace_data_preserve_formulas refreshes data but keeps formulas
+    Given a chart with an embedded workbook and a formula in the last value cell
+     When I call chart.replace_data_preserve_formulas(new_data)
+     Then the first-series first-value cell holds the new value
+      And the formula cell still contains its original formula
