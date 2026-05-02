@@ -389,6 +389,25 @@ Unreleased
   and a save + reopen round-trip (including the multi-delete case a real
   caller typically needs).
 
+- verify: #635 (remove an image from a PowerPoint) resolved by #41
+  ``BaseShape.delete`` + ``Picture.delete`` override. The #635 reporter
+  walked every picture shape to extract bytes, then asked "Is there any
+  library through i can remove the image from pptx?" Wave 1 #41
+  (``feat/issue-41-shape-delete``) shipped :meth:`.BaseShape.delete` —
+  the primitive that detaches the shape element from its parent
+  ``p:spTree`` — plus a :meth:`.Picture.delete` override that additionally
+  drops the ``r:embed`` relationship to the backing
+  :class:`.ImagePart`, so the image bytes are garbage-collected on save
+  rather than left dangling inside the saved ``.pptx`` zip. #635 is
+  therefore a duplicate of #41. Adds a regression suite
+  ``DescribeIssue635RemoveImage`` under
+  ``tests/test_issue_635_remove_image_verify.py`` that pins the
+  reporter's exact iter-pictures-and-delete-a-subset flow (both a
+  direct-reference and a visitor-style variant), the orphan ImagePart
+  being dropped from the package on save (the tangible "file shrinks"
+  benefit over a raw element removal), the ``p:pic`` detachment from
+  ``p:spTree``, and a save + reopen round-trip.
+
 - verify: #303 resolved by #141 secondary axis + #338 combo charts
 
 - docs: #963 "save slide as image" — close as out-of-scope (python-pptx
