@@ -30,8 +30,10 @@ Rendering to video, PDF, or image formats
 A recurring request — whether phrased as "save the deck as PDF" (`issue #584
 <https://github.com/scanny/python-pptx/issues/584>`_), "export to MP4"
 (`issue #1049 <https://github.com/scanny/python-pptx/issues/1049>`_), or
-"render a slide as PNG" — is for python-pptx to produce a rendered
-output from a deck it has generated. **python-pptx does not render slides.**
+"save a slide as an image" (`issue #963
+<https://github.com/scanny/python-pptx/issues/963>`_) — is for python-pptx
+to produce a rendered output from a deck it has generated.
+**python-pptx does not render slides.**
 The library reads and writes the ``.pptx``
 `Open XML <https://learn.microsoft.com/openspecs/office_standards/ms-offcrypto/>`_
 package — it manipulates the XML, images, and other parts that make up the
@@ -58,9 +60,31 @@ points:
       # PDF (one file per deck)
       libreoffice --headless --convert-to pdf deck.pptx --outdir out/
 
-      # PNG (first slide only — loop through pages / use a PDF->PNG step
-      # like pdftoppm or ImageMagick if you need every slide as an image)
+      # PNG (first slide only — see below for per-slide image export)
       libreoffice --headless --convert-to png deck.pptx --outdir out/
+
+  ``--convert-to png`` only writes the **first** slide — that's a LibreOffice
+  limitation, not something python-pptx can work around. The standard
+  recipe for saving *every* slide as an image (the `issue #963
+  <https://github.com/scanny/python-pptx/issues/963>`_ use case) is a
+  two-step PDF-then-rasterize pipeline using ``pdftoppm`` (from
+  ``poppler-utils``) or ImageMagick's ``convert``:
+
+  .. code-block:: shell
+
+      # 1. deck.pptx -> deck.pdf (one PDF page per slide)
+      libreoffice --headless --convert-to pdf deck.pptx --outdir out/
+
+      # 2a. deck.pdf -> slide-1.png, slide-2.png, ... at 150 DPI
+      pdftoppm -png -r 150 out/deck.pdf out/slide
+
+      # 2b. or, with ImageMagick (slower, but supports JPG / TIFF / WebP too)
+      convert -density 150 out/deck.pdf out/slide-%d.png
+
+  For ``convert``, ``-density`` controls the rasterization DPI and
+  ``%d`` expands to the (zero-based) page index. ``pdftoppm`` is usually
+  the better choice on Linux / CI — it's faster, has no ``policy.xml``
+  PDF restrictions to work around, and produces deterministic filenames.
 
   LibreOffice does **not** export directly to MP4. The usual route to video
   is to export the deck to a sequence of PNGs (via PDF + ``pdftoppm``, or by
