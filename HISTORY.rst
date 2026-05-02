@@ -32,6 +32,10 @@ Unreleased
 - fix: #674 correct UP_DOWN_ARROW adjustment list
 - fix: #773 guard fit_text() when no fitting layout is found
 - #776 Point.invert_if_negative
+- perf: #644 Poor performance when creating a big presentation. Part-name
+  allocation now caches per-template allocations instead of scanning the full
+  part graph on every addition, changing ``Package.next_partname()`` from
+  amortized O(N) to O(1) and overall presentation build-up from O(N**2) to O(N).
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

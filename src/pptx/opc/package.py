@@ -152,15 +152,27 @@ class OpcPackage(_RelatableMixin):
         to be used to insert the integer portion of the partname. Example:
         '/ppt/slides/slide%d.xml'
         """
-        # --- expected next partname is tmpl % n where n is one greater than the number
-        # --- of existing partnames that match tmpl. Speed up finding the next one
-        # --- (maybe) by searching from the end downward rather than from 1 upward.
-        prefix = tmpl[: (tmpl % 42).find("42")]
-        partnames = {p.partname for p in self.iter_parts() if p.partname.startswith(prefix)}
-        for n in range(len(partnames) + 1, 0, -1):
+        # --- The allocated partnames for `tmpl` are cached the first time `tmpl` is
+        # --- encountered. Subsequent calls reuse that cache, avoiding the O(N)
+        # --- `iter_parts()` walk on each allocation that would otherwise produce
+        # --- O(N**2) behavior when constructing a large presentation (#644). The
+        # --- newly allocated partname is added to the cache before return so the
+        # --- cache remains authoritative for subsequent calls.
+        allocated = self._partnames_by_tmpl.get(tmpl)
+        if allocated is None:
+            prefix = tmpl[: (tmpl % 42).find("42")]
+            allocated = {p.partname for p in self.iter_parts() if p.partname.startswith(prefix)}
+            self._partnames_by_tmpl[tmpl] = allocated
+        # --- The common case is an unbroken sequence starting at 1, so
+        # --- `len(allocated) + 1` is the expected answer. Scan downward from there to
+        # --- fill any gaps while still short-circuiting on the first candidate in the
+        # --- common case.
+        for n in range(len(allocated) + 1, 0, -1):
             candidate_partname = tmpl % n
-            if candidate_partname not in partnames:
-                return PackURI(candidate_partname)
+            if candidate_partname not in allocated:
+                partname = PackURI(candidate_partname)
+                allocated.add(partname)
+                return partname
         raise Exception("ProgrammingError: ran out of candidate_partnames")  # pragma: no cover
 
     def save(
@@ -183,6 +195,17 @@ class OpcPackage(_RelatableMixin):
         pkg_xml_rels, parts = _PackageLoader.load(self._pkg_file, cast("Package", self))
         self._rels.load_from_xml(PACKAGE_URI, pkg_xml_rels, parts)
         return self
+
+    @lazyproperty
+    def _partnames_by_tmpl(self) -> dict[str, set[PackURI]]:
+        """Cached {tmpl: {allocated_partnames}} used by :meth:`next_partname`.
+
+        Populated lazily on first use of a given `tmpl` by scanning the current part graph
+        for partnames sharing its prefix. Each subsequent allocation for that `tmpl` is
+        added to the cache, so the expensive `iter_parts()` walk happens at most once per
+        template per package instance. See issue #644.
+        """
+        return {}
 
     @lazyproperty
     def _rels(self) -> _Relationships:
