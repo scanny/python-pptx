@@ -14,6 +14,22 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
+  Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
+  for a supported way to apply PowerPoint's "Picture or texture fill"
+  to an auto-shape. The feature is shipped as
+  ``FillFormat.blip_fill(image_file)`` (see ``FEATURES.md``);
+  ``tests/test_issue_419_shape_picture_fill_verify.py`` adds a
+  breadth-first ``DescribeIssue419ShapePictureFill`` suite that pins
+  the reporter's workflow end-to-end: apply a picture fill to a
+  rectangle and to an oval, confirm ``shape.fill.type`` is
+  ``MSO_FILL.PICTURE`` both in-memory and after a ``Presentation.save``
+  + reopen round-trip, accept a ``BytesIO`` stream and a
+  ``pathlib.Path`` (via ``str(path)``) as the image file, and assert
+  the ``<a:blipFill>`` structure directly under the shape's
+  ``<p:sp>/<p:spPr>``. Complements the existing #234 suite, which
+  covers image-part reuse and the no-part error path.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
