@@ -19,18 +19,10 @@ from pyparsing import (
     alphanums,
     alphas,
     dblQuotedString,
+    delimitedList,
+    removeQuotes,
     stringEnd,
 )
-
-try:  # -- pyparsing >= 3.0 provides `remove_quotes` (PEP-8 name) --
-    from pyparsing import remove_quotes as removeQuotes  # noqa: N813
-except ImportError:  # pragma: no cover -- fallback for older pyparsing
-    from pyparsing import removeQuotes
-
-try:  # -- pyparsing >= 3.0 provides `DelimitedList` (PEP-8 name) --
-    from pyparsing import DelimitedList as delimitedList  # noqa: N813
-except ImportError:  # pragma: no cover -- fallback for older pyparsing
-    from pyparsing import delimitedList
 
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import _nsmap as nsmap
@@ -51,8 +43,8 @@ def element(cxel_str: str) -> BaseOxmlElement:
 
 def xml(cxel_str: str) -> str:
     """Return the XML generated from `cxel_str`."""
-    root_node.parse_with_tabs()
-    root_token = root_node.parse_string(cxel_str)
+    root_node.parseWithTabs()
+    root_token = root_node.parseString(cxel_str)
     xml = root_token.element.xml
     return xml
 
@@ -264,26 +256,26 @@ def grammar():
     attr_def = Group(attr_name + equal + attr_val)
     attr_list = open_brace + delimitedList(attr_def) + close_brace
 
-    text = dblQuotedString.set_parse_action(removeQuotes)
+    text = dblQuotedString.setParseAction(removeQuotes)
 
     # w:jc{val=right} ----------------------------
     element = (
         tagname("tagname")
         + Group(Optional(attr_list))("attr_list")
         + Optional(text, default="")("text")
-    ).set_parse_action(Element.from_token)
+    ).setParseAction(Element.from_token)
 
     child_node_list = Forward()
 
     node = Group(
         element("element") + Group(Optional(slash + child_node_list))("child_node_list")
-    ).set_parse_action(connect_node_children)
+    ).setParseAction(connect_node_children)
 
     child_node_list << (open_paren + delimitedList(node) + close_paren | node)
 
     root_node = (
         element("element") + Group(Optional(slash + child_node_list))("child_node_list") + stringEnd
-    ).set_parse_action(connect_root_node_children)
+    ).setParseAction(connect_root_node_children)
 
     return root_node
 
