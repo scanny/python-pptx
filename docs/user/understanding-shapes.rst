@@ -137,6 +137,32 @@ in turn up to the slide root. The raw ``left``/``top``/``width``/``height``
 properties are unchanged and remain read/write for backwards compatibility.
 
 
+Accessibility -- shape alt-text and title
+-----------------------------------------
+
+Every shape on a slide can carry two accessibility strings that screen
+readers and other assistive technology read aloud in place of the shape's
+visual content: a short **title** and a longer **alt-text** description.
+PowerPoint exposes these in its *Alt Text* pane (``Review > Check
+Accessibility > Alt Text``) and stores them as the ``title`` and ``descr``
+attributes of the shape's ``cNvPr`` element.
+
+Both attributes are read/write on every shape (AutoShape, Picture, GraphicFrame,
+GroupShape, and Connector)::
+
+    shape.alt_text   # -> "bar chart: 2026 quarterly revenue"
+    shape.title      # -> "Q revenue chart"
+
+    shape.alt_text = "a detailed description of what the screen reader should say"
+    shape.title = "short title"
+
+Both properties default to the empty string when PowerPoint has not written
+the attribute. Assigning the empty string clears the attribute so the shape
+matches PowerPoint's no-alt-text default.
+
+See issue #508.
+
+
 Up next ...
 -----------
 

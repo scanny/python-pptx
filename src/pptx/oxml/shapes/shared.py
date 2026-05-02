@@ -315,8 +315,14 @@ class CT_NonVisualDrawingProps(BaseOxmlElement):
     hlinkHover: CT_Hyperlink | None = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
     id = RequiredAttribute("id", ST_DrawingElementId)
     name = RequiredAttribute("name", XsdString)
+    descr: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "descr", XsdString, default=""
+    )
     hidden: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "hidden", XsdBoolean, default=False
+    )
+    title: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "title", XsdString, default=""
     )
     del _tag_seq
 

@@ -103,6 +103,30 @@ class BaseShape(object):
         parent.insert_element_before(self._element, "p:extLst")
 
     @property
+    def alt_text(self) -> str:
+        """Accessibility description (alt-text) for this shape.
+
+        Read/write. Maps to the ``descr`` attribute on the shape's ``cNvPr``
+        element (``p:cNvPr`` for slide-level shapes such as ``p:sp``,
+        ``p:pic``, ``p:cxnSp``, ``p:graphicFrame`` and ``p:grpSp``).
+        Returns the empty string when the attribute is absent (PowerPoint's
+        default).
+
+        This is the "Description" text shown by PowerPoint's Alt Text pane
+        and consumed by screen readers to describe the shape's content to
+        users who cannot see it. See :attr:`title` for the companion short
+        title. Issue #508.
+
+        Assigning the empty string removes the ``descr`` attribute (matching
+        PowerPoint's behavior of treating the default as "no alt text").
+        """
+        return self._element._nvXxPr.cNvPr.descr  # pyright: ignore[reportPrivateUsage]
+
+    @alt_text.setter
+    def alt_text(self, value: str) -> None:
+        self._element._nvXxPr.cNvPr.descr = value  # pyright: ignore[reportPrivateUsage]
+
+    @property
     def animation(self) -> AnimationEffect | None:
         """|AnimationEffect| for this shape's animation, or |None| if none.
 
@@ -713,6 +737,30 @@ class BaseShape(object):
         Like ``MSO_SHAPE_TYPE.CHART``. Must be implemented by subclasses.
         """
         raise NotImplementedError(f"{type(self).__name__} does not implement `.shape_type`")
+
+    @property
+    def title(self) -> str:
+        """Accessibility title for this shape.
+
+        Read/write. Maps to the ``title`` attribute on the shape's ``cNvPr``
+        element (``p:cNvPr`` for slide-level shapes such as ``p:sp``,
+        ``p:pic``, ``p:cxnSp``, ``p:graphicFrame`` and ``p:grpSp``).
+        Returns the empty string when the attribute is absent (PowerPoint's
+        default).
+
+        This is the short "Title" text shown by PowerPoint's Alt Text pane
+        and read alongside :attr:`alt_text` by screen readers. Issue #508.
+        Note that this is distinct from a slide's *title placeholder* and
+        from the presentation-level title in the core properties.
+
+        Assigning the empty string removes the ``title`` attribute (matching
+        PowerPoint's behavior of treating the default as "no title").
+        """
+        return self._element._nvXxPr.cNvPr.title  # pyright: ignore[reportPrivateUsage]
+
+    @title.setter
+    def title(self, value: str) -> None:
+        self._element._nvXxPr.cNvPr.title = value  # pyright: ignore[reportPrivateUsage]
 
     @property
     def top(self) -> Length:

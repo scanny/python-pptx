@@ -57,6 +57,15 @@ Unreleased
   assign those directly on the returned shape after the
   ``add_movie(..., autoplay=True)`` call.
 
+- feat: #508 Add :attr:`.BaseShape.alt_text` and :attr:`.BaseShape.title`
+  read/write properties exposing the accessibility description (``descr``)
+  and title (``title``) attributes on every shape's ``cNvPr`` element
+  (auto-shape, picture, graphic frame, group-shape, and connector).
+  Both properties return the empty string when the attribute is absent
+  (PowerPoint's default); assigning the empty string clears the attribute.
+  The values are surfaced in PowerPoint's Alt Text pane and consumed by
+  screen readers for accessibility.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,

@@ -44,6 +44,9 @@ Feature Support
   delete, and assign slide-to-section membership
 * Open and save password-protected (ECMA-376 Agile Encryption) .pptx files
   (requires optional ``msoffcrypto-tool``)
+* Read and write shape accessibility metadata (``alt_text`` description and short
+  ``title``) on any shape -- auto-shape, picture, graphic frame, group, or
+  connector
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

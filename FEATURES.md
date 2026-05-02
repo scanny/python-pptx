@@ -318,7 +318,8 @@ All members in this section are `[Added in 1.0.2.dev0]`.
 Every shape derives from `BaseShape`. The fork extends `BaseShape` with
 `delete`, `duplicate`, `replace_with`, `flip_horizontal` / `flip_vertical`
 (as properties) plus `flip_horizontally()` / `flip_vertically()` methods,
-`is_hidden`, z-order helpers, `effective_left` / `effective_top` /
+`is_hidden`, `alt_text` / `title` accessibility metadata,
+z-order helpers, `effective_left` / `effective_top` /
 `effective_width` / `effective_height` (applying the enclosing group
 transforms), `has_math_equation` / `math_equation_xml`, and the
 shape-animation surface (`animation` / `set_animation`). `SlideShapes`
@@ -345,6 +346,10 @@ clone.is_hidden = True
 clone.bring_to_front()
 print(clone.zorder_index)
 
+# accessibility metadata (issue #508)
+clone.alt_text = "decorative rounded rectangle"
+clone.title = "Decoration"
+
 # swap clone for a freshly-added oval in the same z-slot + geometry
 oval = slide.shapes.add_shape(MSO_SHAPE.OVAL, 0, 0, Inches(1), Inches(1))
 clone.replace_with(oval)
@@ -366,6 +371,8 @@ prs.save("out.pptx")
 - `BaseShape.flip_horizontal` / `BaseShape.flip_vertical` — Read/write `bool`. `[Added in 1.0.2.dev0]`
 - `BaseShape.flip_horizontally()` / `BaseShape.flip_vertically()` — Toggle helpers. `[Added in 1.0.2.dev0]`
 - `BaseShape.is_hidden` — Read/write `bool` (`cNvPr/@hidden`). `[Added in 1.0.2.dev0]`
+- `BaseShape.alt_text` — Read/write `str` accessibility description (`cNvPr/@descr`); empty string when unset. `[Added in 1.0.2.dev0]`
+- `BaseShape.title` — Read/write `str` accessibility title (`cNvPr/@title`); empty string when unset. `[Added in 1.0.2.dev0]`
 - `BaseShape.delete()` — Remove from parent shape tree, tidying relationships. `[Added in 1.0.2.dev0]`
 - `BaseShape.duplicate()` — Deep-clone in place (subclass-aware; `GroupShape.duplicate()` preserves nested relationships). `[Added in 1.0.2.dev0]`
 - `BaseShape.replace_with(other_shape)` — Copy this shape's geometry onto `other_shape`, move it into this shape's z-order, then delete this. `[Added in 1.0.2.dev0]`

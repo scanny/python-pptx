@@ -439,6 +439,115 @@ class DescribeBaseShape(object):
         shape.is_hidden = new_value
         assert shape._element.xml == xml(expected_cxml)
 
+    # -- #508: alt_text / title accessibility description ------------------
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "expected_value"),
+        [
+            # -- defaults to empty string when `descr` is absent --
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}", ""),
+            # -- round-trips the `descr` value for every shape element --
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,descr=a photo}", "a photo"),
+            ("p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,descr=a photo}", "a photo"),
+            ("p:grpSp/p:nvGrpSpPr/p:cNvPr{id=1,name=A,descr=a photo}", "a photo"),
+            ("p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=1,name=A,descr=a photo}", "a photo"),
+            (
+                "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=1,name=A,descr=a photo}",
+                "a photo",
+            ),
+        ],
+    )
+    def it_knows_its_alt_text(self, sp_cxml, expected_value):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        assert shape.alt_text == expected_value
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "new_value", "expected_cxml"),
+        [
+            # -- add descr to a cNvPr that doesn't have one --
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+                "chart of Q3 revenue",
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,descr=chart of Q3 revenue}",
+            ),
+            # -- overwrite an existing descr value --
+            (
+                "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,descr=old text}",
+                "new text",
+                "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,descr=new text}",
+            ),
+            # -- assigning the empty string removes the attribute (matches default) --
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,descr=something}",
+                "",
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+            ),
+        ],
+    )
+    def it_can_change_its_alt_text(self, sp_cxml, new_value, expected_cxml):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        shape.alt_text = new_value
+        assert shape._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "expected_value"),
+        [
+            # -- defaults to empty string when `title` is absent --
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}", ""),
+            # -- round-trips the `title` value across shape element types --
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,title=Short title}", "Short title"),
+            ("p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,title=Short title}", "Short title"),
+            (
+                "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=1,name=A,title=Short title}",
+                "Short title",
+            ),
+        ],
+    )
+    def it_knows_its_title(self, sp_cxml, expected_value):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        assert shape.title == expected_value
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "new_value", "expected_cxml"),
+        [
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+                "Q3 chart",
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,title=Q3 chart}",
+            ),
+            (
+                "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,title=Old title}",
+                "New title",
+                "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,title=New title}",
+            ),
+            # -- assigning the empty string removes the attribute (matches default) --
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,title=Something}",
+                "",
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+            ),
+        ],
+    )
+    def it_can_change_its_title(self, sp_cxml, new_value, expected_cxml):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        shape.title = new_value
+        assert shape._element.xml == xml(expected_cxml)
+
+    def it_preserves_alt_text_and_title_separately(self):
+        """Setting one accessibility attribute must not disturb the other."""
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")), None)
+
+        shape.alt_text = "a long description of the picture contents"
+        shape.title = "short title"
+
+        assert shape.alt_text == "a long description of the picture contents"
+        assert shape.title == "short title"
+
+        # -- clearing one leaves the other intact --
+        shape.alt_text = ""
+        assert shape.alt_text == ""
+        assert shape.title == "short title"
+
     def it_provides_access_to_its_shadow(self, shadow_fixture):
         shape, ShadowFormat_, spPr, shadow_ = shadow_fixture
 
