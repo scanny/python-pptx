@@ -636,6 +636,26 @@ def then_movie_left_movie_top_eq_x_y(context):
     assert position == (Emu(2590800), Emu(571500)), "got %s" % position
 
 
+@then("movie.blob is the bytes of the embedded media")
+def then_movie_blob_is_the_bytes_of_the_embedded_media(context):
+    with open(test_file("just-two-mice.mp4"), "rb") as f:
+        expected = f.read()
+    actual = context.movie.blob
+    assert actual == expected, "movie.blob did not match embedded media bytes"
+
+
+@then("movie.content_type is '{expected}'")
+def then_movie_content_type_is(context, expected):
+    actual = context.movie.content_type
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("movie.ext is '{expected}'")
+def then_movie_ext_is(context, expected):
+    actual = context.movie.ext
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
 @then("movie.media_format is a _MediaFormat object")
 def then_movie_media_format_is_a_MediaFormat_object(context):
     class_name = context.movie.media_format.__class__.__name__

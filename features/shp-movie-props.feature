@@ -22,3 +22,18 @@ Feature: Movie shape properties
   Scenario: Movie.media_format
     Given a movie shape
      Then movie.media_format is a _MediaFormat object
+
+
+  Scenario: Movie.blob
+    Given a movie shape
+     Then movie.blob is the bytes of the embedded media
+
+
+  Scenario: Movie.ext
+    Given a movie shape
+     Then movie.ext is 'mp4'
+
+
+  Scenario: Movie.content_type
+    Given a movie shape
+     Then movie.content_type is 'video/unknown'

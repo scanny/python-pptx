@@ -8,8 +8,10 @@ import pytest
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.opc.packuri import PackURI
 from pptx.oxml import parse_xml
 from pptx.parts.image import Image, ImagePart
+from pptx.parts.media import MediaPart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import Movie, Picture, _BasePicture, _MediaFormat
 from pptx.util import Pt
@@ -615,6 +617,135 @@ class DescribeMovie(object):
         assert sld.xpath(".//p:pic") == []
         dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
         assert dropped == {"rId8", "rId9"}
+
+    def it_provides_access_to_its_media_blob_ext_and_content_type(
+        self, request, part_prop_, slide_part_
+    ):
+        # -- issue #801: expose Movie.blob / .ext / .content_type mirroring
+        # -- Picture.image.blob / .ext / .content_type for picture shapes. --
+        pic = parse_xml(
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="clip.mp4"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr>"
+            '      <a:videoFile r:link="rId_v"/>'
+            "      <p:extLst>"
+            '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
+            '          <p14:media'
+            '            xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'
+            '            r:embed="rId_m"/>'
+            "        </p:ext>"
+            "      </p:extLst>"
+            "    </p:nvPr>"
+            "  </p:nvPicPr>"
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        media_part_ = instance_mock(request, MediaPart)
+        media_part_.blob = b"\x00\x00movie-bytes"
+        media_part_.content_type = "video/mp4"
+        media_part_.partname = PackURI("/ppt/media/media1.mp4")
+        part_prop_.return_value = slide_part_
+        slide_part_.related_part.return_value = media_part_
+
+        movie = Movie(pic, None)
+
+        assert movie.blob == b"\x00\x00movie-bytes"
+        assert movie.content_type == "video/mp4"
+        assert movie.ext == "mp4"
+        # -- p14:media @r:embed is preferred over a:videoFile @r:link --
+        slide_part_.related_part.assert_called_with("rId_m")
+
+    def it_falls_back_to_the_videoFile_link_when_p14_media_is_absent(
+        self, request, part_prop_, slide_part_
+    ):
+        # -- audio clips round-tripped from files written by other tools may have
+        # -- just a:videoFile / a:audioFile with no p14:media descriptor;
+        # -- blob / ext / content_type must still resolve via the link rel. --
+        pic = parse_xml(
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="clip.wav"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr>"
+            '      <a:audioFile r:link="rId_a"/>'
+            "    </p:nvPr>"
+            "  </p:nvPicPr>"
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        media_part_ = instance_mock(request, MediaPart)
+        media_part_.blob = b"RIFFaudio"
+        media_part_.content_type = "audio/wav"
+        media_part_.partname = PackURI("/ppt/media/media2.wav")
+        part_prop_.return_value = slide_part_
+        slide_part_.related_part.return_value = media_part_
+
+        movie = Movie(pic, None)
+
+        assert movie.blob == b"RIFFaudio"
+        assert movie.content_type == "audio/wav"
+        assert movie.ext == "wav"
+        slide_part_.related_part.assert_called_with("rId_a")
+
+    def it_returns_None_when_no_media_rel_is_present(self):
+        # -- a malformed pic with neither a:videoFile / a:audioFile nor p14:media
+        # -- exposes None on every media accessor — never raises. --
+        pic = parse_xml(
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="p"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr/>"
+            "  </p:nvPicPr>"
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        movie = Movie(pic, None)
+
+        assert movie.blob is None
+        assert movie.content_type is None
+        assert movie.ext is None
+
+    def it_returns_None_when_related_part_is_not_a_MediaPart(
+        self, request, part_prop_, slide_part_
+    ):
+        # -- defensive: if the rId resolves to some non-media part (corrupted file),
+        # -- don't return junk bytes — return None.
+        pic = parse_xml(
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="clip.mp4"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr>"
+            '      <a:videoFile r:link="rId_v"/>'
+            "    </p:nvPr>"
+            "  </p:nvPicPr>"
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        not_a_media_part = instance_mock(request, ImagePart)
+        part_prop_.return_value = slide_part_
+        slide_part_.related_part.return_value = not_a_media_part
+
+        movie = Movie(pic, None)
+
+        assert movie.blob is None
+        assert movie.content_type is None
+        assert movie.ext is None
 
     # fixtures -------------------------------------------------------
 

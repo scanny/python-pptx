@@ -6,6 +6,13 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #801 ``Movie.blob`` / ``Movie.ext`` / ``Movie.content_type`` for
+  reading an embedded movie's media bytes, file extension, and MIME
+  type. Mirrors the ``Picture.image.blob`` / ``.ext`` / ``.content_type``
+  surface so audio / video clips can be extracted from a presentation
+  without touching the package internals. All three properties return
+  |None| when the shape has no associated media part.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,

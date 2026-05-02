@@ -193,6 +193,20 @@ The following properties and methods are defined for picture shapes.
    :member-order: bysource
 
 
+``Movie`` objects
+-----------------
+
+The following properties and methods are defined for movie shapes (the
+shape type produced by :meth:`SlideShapes.add_movie`, which covers both
+audio and video embedding).
+
+.. autoclass:: pptx.shapes.picture.Movie()
+   :inherited-members:
+   :members:
+   :exclude-members: get_or_add_ln, ln
+   :member-order: bysource
+
+
 |GraphicFrame| objects
 ----------------------
 
