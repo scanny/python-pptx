@@ -105,6 +105,18 @@ Unreleased
   three preset attributes. Authoring (add / remove / reorder effects,
   ``Shape.animation``) is deferred to downstream items #102 / #264 /
   #1106 which now have a stable read surface to layer on top of.
+- #264 shape-animation introspection (read-only MVP). Adds
+  ``Slide.iter_shape_animations()`` yielding a ``ShapeAnimation`` proxy
+  for every shape-targeted effect (``p:anim`` / ``p:animEffect`` /
+  ``p:animMotion`` / ``p:animRot`` / ``p:animScale`` / ``p:animClr`` /
+  ``p:set``) in the slide's ``p:timing`` subtree. Each proxy exposes
+  ``shape_id``, ``effect_type``, ``delay_ms`` (int ms /
+  ``"indefinite"`` / ``None`` — directly answers the user's ask in
+  #264), ``duration_ms``, and ``element`` for callers that need to
+  hand-edit XML today. Write-side authoring (add / modify effects,
+  motion paths, full trigger configuration) is deferred to the Wave-7
+  lift that combines #102, #264, #861, #1106; see
+  ``docs/dev/analysis/f8-animations-transitions.rst``.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

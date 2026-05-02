@@ -34,6 +34,7 @@ from pptx.slide import (
     AnimationEffect,
     NotesMaster,
     NotesSlide,
+    ShapeAnimation,
     Slide,
     SlideLayout,
     SlideLayouts,
@@ -1564,6 +1565,96 @@ class DescribeSlide_F8_transition_and_animations(object):
     def it_returns_the_same_Transition_proxy_on_subsequent_access(self):
         slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
         assert slide.transition is slide.transition
+
+    # -- Slide.iter_shape_animations (issue #264 read-only MVP) -----
+
+    def it_yields_nothing_when_the_slide_has_no_timing(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        assert list(slide.iter_shape_animations()) == []
+
+    def it_yields_nothing_when_timing_has_no_tnLst(self):
+        slide = Slide(
+            element("p:sld/(p:cSld/p:spTree,p:timing)"),
+            None,
+        )
+        assert list(slide.iter_shape_animations()) == []
+
+    def it_yields_a_ShapeAnimation_for_each_shape_targeted_effect(self):
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/"
+                "(p:anim/p:cBhvr/(p:cTn{id=1,dur=500}/p:stCondLst/"
+                "p:cond{delay=0},p:tgtEl/p:spTgt{spid=2}),"
+                "p:set/p:cBhvr/(p:cTn{id=2,dur=1}/p:stCondLst/"
+                "p:cond{delay=indefinite},p:tgtEl/p:spTgt{spid=3})))"
+            ),
+            None,
+        )
+        anims = list(slide.iter_shape_animations())
+        assert len(anims) == 2
+        assert all(isinstance(a, ShapeAnimation) for a in anims)
+        assert [a.shape_id for a in anims] == [2, 3]
+        assert [a.effect_type for a in anims] == ["anim", "set"]
+
+    def it_reports_delay_ms_as_int(self):
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:anim/p:cBhvr/"
+                "(p:cTn{id=1,dur=500}/p:stCondLst/p:cond{delay=250},"
+                "p:tgtEl/p:spTgt{spid=2}))"
+            ),
+            None,
+        )
+        (anim,) = list(slide.iter_shape_animations())
+        assert anim.delay_ms == 250
+        assert anim.duration_ms == 500
+
+    def and_reports_indefinite_delay_as_string(self):
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:set/p:cBhvr/"
+                "(p:cTn{id=1}/p:stCondLst/p:cond{delay=indefinite},"
+                "p:tgtEl/p:spTgt{spid=9}))"
+            ),
+            None,
+        )
+        (anim,) = list(slide.iter_shape_animations())
+        assert anim.delay_ms == "indefinite"
+
+    def and_reports_delay_None_when_no_start_condition(self):
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:animMotion/"
+                "p:cBhvr/(p:cTn{id=1},p:tgtEl/p:spTgt{spid=7}))"
+            ),
+            None,
+        )
+        (anim,) = list(slide.iter_shape_animations())
+        assert anim.delay_ms is None
+        assert anim.duration_ms is None
+
+    def it_skips_video_timing_nodes(self):
+        # -- video/cMediaNode uses a p:spTgt too but is not a shape
+        # -- animation; iter_shape_animations must not yield it.
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:video/"
+                "p:cMediaNode/(p:cTn{id=1},p:tgtEl/p:spTgt{spid=5}))"
+            ),
+            None,
+        )
+        assert list(slide.iter_shape_animations()) == []
+
+    def it_exposes_the_underlying_effect_element(self):
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:anim/p:cBhvr/"
+                "(p:cTn{id=1},p:tgtEl/p:spTgt{spid=3}))"
+            ),
+            None,
+        )
+        (anim,) = list(slide.iter_shape_animations())
+        assert anim.element.tag.endswith("}anim")
 
 
 class DescribeTransition(object):
