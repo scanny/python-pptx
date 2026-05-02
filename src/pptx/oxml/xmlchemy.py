@@ -786,7 +786,11 @@ class BaseOxmlElement(etree.ElementBase, metaclass=MetaOxmlElement):
         return None
 
     def insert_element_before(self, elm: ElementBase, *tagnames: str):
-        successor = self.first_child_found_in(*tagnames)
+        # -- locate the earliest-positioned existing child whose tag is in `tagnames`,
+        # -- so the insertion preserves schema order even when successor elements
+        # -- appear out of the order given in `tagnames` (see issue #740). --
+        successor_tags = {qn(t) for t in tagnames}
+        successor = next((c for c in self if c.tag in successor_tags), None)
         if successor is not None:
             successor.addprevious(elm)
         else:
