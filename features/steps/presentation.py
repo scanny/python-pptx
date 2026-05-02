@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 from behave import given, then, when
 from behave.runner import Context
-from helpers import saved_pptx_path, test_file, test_pptx
+from helpers import saved_pptx_path, test_file, test_potx, test_pptx
 
 from pptx import Presentation
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
@@ -83,6 +83,11 @@ def when_I_open_a_presentation_extracted_into_a_directory(context: Context):
     context.prs = Presentation(test_file("extracted-pptx"))
 
 
+@when("I open a PowerPoint template file")
+def when_open_powerpoint_template_file(context: Context):
+    context.prs = Presentation(test_potx("minimal"))
+
+
 @when("I open a presentation contained in a stream")
 def when_open_presentation_stream(context: Context):
     with open(test_pptx("test"), "rb") as f:
@@ -154,6 +159,24 @@ def then_see_pptx_file_in_working_dir(context: Context):
     minimum = 30000
     actual = os.path.getsize(saved_pptx_path)
     assert actual > minimum
+
+
+@then("the presentation is loaded")
+def then_the_presentation_is_loaded(context: Context):
+    prs = context.prs
+    assert prs is not None
+    # -- a loaded .potx still yields a working Presentation graph --
+    assert len(prs.slide_masters) >= 1
+
+
+@then("I see the pptx file in the working directory after saving")
+def then_see_pptx_after_saving(context: Context):
+    if os.path.isfile(saved_pptx_path):
+        os.remove(saved_pptx_path)
+    context.prs.save(saved_pptx_path)
+    assert os.path.isfile(saved_pptx_path)
+    # -- a .potx round-tripped to a saved file is non-trivial in size --
+    assert os.path.getsize(saved_pptx_path) > 1000
 
 
 @then("len(notes_master.shapes) is {shape_count}")

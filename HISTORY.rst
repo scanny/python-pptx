@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- feat: #1070 read ``.potx`` (and ``.ppsx``) presentation packages
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

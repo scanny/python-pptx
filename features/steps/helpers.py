@@ -49,3 +49,8 @@ def test_image(filename: str):
 def test_pptx(name: str) -> str:
     """Return the absolute path to test .pptx file with root name *name*."""
     return absjoin(thisdir, "test_files", "%s.pptx" % name)
+
+
+def test_potx(name: str) -> str:
+    """Return the absolute path to test .potx file with root name *name*."""
+    return absjoin(thisdir, "test_files", "%s.potx" % name)

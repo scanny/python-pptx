@@ -65,6 +65,15 @@ Things to note:
   polite enough to leave them alone and smart enough to save them without
   actually understanding what they are.
 
+* In addition to the regular presentation format (``.pptx``), |pp| also accepts
+  macro-enabled presentations (``.pptm``), PowerPoint template files
+  (``.potx``), and slideshow files (``.ppsx``). These are all recognized as
+  PresentationML "main document" content types and open the same way -- just
+  pass the path (or a file-like object) to ``Presentation()``. Note that |pp|
+  always saves as a regular ``.pptx`` package; if you want to preserve the
+  original template/slideshow content type you will need to rewrite the
+  ``[Content_Types].xml`` entry yourself after saving.
+
 * If you use the same filename to open and save the file, |pp| will obediently
   overwrite the original file without a peep. You'll want to make sure that's
   what you intend.

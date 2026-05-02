@@ -37,3 +37,9 @@ Feature: Round-trip a presentation
   Scenario: Load presentation with invalid image/jpg MIME-type
      Given a presentation with an image/jpg MIME-type
       Then I can access the JPEG image
+
+  Scenario: Open a PowerPoint template (.potx) file
+     Given a clean working directory
+      When I open a PowerPoint template file
+      Then the presentation is loaded
+       And I see the pptx file in the working directory after saving
