@@ -437,6 +437,7 @@ register_element_cls("p:nvCxnSpPr", CT_ConnectorNonVisual)
 
 
 from pptx.oxml.shapes.graphfrm import (  # noqa: E402
+    CT_DgmRelIds,
     CT_GraphicalObject,
     CT_GraphicalObjectData,
     CT_GraphicalObjectFrame,
@@ -446,6 +447,7 @@ from pptx.oxml.shapes.graphfrm import (  # noqa: E402
 
 register_element_cls("a:graphic", CT_GraphicalObject)
 register_element_cls("a:graphicData", CT_GraphicalObjectData)
+register_element_cls("dgm:relIds", CT_DgmRelIds)
 register_element_cls("p:graphicFrame", CT_GraphicalObjectFrame)
 register_element_cls("p:nvGraphicFramePr", CT_GraphicalObjectFrameNonVisual)
 register_element_cls("p:oleObj", CT_OleObject)

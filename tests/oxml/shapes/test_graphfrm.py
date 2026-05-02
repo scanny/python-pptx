@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
+from pptx.oxml.shapes.graphfrm import CT_DgmRelIds, CT_GraphicalObjectFrame
 
-from ...unitutil.cxml import xml
+from ...unitutil.cxml import element, xml
 
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+SMART_ART_URI = "http://schemas.openxmlformats.org/drawingml/2006/diagram"
 TABLE_URI = "http://schemas.openxmlformats.org/drawingml/2006/table"
 
 
@@ -82,6 +83,26 @@ class DescribeCT_GraphicalObjectFrame(object):
             "/(a:off{x=1,y=2},a:ext{cx=3,cy=4}),a:graphic/a:graphicData)"
         )
         return id_, name, x, y, cx, cy, expected_xml
+
+    def it_exposes_the_dgm_relIds_child_for_a_SmartArt_graphicData(self):
+        graphicData = element(
+            "a:graphicData{uri=%s}/dgm:relIds{r:dm=rId2,r:lo=rId3,r:qs=rId4,r:cs=rId5}"
+            % SMART_ART_URI
+        )
+        relIds = graphicData.dgm_relIds
+        assert isinstance(relIds, CT_DgmRelIds)
+        assert relIds.dm_rId == "rId2"
+        assert relIds.lo_rId == "rId3"
+        assert relIds.qs_rId == "rId4"
+        assert relIds.cs_rId == "rId5"
+
+    def but_dgm_relIds_is_None_for_non_SmartArt_graphicData(self):
+        graphicData = element("a:graphicData{uri=%s}" % CHART_URI)
+        assert graphicData.dgm_relIds is None
+
+    def and_dgm_relIds_is_None_when_the_child_element_is_absent(self):
+        graphicData = element("a:graphicData{uri=%s}" % SMART_ART_URI)
+        assert graphicData.dgm_relIds is None
 
     @pytest.fixture
     def new_table_graphicFrame_fixture(self):

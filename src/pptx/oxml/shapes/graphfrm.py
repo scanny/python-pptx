@@ -20,6 +20,7 @@ from pptx.oxml.xmlchemy import (
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_SMART_ART,
     GRAPHIC_DATA_URI_TABLE,
 )
 
@@ -100,6 +101,21 @@ class CT_GraphicalObjectData(BaseShapeElement):
         is False when the `showAsIcon` attribute is omitted on the `p:oleObj` element.
         """
         return None if self._oleObj is None else self._oleObj.showAsIcon
+
+    @property
+    def dgm_relIds(self) -> CT_DgmRelIds | None:
+        """Optional `dgm:relIds` child element carrying the four SmartArt rIds.
+
+        Returns |None| when this `a:graphicData` does not enclose a SmartArt diagram (i.e.
+        when `uri` is not :const:`~pptx.spec.GRAPHIC_DATA_URI_SMART_ART`). The four
+        attributes of `dgm:relIds` (``r:dm``, ``r:lo``, ``r:qs``, ``r:cs``) identify the
+        diagramData, diagramLayout, diagramQuickStyle and diagramColors parts that
+        together define a SmartArt graphic.
+        """
+        if self.uri != GRAPHIC_DATA_URI_SMART_ART:
+            return None
+        relIds = cast("list[CT_DgmRelIds]", self.xpath("./dgm:relIds"))
+        return relIds[0] if relIds else None
 
     @property
     def _oleObj(self) -> CT_OleObject | None:
@@ -322,6 +338,36 @@ class CT_GraphicalObjectFrameNonVisual(BaseOxmlElement):
     )
     nvPr: CT_ApplicationNonVisualDrawingProps = (  # pyright: ignore[reportAssignmentType]
         OneAndOnlyOne("p:nvPr")
+    )
+
+
+class CT_DgmRelIds(BaseOxmlElement):
+    """`dgm:relIds` element, the one child of `a:graphicData` for a SmartArt diagram.
+
+    Carries four relationship-id attributes, one for each of the four SmartArt parts:
+
+    * ``r:dm`` — diagramData (the semantic tree: nodes, text, connections)
+    * ``r:lo`` — diagramLayout (algorithms and shape geometry)
+    * ``r:qs`` — diagramQuickStyle (style variant within the layout)
+    * ``r:cs`` — diagramColors (theme color transform)
+
+    These four rIds are resolved against the slide part's relationships to retrieve the
+    backing diagram parts. Together they constitute a single SmartArt graphic; losing
+    any one renders the diagram invalid, which is why round-trip preservation is a
+    foundation-level concern.
+    """
+
+    dm_rId: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "r:dm", XsdString
+    )
+    lo_rId: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "r:lo", XsdString
+    )
+    qs_rId: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "r:qs", XsdString
+    )
+    cs_rId: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "r:cs", XsdString
     )
 
 

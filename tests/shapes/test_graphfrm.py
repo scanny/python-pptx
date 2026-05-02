@@ -7,15 +7,17 @@ import pytest
 from pptx.chart.chart import Chart
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.opc.package import Part
 from pptx.parts.chart import ChartPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.parts.slide import SlidePart
-from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
+from pptx.shapes.graphfrm import GraphicFrame, SmartArt, _OleFormat
 from pptx.shapes.shapetree import SlideShapes
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_CHARTEX,
     GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_SMART_ART,
     GRAPHIC_DATA_URI_TABLE,
 )
 
@@ -162,6 +164,7 @@ class DescribeGraphicFrame(object):
             (GRAPHIC_DATA_URI_CHARTEX, None, MSO_SHAPE_TYPE.CHART),
             (GRAPHIC_DATA_URI_OLEOBJ, "embed", MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT),
             (GRAPHIC_DATA_URI_OLEOBJ, "link", MSO_SHAPE_TYPE.LINKED_OLE_OBJECT),
+            (GRAPHIC_DATA_URI_SMART_ART, None, MSO_SHAPE_TYPE.IGX_GRAPHIC),
             (GRAPHIC_DATA_URI_TABLE, None, MSO_SHAPE_TYPE.TABLE),
             ("foobar", None, None),
         ),
@@ -173,6 +176,43 @@ class DescribeGraphicFrame(object):
             else "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % uri
         )
         assert GraphicFrame(graphicFrame, None).shape_type is expected_value
+
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, False),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
+            (GRAPHIC_DATA_URI_SMART_ART, True),
+            (GRAPHIC_DATA_URI_TABLE, False),
+        ),
+    )
+    def it_knows_whether_it_contains_SmartArt(self, graphicData_uri, expected_value):
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
+        assert GraphicFrame(graphicFrame, None).has_smart_art is expected_value
+
+    def it_provides_access_to_a_SmartArt_object(self, request):
+        smart_art_ = instance_mock(request, SmartArt)
+        SmartArt_ = class_mock(
+            request, "pptx.shapes.graphfrm.SmartArt", return_value=smart_art_
+        )
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_SMART_ART
+        )
+        parent_ = instance_mock(request, SlideShapes)
+        graphic_frame = GraphicFrame(graphicFrame, parent_)
+
+        smart_art = graphic_frame.smart_art
+
+        SmartArt_.assert_called_once_with(graphicFrame.graphicData, parent_)
+        assert smart_art is smart_art_
+
+    def but_it_raises_on_smart_art_when_not_a_SmartArt_shape(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_TABLE
+        )
+        with pytest.raises(ValueError) as e:
+            GraphicFrame(graphicFrame, None).smart_art
+        assert str(e.value) == "shape does not contain SmartArt"
 
     # fixture components ---------------------------------------------
 
@@ -215,3 +255,70 @@ class Describe_OleFormat(object):
     def it_knows_whether_to_show_the_OLE_object_as_an_icon(self):
         graphicData = element("a:graphicData/p:oleObj{showAsIcon=1}")
         assert _OleFormat(graphicData, None).show_as_icon is True
+
+
+class DescribeSmartArt(object):
+    """Unit-test suite for `pptx.shapes.graphfrm.SmartArt` object."""
+
+    @pytest.mark.parametrize(
+        "attr, rId_attr, rId_value",
+        (
+            ("data_xml", "r:dm", "rId2"),
+            ("layout_xml", "r:lo", "rId3"),
+            ("colors_xml", "r:cs", "rId5"),
+            ("quick_style_xml", "r:qs", "rId4"),
+        ),
+    )
+    def it_provides_read_only_access_to_each_of_the_four_SmartArt_parts(
+        self, request, attr, rId_attr, rId_value
+    ):
+        diagram_part_ = instance_mock(request, Part, blob=b"<dgm:payload/>")
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.return_value = diagram_part_
+        property_mock(request, SmartArt, "part", return_value=slide_part_)
+        graphicData = element(
+            "a:graphicData{uri=%s}/dgm:relIds{%s=%s}"
+            % (GRAPHIC_DATA_URI_SMART_ART, rId_attr, rId_value)
+        )
+
+        value = getattr(SmartArt(graphicData, None), attr)
+
+        slide_part_.related_part.assert_called_once_with(rId_value)
+        assert value == b"<dgm:payload/>"
+
+    @pytest.mark.parametrize(
+        "attr", ("data_xml", "layout_xml", "colors_xml", "quick_style_xml")
+    )
+    def but_it_returns_None_when_the_dgm_relIds_element_is_missing(self, attr):
+        graphicData = element(
+            "a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_SMART_ART
+        )
+        assert getattr(SmartArt(graphicData, None), attr) is None
+
+    @pytest.mark.parametrize(
+        "attr, rId_attr",
+        (
+            ("data_xml", "r:dm"),
+            ("layout_xml", "r:lo"),
+            ("colors_xml", "r:cs"),
+            ("quick_style_xml", "r:qs"),
+        ),
+    )
+    def and_it_returns_None_when_the_named_rId_is_absent(self, attr, rId_attr):
+        # -- use a different rId attr so the named one is missing --
+        other_attr = "r:dm" if rId_attr != "r:dm" else "r:lo"
+        graphicData = element(
+            "a:graphicData{uri=%s}/dgm:relIds{%s=rId7}"
+            % (GRAPHIC_DATA_URI_SMART_ART, other_attr)
+        )
+        assert getattr(SmartArt(graphicData, None), attr) is None
+
+    def and_it_returns_None_when_the_rId_cannot_be_resolved(self, request):
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.side_effect = KeyError("rId2")
+        property_mock(request, SmartArt, "part", return_value=slide_part_)
+        graphicData = element(
+            "a:graphicData{uri=%s}/dgm:relIds{r:dm=rId2}" % GRAPHIC_DATA_URI_SMART_ART
+        )
+
+        assert SmartArt(graphicData, None).data_xml is None

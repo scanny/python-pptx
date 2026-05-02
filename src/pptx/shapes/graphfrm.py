@@ -16,6 +16,7 @@ from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_CHARTEX,
     GRAPHIC_DATA_URI_OLEOBJ,
+    GRAPHIC_DATA_URI_SMART_ART,
     GRAPHIC_DATA_URI_TABLE,
 )
 from pptx.table import Table
@@ -105,6 +106,18 @@ class GraphicFrame(BaseShape):
         return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_CHARTEX
 
     @property
+    def has_smart_art(self) -> bool:
+        """|True| if this graphic frame contains a SmartArt diagram, |False| otherwise.
+
+        When |True|, :attr:`smart_art` exposes the four-part SmartArt graphic as raw XML.
+        This is a Foundation-F9 scaffolding capability: SmartArt shapes are *discoverable*
+        and *round-trip-preserved*, but full read/write of the diagram tree, layout, and
+        styling requires the four-part feature work that layers on top of this foundation.
+        See ``docs/dev/analysis/f9-smartart.rst`` for the roadmap.
+        """
+        return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_SMART_ART
+
+    @property
     def has_table(self) -> bool:
         """|True| if this graphic frame contains a table object, |False| otherwise.
 
@@ -139,10 +152,10 @@ class GraphicFrame(BaseShape):
         """Optional member of `MSO_SHAPE_TYPE` identifying the type of this shape.
 
         Possible values are `MSO_SHAPE_TYPE.CHART`, `MSO_SHAPE_TYPE.TABLE`,
-        `MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT`, `MSO_SHAPE_TYPE.LINKED_OLE_OBJECT`.
+        `MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT`, `MSO_SHAPE_TYPE.LINKED_OLE_OBJECT`,
+        `MSO_SHAPE_TYPE.IGX_GRAPHIC` (for SmartArt).
 
-        This value is `None` when none of these four types apply, for example when the shape
-        contains SmartArt.
+        This value is `None` when none of those types apply.
         """
         graphicData_uri = self._graphicFrame.graphicData_uri
         if graphicData_uri in (GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_CHARTEX):
@@ -155,8 +168,26 @@ class GraphicFrame(BaseShape):
                 if self._graphicFrame.is_embedded_ole_obj
                 else MSO_SHAPE_TYPE.LINKED_OLE_OBJECT
             )
+        elif graphicData_uri == GRAPHIC_DATA_URI_SMART_ART:
+            return MSO_SHAPE_TYPE.IGX_GRAPHIC
         else:
             return None  # pyright: ignore[reportReturnType]
+
+    @property
+    def smart_art(self) -> SmartArt:
+        """A |SmartArt| object providing read-only access to this SmartArt diagram's parts.
+
+        Raises |ValueError| if this graphic frame does not contain a SmartArt diagram (i.e.
+        :attr:`has_smart_art` is |False|).
+
+        The returned object exposes the four XML parts that together define a SmartArt
+        graphic (data, layout, colors, quickStyle) as raw-bytes accessors. This is a
+        Foundation-F9 MVP: structured authoring / editing of SmartArt nodes and layout
+        selection is not yet implemented; see ``docs/dev/analysis/f9-smartart.rst``.
+        """
+        if not self.has_smart_art:
+            raise ValueError("shape does not contain SmartArt")
+        return SmartArt(self._graphicFrame.graphicData, self._parent)
 
     @property
     def table(self) -> Table:
@@ -204,3 +235,76 @@ class _OleFormat(ParentedElementProxy):
     def show_as_icon(self) -> bool | None:
         """True when OLE object should appear as an icon (rather than preview)."""
         return self._graphicData.showAsIcon
+
+
+class SmartArt(ParentedElementProxy):
+    """Provides read-only access to the four parts of a SmartArt graphic.
+
+    A SmartArt graphic is defined by four interlinked XML parts referenced from a single
+    ``dgm:relIds`` child of ``a:graphicData``:
+
+    * *diagramData* (``r:dm``) — the semantic node/connection tree (``dgm:dataModel``)
+      plus presentation element index. This is the authoring surface: adding or removing
+      nodes, editing node text, or reordering branches is a diagramData operation.
+    * *diagramLayout* (``r:lo``) — the layout definition (``dgm:layoutDef``) which is the
+      algorithmic program that converts the data tree into positioned shapes. Layouts are
+      usually referenced from the Office-installed library (e.g. "Hierarchy", "Cycle",
+      "Process") rather than authored from scratch.
+    * *diagramColors* (``r:cs``) — a color-variation definition (``dgm:colorsDef``)
+      binding theme color slots to a color transform.
+    * *diagramQuickStyle* (``r:qs``) — the style variation (``dgm:styleDef``) picking fill
+      / line / effect recipes within a layout.
+
+    MVP scope (Foundation-F9): :attr:`data_xml`, :attr:`layout_xml`, :attr:`colors_xml`,
+    and :attr:`quick_style_xml` return the raw bytes of the referenced parts. Each is
+    |None| when the corresponding rId is missing or unresolvable. No structured
+    editing API is provided at this tier; see ``docs/dev/analysis/f9-smartart.rst`` for
+    the per-subsystem roadmap.
+    """
+
+    part: BaseSlidePart  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    def __init__(self, graphicData: CT_GraphicalObjectData, parent: ProvidesPart):
+        super().__init__(graphicData, parent)
+        self._graphicData = graphicData
+
+    @property
+    def colors_xml(self) -> bytes | None:
+        """Raw XML bytes of the diagramColors part, or |None| if unresolvable."""
+        return self._related_blob("cs_rId")
+
+    @property
+    def data_xml(self) -> bytes | None:
+        """Raw XML bytes of the diagramData part, or |None| if unresolvable.
+
+        This is the authoring surface of a SmartArt graphic — the ``dgm:dataModel``
+        element and its tree of ``dgm:pt`` (points / nodes) and ``dgm:cxn`` (connections).
+        """
+        return self._related_blob("dm_rId")
+
+    @property
+    def layout_xml(self) -> bytes | None:
+        """Raw XML bytes of the diagramLayout part, or |None| if unresolvable."""
+        return self._related_blob("lo_rId")
+
+    @property
+    def quick_style_xml(self) -> bytes | None:
+        """Raw XML bytes of the diagramQuickStyle part, or |None| if unresolvable."""
+        return self._related_blob("qs_rId")
+
+    def _related_blob(self, rId_attr: str) -> bytes | None:
+        """Return blob bytes of the part related by the rId carried in `rId_attr`.
+
+        Returns |None| when `dgm:relIds` is absent (non-SmartArt diagram), when the named
+        attribute has no value, or when the relationship cannot be resolved.
+        """
+        relIds = self._graphicData.dgm_relIds
+        if relIds is None:
+            return None
+        rId = getattr(relIds, rId_attr)
+        if rId is None:
+            return None
+        try:
+            return self.part.related_part(rId).blob
+        except KeyError:
+            return None
