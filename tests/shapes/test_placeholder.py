@@ -617,6 +617,68 @@ class DescribeSlidePlaceholder(object):
 
         assert graphicFrame.xml == snippet_seq("placeholders")[1]
 
+    def it_can_insert_a_picture_into_itself(self, request):
+        """#333 — generic content placeholder supports `.insert_picture()`."""
+        pic = element("p:pic")
+        _new_placeholder_pic_ = method_mock(
+            request, SlidePlaceholder, "_new_placeholder_pic", return_value=pic
+        )
+        _replace_placeholder_with_ = method_mock(
+            request, SlidePlaceholder, "_replace_placeholder_with"
+        )
+        placeholder_picture_ = instance_mock(request, PlaceholderPicture)
+        PlaceholderPicture_ = class_mock(
+            request,
+            "pptx.shapes.placeholder.PlaceholderPicture",
+            return_value=placeholder_picture_,
+        )
+        slide_ph = SlidePlaceholder(None, "parent")
+
+        placeholder_picture = slide_ph.insert_picture("foobar.png")
+
+        _new_placeholder_pic_.assert_called_once_with(slide_ph, "foobar.png", crop=True)
+        _replace_placeholder_with_.assert_called_once_with(slide_ph, pic)
+        PlaceholderPicture_.assert_called_once_with(pic, slide_ph._parent)
+        assert placeholder_picture is placeholder_picture_
+
+    def it_can_insert_a_picture_fit_no_crop(self, request):
+        """#333 — `crop=False` on generic content placeholder passes through."""
+        pic = element("p:pic")
+        _new_placeholder_pic_ = method_mock(
+            request, SlidePlaceholder, "_new_placeholder_pic", return_value=pic
+        )
+        method_mock(request, SlidePlaceholder, "_replace_placeholder_with")
+        class_mock(request, "pptx.shapes.placeholder.PlaceholderPicture")
+        slide_ph = SlidePlaceholder(None, "parent")
+
+        slide_ph.insert_picture("foobar.png", crop=False)
+
+        _new_placeholder_pic_.assert_called_once_with(slide_ph, "foobar.png", crop=False)
+
+    def it_can_insert_a_table_into_itself(self, request):
+        """#333 — generic content placeholder supports `.insert_table()`."""
+        graphicFrame = element("p:graphicFrame")
+        _new_placeholder_table_ = method_mock(
+            request, SlidePlaceholder, "_new_placeholder_table", return_value=graphicFrame
+        )
+        _replace_placeholder_with_ = method_mock(
+            request, SlidePlaceholder, "_replace_placeholder_with"
+        )
+        placeholder_graphic_frame_ = instance_mock(request, PlaceholderGraphicFrame)
+        PlaceholderGraphicFrame_ = class_mock(
+            request,
+            "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+            return_value=placeholder_graphic_frame_,
+        )
+        slide_ph = SlidePlaceholder(None, "parent")
+
+        ph_graphic_frame = slide_ph.insert_table(4, 2)
+
+        _new_placeholder_table_.assert_called_once_with(slide_ph, 4, 2)
+        _replace_placeholder_with_.assert_called_once_with(slide_ph, graphicFrame)
+        PlaceholderGraphicFrame_.assert_called_once_with(graphicFrame, slide_ph._parent)
+        assert ph_graphic_frame is placeholder_graphic_frame_
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture

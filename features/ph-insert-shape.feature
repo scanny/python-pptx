@@ -53,6 +53,23 @@ Feature: Insert a shape into a placeholder
       Then the return value is a PlaceholderGraphicFrame object
        And the placeholder contains the chart
        And the chart is a pie chart
+
+
+  Scenario: Insert a picture into a generic content placeholder
+     Given an unpopulated content placeholder shape
+      When I call placeholder.insert_picture('monty-truth.png')
+      Then the return value is a PlaceholderPicture object
+       And the placeholder contains the image
+
+
+  Scenario: Insert a table into a generic content placeholder
+     Given an unpopulated content placeholder shape
+      When I call placeholder.insert_table(rows=2, cols=3)
+      Then the return value is a PlaceholderGraphicFrame object
+       And the placeholder contains the table
+       And the table has 2 rows and 3 columns
+
+
   Scenario: Insert an SVG image into a picture placeholder raises a clear error
      Given an unpopulated picture placeholder shape
       When I call placeholder.insert_picture('logo.svg')
