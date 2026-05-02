@@ -91,6 +91,17 @@ class BaseShape(object):
         cNvPr = self._element._nvXxPr.cNvPr  # pyright: ignore[reportPrivateUsage]
         return ActionSetting(cNvPr, self)
 
+    def delete(self) -> None:
+        """Remove this shape from the slide it appears on.
+
+        The shape's XML element is removed from its parent `p:spTree`. Subclasses may override
+        this method to perform additional cleanup, such as dropping a no-longer-referenced image
+        part for a picture shape.
+
+        Subsequent use of this shape object is undefined; most operations will raise an exception.
+        """
+        self._element.getparent().remove(self._element)
+
     @property
     def element(self) -> ShapeElement:
         """`lxml` element for this shape, e.g. a CT_Shape instance.

@@ -99,6 +99,7 @@ Unreleased
 - fix: #608 Name of placeholder in layout gets reset to placeholder basename when adding slide
 - #68 feature: reorder a slide
 - #67 feature: delete a slide
+- #41 Shape.delete() method
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

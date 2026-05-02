@@ -420,3 +420,15 @@ Feature: Access a shape on a slide
      Then len(slide.shapes) counts the choice-wrapped shape
       And slide.shapes surfaces the choice-wrapped shape by name
       And saving the presentation preserves the mc:Fallback subtree
+  Scenario Outline: BaseShape.delete()
+    Given a <shape_type> object on a slide as shape
+     When I call shape.delete()
+     Then the shape is no longer in the slide
+
+    Examples: Deletable shape types
+      | shape_type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |

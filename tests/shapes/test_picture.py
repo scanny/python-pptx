@@ -240,6 +240,27 @@ class DescribePicture(object):
         slide_part_.get_image.assert_called_once_with(rId)
         assert image is image_
 
+    def it_can_delete_itself_and_drop_its_image_rel(self, part_prop_, slide_part_):
+        spTree = element("p:spTree/(p:sp,p:pic/p:blipFill/a:blip{r:embed=rId7},p:sp)")
+        pic = spTree.xpath("p:pic")[0]
+        picture = Picture(pic, None)
+
+        picture.delete()
+
+        slide_part_.drop_rel.assert_called_once_with("rId7")
+        assert spTree.xpath("p:pic") == []
+        assert len(spTree.xpath("p:sp")) == 2
+
+    def it_can_delete_itself_when_it_has_no_image_rel(self, part_prop_, slide_part_):
+        spTree = element("p:spTree/(p:sp,p:pic/p:blipFill/a:blip,p:sp)")
+        pic = spTree.xpath("p:pic")[0]
+        picture = Picture(pic, None)
+
+        picture.delete()
+
+        slide_part_.drop_rel.assert_not_called()
+        assert spTree.xpath("p:pic") == []
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

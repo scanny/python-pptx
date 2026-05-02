@@ -343,6 +343,12 @@ def when_I_assign_value_to_shape_width(context, value):
     context.shape.width = int(value)
 
 
+@when("I call shape.delete()")
+def when_I_call_shape_delete(context):
+    context.shape_elm_before_delete = context.shape._element
+    context.shape.delete()
+
+
 @when("I call builder.add_line_segments([(100, 25), (25, 100)])")
 def when_I_call_builder_add_line_segments_100_25_25_100(context):
     builder = context.builder
@@ -382,6 +388,16 @@ def when_I_call_name_send_backward(context, name):
 
 
 # then ====================================================
+
+
+@then("the shape is no longer in the slide")
+def then_the_shape_is_no_longer_in_the_slide(context):
+    shape_elm = context.shape_elm_before_delete
+    shapes = context.slide.shapes
+    current_elms = [shape._element for shape in shapes]
+    assert shape_elm not in current_elms, (
+        "Shape element was not removed from slide; found %d shapes" % len(current_elms)
+    )
 
 
 @then("accessing shape.click_action raises TypeError")
