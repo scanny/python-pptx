@@ -15,13 +15,13 @@ Guidance for Claude Code (and other AI assistants) working in this repository.
 
 ### Sibling projects
 
-python-pptx is part of a family of Python libraries for reading/writing Office Open XML formats. Each targets a different Office application but shares the same design philosophy (lxml-backed, no Office install required, round-trip fidelity, src-layout + strict tooling):
+This project is one of a sibling series of OOXML libraries under the loadfix org:
 
-- **python-docx** — Microsoft Word (`.docx`) documents. `scanny/python-docx`.
-- **python-pptx** — Microsoft PowerPoint (`.pptx`) presentations. This repo.
-- **python-xlsx** — Microsoft Excel (`.xlsx`) workbooks. `scanny/python-xlsx`.
+- **loadfix/python-docx** — Word `.docx`
+- **loadfix/python-pptx** — PowerPoint `.pptx`
+- **loadfix/python-xlsx** — Excel `.xlsx`
 
-Patterns and idioms found in this repo often have direct analogues in the siblings — e.g., the `xmlchemy` descriptor layer, part/relationship graph, content-type registration, `get_or_add_*` oxml helpers, and the `Describe*`/`it_*` test-naming convention. Cross-pollinate from sibling repos when a problem here has already been solved there.
+The three libraries share an architectural lineage (three-layer proxy/part/oxml pattern over lxml) and OOXML spec conventions. When implementing a feature that exists across the trio, consult the sibling repos for naming and API-shape precedent.
 
 ---
 
