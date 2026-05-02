@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #246 ``BaseShape.replace_with(other_shape)`` — one-call swap of
+  an existing shape with a just-added replacement. Copies this shape's
+  ``left`` / ``top`` / ``width`` / ``height`` onto ``other_shape``, moves
+  ``other_shape``'s XML into this shape's z-order slot, then deletes this
+  shape (dispatching to subclass ``delete`` so a ``Picture`` still drops
+  its image relationship). Combined with the #41 ``BaseShape.delete()``
+  primitive and ``SlideShapes.add_picture``, this closes the #246 ask:
+  "replace an image while preserving its position". Adds a regression
+  suite ``DescribeIssue246RegressionShapeReplace`` in
+  ``tests/test_issue_246_shape_replace.py`` that round-trips a picture
+  replacement through save + reopen.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

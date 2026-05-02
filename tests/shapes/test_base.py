@@ -422,6 +422,52 @@ class DescribeBaseShape(object):
         assert sps[0] in remaining
         assert sps[2] in remaining
 
+    def it_can_replace_itself_with_another_shape(self):
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/("
+                "p:sp/p:spPr/a:xfrm/(a:off{x=100,y=200},a:ext{cx=300,cy=400}),"
+                "p:sp/p:spPr/a:xfrm/(a:off{x=11,y=22},a:ext{cx=33,cy=44})"
+                ")"
+            ),
+        )
+        old_sp, new_sp = spTree.xpath("p:sp")
+        old_shape = BaseShape(cast("ShapeElement", old_sp), None)
+        new_shape = BaseShape(cast("ShapeElement", new_sp), None)
+
+        old_shape.replace_with(new_shape)
+
+        # -- new_shape now occupies the old_shape's position/size --
+        assert new_shape.left == 100
+        assert new_shape.top == 200
+        assert new_shape.width == 300
+        assert new_shape.height == 400
+        # -- old_shape is gone from the tree, new_shape is in its slot (z-order first) --
+        remaining = spTree.xpath("p:sp")
+        assert len(remaining) == 1
+        assert remaining[0] is new_sp
+        # -- new_shape moved to old_shape's slot (index 0) --
+        assert list(spTree).index(new_sp) == 0
+
+    def it_raises_on_replace_with_self(self):
+        spTree = cast("ShapeElement", element("p:spTree/p:sp/p:spPr"))
+        sp = spTree.xpath("p:sp")[0]
+        shape = BaseShape(cast("ShapeElement", sp), None)
+
+        with pytest.raises(ValueError, match="replace a shape with itself"):
+            shape.replace_with(shape)
+
+    def it_raises_on_replace_when_other_is_unparented(self):
+        spTree = cast("ShapeElement", element("p:spTree/p:sp/p:spPr"))
+        sp = spTree.xpath("p:sp")[0]
+        orphan = cast("ShapeElement", element("p:sp/p:spPr"))
+        old_shape = BaseShape(cast("ShapeElement", sp), None)
+        new_shape = BaseShape(orphan, None)
+
+        with pytest.raises(ValueError, match="other_shape has no parent"):
+            old_shape.replace_with(new_shape)
+
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder
