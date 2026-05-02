@@ -183,6 +183,72 @@ ratio is preserved regardless of the placeholder's aspect ratio.
    The resulting picture takes the position and size of the placeholder,
    exactly as with :meth:`.PicturePlaceholder.insert_picture`.
 
+Check placeholder state before inserting a picture
+..................................................
+
+Calling :meth:`insert_picture` on a placeholder that isn't actually a picture
+placeholder (e.g. a title or body placeholder) will raise |AttributeError| or
+produce a malformed slide. Calling it a *second* time on the same placeholder
+index is also surprising: the first call already replaced the `p:sp`
+placeholder element with a `p:pic` element, so a second call would either fail
+because the original reference is invalidated or, if you re-fetched the
+placeholder by `idx`, replace the existing picture rather than report that the
+slot is already filled.
+
+Guard against both cases before calling :meth:`insert_picture` by checking the
+placeholder's :attr:`~.PlaceholderFormat.type` and its :attr:`shape_type`::
+
+    from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+
+    def insert_picture_if_empty(slide, idx, image_file):
+        """Insert *image_file* into the picture placeholder at *idx*.
+
+        Returns the resulting |PlaceholderPicture|, or |None| if the
+        placeholder is not a picture placeholder or already contains a
+        picture.
+        """
+        placeholder = slide.placeholders.get(idx)
+        if placeholder is None:
+            return None  # no placeholder with that idx
+
+        # ---already populated: shape_type flips from PLACEHOLDER to PICTURE
+        #    once insert_picture has been called on it---
+        if placeholder.shape_type == MSO_SHAPE_TYPE.PICTURE:
+            return None
+
+        # ---only picture-capable placeholders accept insert_picture.
+        #    OBJECT is the generic "content" placeholder that can hold a
+        #    picture, table, chart, or text; PICTURE is the specialized one.---
+        if placeholder.placeholder_format.type not in (
+            PP_PLACEHOLDER.PICTURE,
+            PP_PLACEHOLDER.OBJECT,
+        ):
+            return None
+
+        return placeholder.insert_picture(image_file)
+
+A few notes on the two checks:
+
+* :attr:`shape_type` is the reliable "is this slot already filled with a
+  picture?" test. A pristine placeholder returns
+  ``MSO_SHAPE_TYPE.PLACEHOLDER`` from :attr:`shape_type`; after
+  :meth:`insert_picture` runs, the same slot (accessed by the same `idx`) is
+  a |PlaceholderPicture| whose :attr:`shape_type` is
+  ``MSO_SHAPE_TYPE.PICTURE``. The :attr:`~.PlaceholderFormat.type` of its
+  :attr:`~.BaseShape.placeholder_format` continues to report the original
+  placeholder type (e.g. ``PICTURE`` or ``OBJECT``), so that attribute alone
+  cannot tell you whether the slot is empty.
+* :attr:`~.PlaceholderFormat.type` is how you confirm the placeholder is
+  picture-capable in the first place. A ``TITLE`` or ``BODY`` placeholder,
+  for example, should be populated via its
+  :attr:`~.BaseShape.text_frame`, not via :meth:`insert_picture`.
+
+The same pattern applies before calling :meth:`insert_table` (check for
+``PP_PLACEHOLDER.TABLE`` or ``PP_PLACEHOLDER.OBJECT``, and reject when
+:attr:`shape_type` is ``MSO_SHAPE_TYPE.TABLE``) or :meth:`insert_chart`
+(check for ``PP_PLACEHOLDER.CHART`` or ``PP_PLACEHOLDER.OBJECT``, and reject
+when :attr:`shape_type` is ``MSO_SHAPE_TYPE.CHART``).
+
 .. _inserting-svg-images:
 
 Inserting SVG images
