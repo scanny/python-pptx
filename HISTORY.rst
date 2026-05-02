@@ -35,6 +35,22 @@ Unreleased
   proxy now also reads/writes ``duration`` / ``advance_on_click`` /
   ``advance_after_time`` transparently on a wrapped or direct
   ``p:transition`` element.
+- verify: #400 animation-control umbrella resolved by Foundation F8
+  (``feat/foundation-f8-animations-transitions``) plus the four leaf
+  branches it aggregates — ``feat/issue-102-shape-animation``,
+  ``feat/issue-1106-entrance-exit-animations``,
+  ``feat/issue-264-shape-animation-control``, and
+  ``feat/issue-861-animation-delay``. Adds a regression test
+  (``tests/test_issue_400_animation_umbrella.py``) that exercises the
+  specific flow the #400 reporter asked for: authoring an entrance
+  animation on a shape, round-tripping it through save + reopen,
+  introspecting the animated targets via ``Slide.timing_xml``, and
+  mixing the animation tree with a ``Slide.transition`` without
+  clobbering either subtree. The structured authoring API
+  (``Slide.animations.add_entrance_effect(...)``) is delivered by the
+  four leaves; F8 provides the typed element classes and the
+  ``Slide.has_animations`` / ``Slide.timing_xml`` introspection surface
+  the umbrella pins.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under
