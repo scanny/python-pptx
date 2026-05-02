@@ -9,7 +9,8 @@ from helpers import cls_qname, test_file, test_pptx
 
 from pptx import Presentation
 from pptx.action import ActionSetting
-from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.oxml.ns import qn
 from pptx.util import Emu
 
 # given ===================================================
@@ -66,6 +67,22 @@ def given_a_connector_having_its_end_point_at_x_y(context, x, y):
     prs = Presentation(test_pptx("shp-connector-props"))
     sld = prs.slides[0]
     context.connector = sld.shapes[0]
+
+
+@given("a straight connector")
+def given_a_straight_connector(context):
+    prs = Presentation(test_pptx("shp-connector-props"))
+    # -- slide 1 (index 0) has a `straightConnector1` --
+    context.connector = prs.slides[0].shapes[0]
+
+
+@given("an elbow connector")
+def given_an_elbow_connector(context):
+    prs = Presentation(test_pptx("shp-connector-props"))
+    shapes = prs.slides[0].shapes
+    context.connector = shapes.add_connector(
+        MSO_CONNECTOR.ELBOW, Emu(0), Emu(0), Emu(914400), Emu(914400)
+    )
 
 
 @given("an empty GroupShape object as shape")
@@ -264,6 +281,11 @@ def when_I_assign_value_to_connector_end_y(context, value):
     context.connector.end_y = int(value)
 
 
+@when("I assign {value} to connector.adjustments[{idx}]")
+def when_I_assign_value_to_connector_adjustments_idx(context, value, idx):
+    context.connector.adjustments[int(idx)] = float(value)
+
+
 @when("I assign {value} to picture.crop_{side}")
 def when_I_assign_value_to_picture_crop_side(context, value, side):
     new_value = None if value == "None" else float(value) if "." in value else int(value)
@@ -416,6 +438,33 @@ def then_connector_end_y_is_an_Emu_object_with_value_y(context, y):
     end_y = context.connector.end_y
     assert isinstance(end_y, Emu)
     assert end_y == int(y)
+
+
+@then("len(connector.adjustments) == {value}")
+def then_len_connector_adjustments_eq_value(context, value):
+    actual = len(context.connector.adjustments)
+    assert actual == int(value), "expected %d, got %d" % (int(value), actual)
+
+
+@then("connector.adjustments[{idx}] == {value}")
+def then_connector_adjustments_idx_eq_value(context, idx, value):
+    actual = context.connector.adjustments[int(idx)]
+    expected = float(value)
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("the connector has an `a:gd` with name '{name}' and fmla '{fmla}'")
+def then_connector_has_an_a_gd_with_name_and_fmla(context, name, fmla):
+    cxnSp = context.connector._element  # pyright: ignore[reportPrivateUsage]
+    prstGeom = cxnSp.spPr.prstGeom
+    assert prstGeom is not None
+    gds = prstGeom.findall(qn("a:avLst") + "/" + qn("a:gd"))
+    for gd in gds:
+        if gd.get("name") == name and gd.get("fmla") == fmla:
+            return
+    raise AssertionError(
+        "no matching a:gd found; present gds: %r" % [(gd.get("name"), gd.get("fmla")) for gd in gds]
+    )
 
 
 @then("group_shape.shapes is a GroupShapes object")

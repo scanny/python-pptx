@@ -6,8 +6,9 @@ import pytest
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.shapes.autoshape import Adjustment
 from pptx.shapes.base import BaseShape
-from pptx.shapes.connector import Connector
+from pptx.shapes.connector import Connector, ConnectorAdjustmentCollection
 from pptx.util import Emu
 
 from ..unitutil.cxml import element, xml
@@ -86,6 +87,25 @@ class DescribeConnector(object):
         # exercise line to test parent interface, .ln and .get_or_add_ln()
         line.width = 91440
         assert line.width == 91440
+
+    def it_provides_access_to_its_adjustments(self):
+        cxnSp = element("p:cxnSp/p:spPr/a:prstGeom{prst=bentConnector3}/a:avLst")
+        connector = Connector(cxnSp, None)
+
+        adjustments = connector.adjustments
+
+        assert isinstance(adjustments, ConnectorAdjustmentCollection)
+        # -- same instance returned by lazyproperty --
+        assert connector.adjustments is adjustments
+        # -- bentConnector3 has one adjustment with default value 50000 (0.5) --
+        assert len(adjustments) == 1
+        assert adjustments[0] == 0.5
+
+    def it_provides_an_empty_adjustments_collection_for_a_straight_connector(self):
+        cxnSp = element("p:cxnSp/p:spPr/a:prstGeom{prst=line}/a:avLst")
+        connector = Connector(cxnSp, None)
+
+        assert len(connector.adjustments) == 0
 
     def it_knows_its_shape_type(self):
         assert Connector(None, None).shape_type == MSO_SHAPE_TYPE.LINE
@@ -425,3 +445,127 @@ class DescribeConnector(object):
     @pytest.fixture
     def shape_(self, request):
         return instance_mock(request, BaseShape)
+
+
+class DescribeConnectorAdjustmentCollection(object):
+    """Unit-test suite for `pptx.shapes.connector.ConnectorAdjustmentCollection`."""
+
+    @pytest.mark.parametrize(
+        ("prst", "expected_count"),
+        [
+            # -- zero-adjustment connector presets --
+            ("line", 0),
+            ("straightConnector1", 0),
+            ("bentConnector2", 0),
+            ("curvedConnector2", 0),
+            # -- one-adjustment connector presets --
+            ("bentConnector3", 1),
+            ("curvedConnector3", 1),
+            # -- two-adjustment connector presets --
+            ("bentConnector4", 2),
+            ("curvedConnector4", 2),
+            # -- three-adjustment connector presets --
+            ("bentConnector5", 3),
+            ("curvedConnector5", 3),
+        ],
+    )
+    def it_knows_how_many_adjustments_its_preset_has(self, prst: str, expected_count: int):
+        prstGeom = element(f"a:prstGeom{{prst={prst}}}/a:avLst")
+
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        assert len(adjustments) == expected_count
+
+    def it_returns_an_empty_collection_when_prstGeom_is_None(self):
+        adjustments = ConnectorAdjustmentCollection(None)
+        assert len(adjustments) == 0
+
+    def it_returns_an_empty_collection_for_an_unrecognized_connector_prst(self):
+        """Future-proof: a connector prst not in our defaults table must not raise."""
+        prstGeom = element("a:prstGeom{prst=mysteryConnector7}/a:avLst")
+
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        assert len(adjustments) == 0
+
+    def it_uses_the_preset_default_when_avLst_has_no_gd_children(self):
+        prstGeom = element("a:prstGeom{prst=bentConnector3}/a:avLst")
+
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        # -- bentConnector3 default adj1 = 50000 -> 0.5 --
+        assert adjustments[0] == 0.5
+        assert adjustments._adjustments[0].actual is None
+
+    def it_loads_actuals_from_avLst_gd_children(self):
+        prstGeom = element(
+            "a:prstGeom{prst=bentConnector5}/a:avLst/"
+            "(a:gd{name=adj1,fmla=val 25000},a:gd{name=adj2,fmla=val 33333},"
+            "a:gd{name=adj3,fmla=val 75000})"
+        )
+
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        assert adjustments[0] == 0.25
+        assert adjustments[1] == pytest.approx(0.33333)
+        assert adjustments[2] == 0.75
+
+    def it_ignores_gd_children_that_do_not_match_a_preset_adjustment(self):
+        prstGeom = element(
+            "a:prstGeom{prst=bentConnector3}/a:avLst/"
+            "(a:gd{name=adj1,fmla=val 40000},a:gd{name=bogus,fmla=val 99999})"
+        )
+
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        assert len(adjustments) == 1
+        assert adjustments[0] == 0.4
+
+    def it_raises_on_bad_index(self):
+        prstGeom = element("a:prstGeom{prst=bentConnector3}/a:avLst")
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        with pytest.raises(IndexError):
+            adjustments[5]
+        with pytest.raises(IndexError):
+            adjustments[5] = 0.5
+
+    def it_raises_on_assigned_bad_value(self):
+        prstGeom = element("a:prstGeom{prst=bentConnector3}/a:avLst")
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        with pytest.raises(ValueError, match="adjustment value must be numeric"):
+            adjustments[0] = "not-a-number"
+
+    def it_writes_all_adj_values_to_xml_on_assignment(self):
+        prstGeom = element("a:prstGeom{prst=bentConnector5}/a:avLst")
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        adjustments[1] = 0.2
+
+        expected = xml(
+            "a:prstGeom{prst=bentConnector5}/a:avLst/(a:gd{name=adj1,fmla=val 50000},"
+            "a:gd{name=adj2,fmla=val 20000},a:gd{name=adj3,fmla=val 50000})"
+        )
+        assert prstGeom.xml == expected
+
+    def it_round_trips_an_assignment(self):
+        prstGeom = element("a:prstGeom{prst=curvedConnector3}/a:avLst")
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        adjustments[0] = 0.125
+
+        assert adjustments[0] == 0.125
+        # -- a fresh collection reading the same element should see the value --
+        assert ConnectorAdjustmentCollection(prstGeom)[0] == 0.125
+
+    def it_exposes_its_adjustments_as_Adjustment_instances(self):
+        prstGeom = element("a:prstGeom{prst=bentConnector3}/a:avLst")
+        adjustments = ConnectorAdjustmentCollection(prstGeom)
+
+        items = adjustments._adjustments
+
+        assert isinstance(items, tuple)
+        assert all(isinstance(a, Adjustment) for a in items)
+        assert items[0].name == "adj1"
+        assert items[0].def_val == 50000

@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #946 Connector.adjustments for elbow/curved connectors
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

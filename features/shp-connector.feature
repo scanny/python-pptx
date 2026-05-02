@@ -81,3 +81,21 @@ Feature: Connector properties and methods
   Scenario: Connector.line
     Given a Connector object as shape
      Then shape.line is a LineFormat object
+
+
+  Scenario: Connector.adjustments on a straight connector is empty
+    Given a straight connector
+     Then len(connector.adjustments) == 0
+
+
+  Scenario: Connector.adjustments reflects elbow connector defaults
+    Given an elbow connector
+     Then len(connector.adjustments) == 1
+      And connector.adjustments[0] == 0.5
+
+
+  Scenario: Connector.adjustments setter persists to XML
+    Given an elbow connector
+     When I assign 0.25 to connector.adjustments[0]
+     Then connector.adjustments[0] == 0.25
+      And the connector has an `a:gd` with name 'adj1' and fmla 'val 25000'
