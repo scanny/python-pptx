@@ -140,3 +140,25 @@ behavior is desired.
    .. attribute:: version
 
       *string* -- free-form version string
+
+
+Extended (application) properties
+---------------------------------
+
+The *extended-properties* part (``/docProps/app.xml``) contains
+application-level metadata about the presentation, including a ``<Slides>``
+element that records the total slide count. Several downstream consumers,
+notably Gmail's attachment-preview feature and various third-party
+thumbnail / HTML renderers, refuse to render the presentation when
+``<Slides>`` disagrees with the actual number of slides.
+
+|pp| automatically recomputes and writes the ``<Slides>`` count on each
+:meth:`Presentation.save` call, using the length of the internal
+``sldIdLst``. If the package has no extended-properties part (uncommon;
+the default template includes one), a minimal part with only the
+``<Slides>`` element is added.
+
+This behavior is intentionally transparent — there is no public API to
+opt out, and the other application-level fields (``<Application>``,
+``<Company>``, ``<TitlesOfParts>``, …) are left untouched if present and
+are not populated if absent.

@@ -27,6 +27,7 @@ _nsmap = {
     "sl": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout",
     "v": "urn:schemas-microsoft-com:vml",
     "ve": "http://schemas.openxmlformats.org/markup-compatibility/2006",
+    "vt": "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
     "w10": "urn:schemas-microsoft-com:office:word",
     "wne": "http://schemas.microsoft.com/office/word/2006/wordml",
