@@ -25,6 +25,15 @@ Unreleased
   ``theme1.xml``) as well as the PowerPoint version, so the reliable
   workflow for hitting a specific visual is to set the style in PowerPoint
   and read back ``Chart.chart_style`` to learn the integer to use in code.
+- docs: #584 Save as PDF — close as out-of-scope (rendering requires a layout
+  engine / font rasterizer python-pptx does not ship; same disposition as
+  #1049 PPT → MP4). Extend the "Rendering to video, PDF, or image formats"
+  section of the user guide to call out PDF export explicitly and point at
+  the same integration paths (``libreoffice --headless --convert-to pdf``,
+  PowerPoint COM automation, Aspose.Slides, python-pptx-interface) already
+  documented for MP4 / PNG rendering, and add a
+  ``rendering-to-pdf-video-or-image-formats`` cross-reference label so other
+  sections can link here.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

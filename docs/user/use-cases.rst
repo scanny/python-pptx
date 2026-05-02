@@ -22,20 +22,26 @@ presentation, for example. As you come up with applications I'd love to hear
 about them.
 
 
+.. _rendering-to-pdf-video-or-image-formats:
+
 Rendering to video, PDF, or image formats
 -----------------------------------------
 
-A recurring request (see for example `issue #1049
-<https://github.com/scanny/python-pptx/issues/1049>`_) is for python-pptx to
-export a deck to MP4, PDF, PNG, or similar "rendered" outputs. **python-pptx
-does not render slides.** The library reads and writes the ``.pptx``
+A recurring request — whether phrased as "save the deck as PDF" (`issue #584
+<https://github.com/scanny/python-pptx/issues/584>`_), "export to MP4"
+(`issue #1049 <https://github.com/scanny/python-pptx/issues/1049>`_), or
+"render a slide as PNG" — is for python-pptx to produce a rendered
+output from a deck it has generated. **python-pptx does not render slides.**
+The library reads and writes the ``.pptx``
 `Open XML <https://learn.microsoft.com/openspecs/office_standards/ms-offcrypto/>`_
 package — it manipulates the XML, images, and other parts that make up the
 file, but it has no layout engine, no font rasterizer, and no media encoder.
-Producing an MP4 (or PDF, PNG, HTML, etc.) from a deck requires a separate
+Producing a PDF (or MP4, PNG, HTML, etc.) from a deck requires a separate
 *rendering* application — typically PowerPoint itself or a compatible clone
 such as LibreOffice Impress — and rendering is explicitly out of scope for
-this library.
+this library. PDF export in particular is the single most-requested rendered
+format; the same integration points apply whether the target is PDF, MP4,
+or an image sequence.
 
 If you need to produce rendered output from a deck that python-pptx has
 generated, the usual pattern is to build the ``.pptx`` with python-pptx and
