@@ -89,6 +89,59 @@ class DescribeTable(object):
         table.notify_height_changed()
         assert table._graphic_frame.height == expected_height
 
+    @pytest.mark.parametrize(
+        ("tbl_cxml", "expected_value"),
+        [
+            ("a:tbl/a:tblGrid", None),
+            ("a:tbl/(a:tblPr,a:tblGrid)", None),
+            (
+                'a:tbl/(a:tblPr/a:tableStyleId"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",a:tblGrid)',
+                "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",
+            ),
+        ],
+    )
+    def it_knows_its_style_id(self, tbl_cxml, expected_value):
+        table = Table(element(tbl_cxml), None)
+        assert table.style_id == expected_value
+
+    @pytest.mark.parametrize(
+        ("tbl_cxml", "new_value", "expected_tbl_cxml"),
+        [
+            # ---assigning a GUID to a bare tbl adds tblPr and tableStyleId---
+            (
+                "a:tbl/a:tblGrid",
+                "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",
+                'a:tbl/(a:tblPr/a:tableStyleId"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",a:tblGrid)',
+            ),
+            # ---assigning a GUID to a tblPr without tableStyleId adds the child---
+            (
+                "a:tbl/(a:tblPr,a:tblGrid)",
+                "{2D5ABB26-0587-4C30-8999-92F81FD0307C}",
+                'a:tbl/(a:tblPr/a:tableStyleId"{2D5ABB26-0587-4C30-8999-92F81FD0307C}",a:tblGrid)',
+            ),
+            # ---assigning a GUID overwrites existing tableStyleId text---
+            (
+                'a:tbl/(a:tblPr/a:tableStyleId"{OLD-ID}",a:tblGrid)',
+                "{NEW-ID}",
+                'a:tbl/(a:tblPr/a:tableStyleId"{NEW-ID}",a:tblGrid)',
+            ),
+            # ---assigning None removes the tableStyleId child (leaves tblPr)---
+            (
+                'a:tbl/(a:tblPr/a:tableStyleId"{SOME-ID}",a:tblGrid)',
+                None,
+                "a:tbl/(a:tblPr,a:tblGrid)",
+            ),
+            # ---assigning None to a tbl without tblPr is a no-op---
+            ("a:tbl/a:tblGrid", None, "a:tbl/a:tblGrid"),
+        ],
+    )
+    def it_can_change_its_style_id(self, tbl_cxml, new_value, expected_tbl_cxml):
+        table = Table(element(tbl_cxml), None)
+
+        table.style_id = new_value
+
+        assert table._tbl.xml == xml(expected_tbl_cxml)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

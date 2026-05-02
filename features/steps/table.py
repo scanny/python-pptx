@@ -137,6 +137,11 @@ def when_I_assign_table_last_row_eq_True(context):
     context.table_.last_row = True
 
 
+@when("I assign table.style_id = {value}")
+def when_I_assign_table_style_id_eq_value(context, value):
+    context.table_.style_id = eval(value)
+
+
 @when("I assign table.vert_banding = True")
 def when_I_assign_table_vert_banding_eq_True(context):
     context.table_.vert_banding = True
@@ -323,6 +328,13 @@ def then_table_rows_is_a_type_object(context, type_name):
     actual = type(context.table_.rows).__name__
     expected = type_name
     assert actual == expected, "table.rows is a %s object" % actual
+
+
+@then("table.style_id is {value}")
+def then_table_style_id_is_value(context, value):
+    actual = context.table_.style_id
+    expected = eval(value)
+    assert actual == expected, "table.style_id is %r" % (actual,)
 
 
 @then("table.vert_banding is {bool_lit}")

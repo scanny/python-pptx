@@ -124,6 +124,11 @@ Unreleased
 - Add #126 read-only access to OMML equations via
   ``Shape.has_math_equation`` and ``Shape.math_equation_xml``. Writing
   equations and LaTeX/MathML conversion remain deferred.
+- feat: #27 apply table styles. Adds ``Table.style_id`` read/write property
+  exposing the GUID stored in ``a:tblPr/a:tableStyleId``. The typed,
+  by-name API for selecting built-in PowerPoint table styles is deferred to
+  a follow-up release; assignment of unknown GUIDs is not validated against
+  the ``tableStyles.xml`` part.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

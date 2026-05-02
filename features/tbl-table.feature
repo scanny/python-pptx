@@ -60,6 +60,20 @@ Feature: Table properties and methods
       Then len(table.rows) == 3
        And the new row has two cells
        And the new row height equals the prior last row height
+  Scenario: Table.style_id getter
+     Given a 2x2 Table object as table
+      Then table.style_id is "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"
+
+
+  Scenario Outline: Table.style_id setter
+     Given a 2x2 Table object as table
+      When I assign table.style_id = <value>
+      Then table.style_id is <expected>
+
+    Examples: assigned values
+      | value                                    | expected                                 |
+      | "{2D5ABB26-0587-4C30-8999-92F81FD0307C}" | "{2D5ABB26-0587-4C30-8999-92F81FD0307C}" |
+      | None                                     | None                                     |
 
 
   Scenario: Table.vert_banding setter
