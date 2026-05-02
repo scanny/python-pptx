@@ -6,6 +6,12 @@ Release History
 Unreleased
 ++++++++++
 
+- #305 funnel chart: design analysis (F4-pending). Adds
+  ``docs/dev/analysis/chartex-funnel.rst`` covering the ``cx:plotArea``
+  subset, ``cx:series`` with ``layoutId="funnel"``, and the cached-data
+  structure a funnel chart writer must emit. Documents the issue as
+  blocked on full F4 (chartex foundation) with a concrete
+  unblock-and-ship checklist.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

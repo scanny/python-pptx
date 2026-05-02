@@ -155,6 +155,7 @@ Package
    enumerations
    opc-rel-cloner
    chartex-foundation
+   chartex-funnel
 
 
 Major discovery sources
