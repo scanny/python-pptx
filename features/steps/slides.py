@@ -610,3 +610,95 @@ def then_destination_master_layout_count_unchanged(context):
     assert after == context.before_count, (
         "before=%d after=%d" % (context.before_count, after)
     )
+
+
+# --- #413 same-master SlideMaster.add_layout -------------------
+
+
+@given("a Presentation with a default slide master")
+def given_a_presentation_with_a_default_slide_master_413(context):
+    # -- Fresh presentation → one master with 11 default layouts --
+    context.prs = Presentation()
+    context.master = context.prs.slide_masters[0]
+    context.before_count = len(context.master.slide_layouts)
+
+
+@when('I call master.add_layout("Scoreboard")')
+def when_I_call_master_add_layout_blank_413(context):
+    context.new_layout = context.master.add_layout("Scoreboard")
+
+
+@when('I call master.add_layout("Cloned Title", based_on=layouts[0])')
+def when_I_call_master_add_layout_based_on_413(context):
+    basis = context.master.slide_layouts[0]
+    context.new_layout = context.master.add_layout("Cloned Title", based_on=basis)
+
+
+@when("I call master.add_layout() with a name that already exists")
+def when_I_call_master_add_layout_colliding_413(context):
+    # -- "Blank" is a standard default layout name, guaranteed present --
+    existing_name = context.master.slide_layouts[0].name
+    context.target_master = context.master  # -- reuse the common "count unchanged" step --
+    try:
+        context.master.add_layout(existing_name)
+    except ValueError as exc:
+        context.raised_value_error = exc
+    else:
+        context.raised_value_error = None
+
+
+@then("the master has one more layout")
+def then_master_has_one_more_layout_413(context):
+    after = len(context.master.slide_layouts)
+    assert after == context.before_count + 1, (
+        "before=%d after=%d" % (context.before_count, after)
+    )
+
+
+@then('the new layout\'s name is "Scoreboard"')
+def then_new_layout_name_is_scoreboard(context):
+    assert context.new_layout.name == "Scoreboard", context.new_layout.name
+
+
+@then('the new layout\'s name is "Cloned Title"')
+def then_new_layout_name_is_cloned_title(context):
+    assert context.new_layout.name == "Cloned Title", context.new_layout.name
+
+
+@then("the new layout has no placeholders")
+def then_new_layout_has_no_placeholders(context):
+    count = len(context.new_layout.placeholders)
+    assert count == 0, "expected 0 placeholders, got %d" % count
+
+
+@then("the new layout has at least one placeholder")
+def then_new_layout_has_at_least_one_placeholder(context):
+    count = len(context.new_layout.placeholders)
+    assert count >= 1, "expected >= 1 placeholders, got %d" % count
+
+
+@then("the new layout's slide_master is that master")
+def then_new_layout_slide_master_is_that_master(context):
+    assert context.new_layout.slide_master is context.master
+
+
+@then("a slide can be added using the new layout")
+def then_slide_can_be_added_using_the_new_layout(context):
+    # -- exercise the most common use-case for a new layout: bind a slide to it. --
+    slide = context.prs.slides.add_slide(context.new_layout)
+    assert slide.slide_layout is context.new_layout
+
+
+@then("the presentation round-trips cleanly after add_layout")
+def then_presentation_round_trips_after_add_layout(context):
+    from io import BytesIO
+
+    buf = BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    master = reopened.slide_masters[0]
+    layout = master.slide_layouts.get_by_name("Scoreboard")
+    assert layout is not None, "new layout not found after reopen"
+    # -- the reopened layout can still bind a new slide --
+    reopened.slides.add_slide(layout)

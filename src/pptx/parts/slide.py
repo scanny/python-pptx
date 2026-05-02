@@ -618,6 +618,32 @@ class SlideLayoutPart(BaseSlidePart):
     """
 
     @classmethod
+    def new_blank(
+        cls,
+        partname: PackURI,
+        package: Package,
+        slide_master_part: SlideMasterPart,
+        name: str,
+    ) -> SlideLayoutPart:
+        """Return a new blank |SlideLayoutPart| related to `slide_master_part`.
+
+        The new layout part carries a minimal ``p:sldLayout`` tree with no
+        placeholders (backing the :meth:`SlideMaster.add_layout` "create a
+        brand-new layout" path of issue #413). It is pre-related to
+        `slide_master_part` via a fresh ``SLIDE_MASTER`` relationship so the
+        theme / color-map / font-scheme inheritance works on the first access.
+        The caller is responsible for appending a ``p:sldLayoutId`` entry on
+        the master's ``p:sldLayoutIdLst``.
+        """
+        from pptx.oxml.slide import CT_SlideLayout
+
+        new_layout_part = cls(
+            partname, CT.PML_SLIDE_LAYOUT, package, CT_SlideLayout.new_blank(name)
+        )
+        new_layout_part.relate_to(slide_master_part, RT.SLIDE_MASTER)
+        return new_layout_part
+
+    @classmethod
     def clone_from(
         cls,
         source_layout_part: SlideLayoutPart,
@@ -733,6 +759,36 @@ class SlideMasterPart(BaseSlidePart):
         new_layout_part = SlideLayoutPart.clone_from(
             source_layout_part, partname, self._package, self
         )
+        rId = self.relate_to(new_layout_part, RT.SLIDE_LAYOUT)
+        return rId, new_layout_part.slide_layout
+
+    def add_layout(self, name: str, based_on: SlideLayout | None = None) -> tuple[str, SlideLayout]:
+        """Return ``(rId, slide_layout)`` for a newly created layout on this master.
+
+        When `based_on` is |None|, the new layout is built from a minimal
+        blank template (no placeholders, color-map inherited from this
+        master). When `based_on` is a |SlideLayout| belonging to this
+        master, its XML is deep-cloned as the starting point for the new
+        layout — the same machinery used by :meth:`add_layout_from`, but
+        the image / hyperlink / other relationship fan-out is short-circuited
+        because the source and destination live in the same package.
+
+        The new layout's ``p:cSld/@name`` is set to `name`. The caller is
+        responsible for appending a ``p:sldLayoutId`` entry on this master's
+        ``p:sldLayoutIdLst`` (the high-level :meth:`SlideMaster.add_layout`
+        method does this).
+        """
+        partname = self._package.next_partname("/ppt/slideLayouts/slideLayout%d.xml")
+        if based_on is None:
+            new_layout_part = SlideLayoutPart.new_blank(partname, self._package, self, name)
+        else:
+            new_layout_part = SlideLayoutPart.clone_from(
+                based_on.part, partname, self._package, self
+            )
+            # -- override the cloned `p:cSld/@name` with the caller-supplied name
+            # -- so the new layout has a distinct identity (per-master names are
+            # -- unique; see the collision guard in SlideMaster.add_layout).
+            new_layout_part._element.cSld.name = name
         rId = self.relate_to(new_layout_part, RT.SLIDE_LAYOUT)
         return rId, new_layout_part.slide_layout
 

@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #413 Add :meth:`.SlideMaster.add_layout` — create a brand-new
+  slide layout on an existing master. This is the same-master cousin of
+  :meth:`.SlideMaster.add_layout_from` (shipped for #1028 to *import*
+  a layout from a different master) and mirrors the *Insert Layout*
+  action exposed by PowerPoint's *Slide Master* view. The caller supplies
+  a ``name`` (required, unique within the master) and optionally a
+  ``based_on`` layout on *this* master to seed the new layout from.
+  With ``based_on=None`` the new layout is built from a minimal blank
+  template (``@type="cust"``, no placeholders, a
+  ``p:clrMapOvr/a:masterClrMapping`` so the color map inherits from the
+  master). A fresh ``p:sldLayoutId`` entry is appended to the master's
+  ``p:sldLayoutIdLst`` with a newly-allocated id. Raises
+  :class:`ValueError` on a name collision, on an empty name, or when
+  ``based_on`` belongs to a different master (use
+  :meth:`.SlideMaster.add_layout_from` for cross-master import). The
+  supporting ``SlideLayoutPart.new_blank`` class method and
+  ``CT_SlideLayout.new_blank`` oxml factory are reusable building blocks
+  for code that needs a minimal custom-layout XML scaffold.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

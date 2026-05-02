@@ -299,6 +299,59 @@ so the target keeps its layout list intact while gaining the content of
 every merged deck.
 
 
+Adding a brand-new layout to an existing master
+-----------------------------------------------
+
+:meth:`.SlideMaster.add_layout` creates a fresh slide layout on an existing
+master -- the same operation PowerPoint's *Slide Master* view exposes
+through *Insert Layout*. It addresses the workflow tracked by issue #413:
+you want a new layout kind on *this* deck's master without importing it
+from somewhere else. ``add_layout`` is the same-master cousin of
+:meth:`.SlideMaster.add_layout_from` (which imports a layout from a
+*different* master)::
+
+    from pptx import Presentation
+
+    prs = Presentation()
+    master = prs.slide_masters[0]
+
+    # -- the simplest form: a truly empty custom layout with no placeholders --
+    scoreboard = master.add_layout("Scoreboard")
+
+    # -- a slide can now inherit from the new layout --
+    slide = prs.slides.add_slide(scoreboard)
+    prs.save("deck.pptx")
+
+The ``name`` argument is required; it is persisted on the new layout's
+``p:cSld/@name`` and is the value :meth:`~.SlideLayouts.get_by_name` and
+the PowerPoint UI show. It must be unique within the master's layouts --
+``add_layout`` raises :class:`ValueError` on a name collision.
+
+Pass ``based_on`` to seed the new layout from another layout on *this*
+master; the shape tree, placeholders, and geometry of the basis layout
+are deep-cloned onto the new layout, then the new layout's name is set
+to the caller-supplied ``name``. This is the quickest way to produce a
+customized variant of an existing layout::
+
+    # -- start from the "Title Slide" layout and adapt it --
+    title_layout = master.slide_layouts.get_by_name("Title Slide")
+    branded = master.add_layout("Title Slide - Branded", based_on=title_layout)
+
+    # -- tweak the clone without touching the original --
+    for ph in branded.placeholders:
+        ph.left = ph.left + 500000   # shift every placeholder to the right
+
+The default ``based_on=None`` path produces a minimal layout with
+``@type="cust"``, no placeholders, and a ``p:clrMapOvr/a:masterClrMapping``
+element so the color map inherits from the master; both forms relate the
+new layout part to *this* master (so it picks up the master's theme,
+fonts, and color scheme) and append a fresh ``p:sldLayoutId`` entry.
+
+``based_on`` must belong to the same master ``add_layout`` is called on;
+use :meth:`.SlideMaster.add_layout_from` to clone a layout from a
+*different* master into this one.
+
+
 Header, footer, slide number, and date placeholders
 ---------------------------------------------------
 

@@ -951,3 +951,115 @@ class DescribeSlideMasterPart(object):
         )
         assert rId == "rIdX"
         assert new_layout is new_layout_
+
+    def it_can_add_a_fresh_blank_layout(self, request):
+        """add_layout(name) creates a new blank layout via SlideLayoutPart.new_blank."""
+        package_ = instance_mock(request, Package)
+        package_.next_partname.return_value = PackURI("/ppt/slideLayouts/slideLayout13.xml")
+        new_layout_ = instance_mock(request, SlideLayout)
+        new_layout_part_ = instance_mock(request, SlideLayoutPart, slide_layout=new_layout_)
+        new_blank_ = method_mock(
+            request,
+            SlideLayoutPart,
+            "new_blank",
+            return_value=new_layout_part_,
+            autospec=False,
+        )
+        relate_to_ = method_mock(
+            request, SlideMasterPart, "relate_to", return_value="rIdY", autospec=True
+        )
+        slide_master_part = SlideMasterPart(
+            PackURI("/ppt/slideMasters/slideMaster1.xml"),
+            CT.PML_SLIDE_MASTER,
+            package_,
+            None,
+        )
+
+        rId, new_layout = slide_master_part.add_layout("Fresh Blank")
+
+        package_.next_partname.assert_called_once_with("/ppt/slideLayouts/slideLayout%d.xml")
+        new_blank_.assert_called_once_with(
+            PackURI("/ppt/slideLayouts/slideLayout13.xml"),
+            package_,
+            slide_master_part,
+            "Fresh Blank",
+        )
+        relate_to_.assert_called_once_with(slide_master_part, new_layout_part_, RT.SLIDE_LAYOUT)
+        assert rId == "rIdY"
+        assert new_layout is new_layout_
+
+    def it_can_add_a_layout_based_on_an_existing_layout_on_this_master(self, request):
+        """add_layout(name, based_on) deep-clones via clone_from and overrides the name."""
+        package_ = instance_mock(request, Package)
+        package_.next_partname.return_value = PackURI("/ppt/slideLayouts/slideLayout14.xml")
+        basis_layout_part_ = instance_mock(request, SlideLayoutPart)
+        basis_layout_ = instance_mock(request, SlideLayout, part=basis_layout_part_)
+        # -- The clone returned by clone_from needs a writable `cSld.name` that the
+        # -- part-level `add_layout` rewrites with the caller-supplied name. Use a
+        # -- real `p:sldLayout` so the descriptor-backed write works end to end.
+        cloned_sldLayout = element("p:sldLayout/p:cSld{name=Basis}")
+        # -- Build a real SlideLayoutPart wrapping the cloned XML so the
+        # -- `new_layout_part._element.cSld.name = name` write in add_layout
+        # -- goes through the typed descriptor layer.
+        new_layout_part_ = SlideLayoutPart(
+            PackURI("/ppt/slideLayouts/slideLayout14.xml"),
+            CT.PML_SLIDE_LAYOUT,
+            package_,
+            cloned_sldLayout,
+        )
+        clone_from_ = method_mock(
+            request,
+            SlideLayoutPart,
+            "clone_from",
+            return_value=new_layout_part_,
+            autospec=False,
+        )
+        relate_to_ = method_mock(
+            request, SlideMasterPart, "relate_to", return_value="rIdZ", autospec=True
+        )
+        slide_master_part = SlideMasterPart(
+            PackURI("/ppt/slideMasters/slideMaster1.xml"),
+            CT.PML_SLIDE_MASTER,
+            package_,
+            None,
+        )
+
+        rId, new_layout = slide_master_part.add_layout("Derived", basis_layout_)
+
+        clone_from_.assert_called_once_with(
+            basis_layout_part_,
+            PackURI("/ppt/slideLayouts/slideLayout14.xml"),
+            package_,
+            slide_master_part,
+        )
+        # -- the cloned layout's name was overridden to the caller-supplied name --
+        assert cloned_sldLayout.cSld.name == "Derived"
+        relate_to_.assert_called_once_with(slide_master_part, new_layout_part_, RT.SLIDE_LAYOUT)
+        assert rId == "rIdZ"
+        # -- the returned layout is the SlideLayout proxy of the new part --
+        assert new_layout is new_layout_part_.slide_layout
+
+
+class DescribeSlideLayoutPart_new_blank(object):
+    """Unit-test suite for `pptx.parts.slide.SlideLayoutPart.new_blank` classmethod."""
+
+    def it_builds_a_minimal_blank_layout_part_related_to_the_master(self, request):
+        """SlideLayoutPart.new_blank() creates the part and wires the SLIDE_MASTER rel."""
+        package_ = instance_mock(request, Package)
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        relate_to_ = method_mock(request, SlideLayoutPart, "relate_to", autospec=True)
+        partname = PackURI("/ppt/slideLayouts/slideLayout15.xml")
+
+        new_layout_part = SlideLayoutPart.new_blank(partname, package_, slide_master_part_, "Fresh")
+
+        assert isinstance(new_layout_part, SlideLayoutPart)
+        assert new_layout_part.partname == partname
+        # -- The name landed on the layout's `p:cSld/@name` --
+        assert new_layout_part._element.cSld.name == "Fresh"
+        # -- @type is "cust" (the spec default, used for user-created layouts) --
+        assert new_layout_part._element.type == "cust"
+        # -- spTree has the empty nvGrpSpPr wrapper but no placeholders --
+        sp_elements = new_layout_part._element.xpath("./p:cSld/p:spTree/p:sp")
+        assert len(sp_elements) == 0
+        # -- the SLIDE_MASTER rel was established in the target package --
+        relate_to_.assert_called_once_with(new_layout_part, slide_master_part_, RT.SLIDE_MASTER)

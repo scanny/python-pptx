@@ -173,6 +173,33 @@ Feature: Access an individual slide
       And the destination master layout count is unchanged
 
 
+  Scenario: SlideMaster.add_layout() appends a fresh blank layout (#413)
+    Given a Presentation with a default slide master
+     When I call master.add_layout("Scoreboard")
+     Then the master has one more layout
+      And the new layout's name is "Scoreboard"
+      And the new layout has no placeholders
+      And the new layout's slide_master is that master
+      And a slide can be added using the new layout
+      And the presentation round-trips cleanly after add_layout
+
+
+  Scenario: SlideMaster.add_layout() based_on clones an existing layout (#413)
+    Given a Presentation with a default slide master
+     When I call master.add_layout("Cloned Title", based_on=layouts[0])
+     Then the master has one more layout
+      And the new layout's name is "Cloned Title"
+      And the new layout has at least one placeholder
+      And the new layout's slide_master is that master
+
+
+  Scenario: SlideMaster.add_layout() raises on a name collision (#413)
+    Given a Presentation with a default slide master
+     When I call master.add_layout() with a name that already exists
+     Then a ValueError is raised with a clear message
+      And the destination master layout count is unchanged
+
+
   Scenario: Adding many slides assigns unique sequential partnames (#644)
     Given a Presentation with no slides
      When I add 100 slides
