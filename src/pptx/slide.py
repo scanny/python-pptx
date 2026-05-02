@@ -292,6 +292,35 @@ class Slides(ParentedElementProxy):
                 return idx
         raise ValueError("%s is not in slide collection" % slide)
 
+    def move_slide(self, slide: Slide, new_idx: int) -> None:
+        """Move `slide` to zero-based position `new_idx` in this slide sequence.
+
+        The `slide_id` of `slide` is unchanged by this operation. A `new_idx` of 0 moves
+        `slide` to the beginning; a `new_idx` equal to or greater than `len(slides) - 1`
+        moves it to the end. Negative values count from the end in the usual Python way.
+
+        Raises |ValueError| if `slide` is not a member of this collection.
+        """
+        # -- locate the corresponding p:sldId child element --
+        current_idx = self.index(slide)
+        sldId = self._sldIdLst.sldId_lst[current_idx]
+
+        # -- normalize negative indices and clamp to collection bounds --
+        n = len(self._sldIdLst)
+        new_idx = max(0, new_idx + n) if new_idx < 0 else min(new_idx, n - 1)
+
+        # -- no-op when the slide is already at the target position --
+        if new_idx == current_idx:
+            return
+
+        # -- reposition the p:sldId element within p:sldIdLst --
+        self._sldIdLst.remove(sldId)
+        siblings = self._sldIdLst.sldId_lst
+        if new_idx >= len(siblings):
+            self._sldIdLst.append(sldId)
+        else:
+            siblings[new_idx].addprevious(sldId)
+
 
 class SlideLayout(_BaseSlide):
     """Slide layout object.

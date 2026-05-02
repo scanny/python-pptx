@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #68 feature: reorder a slide
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

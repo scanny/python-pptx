@@ -90,11 +90,22 @@ A few things to note:
 Doing other things with slides
 ------------------------------
 
-Right now, adding a slide is the only operation on the slide collection. On the
-backlog at the time of writing is deleting a slide and moving a slide to
-a different position in the list. Copying a slide from one presentation to
-another turns out to be pretty hard to get right in the general case, so that
-probably won't come until more of the backlog is burned down.
+In addition to adding a slide, the slide collection supports reordering a slide
+to a different position via :meth:`~pptx.slide.Slides.move_slide`. The slide's
+``slide_id`` is unchanged by the move, so any references stored by id keep
+pointing to the same slide::
+
+    prs = Presentation("example.pptx")
+    slide = prs.slides[0]
+    prs.slides.move_slide(slide, 2)  # move to zero-based position 2
+
+A ``new_idx`` beyond the end of the collection moves the slide to the last
+position, and negative values count from the end (``-1`` is the last slot).
+
+Deleting a slide is not yet a first-class operation on the collection, and
+copying a slide from one presentation to another turns out to be pretty hard to
+get right in the general case, so that probably won't come until more of the
+backlog is burned down.
 
 
 Up next ...

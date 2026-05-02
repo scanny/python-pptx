@@ -32,6 +32,14 @@ Feature: Access an individual slide
       And slides.get(666, default=slides[2]) is slides[2]
 
 
+  Scenario: Slides.move_slide() moves a slide to a new position
+    Given a Slides object containing 3 slides
+     When I call slides.move_slide(slides[0], 2)
+     Then the slide previously at index 0 is now at index 2
+      And its slide_id is unchanged
+      And len(slides) is 3
+
+
   Scenario: SlideLayouts.__getitem__()
     Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then slide_layouts[1] is a SlideLayout object

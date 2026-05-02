@@ -494,6 +494,81 @@ class DescribeSlides(object):
         prs_part_.get_slide.assert_called_once_with(slide_id)
         assert slide is expected_value
 
+    @pytest.mark.parametrize(
+        ("src_idx", "new_idx", "expected_cxml"),
+        [
+            # --- move first slide to the middle ---
+            (
+                0,
+                1,
+                "p:sldIdLst/(p:sldId{r:id=b,id=256},p:sldId{r:id=a,id=257},"
+                "p:sldId{r:id=c,id=258})",
+            ),
+            # --- move last slide to the first position ---
+            (
+                2,
+                0,
+                "p:sldIdLst/(p:sldId{r:id=c,id=258},p:sldId{r:id=a,id=257},"
+                "p:sldId{r:id=b,id=256})",
+            ),
+            # --- move first slide to the end ---
+            (
+                0,
+                2,
+                "p:sldIdLst/(p:sldId{r:id=b,id=256},p:sldId{r:id=c,id=258},"
+                "p:sldId{r:id=a,id=257})",
+            ),
+            # --- no-op when target index equals current index ---
+            (
+                1,
+                1,
+                "p:sldIdLst/(p:sldId{r:id=a,id=257},p:sldId{r:id=b,id=256},"
+                "p:sldId{r:id=c,id=258})",
+            ),
+            # --- negative index counts from the end ---
+            (
+                0,
+                -1,
+                "p:sldIdLst/(p:sldId{r:id=b,id=256},p:sldId{r:id=c,id=258},"
+                "p:sldId{r:id=a,id=257})",
+            ),
+            # --- index beyond end is clamped to last position ---
+            (
+                0,
+                99,
+                "p:sldIdLst/(p:sldId{r:id=b,id=256},p:sldId{r:id=c,id=258},"
+                "p:sldId{r:id=a,id=257})",
+            ),
+            # --- sufficiently-negative index clamps to position 0 ---
+            (
+                2,
+                -99,
+                "p:sldIdLst/(p:sldId{r:id=c,id=258},p:sldId{r:id=a,id=257},"
+                "p:sldId{r:id=b,id=256})",
+            ),
+        ],
+    )
+    def it_can_move_a_slide_to_a_new_position(self, src_idx, new_idx, expected_cxml, part_prop_):
+        sldIdLst = element(
+            "p:sldIdLst/(p:sldId{r:id=a,id=257},p:sldId{r:id=b,id=256}," "p:sldId{r:id=c,id=258})"
+        )
+        slides = Slides(sldIdLst, None)
+        _slides = [Slide(element("p:sld"), None) for _ in range(3)]
+        # -- .index() iterates, which drives related_slide() once per element --
+        part_prop_.return_value.related_slide.side_effect = _slides
+
+        slides.move_slide(_slides[src_idx], new_idx)
+
+        assert sldIdLst.xml == xml(expected_cxml)
+
+    def it_raises_on_move_slide_when_slide_not_in_collection(self, part_prop_):
+        sldIdLst = element("p:sldIdLst/p:sldId{r:id=a,id=256}")
+        slides = Slides(sldIdLst, None)
+        part_prop_.return_value.related_slide.return_value = Slide(element("p:sld"), None)
+        stranger = Slide(element("p:sld"), None)
+        with pytest.raises(ValueError):
+            slides.move_slide(stranger, 0)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
