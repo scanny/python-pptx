@@ -6,6 +6,14 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #767 strip file extension from movie shape name to match PowerPoint.
+  ``SlideShapes.add_movie()`` previously named the newly-inserted ``p:pic`` shape
+  with the full movie filename including its extension (e.g. ``"intro.mp4"``),
+  so the selection pane showed ``"intro.mp4"``. PowerPoint itself strips the
+  extension when inserting a video, producing the stem (``"intro"``).
+  ``_MoviePicElementCreator._shape_name`` now returns
+  ``os.path.splitext(self._video.filename)[0]`` so the shape name matches
+  PowerPoint's convention.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a

@@ -1094,9 +1094,11 @@ class _MoviePicElementCreator(object):
     def _shape_name(self) -> str:
         """Return the appropriate shape name for the p:pic shape.
 
-        A movie shape is named with the base filename of the video.
+        A movie shape is named with the base filename of the video, with the file
+        extension stripped. This matches PowerPoint's own behavior in the selection
+        pane (e.g. ``"intro.mp4"`` becomes ``"intro"``).
         """
-        return self._video.filename
+        return os.path.splitext(self._video.filename)[0]
 
     @property
     def _slide_part(self) -> SlidePart:
