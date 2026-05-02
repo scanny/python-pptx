@@ -570,6 +570,29 @@ class BaseShape(object):
         return self._effective_geometry[2]
 
     @property
+    def is_hidden(self) -> bool:
+        """|True| if this shape is marked hidden on the slide.
+
+        Read/write. Maps to the ``hidden`` attribute on the shape's ``cNvPr``
+        element (``p:cNvPr`` for slide-level shapes such as ``p:sp``,
+        ``p:pic``, ``p:cxnSp``, ``p:graphicFrame`` and ``p:grpSp``).
+        Returns |False| when the attribute is absent (PowerPoint's default).
+
+        Assigning a truthy value sets ``hidden="1"`` on the ``cNvPr``
+        element, causing PowerPoint to omit the shape when the slide is
+        presented or printed while leaving it visible in the editing
+        surface. Assigning |False| removes the attribute so the shape is
+        shown normally.
+        """
+        return self._element._nvXxPr.cNvPr.hidden  # pyright: ignore[reportPrivateUsage]
+
+    @is_hidden.setter
+    def is_hidden(self, value: bool) -> None:
+        self._element._nvXxPr.cNvPr.hidden = bool(  # pyright: ignore[reportPrivateUsage]
+            value
+        )
+
+    @property
     def is_placeholder(self) -> bool:
         """True if this shape is a placeholder.
 
