@@ -215,6 +215,42 @@ randomly-derived key-material and IV bytes), but decrypting it yields a
 byte-reproducible inner zip.
 
 
+Using an existing presentation as a blank template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A common workflow is to start a new deck from a branded, corporate-style
+``.pptx`` file — keep the slide master, slide layouts, theme, embedded
+fonts, and default table styles, but throw away the slides that happened
+to be in the file when it was saved. The
+:meth:`~pptx.presentation.Presentation.strip_slides` method does exactly
+that::
+
+    from pptx import Presentation
+
+    blank = Presentation("branded-template.pptx").strip_slides()
+
+    # -- blank is the same Presentation instance, now with no slides but
+    # -- the masters / layouts / theme / fonts from branded-template.pptx
+    # -- intact. Add slides like you would to a fresh deck. --
+    title_slide = blank.slides.add_slide(blank.slide_layouts[0])
+    title_slide.shapes.title.text = "Quarterly review"
+
+    blank.save("q3-review.pptx")
+
+``strip_slides()`` returns ``self`` so it composes with the
+:func:`Presentation` factory call. The operation also clears any
+presentation sections the source file carried, since a section is just a
+named group of slide-ids and an empty section list with stale
+slide-id references would confuse PowerPoint. Slide parts, uniquely-
+referenced image/media/chart parts, and the section scaffolding all
+become unreachable from the package root and are omitted on the next
+save. Parts shared with the surviving slide master or layouts are
+retained, so theme assets and template-level resources are preserved.
+
+Calling ``strip_slides()`` on a deck that already has no slides is a
+no-op. See issue #310 for the original request.
+
+
 Okay, so you've got a presentation open and are pretty sure you can save it
 somewhere later. Next step is to get a slide in there ...
 

@@ -72,3 +72,12 @@ Feature: Round-trip a presentation
       Then I see the pptx file in the working directory
        And the saved .pptx starts with the OLE2 magic signature
        And every decrypted zip member carries the 2020-01-01 00:00:00 last-modified stamp
+
+  Scenario: Strip the slides from an existing deck to use it as a blank template
+     Given an existing presentation with three slides and two sections
+      When I call prs.strip_slides()
+       And I save and reload the presentation
+      Then the reloaded presentation has no slides
+       And the reloaded presentation has no sections
+       And the reloaded presentation retains its slide masters and layouts
+       And I can add a new slide to the reloaded presentation

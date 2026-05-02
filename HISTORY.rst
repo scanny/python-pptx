@@ -38,6 +38,15 @@ Unreleased
   downstream code continues to work unchanged; ``pptx.oxml.ns.qn``
   remains the canonical location.
 
+- Add #310 ``Presentation.strip_slides()`` — remove every slide (and any
+  sections) from an opened presentation while preserving its slide
+  masters, slide layouts, theme, embedded fonts, and other template-
+  level resources. Enables the "use an existing ``.pptx`` as a blank
+  template" workflow requested in issue #310: open a branded deck, strip
+  its slides, and reuse the remaining presentation as the starting
+  point for a new deck. Returns ``self`` so it chains after the
+  ``Presentation()`` factory call.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,
