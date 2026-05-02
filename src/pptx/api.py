@@ -34,6 +34,7 @@ _PRESET_TEMPLATES: dict[str, str] = {
 def Presentation(
     pptx: str | IO[bytes] | None = None,
     pptx_format: str | None = None,
+    password: str | None = None,
 ) -> presentation.Presentation:
     """Return a |Presentation| object loaded from *pptx*.
 
@@ -48,6 +49,11 @@ def Presentation(
     Providing *pptx_format* together with a non-``None`` *pptx* raises
     :class:`ValueError`, because the slide size is determined by the opened
     file rather than the preset.
+
+    When *password* is provided, an encrypted (password-protected) ``.pptx``
+    file is decrypted before loading. This requires the optional
+    ``msoffcrypto-tool`` dependency. Opening an encrypted package without
+    a password raises :class:`pptx.exc.EncryptedPackageError`.
     """
     if pptx_format is not None and pptx is not None:
         raise ValueError(
@@ -57,7 +63,7 @@ def Presentation(
     if pptx is None:
         pptx = _default_pptx_path(pptx_format)
 
-    presentation_part = Package.open(pptx).main_document_part
+    presentation_part = Package.open(pptx, password=password).main_document_part
 
     if not _is_pptx_package(presentation_part):
         tmpl = "file '%s' is not a PowerPoint file, content type is '%s'"

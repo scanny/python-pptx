@@ -42,6 +42,8 @@ Feature Support
 * Read and write legacy PowerPoint review comments on slides
 * Organize slides into named sections (``p14:sectionLst``): create, rename,
   delete, and assign slide-to-section membership
+* Open and save password-protected (ECMA-376 Agile Encryption) .pptx files
+  (requires optional ``msoffcrypto-tool``)
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

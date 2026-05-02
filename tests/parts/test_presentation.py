@@ -122,12 +122,23 @@ class DescribePresentationPart(object):
 
     def it_can_save_the_package_to_a_file(self, package_):
         PresentationPart(None, None, package_, None).save("prs.pptx")
-        package_.save.assert_called_once_with("prs.pptx", None)
+        package_.save.assert_called_once_with("prs.pptx", None, password=None)
 
     def and_it_forwards_zip_date_time_to_the_package(self, package_):
         zdt = (2024, 6, 15, 9, 30, 0)
         PresentationPart(None, None, package_, None).save("prs.pptx", zdt)
-        package_.save.assert_called_once_with("prs.pptx", zdt)
+        package_.save.assert_called_once_with("prs.pptx", zdt, password=None)
+
+    def it_can_save_a_password_protected_package_to_a_file(self, package_):
+        PresentationPart(None, None, package_, None).save("prs.pptx", password="s3cret")
+        package_.save.assert_called_once_with("prs.pptx", None, password="s3cret")
+
+    def and_it_forwards_both_zip_date_time_and_password_to_the_package(self, package_):
+        zdt = (2024, 6, 15, 9, 30, 0)
+        PresentationPart(None, None, package_, None).save(
+            "prs.pptx", zdt, password="s3cret"
+        )
+        package_.save.assert_called_once_with("prs.pptx", zdt, password="s3cret")
 
     def it_can_add_a_font_part_and_relate_it(self, request, package_, relate_to_):
         font_blob = b"fake-ttf"

@@ -160,7 +160,7 @@ class Package(OpcPackage):
         """
         return self.main_document_part
 
-    def save(self, pkg_file, zip_date_time=None):
+    def save(self, pkg_file, zip_date_time=None, password=None):
         """Save this package to `pkg_file`.
 
         Ensures the extended-properties part (``/docProps/app.xml``) exists and its
@@ -169,11 +169,13 @@ class Package(OpcPackage):
 
         `zip_date_time` is forwarded to the base-class save (see issue #702) so reproducible
         timestamps continue to work when the Presentation-level Package override is active.
+        `password` is forwarded likewise (see issue #668) so the package can be written
+        password-protected. Both keywords may be combined.
         """
         # -- trigger lazy creation of the part (no-op if already present) so that it is
         # -- included in the package walk performed by the base-class save.
         _ = self.extended_properties
-        super().save(pkg_file, zip_date_time)
+        super().save(pkg_file, zip_date_time, password=password)
 
     @lazyproperty
     def _image_parts(self):

@@ -165,6 +165,46 @@ The earliest representable Zip date is 1980-01-01. The value may be a
 omitted, the legacy current-time behavior is preserved.
 
 
+Opening and saving a password-protected presentation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|pp| can read and write password-protected (encrypted) ``.pptx`` files that use
+the ECMA-376 Agile Encryption scheme PowerPoint writes when a user chooses
+"Encrypt with Password" in the desktop application. Pass the password via the
+``password`` keyword argument::
+
+    prs = Presentation('secret.pptx', password='hunter2')
+    # ... edit as normal ...
+    prs.save('new-secret.pptx', password='hunter2')
+
+This feature requires the optional ``msoffcrypto-tool`` package::
+
+    pip install msoffcrypto-tool
+
+If a password-protected file is opened without a password, or with the wrong
+password, a :class:`pptx.exc.EncryptedPackageError` is raised. Omitting the
+``password`` argument when saving produces a plain (unencrypted) ``.pptx`` as
+before.
+
+The full keyword signature of :meth:`~pptx.presentation.Presentation.save` is
+therefore ``save(file, *, zip_date_time=None, password=None)``. The two
+keywords are orthogonal — you can use them together::
+
+    import datetime
+    prs.save(
+        'deck.pptx',
+        zip_date_time=datetime.datetime(2020, 1, 1),
+        password='hunter2',
+    )
+
+When both are supplied, python-pptx first builds the plaintext zip with the
+fixed timestamp stamped on every member and then wraps it in the ECMA-376
+Agile Encryption CFBF container before writing. The resulting encrypted
+``.pptx`` is *not* byte-reproducible (the encryption container itself carries
+randomly-derived key-material and IV bytes), but decrypting it yields a
+byte-reproducible inner zip.
+
+
 Okay, so you've got a presentation open and are pretty sure you can save it
 somewhere later. Next step is to get a slide in there ...
 

@@ -162,14 +162,17 @@ class PresentationPart(XmlPart):
         self,
         path_or_stream: str | IO[bytes],
         zip_date_time: ZipDateTime | None = None,
+        password: str | None = None,
     ):
         """Save this presentation package to `path_or_stream`.
 
         `path_or_stream` can be either a path to a filesystem location (a string) or a
         file-like object. When `zip_date_time` is provided, every zip-member in the saved
-        package is stamped with that fixed last-modified timestamp.
+        package is stamped with that fixed last-modified timestamp. When `password` is
+        provided, the saved package is encrypted using ECMA-376 Agile Encryption (see
+        :meth:`pptx.presentation.Presentation.save`). The two keywords are orthogonal.
         """
-        self.package.save(path_or_stream, zip_date_time)
+        self.package.save(path_or_stream, zip_date_time, password=password)
 
     def slide_id(self, slide_part):
         """Return the slide-id associated with `slide_part`."""

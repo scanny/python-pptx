@@ -23,3 +23,15 @@ Dependencies
 * lxml
 * Pillow
 * XlsxWriter (to use charting features)
+
+Optional dependencies
+---------------------
+
+* ``msoffcrypto-tool`` (to open or save password-protected ``.pptx`` files)
+
+  ``msoffcrypto-tool`` is only imported when a ``password`` is passed to
+  :func:`pptx.Presentation` or :meth:`Presentation.save`. Install it with::
+
+      pip install msoffcrypto-tool
+
+  If the argument is not used, |pp| has no extra runtime dependency.

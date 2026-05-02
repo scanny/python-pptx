@@ -56,3 +56,11 @@ class UnsupportedImageTypeError(PythonPptxError):
     PNG (or another supported raster format) before inserting it. See the
     "Inserting SVG images" section of the user guide for a recommended workaround.
     """
+
+
+class EncryptedPackageError(PythonPptxError):
+    """Raised when opening an encrypted .pptx without a valid password.
+
+    Also raised when the optional ``msoffcrypto-tool`` dependency is required to decrypt
+    or encrypt a package but is not installed.
+    """
