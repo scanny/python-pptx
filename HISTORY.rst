@@ -9,6 +9,11 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
+  auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
+  ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and
+  ``Shape.auto_shape_type`` returns |None| (instead of raising) when the
+  preset value is not a known member of ``MSO_AUTO_SHAPE_TYPE``.
 - fix: #332 MSO_LINE_DASH_STYLE.ROUND_DOT correct mapping
 - #787 Support .MPO image files
 - #849 expose `_Cell.row_idx` and `col_idx`

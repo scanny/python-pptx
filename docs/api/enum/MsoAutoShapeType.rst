@@ -326,6 +326,14 @@ LEFT_UP_ARROW
 LIGHTNING_BOLT
     Lightning bolt
 
+LINE
+    Straight line. Corresponds to the ``line`` preset-geometry value. This
+    member is an extension to ``MsoAutoShapeType`` (the MS Office API has no
+    equivalent; a straight line is represented there by
+    ``MsoConnectorType.msoConnectorStraight``). It is provided so an
+    auto-shape whose ``a:prstGeom`` element has ``prst="line"`` can be
+    interrogated via ``Shape.auto_shape_type`` without raising.
+
 LINE_CALLOUT_1
     Callout with border and horizontal callout line
 

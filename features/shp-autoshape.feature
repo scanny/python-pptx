@@ -36,3 +36,11 @@ Feature: Shape properties and methods
   Scenario: Shape.path_geometry for a dynamic preset shape
      Given a rounded rectangle shape
       Then shape.path_geometry is None
+  Scenario: Shape.auto_shape_type for a shape with prst="line" (issue #749)
+     Given an auto-shape with prst="line" as shape
+      Then shape.auto_shape_type is MSO_SHAPE.LINE
+
+
+  Scenario: Shape.auto_shape_type for a shape with an unknown prst (issue #749)
+     Given an auto-shape with an unknown prst as shape
+      Then shape.auto_shape_type is None

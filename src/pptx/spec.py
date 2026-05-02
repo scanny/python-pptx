@@ -290,6 +290,7 @@ autoshape_types: dict[MSO_SHAPE, ShapeSpec] = {
         "avLst": (("adj1", 25000), ("adj2", 25000), ("adj3", 25000)),
     },
     MSO_SHAPE.LIGHTNING_BOLT: {"basename": "Lightning Bolt", "avLst": ()},
+    MSO_SHAPE.LINE: {"basename": "Straight Connector", "avLst": ()},
     MSO_SHAPE.LINE_CALLOUT_1: {
         "basename": "Line Callout 1",
         "avLst": (("adj1", 18750), ("adj2", -8333), ("adj3", 112500), ("adj4", -38333)),

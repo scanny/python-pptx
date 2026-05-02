@@ -270,14 +270,22 @@ class Shape(BaseShape):
         return AdjustmentCollection(self._sp.prstGeom)
 
     @property
-    def auto_shape_type(self):
+    def auto_shape_type(self) -> MSO_AUTO_SHAPE_TYPE | None:
         """Enumeration value identifying the type of this auto shape.
 
         Like `MSO_SHAPE.ROUNDED_RECTANGLE`. Raises |ValueError| if this shape is not an auto shape.
+
+        Returns |None| when the ``prst`` value on the ``a:prstGeom`` element is not a known
+        member of :class:`MSO_AUTO_SHAPE_TYPE`. This can happen for preset-geometry values
+        that exist in ECMA-376 but are not represented in the MS Office ``MsoAutoShapeType``
+        enumeration (for example, ``prst`` values written by newer versions of PowerPoint).
         """
         if not self._sp.is_autoshape:
             raise ValueError("shape is not an auto shape")
-        return self._sp.prst
+        try:
+            return self._sp.prst
+        except ValueError:
+            return None
 
     @lazyproperty
     def fill(self):
