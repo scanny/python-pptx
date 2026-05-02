@@ -283,6 +283,37 @@ class Slide(_BaseSlide):
         return self._element.bg is None
 
     @property
+    def is_hidden(self) -> bool:
+        """`True` when this slide is marked hidden in the presentation.
+
+        Reflects the ``p:sld/@show`` attribute. PowerPoint writes
+        ``show="0"`` on a slide marked as hidden via the *Hide Slide*
+        command; a visible slide omits the attribute (the schema default
+        for ``@show`` is ``true``). Accordingly:
+
+        * Reading returns ``True`` when ``@show="0"`` is present and
+          ``False`` otherwise (absent attribute or any truthy value).
+        * Assigning ``True`` writes ``show="0"`` on the ``p:sld`` element.
+        * Assigning ``False`` removes the ``@show`` attribute (if present)
+          so the XML round-trips to the default-visible state.
+
+        Hidden slides are skipped by PowerPoint during a normal slide-show
+        run but remain in the package and in :attr:`.Presentation.slides`.
+        """
+        return not self._element.show
+
+    @is_hidden.setter
+    def is_hidden(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError(
+                "is_hidden must be a bool, got %s" % type(value).__name__
+            )
+        # -- CT_Slide.show is an OptionalAttribute(default=True); assigning
+        # -- True (the default) removes the attribute, assigning False
+        # -- writes show="0".
+        self._element.show = not value
+
+    @property
     def has_notes_slide(self) -> bool:
         """`True` if this slide has a notes slide, `False` otherwise.
 

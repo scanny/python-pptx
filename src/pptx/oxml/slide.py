@@ -244,6 +244,9 @@ class CT_Slide(_BaseSlideElement):
     timing: CT_SlideTiming | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "p:timing", successors=_tag_seq[4:]
     )
+    show: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "show", XsdBoolean, default=True
+    )
     del _tag_seq
 
     @classmethod
