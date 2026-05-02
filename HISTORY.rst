@@ -3,6 +3,16 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #1072 add ``DataLabels.text_frame`` so collection-level data-label
+  text-body properties (word-wrap, auto-size, vertical anchor, margins) are
+  written to ``c:dLbls/c:txPr`` per spec rather than being unreachable via a
+  misplaced ``c:tx/c:rich`` path. ``data_labels.text_frame.word_wrap = False``
+  now round-trips through PowerPoint as intended.
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
