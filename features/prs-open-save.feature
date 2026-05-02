@@ -37,3 +37,10 @@ Feature: Round-trip a presentation
   Scenario: Load presentation with invalid image/jpg MIME-type
      Given a presentation with an image/jpg MIME-type
       Then I can access the JPEG image
+
+  Scenario: Save presentation with a fixed zip date-time produces byte-identical output
+     Given a clean working directory
+      When I open a basic PowerPoint presentation
+       And I save it twice with zip_date_time fixed to 2020-01-01
+      Then both saved streams are byte-for-byte identical
+       And every zip member carries the 2020-01-01 00:00:00 last-modified stamp

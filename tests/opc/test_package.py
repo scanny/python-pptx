@@ -254,7 +254,21 @@ class DescribeOpcPackage:
 
         package.save("prs.pptx")
 
-        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_)
+        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_, None)
+
+    def and_it_forwards_zip_date_time_to_the_PackageWriter(
+        self, request, _rels_prop_, relationships_
+    ):
+        _rels_prop_.return_value = relationships_
+        parts_ = tuple(instance_mock(request, Part) for _ in range(2))
+        method_mock(request, OpcPackage, "iter_parts", return_value=iter(parts_))
+        PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
+        package = OpcPackage(None)
+        zdt = (2024, 1, 1, 0, 0, 0)
+
+        package.save("prs.pptx", zdt)
+
+        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_, zdt)
 
     def it_loads_the_pkg_file_to_help(self, request, _rels_prop_, relationships_):
         _PackageLoader_ = class_mock(request, "pptx.opc.package._PackageLoader")

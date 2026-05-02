@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
     from pptx.opc.oxml import CT_Relationship, CT_Types
+    from pptx.opc.serialized import ZipDateTime
     from pptx.oxml.xmlchemy import BaseOxmlElement
     from pptx.package import Package
     from pptx.parts.presentation import PresentationPart
@@ -148,12 +149,20 @@ class OpcPackage(_RelatableMixin):
                 return PackURI(candidate_partname)
         raise Exception("ProgrammingError: ran out of candidate_partnames")  # pragma: no cover
 
-    def save(self, pkg_file: str | IO[bytes]) -> None:
+    def save(
+        self,
+        pkg_file: str | IO[bytes],
+        zip_date_time: ZipDateTime | None = None,
+    ) -> None:
         """Save this package to `pkg_file`.
 
         `file` can be either a path to a file (a string) or a file-like object.
+
+        When `zip_date_time` is provided, every zip-member in the saved package is stamped
+        with that fixed last-modified timestamp, yielding byte-identical output for repeated
+        saves of identical content (reproducible-build / source-control friendly).
         """
-        PackageWriter.write(pkg_file, self._rels, tuple(self.iter_parts()))
+        PackageWriter.write(pkg_file, self._rels, tuple(self.iter_parts()), zip_date_time)
 
     def _load(self) -> Self:
         """Return the package after loading all parts and relationships."""

@@ -95,5 +95,27 @@ to open or save a presentation like so::
     prs.save(target_stream)
 
 
+Reproducible saves (source-control friendly)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, each saved ``.pptx`` stamps every zip member with the current
+wall-clock time. That makes two otherwise-identical saves differ byte-for-byte
+and show up as changed in git even though the underlying document is the same.
+
+Pass ``zip_date_time`` to :meth:`~pptx.presentation.Presentation.save` to fix
+every member's last-modified timestamp to a constant value — the resulting
+``.pptx`` is then byte-identical across repeated saves of identical content::
+
+    import datetime
+    prs.save('deck.pptx', zip_date_time=datetime.datetime(2020, 1, 1))
+
+    # or as a 6-tuple (year, month, day, hour, minute, second)
+    prs.save('deck.pptx', zip_date_time=(2020, 1, 1, 0, 0, 0))
+
+The earliest representable Zip date is 1980-01-01. The value may be a
+|datetime| (tzinfo is ignored) or a 6-tuple of ints. When ``zip_date_time`` is
+omitted, the legacy current-time behavior is preserved.
+
+
 Okay, so you've got a presentation open and are pretty sure you can save it
 somewhere later. Next step is to get a slide in there ...

@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #702 reproducible builds via fixed zip timestamps
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
