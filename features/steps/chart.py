@@ -11,6 +11,7 @@ from helpers import count, test_pptx
 from pptx import Presentation
 from pptx.chart.chart import Legend
 from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyChartData
+from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import Inches
@@ -98,6 +99,30 @@ def given_a_chart_of_type_chart_type(context, chart_type):
 def given_a_chart_title(context):
     prs = Presentation(test_pptx("cht-chart-props"))
     context.chart_title = prs.slides[0].shapes[1].chart.chart_title
+
+
+@given("a chart with an explicitly-colored series")
+def given_a_chart_with_an_explicitly_colored_series(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    chart_data.add_series("Series 1", (1.1, 2.2, 3.3))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(8),
+        Inches(5),
+        chart_data,
+    ).chart
+    # -- paint the sole series with an explicit sRGB color to simulate a template chart
+    # -- whose series has been "hard-coded" to a particular color (the cloning-the-bug
+    # -- case behind issue #529). --
+    fill = chart.series[0].format.fill
+    fill.solid()
+    fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    context.chart = chart
 
 
 @given("a chart title having {a_or_no} text frame")
@@ -286,6 +311,18 @@ def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
     context.chart.replace_data(chart_data)
 
 
+@when("I replace its data with 6 series that require 5 new cloned series")
+def when_I_replace_its_data_with_6_series_requiring_clones(context):
+    # -- a 1-series chart becomes 6 series; five new sers are cloned from the single existing
+    # -- one, which carries an explicit red sRGB fill. After the fix for issue #529 the five
+    # -- new sers should adopt theme-accent schemeClr values rather than cloning the red. --
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    for idx in range(6):
+        chart_data.add_series("S%d" % (idx + 1), (1.0, 2.0, 3.0))
+    context.chart.replace_data(chart_data)
+
+
 @when("I replace its data with 3 series of 3 bubble points each")
 def when_I_replace_its_data_with_3_series_of_three_bubble_pts_each(context):
     chart_data = BubbleChartData()
@@ -433,6 +470,31 @@ def then_chart_title_text_frame_is_a_TextFrame_object(context):
 def then_each_series_has_a_new_name(context):
     for series in context.chart.plots[0].series:
         assert series.name.startswith("New ")
+
+
+@then("each cloned series uses a distinct theme-accent schemeClr")
+def then_each_cloned_series_uses_distinct_accent(context):
+    # -- the original ser (idx=0) keeps its explicit sRGB color; the five clones (idx 1..5)
+    # -- should each carry a unique a:schemeClr val="accent{n}" reference, cycling 2..6 --
+    sers = context.chart._chartSpace.xpath(".//c:ser")
+    assert len(sers) == 6, "expected 6 series, got %d" % len(sers)
+
+    # -- source ser preserves its original explicit sRGB red --
+    srgb_vals = sers[0].xpath(".//a:srgbClr/@val")
+    assert "FF0000" in srgb_vals, "source ser lost its explicit sRGB color: %r" % srgb_vals
+
+    expected_accents = ["accent2", "accent3", "accent4", "accent5", "accent6"]
+    for ser, expected in zip(sers[1:], expected_accents):
+        scheme_vals = ser.xpath(".//a:schemeClr/@val")
+        assert expected in scheme_vals, (
+            "cloned ser missing schemeClr val='%s'; got schemeClr vals=%r, srgb=%r"
+            % (expected, scheme_vals, ser.xpath(".//a:srgbClr/@val"))
+        )
+        # -- no explicit sRGB should survive on the clone --
+        assert ser.xpath(".//a:srgbClr") == [], (
+            "cloned ser still contains an explicit a:srgbClr: %r"
+            % ser.xpath(".//a:srgbClr/@val")
+        )
 
 
 @then("each series has {count} values")

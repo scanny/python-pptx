@@ -374,3 +374,12 @@ series, darker and lighter versions of those same colors are used. While it's
 possible to assign specific colors to data points (bar, line, pie segment,
 etc.) for at least some chart types, the best strategy to start with is
 changing the theme colors in your starting "template" presentation.
+
+When :meth:`Chart.replace_data` adds more series than the chart originally
+had, each new series element is cloned from the last existing one. If the
+source series has an explicitly-set sRGB fill color, that explicit color is
+replaced on each clone with a theme-accent reference
+(``a:schemeClr val="accent1..6"``) rotating through the six theme accents.
+This keeps newly-added series rendering with the theme's accent palette
+rather than all appearing in the source series's color (see GitHub issue
+#529).

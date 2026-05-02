@@ -10,6 +10,41 @@ from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls
 
 
+# -- PowerPoint cycles through these six theme-accent colors when assigning default colors to
+# -- chart series. See GitHub issue #529 for details.
+_ACCENT_COLORS = ("accent1", "accent2", "accent3", "accent4", "accent5", "accent6")
+
+
+def _apply_accent_color_to_ser(ser, series_idx):
+    """Rewrite explicit color fills on *ser* to use the theme accent color for *series_idx*.
+
+    When a new `c:ser` element is cloned from an existing series (e.g. by
+    :meth:`_BaseSeriesXmlRewriter._add_cloned_sers`), any explicit
+    `a:solidFill/a:srgbClr` color in the cloned ``c:spPr`` would otherwise be
+    carried over, causing every new series to render with the color of the
+    series it was cloned from. This helper replaces those explicit sRGB
+    colors (and any ``a:schemeClr`` carried over from a previously-cloned
+    series) with `a:schemeClr val="accent{n}"` where ``n`` cycles through
+    1..6 based on *series_idx*, matching PowerPoint's own theme-accent
+    rotation for series colors.
+    """
+    accent_val = _ACCENT_COLORS[series_idx % len(_ACCENT_COLORS)]
+    # -- find every explicit color descendant (a:srgbClr or a:schemeClr) and replace it --
+    color_elms = ser.xpath(".//a:srgbClr | .//a:schemeClr")
+    for clr in color_elms:
+        new_schemeClr = parse_xml(
+            '<a:schemeClr xmlns:a="http://schemas.openxmlformats.org/drawingml/'
+            '2006/main" val="%s"/>' % accent_val
+        )
+        # -- preserve any tint/shade/alpha/lumMod children of the original color element so
+        # -- derived shading (e.g. on marker outlines) is kept coherent; also drop the stale
+        # -- val attribute on a carried-over schemeClr by rebuilding the element --
+        for child in list(clr):
+            new_schemeClr.append(deepcopy(child))
+        parent = clr.getparent()
+        parent.replace(clr, new_schemeClr)
+
+
 def ChartXmlWriter(chart_type, chart_data):
     """
     Factory function returning appropriate XML writer object for
@@ -233,12 +268,22 @@ class _BaseSeriesXmlRewriter(object):
         """
         Add `c:ser` elements to the last xChart element in *plotArea*, cloned
         from the last `c:ser` child of that last xChart.
+
+        Any explicit sRGB fill color on the cloned series is replaced with a
+        cycling theme-accent ``a:schemeClr`` so the new series adopts the
+        next accent1..6 color rather than duplicating the source series's
+        color (GitHub issue #529).
         """
 
         def clone_ser(ser):
             new_ser = deepcopy(ser)
-            new_ser.idx.val = plotArea.next_idx
+            new_idx = plotArea.next_idx
+            new_ser.idx.val = new_idx
             new_ser.order.val = plotArea.next_order
+            # -- replace any explicit sRGB (or schemeClr carried over from a
+            # -- prior iteration of this method) with the accent color for the
+            # -- new series's index --
+            _apply_accent_color_to_ser(new_ser, new_idx)
             ser.addnext(new_ser)
             return new_ser
 

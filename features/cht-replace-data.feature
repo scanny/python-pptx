@@ -38,3 +38,9 @@ Feature: Replace chart data
       And len(series.values) is 3 for each series
       And each series has a new name
       And the chart has new chart data
+
+
+  Scenario: Cloned series use rotating theme accent colors (issue #529)
+    Given a chart with an explicitly-colored series
+     When I replace its data with 6 series that require 5 new cloned series
+     Then each cloned series uses a distinct theme-accent schemeClr

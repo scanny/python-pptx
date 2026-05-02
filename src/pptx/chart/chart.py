@@ -161,10 +161,15 @@ class Chart(PartElementProxy):
         return _Plots(plotArea, self)
 
     def replace_data(self, chart_data):
-        """
-        Use the categories and series values in the |ChartData| object
-        *chart_data* to replace those in the XML and Excel worksheet for this
-        chart.
+        """Replace chart data with categories/values from the |ChartData| object *chart_data*.
+
+        Existing series formatting (fill, line, etc.) is preserved on series that already
+        exist in the chart. When *chart_data* adds more series than currently exist, new
+        ``c:ser`` elements are cloned from the last existing series. Any explicit sRGB
+        color on the source series is replaced on each clone with a cycling theme-accent
+        reference (``a:schemeClr val="accent1..6"``) so newly added series adopt the
+        theme's accent color rotation rather than all appearing in the source series's
+        color (see GitHub issue #529).
         """
         rewriter = SeriesXmlRewriterFactory(self.chart_type, chart_data)
         rewriter.replace_series_data(self._chartSpace)
