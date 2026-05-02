@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #533 Shape.duplicate() for simple shapes
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

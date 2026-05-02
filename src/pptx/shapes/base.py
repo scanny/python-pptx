@@ -2,20 +2,39 @@
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, cast
 
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
+from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
+    from typing import Protocol
+
     from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
     from pptx.oxml.shapes import ShapeElement
+    from pptx.oxml.shapes.groupshape import CT_GroupShape
     from pptx.oxml.shapes.shared import CT_Placeholder
     from pptx.parts.slide import BaseSlidePart
     from pptx.types import ProvidesPart
     from pptx.util import Length
+
+    class _ShapesParent(Protocol):
+        """Structural type for the shape-collection parent of a shape.
+
+        The concrete parent class (e.g. `SlideShapes`) exposes these three members that
+        `BaseShape.duplicate()` needs to append a new shape to the shape tree.
+        """
+
+        _spTree: CT_GroupShape
+
+        @property
+        def _next_shape_id(self) -> int: ...
+
+        def _shape_factory(self, shape_elm: ShapeElement) -> BaseShape: ...
 
 
 class BaseShape(object):
@@ -55,6 +74,59 @@ class BaseShape(object):
         """
         cNvPr = self._element._nvXxPr.cNvPr  # pyright: ignore[reportPrivateUsage]
         return ActionSetting(cNvPr, self)
+
+    def duplicate(self) -> BaseShape:
+        """Return a new shape that is a duplicate of this shape.
+
+        The new shape is appended to the end of the same shape tree as this shape (making it
+        topmost in z-order) and is an exact copy of this shape's XML, except that it is assigned
+        a new unique shape-id and a new unique name.
+
+        Only simple shapes are supported in this implementation: auto-shapes, text-boxes, and
+        connectors. Duplicating a picture, chart, table, group-shape, or media shape raises
+        `NotImplementedError` because those shapes own one or more package-relationships (to an
+        image, embedded chart or xlsx part, etc.) that must also be copied for the duplicate to be
+        valid; that work is deferred to a follow-up.
+        """
+        sp_tag = qn("p:sp")
+        cxnSp_tag = qn("p:cxnSp")
+        src_tag = self._element.tag
+
+        if src_tag not in (sp_tag, cxnSp_tag):
+            raise NotImplementedError(
+                "shape.duplicate() is only implemented for simple shapes (auto-shape, text-box,"
+                " connector); duplicating pictures, charts, tables, group-shapes, and media"
+                " shapes requires copying package relationships and is not yet supported."
+            )
+
+        # -- placeholders duplicate their idx and that breaks the "one shape per idx" invariant --
+        if self._element.has_ph_elm:
+            raise NotImplementedError(
+                "shape.duplicate() does not support placeholder shapes; placeholders are cloned"
+                " from the slide layout rather than duplicated on the slide."
+            )
+
+        # -- parent is a `_BaseShapes` collection with `_spTree`, `_next_shape_id`, and
+        # -- `_shape_factory`; the BaseShape type signature is deliberately narrower
+        # -- (`ProvidesPart`), so narrow here via a structural cast.
+        parent = cast("_ShapesParent", self._parent)
+        spTree = parent._spTree  # pyright: ignore[reportPrivateUsage]
+
+        # -- deep-copy the element so the duplicate is independent of the source --
+        new_elm = copy.deepcopy(self._element)
+
+        # -- assign a new, unique shape id and name --
+        new_elm._nvXxPr.cNvPr.id = (  # pyright: ignore[reportPrivateUsage]
+            parent._next_shape_id  # pyright: ignore[reportPrivateUsage]
+        )
+        new_elm._nvXxPr.cNvPr.name = _unique_shape_name(  # pyright: ignore[reportPrivateUsage]
+            self.name, spTree
+        )
+
+        # -- append before any trailing `p:extLst` --
+        spTree.insert_element_before(new_elm, "p:extLst")
+
+        return parent._shape_factory(new_elm)  # pyright: ignore[reportPrivateUsage]
 
     @property
     def element(self) -> ShapeElement:
@@ -213,6 +285,24 @@ class BaseShape(object):
     @width.setter
     def width(self, value: Length):
         self._element.cx = value
+
+
+def _unique_shape_name(base_name: str, spTree: ShapeElement) -> str:
+    """Return a name derived from `base_name` that is unique within `spTree`.
+
+    The existing name is returned with an incrementing integer suffix appended (e.g.
+    `"Rectangle 1"` -> `"Rectangle 1 2"`) until a value not already in use by any `p:cNvPr/@name`
+    under `spTree` is found.
+    """
+    existing = set(spTree.xpath(".//p:cNvPr/@name"))
+    if base_name not in existing:
+        return base_name
+    n = 2
+    while True:
+        candidate = f"{base_name} {n}"
+        if candidate not in existing:
+            return candidate
+        n += 1
 
 
 class _PlaceholderFormat(ElementProxy):

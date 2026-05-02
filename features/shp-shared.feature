@@ -209,3 +209,29 @@ Feature: Common shape properties
       | GraphicFrame | 2978696 | 4082752 |
       | GroupShape   | 4121696 | 5454352 |
       | Connector    | 5264696 | 6825952 |
+
+
+  Scenario Outline: Duplicate a simple shape
+    Given a <shape-type> object on a slide as shape
+     When I call shape.duplicate()
+     Then dup is a <shape-type> object
+      And dup.shape_id is unique among slide shapes
+      And dup.name != shape.name
+      And dup has the same position and size as shape
+      And dup is the last shape in the shape tree
+
+    Examples: Simple shape types
+      | shape-type |
+      | Shape      |
+      | Connector  |
+
+
+  Scenario Outline: Duplicate is not implemented for relationship-bearing shapes
+    Given a <shape-type> object on a slide as shape
+     Then shape.duplicate() raises NotImplementedError
+
+    Examples: Shapes with relationships
+      | shape-type   |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
