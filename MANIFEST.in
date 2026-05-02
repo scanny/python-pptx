@@ -1,4 +1,4 @@
-include HISTORY.rst LICENSE README.rst tox.ini
+include HISTORY.rst LICENSE README.md tox.ini
 recursive-include features *
 recursive-include src/pptx/templates *
 recursive-include tests *.py

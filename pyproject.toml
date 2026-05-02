@@ -31,7 +31,7 @@ description = "Create, read, and update PowerPoint 2007+ (.pptx) files."
 dynamic = ["version"]
 keywords = ["powerpoint", "ppt", "pptx", "openxml", "office"]
 license = { text = "MIT" }
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.8"
 
 [project.urls]

@@ -4,7 +4,26 @@ python-pptx
 
 Release v\ |version| (:ref:`Installation <install>`)
 
-.. include:: ../README.rst
+*python-pptx* is a Python library for creating, reading, and updating PowerPoint (.pptx)
+files.
+
+A typical use would be generating a PowerPoint presentation from dynamic content such as
+a database query, analytics output, or a JSON payload, perhaps in response to an HTTP
+request and downloading the generated PPTX file in response. It runs on any Python
+capable platform, including macOS and Linux, and does not require the PowerPoint
+application to be installed or licensed.
+
+It can also be used to analyze PowerPoint files from a corpus, perhaps to extract search
+indexing text and images.
+
+It can also be used to simply automate the production of a slide or two that would be
+tedious to get right by hand, which is how this all got started.
+
+This is a fork of `scanny/python-pptx <https://github.com/scanny/python-pptx>`_
+(upstream ``1.0.2``, 2024-08-07), extended with 190+ additional OOXML features. See
+the project `README <https://github.com/loadfix/python-pptx/blob/master/README.md>`_
+and `FEATURES.md <https://github.com/loadfix/python-pptx/blob/master/FEATURES.md>`_
+for the full catalogue of capabilities.
 
 
 Philosophy

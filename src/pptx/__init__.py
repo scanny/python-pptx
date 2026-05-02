@@ -32,7 +32,7 @@ from pptx.parts.tags import TagsPart
 if TYPE_CHECKING:
     from pptx.opc.package import Part
 
-__version__ = "1.0.2"
+__version__ = "2026.05.0"
 
 sys.modules["pptx.exceptions"] = exceptions
 del sys
