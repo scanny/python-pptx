@@ -44,6 +44,15 @@ Unreleased
   ``Section.add_slide()`` now raises a helpful ``ValueError`` naming the
   existing owner when a slide is already assigned to another section — use
   the new ``Section.move_slide(slide)`` to reassign in one step.
+- #376 auto-play by seconds — add ``Presentation.set_auto_advance(seconds,
+  advance_on_click=False)`` bulk helper that applies the same auto-advance
+  delay to every slide in the deck. ``seconds`` accepts int or float (e.g.
+  ``0.5``) and is converted to the milliseconds stored in
+  ``p:transition/@advTm``; passing ``None`` clears the timer, restoring
+  click-only advance. ``advance_on_click`` defaults to ``False`` for
+  kiosk-style (timer-only) playback; set it to ``True`` to allow either
+  a click or the timer to advance. Builds on the F8 per-slide
+  ``Slide.transition.advance_after_time`` / ``advance_on_click`` API.
 - Foundation: animations/transitions XML layer (F8 — MVP). Adds element
   classes for ``p:timing`` / ``p:tnLst`` / ``p:par`` / ``p:seq`` / ``p:cTn``
   and the ``p:transition`` subtree (including the ``p14:morph`` Office 2010

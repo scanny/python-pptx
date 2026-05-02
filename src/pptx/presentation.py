@@ -133,6 +133,57 @@ class Presentation(PartElementProxy):
         """
         return self.part.notes_master
 
+    def set_auto_advance(
+        self,
+        seconds: float | int | None,
+        advance_on_click: bool = False,
+    ) -> None:
+        """Configure every slide in this presentation to auto-advance after `seconds`.
+
+        Convenience bulk wrapper around per-slide ``Slide.transition.advance_after_time``
+        and ``Slide.transition.advance_on_click``: applies the same auto-advance setting
+        to every slide currently in the presentation. `seconds` is the delay before
+        each slide auto-advances during a slide show, specified in seconds (accepts
+        ``int`` or ``float`` — e.g. ``0.5`` for half a second). ``None`` disables
+        auto-advance, removing the ``@advTm`` attribute from every slide's
+        ``p:transition`` and restoring click-only advance.
+
+        `advance_on_click` controls whether a mouse click can also advance past the
+        transition while the timer is pending. Defaults to ``False`` (kiosk-style:
+        timer only). Set ``advance_on_click=True`` to allow either a click OR the
+        timer to advance — matching PowerPoint's "On Mouse Click / After" combined
+        mode. When `seconds` is ``None`` the `advance_on_click` argument is still
+        applied (so ``set_auto_advance(None, advance_on_click=True)`` returns every
+        slide to plain click-to-advance).
+
+        Only slides currently in the deck are updated; slides added after this call
+        use their schema-default advance behavior until configured individually or
+        via another ``set_auto_advance`` invocation.
+        """
+        if seconds is None:
+            advance_after_time_ms: int | None = None
+        else:
+            if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
+                raise TypeError(
+                    "seconds must be a non-negative number or None, got %s"
+                    % type(seconds).__name__
+                )
+            if seconds < 0:
+                raise ValueError(
+                    "seconds must be a non-negative number or None, got %r" % (seconds,)
+                )
+            advance_after_time_ms = int(round(seconds * 1000))
+
+        if not isinstance(advance_on_click, bool):
+            raise TypeError(
+                "advance_on_click must be a bool, got %s" % type(advance_on_click).__name__
+            )
+
+        for slide in self.slides:
+            transition = slide.transition
+            transition.advance_after_time = advance_after_time_ms
+            transition.advance_on_click = advance_on_click
+
     def save(
         self,
         file: str | IO[bytes],

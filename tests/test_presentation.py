@@ -166,6 +166,123 @@ class DescribePresentation(object):
         prs_part_.add_embedded_font.assert_called_once_with(b"fake-ttf-bytes")
         assert prs.embedded_fonts == ("Roboto",)
 
+    # -- set_auto_advance --------------------------------------------
+
+    def it_sets_advTm_and_clears_advClick_on_every_slide_by_default(self, request):
+        slide_a = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        slide_b = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.side_effect = lambda rId: {
+            "rId2": slide_a, "rId3": slide_b
+        }[rId]
+        prs = Presentation(
+            element(
+                "p:presentation/p:sldIdLst/"
+                "(p:sldId{id=256,r:id=rId2},p:sldId{id=257,r:id=rId3})"
+            ),
+            prs_part_,
+        )
+
+        prs.set_auto_advance(5)
+
+        # -- seconds are converted to milliseconds --
+        assert slide_a.transition.advance_after_time == 5000
+        assert slide_b.transition.advance_after_time == 5000
+        # -- default is kiosk-style: timer only, no click-advance --
+        assert slide_a.transition.advance_on_click is False
+        assert slide_b.transition.advance_on_click is False
+
+    def it_accepts_a_float_seconds_value_and_rounds_to_ms(self, request):
+        slide_ = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+
+        prs.set_auto_advance(0.5)
+
+        assert slide_.transition.advance_after_time == 500
+
+    def it_accepts_zero_seconds_to_advance_immediately(self, request):
+        slide_ = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+
+        prs.set_auto_advance(0)
+
+        assert slide_.transition.advance_after_time == 0
+        assert slide_.transition.advance_on_click is False
+
+    def it_can_also_allow_advance_on_click_in_addition_to_timer(self, request):
+        slide_ = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+
+        prs.set_auto_advance(10, advance_on_click=True)
+
+        assert slide_.transition.advance_after_time == 10000
+        assert slide_.transition.advance_on_click is True
+
+    def it_can_disable_auto_advance_by_passing_None(self, request):
+        slide_ = Slide(
+            element("p:sld/(p:cSld/p:spTree,p:transition{advTm=5000,advClick=0}/p:fade)"),
+            None,
+        )
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+
+        prs.set_auto_advance(None, advance_on_click=True)
+
+        assert slide_.transition.advance_after_time is None
+        assert slide_.transition.advance_on_click is True
+        # -- the transition/variant survives since advClick is still authored --
+        assert slide_._element.transition is not None
+
+    def it_is_a_noop_when_the_presentation_has_no_slides(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs = Presentation(element("p:presentation/p:sldIdLst"), prs_part_)
+
+        prs.set_auto_advance(5)  # -- no slides to iterate --
+
+        prs_part_.related_slide.assert_not_called()
+
+    def it_raises_TypeError_on_non_numeric_seconds(self, request):
+        prs = Presentation(element("p:presentation"), None)
+        with pytest.raises(TypeError, match="seconds must be"):
+            prs.set_auto_advance("5")
+
+    def it_raises_TypeError_when_seconds_is_a_bool(self, request):
+        # -- bool is-a int in Python; reject explicitly to avoid silent
+        # -- conversion of True → 1000ms / False → 0ms.
+        prs = Presentation(element("p:presentation"), None)
+        with pytest.raises(TypeError, match="seconds must be"):
+            prs.set_auto_advance(True)
+
+    def it_raises_ValueError_on_negative_seconds(self, request):
+        prs = Presentation(element("p:presentation"), None)
+        with pytest.raises(ValueError, match="non-negative"):
+            prs.set_auto_advance(-1)
+
+    def it_raises_TypeError_on_non_bool_advance_on_click(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs = Presentation(element("p:presentation/p:sldIdLst"), prs_part_)
+        with pytest.raises(TypeError, match="advance_on_click must be a bool"):
+            prs.set_auto_advance(5, advance_on_click=1)  # type: ignore[arg-type]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
