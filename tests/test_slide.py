@@ -32,6 +32,7 @@ from pptx.enum.transition import (
 from pptx.oxml.ns import qn
 from pptx.slide import (
     AnimationEffect,
+    AnimationEffectView,
     NotesMaster,
     NotesSlide,
     ShapeAnimation,
@@ -2235,11 +2236,11 @@ class DescribeSlide_animation_sequence(object):
         )
         assert slide.animation_sequence == ()
 
-    def it_returns_one_AnimationEffect_per_effect_par(self, two_effect_slide):
+    def it_returns_one_AnimationEffectView_per_effect_par(self, two_effect_slide):
         seq = two_effect_slide.animation_sequence
         assert isinstance(seq, tuple)
         assert len(seq) == 2
-        assert all(isinstance(e, AnimationEffect) for e in seq)
+        assert all(isinstance(e, AnimationEffectView) for e in seq)
 
     def it_preserves_document_order(self, two_effect_slide):
         shape_ids = [e.shape_id for e in two_effect_slide.animation_sequence]
@@ -2292,58 +2293,69 @@ class DescribeSlide_animation_sequence(object):
         return Slide(parse_xml(sld_xml), None)
 
 
-class DescribeAnimationEffect(object):
-    """Unit-test suite for `pptx.slide.AnimationEffect` (issue #256)."""
+class DescribeAnimationEffectView(object):
+    """Unit-test suite for `pptx.slide.AnimationEffectView` (issue #256)."""
 
     def it_exposes_the_target_shape_id(self):
         par = element(
             "p:par/(p:cTn{id=5,presetClass=entr}/p:childTnLst/p:set/p:cBhvr/"
             "(p:cTn{id=6},p:tgtEl/p:spTgt{spid=42}))"
         )
-        assert AnimationEffect(par).shape_id == 42
+        assert AnimationEffectView(par).shape_id == 42
 
     def and_shape_id_is_None_when_no_spTgt(self):
         par = element("p:par/p:cTn{id=5,presetClass=entr}")
-        assert AnimationEffect(par).shape_id is None
+        assert AnimationEffectView(par).shape_id is None
 
     def it_reads_preset_class(self):
         par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=1}")
-        assert AnimationEffect(par).preset_class == "entr"
+        assert AnimationEffectView(par).preset_class == "entr"
 
     def it_reads_preset_id(self):
         par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=10}")
-        assert AnimationEffect(par).preset_id == 10
+        assert AnimationEffectView(par).preset_id == 10
 
     def it_reads_preset_subtype(self):
         par = element(
             "p:par/p:cTn{id=5,presetClass=entr,presetID=2,presetSubtype=8}"
         )
-        assert AnimationEffect(par).preset_subtype == 8
+        assert AnimationEffectView(par).preset_subtype == 8
 
     def and_preset_subtype_is_None_when_absent(self):
         par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=1}")
-        assert AnimationEffect(par).preset_subtype is None
+        assert AnimationEffectView(par).preset_subtype is None
 
     def it_reads_delay_as_int_when_delay_is_numeric(self):
         par = element(
             "p:par/p:cTn{id=5,presetClass=entr,presetID=1}/"
             "p:stCondLst/p:cond{delay=500}"
         )
-        assert AnimationEffect(par).delay == 500
+        assert AnimationEffectView(par).delay == 500
 
     def and_reads_delay_as_indefinite_string(self):
         par = element(
             "p:par/p:cTn{id=5,presetClass=entr,presetID=1}/"
             "p:stCondLst/p:cond{delay=indefinite}"
         )
-        assert AnimationEffect(par).delay == "indefinite"
+        assert AnimationEffectView(par).delay == "indefinite"
 
     def and_delay_is_None_when_no_stCondLst(self):
         par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=1}")
-        assert AnimationEffect(par).delay is None
+        assert AnimationEffectView(par).delay is None
 
     def and_delay_is_None_when_cond_has_no_delay_attr(self):
         par = element(
             "p:par/p:cTn{id=5,presetClass=entr,presetID=1}/p:stCondLst/p:cond"
         )
-        assert AnimationEffect(par).delay is None
+        assert AnimationEffectView(par).delay is None
+
+    def it_exposes_a_deprecated_AnimationEffect_alias(self):
+        """The old name remains importable for one release for back-compat.
+
+        ``pptx.slide.AnimationEffect`` and ``pptx.slide.AnimationEffectView``
+        are the same class — the alias exists so existing code that does
+        ``from pptx.slide import AnimationEffect`` keeps working while
+        users migrate to the new name (or to the authoring API in
+        ``pptx.animation``).
+        """
+        assert AnimationEffect is AnimationEffectView

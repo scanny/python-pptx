@@ -6,6 +6,19 @@ Release History
 Unreleased
 ++++++++++
 
+- rfctr: Resolve ``AnimationEffect`` class-name collision between
+  :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
+  (read-only introspection proxy for :attr:`.Slide.animation_sequence`,
+  Wave 5 #256). :class:`pptx.animation.AnimationEffect` is the canonical
+  public authoring class and is unchanged. The introspection proxy on
+  ``pptx.slide`` has been renamed to :class:`.AnimationEffectView`;
+  ``pptx.slide.AnimationEffect`` remains as a deprecated alias
+  (``AnimationEffect = AnimationEffectView``) for one release so
+  existing ``from pptx.slide import AnimationEffect`` imports keep
+  working. New code should import :class:`~pptx.slide.AnimationEffectView`
+  for introspection or :class:`pptx.animation.AnimationEffect` for
+  authoring.
+
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

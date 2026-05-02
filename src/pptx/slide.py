@@ -427,8 +427,8 @@ class Slide(_BaseSlide):
         return timing.xml
 
     @property
-    def animation_sequence(self) -> tuple[AnimationEffect, ...]:
-        """Read-only tuple of |AnimationEffect| in this slide's main sequence.
+    def animation_sequence(self) -> tuple[AnimationEffectView, ...]:
+        """Read-only tuple of |AnimationEffectView| in this slide's main sequence.
 
         Returns each entrance / emphasis / exit / motion-path effect
         PowerPoint would step through when the slide's main animation
@@ -438,7 +438,7 @@ class Slide(_BaseSlide):
         or when the subtree is media-playback-only (the stub tree added
         by :meth:`.SlideShapes.add_movie` has no main sequence).
 
-        Each :class:`.AnimationEffect` exposes a handful of read-only
+        Each :class:`.AnimationEffectView` exposes a handful of read-only
         accessors — ``shape_id``, ``preset_class``, ``preset_id``,
         ``preset_subtype``, ``delay`` — that are enough to describe
         PowerPoint-authored effects for introspection and
@@ -459,7 +459,7 @@ class Slide(_BaseSlide):
         timing = self._element.timing
         if timing is None:
             return ()
-        return tuple(AnimationEffect(par) for par in iter_main_sequence_effects(timing))
+        return tuple(AnimationEffectView(par) for par in iter_main_sequence_effects(timing))
 
     def iter_shape_animations(self) -> Iterator[ShapeAnimation]:
         """Iterate over the shape-targeted animation effects on this slide.
@@ -1353,7 +1353,7 @@ class Transition(ElementProxy):
         wipe.set("dir", PP_TRANSITION_SIDE_DIRECTION.to_xml(value))
 
 
-class AnimationEffect(ElementProxy):
+class AnimationEffectView(ElementProxy):
     """Read-only proxy for a single entrance / exit / emphasis effect.
 
     An *effect* is one step in the slide's main animation sequence —
@@ -1369,16 +1369,23 @@ class AnimationEffect(ElementProxy):
     They describe the effect well enough to round-trip a
     PowerPoint-authored timing and to power introspection-based
     regression tests (see issue #256). Authoring helpers —
-    ``AnimationEffect.set_preset()``, ``AnimationSequence.add(...)``,
+    ``AnimationEffectView.set_preset()``, ``AnimationSequence.add(...)``,
     reorder / delete — are deferred to the animation-authoring items
     (#102, #264, #1106) that stack on this foundation.
 
     Instances are not constructed by client code; obtain them from
     :attr:`.Slide.animation_sequence`.
+
+    .. note::
+       Renamed from ``AnimationEffect`` (which collided with the
+       authoring class :class:`pptx.animation.AnimationEffect`).
+       ``AnimationEffect`` remains available on ``pptx.slide`` as a
+       deprecated alias for one release; new code should use
+       ``AnimationEffectView``.
     """
 
     def __init__(self, par):
-        super(AnimationEffect, self).__init__(par)
+        super(AnimationEffectView, self).__init__(par)
         self._par = par
 
     @property
@@ -1483,6 +1490,18 @@ class AnimationEffect(ElementProxy):
             return int(delay_str)
         except ValueError:  # pragma: no cover - defensive, schema forbids
             return None
+
+
+# -- Deprecation alias --------------------------------------------------
+# ``AnimationEffect`` (the read-only introspection proxy that pairs with
+# :attr:`Slide.animation_sequence`, originally shipped by Wave 5 #256)
+# collided in name with :class:`pptx.animation.AnimationEffect` (the
+# authoring API shipped by Wave 5 #102). The introspection proxy has
+# been renamed :class:`AnimationEffectView`; this alias preserves
+# backwards compatibility for one release. New code should use
+# :class:`AnimationEffectView` or import :class:`AnimationEffect` from
+# :mod:`pptx.animation` for authoring.
+AnimationEffect = AnimationEffectView
 
 
 class ShapeAnimation(ElementProxy):
