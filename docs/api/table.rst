@@ -39,6 +39,19 @@ A |Table| object is added to a slide using the
    :undoc-members:
 
 
+|_RowCollection| objects
+------------------------
+
+A |_RowCollection| object is accessed using the :attr:`.Table.rows` property.
+Rows can be iterated, indexed, and added to the bottom of the table using its
+:meth:`~._RowCollection.add` method.
+
+.. autoclass:: _RowCollection()
+   :members: add
+   :member-order: bysource
+   :undoc-members:
+
+
 |_Cell| objects
 ---------------
 

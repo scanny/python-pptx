@@ -142,6 +142,13 @@ def when_I_assign_table_vert_banding_eq_True(context):
     context.table_.vert_banding = True
 
 
+@when("I call table.rows.add()")
+def when_I_call_table_rows_add(context):
+    # ---remember the prior last row's height before adding---
+    context.prior_last_row_height = context.table_.rows[len(context.table_.rows) - 1].height
+    context.added_row = context.table_.rows.add()
+
+
 @when("I call cell.split()")
 def when_I_call_cell_split_other_cell(context):
     context.cell.split()
@@ -228,6 +235,26 @@ def then_len_list_table_iter_cells_eq(context, int_lit):
     actual = len(list(context.table_.iter_cells()))
     expected = int(int_lit)
     assert actual is expected, "len(list(table.iter_cells())) == %s" % actual
+
+
+@then("len(table.rows) == {int_lit}")
+def then_len_table_rows_eq(context, int_lit):
+    actual = len(context.table_.rows)
+    expected = int(int_lit)
+    assert actual == expected, "len(table.rows) == %s" % actual
+
+
+@then("the new row has two cells")
+def then_new_row_has_two_cells(context):
+    actual = len(list(context.added_row.cells))
+    assert actual == 2, "the new row has %d cell(s)" % actual
+
+
+@then("the new row height equals the prior last row height")
+def then_new_row_height_equals_prior(context):
+    actual = context.added_row.height
+    expected = context.prior_last_row_height
+    assert actual == expected, "new row height %s != prior %s" % (actual, expected)
 
 
 @then("origin_cell.text == {value}")

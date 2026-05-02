@@ -799,6 +799,48 @@ class Describe_RowCollection(object):
         with pytest.raises(IndexError):
             rows[9]
 
+    def it_can_add_a_row(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        rows = _RowCollection(element(tbl_cxml), parent_)
+
+        row = rows.add()
+
+        assert isinstance(row, _Row)
+        assert row.height == 370840
+        # ---new row has one cell per column---
+        assert len(list(row.cells)) == 2
+        # ---new row appended to the table---
+        assert len(rows) == 2
+        assert rows[1]._tr is row._tr
+        parent_.notify_height_changed.assert_called_once_with()
+
+    def it_can_add_a_row_with_a_specified_height(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        rows = _RowCollection(element(tbl_cxml), parent_)
+
+        row = rows.add(height=Inches(2))
+
+        assert row.height == Inches(2)
+        parent_.notify_height_changed.assert_called_once_with()
+
+    def it_defaults_the_row_height_when_table_has_no_rows(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = "a:tbl/a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400})"
+        rows = _RowCollection(element(tbl_cxml), parent_)
+
+        row = rows.add()
+
+        assert row.height == 370840
+        assert len(list(row.cells)) == 2
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=["a:tbl", "a:tbl/a:tr", "a:tbl/(a:tr, a:tr, a:tr)"])
