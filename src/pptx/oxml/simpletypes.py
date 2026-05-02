@@ -672,6 +672,37 @@ class ST_TextFontScalePercentOrPercentString(BaseFloatType):
             raise ValueError("value must be in range 1.0..100.0 (percent), got %s" % value)
 
 
+class ST_TextFontScaleReductionPercent(BaseFloatType):
+    """Valid values for the `lnSpcReduction` attribute of ``<a:normAutofit>``.
+
+    Represents the percent by which line spacing is reduced when autofitting
+    text to a shape. Stored in XML either as an integer in parts per hundred
+    thousand (e.g. ``"20000"`` for a 20% reduction) or as a percent literal
+    like ``"20%"``.
+
+    Exposed on the Python side as a float percent value in the range 0.0..100.0
+    (e.g. ``20.0`` for a 20% reduction).
+    """
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith("%"):
+            return float(str_value[:-1])  # trim off '%' character
+        return int(str_value) / 1000.0
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        return str(int(round(value * 1000.0)))
+
+    @classmethod
+    def validate(cls, value):
+        BaseFloatType.validate(value)
+        if value < 0.0 or value > 100.0:
+            raise ValueError(
+                "value must be in range 0.0..100.0 (percent), got %s" % value
+            )
+
+
 class ST_TextFontSize(BaseIntType):
     @classmethod
     def validate(cls, value):

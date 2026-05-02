@@ -98,6 +98,127 @@ class DescribeTextFrame(object):
         text_frame.clear()
         assert text_frame._element.xml == xml("p:txBody/a:p")
 
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "expected_value"),
+        [
+            ("p:txBody/a:bodyPr", 100.0),
+            ("p:txBody/a:bodyPr/a:normAutofit", 100.0),
+            ("p:txBody/a:bodyPr/a:normAutofit{fontScale=85000}", 85.0),
+            ("p:txBody/a:bodyPr/a:normAutofit{fontScale=50000}", 50.0),
+            ("p:txBody/a:bodyPr/a:spAutoFit", 100.0),
+        ],
+    )
+    def it_knows_its_font_scale(self, txBody_cxml: str, expected_value: float):
+        text_frame = TextFrame(element(txBody_cxml), None)
+        assert text_frame.font_scale == expected_value
+
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "value", "expected_cxml"),
+        [
+            # --adds normAutofit when not present--
+            (
+                "p:txBody/a:bodyPr",
+                85.0,
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=85000}",
+            ),
+            # --replaces existing normAutofit fontScale--
+            (
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=85000}",
+                50.0,
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=50000}",
+            ),
+            # --preserves existing lnSpcReduction on normAutofit--
+            (
+                "p:txBody/a:bodyPr/a:normAutofit{lnSpcReduction=20000}",
+                80.0,
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=80000,lnSpcReduction=20000}",
+            ),
+            # --replaces an existing spAutoFit choice sibling--
+            (
+                "p:txBody/a:bodyPr/a:spAutoFit",
+                75.0,
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=75000}",
+            ),
+            # --assigning the default value of 100.0 clears the fontScale attr--
+            (
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=85000}",
+                100.0,
+                "p:txBody/a:bodyPr/a:normAutofit",
+            ),
+        ],
+    )
+    def it_can_set_its_font_scale(
+        self, txBody_cxml: str, value: float, expected_cxml: str
+    ):
+        text_frame = TextFrame(element(txBody_cxml), None)
+        text_frame.font_scale = value
+        assert text_frame._txBody.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "expected_value"),
+        [
+            ("p:txBody/a:bodyPr", 0.0),
+            ("p:txBody/a:bodyPr/a:normAutofit", 0.0),
+            ("p:txBody/a:bodyPr/a:normAutofit{lnSpcReduction=20000}", 20.0),
+            ("p:txBody/a:bodyPr/a:noAutofit", 0.0),
+        ],
+    )
+    def it_knows_its_line_space_reduction(
+        self, txBody_cxml: str, expected_value: float
+    ):
+        text_frame = TextFrame(element(txBody_cxml), None)
+        assert text_frame.line_space_reduction == expected_value
+
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "value", "expected_cxml"),
+        [
+            # --adds normAutofit when not present--
+            (
+                "p:txBody/a:bodyPr",
+                20.0,
+                "p:txBody/a:bodyPr/a:normAutofit{lnSpcReduction=20000}",
+            ),
+            # --preserves existing fontScale on normAutofit--
+            (
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=80000}",
+                10.0,
+                "p:txBody/a:bodyPr/a:normAutofit{fontScale=80000,lnSpcReduction=10000}",
+            ),
+            # --replaces an existing noAutofit choice sibling--
+            (
+                "p:txBody/a:bodyPr/a:noAutofit",
+                15.0,
+                "p:txBody/a:bodyPr/a:normAutofit{lnSpcReduction=15000}",
+            ),
+            # --assigning the default value of 0.0 clears the lnSpcReduction attr--
+            (
+                "p:txBody/a:bodyPr/a:normAutofit{lnSpcReduction=20000}",
+                0.0,
+                "p:txBody/a:bodyPr/a:normAutofit",
+            ),
+        ],
+    )
+    def it_can_set_its_line_space_reduction(
+        self, txBody_cxml: str, value: float, expected_cxml: str
+    ):
+        text_frame = TextFrame(element(txBody_cxml), None)
+        text_frame.line_space_reduction = value
+        assert text_frame._txBody.xml == xml(expected_cxml)
+
+    def it_raises_on_font_scale_out_of_range(self):
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+        with pytest.raises(ValueError):
+            text_frame.font_scale = 0.5
+        with pytest.raises(ValueError):
+            text_frame.font_scale = 150.0
+
+    def it_raises_on_line_space_reduction_out_of_range(self):
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+        with pytest.raises(ValueError):
+            text_frame.line_space_reduction = -1.0
+        with pytest.raises(ValueError):
+            text_frame.line_space_reduction = 150.0
+
     def it_knows_its_margin_settings(self, margin_get_fixture):
         text_frame, prop_name, unit, expected_value = margin_get_fixture
         margin_value = getattr(text_frame, prop_name)

@@ -114,6 +114,37 @@ The possible values for ``TextFrame.auto_size`` and
 :ref:`MsoAutoSize` and :ref:`MsoVerticalAnchor` respectively.
 
 
+Fitting text to a placeholder
+-----------------------------
+
+PowerPoint placeholders commonly have ``auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``
+set so that when text overflows the shape, PowerPoint reduces the rendered font-size
+(and optionally line-spacing) to make it fit. PowerPoint records the reduction it
+applied as the ``fontScale`` and ``lnSpcReduction`` attributes on the
+``<a:normAutofit/>`` child of the text frame's ``a:bodyPr`` element.
+
+PowerPoint re-computes these attributes when the user edits the text box, but will
+not re-compute them when the file is saved programmatically and then opened for
+display only. If you are generating a slide whose placeholder text you know will
+overflow, you can emit the autofit hints directly so PowerPoint renders the text at
+the scaled size on first display::
+
+    text_frame = slide.placeholders[1].text_frame
+    text_frame.text = "Long text that will not fit at the authored size..."
+    text_frame.font_scale = 85.0          # 85% of authored font size
+    text_frame.line_space_reduction = 10.0  # reduce line spacing by 10%
+
+Both ``font_scale`` (range 1.0..100.0, default 100.0) and
+``line_space_reduction`` (range 0.0..100.0, default 0.0) are percent values.
+Assigning either one ensures the text frame has an ``a:normAutofit`` child.
+
+For text boxes whose font is available locally, :meth:`.TextFrame.fit_text`
+computes a best-fit point size and applies it directly to each run (so no
+``normAutofit`` hints are required). :meth:`.TextFrame.fit_text` also works on
+placeholder text frames; the placeholder's effective width and height are
+obtained from its slide layout when not overridden on the slide.
+
+
 Applying paragraph formatting
 -----------------------------
 

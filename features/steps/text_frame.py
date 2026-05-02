@@ -44,6 +44,13 @@ def given_a_text_frame_with_more_text_than_will_fit(context):
     context.text_frame = shape.text_frame
 
 
+@given("a placeholder text frame as text_frame")
+def given_a_placeholder_text_frame_as_text_frame(context):
+    prs = Presentation(test_pptx("ph-populated-placeholders"))
+    # slide 4 is the 'title' populated placeholder
+    context.text_frame = prs.slides[4].shapes[0].text_frame
+
+
 # when ====================================================
 
 
@@ -82,6 +89,16 @@ def when_I_call_TextFrame_fit_text(context):
     font_file = test_file("calibriz.ttf")
     context.text_frame.fit_text(bold=True, italic=True, font_file=font_file)
     # context.text_frame.fit_text(font_family='Arial', bold=True, italic=True)
+
+
+@when("I assign {value} to text_frame.font_scale")
+def when_I_assign_value_to_text_frame_font_scale(context, value):
+    context.text_frame.font_scale = float(value)
+
+
+@when("I assign {value} to text_frame.line_space_reduction")
+def when_I_assign_value_to_text_frame_line_space_reduction(context, value):
+    context.text_frame.line_space_reduction = float(value)
 
 
 @given("a shape too narrow to fit any word at any considered font size")
@@ -190,3 +207,17 @@ def then_the_size_of_the_text_is_10pt(context):
     for paragraph in text_frame.paragraphs:
         for run in paragraph.runs:
             assert run.font.size in (Pt(10.0), Pt(11.0)), "got %s" % run.font.size.pt
+
+
+@then("text_frame.font_scale is {value}")
+def then_text_frame_font_scale_is_value(context, value):
+    expected = float(value)
+    actual = context.text_frame.font_scale
+    assert actual == expected, "expected %s, got %s" % (expected, actual)
+
+
+@then("text_frame.line_space_reduction is {value}")
+def then_text_frame_line_space_reduction_is_value(context, value):
+    expected = float(value)
+    actual = context.text_frame.line_space_reduction
+    assert actual == expected, "expected %s, got %s" % (expected, actual)
