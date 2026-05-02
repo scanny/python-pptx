@@ -57,3 +57,12 @@ def then_the_effect_on_that_shape_inherits(context, effect):
         "unexpected effect type %s" % type(sub).__name__
     )
     assert sub.inherit is True, "%s effect does not inherit" % effect
+
+
+@then('the sibling a:effectRef has idx "{idx}"')
+def then_the_sibling_a_effectRef_has_idx(context, idx):
+    sp = context.shape._element
+    effectRefs = sp.xpath("./p:style/a:effectRef")
+    assert effectRefs, "no sibling p:style/a:effectRef found on the shape"
+    actual = effectRefs[0].get("idx")
+    assert actual == idx, 'a:effectRef/@idx is "%s", expected "%s"' % (actual, idx)

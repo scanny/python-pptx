@@ -78,6 +78,7 @@ Unreleased
 - #502 support audio MIME types / docs clarification
 - feat: #752 accept arbitrary `prog_id` + `extension` in
   `SlideShapes.add_ole_object()` to embed zip/pdf/html/custom files
+- #446 shape.shadow.inherit attribute not working
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

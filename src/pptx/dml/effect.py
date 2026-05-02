@@ -168,7 +168,10 @@ class ShadowFormat(_EffectChildFormat):
         is restored. Note this has the side-effect of removing **all** explicitly-defined
         effects, such as glow and reflection, and restoring inheritance for all effects on
         the shape. Assigning False causes the inheritance link to be broken and **no**
-        effects to appear on the shape.
+        effects to appear on the shape; this also zeroes any sibling
+        `p:style/a:effectRef/@idx` so theme-inherited shadow is fully suppressed (issue
+        #446). Note that the original `effectRef/@idx` value is not preserved, so a later
+        ``inherit = True`` cannot restore it.
         """
         return self._effectLst is None
 
@@ -178,6 +181,26 @@ class ShadowFormat(_EffectChildFormat):
             self._element._remove_effectLst()
         else:
             self._element.get_or_add_effectLst()
+            # -- also zero any sibling `p:style/a:effectRef/@idx` so that a theme-level
+            # -- shadow (inherited via effectRef) does not leak through the empty
+            # -- `a:effectLst`. See issue #446.
+            self._zero_sibling_effectRef_idx()
+
+    def _zero_sibling_effectRef_idx(self) -> None:
+        """Set `../p:style/a:effectRef/@idx` to ``"0"`` when present.
+
+        The `p:style/a:effectRef` element is a sibling of `p:spPr` on `p:sp` and
+        `p:cxnSp` shape elements. A `p:grpSpPr` has no sibling `p:style`, so this is a
+        no-op there.
+        """
+        parent = self._element.getparent()
+        if parent is None:
+            return
+        # -- xpath rather than a typed descriptor so we don't need to add `p:style` to
+        # -- every shape schema; `p:style` is optional and its shape is simple.
+        effectRefs = parent.xpath("./p:style/a:effectRef")
+        for effectRef in effectRefs:
+            effectRef.set("idx", "0")
 
     # -- outer-shadow specific read/write properties --------------------------
 

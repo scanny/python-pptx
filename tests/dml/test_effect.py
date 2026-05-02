@@ -12,6 +12,8 @@ from pptx.dml.effect import (
     ShadowFormat,
     SoftEdgeFormat,
 )
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls, qn
 from pptx.util import Emu
 
 from ..unitutil.cxml import element, xml
@@ -77,6 +79,76 @@ class DescribeShadowFormat(object):
         shadow.direction = 90.0
         expected = xml("p:spPr/a:effectLst/a:outerShdw{blurRad=50800,dist=38100,dir=5400000}")
         assert shadow._element.xml == expected
+
+    # -- issue #446: inherit=False must also zero sibling `a:effectRef/@idx` -------
+
+    def it_zeroes_sibling_effectRef_idx_when_breaking_inheritance(self):
+        """Issue #446: setting `inherit = False` must also zero `p:style/a:effectRef/@idx`
+        so a theme-inherited shadow doesn't leak through the empty `a:effectLst`."""
+        sp = _sp_with_style_effectRef(idx="2")
+        spPr = sp.xpath("./p:spPr")[0]
+        shadow = ShadowFormat(spPr)
+
+        shadow.inherit = False
+
+        effectRef = sp.xpath("./p:style/a:effectRef")[0]
+        assert effectRef.get("idx") == "0"
+        assert spPr.xpath("./a:effectLst")  # -- effectLst also added
+
+    def but_it_does_not_create_a_style_or_effectRef_when_none_exists(self):
+        """No `p:style` on the parent → setting inherit=False only adds `a:effectLst`."""
+        sp = _sp_without_style()
+        spPr = sp.xpath("./p:spPr")[0]
+        shadow = ShadowFormat(spPr)
+
+        shadow.inherit = False
+
+        assert not sp.xpath("./p:style")
+        assert spPr.xpath("./a:effectLst")
+
+    def and_it_is_a_no_op_on_a_parentless_spPr(self):
+        """Detached `p:spPr` with no parent must not raise."""
+        shadow = ShadowFormat(element("p:spPr"))
+        # -- must not raise even though `self._element.getparent()` is None --
+        shadow.inherit = False
+        assert shadow._element.effectLst is not None
+
+    def and_it_works_for_a_cxnSp_parent_too(self):
+        """Connectors (`p:cxnSp`) also have a sibling `p:style/a:effectRef`."""
+        cxnSp = _cxnSp_with_style_effectRef(idx="1")
+        spPr = cxnSp.xpath("./p:spPr")[0]
+        shadow = ShadowFormat(spPr)
+
+        shadow.inherit = False
+
+        effectRef = cxnSp.xpath("./p:style/a:effectRef")[0]
+        assert effectRef.get("idx") == "0"
+
+    def and_it_leaves_effectRef_untouched_when_restoring_inheritance(self):
+        """`inherit = True` removes `a:effectLst` but must not touch `a:effectRef`."""
+        sp = _sp_with_style_effectRef(idx="2")
+        spPr = sp.xpath("./p:spPr")[0]
+        # -- seed an explicit effectLst so that the True branch has something to remove --
+        shadow = ShadowFormat(spPr)
+        shadow.inherit = False  # -- also zeroes effectRef --
+        # -- manually restore a non-zero idx to simulate post-edit state --
+        sp.xpath("./p:style/a:effectRef")[0].set("idx", "2")
+
+        shadow.inherit = True
+
+        assert spPr.find(qn("a:effectLst")) is None
+        # -- effectRef idx must still be "2", the True branch doesn't touch it --
+        assert sp.xpath("./p:style/a:effectRef")[0].get("idx") == "2"
+
+    def and_it_leaves_grpSpPr_behavior_unchanged(self):
+        """Group shapes have no `p:style` sibling, so fix must be a silent no-op."""
+        grpSp = _grpSp_without_style()
+        grpSpPr = grpSp.xpath("./p:grpSpPr")[0]
+        shadow = ShadowFormat(grpSpPr)
+
+        shadow.inherit = False
+
+        assert grpSpPr.xpath("./a:effectLst")
 
     # fixtures -------------------------------------------------------
 
@@ -245,3 +317,48 @@ class DescribeSoftEdgeFormat(object):
         s = SoftEdgeFormat(element("p:spPr/a:effectLst/a:softEdge{rad=12700}"))
         with pytest.raises(ValueError):
             s.size = None
+
+
+# -- helpers -----------------------------------------------------------------
+
+
+def _sp_with_style_effectRef(idx: str):
+    """Return a `p:sp` element with `p:spPr` and a sibling `p:style/a:effectRef@idx`."""
+    return parse_xml(
+        f"<p:sp {nsdecls('a', 'p')}>\n"
+        f"  <p:spPr/>\n"
+        f"  <p:style>\n"
+        f'    <a:lnRef idx="1"><a:schemeClr val="accent1"/></a:lnRef>\n'
+        f'    <a:fillRef idx="3"><a:schemeClr val="accent1"/></a:fillRef>\n'
+        f'    <a:effectRef idx="{idx}"><a:schemeClr val="accent1"/></a:effectRef>\n'
+        f'    <a:fontRef idx="minor"><a:schemeClr val="lt1"/></a:fontRef>\n'
+        f"  </p:style>\n"
+        f"</p:sp>"
+    )
+
+
+def _sp_without_style():
+    """Return a `p:sp` element with a `p:spPr` child but no sibling `p:style`."""
+    return parse_xml(f"<p:sp {nsdecls('a', 'p')}>\n  <p:spPr/>\n</p:sp>")
+
+
+def _cxnSp_with_style_effectRef(idx: str):
+    """Return a `p:cxnSp` connector with `p:spPr` and sibling `p:style/a:effectRef@idx`."""
+    return parse_xml(
+        f"<p:cxnSp {nsdecls('a', 'p')}>\n"
+        f"  <p:spPr/>\n"
+        f"  <p:style>\n"
+        f'    <a:lnRef idx="2"><a:schemeClr val="accent1"/></a:lnRef>\n'
+        f'    <a:fillRef idx="0"><a:schemeClr val="accent1"/></a:fillRef>\n'
+        f'    <a:effectRef idx="{idx}"><a:schemeClr val="accent1"/></a:effectRef>\n'
+        f'    <a:fontRef idx="minor"><a:schemeClr val="tx1"/></a:fontRef>\n'
+        f"  </p:style>\n"
+        f"</p:cxnSp>"
+    )
+
+
+def _grpSp_without_style():
+    """Return a `p:grpSp` with a `p:grpSpPr` child (group shapes have no `p:style`)."""
+    return parse_xml(
+        f"<p:grpSp {nsdecls('a', 'p')}>\n  <p:grpSpPr/>\n</p:grpSp>"
+    )
