@@ -45,6 +45,45 @@ unchanged to a file named 'test.pptx'. A couple things to note:
   them to work with |pp|.
 
 
+Choosing a 16:9 (widescreen) or 4:3 default template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The built-in default template is the classic 4:3 ``screen4x3`` layout (10 in
+× 7.5 in, 9144000 × 6858000 EMU). If you'd rather start from a widescreen
+16:9 deck (13.333 in × 7.5 in, 12192000 × 6858000 EMU), pass the
+``pptx_format`` keyword argument::
+
+    from pptx import Presentation
+
+    prs = Presentation(pptx_format="16x9")          # widescreen
+    prs = Presentation(pptx_format="widescreen")    # same as above
+    prs = Presentation(pptx_format="4x3")           # explicit 4:3
+    prs = Presentation(pptx_format="standard")      # same as "4x3"
+
+The accepted values are case-insensitive and only recognised when no path
+(or file-like object) is supplied — the argument controls which built-in
+template ships into the new deck. Passing ``pptx_format`` together with
+a filename raises :class:`ValueError` because the slide size is determined
+by the file you're opening in that case.
+
+To override the slide size of an already-loaded deck (either the default
+template or a user-provided file) set
+:attr:`~pptx.presentation.Presentation.slide_width` and
+:attr:`~pptx.presentation.Presentation.slide_height` directly::
+
+    from pptx.util import Emu
+
+    prs = Presentation()                   # default 4:3
+    prs.slide_width = Emu(12192000)        # switch to 16:9
+    prs.slide_height = Emu(6858000)
+
+Note that only the top-level slide size changes in that case; the
+placeholders defined on the built-in slide master still reflect a 4:3
+layout, so visible placeholders will be left-anchored within the wider
+slide. For a clean widescreen starting point, prefer
+``Presentation(pptx_format="16x9")``.
+
+
 REALLY opening a presentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
