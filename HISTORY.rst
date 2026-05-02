@@ -61,6 +61,24 @@ Unreleased
   drops ``c:numFmt`` from ``CT_CatAx`` or decouples
   ``CategoryAxis.tick_labels`` from the shared ``TickLabels`` plumbing
   will be caught here.
+- verify: #662 (data-label background color) resolved by
+  ``feat/issue-716-datalabel-border`` (Wave 1) together with
+  ``feat/issue-560-data-label-colors`` (Wave 7). #716 added
+  ``DataLabel.format`` (a ``ChartFormat`` wrapping the individual
+  ``c:dLbl``) with ``.fill`` / ``.line`` / ``.shadow``, and #560 added
+  the series-level analogue ``DataLabels.format`` (wrapping
+  ``c:dLbls``) plus the ``c:spPr`` registration on ``CT_DLbls`` so
+  the element is inserted between ``c:numFmt`` and ``c:txPr`` in
+  schema order. Together these close the #662 reporter's request to
+  set a background fill on data labels — ``series.data_labels.format
+  .fill.solid()`` colors every label on a series, and
+  ``series.points[i].data_label.format.fill.solid()`` colors a single
+  label. Leader lines (the other half of the #662 thread) remain
+  out of scope. Adds a regression suite
+  ``DescribeIssue662DataLabelBackground`` under
+  ``tests/test_issue_662_data_label_background.py`` that round-trips
+  both scopes through ``Presentation.save`` + reopen and pins
+  ``c:spPr`` placement under ``c:dLbls``.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
