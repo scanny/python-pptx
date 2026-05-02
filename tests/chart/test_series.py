@@ -13,6 +13,7 @@ from pptx.chart.series import (
     AreaSeries,
     BarSeries,
     BubbleSeries,
+    ErrorBars,
     LineSeries,
     PieSeries,
     RadarSeries,
@@ -24,6 +25,11 @@ from pptx.chart.series import (
     _SeriesFactory,
 )
 from pptx.dml.chtfmt import ChartFormat
+from pptx.enum.chart import (
+    XL_ERROR_BAR_DIRECTION,
+    XL_ERROR_BAR_INCLUDE,
+    XL_ERROR_BAR_TYPE,
+)
 
 from ..unitutil.cxml import element, xml
 from ..unitutil.mock import class_mock, function_mock, instance_mock
@@ -43,6 +49,91 @@ class Describe_BaseSeries(object):
         format = series.format
         ChartFormat_.assert_called_once_with(ser)
         assert format is format_
+
+    @pytest.mark.parametrize(
+        "ser_cxml, expected_value",
+        [
+            ("c:ser/(c:idx{val=0},c:order{val=0})", False),
+            (
+                "c:ser/(c:idx{val=0},c:order{val=0},c:errBars/(c:errBarType{val=bo"
+                "th},c:errValType{val=fixedVal}))",
+                True,
+            ),
+        ],
+    )
+    def it_knows_whether_it_has_error_bars(self, ser_cxml, expected_value):
+        series = _BaseSeries(element(ser_cxml))
+        assert series.has_error_bars is expected_value
+
+    def it_returns_None_for_error_bars_when_absent(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        assert series.error_bars is None
+
+    def it_provides_access_to_its_error_bars(self):
+        ser_cxml = (
+            "c:ser/(c:idx{val=0},c:order{val=0},c:errBars/(c:errBarType{val=both}"
+            ",c:errValType{val=fixedVal},c:val{val=1.5}))"
+        )
+        series = _BaseSeries(element(ser_cxml))
+        error_bars = series.error_bars
+        assert isinstance(error_bars, ErrorBars)
+        assert error_bars.type == XL_ERROR_BAR_TYPE.FIXED_VALUE
+        assert error_bars.include == XL_ERROR_BAR_INCLUDE.BOTH
+        assert error_bars.value == 1.5
+
+    def it_can_attach_error_bars_via_set_error_bars(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+
+        error_bars = series.set_error_bars(
+            type_=XL_ERROR_BAR_TYPE.PERCENT,
+            value=10.0,
+            include=XL_ERROR_BAR_INCLUDE.BOTH,
+        )
+
+        assert isinstance(error_bars, ErrorBars)
+        assert series.has_error_bars is True
+        assert series.error_bars.type == XL_ERROR_BAR_TYPE.PERCENT
+        assert series.error_bars.value == 10.0
+
+    def it_replaces_existing_error_bars_when_set_error_bars_called_twice(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        series.set_error_bars(type_=XL_ERROR_BAR_TYPE.FIXED_VALUE, value=1.0)
+
+        series.set_error_bars(type_=XL_ERROR_BAR_TYPE.PERCENT, value=5.0)
+
+        # -- only one c:errBars child should be present --
+        assert len(series._element.xpath("c:errBars")) == 1
+        assert series.error_bars.type == XL_ERROR_BAR_TYPE.PERCENT
+        assert series.error_bars.value == 5.0
+
+    def it_removes_error_bars_when_set_to_None(self):
+        ser_cxml = (
+            "c:ser/(c:idx{val=0},c:order{val=0},c:errBars/(c:errBarType{val=both}"
+            ",c:errValType{val=fixedVal},c:val{val=1.5}))"
+        )
+        series = _BaseSeries(element(ser_cxml))
+
+        series.error_bars = None
+
+        assert series.has_error_bars is False
+
+    def it_raises_on_setting_error_bars_to_a_non_ErrorBars_value(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        with pytest.raises(TypeError):
+            series.error_bars = 42
+
+    def it_allows_assigning_a_new_ErrorBars_object_to_error_bars(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        # -- build a detached errBars element via the existing setter path --
+        new_error_bars = series.set_error_bars(
+            type_=XL_ERROR_BAR_TYPE.STDEV, value=2.0
+        )
+        # -- drop it, then reassign --
+        series.error_bars = None
+        series.error_bars = new_error_bars
+
+        assert series.has_error_bars is True
+        assert series.error_bars.type == XL_ERROR_BAR_TYPE.STDEV
 
     # fixtures -------------------------------------------------------
 
@@ -549,3 +640,147 @@ class Describe_SeriesFactory(object):
         SeriesCls_ = class_mock(request, "pptx.chart.series.%s" % cls_name)
         series_ = SeriesCls_.return_value
         return ser, SeriesCls_, series_
+
+
+class DescribeErrorBars(object):
+    @pytest.mark.parametrize(
+        "errBars_cxml, expected_type",
+        [
+            ("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal})", "fixedVal"),
+            ("c:errBars/(c:errBarType{val=both},c:errValType{val=percentage})", "percentage"),
+            ("c:errBars/(c:errBarType{val=both},c:errValType{val=stdDev})", "stdDev"),
+            ("c:errBars/(c:errBarType{val=both},c:errValType{val=stdErr})", "stdErr"),
+            ("c:errBars/(c:errBarType{val=both},c:errValType{val=cust})", "cust"),
+        ],
+    )
+    def it_knows_its_type(self, errBars_cxml, expected_type):
+        error_bars = ErrorBars(element(errBars_cxml))
+        assert error_bars.type == XL_ERROR_BAR_TYPE.from_xml(expected_type)
+
+    def it_defaults_type_to_fixed_value_when_errValType_absent(self):
+        error_bars = ErrorBars(element("c:errBars/c:errBarType{val=both}"))
+        assert error_bars.type == XL_ERROR_BAR_TYPE.FIXED_VALUE
+
+    def it_can_change_its_type(self):
+        errBars = element(
+            "c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=1})"
+        )
+        error_bars = ErrorBars(errBars)
+
+        error_bars.type = XL_ERROR_BAR_TYPE.PERCENT
+
+        assert error_bars.type == XL_ERROR_BAR_TYPE.PERCENT
+
+    @pytest.mark.parametrize(
+        "errBars_cxml, expected_include",
+        [
+            ("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal})", "both"),
+            ("c:errBars/(c:errBarType{val=plus},c:errValType{val=fixedVal})", "plus"),
+            ("c:errBars/(c:errBarType{val=minus},c:errValType{val=fixedVal})", "minus"),
+        ],
+    )
+    def it_knows_which_sides_are_included(self, errBars_cxml, expected_include):
+        error_bars = ErrorBars(element(errBars_cxml))
+        assert error_bars.include == XL_ERROR_BAR_INCLUDE.from_xml(expected_include)
+
+    def it_defaults_include_to_BOTH_when_errBarType_absent(self):
+        error_bars = ErrorBars(element("c:errBars/c:errValType{val=fixedVal}"))
+        assert error_bars.include == XL_ERROR_BAR_INCLUDE.BOTH
+
+    def it_can_change_its_include(self):
+        error_bars = ErrorBars(
+            element("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal})")
+        )
+
+        error_bars.include = XL_ERROR_BAR_INCLUDE.PLUS_VALUES
+
+        assert error_bars.include == XL_ERROR_BAR_INCLUDE.PLUS_VALUES
+
+    def it_knows_its_value(self):
+        error_bars = ErrorBars(
+            element(
+                "c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=2.5})"
+            )
+        )
+        assert error_bars.value == 2.5
+
+    def it_returns_None_for_value_when_c_val_absent(self):
+        error_bars = ErrorBars(
+            element("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal})")
+        )
+        assert error_bars.value is None
+
+    def it_can_set_its_value(self):
+        error_bars = ErrorBars(
+            element("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal})")
+        )
+
+        error_bars.value = 3.25
+
+        assert error_bars.value == 3.25
+
+    def it_can_overwrite_its_value(self):
+        error_bars = ErrorBars(
+            element(
+                "c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=1})"
+            )
+        )
+
+        error_bars.value = 7.5
+
+        assert error_bars.value == 7.5
+
+    @pytest.mark.parametrize(
+        "errBars_cxml, expected",
+        [
+            ("c:errBars", None),
+            ("c:errBars/c:errDir{val=x}", XL_ERROR_BAR_DIRECTION.X),
+            ("c:errBars/c:errDir{val=y}", XL_ERROR_BAR_DIRECTION.Y),
+        ],
+    )
+    def it_knows_its_direction(self, errBars_cxml, expected):
+        error_bars = ErrorBars(element(errBars_cxml))
+        assert error_bars.direction == expected
+
+    def it_can_change_its_direction(self):
+        error_bars = ErrorBars(element("c:errBars"))
+
+        error_bars.direction = XL_ERROR_BAR_DIRECTION.Y
+
+        assert error_bars.direction == XL_ERROR_BAR_DIRECTION.Y
+
+    def it_can_clear_its_direction(self):
+        error_bars = ErrorBars(element("c:errBars/c:errDir{val=x}"))
+
+        error_bars.direction = None
+
+        assert error_bars.direction is None
+
+    @pytest.mark.parametrize(
+        "errBars_cxml, expected",
+        [
+            ("c:errBars", True),
+            ("c:errBars/c:noEndCap", False),
+            ("c:errBars/c:noEndCap{val=1}", False),
+            ("c:errBars/c:noEndCap{val=0}", True),
+        ],
+    )
+    def it_knows_whether_end_caps_are_drawn(self, errBars_cxml, expected):
+        error_bars = ErrorBars(element(errBars_cxml))
+        assert error_bars.end_cap is expected
+
+    def it_can_turn_end_caps_on_and_off(self):
+        error_bars = ErrorBars(element("c:errBars"))
+
+        error_bars.end_cap = False
+        assert error_bars.end_cap is False
+
+        error_bars.end_cap = True
+        assert error_bars.end_cap is True
+
+    def it_provides_access_to_its_format(self):
+        error_bars = ErrorBars(element("c:errBars"))
+        fmt = error_bars.format
+        assert type(fmt).__name__ == "ChartFormat"
+        # -- same object returned twice (lazyproperty) --
+        assert error_bars.format is fmt

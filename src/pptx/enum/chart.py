@@ -291,6 +291,81 @@ class XL_CHART_TYPE(BaseEnum):
     """Scatter with Smoothed Lines and No Data Markers."""
 
 
+class XL_ERROR_BAR_DIRECTION(BaseXmlEnum):
+    """Specifies the direction of the error bars on a chart series.
+
+    Example::
+
+        from pptx.enum.chart import XL_ERROR_BAR_DIRECTION
+
+        series.error_bars.direction = XL_ERROR_BAR_DIRECTION.Y
+
+    MS API Name: `XlErrorBarDirection`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xlerrorbardirection
+    """
+
+    X = (0, "x", "Error bars extend in the X direction (horizontal).")
+    """Error bars extend in the X direction (horizontal)."""
+
+    Y = (1, "y", "Error bars extend in the Y direction (vertical).")
+    """Error bars extend in the Y direction (vertical)."""
+
+
+class XL_ERROR_BAR_INCLUDE(BaseXmlEnum):
+    """Specifies which error-bar parts to display (the positive side, negative side, or both).
+
+    Example::
+
+        from pptx.enum.chart import XL_ERROR_BAR_INCLUDE
+
+        series.error_bars.include = XL_ERROR_BAR_INCLUDE.BOTH
+
+    MS API Name: `XlErrorBarInclude`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xlerrorbarinclude
+    """
+
+    BOTH = (1, "both", "Show both positive and negative error bars.")
+    """Show both positive and negative error bars."""
+
+    MINUS_VALUES = (3, "minus", "Show only negative-side error bars.")
+    """Show only negative-side error bars."""
+
+    PLUS_VALUES = (2, "plus", "Show only positive-side error bars.")
+    """Show only positive-side error bars."""
+
+
+class XL_ERROR_BAR_TYPE(BaseXmlEnum):
+    """Specifies how the magnitude of error bars is computed.
+
+    Example::
+
+        from pptx.enum.chart import XL_ERROR_BAR_TYPE
+
+        series.error_bars.type = XL_ERROR_BAR_TYPE.FIXED_VALUE
+
+    MS API Name: `XlErrorBarType`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xlerrorbartype
+    """
+
+    CUSTOM = (-4114, "cust", "Values are provided by `plus`/`minus` references (custom per-point).")
+    """Values are provided by `plus`/`minus` references (custom per-point)."""
+
+    FIXED_VALUE = (2, "fixedVal", "All error bars have the same fixed magnitude.")
+    """All error bars have the same fixed magnitude."""
+
+    PERCENT = (4, "percentage", "Error bar magnitude is a percentage of each data point's value.")
+    """Error bar magnitude is a percentage of each data point's value."""
+
+    STDEV = (1, "stdDev", "Error bar magnitude is a number of standard deviations of the values.")
+    """Error bar magnitude is a number of standard deviations of the values."""
+
+    STERROR = (3, "stdErr", "Error bar magnitude is the standard error of the series values.")
+    """Error bar magnitude is the standard error of the series values."""
+
+
 class XL_DATA_LABEL_POSITION(BaseXmlEnum):
     """Specifies where the data label is positioned.
 

@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+from pptx.enum.chart import (
+    XL_ERROR_BAR_DIRECTION,
+    XL_ERROR_BAR_INCLUDE,
+    XL_ERROR_BAR_TYPE,
+)
+from pptx.oxml import parse_xml
 from pptx.oxml.chart.datalabel import CT_DLbls
+from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import XsdUnsignedInt
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
+    OptionalAttribute,
     OxmlElement,
     RequiredAttribute,
     ZeroOrMore,
@@ -103,6 +111,90 @@ class CT_NumDataSource(BaseOxmlElement):
         return results[0].value if results else None
 
 
+class CT_ErrBarType(BaseOxmlElement):
+    """`c:errBarType` element specifying which side(s) of the data point the error bars appear.
+
+    Child of `c:errBars`. Attribute `val` is one of "both", "minus", "plus" (default "both").
+    """
+
+    val = OptionalAttribute(
+        "val", XL_ERROR_BAR_INCLUDE, default=XL_ERROR_BAR_INCLUDE.BOTH
+    )  # pyright: ignore[reportAssignmentType]
+
+
+class CT_ErrDir(BaseOxmlElement):
+    """`c:errDir` element specifying the axis along which error bars extend.
+
+    Child of `c:errBars`. Attribute `val` is one of "x" or "y".
+    """
+
+    val = RequiredAttribute("val", XL_ERROR_BAR_DIRECTION)  # pyright: ignore[reportAssignmentType]
+
+
+class CT_ErrValType(BaseOxmlElement):
+    """`c:errValType` element specifying how error-bar magnitudes are computed.
+
+    Child of `c:errBars`. Attribute `val` is one of "cust", "fixedVal", "percentage",
+    "stdDev", "stdErr" (default "fixedVal").
+    """
+
+    val = OptionalAttribute(
+        "val", XL_ERROR_BAR_TYPE, default=XL_ERROR_BAR_TYPE.FIXED_VALUE
+    )  # pyright: ignore[reportAssignmentType]
+
+
+class CT_ErrBars(BaseOxmlElement):
+    """`c:errBars` element describing a set of error bars for a data series.
+
+    A series may have zero, one, or (on XY/bubble charts) two `c:errBars` children — in
+    the two-child case one carries `errDir="x"` and the other `errDir="y"`.
+    """
+
+    _tag_seq = (
+        "c:errDir",
+        "c:errBarType",
+        "c:errValType",
+        "c:noEndCap",
+        "c:plus",
+        "c:minus",
+        "c:val",
+        "c:spPr",
+        "c:extLst",
+    )
+    errDir = ZeroOrOne("c:errDir", successors=_tag_seq[1:])
+    errBarType = ZeroOrOne("c:errBarType", successors=_tag_seq[2:])
+    errValType = ZeroOrOne("c:errValType", successors=_tag_seq[3:])
+    noEndCap = ZeroOrOne("c:noEndCap", successors=_tag_seq[4:])
+    plus = ZeroOrOne("c:plus", successors=_tag_seq[5:])
+    minus = ZeroOrOne("c:minus", successors=_tag_seq[6:])
+    val = ZeroOrOne("c:val", successors=_tag_seq[7:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[8:])
+    del _tag_seq
+
+    @classmethod
+    def new_errBars(cls, err_val_type="fixedVal", val=1.0, include="both", direction=None):
+        """Return a newly-created `c:errBars` element with common defaults filled in.
+
+        `err_val_type` is the OOXML string for `c:errValType/@val`
+        ("fixedVal", "percentage", "stdDev", "stdErr", or "cust").
+        `val` is the fixed magnitude for the `c:val` child (used when err_val_type is
+        "fixedVal" or "percentage"); it is emitted regardless as it is harmless when
+        the effective type ignores it.
+        `include` is the OOXML string for `c:errBarType/@val` — "both", "plus", or "minus".
+        `direction` is "x" or "y" (or |None| to omit `c:errDir`, which is valid for
+        category-axis series).
+        """
+        parts = ["<c:errBars %s>" % nsdecls("c")]
+        if direction is not None:
+            parts.append('  <c:errDir val="%s"/>' % direction)
+        parts.append('  <c:errBarType val="%s"/>' % include)
+        parts.append('  <c:errValType val="%s"/>' % err_val_type)
+        parts.append('  <c:noEndCap val="0"/>')
+        parts.append('  <c:val val="%s"/>' % val)
+        parts.append("</c:errBars>")
+        return parse_xml("\n".join(parts))
+
+
 class CT_SeriesComposite(BaseOxmlElement):
     """
     ``<c:ser>`` custom element class. Note there are several different series
@@ -143,6 +235,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     marker = ZeroOrOne("c:marker", successors=_tag_seq[7:])
     dPt = ZeroOrMore("c:dPt", successors=_tag_seq[9:])
     dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[10:])
+    errBars = ZeroOrOne("c:errBars", successors=_tag_seq[12:])
     cat = ZeroOrOne("c:cat", successors=_tag_seq[13:])
     val = ZeroOrOne("c:val", successors=_tag_seq[14:])
     xVal = ZeroOrOne("c:xVal", successors=_tag_seq[15:])

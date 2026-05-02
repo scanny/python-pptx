@@ -142,3 +142,32 @@ Feature: Chart series
       | values         | expected-value   |
       | 1.2, 2.3, 3.4  | (1.2, 2.3, 3.4)  |
       | 4.5, None, 6.7 | (4.5, None, 6.7) |
+
+
+  Scenario: series.has_error_bars starts False on a vanilla series
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     Then series.has_error_bars is False
+      And series.error_bars is None
+
+
+  Scenario: series.set_error_bars attaches a fixed-value ErrorBars
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I call series.set_error_bars with type FIXED_VALUE and value 1.5
+     Then series.has_error_bars is True
+      And series.error_bars.type is FIXED_VALUE
+      And series.error_bars.value is 1.5
+      And series.error_bars.include is BOTH
+
+
+  Scenario: series.set_error_bars attaches a percentage ErrorBars
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I call series.set_error_bars with type PERCENT and value 5.0
+     Then series.error_bars.type is PERCENT
+      And series.error_bars.value is 5.0
+
+
+  Scenario: series.error_bars = None removes the error bars
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+      And series has fixed-value error bars attached
+     When I assign None to series.error_bars
+     Then series.has_error_bars is False
