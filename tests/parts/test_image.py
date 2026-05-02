@@ -23,6 +23,7 @@ images_pptx_path = absjoin(test_file_dir, "with_images.pptx")
 
 test_image_path = absjoin(test_file_dir, "python-icon.jpeg")
 test_eps_path = absjoin(test_file_dir, "cdw-logo.eps")
+test_emf_path = absjoin(test_file_dir, "pic.emf")
 new_image_path = absjoin(test_file_dir, "monty-truth.png")
 
 
@@ -144,6 +145,39 @@ class DescribeImage(object):
         assert image.dpi == dpi
         assert image._pil_props == (format, size, None)
 
+    def it_distinguishes_EMF_from_WMF_for_content_type(self):
+        """Regression for issue #1042.
+
+        Pillow reports both WMF and EMF metafiles with format 'WMF'; we inspect the
+        blob's EMF signature so the content-type and extension are correct.
+        """
+        with open(test_emf_path, "rb") as f:
+            blob = f.read()
+
+        image = Image(blob, "pic.emf")
+
+        assert image._format == "EMF"
+        assert image.ext == "emf"
+        assert image.content_type == "image/x-emf"
+
+    @pytest.mark.parametrize(
+        "blob, expected",
+        [
+            # -- well-formed EMF blob with EMR_HEADER + " EMF" signature --
+            (b"\x01\x00\x00\x00" + b"\x00" * 36 + b" EMF" + b"\x00" * 100, True),
+            # -- too short to contain the signature --
+            (b"\x01\x00\x00\x00", False),
+            # -- correct EMR_HEADER but missing " EMF" signature (not an EMF) --
+            (b"\x01\x00\x00\x00" + b"\x00" * 36 + b"XXXX" + b"\x00" * 100, False),
+            # -- classic WMF placeable header --
+            (b"\xd7\xcd\xc6\x9a\x00\x00" + b"\x00" * 100, False),
+            # -- empty blob --
+            (b"", False),
+        ],
+    )
+    def it_detects_EMF_blobs(self, blob, expected):
+        assert Image._is_emf(blob) is expected
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -155,6 +189,7 @@ class DescribeImage(object):
     @pytest.fixture(
         params=[
             ("BMP", "image/bmp"),
+            ("EMF", "image/x-emf"),
             ("GIF", "image/gif"),
             ("JPEG", "image/jpeg"),
             ("MPO", "image/jpeg"),
@@ -187,6 +222,7 @@ class DescribeImage(object):
     @pytest.fixture(
         params=[
             ("BMP", "bmp"),
+            ("EMF", "emf"),
             ("GIF", "gif"),
             ("JPEG", "jpg"),
             ("MPO", "jpg"),

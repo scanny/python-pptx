@@ -71,3 +71,16 @@ Feature: Picture properties and methods
   Scenario: Picture.line
     Given a Picture object as shape
      Then shape.line is a LineFormat object
+
+
+  Scenario Outline: Image.ext and Image.content_type
+    Given an Image object loaded from <filename>
+     Then image.ext == <ext>
+      And image.content_type == <content-type>
+
+    Examples: image content-type and extension for supported formats
+      | filename         | ext    | content-type  |
+      | python-icon.jpeg | "jpg"  | "image/jpeg"  |
+      | monty-truth.png  | "png"  | "image/png"   |
+      | CVS_LOGO.WMF     | "wmf"  | "image/x-wmf" |
+      | pic.emf          | "emf"  | "image/x-emf" |

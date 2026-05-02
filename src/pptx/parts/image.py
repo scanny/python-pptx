@@ -180,7 +180,11 @@ class Image(object):
 
     @lazyproperty
     def content_type(self) -> str:
-        """MIME-type of this image, e.g. `"image/jpeg"`."""
+        """MIME-type of this image, e.g. `"image/jpeg"`.
+
+        EMF images are distinguished from WMF at detection time, so an EMF image
+        reports `"image/x-emf"` rather than the WMF content type.
+        """
         return image_content_types[self.ext]
 
     @lazyproperty
@@ -222,9 +226,12 @@ class Image(object):
 
         The returned extension is all lowercase and is the canonical extension for the content type
         of this image, regardless of what extension may have been used in its filename, if any.
+
+        One of `"bmp"`, `"emf"`, `"gif"`, `"jpg"`, `"png"`, `"tiff"`, or `"wmf"`.
         """
         ext_map = {
             "BMP": "bmp",
+            "EMF": "emf",
             "GIF": "gif",
             "JPEG": "jpg",
             "MPO": "jpg",
@@ -267,6 +274,11 @@ class Image(object):
         stream = io.BytesIO(self._blob)
         pil_image = PIL_Image.open(stream)  # pyright: ignore[reportUnknownMemberType]
         format = pil_image.format
+        # -- Pillow reports both WMF and EMF metafiles with format "WMF"; distinguish
+        # -- EMF using its "\x20EMF" signature at byte offset 40 so ext/content_type
+        # -- are correct for EMF images. See issue #1042.
+        if format == "WMF" and self._is_emf(self._blob):
+            format = "EMF"
         width_px, height_px = pil_image.size
         dpi = cast(
             "tuple[int, int] | None",
@@ -274,3 +286,12 @@ class Image(object):
         )
         stream.close()
         return (format, (width_px, height_px), dpi)
+
+    @staticmethod
+    def _is_emf(blob: bytes) -> bool:
+        """Return True when `blob` is an Enhanced Metafile (EMF) image.
+
+        An EMF file begins with the `EMR_HEADER` record (record-type `0x00000001`) and
+        carries the ASCII signature `" EMF"` at byte offset 40.
+        """
+        return len(blob) >= 44 and blob[:4] == b"\x01\x00\x00\x00" and blob[40:44] == b" EMF"
