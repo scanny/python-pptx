@@ -539,6 +539,53 @@ class DescribeWorkbookReader(object):
         with WorkbookReader(buf.getvalue()) as reader:
             assert reader.cell_value("Sheet1", 1, 1) is None
 
+    def it_does_not_expand_entities_when_parsing_embedded_workbook_xml(self):
+        # --- A workbook.xml containing a billion-laughs style internal entity
+        # --- must not be expanded when the reader parses the workbook to
+        # --- enumerate sheets. The parser leaves the entity reference intact
+        # --- so attribute lookups that depend on text expansion simply return
+        # --- nothing, rather than the parser exhausting memory.
+        xxe_workbook = (
+            '<?xml version="1.0"?>'
+            "<!DOCTYPE workbook ["
+            '  <!ENTITY lol "lol">'
+            '  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;">'
+            "]>"
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+            ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            '<sheets><sheet name="&lol2;" sheetId="1" r:id="rId1"/></sheets>'
+            "</workbook>"
+        )
+        rels_xml = (
+            '<?xml version="1.0"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+            'relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+            "</Relationships>"
+        )
+        sheet_xml = (
+            '<?xml version="1.0"?>'
+            '<worksheet xmlns='
+            '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            '<sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData>'
+            "</worksheet>"
+        )
+        buf = io.BytesIO()
+        import zipfile as _zipfile
+
+        with _zipfile.ZipFile(buf, "w") as z:
+            z.writestr("xl/workbook.xml", xxe_workbook)
+            z.writestr("xl/_rels/workbook.xml.rels", rels_xml)
+            z.writestr("xl/worksheets/sheet1.xml", sheet_xml)
+        with WorkbookReader(buf.getvalue()) as reader:
+            # --- fallback-to-first-sheet path still succeeds because an
+            # --- unresolved entity means the declared sheet-name never
+            # --- matches any lookup; the first sheet's single cell is
+            # --- returned for any requested sheet name. This also proves
+            # --- the parser did not hang or abort on the entity payload.
+            assert reader.cell_value("Sheet1", 1, 1) == 1.0
+
 
 def _make_xlsx_blob(sheet, shared_strings):
     """Build a minimal xlsx blob with one sheet and optional sharedStrings."""

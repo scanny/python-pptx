@@ -10,6 +10,13 @@ from contextlib import contextmanager
 from lxml import etree
 from xlsxwriter import Workbook
 
+# -- Hardened XML parser used for untrusted workbook content embedded in
+# -- chart parts. Disables entity resolution (billion-laughs / XXE),
+# -- network lookups, and DTD loading. See `docs/dev/security.rst`.
+_xlsx_xml_parser = etree.XMLParser(
+    resolve_entities=False, no_network=True, load_dtd=False, huge_tree=False
+)
+
 
 class _BaseWorkbookWriter(object):
     """Base class for workbook writers, providing shared members."""
@@ -409,7 +416,7 @@ class WorkbookReader(object):
             self._sheet_names = []
             self._sheet_targets = {}
             return
-        wb = etree.fromstring(wb_bytes)
+        wb = etree.fromstring(wb_bytes, _xlsx_xml_parser)
         sheet_elms = wb.findall(f"{{{_SML_NS}}}sheets/{{{_SML_NS}}}sheet")
         names = []
         rid_by_name = {}
@@ -425,7 +432,7 @@ class WorkbookReader(object):
             rels_bytes = b""
         target_by_rid = {}
         if rels_bytes:
-            rels = etree.fromstring(rels_bytes)
+            rels = etree.fromstring(rels_bytes, _xlsx_xml_parser)
             for rel in rels.findall(f"{{{_OPC_REL_NS}}}Relationship"):
                 target_by_rid[rel.get("Id")] = rel.get("Target")
         self._sheet_names = names
@@ -449,7 +456,7 @@ class WorkbookReader(object):
         except KeyError:
             self._shared_strings = []
             return
-        sst = etree.fromstring(ss_bytes)
+        sst = etree.fromstring(ss_bytes, _xlsx_xml_parser)
         results = []
         for si in sst.findall(f"{{{_SML_NS}}}si"):
             # --- si may have a single <t> or a sequence of <r><t>… runs ---
@@ -480,7 +487,7 @@ class WorkbookReader(object):
             return None
         self._load_shared_strings()
         cells = {}
-        ws = etree.fromstring(sheet_bytes)
+        ws = etree.fromstring(sheet_bytes, _xlsx_xml_parser)
         for c in ws.iter(f"{{{_SML_NS}}}c"):
             addr = c.get("r")
             if not addr:

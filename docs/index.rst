@@ -127,5 +127,6 @@ Contributor Guide
    dev/xmlchemy
    dev/development_practices
    dev/philosophy
+   dev/security
    dev/analysis/index
    dev/resources/index

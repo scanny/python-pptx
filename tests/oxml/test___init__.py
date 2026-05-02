@@ -17,6 +17,39 @@ class DescribeOxmlParser(object):
         xml_bytes = etree.tostring(foo)
         assert xml_bytes == stripped_xml_bytes
 
+    def it_does_not_expand_internal_entities(self):
+        # --- "billion laughs" payload: if entity expansion were active the
+        # --- expanded text would be 5**3 == 125 chars of "lol"; with
+        # --- resolve_entities=False the text node is left empty.
+        billion_laughs = (
+            b'<?xml version="1.0"?>'
+            b"<!DOCTYPE lolz ["
+            b'  <!ENTITY lol "lol">'
+            b'  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;">'
+            b'  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;">'
+            b"]>"
+            b"<lolz>&lol3;</lolz>"
+        )
+        root = parse_xml(billion_laughs)
+        # --- no text content means the entity was *not* expanded
+        assert root.text is None or "lol" not in (root.text or "")
+
+    def it_does_not_resolve_external_entities(self, tmp_path):
+        # --- write a secret file the parser must not read
+        secret = tmp_path / "secret.txt"
+        secret.write_text("top-secret")
+        xxe = (
+            '<?xml version="1.0"?>'
+            "<!DOCTYPE foo ["
+            f'  <!ENTITY xxe SYSTEM "file://{secret}">'
+            "]>"
+            "<foo>&xxe;</foo>"
+        ).encode("utf-8")
+        root = parse_xml(xxe)
+        # --- external entity reference is left unresolved; the file contents
+        # --- never appear in the element tree.
+        assert root.text is None or "top-secret" not in (root.text or "")
+
 
 class DescribeParseXml(object):
     def it_uses_oxml_configured_parser_to_parse_xml(

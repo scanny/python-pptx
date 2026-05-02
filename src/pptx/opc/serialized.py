@@ -8,13 +8,40 @@ import posixpath
 import zipfile
 from typing import IO, TYPE_CHECKING, Any, Container, Sequence, Tuple, Union
 
-from pptx.exc import PackageNotFoundError
+from pptx.exc import PackageNotFoundError, PackageTooLargeError
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.oxml import CT_Types, serialize_part_xml
 from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
 from pptx.opc.shared import CaseInsensitiveDict
 from pptx.opc.spec import default_content_types
 from pptx.util import lazyproperty
+
+
+def _default_max_uncompressed_size() -> int:
+    """Return default zip-bomb guard threshold.
+
+    Honors the ``PPTX_MAX_UNCOMPRESSED_SIZE`` environment variable when it
+    parses as a positive integer, otherwise defaults to 2 GiB. Setting the
+    value to ``0`` disables the guard.
+    """
+    raw = os.environ.get("PPTX_MAX_UNCOMPRESSED_SIZE")
+    if raw is not None:
+        try:
+            value = int(raw)
+            if value >= 0:
+                return value
+        except ValueError:
+            pass
+    return 2 * 1024 * 1024 * 1024  # 2 GiB
+
+
+# -- Zip-bomb guard threshold. Packages whose central-directory entries declare
+# -- a combined uncompressed size greater than this value are rejected before
+# -- any member bytes are loaded into memory. Set to ``0`` to disable the
+# -- guard (not recommended for untrusted inputs). The module attribute is
+# -- intentionally mutable so applications that need to process very large
+# -- legitimate packages can raise the limit without subclassing.
+MAX_UNCOMPRESSED_PACKAGE_SIZE: int = _default_max_uncompressed_size()
 
 if TYPE_CHECKING:
     from pptx.opc.package import Part, _Relationships  # pyright: ignore[reportPrivateUsage]
@@ -217,7 +244,36 @@ class _ZipPkgReader(_PhysPkgReader):
     def _blobs(self) -> dict[PackURI, bytes]:
         """dict mapping partname to package part binaries."""
         with zipfile.ZipFile(self._pkg_file, "r") as z:
+            self._check_uncompressed_size(z)
             return {PackURI("/%s" % name): z.read(name) for name in z.namelist()}
+
+    @staticmethod
+    def _check_uncompressed_size(zf: zipfile.ZipFile) -> None:
+        """Raise |PackageTooLargeError| when zip declares too-large uncompressed size.
+
+        The guard compares the sum of per-member ``file_size`` values recorded in
+        the zip central directory against |MAX_UNCOMPRESSED_PACKAGE_SIZE|. It is a
+        lightweight defense against "zip-bomb" packages whose entries declare an
+        enormous uncompressed size; rejecting them before reading prevents the
+        reader from attempting to materialize gigabytes of member bytes in memory.
+        """
+        limit = MAX_UNCOMPRESSED_PACKAGE_SIZE
+        if limit <= 0:
+            return
+        total = 0
+        for zinfo in zf.infolist():
+            # Per-member sanity check catches single enormous members even when
+            # `file_size` is a plausibly-normal int; the guard is a partial
+            # defense, not a guarantee, and complements standard OS resource
+            # limits (see `docs/dev/security.rst`).
+            total += zinfo.file_size
+            if total > limit:
+                raise PackageTooLargeError(
+                    "package declared uncompressed size exceeds limit "
+                    "of %d bytes (set PPTX_MAX_UNCOMPRESSED_SIZE or "
+                    "pptx.opc.serialized.MAX_UNCOMPRESSED_PACKAGE_SIZE to override)"
+                    % limit
+                )
 
 
 class _PhysPkgWriter:

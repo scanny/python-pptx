@@ -1,6 +1,10 @@
 """Initializes lxml parser, particularly the custom element classes.
 
 Also makes available a handful of functions that wrap its typical uses.
+
+The parser is hardened against entity-expansion attacks (e.g. the "billion
+laughs" attack), external-entity attacks ("XXE"), and DTD/network lookups.
+See `docs/dev/security.rst` for the full trust model.
 """
 
 from __future__ import annotations
@@ -17,8 +21,22 @@ if TYPE_CHECKING:
 
 
 # -- configure etree XML parser ----------------------------
+# - `resolve_entities=False` disables entity substitution entirely which is
+#   the principal defense against both the "billion laughs" exponential
+#   entity-expansion attack and XML external entity ("XXE") attacks that
+#   would otherwise read local files or open network connections.
+# - `no_network=True` and `load_dtd=False` are the lxml defaults but are
+#   set explicitly for clarity and as defense-in-depth.
+# - `huge_tree=False` (the default) keeps libxml2's built-in limits on
+#   maximum tree depth and text-node length in effect.
 element_class_lookup = etree.ElementNamespaceClassLookup()
-oxml_parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
+oxml_parser = etree.XMLParser(
+    remove_blank_text=True,
+    resolve_entities=False,
+    no_network=True,
+    load_dtd=False,
+    huge_tree=False,
+)
 oxml_parser.set_element_class_lookup(element_class_lookup)
 
 

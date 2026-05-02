@@ -16,6 +16,21 @@ class PackageNotFoundError(PythonPptxError):
     """
 
 
+class PackageTooLargeError(PythonPptxError):
+    """Raised when a package's declared uncompressed size exceeds the configured limit.
+
+    This guards against maliciously-crafted "zip-bomb" packages whose central-directory
+    entries declare combined uncompressed sizes large enough to exhaust memory when the
+    package reader loads all parts into memory.
+
+    The default threshold can be adjusted via the ``PPTX_MAX_UNCOMPRESSED_SIZE``
+    environment variable or by assigning to
+    ``pptx.opc.serialized.MAX_UNCOMPRESSED_PACKAGE_SIZE`` before opening a package.
+    See ``docs/dev/security.rst`` for the trust model and recommended handling for
+    untrusted inputs.
+    """
+
+
 class InvalidXmlError(PythonPptxError):
     """
     Raised when a value is encountered in the XML that is not valid according
