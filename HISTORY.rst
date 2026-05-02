@@ -146,6 +146,27 @@ Unreleased
   content-types, relationships, or default-template layer that would
   break the manual's first code example for real will reproduce the
   #941 symptom and be caught here.
+- verify: #956 (deleting slides leaves unused parts behind) — the reporter
+  worried that :meth:`.Slides.delete` would leave orphan slide / image /
+  chart / notes-slide parts inside the saved ``.pptx`` zip, letting a
+  heavily-edited deck grow forever. It doesn't: package save is already
+  a reachability-based GC. :meth:`.OpcPackage.save` passes
+  ``tuple(self.iter_parts())`` to :class:`.PackageWriter`, and
+  ``iter_parts()`` walks the rels graph depth-first from the package
+  root — so any part no longer reachable from the presentation part is
+  silently dropped on save. :meth:`.Slides.delete` correctly severs
+  reachability by removing the ``p:sldId`` entry and then calling
+  :meth:`.XmlPart.drop_rel` on the presentation part, which in turn
+  releases the slide's notes slide, its uniquely-referenced image /
+  chart / embedded-xlsx / media / tags parts, etc. Parts shared with
+  another surviving slide (e.g. an image on the duplicate of a deleted
+  slide) are correctly preserved. Adds verify suite
+  ``DescribeIssue956DeleteSlideCleanup`` under
+  ``tests/test_issue_956_delete_slide_cleanup.py`` pinning the
+  reporter's concern across five axes: unique-image GC, shared-image
+  preservation, slide-part GC, notes-slide GC, chart + embedded-xlsx
+  GC, save-shrinks-the-zip byte-size check, and idempotency across
+  many repeated add/delete cycles.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
