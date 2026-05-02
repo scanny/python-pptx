@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #502 support audio MIME types / docs clarification
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

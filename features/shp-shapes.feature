@@ -230,6 +230,15 @@ Feature: Access a shape on a slide
       | no          |
 
 
+  Scenario: SlideShapes.add_movie() with audio mime-type emits audioFile
+    Given a SlideShapes object containing no movies
+     When I call shapes.add_movie(audio_file, mime_type='audio/wav')
+      And I save the presentation
+     Then movie is a Movie object
+      And the a:audioFile element is present on the movie shape
+      And the a:videoFile element is not present on the movie shape
+
+
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file

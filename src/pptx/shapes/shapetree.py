@@ -554,22 +554,26 @@ class SlideShapes(_BaseGroupShapes):
         poster_frame_image: str | IO[bytes] | None = None,
         mime_type: str = CT.VIDEO,
     ) -> GraphicFrame:
-        """Return newly added movie shape displaying video in `movie_file`.
+        """Return newly added movie shape containing video (or audio) in `movie_file`.
 
         **EXPERIMENTAL.** This method has important limitations:
 
         * The size must be specified; no auto-scaling such as that provided by :meth:`add_picture`
           is performed.
-        * The MIME type of the video file should be specified, e.g. 'video/mp4'. The provided
-          video file is not interrogated for its type. The MIME type `video/unknown` is used by
-          default (and works fine in tests as of this writing).
+        * The MIME type of the media file should be specified, e.g. 'video/mp4' or
+          'audio/mpeg'. The provided media file is not interrogated for its type. The MIME type
+          `video/unknown` is used by default (and works fine in tests as of this writing).
         * A poster frame image must be provided, it cannot be automatically extracted from the
-          video file. If no poster frame is provided, the default "media loudspeaker" image will
+          media file. If no poster frame is provided, the default "media loudspeaker" image will
           be used.
 
-        Return a newly added movie shape to the slide, positioned at (`left`, `top`), having size
-        (`width`, `height`), and containing `movie_file`. Before the video is started,
-        `poster_frame_image` is displayed as a placeholder for the video.
+        When `mime_type` begins with `'audio/'` (e.g. `'audio/mpeg'`, `'audio/wav'`), the
+        resulting shape is an audio clip and the emitted XML uses `<a:audioFile>` in place of
+        `<a:videoFile>`; otherwise a video clip is produced.
+
+        Return a newly added movie (or audio) shape to the slide, positioned at (`left`, `top`),
+        having size (`width`, `height`), and containing `movie_file`. Before the video is
+        started, `poster_frame_image` is displayed as a placeholder for the video.
         """
         movie_pic = _MoviePicElementCreator.new_movie_pic(
             self,
@@ -805,8 +809,10 @@ def BaseShapeFactory(shape_elm: ShapeElement, parent: ProvidesPart) -> BaseShape
     tag = shape_elm.tag
 
     if isinstance(shape_elm, CT_Picture):
-        videoFiles = shape_elm.xpath("./p:nvPicPr/p:nvPr/a:videoFile")
-        if videoFiles:
+        mediaFiles = shape_elm.xpath(
+            "./p:nvPicPr/p:nvPr/a:videoFile | ./p:nvPicPr/p:nvPr/a:audioFile"
+        )
+        if mediaFiles:
             return Movie(shape_elm, parent)
         return Picture(shape_elm, parent)
 
@@ -927,7 +933,7 @@ class _MoviePicElementCreator(object):
 
     @lazyproperty
     def _pic(self) -> CT_Picture:
-        """Return the new `p:pic` element referencing the video."""
+        """Return the new `p:pic` element referencing the video or audio media."""
         return CT_Picture.new_video_pic(
             self._shape_id,
             self._shape_name,
@@ -938,7 +944,19 @@ class _MoviePicElementCreator(object):
             self._y,
             self._cx,
             self._cy,
+            is_audio=self._is_audio,
         )
+
+    @property
+    def _is_audio(self) -> bool:
+        """Return True when the media file is audio rather than video.
+
+        Determined from the MIME-type prefix, e.g. 'audio/mpeg' -> audio,
+        'video/mp4' -> video. Unknown MIME-types default to video, preserving
+        backward-compatibility with the `mime_type=None` case.
+        """
+        mime_type = self._mime_type or ""
+        return mime_type.lower().startswith("audio/")
 
     @lazyproperty
     def _poster_frame_image_file(self) -> str | IO[bytes]:

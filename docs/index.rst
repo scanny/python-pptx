@@ -64,6 +64,7 @@ User Guide
    user/text
    user/charts
    user/table
+   user/media
    user/notes
    user/use-cases
    user/concepts

@@ -476,6 +476,20 @@ def then_movie_width_movie_height_eq_cx_cy(context):
     assert size == (Emu(3962400), Emu(5715000)), "got %s" % size
 
 
+@then("the a:audioFile element is present on the movie shape")
+def then_a_audioFile_element_is_present(context):
+    pic = context.movie._element
+    nodes = pic.xpath(".//a:audioFile")
+    assert nodes, "expected a:audioFile element; found none"
+
+
+@then("the a:videoFile element is not present on the movie shape")
+def then_a_videoFile_element_is_not_present(context):
+    pic = context.movie._element
+    nodes = pic.xpath(".//a:videoFile")
+    assert not nodes, "unexpected a:videoFile element present"
+
+
 @then("ole_format.blob matches ole_object_file byte-for-byte")
 def then_ole_format_bytes_matches_ole_object_file_byte_for_byte(context):
     assert context.ole_format.blob == context.ole_object_file.getvalue()

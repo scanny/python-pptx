@@ -59,13 +59,22 @@ class Video(object):
         """Return the file extension for this video, e.g. 'mp4'.
 
         The extension is that from the actual filename if known. Otherwise
-        it is the lowercase canonical extension for the video's MIME type.
-        'vid' is used if the MIME type is 'video/unknown'.
+        it is the lowercase canonical extension for the video's (or audio's)
+        MIME type. 'vid' is used if the MIME type is 'video/unknown'.
         """
         if self._filename:
             return os.path.splitext(self._filename)[1].lstrip(".")
         return {
             CT.ASF: "asf",
+            CT.AUDIO_AIFF: "aiff",
+            CT.AUDIO_MIDI: "mid",
+            CT.AUDIO_MP3: "mp3",
+            CT.AUDIO_MP4: "m4a",
+            CT.AUDIO_MPEG: "mp3",
+            CT.AUDIO_OGG: "ogg",
+            CT.AUDIO_WAV: "wav",
+            CT.AUDIO_X_MS_WMA: "wma",
+            CT.AUDIO_X_WAV: "wav",
             CT.AVI: "avi",
             CT.MOV: "mov",
             CT.MP4: "mp4",

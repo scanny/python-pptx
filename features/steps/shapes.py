@@ -240,6 +240,15 @@ def when_I_call_shapes_add_movie(context):
     )
 
 
+@when("I call shapes.add_movie(audio_file, mime_type='audio/wav')")
+def when_I_call_shapes_add_movie_audio(context):
+    shapes = context.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(914400), Emu(914400)
+    context.movie = shapes.add_movie(
+        test_file("silence.wav"), x, y, cx, cy, mime_type="audio/wav"
+    )
+
+
 # then ====================================================
 
 

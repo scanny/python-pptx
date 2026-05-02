@@ -105,3 +105,55 @@ class DescribeCT_Picture(object):
             "  </p:spPr>\n"
             "</p:pic>\n"
         ) % nsdecls("a", "p", "r")
+
+    def it_can_create_a_new_audio_pic_element(self):
+        """`is_audio=True` emits `<a:audioFile>` in place of `<a:videoFile>`."""
+        pic = CT_Picture.new_video_pic(
+            shape_id=42,
+            shape_name="Media 41",
+            video_rId="rId1",
+            media_rId="rId2",
+            poster_frame_rId="rId3",
+            x=1,
+            y=2,
+            cx=3,
+            cy=4,
+            is_audio=True,
+        )
+
+        assert pic.xml == (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="42" name="Media 41">\n'
+            '      <a:hlinkClick r:id="" action="ppaction://media"/>\n'
+            "    </p:cNvPr>\n"
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr>\n"
+            '      <a:audioFile r:link="rId1"/>\n'
+            "      <p:extLst>\n"
+            '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">\n'
+            '          <p14:media xmlns:p14="http://schemas.microsoft.com/office/power'
+            'point/2010/main" r:embed="rId2"/>\n'
+            "        </p:ext>\n"
+            "      </p:extLst>\n"
+            "    </p:nvPr>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:embed="rId3"/>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
+            '      <a:off x="1" y="2"/>\n'
+            '      <a:ext cx="3" cy="4"/>\n'
+            "    </a:xfrm>\n"
+            '    <a:prstGeom prst="rect">\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>\n"
+        ) % nsdecls("a", "p", "r")
