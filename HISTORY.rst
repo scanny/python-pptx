@@ -118,6 +118,7 @@ Unreleased
   ``ThemePart.theme.hlink_color`` / ``folHlink_color`` accessors)
 - #201 slide numbers / date / footer via p:hf and a:fld
 - #516 Chart Colors Sometimes Using Extended Alternates
+- #386 surface unsupported chartex chart types without dropping
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

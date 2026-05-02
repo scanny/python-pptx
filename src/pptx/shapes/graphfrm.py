@@ -8,11 +8,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 from pptx.shared import ParentedElementProxy
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_CHARTEX,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
 )
@@ -42,10 +44,20 @@ class GraphicFrame(BaseShape):
     def chart(self) -> Chart:
         """The |Chart| object containing the chart in this graphic frame.
 
-        Raises |ValueError| if this graphic frame does not contain a chart.
+        Raises |ValueError| if this graphic frame does not contain a chart. Raises
+        |NotImplementedError| when the graphic frame contains an Office 2016+ extended
+        (``cx:``/chartex) chart — funnel, treemap, sunburst, waterfall, histogram,
+        box-and-whisker, or map. Such shapes can still be inspected via :attr:`has_chart`
+        and :attr:`chart_type` (which returns :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX`) and
+        are preserved unchanged on save.
         """
         if not self.has_chart:
             raise ValueError("shape does not contain a chart")
+        if self.has_chartex:
+            raise NotImplementedError(
+                "chart object not available for Office 2016+ chartex (extended) chart types;"
+                " check .chart_type for XL_CHART_TYPE.UNSUPPORTED_CHARTEX"
+            )
         return self.chart_part.chart
 
     @property
@@ -57,12 +69,40 @@ class GraphicFrame(BaseShape):
         return cast("ChartPart", self.part.related_part(chart_rId))
 
     @property
-    def has_chart(self) -> bool:
-        """|True| if this graphic frame contains a chart object. |False| otherwise.
+    def chart_type(self) -> XL_CHART_TYPE:
+        """Member of :ref:`XlChartType` identifying the chart contained in this graphic frame.
 
-        When |True|, the chart object can be accessed using the `.chart` property.
+        For legacy (``c:``) charts this is the type reported by the chart itself. For Office
+        2016+ extended (``cx:``) charts, which this library does not yet read in detail, the
+        value is :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX`. Raises |ValueError| if this
+        graphic frame does not contain a chart.
         """
-        return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_CHART
+        if self.has_chartex:
+            return XL_CHART_TYPE.UNSUPPORTED_CHARTEX
+        if not self.has_chart:
+            raise ValueError("shape does not contain a chart")
+        return self.chart_part.chart.chart_type
+
+    @property
+    def has_chart(self) -> bool:
+        """|True| if this graphic frame contains a chart object, |False| otherwise.
+
+        This includes both legacy charts (``c:chart``) and Office 2016+ extended charts
+        (``cx:chart``). When |True|, use :attr:`chart_type` to distinguish between them;
+        :attr:`chart` is only available for legacy charts.
+        """
+        uri = self._graphicFrame.graphicData_uri
+        return uri in (GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_CHARTEX)
+
+    @property
+    def has_chartex(self) -> bool:
+        """|True| if this graphic frame contains an Office 2016+ extended (``cx:``) chart.
+
+        Extended chart types include funnel, treemap, sunburst, waterfall, histogram,
+        box-and-whisker, and map. These shapes are surfaced for discoverability and
+        round-trip preservation; detailed read/write is not yet supported.
+        """
+        return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_CHARTEX
 
     @property
     def has_table(self) -> bool:
@@ -105,7 +145,7 @@ class GraphicFrame(BaseShape):
         contains SmartArt.
         """
         graphicData_uri = self._graphicFrame.graphicData_uri
-        if graphicData_uri == GRAPHIC_DATA_URI_CHART:
+        if graphicData_uri in (GRAPHIC_DATA_URI_CHART, GRAPHIC_DATA_URI_CHARTEX):
             return MSO_SHAPE_TYPE.CHART
         elif graphicData_uri == GRAPHIC_DATA_URI_TABLE:
             return MSO_SHAPE_TYPE.TABLE

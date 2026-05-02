@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pptx.chart.chart import Chart
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.parts.chart import ChartPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
@@ -13,6 +14,7 @@ from pptx.shapes.graphfrm import GraphicFrame, _OleFormat
 from pptx.shapes.shapetree import SlideShapes
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_CHARTEX,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_TABLE,
 )
@@ -25,9 +27,10 @@ class DescribeGraphicFrame(object):
     """Unit-test suite for `pptx.shapes.graphfrm.GraphicFrame` object."""
 
     def it_provides_access_to_the_chart_it_contains(
-        self, request, has_chart_prop_, chart_part_, chart_
+        self, request, has_chart_prop_, has_chartex_prop_, chart_part_, chart_
     ):
         has_chart_prop_.return_value = True
+        has_chartex_prop_.return_value = False
         property_mock(request, GraphicFrame, "chart_part", return_value=chart_part_)
         chart_part_.chart = chart_
 
@@ -39,6 +42,16 @@ class DescribeGraphicFrame(object):
         with pytest.raises(ValueError) as e:
             GraphicFrame(None, None).chart
         assert str(e.value) == "shape does not contain a chart"
+
+    def and_it_raises_NotImplementedError_on_chart_for_a_chartex_chart(
+        self, has_chart_prop_, has_chartex_prop_
+    ):
+        has_chart_prop_.return_value = True
+        has_chartex_prop_.return_value = True
+
+        with pytest.raises(NotImplementedError) as e:
+            GraphicFrame(None, None).chart
+        assert "UNSUPPORTED_CHARTEX" in str(e.value)
 
     def it_provides_access_to_its_chart_part(self, request, chart_part_):
         slide_part_ = instance_mock(request, SlidePart)
@@ -57,6 +70,7 @@ class DescribeGraphicFrame(object):
         "graphicData_uri, expected_value",
         (
             (GRAPHIC_DATA_URI_CHART, True),
+            (GRAPHIC_DATA_URI_CHARTEX, True),
             (GRAPHIC_DATA_URI_OLEOBJ, False),
             (GRAPHIC_DATA_URI_TABLE, False),
         ),
@@ -64,6 +78,36 @@ class DescribeGraphicFrame(object):
     def it_knows_whether_it_contains_a_chart(self, graphicData_uri, expected_value):
         graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
         assert GraphicFrame(graphicFrame, None).has_chart is expected_value
+
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, False),
+            (GRAPHIC_DATA_URI_CHARTEX, True),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
+            (GRAPHIC_DATA_URI_TABLE, False),
+        ),
+    )
+    def it_knows_whether_it_contains_a_chartex_chart(self, graphicData_uri, expected_value):
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
+        assert GraphicFrame(graphicFrame, None).has_chartex is expected_value
+
+    def it_reports_UNSUPPORTED_CHARTEX_for_chartex_chart_type(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_CHARTEX
+        )
+
+        chart_type = GraphicFrame(graphicFrame, None).chart_type
+
+        assert chart_type is XL_CHART_TYPE.UNSUPPORTED_CHARTEX
+
+    def but_it_raises_on_chart_type_if_not_a_chart(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_TABLE
+        )
+        with pytest.raises(ValueError) as e:
+            GraphicFrame(graphicFrame, None).chart_type
+        assert str(e.value) == "shape does not contain a chart"
 
     @pytest.mark.parametrize(
         "graphicData_uri, expected_value",
@@ -115,6 +159,7 @@ class DescribeGraphicFrame(object):
         "uri, oleObj_child, expected_value",
         (
             (GRAPHIC_DATA_URI_CHART, None, MSO_SHAPE_TYPE.CHART),
+            (GRAPHIC_DATA_URI_CHARTEX, None, MSO_SHAPE_TYPE.CHART),
             (GRAPHIC_DATA_URI_OLEOBJ, "embed", MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT),
             (GRAPHIC_DATA_URI_OLEOBJ, "link", MSO_SHAPE_TYPE.LINKED_OLE_OBJECT),
             (GRAPHIC_DATA_URI_TABLE, None, MSO_SHAPE_TYPE.TABLE),
@@ -142,6 +187,10 @@ class DescribeGraphicFrame(object):
     @pytest.fixture
     def has_chart_prop_(self, request):
         return property_mock(request, GraphicFrame, "has_chart")
+
+    @pytest.fixture
+    def has_chartex_prop_(self, request):
+        return property_mock(request, GraphicFrame, "has_chartex")
 
 
 class Describe_OleFormat(object):

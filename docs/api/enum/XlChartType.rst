@@ -231,3 +231,10 @@ XY_SCATTER_SMOOTH
 
 XY_SCATTER_SMOOTH_NO_MARKERS
     Scatter with Smoothed Lines and No Data Markers.
+
+UNSUPPORTED_CHARTEX
+    Sentinel returned for Office 2016+ extended (chartex) chart types — funnel,
+    treemap, sunburst, waterfall, histogram/Pareto, box-and-whisker, and map.
+    python-pptx does not currently read or modify these charts in detail, but their
+    graphic frames are surfaced on ``slide.shapes`` so they survive a save/reload
+    round-trip unchanged. This value has no Microsoft API counterpart.

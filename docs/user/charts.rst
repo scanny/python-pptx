@@ -419,3 +419,38 @@ was authored by PowerPoint with an extended ``c14:style`` value (which is the co
 case for charts edited in modern PowerPoint). It now transparently surfaces the extended
 value, and writes the full ``<mc:AlternateContent>`` wrapper when you assign a value
 greater than 48.
+
+Office 2016+ extended chart types (funnel, treemap, sunburst, waterfall, histogram,
+box-and-whisker, map)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These newer chart types are written in the ``cx:`` ("chartex") XML namespace
+introduced with Office 2016. |pp| does not yet read or modify their contents, but
+it does surface them on ``slide.shapes`` so you can detect them and so a plain
+load/save round-trip preserves their XML unchanged.
+
+On a shape that wraps one of these charts:
+
+* :attr:`GraphicFrame.has_chart` returns ``True``
+* :attr:`GraphicFrame.has_chartex` returns ``True``
+* :attr:`GraphicFrame.chart_type` returns :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX`
+* :attr:`GraphicFrame.shape_type` returns :attr:`MSO_SHAPE_TYPE.CHART`
+* :attr:`GraphicFrame.chart` raises :exc:`NotImplementedError`
+
+Use ``has_chartex`` to branch your code when you need to skip these shapes, for
+example::
+
+    for shape in slide.shapes:
+        if not shape.has_chart:
+            continue
+        if shape.has_chartex:
+            # -- Office 2016+ extended chart (funnel, treemap, ...) — not yet
+            # -- readable, but it will round-trip unchanged --
+            continue
+        chart = shape.chart
+        ...
+
+PowerPoint frequently wraps these chart shapes in an ``mc:AlternateContent``
+envelope (providing a legacy chart fallback for older viewers); |pp| unwraps the
+``mc:Choice`` branch transparently so the chartex shape is visible on
+``slide.shapes``, and keeps the ``mc:Fallback`` subtree intact on save.
