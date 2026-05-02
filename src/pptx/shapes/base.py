@@ -272,6 +272,56 @@ class BaseShape(object):
         Subsequent use of this shape object is undefined; most operations will raise an exception.
         """
         self._element.getparent().remove(self._element)
+
+    def replace_with(self, other_shape: BaseShape) -> None:
+        """Swap `other_shape` into this shape's position and delete this shape.
+
+        Copies this shape's position and size (``left``, ``top``, ``width``, ``height``) onto
+        `other_shape`, moves `other_shape`'s XML element to this shape's slot in the parent
+        shape-tree (preserving z-order), then deletes this shape. This provides a convenient
+        single-call replacement flow such as::
+
+            new_pic = slide.shapes.add_picture("new.png", 0, 0)
+            old_pic.replace_with(new_pic)
+
+        `other_shape` must already belong to a shape-tree (typically just created by one of the
+        ``add_*`` methods) and must not be this same shape. Any of this shape's position/size
+        values that are |None| are skipped rather than copied.
+
+        After this call returns, this shape should not be used further — its XML element has
+        been removed from the shape-tree (and any subclass-specific cleanup, such as dropping
+        a picture's image relationship, has run).
+        """
+        if other_shape is self or other_shape._element is self._element:
+            raise ValueError("cannot replace a shape with itself")
+        parent = self._element.getparent()
+        if parent is None:
+            raise ValueError("shape has no parent shape tree; cannot replace_with")
+        other_parent = other_shape._element.getparent()
+        if other_parent is None:
+            raise ValueError(
+                "other_shape has no parent shape tree; it must be added to a shape tree"
+                " before it can replace another shape"
+            )
+
+        # -- copy position and size from self onto other_shape; skip when source is None --
+        if self.left is not None:
+            other_shape.left = self.left
+        if self.top is not None:
+            other_shape.top = self.top
+        if self.width is not None:
+            other_shape.width = self.width
+        if self.height is not None:
+            other_shape.height = self.height
+
+        # -- move other_shape's element into self's slot for z-order preservation --
+        target_idx = parent.index(self._element)
+        other_parent.remove(other_shape._element)
+        parent.insert(target_idx, other_shape._element)
+
+        # -- dispatch to subclass delete() for part-cleanup (e.g. Picture drops image rel) --
+        self.delete()
+
     def duplicate(self) -> BaseShape:
         """Return a new shape that is a duplicate of this shape.
 
