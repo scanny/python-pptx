@@ -44,6 +44,35 @@ Unreleased
   round-trip to confirm the ``c:errBars`` subtree survives
   serialization.
 
+- verify: #884 (can't change text without changing format + ``AttributeError``
+  on inherited color) resolved by the #836 / #420 / #308 / #938 composition.
+  The #884 reporter hit two coupled failures while trying to rewrite a
+  templated placeholder: ``text_frame.text = "new"`` clobbered every
+  run-level style, and ``font.color.rgb`` raised ``AttributeError: no .rgb
+  property on color type '_NoneColor'`` when they tried to read the old
+  color to re-apply it after the rewrite. Wave 6 #836 added
+  :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text`,
+  which keep the origin run's full ``a:rPr`` while absorbing the
+  replacement text — bold, italic, underline, font size, font name and
+  color all survive a rewrite with no re-apply step (Wave 8 #285 already
+  pins the preserve-format contract). Wave 1 #420 and Wave 3 #308 added a
+  universal :meth:`.ColorFormat.to_rgb` that returns |None| for a
+  ``_NoneColor`` instead of raising and resolves scheme colors against
+  :attr:`.SlideMaster.theme_colors` with ``a:lumMod`` / ``a:lumOff``
+  applied, and Wave 9 #938 added :attr:`.Font.effective_color`, which
+  walks the full inheritance chain (``a:rPr`` → paragraph ``a:defRPr`` →
+  text-body ``a:lstStyle`` → slide-master ``p:txStyles``) and returns the
+  RGB PowerPoint would actually render. Together these give the #884
+  reporter both halves of what they asked for — rewrite the text without
+  losing formatting, and read the current color of an inherited- or
+  theme-colored run without the ``_NoneColor`` exception. Adds a
+  regression suite ``DescribeIssue884ChangeTextAndReadColor`` under
+  ``tests/test_issue_884_change_text_color_verify.py`` that pins the
+  reporter's combined workflow end-to-end — single-run rewrite,
+  split-token rewrite, inherited-color read via ``to_rgb()`` /
+  ``effective_color``, and explicit theme-color resolution — all
+  round-tripped through ``Presentation.save`` + reopen.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
