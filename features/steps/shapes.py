@@ -446,6 +446,22 @@ def when_I_call_shapes_add_movie_on_a_new_slide(context):
     )
 
 
+# -- issue #427: user-facing autoplay convenience kwarg on add_movie --
+@when("I call shapes.add_movie(file, x, y, cx, cy, poster_frame, autoplay=True)")
+def when_I_call_shapes_add_movie_autoplay_true(context):
+    shapes = context.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(3962400), Emu(5715000)
+    context.movie = shapes.add_movie(
+        test_file("just-two-mice.mp4"),
+        x,
+        y,
+        cx,
+        cy,
+        test_file("just-two-mice.png"),
+        autoplay=True,
+    )
+
+
 # then ====================================================
 
 

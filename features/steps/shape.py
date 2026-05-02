@@ -662,6 +662,12 @@ def then_movie_shape_type_is_MSO_SHAPE_TYPE_MEDIA(context):
     assert shape_type == MSO_SHAPE_TYPE.MEDIA, "got %s" % shape_type
 
 
+@then('movie.start_condition == "{expected}"')
+def then_movie_start_condition_eq(context, expected):
+    actual = context.movie.start_condition
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
 @then("movie.width, movie.height == cx, cy")
 def then_movie_width_movie_height_eq_cx_cy(context):
     movie = context.movie

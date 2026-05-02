@@ -47,6 +47,16 @@ Unreleased
   point for a new deck. Returns ``self`` so it chains after the
   ``Presentation()`` factory call.
 
+- feat(movie): #427 add ``autoplay`` convenience kwarg on
+  :meth:`SlideShapes.add_movie`. When |True|, the newly added movie is
+  configured to start automatically with the slide
+  (``start_condition="withPrevious"``); the default of |False| preserves
+  PowerPoint's click-to-play behavior. Layered on top of the Wave 5
+  ``Movie.start_condition`` / ``Movie.start_time`` properties (#811);
+  callers that need ``"afterPrevious"`` or a delayed start can still
+  assign those directly on the returned shape after the
+  ``add_movie(..., autoplay=True)`` call.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,

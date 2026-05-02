@@ -652,6 +652,7 @@ class SlideShapes(_BaseGroupShapes):
         height: Length,
         poster_frame_image: str | IO[bytes] | None = None,
         mime_type: str = CT.VIDEO,
+        autoplay: bool = False,
     ) -> GraphicFrame:
         """Return newly added movie shape containing video (or audio) in `movie_file`.
 
@@ -673,6 +674,12 @@ class SlideShapes(_BaseGroupShapes):
         Return a newly added movie (or audio) shape to the slide, positioned at (`left`, `top`),
         having size (`width`, `height`), and containing `movie_file`. Before the video is
         started, `poster_frame_image` is displayed as a placeholder for the video.
+
+        When `autoplay` is |True|, the returned movie is configured to start automatically with
+        the slide (``start_condition="withPrevious"``). The default of |False| preserves
+        PowerPoint's click-to-play behavior (``start_condition="onClick"``). For finer control
+        (e.g. ``"afterPrevious"`` or a delayed start), assign directly to
+        :attr:`Movie.start_condition` / :attr:`Movie.start_time` on the returned shape.
         """
         movie_pic = _MoviePicElementCreator.new_movie_pic(
             self,
@@ -687,7 +694,10 @@ class SlideShapes(_BaseGroupShapes):
         )
         self._spTree.append(movie_pic)
         self._add_video_timing(movie_pic)
-        return cast(GraphicFrame, self._shape_factory(movie_pic))
+        movie = cast(Movie, self._shape_factory(movie_pic))
+        if autoplay:
+            movie.start_condition = "withPrevious"
+        return cast(GraphicFrame, movie)
 
     def add_table(
         self, rows: int, cols: int, left: Length, top: Length, width: Length, height: Length
