@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import cast
 
+from pptx.enum.chart import XL_DISPLAY_BLANKS_AS
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.shared import CT_Title
 from pptx.oxml.ns import nsdecls, qn
@@ -12,6 +13,7 @@ from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
+    OptionalAttribute,
     RequiredAttribute,
     ZeroOrMore,
     ZeroOrOne,
@@ -40,6 +42,8 @@ class CT_Chart(BaseOxmlElement):
     autoTitleDeleted = ZeroOrOne("c:autoTitleDeleted", successors=_tag_seq[2:])
     plotArea = OneAndOnlyOne("c:plotArea")
     legend = ZeroOrOne("c:legend", successors=_tag_seq[9:])
+    plotVisOnly = ZeroOrOne("c:plotVisOnly", successors=_tag_seq[10:])
+    dispBlanksAs = ZeroOrOne("c:dispBlanksAs", successors=_tag_seq[11:])
     rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
 
     @property
@@ -470,3 +474,14 @@ class CT_StyleEx(BaseOxmlElement):
     """
 
     val = RequiredAttribute("val", ST_StyleEx)
+
+
+class CT_DispBlanksAs(BaseOxmlElement):
+    """`c:dispBlanksAs` element; how blank cells are displayed in the chart.
+
+    Maps to the "Show empty cells as" radio control in PowerPoint's "Hidden and
+    Empty Cells" dialog (``ST_DispBlanksAs`` in ``dml-chart.xsd``). The ``val``
+    attribute defaults to ``"zero"`` per the XSD when the attribute is omitted.
+    """
+
+    val = OptionalAttribute("val", XL_DISPLAY_BLANKS_AS, default=XL_DISPLAY_BLANKS_AS.ZERO)

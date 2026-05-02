@@ -524,6 +524,29 @@ case for charts edited in modern PowerPoint). It now transparently surfaces the 
 value, and writes the full ``<mc:AlternateContent>`` wrapper when you assign a value
 greater than 48.
 
+Suppressing zero-valued bars (blank-cell display)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:attr:`Chart.display_blanks_as` surfaces PowerPoint's "Hidden and Empty
+Cells" / "Show empty cells as" setting — the ``<c:dispBlanksAs>`` element —
+as a member of :ref:`XlDisplayBlanksAs`:
+
+* ``XL_DISPLAY_BLANKS_AS.GAPS`` — blank cells leave a gap (not plotted).
+* ``XL_DISPLAY_BLANKS_AS.ZERO`` — blank cells are plotted as zero (XSD default).
+* ``XL_DISPLAY_BLANKS_AS.INTERPOLATED`` — blank cells are spanned by a
+  connecting segment (line charts only).
+
+Example — suppress the zero-height bars that PowerPoint otherwise stacks
+for missing values in a stacked bar chart (GitHub issue
+`#859 <https://github.com/scanny/python-pptx/issues/859>`_)::
+
+    from pptx.enum.chart import XL_DISPLAY_BLANKS_AS
+
+    chart.display_blanks_as = XL_DISPLAY_BLANKS_AS.GAPS
+
+Assigning :attr:`~XL_DISPLAY_BLANKS_AS.ZERO` (the XSD default) removes any
+``<c:dispBlanksAs>`` element so the XML stays minimal.
+
 .. _supported-chart-types:
 
 Chart-type reference

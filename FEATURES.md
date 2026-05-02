@@ -817,6 +817,7 @@ prs.save("out.pptx")
 - `Chart.chart_type` / `Chart.has_title` / `Chart.has_legend` — Basic properties.
 - `Chart.chart_title` — `ChartTitle` proxy.
 - `Chart.chart_style` — Integer style index. Plain 1..48 via `c:style`; extended 49..255 via `c14:style` wrapped in `mc:AlternateContent` `[Added in 1.0.2.dev0]`.
+- `Chart.display_blanks_as` — Read/write member of `XL_DISPLAY_BLANKS_AS` (`GAPS` / `ZERO` / `INTERPOLATED`) controlling PowerPoint's "Hidden and Empty Cells" / "Show empty cells as" setting (`c:dispBlanksAs`). Suppress zero-valued bars in a stacked bar chart (issue #859) by assigning `XL_DISPLAY_BLANKS_AS.GAPS`; assigning the XSD default `ZERO` removes the element. `[Added in 1.0.2.dev0]`
 - `Chart.plots` / `Chart.series` / `Chart.category_axis` / `Chart.value_axis` — Chart anatomy.
 - `Chart.plot_area` — `PlotArea` proxy for `c:plotArea`; `.format` exposes `ChartFormat` (`.fill`, `.line`, `.shadow`) so the plot-area rectangle can be filled, outlined, or shadowed without dropping into XML. `[Added in 1.0.2.dev0]`
 - `Chart.has_secondary_value_axis` / `Chart.secondary_value_axis` — Secondary Y axis. `[Added in 1.0.2.dev0]`
@@ -847,6 +848,7 @@ prs.save("out.pptx")
 - `ChartFormat.fill` / `ChartFormat.line` / `ChartFormat.shadow` — Format block for a chart element. `shadow` is `[Added in 1.0.2.dev0]`.
 - `pptx.enum.chart.XL_CHART_TYPE` — Full chart-type enum including 2D, 3D, XY, bubble, radar, doughnut, area, and a chartex passthrough sentinel (`UNSUPPORTED_CHARTEX`) for unknown `cx:` types `[Added in 1.0.2.dev0]`.
 - `pptx.enum.chart.XL_ERROR_BAR_TYPE` / `XL_ERROR_BAR_INCLUDE` / `XL_ERROR_BAR_DIRECTION` — Error-bar configuration. `[Added in 1.0.2.dev0]`
+- `pptx.enum.chart.XL_DISPLAY_BLANKS_AS` — How blank cells render (`GAPS` / `ZERO` / `INTERPOLATED`), used by `Chart.display_blanks_as`. `[Added in 1.0.2.dev0]`
 - `pptx.chart.data.CategoryChartData` / `XyChartData` / `BubbleChartData` — Chart-data builders.
 
 ---

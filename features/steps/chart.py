@@ -12,7 +12,7 @@ from pptx import Presentation
 from pptx.chart.chart import Legend
 from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyChartData
 from pptx.dml.color import RGBColor
-from pptx.enum.chart import XL_CHART_TYPE
+from pptx.enum.chart import XL_CHART_TYPE, XL_DISPLAY_BLANKS_AS
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 from pptx.util import Inches
 
@@ -428,6 +428,11 @@ def when_I_assign_value_to_chart_chart_style(context, value):
     context.chart.chart_style = value
 
 
+@when("I assign XL_DISPLAY_BLANKS_AS.{member} to chart.display_blanks_as")
+def when_I_assign_display_blanks_as(context, member):
+    context.chart.display_blanks_as = getattr(XL_DISPLAY_BLANKS_AS, member)
+
+
 @when("I replace its data with {cats} categories and {sers} series")
 def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
     category_count, series_count = int(cats), int(sers)
@@ -535,6 +540,13 @@ def then_chart_chart_title_is_a_ChartTitle_object(context):
 def then_chart_chart_style_is_value(context, value):
     actual = context.chart.chart_style
     assert actual == value, "got %r" % actual
+
+
+@then("chart.display_blanks_as is XL_DISPLAY_BLANKS_AS.{member}")
+def then_chart_display_blanks_as_is(context, member):
+    expected = getattr(XL_DISPLAY_BLANKS_AS, member)
+    actual = context.chart.display_blanks_as
+    assert actual == expected, "got %r" % actual
 
 
 @then("chartSpace has an mc:AlternateContent/mc:Choice/c14:style val={val:d}")

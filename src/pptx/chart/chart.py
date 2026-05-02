@@ -23,7 +23,7 @@ from pptx.chart.xlsx import (
 )
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory, _PlotFragmentBuilder
 from pptx.dml.chtfmt import ChartFormat
-from pptx.enum.chart import XL_CHART_TYPE
+from pptx.enum.chart import XL_CHART_TYPE, XL_DISPLAY_BLANKS_AS
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
@@ -311,6 +311,40 @@ class Chart(PartElementProxy):
         """
         first_plot = self.plots[0]
         return PlotTypeInspector.chart_type(first_plot)
+
+    @property
+    def display_blanks_as(self):
+        """Member of :ref:`XlDisplayBlanksAs` for blank-cell display treatment.
+
+        Controls the PowerPoint "Hidden and Empty Cells" dialog option "Show
+        empty cells as", which determines how gaps in the chart data are
+        rendered — for example whether a stacked bar chart draws a
+        zero-height bar for a missing value or omits it entirely. Implements
+        GitHub issue #859, where zero values in a stacked bar chart are
+        suppressed by setting this to :attr:`~XL_DISPLAY_BLANKS_AS.GAPS`.
+
+        Returns :attr:`~XL_DISPLAY_BLANKS_AS.ZERO` when the chart has no
+        ``c:dispBlanksAs`` child (the XSD-declared default). Assigning a
+        non-default value writes a ``c:dispBlanksAs val="..."`` child;
+        assigning :attr:`~XL_DISPLAY_BLANKS_AS.ZERO` (the default) removes
+        any existing ``c:dispBlanksAs`` element so the XML stays minimal.
+        Assigning a value that is not a member of :ref:`XlDisplayBlanksAs`
+        raises :class:`ValueError`.
+        """
+        dispBlanksAs = self._chartSpace.chart.dispBlanksAs
+        if dispBlanksAs is None:
+            return XL_DISPLAY_BLANKS_AS.ZERO
+        return dispBlanksAs.val
+
+    @display_blanks_as.setter
+    def display_blanks_as(self, value):
+        XL_DISPLAY_BLANKS_AS.validate(value)
+        chart = self._chartSpace.chart
+        if value == XL_DISPLAY_BLANKS_AS.ZERO:
+            chart._remove_dispBlanksAs()
+            return
+        dispBlanksAs = chart.get_or_add_dispBlanksAs()
+        dispBlanksAs.val = value
 
     @lazyproperty
     def font(self):
