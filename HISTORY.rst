@@ -111,6 +111,13 @@ Unreleased
   ``SlideShapes.find_all_by_name(name)`` which returns every matching
   shape in z-order. An explicit method pair was chosen over overloading
   ``__getitem__`` with a string key to keep indexed access unambiguous.
+- feat: #133 add ``TextFrame.rotation`` read/write float property for the
+  ``a:bodyPr/@rot`` attribute. Rotates the text *inside* the text frame in
+  degrees clockwise (distinct from ``Shape.rotation`` which rotates the whole
+  shape via ``p:spPr/a:xfrm/@rot``). Returns ``0.0`` when the attribute is
+  absent; negative assignments are normalized to the equivalent
+  ``[0, 360)`` value. Values are stored by PowerPoint in 60000ths of a
+  degree; the existing ``ST_Angle`` converter handles that translation.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a

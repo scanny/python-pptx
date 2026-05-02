@@ -19,6 +19,7 @@ from pptx.oxml import parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
+    ST_Angle,
     ST_Coordinate32,
     ST_TextBulletSizePercent,
     ST_TextBulletStartAtNum,
@@ -219,6 +220,9 @@ class CT_TextBodyProperties(BaseOxmlElement):
     eg_textAutoFit = ZeroOrOneChoice(
         (Choice("a:noAutofit"), Choice("a:normAutofit"), Choice("a:spAutoFit")),
         successors=("a:scene3d", "a:sp3d", "a:flatTx", "a:extLst"),
+    )
+    rot: float | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "rot", ST_Angle, default=0.0
     )
     lIns: Length = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "lIns", ST_Coordinate32, default=Emu(91440)

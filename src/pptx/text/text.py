@@ -230,6 +230,27 @@ class TextFrame(Subshape):
         return sum(p.replace_text(find, replace) for p in self.paragraphs)
 
     @property
+    def rotation(self) -> float:
+        """Clockwise rotation in degrees applied to the text within this text frame.
+
+        Read/write. Corresponds to the ``rot`` attribute of the ``a:bodyPr``
+        element and rotates the text *inside* the shape (the shape itself is
+        unaffected). Distinct from :attr:`Shape.rotation`, which rotates the
+        whole shape via ``p:spPr/a:xfrm/@rot``.
+
+        Returns ``0.0`` (the default) when the attribute is not present.
+        Negative values assigned (e.g. ``-90``) are normalized to the
+        equivalent positive rotation in the range ``[0, 360)``. Both integer
+        and float values are accepted; PowerPoint stores the value in
+        60000ths of a degree under the hood. See issue #133.
+        """
+        return self._bodyPr.rot
+
+    @rotation.setter
+    def rotation(self, value: float):
+        self._bodyPr.rot = value
+
+    @property
     def text(self) -> str:
         """All text in this text-frame as a single string.
 
