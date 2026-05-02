@@ -369,6 +369,32 @@ strikethrough, assign ``MSO_STRIKE.DOUBLE_LINE``::
     run.font.strikethrough = MSO_STRIKE.DOUBLE_LINE  # double-line strikethrough
     run.font.strikethrough = False                   # explicitly no strikethrough
     run.font.strikethrough = None                    # inherit from style hierarchy
+
+Text shadow
+~~~~~~~~~~~
+
+|Font| exposes the text shadow via :attr:`.Font.shadow`, which returns a
+|ShadowFormat|. This is the PowerPoint "Text Effects -> Shadow" checkbox
+surfaced as a read/write API on a run. The same four knobs available on
+shape / group / chart shadows are available here: :attr:`~.ShadowFormat.blur_radius`,
+:attr:`~.ShadowFormat.distance`, :attr:`~.ShadowFormat.direction`, and
+:attr:`~.ShadowFormat.color` (issue #546)::
+
+    from pptx.dml.color import RGBColor
+    from pptx.util import Emu
+
+    run.font.shadow.blur_radius = Emu(50800)     # 4 pt blur
+    run.font.shadow.distance = Emu(38100)        # 3 pt offset
+    run.font.shadow.direction = 45.0             # degrees (down-right)
+    run.font.shadow.color.rgb = RGBColor(0x80, 0x80, 0x80)
+
+Setting ``run.font.shadow.inherit = True`` removes the explicit effect list
+and restores shadow inheritance from the style hierarchy. The full family
+of run-level visual effects (``shadow``, ``glow``, ``reflection``,
+``soft_edge``) is also available via :attr:`.Font.effect_format`, which
+returns an |EffectFormat| object — useful when you need a glow or
+reflection in addition to (or instead of) a shadow.
+
 .. _text-hyperlink-color-guide:
 
 Coloring a hyperlinked run

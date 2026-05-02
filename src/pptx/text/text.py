@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator, cast
 
+from pptx.dml.effect import EffectFormat, ShadowFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.enum.lang import MSO_LANGUAGE_ID
@@ -426,6 +427,28 @@ class Font(object):
         Provides access to fill properties such as fill color.
         """
         return FillFormat.from_fill_parent(self._rPr, self._parent)
+
+    @lazyproperty
+    def effect_format(self) -> EffectFormat:
+        """|EffectFormat| instance providing access to visual effects on this font.
+
+        Exposes the full `a:effectLst` family (`shadow`, `glow`, `reflection`,
+        `soft_edge`) on this run's `a:rPr/a:effectLst`. See issue #546.
+        """
+        return EffectFormat(self._rPr)
+
+    @lazyproperty
+    def shadow(self) -> ShadowFormat:
+        """|ShadowFormat| instance providing access to text-shadow settings.
+
+        Text-shadow is stored on the run's `a:rPr/a:effectLst/a:outerShdw`. The
+        returned object exposes the full :class:`~pptx.dml.effect.ShadowFormat`
+        API (``inherit``, ``blur_radius``, ``distance``, ``direction``,
+        ``color``). A |ShadowFormat| object is always returned, even when no
+        shadow is explicitly defined on this run (i.e. the run inherits its
+        shadow from the style hierarchy). See issue #546.
+        """
+        return ShadowFormat(self._rPr)
 
     @property
     def effective_color(self) -> RGBColor | None:
@@ -1367,7 +1390,7 @@ class _Run(Subshape):
         p.remove(self._r)
 
     @property
-    def font(self):
+    def font(self) -> Font:
         """|Font| instance containing run-level character properties for the text in this run.
 
         Character properties can be and perhaps most often are inherited from parent objects such

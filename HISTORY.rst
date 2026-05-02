@@ -220,6 +220,21 @@ Unreleased
   ``CT_PlotArea`` so the ``c:spPr`` child is inserted in schema-declared
   order (before any ``c:extLst``).
 
+- Add #546 text shadow — :class:`pptx.text.text.Font` now exposes a
+  ``shadow`` property (and a broader ``effect_format`` property for the
+  full ``a:effectLst`` family: shadow / glow / reflection / soft-edge).
+  ``run.font.shadow`` returns a real
+  :class:`~pptx.dml.effect.ShadowFormat` with the familiar
+  ``inherit`` / ``blur_radius`` / ``distance`` / ``direction`` / ``color``
+  API, writing its XML under ``a:rPr/a:effectLst/a:outerShdw`` — the
+  ECMA-376 §20.1.8 + §21.1.2.3.8 location for a text-run shadow. Adds a
+  ``ZeroOrOne`` ``effectLst`` descriptor on ``CT_TextCharacterProperties``
+  (``a:rPr`` / ``a:defRPr`` / ``a:endParaRPr``) and a regression suite
+  ``DescribeIssue546TextShadow`` under
+  ``tests/test_issue_546_text_shadow.py`` pinning the reporter's exact
+  workflow (set a shadow, round-trip through
+  :meth:`Presentation.save` + reopen, assert every knob survived).
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and

@@ -662,7 +662,7 @@ complete bullet-format API via `_Paragraph.bullet`.
 
 ```python
 from pptx import Presentation
-from pptx.util import Inches, Pt
+from pptx.util import Emu, Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import MSO_TEXT_STRIKE_TYPE
 
@@ -683,6 +683,12 @@ r.font.size = Pt(18)
 r.font.bold = True
 r.font.strikethrough = MSO_TEXT_STRIKE_TYPE.SINGLE_LINE
 r.font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+
+# text shadow (issue #546)
+r.font.shadow.blur_radius = Emu(50800)
+r.font.shadow.distance = Emu(38100)
+r.font.shadow.direction = 45.0
+r.font.shadow.color.rgb = RGBColor(0x80, 0x80, 0x80)
 
 # template-style replacement (cross-run safe, origin-run formatting wins)
 tf.replace_text("{NAME}", "World")
@@ -722,6 +728,8 @@ prs.save("out.pptx")
 - `Font.name_ea` / `Font.name_cs` — East-Asian and complex-script font slots (`a:ea`, `a:cs`). `[Added in 1.0.2.dev0]`
 - `Font.effective_color` — Read-only resolver that walks placeholder / master / theme inheritance and returns the rendered `RGBColor`. `[Added in 1.0.2.dev0]`
 - `Font.use_theme_hyperlink_color` — Tri-state `bool` toggling `a:uFill`/`uFillTx` on a hyperlink run. `[Added in 1.0.2.dev0]`
+- `Font.shadow` — `ShadowFormat` for the run's text-shadow. Full read/write `.inherit` / `.blur_radius` / `.distance` / `.direction` / `.color` API, backed by `a:rPr/a:effectLst/a:outerShdw` (see [Fills, colors, and effects](#fills-colors-and-effects)). Issue #546. `[Added in 1.0.2.dev0]`
+- `Font.effect_format` — `EffectFormat` exposing the full `a:effectLst` family (`.shadow` / `.glow` / `.reflection` / `.soft_edge`) on the run's `a:rPr`. `[Added in 1.0.2.dev0]`
 - `_Hyperlink.address` — Run-level hyperlink URL (setter creates/clears the `a:hlinkClick`).
 
 ---

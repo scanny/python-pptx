@@ -189,6 +189,25 @@ Feature: Change appearance of font used to render text
       And the Latin font name is unchanged
 
 
+  Scenario: Set a text shadow on a run (#546)
+    Given a font
+     When I assign 50800 to font.shadow.blur_radius
+      And I assign 38100 to font.shadow.distance
+      And I assign 45.0 to font.shadow.direction
+     Then font.shadow.blur_radius is 50800
+      And font.shadow.distance is 38100
+      And font.shadow.direction is 45.0
+      And font.shadow.inherit is False
+
+
+  Scenario: Clear a text shadow by restoring inheritance (#546)
+    Given a font
+     When I assign 50800 to font.shadow.blur_radius
+      And I assign True to font.shadow.inherit
+     Then font.shadow.inherit is True
+      And font.shadow.blur_radius is None
+
+
   Scenario: Add hyperlink
     Given a text run
      When I set the hyperlink address
