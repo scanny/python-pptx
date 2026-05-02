@@ -11,7 +11,7 @@ import zipfile
 
 import pytest
 
-from pptx.exc import PackageNotFoundError
+from pptx.exc import PackageNotFoundError, PackageTooLargeError
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import Part, _Relationships
 from pptx.opc.packuri import CONTENT_TYPES_URI, PackURI
@@ -318,11 +318,78 @@ class Describe_ZipPkgReader:
         assert "/ppt/presentation.xml" in blobs
         assert "/ppt/_rels/presentation.xml.rels" in blobs
 
+    def it_rejects_a_package_declaring_excessive_uncompressed_size(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        # --- Build a small in-memory zip; monkeypatch the module-level
+        # --- threshold so we do not need to generate a real multi-GiB file
+        # --- to exercise the guard.
+        buf = io.BytesIO()
+        payload = b"x" * 1024  # 1 KiB per member
+        with zipfile.ZipFile(buf, "w") as z:
+            for i in range(4):
+                z.writestr("part-%d.xml" % i, payload)
+        monkeypatch.setattr(
+            "pptx.opc.serialized.MAX_UNCOMPRESSED_PACKAGE_SIZE", 2048  # 2 KiB
+        )
+        reader = _ZipPkgReader(io.BytesIO(buf.getvalue()))
+        with pytest.raises(PackageTooLargeError, match="uncompressed size"):
+            reader._blobs
+
+    def and_it_allows_the_guard_to_be_disabled_via_module_attribute(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        # --- Setting the limit to 0 disables the guard for callers who need
+        # --- to read very large legitimate packages from trusted sources.
+        buf = io.BytesIO()
+        payload = b"x" * 1024
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("big.xml", payload)
+        monkeypatch.setattr("pptx.opc.serialized.MAX_UNCOMPRESSED_PACKAGE_SIZE", 0)
+        reader = _ZipPkgReader(io.BytesIO(buf.getvalue()))
+        assert PackURI("/big.xml") in reader._blobs
+
     # --- fixture components -------------------------------
 
     @pytest.fixture(scope="class")
     def zip_pkg_reader(self):
         return _ZipPkgReader(zip_pkg_path)
+
+
+class Describe_default_max_uncompressed_size:
+    """Unit-test suite for the ``PPTX_MAX_UNCOMPRESSED_SIZE`` env-var helper."""
+
+    def it_returns_a_sensible_default_when_env_unset(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        from pptx.opc.serialized import _default_max_uncompressed_size
+
+        monkeypatch.delenv("PPTX_MAX_UNCOMPRESSED_SIZE", raising=False)
+        assert _default_max_uncompressed_size() == 2 * 1024 * 1024 * 1024
+
+    def it_honors_a_valid_env_override(self, monkeypatch: pytest.MonkeyPatch):
+        from pptx.opc.serialized import _default_max_uncompressed_size
+
+        monkeypatch.setenv("PPTX_MAX_UNCOMPRESSED_SIZE", "1048576")
+        assert _default_max_uncompressed_size() == 1_048_576
+
+    def it_accepts_zero_to_disable_the_guard(self, monkeypatch: pytest.MonkeyPatch):
+        from pptx.opc.serialized import _default_max_uncompressed_size
+
+        monkeypatch.setenv("PPTX_MAX_UNCOMPRESSED_SIZE", "0")
+        assert _default_max_uncompressed_size() == 0
+
+    def but_it_ignores_malformed_values(self, monkeypatch: pytest.MonkeyPatch):
+        from pptx.opc.serialized import _default_max_uncompressed_size
+
+        monkeypatch.setenv("PPTX_MAX_UNCOMPRESSED_SIZE", "not-an-int")
+        assert _default_max_uncompressed_size() == 2 * 1024 * 1024 * 1024
+
+    def and_it_ignores_negative_values(self, monkeypatch: pytest.MonkeyPatch):
+        from pptx.opc.serialized import _default_max_uncompressed_size
+
+        monkeypatch.setenv("PPTX_MAX_UNCOMPRESSED_SIZE", "-1")
+        assert _default_max_uncompressed_size() == 2 * 1024 * 1024 * 1024
 
 
 class Describe_PhysPkgWriter:

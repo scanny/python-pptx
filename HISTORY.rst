@@ -6,6 +6,19 @@ Release History
 Unreleased
 ++++++++++
 
+- security: #1055 harden XML parser and zip reader against malicious input.
+  The lxml ``XMLParser`` used to parse every ``.pptx`` part (and the parser
+  used to read chart-embedded workbooks) now explicitly disables entity
+  resolution, DTD loading, and network access, defeating both "billion
+  laughs" entity-expansion attacks and XML external entity (XXE) attacks.
+  The zip reader now inspects the central-directory uncompressed-size
+  fields before loading members into memory and raises
+  ``pptx.exc.PackageTooLargeError`` when the declared total exceeds a
+  configurable limit (default 2 GiB; override via the
+  ``PPTX_MAX_UNCOMPRESSED_SIZE`` environment variable or the
+  ``pptx.opc.serialized.MAX_UNCOMPRESSED_PACKAGE_SIZE`` module attribute).
+  A new ``docs/dev/security.rst`` documents the trust model and the
+  defenses applied.
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
