@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import IO, TYPE_CHECKING, Literal
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
@@ -342,6 +342,40 @@ class Picture(_BasePicture):
         if rId is None:
             raise ValueError("no embedded image")
         return slide_part.get_image(rId)
+
+    def replace_image(self, image_file: str | IO[bytes]) -> None:
+        """Swap the embedded image with the one in `image_file`.
+
+        `image_file` can be either a path to a file (a string) or a file-like
+        object. Position, size, rotation, cropping, masking shape, outline,
+        and any other shape-level formatting are preserved — only the pixel
+        bytes of the image are replaced.
+
+        The new image is added to the package (reusing an existing image
+        part when one with identical content is already present). The
+        relationship to the previous image part is dropped if no other
+        reference to it remains in this slide part, allowing the old image
+        part to be garbage-collected on save when it is otherwise orphaned.
+
+        Raises |ValueError| if this picture has no embedded image (i.e.
+        its ``a:blip`` element lacks an ``r:embed`` reference); such a
+        picture is malformed and has no "current" image to replace.
+        """
+        blip = self._pic.blipFill.blip
+        if blip is None or blip.rEmbed is None:
+            raise ValueError("no embedded image to replace")
+        old_rId = blip.rEmbed
+
+        slide_part = self.part
+        _, new_rId = slide_part.get_or_add_image_part(image_file)
+
+        # -- rebind a:blip/@r:embed first so the XML reference count seen by --
+        # -- drop_rel reflects the replacement (post-swap the old rId's count --
+        # -- drops by one; drop_rel keeps the rel iff any references remain). --
+        blip.rEmbed = new_rId
+
+        if new_rId != old_rId:
+            slide_part.drop_rel(old_rId)
 
     @property
     def shape_type(self) -> MSO_SHAPE_TYPE:

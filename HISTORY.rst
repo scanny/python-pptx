@@ -157,6 +157,19 @@ Unreleased
   instruction so PowerPoint opens the resulting ``.xml`` file in the same
   way as its native "Save As → XML Presentation" command. Implemented in a
   new ``pptx.opc.flat_opc`` module.
+- feat: #834 (and #116) add ``Picture.replace_image(image_file)``. Swaps
+  the embedded image on a picture shape while keeping position, size,
+  rotation, cropping, masking shape, outline, and any other shape-level
+  formatting intact. Internally: adds (or reuses) an image part via the
+  existing ``SlidePart.get_or_add_image_part`` deduplication, rebinds
+  ``p:pic/p:blipFill/a:blip/@r:embed`` to the new rId, and drops the
+  previous image relationship so the old image part is
+  garbage-collected on save when no longer referenced. Raises
+  ``ValueError`` on a malformed ``p:pic`` that has no embedded image to
+  replace. #116 was deferred from Wave 2 pending Foundation F1; F1
+  landed on master and the minimal swap turned out not to need the
+  cross-part cloner. End-to-end regression in
+  ``tests/test_issue_834_picture_replace_image.py``.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

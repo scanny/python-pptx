@@ -7,7 +7,7 @@ import pytest
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.oxml import parse_xml
-from pptx.parts.image import Image
+from pptx.parts.image import Image, ImagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.picture import Movie, Picture, _BasePicture, _MediaFormat
 from pptx.util import Pt
@@ -476,6 +476,91 @@ class DescribePicture(object):
         slide_part_.drop_rel.assert_not_called()
         assert spTree.xpath("p:pic") == []
 
+    def it_can_replace_its_embedded_image(
+        self, part_prop_, slide_part_, image_part_
+    ):
+        pic = element("p:pic/p:blipFill/a:blip{r:embed=rIdOld}")
+        picture = Picture(pic, None)
+        slide_part_.get_or_add_image_part.return_value = (image_part_, "rIdNew")
+
+        picture.replace_image("new.png")
+
+        slide_part_.get_or_add_image_part.assert_called_once_with("new.png")
+        slide_part_.drop_rel.assert_called_once_with("rIdOld")
+        blip = pic.xpath(".//a:blip")[0]
+        assert blip.get(
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+        ) == "rIdNew"
+
+    def it_leaves_the_rel_in_place_when_replacement_dedupes_to_same_image(
+        self, part_prop_, slide_part_, image_part_
+    ):
+        # -- When the provided image matches the already-embedded one,
+        # -- get_or_add_image_part returns the same rId. The relationship
+        # -- should *not* be dropped in that case.
+        pic = element("p:pic/p:blipFill/a:blip{r:embed=rIdSame}")
+        picture = Picture(pic, None)
+        slide_part_.get_or_add_image_part.return_value = (image_part_, "rIdSame")
+
+        picture.replace_image("same.png")
+
+        slide_part_.drop_rel.assert_not_called()
+        blip = pic.xpath(".//a:blip")[0]
+        assert blip.get(
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+        ) == "rIdSame"
+
+    def it_raises_when_replacing_a_picture_with_no_embedded_image(
+        self, part_prop_, slide_part_
+    ):
+        # -- malformed a:blip with no r:embed attribute --
+        pic = element("p:pic/p:blipFill/a:blip")
+        picture = Picture(pic, None)
+
+        with pytest.raises(ValueError, match="no embedded image to replace"):
+            picture.replace_image("new.png")
+
+        slide_part_.get_or_add_image_part.assert_not_called()
+        slide_part_.drop_rel.assert_not_called()
+
+    def it_preserves_position_size_and_crop_across_replace_image(
+        self, part_prop_, slide_part_, image_part_
+    ):
+        pic = element(
+            "p:pic/("
+            "p:blipFill/(a:blip{r:embed=rIdOld},a:srcRect{l=10000,t=20000,r=30000,b=40000}),"
+            "p:spPr/(a:xfrm{rot=5400000}/(a:off{x=914400,y=457200},a:ext{cx=1828800,cy=1371600}),"
+            "a:prstGeom{prst=rect}/a:avLst)"
+            ")"
+        )
+        picture = Picture(pic, None)
+        slide_part_.get_or_add_image_part.return_value = (image_part_, "rIdNew")
+
+        picture.replace_image("new.png")
+
+        # -- embedded image rId swapped --
+        blip = pic.xpath(".//a:blip")[0]
+        rembed_qn = (
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+        )
+        assert blip.get(rembed_qn) == "rIdNew"
+        # -- crop preserved verbatim --
+        srcRect = pic.xpath(".//a:srcRect")[0]
+        assert srcRect.get("l") == "10000"
+        assert srcRect.get("t") == "20000"
+        assert srcRect.get("r") == "30000"
+        assert srcRect.get("b") == "40000"
+        # -- rotation, position and extent preserved --
+        xfrm = pic.xpath(".//a:xfrm")[0]
+        assert xfrm.get("rot") == "5400000"
+        off = pic.xpath(".//a:off")[0]
+        assert (off.get("x"), off.get("y")) == ("914400", "457200")
+        ext = pic.xpath(".//a:ext")[0]
+        assert (ext.get("cx"), ext.get("cy")) == ("1828800", "1371600")
+        # -- masking preset geometry preserved --
+        prstGeom = pic.xpath(".//a:prstGeom")[0]
+        assert prstGeom.get("prst") == "rect"
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -532,6 +617,10 @@ class DescribePicture(object):
     @pytest.fixture
     def image_(self, request):
         return instance_mock(request, Image)
+
+    @pytest.fixture
+    def image_part_(self, request):
+        return instance_mock(request, ImagePart)
 
     @pytest.fixture
     def part_prop_(self, request, slide_part_):
