@@ -64,6 +64,14 @@ necessarily a |DateAxis| object.
 A Chart may have zero to four axes. A pie chart, for example, has neither
 a category nor a value axis.
 
+A Chart may additionally carry a *secondary value axis*, a second value axis
+(conventionally rendered on the right side of the chart) against which one or
+more series may be plotted to compare data ranges of different magnitudes on a
+single chart. Access the secondary axis — when the chart XML contains one —
+via :attr:`~pptx.chart.chart.Chart.secondary_value_axis`; use
+:attr:`~pptx.chart.chart.Chart.has_secondary_value_axis` to test for its
+presence non-destructively.
+
 .. autoclass:: pptx.chart.axis._BaseAxis()
    :members:
    :member-order: bysource

@@ -50,6 +50,7 @@ Unreleased
         in the width of the shape
 - #100 paragraph bullet API
 - #114 paragraph bullet font, color, and size
+- #141 secondary value axis support
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

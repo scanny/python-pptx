@@ -153,6 +153,37 @@ kinds of things we can do with the value and category axes. Let's undo this
 part and go back to the version we had before.
 
 
+Secondary value axis
+~~~~~~~~~~~~~~~~~~~~
+
+A chart may carry a *secondary value axis* — a second value axis (conventionally
+rendered on the right side of the chart) against which one or more series may
+be plotted. This is useful when two series have widely different magnitudes
+and a single axis would cause the smaller series to appear flat.
+
+When a chart read from a presentation file contains a secondary value axis,
+access it through :attr:`Chart.secondary_value_axis`::
+
+    if chart.has_secondary_value_axis:
+        secondary_axis = chart.secondary_value_axis
+        secondary_axis.maximum_scale = 100.0
+        secondary_axis.tick_labels.font.size = Pt(12)
+
+:attr:`Chart.has_secondary_value_axis` lets you test for its presence without
+raising. Accessing :attr:`Chart.secondary_value_axis` on a chart that has no
+secondary value axis raises :class:`ValueError`.
+
+An XY/scatter chart has two value axes (one for X and one for Y), but neither
+is considered a *secondary* axis in this sense; both are primary axes, so
+:attr:`has_secondary_value_axis` is always ``False`` for XY/scatter charts.
+
+.. note::
+   Creating a new secondary value axis (and assigning series to it) in a chart
+   that does not already have one requires combo-chart plumbing that is not
+   yet exposed by the library. See `issue #141
+   <https://github.com/scanny/python-pptx/issues/141>`_ for status.
+
+
 Data Labels
 -----------
 

@@ -106,3 +106,23 @@ Feature: Chart properties
   Scenario: Chart.series
     Given a Chart object as chart
      Then chart.series is a SeriesCollection object
+
+
+  Scenario Outline: Chart.has_secondary_value_axis
+    Given a <axis-config>-axes chart
+     Then chart.has_secondary_value_axis is <expected-value>
+
+    Examples: secondary value axis presence cases
+      | axis-config       | expected-value |
+      | single-value      | False          |
+      | primary-secondary | True           |
+
+
+  Scenario: Chart.secondary_value_axis
+    Given a primary-secondary-axes chart
+     Then chart.secondary_value_axis is a ValueAxis object
+
+
+  Scenario: Chart.secondary_value_axis raises when not present
+    Given a single-value-axes chart
+     Then accessing chart.secondary_value_axis raises ValueError

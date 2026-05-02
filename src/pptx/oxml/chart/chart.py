@@ -181,6 +181,60 @@ class CT_PlotArea(BaseOxmlElement):
     catAx = ZeroOrMore("c:catAx")
     valAx = ZeroOrMore("c:valAx")
 
+    @property
+    def dateAx_lst(self):
+        """Return all ``c:dateAx`` child elements of this plotArea."""
+        return self.xpath("./c:dateAx")
+
+    @property
+    def has_category_axis(self):
+        """True if this plot-area contains at least one category-type axis.
+
+        A "category-type axis" is any of ``c:catAx`` or ``c:dateAx``. Charts whose
+        independent variable is categorical (bar, line, column, area, etc.) carry
+        one; an XY/scatter chart does not.
+        """
+        return bool(self.catAx_lst or self.dateAx_lst)
+
+    @property
+    def primary_valAx(self):
+        """Return the primary `c:valAx` element, or |None| if none is present.
+
+        The primary value axis is the first `c:valAx` child in document order.
+        """
+        valAx_lst = self.valAx_lst
+        return valAx_lst[0] if valAx_lst else None
+
+    @property
+    def secondary_valAx(self):
+        """Return the secondary `c:valAx` element, or |None| if not present.
+
+        A secondary value axis is only meaningful for a chart that also has a
+        category-type axis (`c:catAx` or `c:dateAx`). In that case, the second
+        `c:valAx` element in document order is the secondary value axis. For
+        an XY/scatter chart both `c:valAx` elements are primary axes (one for
+        X and one for Y), so this always returns |None| in that case.
+        """
+        if not self.has_category_axis:
+            return None
+        valAx_lst = self.valAx_lst
+        if len(valAx_lst) < 2:
+            return None
+        return valAx_lst[1]
+
+    @property
+    def secondary_catAx(self):
+        """Return the secondary `c:catAx` element, or |None| if not present.
+
+        The secondary category axis is the second `c:catAx` child in document
+        order. It is typically emitted by PowerPoint as a hidden companion to
+        a secondary value axis to satisfy the `c:crossAx` pairing requirement.
+        """
+        catAx_lst = self.catAx_lst
+        if len(catAx_lst) < 2:
+            return None
+        return catAx_lst[1]
+
     def iter_sers(self):
         """
         Generate each of the `c:ser` elements in this chart, ordered first by
