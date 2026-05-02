@@ -30,6 +30,14 @@ Unreleased
   and ``Importing slide layouts from another presentation`` sections
   documenting :meth:`Presentation.merge` and the layout-import recipe.
 
+- fix: #844 restore ``from pptx.oxml import qn`` backwards compatibility.
+  ``qn()`` had been relocated to :mod:`pptx.oxml.ns` during an early
+  refactor without being re-exported from :mod:`pptx.oxml`, breaking
+  long-standing ``from pptx.oxml import qn`` call sites. The name is
+  now re-exported from :mod:`pptx.oxml` (and listed in ``__all__``) so
+  downstream code continues to work unchanged; ``pptx.oxml.ns.qn``
+  remains the canonical location.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,

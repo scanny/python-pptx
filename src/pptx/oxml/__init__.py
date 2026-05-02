@@ -14,7 +14,20 @@ from typing import TYPE_CHECKING, Type
 
 from lxml import etree
 
-from pptx.oxml.ns import NamespacePrefixedTag
+from pptx.oxml.ns import NamespacePrefixedTag, qn
+
+# -- `qn` is re-exported here for backwards compatibility. It originally lived in
+# -- `pptx.oxml` and was relocated to `pptx.oxml.ns` during an early refactor; the
+# -- re-export keeps long-standing `from pptx.oxml import qn` imports working
+# -- (see issue #844).
+__all__ = [
+    "NamespacePrefixedTag",
+    "oxml_parser",
+    "parse_from_template",
+    "parse_xml",
+    "qn",
+    "register_element_cls",
+]
 
 if TYPE_CHECKING:
     from pptx.oxml.xmlchemy import BaseOxmlElement

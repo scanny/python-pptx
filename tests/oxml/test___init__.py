@@ -85,6 +85,34 @@ class DescribeRegisterCustomElementClass(object):
         assert type(foo.find(qn("a:bar"))) is etree._Element
 
 
+class DescribeIssue844QnReExport(object):
+    """Regression coverage for issue #844.
+
+    `qn()` was originally importable from `pptx.oxml`; it was relocated to
+    `pptx.oxml.ns` during an early refactor without a re-export, which broke
+    longstanding `from pptx.oxml import qn` call sites. The re-export must
+    remain in place and must be the same callable as `pptx.oxml.ns.qn`.
+    """
+
+    def it_re_exports_qn_from_pptx_oxml(self):
+        from pptx.oxml import qn as qn_from_oxml
+        from pptx.oxml.ns import qn as qn_from_ns
+
+        assert qn_from_oxml is qn_from_ns
+
+    def it_resolves_qn_correctly_when_imported_from_pptx_oxml(self):
+        from pptx.oxml import qn as qn_from_oxml
+
+        assert qn_from_oxml("p:sld") == (
+            "{http://schemas.openxmlformats.org/presentationml/2006/main}sld"
+        )
+
+    def it_lists_qn_in_pptx_oxml___all__(self):
+        import pptx.oxml as pptx_oxml
+
+        assert "qn" in pptx_oxml.__all__
+
+
 # ===========================================================================
 # fixtures
 # ===========================================================================
