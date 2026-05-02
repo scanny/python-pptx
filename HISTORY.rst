@@ -948,6 +948,26 @@ Unreleased
   reporter's code (paint the source series red, grow to six series)
   and pins the accent-cycling behaviour across an 8-series wrap case
   and a save-and-reopen round-trip.
+- verify: #810 (chart legend colours not matching graph colours)
+  resolved by ``feat/issue-529-chart-theme-colors``. The #810 reporter
+  described the same structural bug as #539 from a different angle —
+  after ``Chart.replace_data()`` cloned a coloured source series onto
+  new series the duplicated plot-area fills no longer lined up with
+  the legend swatches (which are drawn from each ``c:ser/c:spPr``
+  too, so cloned bars and legend entries ended up showing unrelated
+  colours once the chart grew). The #529 fix's
+  ``_apply_accent_color_to_ser`` guarantees each cloned ``c:ser`` owns
+  a single, distinct ``a:schemeClr val="accent{n}"`` fill, and since
+  PowerPoint renders both the legend marker and the plot-area bar for
+  a given series from that same ``c:spPr``, legend colours now match
+  graph colours by construction. Adds a regression suite
+  ``DescribeIssue810LegendColorsMatchGraph`` under
+  ``tests/test_issue_810_legend_colors.py`` that pins three invariants:
+  every series gets a distinct colour key after a 1-to-6 growth, each
+  series has exactly one ``c:spPr/a:solidFill`` (the single source of
+  truth feeding both legend and plot) with no ``c:legendEntry`` colour
+  override, and the one-colour-per-series invariant survives
+  ``Presentation.save`` + reopen.
 - verify: #777 resolved by ``feat/issue-752-ole-embed-generic``. Embedding
   an HTML file as an OLE object now works via the generic
   ``add_ole_object(html_path, prog_id="MSHtml.MHT", ..., extension="html")``
