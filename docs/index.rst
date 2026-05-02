@@ -74,6 +74,8 @@ Feature Support
 * Read and write shape accessibility metadata (``alt_text`` description and short
   ``title``) on any shape -- auto-shape, picture, graphic frame, group, or
   connector
+* Ungroup a :class:`.GroupShape` in place via :meth:`.GroupShape.ungroup`,
+  hoisting each child onto the slide at its slide-relative effective rectangle
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

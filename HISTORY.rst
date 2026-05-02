@@ -6,6 +6,19 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #730 :meth:`GroupShape.ungroup` which dissolves a group shape in
+  place, hoisting each direct child onto the slide's top-level shape
+  tree at its slide-relative effective rectangle and removing the
+  now-empty ``p:grpSp``. The freed shapes are returned in the same
+  z-order they held inside the group. Nested groups are handled
+  transparently via the Wave 3 #925 ``effective_*`` cascade -- each
+  child's slide rectangle is composited through every enclosing group
+  transform before the hoist so shapes render at their original slide
+  positions regardless of nesting depth; a freed child group keeps its
+  internal ``a:chOff`` / ``a:chExt`` intact (with its own ``a:off`` /
+  ``a:ext`` rewritten to its slide rectangle) so its descendants still
+  render exactly where they did before.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
