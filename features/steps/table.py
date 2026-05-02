@@ -189,6 +189,13 @@ def when_I_call_table_rows_add(context):
     context.added_row = context.table_.rows.add()
 
 
+@when("I call table.add_row()")
+def when_I_call_table_add_row(context):
+    # ---remember the prior last row's height before adding---
+    context.prior_last_row_height = context.table_.rows[len(context.table_.rows) - 1].height
+    context.added_row = context.table_.add_row()
+
+
 @when("I call table.rows[0].delete()")
 def when_I_call_table_rows_0_delete(context):
     context.table_.rows[0].delete()
@@ -201,6 +208,15 @@ def when_I_call_table_columns_add(context):
         len(context.table_.columns) - 1
     ].width
     context.added_column = context.table_.columns.add()
+
+
+@when("I call table.add_column()")
+def when_I_call_table_add_column(context):
+    # ---remember the prior last column's width before adding---
+    context.prior_last_column_width = context.table_.columns[
+        len(context.table_.columns) - 1
+    ].width
+    context.added_column = context.table_.add_column()
 
 
 @when("I call table.columns[0].delete()")

@@ -32,6 +32,44 @@ from .unitutil.mock import call, class_mock, instance_mock, property_mock
 class DescribeTable(object):
     """Unit-test suite for `pptx.table.Table` objects."""
 
+    def it_can_add_a_column(self, request):
+        graphic_frame_ = instance_mock(request, GraphicFrame)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        tbl = element(tbl_cxml)
+        table = Table(tbl, graphic_frame_)
+
+        column = table.add_column(width=Inches(2))
+
+        assert isinstance(column, _Column)
+        assert column.width == Inches(2)
+        # ---new column appended at the end---
+        assert len(table.columns) == 3
+        assert table.columns[2]._gridCol is column._gridCol
+        # ---every row gained one cell---
+        for tr in tbl.tr_lst:
+            assert len(tr.tc_lst) == 3
+
+    def it_can_add_a_row(self, request):
+        graphic_frame_ = instance_mock(request, GraphicFrame)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        tbl = element(tbl_cxml)
+        table = Table(tbl, graphic_frame_)
+
+        row = table.add_row(height=Inches(1))
+
+        assert isinstance(row, _Row)
+        assert row.height == Inches(1)
+        # ---new row appended at the end with one cell per column---
+        assert len(table.rows) == 2
+        assert table.rows[1]._tr is row._tr
+        assert len(list(row.cells)) == 2
+
     def it_provides_access_to_its_cells(self, tbl_, tc_, _Cell_, cell_):
         row_idx, col_idx = 4, 2
         tbl_.tc.return_value = tc_

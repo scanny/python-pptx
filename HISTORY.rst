@@ -207,6 +207,11 @@ Unreleased
   coverage under :class:`DescribePoint` and an end-to-end regression
   suite ``tests/test_issue_450_point_shadow_preservation.py`` that
   round-trips an authored shadow through save-and-reopen.
+- Add #86 ``Table.add_row()`` and ``Table.add_column()`` one-liner convenience
+  methods that delegate to the existing ``_RowCollection.add`` /
+  ``_ColumnCollection.add`` (same defaults, same semantics). Saves a hop
+  through the collection property for the common "append a row/column"
+  case.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use

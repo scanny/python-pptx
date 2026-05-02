@@ -33,6 +33,28 @@ class Table(object):
         self._tbl = tbl
         self._graphic_frame = graphic_frame
 
+    def add_column(self, width: Length | None = None) -> _Column:
+        """Return a newly added |_Column| appended to the right of this table.
+
+        Convenience shortcut for `table.columns.add(width=width)`. When `width`
+        is |None| (the default) the new column inherits its width from the last
+        existing column, or defaults to 914,400 EMU (1 inch) when the table has
+        no columns. Adding a column widens the containing graphic-frame shape
+        by the new column's width.
+        """
+        return self.columns.add(width=width)
+
+    def add_row(self, height: Length | None = None) -> _Row:
+        """Return a newly added |_Row| appended to the bottom of this table.
+
+        Convenience shortcut for `table.rows.add(height=height)`. When `height`
+        is |None| (the default) the new row inherits its height from the last
+        existing row, or defaults to 370,840 EMU (approximately 0.4 inches)
+        when the table has no rows. Adding a row heightens the containing
+        graphic-frame shape by the new row's height.
+        """
+        return self.rows.add(height=height)
+
     def cell(self, row_idx: int, col_idx: int) -> _Cell:
         """Return cell at `row_idx`, `col_idx`.
 
