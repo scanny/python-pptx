@@ -250,6 +250,20 @@ Unreleased
   Documents the issue as blocked on full F4 (chartex foundation) with a
   concrete unblock-and-ship checklist; #479 and #651 are the same ask
   and will be resolved together.
+- #371 treemap chart: design analysis (F4-pending). Adds
+  ``docs/dev/analysis/chartex-treemap.rst`` covering the
+  treemap-specific ``cx:series`` shape with ``layoutId="treemap"``, the
+  hierarchical ``cx:chartData`` shape (``cx:strDim type="cat"`` with
+  multiple leaf-first ``cx:lvl`` children encoding parent-child tile
+  nesting), and the ``cx:layoutPr/cx:parentLabelLayout`` attribute that
+  selects how PowerPoint paints labels for non-leaf tiles
+  (``banner`` / ``overlapping`` / ``none``). Proposes tuple-valued
+  ``CategoryChartData.categories`` (root-first, uniform depth) as the
+  MVP authoring-API surface, with ragged hierarchies and per-tile
+  overrides deferred to follow-up work. Documents the issue as blocked
+  on full F4 (chartex foundation) with a concrete unblock-and-ship
+  checklist; notes that the resulting writer is ~80% of the sibling
+  sunburst kind.
 - #305 funnel chart: design analysis (F4-pending). Adds
   ``docs/dev/analysis/chartex-funnel.rst`` covering the ``cx:plotArea``
   subset, ``cx:series`` with ``layoutId="funnel"``, and the cached-data
