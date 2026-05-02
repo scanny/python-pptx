@@ -46,6 +46,11 @@ class CT_Connector(BaseShapeElement):
         flipV: bool,
     ) -> CT_Connector:
         """Return a new `p:cxnSp` element tree configured as a base connector."""
+        # -- coerce position/size to int so float inputs (e.g. ``0.1 * slide_width`` or the
+        # -- result of float arithmetic in user code) don't end up as non-integer values in
+        # -- the int-typed ``a:off`` / ``a:ext`` attributes, which would produce a file
+        # -- PowerPoint refuses to open (issue #1058). --
+        x, y, cx, cy = int(round(x)), int(round(y)), int(round(cx)), int(round(cy))
         flip = (' flipH="1"' if flipH else "") + (' flipV="1"' if flipV else "")
         return cast(
             CT_Connector,
