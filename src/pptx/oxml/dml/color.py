@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pptx.enum.dml import MSO_THEME_COLOR
-from pptx.oxml.simpletypes import ST_HexColorRGB, ST_Percentage
+from pptx.oxml.simpletypes import ST_HexColorRGB, ST_Percentage, ST_PositiveFixedPercentage
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     Choice,
@@ -20,6 +20,7 @@ class _BaseColorElement(BaseOxmlElement):
 
     lumMod = ZeroOrOne("a:lumMod")
     lumOff = ZeroOrOne("a:lumOff")
+    alpha = ZeroOrOne("a:alpha")
 
     def add_lumMod(self, value):
         """
@@ -44,6 +45,22 @@ class _BaseColorElement(BaseOxmlElement):
         """
         self._remove_lumMod()
         self._remove_lumOff()
+        return self
+
+    def set_alpha(self, value):
+        """Set the `<a:alpha>` child to `value`, a float in `[0.0, 1.0]`.
+
+        Returns the newly set `<a:alpha>` child element. Any existing
+        `<a:alpha>` is replaced.
+        """
+        self._remove_alpha()
+        alpha = self._add_alpha()
+        alpha.val = value
+        return alpha
+
+    def clear_alpha(self):
+        """Remove any `<a:alpha>` child, returning self."""
+        self._remove_alpha()
         return self
 
 
@@ -75,6 +92,16 @@ class CT_Percentage(BaseOxmlElement):
     """
 
     val = RequiredAttribute("val", ST_Percentage)
+
+
+class CT_PositiveFixedPercentage(BaseOxmlElement):
+    """Custom element class for `<a:alpha>` and similar elements.
+
+    The `val` attribute is an `ST_PositiveFixedPercentage` (0%-100%),
+    represented in Python as a float in `[0.0, 1.0]`.
+    """
+
+    val = RequiredAttribute("val", ST_PositiveFixedPercentage)
 
 
 class CT_PresetColor(_BaseColorElement):

@@ -14,6 +14,7 @@ from ..oxml.unitdata.dml import (
     a_schemeClr,
     a_solidFill,
     a_sysClr,
+    an_alpha,
     an_hslClr,
     an_scrgbClr,
     an_srgbClr,
@@ -464,6 +465,122 @@ class DescribeColorFormat_to_rgb(object):
 
         # -- clamped L=1.0 with S reset effectively gives white --
         assert color_format.to_rgb() == RGBColor(255, 255, 255)
+
+
+class DescribeColorFormat_alpha(object):
+    """Unit-tests for ColorFormat.alpha read/write (issue #62)."""
+
+    def it_returns_1_0_when_no_alpha_element_is_present(self):
+        srgbClr_bldr = an_srgbClr().with_val("FF0000")
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.alpha == 1.0
+
+    def it_returns_1_0_for_a_None_color(self):
+        solidFill = a_solidFill().with_nsdecls().element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.alpha == 1.0
+
+    @pytest.mark.parametrize(
+        "xml_val, expected",
+        [(0, 0.0), (25000, 0.25), (50000, 0.5), (75000, 0.75), (100000, 1.0)],
+    )
+    def it_reads_alpha_val_as_a_float_in_0_1(self, xml_val, expected):
+        srgbClr_bldr = (
+            an_srgbClr()
+            .with_val("FF0000")
+            .with_child(an_alpha().with_val(xml_val))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.alpha == expected
+
+    @pytest.mark.parametrize("xClr_bldr_fn", [an_srgbClr, a_schemeClr, a_sysClr])
+    def it_can_set_alpha_on_a_color_without_one(self, xClr_bldr_fn):
+        xClr_bldr = xClr_bldr_fn()
+        if xClr_bldr_fn is an_srgbClr:
+            xClr_bldr.with_val("FF0000")
+        elif xClr_bldr_fn is a_schemeClr:
+            xClr_bldr.with_val("accent1")
+        else:
+            xClr_bldr.with_val("windowText")
+        solidFill = a_solidFill().with_nsdecls().with_child(xClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        color_format.alpha = 0.5
+
+        assert color_format.alpha == 0.5
+        # -- serialized XML contains a single a:alpha child with val=50000 --
+        assert b'<a:alpha val="50000"/>' in color_format._xFill.xml.encode()
+
+    def it_replaces_an_existing_alpha_when_setting(self):
+        srgbClr_bldr = (
+            an_srgbClr()
+            .with_val("FF0000")
+            .with_child(an_alpha().with_val(75000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        color_format.alpha = 0.25
+
+        assert color_format.alpha == 0.25
+        # -- only a single alpha child present --
+        xml_bytes = color_format._xFill.xml.encode()
+        assert xml_bytes.count(b"<a:alpha") == 1
+        assert b'val="25000"' in xml_bytes
+
+    def it_clears_alpha_when_set_to_None(self):
+        srgbClr_bldr = (
+            an_srgbClr()
+            .with_val("FF0000")
+            .with_child(an_alpha().with_val(50000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        color_format.alpha = None
+
+        assert color_format.alpha == 1.0
+        assert b"<a:alpha" not in color_format._xFill.xml.encode()
+
+    def it_coexists_with_lumMod_and_lumOff(self):
+        srgbClr_bldr = (
+            an_srgbClr()
+            .with_val("4F81BD")
+            .with_child(a_lumMod().with_val(75000))
+            .with_child(a_lumOff().with_val(25000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        color_format.alpha = 0.5
+
+        assert color_format.alpha == 0.5
+        assert color_format.brightness == 0.25
+        xml_bytes = color_format._xFill.xml.encode()
+        assert b"<a:lumMod" in xml_bytes
+        assert b"<a:lumOff" in xml_bytes
+        assert b"<a:alpha" in xml_bytes
+
+    @pytest.mark.parametrize("bad_value", [-0.1, 1.1, 2.0, -1.0])
+    def it_raises_on_set_out_of_range(self, bad_value):
+        srgbClr_bldr = an_srgbClr().with_val("FF0000")
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        with pytest.raises(ValueError, match="alpha must be a number"):
+            color_format.alpha = bad_value
+
+    def it_raises_on_set_for_None_color(self):
+        solidFill = a_solidFill().with_nsdecls().element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        with pytest.raises(ValueError, match="color.type is None"):
+            color_format.alpha = 0.5
 
 
 class DescribeRGBColor(object):

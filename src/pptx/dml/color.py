@@ -29,6 +29,38 @@ class ColorFormat(object):
         self._color = color
 
     @property
+    def alpha(self):
+        """Read/write opacity of this color as a float in ``[0.0, 1.0]``.
+
+        Corresponds to the ``<a:alpha val="N"/>`` child element where ``N``
+        is an `ST_PositiveFixedPercentage` (``0`` through ``100000`` in
+        OOXML, thousandths of a percent). A value of ``1.0`` is fully
+        opaque and ``0.0`` is fully transparent. Returns ``1.0`` when no
+        ``<a:alpha>`` element is present (opacity is the OOXML default).
+
+        Assigning ``None`` removes any ``<a:alpha>`` child so the color
+        inherits its opacity (effectively ``1.0``). Raises
+        :class:`ValueError` when the assigned value is outside ``[0.0,
+        1.0]`` or when this :class:`ColorFormat` has no color (setting
+        alpha requires a color — set ``.rgb`` or ``.theme_color`` first).
+        """
+        return self._color.alpha
+
+    @alpha.setter
+    def alpha(self, value):
+        if value is None:
+            self._color.alpha = None
+            return
+        if value < 0.0 or value > 1.0:
+            raise ValueError("alpha must be a number in range 0.0 to 1.0")
+        if isinstance(self._color, _NoneColor):
+            raise ValueError(
+                "can't set alpha when color.type is None. Set color.rgb or"
+                " .theme_color first."
+            )
+        self._color.alpha = value
+
+    @property
     def brightness(self):
         """
         Read/write float value between -1.0 and 1.0 indicating the brightness
@@ -155,6 +187,25 @@ class _Color(object):
         self._xClr = xClr
 
     @property
+    def alpha(self):
+        """Return opacity as a float in ``[0.0, 1.0]``.
+
+        Returns ``1.0`` when no ``<a:alpha>`` child is present (opacity is
+        the default).
+        """
+        alpha_elm = self._xClr.alpha
+        if alpha_elm is None:
+            return 1.0
+        return float(alpha_elm.val)
+
+    @alpha.setter
+    def alpha(self, value):
+        if value is None:
+            self._xClr.clear_alpha()
+            return
+        self._xClr.set_alpha(value)
+
+    @property
     def brightness(self):
         lumMod, lumOff = self._xClr.lumMod, self._xClr.lumOff
         # a tint is lighter, a shade is darker
@@ -270,6 +321,24 @@ class _HslColor(_Color):
 
 
 class _NoneColor(_Color):
+    @property
+    def alpha(self):
+        """Return 1.0, the default opacity for a color with no explicit value.
+
+        ``_NoneColor`` carries no XML element, so there can be no
+        ``<a:alpha>`` child; OOXML treats an absent alpha as fully opaque.
+        """
+        return 1.0
+
+    @alpha.setter
+    def alpha(self, value):  # pragma: no cover
+        # -- unreachable: ColorFormat.alpha guards against setting on a
+        # -- _NoneColor by raising ValueError before delegating here.
+        raise ValueError(
+            "can't set alpha when color.type is None. Set color.rgb or"
+            " .theme_color first."
+        )
+
     @property
     def color_type(self):
         return None
