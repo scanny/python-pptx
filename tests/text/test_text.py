@@ -1367,6 +1367,137 @@ class Describe_Hyperlink(object):
         hlink.part.drop_rel.assert_called_once_with(rId_existing)
         hlink.part.relate_to.assert_called_once_with(new_url, RT.HYPERLINK, is_external=True)
 
+    # -- target_slide property (issue #1077) ------------------------------
+
+    def it_returns_None_target_slide_when_no_hyperlink_is_present(self, request):
+        rPr = element("a:rPr")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part")
+        assert hlink.target_slide is None
+
+    def it_returns_None_target_slide_for_an_external_url_hyperlink(self, request):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId3}")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part")
+        assert hlink.target_slide is None
+
+    def it_returns_the_target_slide_for_a_slide_jump(self, request):
+        from pptx.parts.slide import SlidePart
+        from pptx.slide import Slide
+
+        rPr = element(
+            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
+        )
+        hlink = _Hyperlink(rPr, None)
+        slide_ = instance_mock(request, Slide)
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.slide = slide_
+        part_ = instance_mock(request, XmlPart)
+        part_.related_part.return_value = slide_part_
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        result = hlink.target_slide
+
+        part_.related_part.assert_called_once_with("rId7")
+        assert result is slide_
+
+    def and_address_returns_None_for_a_slide_jump_hyperlink(self, request):
+        rPr = element(
+            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
+        )
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part")
+        assert hlink.address is None
+
+    def it_can_set_the_target_slide(self, request):
+        from pptx.oxml.ns import qn
+        from pptx.parts.slide import SlidePart
+        from pptx.slide import Slide
+
+        rPr = element("a:rPr/a:hlinkClick{r:foo=x}")  # -- pre-declare r: ns
+        rPr.remove(rPr[0])
+        hlink = _Hyperlink(rPr, None)
+        slide_ = instance_mock(request, Slide)
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_.part = slide_part_
+        part_ = instance_mock(request, XmlPart)
+        part_.relate_to.return_value = "rId9"
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        hlink.target_slide = slide_
+
+        part_.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
+        hlinkClick = rPr.find(qn("a:hlinkClick"))
+        assert hlinkClick is not None
+        assert hlinkClick.get("action") == "ppaction://hlinksldjump"
+        assert hlinkClick.get(qn("r:id")) == "rId9"
+
+    def it_replaces_an_existing_url_when_setting_a_target_slide(self, request):
+        from pptx.parts.slide import SlidePart
+        from pptx.slide import Slide
+
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId3}")
+        hlink = _Hyperlink(rPr, None)
+        slide_ = instance_mock(request, Slide)
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_.part = slide_part_
+        part_ = instance_mock(request, XmlPart)
+        part_.relate_to.return_value = "rId9"
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        hlink.target_slide = slide_
+
+        part_.drop_rel.assert_called_once_with("rId3")
+        part_.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
+        assert hlink._rPr.xml == xml(
+            "a:rPr/a:hlinkClick{action=ppaction://hlinksldjump,r:id=rId9}"
+        )
+
+    def it_clears_the_hlinkClick_when_target_slide_is_None(self, request):
+        from pptx.oxml.ns import qn
+
+        rPr = element(
+            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
+        )
+        hlink = _Hyperlink(rPr, None)
+        part_ = instance_mock(request, XmlPart)
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        hlink.target_slide = None
+
+        part_.drop_rel.assert_called_once_with("rId7")
+        assert rPr.find(qn("a:hlinkClick")) is None
+
+    def it_removes_the_target_slide_via_del(self, request):
+        from pptx.oxml.ns import qn
+
+        rPr = element(
+            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
+        )
+        hlink = _Hyperlink(rPr, None)
+        part_ = instance_mock(request, XmlPart)
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        del hlink.target_slide
+
+        part_.drop_rel.assert_called_once_with("rId7")
+        assert rPr.find(qn("a:hlinkClick")) is None
+
+    def it_is_a_noop_to_clear_target_slide_when_no_hyperlink_is_present(
+        self, request
+    ):
+        from pptx.oxml.ns import qn
+
+        rPr = element("a:rPr")
+        hlink = _Hyperlink(rPr, None)
+        part_ = instance_mock(request, XmlPart)
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        hlink.target_slide = None
+
+        part_.drop_rel.assert_not_called()
+        assert rPr.find(qn("a:hlinkClick")) is None
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture

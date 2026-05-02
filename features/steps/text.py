@@ -57,6 +57,7 @@ def given_a_Run_object_containing_text_as_run(context):
 @given("a text run")
 def given_a_text_run(context):
     prs = Presentation(test_pptx("txt-text"))
+    context.prs = prs
     context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
 
 
@@ -70,7 +71,24 @@ def given_a_text_run_in_a_table_cell(context):
 @given("a text run having a hyperlink")
 def given_a_text_run_having_a_hyperlink(context):
     prs = Presentation(test_pptx("txt-text"))
+    context.prs = prs
     context.run = prs.slides[0].shapes[0].text_frame.paragraphs[1].runs[0]
+
+
+@given("another slide in the deck as target_slide")
+def given_another_slide_in_the_deck_as_target_slide(context):
+    # -- reuse the presentation loaded by "a text run" / "a text run having a
+    # -- hyperlink". Use slide[1] as the hop target. --
+    context.target_slide = context.prs.slides[1]
+
+
+@given("a text run with a slide-jump hyperlink to another slide")
+def given_a_text_run_with_a_slide_jump_hyperlink(context):
+    prs = Presentation(test_pptx("txt-text"))
+    context.prs = prs
+    context.target_slide = prs.slides[1]
+    context.run = prs.slides[0].shapes[0].text_frame.paragraphs[0].runs[0]
+    context.run.hyperlink.target_slide = context.target_slide
 
 
 # when ====================================================
@@ -136,6 +154,16 @@ def when_set_hyperlink_address(context):
     run.text = context.run_text
     hlink = run.hyperlink
     hlink.address = context.address
+
+
+@when("I assign target_slide to run.hyperlink.target_slide")
+def when_assign_target_slide_to_run_hyperlink_target_slide(context):
+    context.run.hyperlink.target_slide = context.target_slide
+
+
+@when("I assign None to run.hyperlink.target_slide")
+def when_assign_None_to_run_hyperlink_target_slide(context):
+    context.run.hyperlink.target_slide = None
 
 
 # then ====================================================
@@ -241,6 +269,27 @@ def then_run_text_is_a_hyperlink(context):
 def then_run_text_is_not_a_hyperlink(context):
     hlink = context.run.hyperlink
     assert hlink.address is None
+
+
+@then("run.hyperlink.target_slide is target_slide")
+def then_run_hyperlink_target_slide_is_target_slide(context):
+    actual = context.run.hyperlink.target_slide
+    assert actual == context.target_slide, (
+        "run.hyperlink.target_slide == %r (expected %r)"
+        % (actual, context.target_slide)
+    )
+
+
+@then("run.hyperlink.target_slide is None")
+def then_run_hyperlink_target_slide_is_None(context):
+    actual = context.run.hyperlink.target_slide
+    assert actual is None, "run.hyperlink.target_slide == %r" % (actual,)
+
+
+@then("run.hyperlink.address is None")
+def then_run_hyperlink_address_is_None(context):
+    actual = context.run.hyperlink.address
+    assert actual is None, "run.hyperlink.address == %r" % (actual,)
 
 
 @then("the font name matches the typeface I set")

@@ -1044,12 +1044,18 @@ from pptx.util import Inches
 
 prs = Presentation()
 slide = prs.slides.add_slide(prs.slide_layouts[5])
+other = prs.slides.add_slide(prs.slide_layouts[5])
 tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(6), Inches(0.5))
 run = tb.text_frame.paragraphs[0].add_run()
 run.text = "Visit our site"
 run.hyperlink.address = "https://example.com/"
 
-# target another slide with a click action
+# run-level slide-jump: click the run to jump to another slide
+jump_run = tb.text_frame.paragraphs[0].add_run()
+jump_run.text = " (see appendix)"
+jump_run.hyperlink.target_slide = other
+
+# target another slide with a shape-level click action
 from pptx.enum.shapes import MSO_SHAPE
 shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE,
                                Inches(1), Inches(3), Inches(2), Inches(1))
@@ -1059,7 +1065,8 @@ prs.save("out.pptx")
 ```
 
 - `_Run.hyperlink` — `_Hyperlink` proxy.
-- `_Hyperlink.address` — Read/write external URL (setting to `None` removes the hyperlink). Font-color writes for hyperlinked runs are `[Added in 2026.05.0]`.
+- `_Hyperlink.address` — Read/write external URL (setting to `None` removes the hyperlink). Font-color writes for hyperlinked runs are `[Added in 2026.05.0]`. For a slide-jump hyperlink, `address` returns `None` — use `target_slide`.
+- `_Hyperlink.target_slide` — Read/write `Slide` for a run-level `hlinksldjump` (run the user clicks jumps to the assigned slide). Assigning `None` (or `del run.hyperlink.target_slide`) removes any hyperlink on the run. `[Added in 2026.05.0]`
 - `BaseShape.click_action` — `ActionSetting` for click-triggered behaviours (hyperlinks, target-slide, run-program, play-sound).
 - `ActionSetting.action` — `PP_ACTION` enum.
 - `ActionSetting.hyperlink` — Outer hyperlink access.
@@ -1234,7 +1241,8 @@ prs.save("out.pptx")
 - `Font.shadow` — `ShadowFormat` for the run's text-shadow. Full read/write `.inherit` / `.blur_radius` / `.distance` / `.direction` / `.color` API, backed by `a:rPr/a:effectLst/a:outerShdw` (see [Fills, colors, and effects](#fills-colors-and-effects)). Issue #546. `[Added in 1.0.2.dev0]`
 - `Font.effect_format` — `EffectFormat` exposing the full `a:effectLst` family (`.shadow` / `.glow` / `.reflection` / `.soft_edge`) on the run's `a:rPr`. `[Added in 1.0.2.dev0]`
 - `Font.highlight_color` / `Font.clear_highlight_color()` — Read/write `ColorFormat` for the text-highlight (text-background) swatch PowerPoint exposes on the Home ribbon. Accepts both `.rgb = RGBColor(...)` and `.theme_color = MSO_THEME_COLOR.ACCENT_1`. Backed by `a:rPr/a:highlight`. Issue #675. `[Added in 1.0.2.dev0]`
-- `_Hyperlink.address` — Run-level hyperlink URL (setter creates/clears the `a:hlinkClick`).
+- `_Hyperlink.address` — Run-level hyperlink URL (setter creates/clears the `a:hlinkClick`). Returns `None` when the run carries a slide-jump instead of a URL.
+- `_Hyperlink.target_slide` — Read/write `Slide` for a run-level slide-jump hyperlink (PowerPoint's "Place in This Document"). Setter swaps the run's `a:hlinkClick` for a `hlinksldjump` action and slide relationship; assigning `None` (or `del run.hyperlink.target_slide`) removes any hyperlink on the run. `[Added in 2026.05.0]`
 
 ---
 
