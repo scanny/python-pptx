@@ -44,3 +44,17 @@ Feature: Replace chart data
     Given a chart with an explicitly-colored series
      When I replace its data with 6 series that require 5 new cloned series
      Then each cloned series uses a distinct theme-accent schemeClr
+
+
+  Scenario Outline: Chart.replace_data rejects mismatched ChartData type (issue #396)
+    Given a chart of size and type <spec>
+     Then replacing its data with <wrong-kind> raises ValueError
+
+    Examples: incompatible chart-type / ChartData combinations
+      | spec                 | wrong-kind     |
+      | 3x2 XY               | CategoryData   |
+      | 3x2 XY               | BubbleData     |
+      | 3x2 Bubble           | CategoryData   |
+      | 3x2 Bubble           | XyData         |
+      | 2x2 Clustered Bar    | XyData         |
+      | 4x3 Line             | BubbleData     |

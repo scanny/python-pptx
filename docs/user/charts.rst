@@ -410,6 +410,28 @@ This keeps newly-added series rendering with the theme's accent palette
 rather than all appearing in the source series's color (see GitHub issue
 #529).
 
+Choosing the right ChartData subclass for replace_data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:meth:`Chart.replace_data` requires the |ChartData| subclass to match the
+chart's type family, because the underlying XML shape (``c:cat``/``c:val`` vs
+``c:xVal``/``c:yVal``/``c:bubbleSize``) differs between category, XY and
+bubble charts. Passing the wrong subclass would silently write the wrong
+shape into the chart XML, producing a file that PowerPoint refuses to open
+without the infamous "repair needed" dialog (see GitHub issue
+`#396 <https://github.com/scanny/python-pptx/issues/396>`_). As of |pp|
+1.0.2 a mismatch raises :class:`ValueError` naming the expected subclass.
+
+* Category-family charts (bar, column, line, pie, area, radar, doughnut,
+  stock, …) require :class:`~pptx.chart.data.CategoryChartData` (or the
+  legacy alias :class:`~pptx.chart.data.ChartData`).
+* XY / scatter charts require :class:`~pptx.chart.data.XyChartData`.
+* Bubble charts require :class:`~pptx.chart.data.BubbleChartData`.
+
+If you need to change a chart's *type* as well as its data, replace the
+entire shape instead: remove the chart graphic frame and add a fresh one
+with :meth:`~pptx.shapes.shapetree.SlideShapes.add_chart`.
+
 Extended chart-style values (Office 2010+)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
