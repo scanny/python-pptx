@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #716 DataLabel border and fill via ChartFormat
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

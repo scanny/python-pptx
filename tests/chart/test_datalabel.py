@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pptx.chart.datalabel import DataLabel, DataLabels
+from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_LABEL_POSITION
 from pptx.text.text import Font
 
@@ -18,6 +19,15 @@ class DescribeDataLabel(object):
         font = data_label.font
         assert data_label._ser.xml == expected_xml
         assert isinstance(font, Font)
+
+    def it_provides_access_to_its_format(self, format_fixture):
+        data_label, ChartFormat_, chart_format_, expected_xml = format_fixture
+        chart_format = data_label.format
+        ChartFormat_.assert_called_once_with(
+            data_label._ser.xpath('c:dLbls/c:dLbl[c:idx/@val="9"]')[0]
+        )
+        assert chart_format is chart_format_
+        assert data_label._ser.xml == expected_xml
 
     def it_knows_its_position(self, position_get_fixture):
         data_label, expected_value = position_get_fixture
@@ -76,6 +86,29 @@ class DescribeDataLabel(object):
         data_label = DataLabel(element(ser_cxml), 9)
         expected_xml = xml(expected_cxml)
         return data_label, expected_xml
+
+    @pytest.fixture(
+        params=[
+            (
+                "c:ser{a:b=c}",
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr"
+                ",a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{v"
+                "al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val="
+                "0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0"
+                "},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c"
+                ":showBubbleSize{val=0},c:showLeaderLines{val=1})",
+            ),
+            (
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr)",
+                "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr)",
+            ),
+        ]
+    )
+    def format_fixture(self, request, ChartFormat_, chart_format_):
+        ser_cxml, expected_cxml = request.param
+        data_label = DataLabel(element(ser_cxml), 9)
+        expected_xml = xml(expected_cxml)
+        return data_label, ChartFormat_, chart_format_, expected_xml
 
     @pytest.fixture(
         params=[
@@ -246,6 +279,14 @@ class DescribeDataLabel(object):
         return data_label, TextFrame_, rich_, text_frame_
 
     # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def ChartFormat_(self, request, chart_format_):
+        return class_mock(request, "pptx.chart.datalabel.ChartFormat", return_value=chart_format_)
+
+    @pytest.fixture
+    def chart_format_(self, request):
+        return instance_mock(request, ChartFormat)
 
     @pytest.fixture
     def _get_or_add_rich_(self, request):
