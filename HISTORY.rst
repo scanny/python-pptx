@@ -6,6 +6,25 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #825 (change points color in scatter plot) resolved by
+  ``feat/issue-825-scatter-point-colors``. The per-point marker-color
+  API has existed since ``Point.marker`` was first added (mirroring the
+  series-level ``.marker`` on ``XySeries`` / ``LineSeries`` /
+  ``RadarSeries``); the correct idiom on scatter charts is
+  ``series.points[i].marker.format.fill`` — which writes to
+  ``c:dPt/c:marker/c:spPr``, the element PowerPoint consults for the
+  marker swatch. (The superficially-similar ``point.format.fill`` writes
+  ``c:dPt/c:spPr``, which PowerPoint renders as the data-point's *line*
+  color on marker-type charts, hence the reporter's observation that
+  fill assignments had no visible effect.) Adds a regression suite
+  ``DescribeIssue825ScatterPointColors`` under
+  ``tests/test_issue_825_scatter_point_colors.py`` that pins the XML
+  shape (``c:dPt/c:marker/c:spPr`` with no sibling ``c:dPt/c:spPr``)
+  across XY_SCATTER / XY_SCATTER_LINES / XY_SCATTER_SMOOTH, locks in
+  per-point independence (three points, three distinct colours, no
+  cross-contamination and no duplicate ``c:dPt`` with the same
+  ``c:idx``), and round-trips the authored colours through
+  ``Presentation.save`` + reopen.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
