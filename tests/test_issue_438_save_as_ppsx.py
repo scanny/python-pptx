@@ -31,61 +31,14 @@ from __future__ import annotations
 import io
 import zipfile
 
-import pytest
-
 from pptx import Presentation
 from pptx.opc.constants import CONTENT_TYPE as CT
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against test-module pollution of ``PartFactory.part_type_for``."""
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
 
 
 class DescribeIssue438SaveAsPpsx:
     """Round-trip regression for ``Presentation.save_ppsx`` (issue #438)."""
 
-    def it_writes_slideshow_content_type_override(self, _restore_part_factory):
+    def it_writes_slideshow_content_type_override(self):
         prs = Presentation()
 
         buf = io.BytesIO()
@@ -106,7 +59,7 @@ class DescribeIssue438SaveAsPpsx:
         # -- presentation, not as a slide show.
         assert CT.PML_PRESENTATION_MAIN not in content_types_xml
 
-    def it_round_trips_through_save_ppsx_and_reopen(self, _restore_part_factory):
+    def it_round_trips_through_save_ppsx_and_reopen(self):
         prs = Presentation()
         slide_count_before = len(prs.slides)
 
@@ -121,9 +74,7 @@ class DescribeIssue438SaveAsPpsx:
         # -- slides survive the round-trip --
         assert len(reloaded.slides) == slide_count_before
 
-    def it_does_not_mutate_the_live_content_type_after_save(
-        self, _restore_part_factory
-    ):
+    def it_does_not_mutate_the_live_content_type_after_save(self):
         prs = Presentation()
         original_ct = prs.part.content_type
 
@@ -142,7 +93,7 @@ class DescribeIssue438SaveAsPpsx:
         assert CT.PML_PRESENTATION_MAIN in content_types_xml
         assert CT.PML_SLIDESHOW_MAIN not in content_types_xml
 
-    def it_accepts_a_filesystem_path(self, _restore_part_factory, tmp_path):
+    def it_accepts_a_filesystem_path(self, tmp_path):
         prs = Presentation()
         out_path = tmp_path / "slideshow.ppsx"
 
@@ -152,7 +103,7 @@ class DescribeIssue438SaveAsPpsx:
             content_types_xml = z.read("[Content_Types].xml").decode("utf-8")
         assert CT.PML_SLIDESHOW_MAIN in content_types_xml
 
-    def it_forwards_zip_date_time_and_password(self, _restore_part_factory):
+    def it_forwards_zip_date_time_and_password(self):
         """`save_ppsx` honors the same reproducibility/encryption keywords as `save`."""
         prs = Presentation()
 

@@ -1003,32 +1003,6 @@ class DescribeIssue694RegressionSections(object):
     resolved by F7 rather than a re-implementation of the same behaviour.
     """
 
-    @pytest.fixture(autouse=True)
-    def _isolate_part_factory(self):
-        """Repair ``PartFactory.part_type_for`` so sibling mocks don't poison us.
-
-        Some tests in this repo (e.g. ``DescribePartFactory``) register mocked
-        part classes into the module-level ``PartFactory.part_type_for`` dict
-        and do not clean up. Because these round-trip tests exercise real
-        ``.pptx`` loading, a leaked mock registration causes
-        ``Mock object has no attribute 'slide'`` on ``related_slide(...)``.
-
-        This fixture re-applies the canonical default mapping (the one
-        registered in ``pptx/__init__.py``) before each test in this class and
-        restores the as-observed state afterwards so the test is isolated in
-        both directions.
-        """
-        from pptx import content_type_to_part_class_map
-        from pptx.opc.package import PartFactory
-
-        saved = dict(PartFactory.part_type_for)
-        PartFactory.part_type_for.update(content_type_to_part_class_map)
-        try:
-            yield
-        finally:
-            PartFactory.part_type_for.clear()
-            PartFactory.part_type_for.update(saved)
-
     def it_iterates_sections_and_their_slides_after_round_trip(self):
         prs = open_presentation()
         layout = prs.slide_layouts[6]  # -- blank layout --

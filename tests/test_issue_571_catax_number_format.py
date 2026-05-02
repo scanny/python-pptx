@@ -37,57 +37,6 @@ from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from other tests that mutate `PartFactory.part_type_for`.
-
-    See the identical fixture in ``tests/test_issue_539_chart_color_cycle.py``
-    for the rationale — ``Presentation(stream)`` reopen dispatches through
-    ``PartFactory.part_type_for``, which earlier tests may have emptied.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue571CategoryAxisNumberFormat(object):
     """Pins ``CategoryAxis.tick_labels.number_format`` round-trip behaviour."""
 
@@ -119,7 +68,7 @@ class DescribeIssue571CategoryAxisNumberFormat(object):
         numFmt = category_axis._element.xpath("c:numFmt")[0]
         assert numFmt.get("sourceLinked") == "0"
 
-    def it_round_trips_number_format_through_save_and_reload(self, _restore_part_factory):
+    def it_round_trips_number_format_through_save_and_reload(self):
         """Save a .pptx with a custom catAx number_format and reopen it."""
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])

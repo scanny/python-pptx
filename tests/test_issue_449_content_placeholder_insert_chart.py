@@ -46,62 +46,6 @@ from pptx.shapes.placeholder import (
 )
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against cross-test mutation of ``PartFactory.part_type_for``.
-
-    Same pattern as ``tests/test_issue_784_replace_audio.py`` — other
-    suites replace registry entries with ``Mock`` objects and don't
-    restore them, which makes real ``Presentation()`` construction
-    return Mocks when test-module ordering places this module after
-    those suites.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-        CT.WAV: MediaPart,
-        CT.AUDIO_MPEG: MediaPart,
-        CT.AUDIO_WAV: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue449ContentPlaceholderInsertChart:
     """Verify #449 — `insert_chart` works on a generic Content placeholder."""
 
@@ -114,7 +58,7 @@ class DescribeIssue449ContentPlaceholderInsertChart:
         assert hasattr(SlidePlaceholder, "insert_chart")
         assert SlidePlaceholder.insert_chart is _BaseSlidePlaceholder.insert_chart
 
-    def it_loads_a_Content_placeholder_as_SlidePlaceholder(self, _restore_part_factory):
+    def it_loads_a_Content_placeholder_as_SlidePlaceholder(self):
         """Confirm the factory path #449 depends on.
 
         A Content placeholder has ``ph_type == OBJECT`` and must not be
@@ -130,7 +74,7 @@ class DescribeIssue449ContentPlaceholderInsertChart:
         assert content_ph.placeholder_format.type == PP_PLACEHOLDER.OBJECT
         assert type(content_ph) is SlidePlaceholder
 
-    def it_inserts_a_chart_into_a_Content_placeholder(self, _restore_part_factory):
+    def it_inserts_a_chart_into_a_Content_placeholder(self):
         """The #449 happy path."""
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[1])
@@ -154,7 +98,7 @@ class DescribeIssue449ContentPlaceholderInsertChart:
         assert result.is_placeholder is True
         assert result.shape_type == MSO_SHAPE_TYPE.CHART
 
-    def it_preserves_the_chart_across_save_and_reload(self, _restore_part_factory):
+    def it_preserves_the_chart_across_save_and_reload(self):
         """A round-trip regression guard for #449."""
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[1])
@@ -186,7 +130,7 @@ class DescribeIssue449ContentPlaceholderInsertChart:
 
     @pytest.mark.parametrize("layout_idx", [1, 3, 4, 7])
     def it_works_on_every_layout_with_a_Content_placeholder(
-        self, layout_idx, _restore_part_factory
+        self, layout_idx
     ):
         """All Content-placeholder-bearing layouts in the default template.
 
