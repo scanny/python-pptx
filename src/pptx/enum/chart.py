@@ -636,3 +636,35 @@ class XL_CROSS_BETWEEN(BaseXmlEnum):
 
     MIDPOINT = (1, "midCat", "Value axis crosses the category axis at the midpoint of each category.")
     """Value axis crosses the category axis at the midpoint of each category."""
+
+
+class XL_DISPLAY_BLANKS_AS(BaseXmlEnum):
+    """Specifies how blank (empty) cells are displayed in a chart.
+
+    Maps the `ST_DispBlanksAs` simple type defined in `dml-chart.xsd`, which takes
+    one of `span`, `gap`, or `zero`. This corresponds to the PowerPoint "Hidden
+    and Empty Cells" dialog ("Show empty cells as") which controls the visual
+    treatment of missing data points — for example whether they are drawn as
+    zero-height bars on a bar chart (``ZERO``), omitted entirely leaving a gap
+    (``GAPS``), or bridged by a connecting line segment on a line chart
+    (``SPAN``).
+
+    Example::
+
+        from pptx.enum.chart import XL_DISPLAY_BLANKS_AS
+
+        chart.display_blanks_as = XL_DISPLAY_BLANKS_AS.GAPS
+
+    MS API Name: `XlDisplayBlanksAs`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xldisplayblanksas
+    """
+
+    GAPS = (1, "gap", "Blank cells are not plotted (leave a gap in the chart).")
+    """Blank cells are not plotted (leave a gap in the chart)."""
+
+    INTERPOLATED = (3, "span", "Blank cells are interpolated (span connects surrounding points).")
+    """Blank cells are interpolated (span connects surrounding points)."""
+
+    ZERO = (2, "zero", "Blank cells are plotted as zero.")
+    """Blank cells are plotted as zero."""

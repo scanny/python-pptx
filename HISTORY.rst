@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #859 Add :attr:`.Chart.display_blanks_as` read/write property
+  exposing PowerPoint's "Hidden and Empty Cells" / "Show empty cells as"
+  setting (``c:dispBlanksAs``) as a member of the new
+  :ref:`XlDisplayBlanksAs` enumeration (``GAPS``, ``ZERO``,
+  ``INTERPOLATED``). The #859 reporter can now suppress zero-valued bars
+  in a stacked bar chart by assigning
+  ``XL_DISPLAY_BLANKS_AS.GAPS`` — blank cells are then drawn as gaps
+  rather than as zero-height bars. Assigning
+  :attr:`~XL_DISPLAY_BLANKS_AS.ZERO` (the XSD default) removes any
+  existing ``c:dispBlanksAs`` element so the XML stays minimal.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and

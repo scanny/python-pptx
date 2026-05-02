@@ -15,7 +15,7 @@ from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xmlwriter import _BaseSeriesXmlRewriter
 from pptx.dml.chtfmt import ChartFormat
-from pptx.enum.chart import XL_CHART_TYPE
+from pptx.enum.chart import XL_CHART_TYPE, XL_DISPLAY_BLANKS_AS
 from pptx.parts.chart import ChartWorkbook
 from pptx.text.text import Font
 
@@ -270,6 +270,63 @@ class DescribeChart(object):
             is None
         )
         assert chart._chartSpace.style is None
+
+    def it_reports_display_blanks_as_ZERO_when_no_dispBlanksAs_element(self):
+        # -- XSD default for ST_DispBlanksAs is "zero" (#859) --
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        assert chart.display_blanks_as == XL_DISPLAY_BLANKS_AS.ZERO
+
+    @pytest.mark.parametrize(
+        ("xml_value", "expected"),
+        [
+            ("gap", XL_DISPLAY_BLANKS_AS.GAPS),
+            ("zero", XL_DISPLAY_BLANKS_AS.ZERO),
+            ("span", XL_DISPLAY_BLANKS_AS.INTERPOLATED),
+        ],
+    )
+    def it_reads_display_blanks_as_from_dispBlanksAs_val(self, xml_value, expected):
+        cxml = "c:chartSpace/c:chart/(c:plotArea,c:dispBlanksAs{val=%s})" % xml_value
+        chart = Chart(element(cxml), None)
+        assert chart.display_blanks_as == expected
+
+    def it_defaults_to_ZERO_when_dispBlanksAs_lacks_val_attribute(self):
+        # -- omitted `val` resolves to XSD default "zero" --
+        chart = Chart(element("c:chartSpace/c:chart/(c:plotArea,c:dispBlanksAs)"), None)
+        assert chart.display_blanks_as == XL_DISPLAY_BLANKS_AS.ZERO
+
+    def it_writes_dispBlanksAs_when_set_to_GAPS(self):
+        # -- #859 — suppress zero values in stacked bar chart via GAPS --
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+
+        chart.display_blanks_as = XL_DISPLAY_BLANKS_AS.GAPS
+
+        expected_xml = xml("c:chartSpace/c:chart/(c:plotArea,c:dispBlanksAs{val=gap})")
+        assert chart._chartSpace.xml == expected_xml
+
+    def it_writes_dispBlanksAs_when_set_to_INTERPOLATED(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+
+        chart.display_blanks_as = XL_DISPLAY_BLANKS_AS.INTERPOLATED
+
+        expected_xml = xml("c:chartSpace/c:chart/(c:plotArea,c:dispBlanksAs{val=span})")
+        assert chart._chartSpace.xml == expected_xml
+
+    def it_removes_dispBlanksAs_when_reset_to_default_ZERO(self):
+        # -- XSD default is "zero"; keep XML minimal by omitting the element --
+        chart = Chart(
+            element("c:chartSpace/c:chart/(c:plotArea,c:dispBlanksAs{val=gap})"),
+            None,
+        )
+
+        chart.display_blanks_as = XL_DISPLAY_BLANKS_AS.ZERO
+
+        assert chart._chartSpace.chart.dispBlanksAs is None
+        assert chart.display_blanks_as == XL_DISPLAY_BLANKS_AS.ZERO
+
+    def it_raises_on_assignment_of_invalid_display_blanks_as(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        with pytest.raises(ValueError):
+            chart.display_blanks_as = "nonsense"  # pyright: ignore[reportAttributeAccessIssue]
 
     def it_can_replace_the_chart_data(self, replace_fixture):
         (

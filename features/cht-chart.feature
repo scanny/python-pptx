@@ -137,3 +137,20 @@ Feature: Chart properties
      Then chart.chart_style is 118
       And chartSpace has an mc:AlternateContent/mc:Choice/c14:style val=118
       And chartSpace has an mc:AlternateContent/mc:Fallback/c:style val=18
+
+
+  Scenario: Chart.display_blanks_as reads the template default (issue #859)
+    Given a chart with no explicit chart style
+     Then chart.display_blanks_as is XL_DISPLAY_BLANKS_AS.GAPS
+
+
+  Scenario Outline: Set Chart.display_blanks_as
+    Given a chart with no explicit chart style
+     When I assign XL_DISPLAY_BLANKS_AS.<member> to chart.display_blanks_as
+     Then chart.display_blanks_as is XL_DISPLAY_BLANKS_AS.<member>
+
+    Examples: display-blanks-as members
+      | member       |
+      | GAPS         |
+      | ZERO         |
+      | INTERPOLATED |

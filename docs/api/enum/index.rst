@@ -42,6 +42,7 @@ can be found here:
    XlChartType
    XlCrossBetween
    XlDataLabelPosition
+   XlDisplayBlanksAs
    XlErrorBarDirection
    XlErrorBarInclude
    XlErrorBarType

@@ -121,6 +121,7 @@ register_element_cls("c:valAx", CT_ValAx)
 from pptx.oxml.chart.chart import (  # noqa: E402
     CT_Chart,
     CT_ChartSpace,
+    CT_DispBlanksAs,
     CT_ExternalData,
     CT_PlotArea,
     CT_Style,
@@ -129,6 +130,7 @@ from pptx.oxml.chart.chart import (  # noqa: E402
 
 register_element_cls("c:chart", CT_Chart)
 register_element_cls("c:chartSpace", CT_ChartSpace)
+register_element_cls("c:dispBlanksAs", CT_DispBlanksAs)
 register_element_cls("c:externalData", CT_ExternalData)
 register_element_cls("c:plotArea", CT_PlotArea)
 register_element_cls("c:style", CT_Style)
