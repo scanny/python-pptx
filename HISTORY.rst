@@ -83,6 +83,14 @@ Unreleased
   ``p:endCondLst``) element classes. A user-facing ``AnimationEffect``
   proxy is deferred to whatever #102 / #1106 land; today's scope is the
   XML-layer primitives on the existing F8 foundation.
+- #811 Start time for ``add_movie``: adds ``Movie.start_time`` (float
+  seconds, or ``None`` for ``"indefinite"``) and ``Movie.start_condition``
+  (``"onClick"`` / ``"withPrevious"`` / ``"afterPrevious"``) read/write
+  accessors. Both are backed by the F8 timing subtree —
+  ``CT_TLCommonTimeNodeData.stCondLst`` now surfaces the
+  ``p:stCondLst/p:cond`` under a movie's ``p:video`` timing node, and
+  ``CT_TLTimeConditionList`` / ``CT_TLTimeCondition`` are new typed
+  element classes for ``p:stCondLst`` / ``p:endCondLst`` / ``p:cond``.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

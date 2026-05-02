@@ -122,6 +122,7 @@ class DescribeCT_TLCommonTimeNodeData(object):
 
     # -- stCondLst / endCondLst descriptors (#861) -------------------
 
+
     def it_exposes_an_optional_stCondLst_child(self):
         cTn = element("p:cTn/p:stCondLst")
         assert cTn.stCondLst is not None
@@ -133,6 +134,12 @@ class DescribeCT_TLCommonTimeNodeData(object):
     def it_exposes_an_optional_endCondLst_child(self):
         cTn = element("p:cTn/p:endCondLst")
         assert cTn.endCondLst is not None
+
+    def it_can_get_or_add_a_stCondLst_child(self):
+        cTn = element("p:cTn")
+        stCondLst = cTn.get_or_add_stCondLst()
+        assert isinstance(stCondLst, CT_TLTimeConditionList)
+        assert cTn.stCondLst is stCondLst
 
     # -- delay read ---------------------------------------------------
 
@@ -218,6 +225,10 @@ class DescribeCT_TLTimeCondition(object):
         cond = element("p:cond{delay=750}")
         assert cond.delay == 750
 
+    def and_evt_is_None_when_absent(self):
+        cond = element("p:cond")
+        assert cond.evt is None
+
     def and_reads_indefinite_delay_as_string(self):
         cond = element("p:cond{delay=indefinite}")
         assert cond.delay == "indefinite"
@@ -239,11 +250,11 @@ class DescribeCT_TLTimeCondition(object):
 class DescribeCT_TLTimeConditionList(object):
     """Unit-test suite for `pptx.oxml.timing.CT_TLTimeConditionList`."""
 
-    def it_is_used_for_p_stCondLst(self):
+    def it_is_used_for_the_p_stCondLst_element(self):
         stCondLst = element("p:stCondLst")
         assert isinstance(stCondLst, CT_TLTimeConditionList)
 
-    def it_is_used_for_p_endCondLst(self):
+    def it_is_used_for_the_p_endCondLst_element(self):
         endCondLst = element("p:endCondLst")
         assert isinstance(endCondLst, CT_TLTimeConditionList)
 

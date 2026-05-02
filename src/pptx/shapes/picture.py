@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.oxml.ns import qn
 from pptx.shapes.base import BaseShape
 from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
@@ -13,7 +14,10 @@ from pptx.util import lazyproperty
 if TYPE_CHECKING:
     from pptx.oxml.shapes.picture import CT_Picture
     from pptx.oxml.shapes.shared import CT_LineProperties
+    from pptx.oxml.timing import CT_TLTimeCondition
     from pptx.types import ProvidesPart
+
+MovieStartCondition = Literal["onClick", "withPrevious", "afterPrevious"]
 
 
 class _BasePicture(BaseShape):
@@ -137,6 +141,143 @@ class Movie(_BasePicture):
         case.
         """
         return MSO_SHAPE_TYPE.MEDIA
+
+    @property
+    def start_condition(self) -> MovieStartCondition:
+        """The trigger that causes this movie to begin playing.
+
+        Read/write. One of ``"onClick"`` (default), ``"withPrevious"``, or
+        ``"afterPrevious"``. The value is stored on the first
+        ``p:stCondLst/p:cond`` of the ``p:video`` time-node in the slide's
+        ``p:timing`` tree — the node added by :meth:`SlideShapes.add_movie`.
+
+        Returns ``"onClick"`` when no timing node is found (e.g. the movie
+        was loaded from a malformed slide) or when the condition encodes
+        PowerPoint's default click-triggered playback (``delay="indefinite"``
+        with no ``evt``).
+        """
+        cond = self._video_cond
+        if cond is None:
+            return "onClick"
+        evt = cond.evt
+        delay = cond.delay
+        if evt == "onClick" or (evt is None and delay == "indefinite"):
+            return "onClick"
+        if evt == "onEnd":
+            return "afterPrevious"
+        # -- evt is None and delay is numeric (or absent) -> with previous --
+        return "withPrevious"
+
+    @start_condition.setter
+    def start_condition(self, value: MovieStartCondition):
+        if value not in ("onClick", "withPrevious", "afterPrevious"):
+            raise ValueError(
+                "start_condition must be 'onClick', 'withPrevious', or 'afterPrevious', "
+                "got %r" % (value,)
+            )
+        cond = self._get_or_add_video_cond()
+        if cond is None:
+            raise ValueError(
+                "cannot set start_condition: this movie has no associated p:video "
+                "timing node; was it created with SlideShapes.add_movie?"
+            )
+        # -- preserve existing numeric delay; replace "indefinite" with None so
+        #    the setter logic below re-computes a sensible default --
+        existing_delay = cond.delay if isinstance(cond.delay, int) else None
+        if value == "onClick":
+            cond.evt = None
+            cond.delay = "indefinite" if existing_delay in (None, 0) else existing_delay
+        elif value == "withPrevious":
+            cond.evt = None
+            cond.delay = existing_delay if existing_delay is not None else 0
+        else:  # afterPrevious
+            cond.evt = "onEnd"
+            cond.delay = existing_delay if existing_delay is not None else 0
+
+    @property
+    def start_time(self) -> float | None:
+        """Delay in seconds between the start trigger and the video beginning to play.
+
+        Read/write. Returns |None| when the delay is ``"indefinite"`` (the
+        default, meaning "wait for user click") or when no timing node is
+        present; otherwise a ``float`` number of seconds (``p:cond/@delay``
+        divided by 1000).
+
+        Assigning a ``float`` or ``int`` writes the value to ``p:cond/@delay``
+        in milliseconds. Assigning |None| writes ``"indefinite"`` — which
+        PowerPoint interprets as "pause here until clicked". Note that the
+        PowerPoint UI typically pairs a non-``None`` ``start_time`` with a
+        non-``"onClick"`` ``start_condition``; the two properties are
+        orthogonal in the XML but the combination ``start_condition="onClick"``
+        + numeric ``start_time`` is unusual.
+        """
+        cond = self._video_cond
+        if cond is None:
+            return None
+        delay = cond.delay
+        if delay is None or delay == "indefinite":
+            return None
+        return delay / 1000.0
+
+    @start_time.setter
+    def start_time(self, value: float | int | None):
+        cond = self._get_or_add_video_cond()
+        if cond is None:
+            raise ValueError(
+                "cannot set start_time: this movie has no associated p:video "
+                "timing node; was it created with SlideShapes.add_movie?"
+            )
+        if value is None:
+            cond.delay = "indefinite"
+            return
+        if not isinstance(value, (int, float)) or value < 0:
+            raise ValueError(
+                "start_time must be a non-negative number of seconds or None, got %r"
+                % (value,)
+            )
+        cond.delay = int(round(value * 1000))
+
+    @property
+    def _video_cond(self) -> CT_TLTimeCondition | None:
+        """The first `p:cond` under this movie's `p:video/p:cMediaNode/p:cTn/p:stCondLst`.
+
+        Returns |None| when the movie has no timing node (pre-existing file
+        without a ``p:video`` entry, or a movie not added via
+        :meth:`SlideShapes.add_movie`).
+        """
+        # -- locate by spTgt/@spid match; the p:video element contains a
+        #    p:tgtEl/p:spTgt whose @spid equals this movie's shape_id --
+        shape_id = self.shape_id
+        conds = self._pic.xpath(
+            "/p:sld/p:timing//p:video"
+            "[p:cMediaNode/p:tgtEl/p:spTgt/@spid='%d']"
+            "/p:cMediaNode/p:cTn/p:stCondLst/p:cond" % shape_id
+        )
+        return conds[0] if conds else None
+
+    def _get_or_add_video_cond(self) -> CT_TLTimeCondition | None:
+        """Get or add the first `p:cond` child of this movie's stCondLst.
+
+        Returns |None| if no ``p:video`` node exists for this movie — i.e.
+        the stCondLst's parent ``p:cTn`` is missing. We don't synthesize a
+        whole ``p:video`` subtree on demand because allocating a fresh
+        ``p:cTn`` id requires slide-level context that isn't cleanly
+        available from a bare ``Movie`` proxy.
+        """
+        shape_id = self.shape_id
+        cTns = self._pic.xpath(
+            "/p:sld/p:timing//p:video"
+            "[p:cMediaNode/p:tgtEl/p:spTgt/@spid='%d']"
+            "/p:cMediaNode/p:cTn" % shape_id
+        )
+        if not cTns:
+            return None
+        cTn = cTns[0]
+        stCondLst = cTn.get_or_add_stCondLst()
+        conds = stCondLst.findall(qn("p:cond"))
+        if conds:
+            return conds[0]
+        return stCondLst.add_cond()
 
 
 class Picture(_BasePicture):
