@@ -22,6 +22,7 @@ can be found here:
    MsoVerticalAnchor
 
    PpActionType
+   PpAutoNumberScheme
    PpMediaType
    PpParagraphAlignment
    PpPlaceholderType

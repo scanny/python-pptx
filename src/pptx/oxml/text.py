@@ -10,6 +10,7 @@ from pptx.enum.text import (
     MSO_AUTO_SIZE,
     MSO_TEXT_UNDERLINE_TYPE,
     MSO_VERTICAL_ANCHOR,
+    PP_AUTO_NUMBER_SCHEME,
     PP_PARAGRAPH_ALIGNMENT,
 )
 from pptx.exc import InvalidXmlError
@@ -18,6 +19,7 @@ from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
     ST_Coordinate32,
+    ST_TextBulletStartAtNum,
     ST_TextFontScalePercentOrPercentString,
     ST_TextFontSize,
     ST_TextIndentLevelType,
@@ -26,6 +28,7 @@ from pptx.oxml.simpletypes import (
     ST_TextTypeface,
     ST_TextWrappingType,
     XsdBoolean,
+    XsdString,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -469,6 +472,14 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     _remove_lnSpc: Callable[[], None]
     _remove_spcAft: Callable[[], None]
     _remove_spcBef: Callable[[], None]
+    _remove_eg_textBullet: Callable[[], None]
+    _add_buNone: Callable[[], "CT_TextNoBullet"]
+    _add_buChar: Callable[[], "CT_TextCharBullet"]
+    _add_buAutoNum: Callable[[], "CT_TextAutonumberBullet"]
+
+    buNone: "CT_TextNoBullet | None"
+    buChar: "CT_TextCharBullet | None"
+    buAutoNum: "CT_TextAutonumberBullet | None"
 
     _tag_seq = (
         "a:lnSpc",
@@ -498,6 +509,10 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     spcAft: CT_TextSpacing | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "a:spcAft", successors=_tag_seq[3:]
     )
+    eg_textBullet = ZeroOrOneChoice(
+        (Choice("a:buNone"), Choice("a:buAutoNum"), Choice("a:buChar")),
+        successors=_tag_seq[13:],
+    )
     defRPr: CT_TextCharacterProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "a:defRPr", successors=_tag_seq[16:]
     )
@@ -508,6 +523,85 @@ class CT_TextParagraphProperties(BaseOxmlElement):
         "algn", PP_PARAGRAPH_ALIGNMENT
     )  # pyright: ignore[reportAssignmentType]
     del _tag_seq
+
+    @property
+    def bullet_type(self) -> str | None:
+        """One of ``"char"``, ``"autonum"``, ``"none"`` or |None|.
+
+        |None| indicates no explicit bullet setting is present on this paragraph; the
+        effective bullet is inherited from the style hierarchy.
+        """
+        if self.buChar is not None:
+            return "char"
+        if self.buAutoNum is not None:
+            return "autonum"
+        if self.buNone is not None:
+            return "none"
+        return None
+
+    @property
+    def bullet_char(self) -> str | None:
+        """The single bullet character, or |None| when no `a:buChar` child is present."""
+        buChar = self.buChar
+        return None if buChar is None else buChar.char
+
+    @property
+    def bullet_number_scheme(self) -> PP_AUTO_NUMBER_SCHEME | None:
+        """Numbering scheme, or |None| when no `a:buAutoNum` child is present."""
+        buAutoNum = self.buAutoNum
+        return None if buAutoNum is None else buAutoNum.type
+
+    @property
+    def bullet_number_start_at(self) -> int | None:
+        """Start-at value for autonum bullet, or |None| when no `a:buAutoNum` child is present.
+
+        When `a:buAutoNum` is present but `@startAt` is not, the default value of 1
+        (per ECMA-376) is returned.
+        """
+        buAutoNum = self.buAutoNum
+        if buAutoNum is None:
+            return None
+        return buAutoNum.startAt
+
+    def clear_bullet(self) -> None:
+        """Remove any `a:buNone`, `a:buAutoNum`, or `a:buChar` child.
+
+        This causes the paragraph to inherit its bullet from the style hierarchy.
+        """
+        self._remove_eg_textBullet()
+
+    def set_no_bullet(self) -> None:
+        """Add an `a:buNone` child, replacing any existing bullet choice element.
+
+        This explicitly suppresses any inherited bullet for this paragraph.
+        """
+        self._remove_eg_textBullet()
+        self._add_buNone()
+
+    def set_char_bullet(self, char: str) -> "CT_TextCharBullet":
+        """Add an `a:buChar` child with `@char` set to `char`, replacing any existing bullet.
+
+        Returns the newly added `a:buChar` element.
+        """
+        self._remove_eg_textBullet()
+        buChar = self._add_buChar()
+        buChar.char = char
+        return buChar
+
+    def set_auto_number_bullet(
+        self, scheme: PP_AUTO_NUMBER_SCHEME, start_at: int | None = None
+    ) -> "CT_TextAutonumberBullet":
+        """Add an `a:buAutoNum` child, replacing any existing bullet choice element.
+
+        `scheme` is a member of :class:`PP_AUTO_NUMBER_SCHEME`. If `start_at` is not
+        |None|, the corresponding `@startAt` attribute is written.
+        """
+        self._remove_eg_textBullet()
+        buAutoNum = self._add_buAutoNum()
+        buAutoNum.type = scheme
+        if start_at is not None:
+            buAutoNum.startAt = start_at
+        return buAutoNum
 
     @property
     def line_spacing(self) -> float | Length | None:
@@ -615,4 +709,38 @@ class CT_TextSpacingPoint(BaseOxmlElement):
 
     val: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
         "val", ST_TextSpacingPoint
+    )
+
+
+class CT_TextNoBullet(BaseOxmlElement):
+    """`a:buNone` element.
+
+    Explicitly suppresses any inherited bullet on its parent paragraph-properties element.
+    """
+
+
+class CT_TextCharBullet(BaseOxmlElement):
+    """`a:buChar` element.
+
+    Specifies a single character used as the paragraph's bullet glyph, in its
+    ``@char`` attribute.
+    """
+
+    char: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "char", XsdString
+    )
+
+
+class CT_TextAutonumberBullet(BaseOxmlElement):
+    """`a:buAutoNum` element.
+
+    Specifies an automatic-numbering scheme used as the paragraph's bullet, in its
+    ``@type`` attribute, along with an optional ``@startAt`` starting ordinal.
+    """
+
+    type: PP_AUTO_NUMBER_SCHEME = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "type", PP_AUTO_NUMBER_SCHEME
+    )
+    startAt: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "startAt", ST_TextBulletStartAtNum, default=1
     )

@@ -6,7 +6,7 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, PP_AUTO_NUMBER
 from pptx.util import Emu
 
 # given ===================================================
@@ -246,3 +246,72 @@ def then_run_text_is_not_a_hyperlink(context):
 @then("the font name matches the typeface I set")
 def then_font_name_matches_typeface_I_set(context):
     assert context.font.name == "Verdana"
+
+
+# bullet steps ============================================
+
+
+@when('I call paragraph.bullet.character("{char}")')
+def when_I_call_paragraph_bullet_character(context, char):
+    context.paragraph.bullet.character(char)
+
+
+@when("I call paragraph.bullet.auto_number(PP_AUTO_NUMBER.{spec})")
+def when_I_call_paragraph_bullet_auto_number(context, spec):
+    # -- `spec` is either "MEMBER_NAME" or "MEMBER_NAME, <int>" --
+    if "," in spec:
+        member, start_at_str = (s.strip() for s in spec.split(","))
+        start_at = int(start_at_str)
+    else:
+        member, start_at = spec.strip(), None
+    scheme = getattr(PP_AUTO_NUMBER, member)
+    context.paragraph.bullet.auto_number(scheme, start_at)
+
+
+@when("I call paragraph.bullet.none()")
+def when_I_call_paragraph_bullet_none(context):
+    context.paragraph.bullet.none()
+
+
+@when("I call paragraph.bullet.clear()")
+def when_I_call_paragraph_bullet_clear(context):
+    context.paragraph.bullet.clear()
+
+
+@then("paragraph.bullet.type is None")
+def then_paragraph_bullet_type_is_None(context):
+    assert context.paragraph.bullet.type is None, (
+        "paragraph.bullet.type == %r" % context.paragraph.bullet.type
+    )
+
+
+@then('paragraph.bullet.type == "{expected}"')
+def then_paragraph_bullet_type_eq(context, expected):
+    actual = context.paragraph.bullet.type
+    assert actual == expected, "paragraph.bullet.type == %r" % actual
+
+
+@then('paragraph.bullet.char == "{expected}"')
+def then_paragraph_bullet_char_eq(context, expected):
+    actual = context.paragraph.bullet.char
+    assert actual == expected, "paragraph.bullet.char == %r" % actual
+
+
+@then("paragraph.bullet.char is None")
+def then_paragraph_bullet_char_is_None(context):
+    assert context.paragraph.bullet.char is None, (
+        "paragraph.bullet.char == %r" % context.paragraph.bullet.char
+    )
+
+
+@then("paragraph.bullet.number_scheme == PP_AUTO_NUMBER.{member}")
+def then_paragraph_bullet_number_scheme_eq(context, member):
+    expected = getattr(PP_AUTO_NUMBER, member)
+    actual = context.paragraph.bullet.number_scheme
+    assert actual == expected, "paragraph.bullet.number_scheme == %r" % actual
+
+
+@then("paragraph.bullet.start_at == {expected:d}")
+def then_paragraph_bullet_start_at_eq(context, expected):
+    actual = context.paragraph.bullet.start_at
+    assert actual == expected, "paragraph.bullet.start_at == %r" % actual

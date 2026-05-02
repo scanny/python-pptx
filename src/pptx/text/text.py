@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Iterator, cast
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR
+from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR, PP_AUTO_NUMBER_SCHEME
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
@@ -464,6 +464,104 @@ class _Hyperlink(Subshape):
         self._rPr._remove_hlinkClick()  # pyright: ignore[reportPrivateUsage]
 
 
+class _BulletFormat(object):
+    """Proxy object providing read/write access to the bullet of a paragraph.
+
+    Corresponds to the bullet-related choice group of children of an ``a:pPr`` element.
+    Not intended to be constructed directly; obtained via :attr:`._Paragraph.bullet`.
+    """
+
+    def __init__(self, pPr: CT_TextParagraphProperties):
+        super(_BulletFormat, self).__init__()
+        self._pPr = pPr
+
+    @property
+    def type(self) -> str | None:
+        """One of ``"char"``, ``"autonum"``, ``"none"`` or |None|.
+
+        * ``"char"`` — a literal character bullet (``<a:buChar>``)
+        * ``"autonum"`` — an auto-numbered bullet (``<a:buAutoNum>``)
+        * ``"none"`` — an explicit "no bullet" setting (``<a:buNone>``)
+        * |None| — no explicit setting; effective bullet is inherited from the
+          paragraph's style hierarchy (layout/master/theme).
+        """
+        return self._pPr.bullet_type
+
+    @property
+    def char(self) -> str | None:
+        """The bullet character string, or |None| if the bullet is not a character bullet.
+
+        Returns the value of ``a:buChar/@char`` when present; |None| otherwise.
+        """
+        return self._pPr.bullet_char
+
+    @property
+    def number_scheme(self) -> PP_AUTO_NUMBER_SCHEME | None:
+        """The auto-number scheme, or |None| if the bullet is not an autonum bullet.
+
+        Returns a member of :class:`PP_AUTO_NUMBER_SCHEME` when an ``a:buAutoNum`` child
+        is present; |None| otherwise.
+        """
+        return self._pPr.bullet_number_scheme
+
+    @property
+    def start_at(self) -> int | None:
+        """The ``startAt`` attribute for an autonum bullet, or |None|.
+
+        Returns an integer (defaulting to 1) when an ``a:buAutoNum`` child is present;
+        |None| otherwise.
+        """
+        return self._pPr.bullet_number_start_at
+
+    def character(self, char: str) -> _BulletFormat:
+        """Configure this paragraph to use `char` as its bullet character.
+
+        `char` must be a single-character string. Any existing bullet setting is replaced.
+        Returns self to support chaining.
+        """
+        if not isinstance(char, str) or len(char) != 1:  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(
+                f"`char` must be a single-character string, got {char!r}"
+            )
+        self._pPr.set_char_bullet(char)
+        return self
+
+    def auto_number(
+        self,
+        scheme: PP_AUTO_NUMBER_SCHEME,
+        start_at: int | None = None,
+    ) -> _BulletFormat:
+        """Configure this paragraph to use `scheme` as its auto-number bullet.
+
+        `scheme` must be a member of :class:`PP_AUTO_NUMBER_SCHEME` (raises |ValueError|
+        otherwise). `start_at`, when specified, sets the starting ordinal (must be in
+        range 1..32767). Any existing bullet setting is replaced. Returns self to support
+        chaining.
+        """
+        # -- normalise to an enum member; raises ValueError for non-members --
+        scheme_member = PP_AUTO_NUMBER_SCHEME(scheme)
+        self._pPr.set_auto_number_bullet(scheme_member, start_at)
+        return self
+
+    def none(self) -> _BulletFormat:
+        """Explicitly suppress any inherited bullet on this paragraph.
+
+        Writes an ``<a:buNone/>`` element, replacing any existing bullet setting.
+        Returns self to support chaining.
+        """
+        self._pPr.set_no_bullet()
+        return self
+
+    def clear(self) -> _BulletFormat:
+        """Remove any explicit bullet setting, causing the paragraph to inherit.
+
+        After calling this method, :attr:`.type` returns |None| and the paragraph's
+        effective bullet is determined by its style hierarchy.
+        """
+        self._pPr.clear_bullet()
+        return self
+
+
 class _Paragraph(Subshape):
     """Paragraph object. Not intended to be constructed directly."""
 
@@ -493,6 +591,18 @@ class _Paragraph(Subshape):
     @alignment.setter
     def alignment(self, value: PP_PARAGRAPH_ALIGNMENT | None):
         self._pPr.algn = value
+
+    @lazyproperty
+    def bullet(self) -> _BulletFormat:
+        """|_BulletFormat| proxy for the bullet properties of this paragraph.
+
+        Provides read/write access to the paragraph-level bullet: one can configure the
+        paragraph to use a character bullet (:meth:`._BulletFormat.character`), an
+        auto-numbered bullet (:meth:`._BulletFormat.auto_number`), no bullet
+        (:meth:`._BulletFormat.none`), or remove any explicit bullet setting so the
+        value is inherited (:meth:`._BulletFormat.clear`).
+        """
+        return _BulletFormat(self._pPr)
 
     def clear(self):
         """Remove all content from this paragraph.

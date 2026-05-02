@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #100 paragraph bullet API
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
