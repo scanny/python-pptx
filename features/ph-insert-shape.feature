@@ -17,6 +17,20 @@ Feature: Insert a shape into a placeholder
       | python-powered.png | left and right | 0.23333 |
 
 
+  Scenario Outline: Fit an image to a picture placeholder without cropping
+     Given an unpopulated picture placeholder shape
+      When I call placeholder.insert_picture('<filename>', crop=False)
+      Then the return value is a PlaceholderPicture object
+       And the placeholder contains the image
+       And the placeholder picture is not cropped
+       And the placeholder picture fits within the placeholder bounds
+
+    Examples: Images fitted into a picture placeholder
+      | filename           |
+      | monty-truth.png    |
+      | python-powered.png |
+
+
   Scenario: Insert a table into a table placeholder
      Given an unpopulated table placeholder shape
       When I call placeholder.insert_table(rows=2, cols=3)

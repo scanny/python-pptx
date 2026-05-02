@@ -311,31 +311,73 @@ class ChartPlaceholder(_BaseSlidePlaceholder):
 class PicturePlaceholder(_BaseSlidePlaceholder):
     """Placeholder shape that can only accept a picture."""
 
-    def insert_picture(self, image_file):
+    def insert_picture(self, image_file, crop=True):
         """Return a |PlaceholderPicture| object depicting the image in `image_file`.
 
-        `image_file` may be either a path (string) or a file-like object. The image is
-        cropped to fill the entire space of the placeholder. A |PlaceholderPicture|
-        object has all the properties and methods of a |Picture| shape except that the
-        value of its :attr:`~._BaseSlidePlaceholder.shape_type` property is
+        `image_file` may be either a path (string) or a file-like object.
+
+        When `crop` is |True| (the default) the image is stretched proportionately and
+        cropped to fill the entire space of the placeholder. This matches PowerPoint's
+        "Fill" picture layout and preserves the prior behavior of this method.
+
+        When `crop` is |False| the image is scaled to fit entirely inside the
+        placeholder, preserving its aspect ratio without any cropping, and centered
+        horizontally and vertically within the placeholder bounds. This matches
+        PowerPoint's "Fit" picture layout and is useful when the image content must
+        remain fully visible (e.g. a logo, chart, or screenshot).
+
+        A |PlaceholderPicture| object has all the properties and methods of a |Picture|
+        shape except that the value of its
+        :attr:`~._BaseSlidePlaceholder.shape_type` property is
         `MSO_SHAPE_TYPE.PLACEHOLDER` instead of `MSO_SHAPE_TYPE.PICTURE`.
         """
-        pic = self._new_placeholder_pic(image_file)
+        pic = self._new_placeholder_pic(image_file, crop=crop)
         self._replace_placeholder_with(pic)
         return PlaceholderPicture(pic, self._parent)
 
-    def _new_placeholder_pic(self, image_file):
+    def _new_placeholder_pic(self, image_file, crop=True):
         """
         Return a new `p:pic` element depicting the image in *image_file*,
-        suitable for use as a placeholder. In particular this means not
-        having an `a:xfrm` element, allowing its extents to be inherited from
-        its layout placeholder.
+        suitable for use as a placeholder. When *crop* is |True| the image is
+        cropped to fill the placeholder and no `a:xfrm` element is emitted,
+        allowing the picture's extents to be inherited from its layout
+        placeholder. When *crop* is |False| an explicit `a:xfrm` is added with
+        extents computed to fit the image inside the placeholder bounds
+        preserving its aspect ratio, and with offsets that center the image
+        within those bounds.
         """
         rId, desc, image_size = self._get_or_add_image(image_file)
         shape_id, name = self.shape_id, self.name
         pic = CT_Picture.new_ph_pic(shape_id, name, desc, rId)
-        pic.crop_to_fit(image_size, (self.width, self.height))
+        if crop:
+            pic.crop_to_fit(image_size, (self.width, self.height))
+        else:
+            self._fit_pic_to_placeholder(pic, image_size)
         return pic
+
+    def _fit_pic_to_placeholder(self, pic, image_size):
+        """
+        Add an `a:xfrm` child to *pic* sized to fit *image_size* inside this
+        placeholder's bounds preserving aspect ratio, and centered horizontally
+        and vertically within those bounds. No cropping is applied.
+        """
+        ph_x, ph_y = self.left, self.top
+        ph_cx, ph_cy = self.width, self.height
+        image_width, image_height = image_size
+        # ---preserve aspect ratio, scale to fit inside the placeholder---
+        if image_width * ph_cy > image_height * ph_cx:
+            # ---image wider than placeholder aspect; width binds---
+            fit_cx = ph_cx
+            fit_cy = int(image_height * ph_cx / image_width)
+        else:
+            # ---image taller than (or equal to) placeholder aspect; height binds---
+            fit_cy = ph_cy
+            fit_cx = int(image_width * ph_cy / image_height)
+        # ---center within placeholder---
+        off_x = ph_x + (ph_cx - fit_cx) // 2
+        off_y = ph_y + (ph_cy - fit_cy) // 2
+        xfrm = pic.spPr.get_or_add_xfrm()
+        xfrm.x, xfrm.y, xfrm.cx, xfrm.cy = off_x, off_y, fit_cx, fit_cy
 
     def _get_or_add_image(self, image_file):
         """

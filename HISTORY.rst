@@ -3,6 +3,14 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- Add #176 Fitting images to placeholder — `PicturePlaceholder.insert_picture()`
+  now accepts a `crop=False` keyword argument that scales the image to fit
+  inside the placeholder bounds preserving aspect ratio, with no cropping.
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

@@ -457,10 +457,23 @@ class DescribePicturePlaceholder(object):
 
         placeholder_picture = picture_ph.insert_picture("foobar.png")
 
-        _new_placeholder_pic_.assert_called_once_with(picture_ph, "foobar.png")
+        _new_placeholder_pic_.assert_called_once_with(picture_ph, "foobar.png", crop=True)
         _replace_placeholder_with_.assert_called_once_with(picture_ph, pic)
         PlaceholderPicture_.assert_called_once_with(pic, picture_ph._parent)
         assert placeholder_picture is placeholder_picture_
+
+    def it_passes_crop_false_through_to_the_pic_factory(self, request):
+        pic = element("p:pic")
+        _new_placeholder_pic_ = method_mock(
+            request, PicturePlaceholder, "_new_placeholder_pic", return_value=pic
+        )
+        method_mock(request, PicturePlaceholder, "_replace_placeholder_with")
+        class_mock(request, "pptx.shapes.placeholder.PlaceholderPicture")
+        picture_ph = PicturePlaceholder(None, "parent")
+
+        picture_ph.insert_picture("foobar.png", crop=False)
+
+        _new_placeholder_pic_.assert_called_once_with(picture_ph, "foobar.png", crop=False)
 
     @pytest.mark.parametrize(
         "image_size, crop_attr_names",
@@ -486,6 +499,42 @@ class DescribePicturePlaceholder(object):
             ":picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{"
             "r:embed=42},a:srcRect{%s=12500,%s=12500},a:stretch/a:fillRect),"
             "p:spPr)" % crop_attr_names
+        )
+
+    @pytest.mark.parametrize(
+        "image_size, expected_xfrm",
+        (
+            # ---444x333 image in 99x99 ph: width binds, centered vertically---
+            ((444, 333), "a:xfrm/(a:off{x=1,y=14},a:ext{cx=99,cy=74})"),
+            # ---333x444 image in 99x99 ph: height binds, centered horizontally---
+            ((333, 444), "a:xfrm/(a:off{x=13,y=2},a:ext{cx=74,cy=99})"),
+            # ---100x100 image in 99x99 ph: same aspect, no centering offset---
+            ((100, 100), "a:xfrm/(a:off{x=1,y=2},a:ext{cx=99,cy=99})"),
+        ),
+    )
+    def it_can_fit_a_picture_to_the_placeholder_without_cropping(
+        self, request, image_size, expected_xfrm
+    ):
+        method_mock(
+            request,
+            PicturePlaceholder,
+            "_get_or_add_image",
+            return_value=(42, "bar", image_size),
+        )
+        picture_ph = PicturePlaceholder(
+            element(
+                "p:sp/(p:nvSpPr/p:cNvPr{id=2,name=foo},"
+                "p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=99,cy=99}))"
+            ),
+            None,
+        )
+
+        pic = picture_ph._new_placeholder_pic("foobar.png", crop=False)
+
+        assert pic.xml == xml(
+            "p:pic/(p:nvPicPr/(p:cNvPr{id=2,name=foo,descr=bar},p:cNvPicPr/a"
+            ":picLocks{noGrp=1,noChangeAspect=1},p:nvPr),p:blipFill/(a:blip{"
+            "r:embed=42},a:stretch/a:fillRect),p:spPr/%s)" % expected_xfrm
         )
 
     def it_adds_an_image_to_help(self, get_or_add_fixture):

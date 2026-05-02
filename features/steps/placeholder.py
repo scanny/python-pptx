@@ -143,6 +143,21 @@ def when_I_call_placeholder_insert_picture(context, filename):
     context.placeholder = placeholder.insert_picture(path)
 
 
+@when("I call placeholder.insert_picture('{filename}', crop=False)")
+def when_I_call_placeholder_insert_picture_fit(context, filename):
+    placeholder = context.shape
+    context.placeholder_bounds = (
+        placeholder.left,
+        placeholder.top,
+        placeholder.width,
+        placeholder.height,
+    )
+    path = test_file(filename)
+    with open(path, "rb") as f:
+        context.image_sha1 = hashlib.sha1(f.read()).hexdigest()
+    context.placeholder = placeholder.insert_picture(path, crop=False)
+
+
 @when("I call placeholder.insert_table(rows=2, cols=3)")
 def when_I_call_placeholder_insert_table(context):
     placeholder = context.shape
@@ -281,6 +296,35 @@ def then_the_placeholders_position_and_size_are_inherited(context):
     for prop_name, expected_value in expected_values:
         value = getattr(placeholder, prop_name)
         assert value == expected_value, "got %s" % value
+
+
+@then("the placeholder picture is not cropped")
+def then_the_placeholder_picture_is_not_cropped(context):
+    placeholder_picture = context.placeholder
+    for side in ("crop_left", "crop_top", "crop_right", "crop_bottom"):
+        value = getattr(placeholder_picture, side)
+        assert value == 0.0, "got %s for %s" % (value, side)
+
+
+@then("the placeholder picture fits within the placeholder bounds")
+def then_the_placeholder_picture_fits_within_the_placeholder_bounds(context):
+    ph_left, ph_top, ph_width, ph_height = context.placeholder_bounds
+    pic = context.placeholder
+    pic_left, pic_top, pic_width, pic_height = pic.left, pic.top, pic.width, pic.height
+    # ---picture is fully inside the placeholder bounds---
+    assert pic_left >= ph_left, "pic_left %s < ph_left %s" % (pic_left, ph_left)
+    assert pic_top >= ph_top, "pic_top %s < ph_top %s" % (pic_top, ph_top)
+    assert pic_left + pic_width <= ph_left + ph_width, (
+        "picture right edge exceeds placeholder right edge"
+    )
+    assert pic_top + pic_height <= ph_top + ph_height, (
+        "picture bottom edge exceeds placeholder bottom edge"
+    )
+    # ---picture is centered horizontally and vertically within placeholder---
+    h_margin = (ph_width - pic_width) / 2
+    v_margin = (ph_height - pic_height) / 2
+    assert abs((pic_left - ph_left) - h_margin) <= 1, "picture not horizontally centered"
+    assert abs((pic_top - ph_top) - v_margin) <= 1, "picture not vertically centered"
 
 
 @then("the {sides} crop is {value}")
