@@ -54,6 +54,12 @@ def when_I_call_slides_add_slide(context):
 @when("I call slides.add_slide() with that layout")
 def when_I_call_slides_add_slide_with_that_layout(context):
     context.slide = context.prs.slides.add_slide(context.slide_layout)
+@when("I call slides.move_slide(slides[0], 2)")
+def when_I_call_slides_move_slide(context):
+    slides = context.slides
+    context.original_slide = slides[0]
+    context.original_slide_id = slides[0].slide_id
+    slides.move_slide(slides[0], 2)
 
 
 @when("I call slide_layouts.remove(slide_layouts[1])")
@@ -233,3 +239,20 @@ def then_notes_slide_partnames_are_numbered(context, n):
 def then_new_slide_has_agenda_title_placeholder(context):
     names = [ph.name for ph in context.slide.placeholders]
     assert "Agenda Title" in names, "got %r" % names
+
+@then("the slide previously at index 0 is now at index 2")
+def then_moved_slide_is_at_index_2(context):
+    slides = context.slides
+    assert slides[2] is context.original_slide, (
+        "expected moved slide at index 2, got %r" % slides[2]
+    )
+
+
+@then("its slide_id is unchanged")
+def then_moved_slide_id_is_unchanged(context):
+    assert (
+        context.original_slide.slide_id == context.original_slide_id
+    ), "slide_id changed from %d to %d" % (
+        context.original_slide_id,
+        context.original_slide.slide_id,
+    )
