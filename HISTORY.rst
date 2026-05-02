@@ -37,6 +37,7 @@ Unreleased
   part graph on every addition, changing ``Package.next_partname()`` from
   amortized O(N) to O(1) and overall presentation build-up from O(N**2) to O(N).
 - feat: #832 add ``_RowCollection.add()`` to append a row to a table
+- #769 lookup placeholder by idx
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

@@ -1002,6 +1002,39 @@ class DescribeSlidePlaceholders(object):
         SlideShapeFactory_.assert_called_once_with(shape_elm, placeholders)
         assert placeholder is placeholder_
 
+    def it_raises_KeyError_on_getitem_for_unknown_idx(self, SlideShapeFactory_):
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},"
+            "p:sp/p:nvSpPr/p:nvPr/p:ph{type=body,idx=1})"
+        )
+        placeholders = SlidePlaceholders(spTree, None)
+
+        with pytest.raises(KeyError, match="no placeholder on this slide with idx == 42"):
+            placeholders[42]
+
+    def it_can_get_a_placeholder_by_idx_using_get(self, SlideShapeFactory_, placeholder_):
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:nvPr/p:ph{type=title},"
+            "p:sp/p:nvSpPr/p:nvPr/p:ph{type=body,idx=1})"
+        )
+        placeholders = SlidePlaceholders(spTree, None)
+        SlideShapeFactory_.return_value = placeholder_
+
+        placeholder = placeholders.get(1)
+
+        SlideShapeFactory_.assert_called_once_with(spTree[1], placeholders)
+        assert placeholder is placeholder_
+
+    def it_returns_default_from_get_when_idx_is_unknown(self, SlideShapeFactory_, placeholder_):
+        spTree = element("p:spTree/p:sp/p:nvSpPr/p:nvPr/p:ph{type=title}")
+        placeholders = SlidePlaceholders(spTree, None)
+
+        assert placeholders.get(99) is None
+        assert placeholders.get(99, placeholder_) is placeholder_
+        SlideShapeFactory_.assert_not_called()
+
     def it_can_iterate_over_its_placeholders(self, iter_fixture):
         placeholders, SlideShapeFactory_ = iter_fixture[:2]
         expected_calls, expected_values = iter_fixture[2:]

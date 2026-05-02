@@ -97,8 +97,7 @@ This class is not intended to be constructed directly.
 |SlidePlaceholders| objects
 ---------------------------
 
-.. autoclass:: pptx.shapes.shapetree.SlidePlaceholders
-   :members:
+See :ref:`placeholder_api` for the placeholder collection on a slide.
 
 
 |NotesSlide| objects
