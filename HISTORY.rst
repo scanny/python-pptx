@@ -6,6 +6,7 @@ Release History
 Unreleased
 ++++++++++
 
+- #151 xmlchemy - ZeroOrMoreChoice
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal

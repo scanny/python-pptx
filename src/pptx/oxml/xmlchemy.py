@@ -123,6 +123,7 @@ class MetaOxmlElement(type):
             OptionalAttribute,
             RequiredAttribute,
             ZeroOrMore,
+            ZeroOrMoreChoice,
             ZeroOrOne,
             ZeroOrOneChoice,
         )
@@ -433,6 +434,27 @@ class Choice(_BaseChildElement):
         self._add_adder()
         self._add_get_or_change_to_method()
 
+    def populate_class_members_repeating(
+        self,
+        element_cls: Type[BaseOxmlElement],
+        group_prop_name: str,
+        successors: Sequence[str],
+    ):
+        """Add the appropriate methods to `element_cls` for a repeating-choice membership.
+
+        Differs from :meth:`populate_class_members` in that no per-member getter (which would
+        ambiguously return only the first occurrence) and no ``get_or_change_to_x()`` method
+        (which assumes mutually-exclusive membership) are generated. The creator, inserter, and
+        adder methods are added so that each choice member remains individually constructible.
+        """
+        self._element_cls = element_cls
+        self._group_prop_name = group_prop_name
+        self._successors = successors
+
+        self._add_creator()
+        self._add_inserter()
+        self._add_adder()
+
     def _add_get_or_change_to_method(self) -> None:
         """Add a `get_or_change_to_x()` method to the element class for this child element."""
 
@@ -657,6 +679,87 @@ class ZeroOrOneChoice(_BaseChildElement):
     @lazyproperty
     def _remove_choice_group_method_name(self):
         """Function-name for choice remover."""
+        return f"_remove_{self._prop_name}"
+
+
+class ZeroOrMoreChoice(_BaseChildElement):
+    """An `EG_*` element group where any number of its members may appear as children.
+
+    Members may appear zero or more times, in any order. This is the repeating analog of
+    :class:`ZeroOrOneChoice` and is appropriate for schema patterns such as the children of
+    ``a:path`` (``a:moveTo | a:lnTo | a:cubicBezTo | a:arcTo | a:quadBezTo | a:close``) where any
+    member may be repeated any number of times.
+    """
+
+    def __init__(self, choices: Iterable[Choice], successors: Iterable[str] = ()):
+        self._choices = tuple(choices)
+        self._successors = tuple(successors)
+
+    def populate_class_members(self, element_cls: Type[BaseOxmlElement], prop_name: str):
+        """Add the appropriate methods to `element_cls`."""
+        super(ZeroOrMoreChoice, self).populate_class_members(element_cls, prop_name)
+        self._add_choice_list_getter()
+        for choice in self._choices:
+            choice.populate_class_members_repeating(
+                element_cls, self._prop_name, self._successors
+            )
+        self._add_group_remover()
+        # -- remove the class-level `ZeroOrMoreChoice` descriptor; only the generated `_lst`
+        # -- property, per-member methods, and group remover remain on the element class.
+        delattr(element_cls, prop_name)
+
+    def _add_choice_list_getter(self):
+        """Add a read-only `.{prop_name}_lst` property to the element class.
+
+        The property returns a list of all child elements that are members of this choice group,
+        in document order. An empty list is returned when no members are present.
+        """
+        prop_name = f"{self._prop_name}_lst"
+        property_ = property(self._choice_list_getter, None, None)
+        setattr(self._element_cls, prop_name, property_)
+
+    def _add_group_remover(self):
+        """Add a `._remove_{prop_name}()` method to the element class for this choice group."""
+
+        def _remove_choice_group(obj: BaseOxmlElement) -> None:
+            for tagname in self._member_nsptagnames:
+                obj.remove_all(tagname)
+
+        _remove_choice_group.__doc__ = (
+            "Remove every child element belonging to this choice group, if present."
+        )
+        self._add_to_class(self._remove_choice_group_method_name, _remove_choice_group)
+
+    @property
+    def _choice_list_getter(
+        self,
+    ) -> Callable[[BaseOxmlElement], list[BaseOxmlElement]]:
+        """Callable suitable for the "get" side of the list property descriptor.
+
+        Returns every child element that is a member of this choice group, in document order.
+        """
+        member_tagnames = tuple(choice.nsptagname for choice in self._choices)
+
+        def get_group_member_list(obj: BaseOxmlElement) -> list[BaseOxmlElement]:
+            clark_names = {qn(t) for t in member_tagnames}
+            return [
+                cast("BaseOxmlElement", child) for child in obj if child.tag in clark_names
+            ]
+
+        get_group_member_list.__doc__ = (
+            "A list of each child element belonging to this choice group, in the order they "
+            "appear. The list is empty when no member child is present."
+        )
+        return get_group_member_list
+
+    @lazyproperty
+    def _member_nsptagnames(self) -> list[str]:
+        """Sequence of namespace-prefixed tagnames, one for each member element of choice group."""
+        return [choice.nsptagname for choice in self._choices]
+
+    @lazyproperty
+    def _remove_choice_group_method_name(self):
+        """Function-name for choice-group remover."""
         return f"_remove_{self._prop_name}"
 
 
