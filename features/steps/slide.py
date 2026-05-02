@@ -122,6 +122,11 @@ def when_I_set_prs_slide_masters_idx_name_to_None(context, idx):
     context.prs.slide_masters[idx].name = None
 
 
+@when("I call slide.follow_master_background()")
+def when_I_call_slide_follow_master_background(context):
+    context.follow_master_bg_result = context.slide.follow_master_background()
+
+
 @when("I set slide.is_hidden to {value}")
 def when_I_set_slide_is_hidden_to_value(context, value):
     # -- ensure we have a Presentation for a later save/load round-trip --
@@ -199,8 +204,17 @@ def then_slide_background_is_a_Background_object(context):
 @then("slide.follow_master_background is {value}")
 def then_slide_follow_master_background_is_value(context, value):
     expected_value = {"True": True, "False": False}[value]
-    actual_value = context.slide.follow_master_background
+    # -- `follow_master_background` is a dual bool-like/callable proxy; cast to bool --
+    actual_value = bool(context.slide.follow_master_background)
     assert actual_value is expected_value, "slide.follow_master_background is %s" % actual_value
+
+
+@then("the call returned the slide itself")
+def then_the_call_returned_the_slide_itself(context):
+    assert context.follow_master_bg_result is context.slide, (
+        "slide.follow_master_background() returned %r, expected the Slide itself"
+        % context.follow_master_bg_result
+    )
 
 
 @then("slide.has_notes_slide is {value}")

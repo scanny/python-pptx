@@ -359,6 +359,29 @@ internal name on ``<p:cSld>`` — PowerPoint leaves it empty for most
 slides, so for human-readable identification you usually have to fall
 back to the slide layout or the title text (see below).
 
+**Background inheritance**::
+
+    >>> slide.follow_master_background
+    True
+    >>> # apply a custom background — breaks master inheritance
+    >>> slide.background.fill.solid()
+    >>> slide.background.fill.fore_color.rgb = RGBColor(0xFF, 0xAA, 0x00)
+    >>> slide.follow_master_background
+    False
+    >>> # revert to master inheritance — PowerPoint's "Reset Background" button
+    >>> slide.follow_master_background()
+    >>> slide.follow_master_background
+    True
+
+:attr:`.Slide.follow_master_background` is a dual bool-like / callable
+attribute. Reading it returns |True| when the slide has no ``p:bg`` child
+(so the background is inherited from its layout / master) and |False|
+when the slide carries its own explicit background. *Calling* it
+(``slide.follow_master_background()``) drops the slide's ``p:bg`` child
+if one is present — the equivalent of PowerPoint's *Reset Background*
+button. The call returns the slide itself, so it can be chained. It is
+a no-op on a slide that already follows the master background.
+
 **Hiding background graphics from the master**::
 
     >>> slide.show_master_shapes

@@ -175,7 +175,7 @@ prs.save("out.pptx")
 - `Slide.shapes` / `Slide.placeholders` — `SlideShapes` and `SlidePlaceholders`.
 - `Slide.name` — Read/write slide name (back-fills to `sld{n}` if unset).
 - `Slide.is_hidden` — Read/write boolean for hidden-slide flag. `[Added in 2026.05.0]`
-- `Slide.follow_master_background` — True when the slide inherits its background from the master / layout.
+- `Slide.follow_master_background` / `Slide.follow_master_background()` — Dual-form attribute. Read it as a bool — True when the slide inherits its background from the master / layout, False when the slide carries an explicit `p:bg`. Call it (`slide.follow_master_background()`) to revert an overridden background to master inheritance — PowerPoint's *Reset Background* button equivalent. The callable form was `[Added in 2026.05.0.dev0]`.
 - `Slide.background` — `_Background` proxy; exposes `fill` for solid / gradient / picture backgrounds.
 - `Slide.has_notes_slide` / `Slide.notes_slide` — Notes access.
 - `Slide.has_comments` / `Slide.comments` — Legacy and threaded comments. `[Added in 2026.05.0]`

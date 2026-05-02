@@ -14,6 +14,14 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: add ``Slide.follow_master_background()`` method to revert a custom
+  slide background to master inheritance (closes gap noted during Wave 12 #366
+  verify). The existing ``Slide.follow_master_background`` attribute is now a
+  dual bool-like/callable proxy: reading returns ``True``/``False`` for the
+  inheritance state (unchanged), while calling it (``slide.follow_master_background()``)
+  drops the slide's ``p:bg`` child — PowerPoint's *Reset Background* button
+  equivalent — and returns the slide for chaining.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

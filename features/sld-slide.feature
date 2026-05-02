@@ -24,6 +24,22 @@ Feature: slide properties
       | an overridden         | False |
 
 
+  Scenario: Slide.follow_master_background() resets an overridden background
+    Given a Slide object having an overridden background as slide
+     Then slide.follow_master_background is False
+     When I call slide.follow_master_background()
+     Then slide.follow_master_background is True
+      And the call returned the slide itself
+
+
+  Scenario: Slide.follow_master_background() is a no-op when already following master
+    Given a Slide object having the default background as slide
+     Then slide.follow_master_background is True
+     When I call slide.follow_master_background()
+     Then slide.follow_master_background is True
+      And the call returned the slide itself
+
+
   Scenario Outline: Slide.has_notes_slide
     Given a slide having <a-or-no> notes slide
      Then slide.has_notes_slide is <value>

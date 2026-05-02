@@ -277,18 +277,37 @@ class Slide(_BaseSlide):
         return SlideTags(self.part)
 
     @property
-    def follow_master_background(self):
+    def follow_master_background(self) -> _FollowMasterBackground:
         """|True| if this slide inherits the slide master background.
 
-        Assigning |False| causes background inheritance from the master to be
-        interrupted; if there is no custom background for this slide,
-        a default background is added. If a custom background already exists
-        for this slide, assigning |False| has no effect.
+        Returns a |bool|-like object that is also *callable*: read it for a
+        boolean, **or** call it to reset a custom background back to the
+        inherited master background.
 
-        Assigning |True| causes any custom background for this slide to be
-        deleted and inheritance from the master restored.
+        Reading returns a truthy value when the slide has no ``p:bg``
+        child (so the background is inherited from its layout / master)
+        and a falsy value when the slide carries its own explicit
+        background::
+
+            >>> if slide.follow_master_background:
+            ...     # slide inherits from the master
+            ...     ...
+
+        Calling it (equivalent to PowerPoint's *Reset Background*
+        button) removes any ``p:bg`` child from the slide's ``p:cSld``,
+        so the slide once again inherits from its layout / master::
+
+            >>> slide.follow_master_background()  # revert to master inheritance
+
+        A no-op on a slide that already follows the master background.
+        Returns the slide for call chaining.
+
+        .. versionchanged:: 2026.05.0
+           The returned object is now also callable, providing a
+           ``slide.follow_master_background()`` reset method in addition
+           to the pre-existing read-as-bool behavior.
         """
-        return self._element.bg is None
+        return _FollowMasterBackground(self)
 
     @property
     def is_hidden(self) -> bool:
@@ -2168,6 +2187,56 @@ class SlideTags:
         if tags_part is None:
             return None
         return tags_part.tag_list
+
+
+class _FollowMasterBackground:
+    """Dual-form return value of :attr:`Slide.follow_master_background`.
+
+    Behaves as a boolean when interrogated (``True`` when the owning
+    slide has no ``p:bg`` child and therefore inherits its background
+    from the master / layout, ``False`` when the slide carries an
+    explicit background). Behaves as a zero-argument method when
+    *called* (``slide.follow_master_background()``) — calling it drops
+    any ``p:bg`` child on the slide's ``p:cSld`` and returns the owning
+    |Slide|, matching PowerPoint's *Reset Background* button.
+
+    Instances are not constructed by client code; they are produced by
+    :attr:`Slide.follow_master_background` on each access.
+
+    .. versionadded:: 2026.05.0
+    """
+
+    def __init__(self, slide: Slide):
+        self._slide = slide
+
+    def __bool__(self) -> bool:
+        return self._slide._element.bg is None  # pyright: ignore[reportPrivateUsage]
+
+    def __call__(self) -> Slide:
+        """Remove any custom background on the slide, restoring master inheritance.
+
+        Idempotent — a no-op on a slide that already follows the
+        master background. Returns the owning |Slide| so the call can
+        be chained.
+        """
+        # -- CT_CommonSlideData owns the optional `p:bg` child; _remove_bg
+        # -- is the generated ZeroOrOne helper and is safe to call when
+        # -- no p:bg is present.
+        cSld = self._slide._element.cSld  # pyright: ignore[reportPrivateUsage]
+        cSld._remove_bg()  # pyright: ignore[reportPrivateUsage]
+        return self._slide
+
+    def __eq__(self, other: object) -> bool:
+        return bool(self) == other
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(bool(self))
+
+    def __repr__(self) -> str:
+        return repr(bool(self))
 
 
 class _Background(ElementProxy):
