@@ -164,3 +164,69 @@ support animated GIFs, the workaround is to convert the GIF to an MP4
 :meth:`~.SlideShapes.add_movie` instead. Video playback has proper
 ``<p:video>`` timing plumbing and is rendered by every major PowerPoint
 client and LibreOffice.
+
+
+.. _saving-pictures-as-svg:
+
+Saving a picture as SVG
+-----------------------
+
+A related request (`issue #885
+<https://github.com/scanny/python-pptx/issues/885>`_) is *"can python-pptx
+save a picture from a slide as an SVG file?"* There are two distinct
+variants of this question and they have different answers.
+
+**Extracting an embedded SVG.** |pp| stores every embedded image as opaque
+bytes in an image part, addressed by content hash. If the picture on the
+slide was authored with SVG content (either by PowerPoint itself, which
+stores an SVG alongside a PNG raster fallback — see
+:ref:`inserting-svg-images` — or by another tool that dropped an SVG into
+the package), the raw SVG bytes are already in the ``.pptx`` and can be
+written out verbatim. The blob available on :attr:`.Picture.image` is
+whatever the picture's primary ``a:blip`` references, so:
+
+.. code-block:: python
+
+    picture = slide.shapes[0]  # a Picture shape
+    image = picture.image
+    if image.content_type == "image/svg+xml":
+        with open(f"extracted.{image.ext}", "wb") as f:
+            f.write(image.blob)
+
+Note the caveat: when the deck was written by PowerPoint, the primary blip
+references the **PNG fallback**, not the SVG — so ``image.blob`` in that
+case returns PNG bytes. The SVG companion is attached via an
+``<asvg:svgBlip>`` drawingML extension on the same blip, referenced by a
+separate relationship; |pp| does not currently expose that companion part
+through the public API. If you need the SVG, read the ``<asvg:svgBlip>``
+relationship ID directly from the picture's XML
+(``picture._element.blipFill.blip``) and look up the corresponding
+``ImagePart`` via the slide part's relationship table. That is an advanced
+use, and the shape of the API may change if native SVG support lands on
+the write side (tracked on `issue #652`_).
+
+.. _issue #652: https://github.com/scanny/python-pptx/issues/652
+
+**"Rendering" a raster picture as SVG.** Converting an arbitrary picture
+on a slide — a JPEG or PNG, say — into an SVG is **not** something
+|pp| does. That is a raster-to-vector operation (tracing), which requires
+a separate renderer or vectorizer. The library has no layout engine, no
+font rasterizer, and no tracer; see
+:ref:`rendering-to-pdf-video-or-image-formats` for the broader rationale.
+Sensible external tools for this kind of conversion include:
+
+* **Inkscape (CLI).** ``inkscape --export-type=svg input.png
+  --export-filename=out.svg`` performs a raster-to-vector trace;
+  ``Path -> Trace Bitmap`` is the interactive equivalent. Inkscape also
+  accepts ``.pptx`` indirectly via a LibreOffice-produced PDF (see below).
+* **LibreOffice (headless).** ``libreoffice --headless --convert-to svg
+  deck.pptx --outdir out/`` emits one SVG per slide, preserving the deck's
+  vector content where possible. This is slide-level, not picture-level —
+  extract the target shape in a separate post-processing step (e.g., with
+  ``xmlstarlet`` against the emitted SVG) if you need just one picture.
+* **potrace / autotrace.** Classic open-source bitmap-to-vector tracers
+  when the input is a clean line drawing or logo rather than a photograph.
+
+In short: |pp| can hand you the bytes of a picture that *is already* an
+SVG in the package, but turning a raster picture *into* an SVG is a
+rendering / tracing concern and belongs to an external tool.
