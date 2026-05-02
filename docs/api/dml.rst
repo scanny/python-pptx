@@ -43,7 +43,7 @@ various aspects of shapes.
 ---------------------
 
 .. autoclass:: pptx.dml.color.ColorFormat
-   :members: brightness, rgb, theme_color, to_rgb, type
+   :members: alpha, brightness, rgb, theme_color, to_rgb, type
    :undoc-members:
 
 

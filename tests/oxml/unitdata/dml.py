@@ -62,6 +62,10 @@ class CT_SystemColorBuilder(BaseBuilder):
     __attrs__ = ("val", "lastClr")
 
 
+def an_alpha():
+    return CT_PercentageBuilder("a:alpha")
+
+
 def a_lumMod():
     return CT_PercentageBuilder("a:lumMod")
 

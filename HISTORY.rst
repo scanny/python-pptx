@@ -6,6 +6,24 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #62 add read/write ``ColorFormat.alpha`` for per-color transparency.
+  Exposes the OOXML ``<a:alpha val="N"/>`` child on any color-choice element
+  (``a:srgbClr`` / ``a:schemeClr`` / ``a:sysClr`` / ``a:prstClr`` /
+  ``a:hslClr`` / ``a:scrgbClr``) as a float in ``[0.0, 1.0]`` where ``1.0``
+  is fully opaque and ``0.0`` is fully transparent — consistent with the
+  existing ``brightness`` (float) and ``GradientStop.position`` (float in
+  ``[0.0, 1.0]``) conventions. Reading an absent ``<a:alpha>`` returns
+  ``1.0`` (the OOXML default). Assigning ``None`` removes any existing
+  ``<a:alpha>`` so the color inherits opacity. Setting alpha on a
+  ``MSO_COLOR_TYPE is None`` color raises ``ValueError`` (set ``.rgb`` or
+  ``.theme_color`` first). The new property coexists with ``brightness``
+  (``a:lumMod`` / ``a:lumOff``) on the same color element so transparent
+  theme-color tints / shades round-trip correctly. Adds a regression
+  suite ``DescribeIssue62FillAlpha`` under
+  ``tests/test_issue_62_fill_alpha.py`` that round-trips alpha at
+  ``[0.0, 0.25, 0.5, 0.75, 1.0]`` through ``Presentation.save`` + reopen
+  on both an explicit RGB color and a theme color, and confirms
+  coexistence with a brightness adjustment.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
