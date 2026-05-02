@@ -24,6 +24,7 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders,
     SlideShapes,
 )
+from pptx.enum.transition import PP_TRANSITION_TYPE
 from pptx.slide import (
     NotesMaster,
     NotesSlide,
@@ -33,6 +34,7 @@ from pptx.slide import (
     SlideMaster,
     SlideMasters,
     Slides,
+    Transition,
     _Background,
     _BaseMaster,
     _BaseSlide,
@@ -1448,3 +1450,216 @@ class Describe_HeaderFooter(object):
 
         with pytest.raises(TypeError, match="must be a bool"):
             hf_proxy.slide_number_visible = "no"  # pyright: ignore[reportAttributeAccessIssue]
+
+
+class DescribeSlide_F8_transition_and_animations(object):
+    """Unit-test suite for Foundation F8 additions to `pptx.slide.Slide`."""
+
+    # -- Slide.has_animations -----------------------------------------
+
+    def it_reports_False_for_has_animations_when_no_timing(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        assert slide.has_animations is False
+
+    def it_reports_False_for_has_animations_when_timing_but_no_tnLst(self):
+        slide = Slide(
+            element("p:sld/(p:cSld/p:spTree,p:timing)"),
+            None,
+        )
+        assert slide.has_animations is False
+
+    def it_reports_False_when_tnLst_is_empty(self):
+        slide = Slide(
+            element("p:sld/(p:cSld/p:spTree,p:timing/p:tnLst)"),
+            None,
+        )
+        assert slide.has_animations is False
+
+    def it_reports_True_when_timing_has_a_tnLst_child(self):
+        slide = Slide(
+            element("p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:par/p:cTn{id=1})"),
+            None,
+        )
+        assert slide.has_animations is True
+
+    # -- Slide.timing_xml ---------------------------------------------
+
+    def it_returns_None_for_timing_xml_when_no_timing(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        assert slide.timing_xml is None
+
+    def it_returns_the_xml_of_the_timing_subtree_when_present(self):
+        slide = Slide(
+            element("p:sld/(p:cSld/p:spTree,p:timing/p:tnLst)"),
+            None,
+        )
+        timing_xml = slide.timing_xml
+        assert timing_xml is not None
+        assert "<p:timing" in timing_xml
+        assert "<p:tnLst" in timing_xml
+
+    # -- Slide.transition (proxy return) ------------------------------
+
+    def it_returns_a_Transition_proxy(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        assert isinstance(slide.transition, Transition)
+
+    def it_returns_the_same_Transition_proxy_on_subsequent_access(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        assert slide.transition is slide.transition
+
+
+class DescribeTransition(object):
+    """Unit-test suite for `pptx.slide.Transition` (Foundation F8 MVP)."""
+
+    # -- .type read -------------------------------------------------------
+
+    def it_reports_NONE_type_when_no_transition_element(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.type is PP_TRANSITION_TYPE.NONE
+
+    def it_reports_NONE_type_when_transition_has_no_variant_child(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition)")
+        transition = Transition(sld)
+        assert transition.type is PP_TRANSITION_TYPE.NONE
+
+    @pytest.mark.parametrize(
+        ("variant_tag", "expected"),
+        [
+            ("p:fade", PP_TRANSITION_TYPE.FADE),
+            ("p:push", PP_TRANSITION_TYPE.PUSH),
+            ("p:wipe", PP_TRANSITION_TYPE.WIPE),
+            ("p:cover", PP_TRANSITION_TYPE.COVER),
+            ("p:wheel", PP_TRANSITION_TYPE.WHEEL),
+            ("p:dissolve", PP_TRANSITION_TYPE.DISSOLVE),
+        ],
+    )
+    def it_reads_the_transition_type_for_p_variants(
+        self, variant_tag: str, expected: PP_TRANSITION_TYPE
+    ):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/%s)" % variant_tag)
+        transition = Transition(sld)
+        assert transition.type is expected
+
+    # -- .type write ------------------------------------------------------
+
+    def it_sets_a_p_variant(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.FADE
+        assert transition.type is PP_TRANSITION_TYPE.FADE
+        assert sld.transition is not None
+        assert sld.transition.variant_tag == "p:fade"
+
+    def it_sets_the_p14_morph_variant(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.MORPH
+        assert transition.type is PP_TRANSITION_TYPE.MORPH
+        assert sld.transition is not None
+        assert sld.transition.variant_tag == "p14:morph"
+
+    def it_replaces_an_existing_variant(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.PUSH
+        assert transition.type is PP_TRANSITION_TYPE.PUSH
+
+    def it_removes_the_transition_element_when_set_to_NONE(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.NONE
+        assert sld.transition is None
+
+    def it_preserves_the_transition_element_when_clearing_but_attrs_remain(self):
+        sld = element(
+            "p:sld/(p:cSld/p:spTree,p:transition{advTm=2000}/p:fade)"
+        )
+        transition = Transition(sld)
+        transition.type = PP_TRANSITION_TYPE.NONE
+        # -- transition still exists because @advTm is a meaningful attr --
+        assert sld.transition is not None
+        assert sld.transition.advTm == 2000
+        assert transition.type is PP_TRANSITION_TYPE.NONE
+
+    def it_rejects_non_enum_type_assignments(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        with pytest.raises(ValueError):
+            transition.type = "fade"  # type: ignore[assignment]
+
+    # -- .duration --------------------------------------------------------
+
+    def it_returns_None_duration_when_no_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.duration is None
+
+    def it_reads_and_writes_duration(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.duration = 800
+        assert transition.duration == 800
+
+    def it_removes_duration_when_set_to_None(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.duration = 800
+        transition.duration = None
+        assert transition.duration is None
+
+    # -- .advance_on_click -----------------------------------------------
+
+    def it_defaults_advance_on_click_to_True(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.advance_on_click is True
+
+    def it_reads_advance_on_click_when_explicitly_false(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition{advClick=0})")
+        transition = Transition(sld)
+        assert transition.advance_on_click is False
+
+    def it_writes_advance_on_click(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.advance_on_click = False
+        assert sld.transition is not None
+        assert sld.transition.advClick is False
+
+    def it_rejects_non_bool_advance_on_click(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        with pytest.raises(TypeError, match="must be a bool"):
+            transition.advance_on_click = "yes"  # type: ignore[assignment]
+
+    # -- .advance_after_time ----------------------------------------------
+
+    def it_returns_None_advance_after_time_when_absent(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.advance_after_time is None
+
+    def it_reads_advance_after_time(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition{advTm=5000})")
+        transition = Transition(sld)
+        assert transition.advance_after_time == 5000
+
+    def it_writes_advance_after_time(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.advance_after_time = 3000
+        assert transition.advance_after_time == 3000
+
+    def it_clears_advance_after_time_when_set_to_None(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition{advTm=5000})")
+        transition = Transition(sld)
+        transition.advance_after_time = None
+        assert transition.advance_after_time is None
+
+    def it_rejects_negative_advance_after_time(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        with pytest.raises(ValueError, match="non-negative"):
+            transition.advance_after_time = -1

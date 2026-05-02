@@ -29,6 +29,21 @@ return value of :meth:`add_slide`.
    :undoc-members:
 
 
+|Transition| objects
+--------------------
+
+The |Transition| object is accessed as the :attr:`~pptx.slide.Slide.transition`
+property of |Slide|. It provides read/write access to the slide-transition
+XML element. This is the Foundation F8 MVP surface; structured animation
+effects (entrance/exit/emphasis/motion-path) and the MORPH
+``mc:AlternateContent`` wrapper are tracked as downstream items — see
+``docs/dev/analysis/f8-animations-transitions.rst``.
+
+.. autoclass:: pptx.slide.Transition()
+   :members:
+   :undoc-members:
+
+
 |SlideLayouts| objects
 ----------------------
 
