@@ -518,24 +518,63 @@ from pptx.oxml.slide import (  # noqa: E402
     CT_SlideLayoutIdListEntry,
     CT_SlideMaster,
     CT_SlideTiming,
+    CT_SlideTransition,
     CT_TimeNodeList,
+    CT_TLCommonTimeNodeData,
     CT_TLMediaNodeVideo,
+    CT_TLTimeNodeParallel,
+    CT_TLTimeNodeSequence,
+    CT_TransitionMorph,
+    CT_TransitionVariant,
 )
 
 register_element_cls("p:bg", CT_Background)
 register_element_cls("p:bgPr", CT_BackgroundProperties)
 register_element_cls("p:childTnLst", CT_TimeNodeList)
 register_element_cls("p:cSld", CT_CommonSlideData)
+register_element_cls("p:cTn", CT_TLCommonTimeNodeData)
 register_element_cls("p:hf", CT_HeaderFooter)
 register_element_cls("p:notes", CT_NotesSlide)
 register_element_cls("p:notesMaster", CT_NotesMaster)
+register_element_cls("p:par", CT_TLTimeNodeParallel)
+register_element_cls("p:seq", CT_TLTimeNodeSequence)
 register_element_cls("p:sld", CT_Slide)
 register_element_cls("p:sldLayout", CT_SlideLayout)
 register_element_cls("p:sldLayoutId", CT_SlideLayoutIdListEntry)
 register_element_cls("p:sldLayoutIdLst", CT_SlideLayoutIdList)
 register_element_cls("p:sldMaster", CT_SlideMaster)
 register_element_cls("p:timing", CT_SlideTiming)
+register_element_cls("p:tnLst", CT_TimeNodeList)
+register_element_cls("p:transition", CT_SlideTransition)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
+# -- transition-variant elements from `p:transition`'s inner <xsd:choice> --
+for _variant_tag in (
+    "p:blinds",
+    "p:checker",
+    "p:circle",
+    "p:dissolve",
+    "p:comb",
+    "p:cover",
+    "p:cut",
+    "p:diamond",
+    "p:fade",
+    "p:newsflash",
+    "p:plus",
+    "p:pull",
+    "p:push",
+    "p:random",
+    "p:randomBar",
+    "p:split",
+    "p:strips",
+    "p:wedge",
+    "p:wheel",
+    "p:wipe",
+    "p:zoom",
+):
+    register_element_cls(_variant_tag, CT_TransitionVariant)
+del _variant_tag
+# -- Office 2010 MORPH transition extension (different namespace) --
+register_element_cls("p14:morph", CT_TransitionMorph)
 
 
 from pptx.oxml.table import (  # noqa: E402

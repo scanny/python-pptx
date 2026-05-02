@@ -14,6 +14,17 @@ Unreleased
   ``Sections.remove``, ``Sections.get_by_id``, ``Sections.get_by_name``,
   and per-section ``Section.name``, ``Section.id`` (GUID), ``Section.slides``,
   ``Section.add_slide``, and ``Section.remove_slide``.
+- Foundation: animations/transitions XML layer (F8 — MVP). Adds element
+  classes for ``p:timing`` / ``p:tnLst`` / ``p:par`` / ``p:seq`` / ``p:cTn``
+  and the ``p:transition`` subtree (including the ``p14:morph`` Office 2010
+  extension) so slides round-trip these elements without dropping them.
+  Exposes ``Slide.transition`` returning a ``Transition`` proxy with
+  ``.type`` (``PP_TRANSITION_TYPE`` enum — fade/wipe/push/cover/morph/…),
+  ``.duration`` (milliseconds via ``p14:dur``), ``.advance_on_click``, and
+  ``.advance_after_time``. Adds ``Slide.has_animations`` and
+  ``Slide.timing_xml`` for round-trip debugging. Structured entrance /
+  exit / emphasis / motion-path / MORPH authoring APIs layer onto this
+  foundation incrementally; see ``docs/dev/analysis/f8-animations-transitions.rst``.
 - docs: #1049 PPT ---> MP4: Automation — add a "Rendering to video, PDF,
   or image formats" section to the user guide clarifying that python-pptx
   does not render slides and pointing at ``libreoffice --headless

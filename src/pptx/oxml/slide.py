@@ -6,8 +6,15 @@ from typing import TYPE_CHECKING, Callable, cast
 
 from pptx.oxml import parse_from_template, parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
-from pptx.oxml.ns import nsdecls
-from pptx.oxml.simpletypes import XsdBoolean, XsdString
+from pptx.oxml.ns import nsdecls, nsuri, qn
+from pptx.oxml.simpletypes import XsdBoolean, XsdString, XsdUnsignedInt
+from pptx.oxml.timing import (
+    CT_SlideTiming,
+    CT_TimeNodeList,
+    CT_TLCommonTimeNodeData,
+    CT_TLTimeNodeParallel,
+    CT_TLTimeNodeSequence,
+)
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     Choice,
@@ -18,6 +25,29 @@ from pptx.oxml.xmlchemy import (
     ZeroOrOne,
     ZeroOrOneChoice,
 )
+
+__all__ = [
+    "CT_Background",
+    "CT_BackgroundProperties",
+    "CT_CommonSlideData",
+    "CT_HeaderFooter",
+    "CT_NotesMaster",
+    "CT_NotesSlide",
+    "CT_Slide",
+    "CT_SlideLayout",
+    "CT_SlideLayoutIdList",
+    "CT_SlideLayoutIdListEntry",
+    "CT_SlideMaster",
+    "CT_SlideTiming",
+    "CT_SlideTransition",
+    "CT_TimeNodeList",
+    "CT_TLCommonTimeNodeData",
+    "CT_TLMediaNodeVideo",
+    "CT_TLTimeNodeParallel",
+    "CT_TLTimeNodeSequence",
+    "CT_TransitionMorph",
+    "CT_TransitionVariant",
+]
 
 if TYPE_CHECKING:
     from pptx.oxml.shapes.groupshape import CT_GroupShape
@@ -190,7 +220,12 @@ class CT_Slide(_BaseSlideElement):
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:extLst")
     cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     clrMapOvr = ZeroOrOne("p:clrMapOvr", successors=_tag_seq[2:])
-    timing = ZeroOrOne("p:timing", successors=_tag_seq[4:])
+    transition: CT_SlideTransition | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:transition", successors=_tag_seq[3:]
+    )
+    timing: CT_SlideTiming | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:timing", successors=_tag_seq[4:]
+    )
     del _tag_seq
 
     @classmethod
@@ -338,47 +373,208 @@ class CT_SlideMaster(_BaseSlideElement):
     del _tag_seq
 
 
-class CT_SlideTiming(BaseOxmlElement):
-    """`p:timing` element, specifying animations and timed behaviors."""
-
-    _tag_seq = ("p:tnLst", "p:bldLst", "p:extLst")
-    tnLst = ZeroOrOne("p:tnLst", successors=_tag_seq[1:])
-    del _tag_seq
-
-
-class CT_TimeNodeList(BaseOxmlElement):
-    """`p:tnLst` or `p:childTnList` element."""
-
-    def add_video(self, shape_id):
-        """Add a new `p:video` child element for movie having *shape_id*."""
-        video_xml = (
-            "<p:video %s>\n"
-            '  <p:cMediaNode vol="80000">\n'
-            '    <p:cTn id="%d" fill="hold" display="0">\n'
-            "      <p:stCondLst>\n"
-            '        <p:cond delay="indefinite"/>\n'
-            "      </p:stCondLst>\n"
-            "    </p:cTn>\n"
-            "    <p:tgtEl>\n"
-            '      <p:spTgt spid="%d"/>\n'
-            "    </p:tgtEl>\n"
-            "  </p:cMediaNode>\n"
-            "</p:video>\n" % (nsdecls("p"), self._next_cTn_id, shape_id)
-        )
-        video = parse_xml(video_xml)
-        self.append(video)
-
-    @property
-    def _next_cTn_id(self):
-        """Return the next available unique ID (int) for p:cTn element."""
-        cTn_id_strs = self.xpath("/p:sld/p:timing//p:cTn/@id")
-        ids = [int(id_str) for id_str in cTn_id_strs]
-        return max(ids) + 1
-
-
 class CT_TLMediaNodeVideo(BaseOxmlElement):
     """`p:video` element, specifying video media details."""
 
     _tag_seq = ("p:cMediaNode",)
     cMediaNode = OneAndOnlyOne("p:cMediaNode")
     del _tag_seq
+
+
+# ---------------------------------------------------------------------------
+# Slide-transition element classes (Foundation F8 MVP)
+# ---------------------------------------------------------------------------
+#
+# These classes surface the `p:transition` element and its variant children
+# (`p:fade`, `p:push`, ..., `p14:morph`) so a slide can round-trip any
+# PowerPoint-authored transition and python-pptx code can read/write the
+# common attributes (`@spd`, `@advClick`, `@advTm`). See
+# `docs/dev/analysis/f8-animations-transitions.rst` for scope details.
+
+
+# -- full set of transition-variant choice tags (from pml.xsd CT_SlideTransition).
+# -- ``p14:morph`` is handled specially because it lives in the 2010 extension
+# -- namespace, not in the core ``p:`` namespace.
+_TRANSITION_VARIANT_TAGS_P = (
+    "p:blinds",
+    "p:checker",
+    "p:circle",
+    "p:dissolve",
+    "p:comb",
+    "p:cover",
+    "p:cut",
+    "p:diamond",
+    "p:fade",
+    "p:newsflash",
+    "p:plus",
+    "p:pull",
+    "p:push",
+    "p:random",
+    "p:randomBar",
+    "p:split",
+    "p:strips",
+    "p:wedge",
+    "p:wheel",
+    "p:wipe",
+    "p:zoom",
+)
+_TRANSITION_VARIANT_TAG_P14_MORPH = "p14:morph"
+
+
+class CT_SlideTransition(BaseOxmlElement):
+    """`p:transition` element — specifies a slide transition.
+
+    Schema excerpt (from ``pml.xsd`` ``CT_SlideTransition``)::
+
+        <xsd:sequence>
+          <xsd:choice minOccurs="0" maxOccurs="1">
+            <xsd:element name="blinds"    .../>
+            ...
+            <xsd:element name="zoom"      .../>
+          </xsd:choice>
+          <xsd:element name="sndAc"  minOccurs="0" .../>
+          <xsd:element name="extLst" minOccurs="0" .../>
+        </xsd:sequence>
+        <xsd:attribute name="spd"      type="ST_TransitionSpeed" default="fast"/>
+        <xsd:attribute name="advClick" type="xsd:boolean"        default="true"/>
+        <xsd:attribute name="advTm"    type="xsd:unsignedInt"/>
+
+    MVP notes:
+
+    * The variant child-element choice is not expressed as a
+      :class:`ZeroOrOneChoice` because the ``p14:morph`` sibling (Office
+      2010 extension) sits in a different namespace and
+      :class:`Choice` only groups tags in one namespace in the existing
+      xmlchemy. Instead, the :meth:`variant_tag` / :meth:`set_variant`
+      helpers handle variant selection explicitly. Downstream #942
+      (full MORPH support, including ``mc:AlternateContent`` wrapping)
+      will extend this.
+    * `@spd` is the coarse ``slow`` / ``med`` / ``fast`` selector from
+      ST_TransitionSpeed. For millisecond-precision duration PowerPoint
+      writes the ``p14:dur`` attribute — *not* a standard ISO-29500
+      field. :class:`.Transition.duration` reads/writes the ``p14:dur``
+      attribute when present (see MVP scope in the F8 analysis doc).
+    """
+
+    spd: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "spd", XsdString, default="fast"
+    )
+    advClick: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "advClick", XsdBoolean, default=True
+    )
+    advTm = OptionalAttribute("advTm", XsdUnsignedInt)
+
+    @property
+    def variant_tag(self) -> str | None:
+        """Namespaced-prefixed tag name of the transition variant child, or None.
+
+        Returns strings like ``"p:fade"``, ``"p:push"``, or
+        ``"p14:morph"``. Returns ``None`` when ``p:transition`` has no
+        variant child (meaning "rely on application defaults" per the
+        schema's ``minOccurs=0`` on the inner choice).
+        """
+        for child in self:
+            tag = child.tag
+            for p_tag in _TRANSITION_VARIANT_TAGS_P:
+                if tag == qn(p_tag):
+                    return p_tag
+            if tag == qn(_TRANSITION_VARIANT_TAG_P14_MORPH):
+                return _TRANSITION_VARIANT_TAG_P14_MORPH
+        return None
+
+    def _remove_variant(self) -> None:
+        """Remove any existing transition-variant child element."""
+        variant_tags = _TRANSITION_VARIANT_TAGS_P + (_TRANSITION_VARIANT_TAG_P14_MORPH,)
+        for child in list(self):
+            for tag in variant_tags:
+                if child.tag == qn(tag):
+                    self.remove(child)
+                    break
+
+    def set_variant(self, nsptag: str | None) -> BaseOxmlElement | None:
+        """Replace the transition-variant child with a new one named `nsptag`.
+
+        `nsptag` is one of the sentinel tags listed in
+        :data:`_TRANSITION_VARIANT_TAGS_P` (e.g. ``"p:fade"``) or
+        ``"p14:morph"``. Passing ``None`` removes the variant child.
+        Returns the newly created child element, or ``None`` when a
+        ``None`` tag was passed.
+
+        The inserted element is minimal — just the bare tag. Downstream
+        items can layer on direction / orientation / loop-sound
+        attributes without touching this MVP helper.
+        """
+        self._remove_variant()
+        if nsptag is None:
+            return None
+        nspfx = nsptag.split(":", 1)[0]
+        if nspfx == "p14":
+            xml_str = '<p14:morph xmlns:p14="%s"/>' % nsuri("p14")
+        else:
+            local = nsptag.split(":", 1)[1]
+            xml_str = '<p:%s xmlns:p="%s"/>' % (local, nsuri("p"))
+        new_child = parse_xml(xml_str)
+        # -- the variant child must precede `p:sndAc` and `p:extLst`; since the
+        # -- existing `p:sndAc` / `p:extLst` are not expected in common fixtures
+        # -- we insert at index 0, which the schema permits because the choice
+        # -- comes first in the sequence.
+        self.insert(0, new_child)
+        return new_child
+
+    @property
+    def dur(self) -> int | None:
+        """Value of the ``p14:dur`` attribute in ms, or ``None`` when absent.
+
+        This is the PowerPoint-2010 extension attribute Microsoft added
+        for per-transition precise duration. It complements the ISO
+        ``@spd`` attribute (slow / med / fast) with a ms value. Missing
+        from ISO-29500 but present in every modern file.
+        """
+        val = self.get(qn("p14:dur"))
+        if val is None:
+            return None
+        return int(val)
+
+    @dur.setter
+    def dur(self, value: int | None) -> None:
+        attr = qn("p14:dur")
+        if value is None:
+            if attr in self.attrib:
+                del self.attrib[attr]
+            return
+        if not isinstance(value, int) or value < 0:
+            raise ValueError(
+                "transition duration must be a non-negative int (milliseconds), got %r" % value
+            )
+        self.set(attr, str(value))
+
+
+class CT_TransitionVariant(BaseOxmlElement):
+    """Base class for every transition-variant choice element.
+
+    Most variants (``p:circle``, ``p:dissolve``, ``p:diamond``,
+    ``p:newsflash``, ``p:plus``, ``p:random``, ``p:wedge``) are the
+    empty ``CT_Empty`` type and carry no attributes. The directional
+    / orientation / loop variants that *do* have attributes
+    (``CT_EightDirectionTransition``, ``CT_OptionalBlackTransition``,
+    etc.) would ordinarily get subclasses, but for MVP round-trip
+    purposes a single class registered for every variant tag
+    preserves the XML byte-for-byte via lxml's default attribute
+    handling. Downstream items (#942 MORPH, #256 timings) will add
+    typed descriptors per variant as needed.
+    """
+
+
+class CT_TransitionMorph(CT_TransitionVariant):
+    """`p14:morph` — the Office 2010 MORPH transition element.
+
+    Carries the ``@option`` attribute (``byObject`` / ``byWord`` /
+    ``byChar``). This class exists so MORPH transitions are typed
+    when encountered; a full authoring API (wrapping in
+    ``mc:AlternateContent`` and selecting the option) is downstream
+    issue #942.
+    """
+
+    option: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "option", XsdString, default="byObject"
+    )

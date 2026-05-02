@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Iterator, cast
 from pptx.dml.color import RGBColor
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.enum.transition import PP_TRANSITION_TYPE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.shapes.shapetree import (
@@ -279,6 +280,75 @@ class Slide(_BaseSlide):
     def slide_layout(self) -> SlideLayout:
         """|SlideLayout| object this slide inherits appearance from."""
         return self.part.slide_layout
+
+    @property
+    def has_animations(self) -> bool:
+        """`True` when this slide carries any ``p:timing`` / animation XML.
+
+        Returns `True` if the slide's XML has a ``p:timing`` child
+        element containing at least one time-node (``p:tnLst/*``).
+        Media-only timing (the minimal ``p:timing`` tree added by
+        :meth:`SlideShapes.add_movie` for video playback controls) is
+        considered an "animation" here because python-pptx does not
+        distinguish media-playback from authored animation until
+        downstream item #954 lands the mc:AlternateContent handling.
+
+        This property is side-effect free — unlike :attr:`transition`
+        it does not create a ``p:timing`` element on access.
+
+        Structured read/write access to the animation tree (entrance /
+        exit / emphasis / motion-path / MORPH effects) is deferred to
+        downstream items #102, #264, #861, and #1106. See
+        ``docs/dev/analysis/f8-animations-transitions.rst``.
+        """
+        timing = self._element.timing
+        if timing is None:
+            return False
+        tnLst = timing.tnLst
+        if tnLst is None:
+            return False
+        return len(tnLst) > 0
+
+    @property
+    def timing_xml(self) -> str | None:
+        """XML string of the slide's ``p:timing`` subtree, or ``None`` when absent.
+
+        Read-only debugging accessor included in the F8 MVP so code
+        that needs to introspect or hand-patch the timing XML (e.g.
+        for the animation items stacked on F8) can do so without
+        reaching into ``slide._element``. The returned value is the
+        serialized XML exactly as stored.
+        """
+        timing = self._element.timing
+        if timing is None:
+            return None
+        return timing.xml
+
+    @lazyproperty
+    def transition(self) -> Transition:
+        """|Transition| proxy for reading / writing this slide's transition.
+
+        Returns a :class:`.Transition` object whether or not the slide
+        has an explicit ``p:transition`` element. The returned proxy
+        lazily adds a ``p:transition`` child the first time a setter
+        is invoked; merely calling :attr:`transition.type` is
+        non-destructive.
+
+        The MVP API surfaces:
+
+        * :attr:`Transition.type` — :class:`PP_TRANSITION_TYPE`
+          (fade / wipe / push / cover / ... / morph).
+        * :attr:`Transition.duration` — int milliseconds or ``None``.
+        * :attr:`Transition.advance_on_click` — bool (``@advClick``).
+        * :attr:`Transition.advance_after_time` — int ms or ``None``
+          (``@advTm``).
+
+        Extended API (structured animation effects, advance-after-time
+        on media, MORPH option selection) is deferred — see
+        ``docs/dev/analysis/f8-animations-transitions.rst`` and the
+        downstream-items matrix.
+        """
+        return Transition(self._element)
 
 
 class Slides(ParentedElementProxy):
@@ -736,6 +806,172 @@ class _HeaderFooter(ElementProxy):
         setattr(hf, attr_name, value)
         if hf.sldNum and hf.hdr and hf.ftr and hf.dt:
             self._slide_element.remove(hf)
+
+
+class Transition(ElementProxy):
+    """Proxy for the `p:transition` child of a `p:sld`.
+
+    This object is returned by :attr:`Slide.transition` whether or not
+    the slide has an explicit transition. Access is therefore always
+    safe; the proxy adds a ``p:transition`` child element lazily the
+    first time a setter is invoked (or :meth:`_get_or_add_transition`
+    is called internally by the proxy).
+
+    MVP surface:
+
+    * :attr:`type` — :class:`.PP_TRANSITION_TYPE` enum member.
+      Reading returns :attr:`PP_TRANSITION_TYPE.NONE` when there is
+      no transition variant present.
+    * :attr:`duration` — int milliseconds or `None`. Read/write of
+      the ``p14:dur`` extension attribute. ``@spd`` (slow/med/fast)
+      is left at its default when setting; downstream items can
+      expose a separate speed accessor.
+    * :attr:`advance_on_click` — bool, ``p:transition/@advClick``.
+    * :attr:`advance_after_time` — int ms or `None`, ``p:transition/@advTm``.
+
+    Out-of-scope (see ``docs/dev/analysis/f8-animations-transitions.rst``):
+
+    * Per-variant attributes such as ``@dir`` on ``p:fade`` or
+      ``p:cover`` (downstream #1004).
+    * ``mc:AlternateContent`` wrapping for MORPH (downstream #942).
+    * Sound-action ``p:sndAc`` (not tracked as a separate item).
+    """
+
+    def __init__(self, sld: CT_Slide):
+        super(Transition, self).__init__(sld)
+        self._sld = sld
+
+    # -- type --------------------------------------------------------
+
+    @property
+    def type(self) -> PP_TRANSITION_TYPE:
+        """The :class:`.PP_TRANSITION_TYPE` selected on this slide.
+
+        Returns :attr:`PP_TRANSITION_TYPE.NONE` when the slide has no
+        ``p:transition`` element, or when ``p:transition`` has no
+        variant child (it is valid for ``p:transition`` to carry only
+        attributes such as ``@advTm``).
+        """
+        transition = self._sld.transition
+        if transition is None:
+            return PP_TRANSITION_TYPE.NONE
+        variant_tag = transition.variant_tag
+        if variant_tag is None:
+            return PP_TRANSITION_TYPE.NONE
+        # -- extract the local name (e.g. "fade" from "p:fade" or "morph" --
+        # -- from "p14:morph") and look up the enum member.
+        local_name = variant_tag.split(":", 1)[1]
+        try:
+            return PP_TRANSITION_TYPE.from_xml(local_name)
+        except ValueError:  # pragma: no cover - defensive, every variant is enumerated
+            return PP_TRANSITION_TYPE.NONE
+
+    @type.setter
+    def type(self, value: PP_TRANSITION_TYPE | None) -> None:
+        if value is None or value == PP_TRANSITION_TYPE.NONE:
+            transition = self._sld.transition
+            if transition is None:
+                return
+            transition._remove_variant()
+            # -- if the transition element is now empty of attributes and
+            # -- children, drop it for minimal XML round-trip.
+            if not transition.attrib and len(transition) == 0:
+                self._sld.remove(transition)
+            return
+        PP_TRANSITION_TYPE.validate(value)
+        transition = self._sld.get_or_add_transition()
+        # -- MORPH lives in the p14 namespace; everything else in p: --
+        if value is PP_TRANSITION_TYPE.MORPH:
+            transition.set_variant("p14:morph")
+        else:
+            transition.set_variant("p:%s" % value.xml_value)
+
+    # -- duration (ms) -----------------------------------------------
+
+    @property
+    def duration(self) -> int | None:
+        """Transition duration in milliseconds, or ``None`` when unspecified.
+
+        Reads the ``p14:dur`` attribute (Office 2010 extension). When
+        absent the property returns ``None`` — PowerPoint then falls
+        back to a default derived from ``@spd`` (slow=1600ms,
+        med=1000ms, fast=500ms).
+        """
+        transition = self._sld.transition
+        if transition is None:
+            return None
+        return transition.dur
+
+    @duration.setter
+    def duration(self, value: int | None) -> None:
+        if value is None:
+            transition = self._sld.transition
+            if transition is None:
+                return
+            transition.dur = None
+            if not transition.attrib and len(transition) == 0:
+                self._sld.remove(transition)
+            return
+        transition = self._sld.get_or_add_transition()
+        transition.dur = value
+
+    # -- advance_on_click --------------------------------------------
+
+    @property
+    def advance_on_click(self) -> bool:
+        """Whether a mouse click advances past the transition.
+
+        Reflects ``p:transition/@advClick``. Defaults to ``True``
+        (schema default) when no ``p:transition`` element exists or
+        the attribute is absent.
+        """
+        transition = self._sld.transition
+        if transition is None:
+            return True
+        return transition.advClick
+
+    @advance_on_click.setter
+    def advance_on_click(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError(
+                "advance_on_click must be a bool, got %s" % type(value).__name__
+            )
+        transition = self._sld.get_or_add_transition()
+        transition.advClick = value
+
+    # -- advance_after_time ------------------------------------------
+
+    @property
+    def advance_after_time(self) -> int | None:
+        """Auto-advance delay in ms, or ``None`` when not auto-advancing.
+
+        Reflects ``p:transition/@advTm``. The attribute is absent when
+        the slide only advances on click; setting the property to
+        ``None`` removes the attribute, restoring click-only advance.
+        """
+        transition = self._sld.transition
+        if transition is None:
+            return None
+        return transition.advTm
+
+    @advance_after_time.setter
+    def advance_after_time(self, value: int | None) -> None:
+        if value is None:
+            transition = self._sld.transition
+            if transition is None:
+                return
+            if "advTm" in transition.attrib:
+                del transition.attrib["advTm"]
+            if not transition.attrib and len(transition) == 0:
+                self._sld.remove(transition)
+            return
+        if not isinstance(value, int) or value < 0:
+            raise ValueError(
+                "advance_after_time must be a non-negative int (milliseconds), got %r"
+                % (value,)
+            )
+        transition = self._sld.get_or_add_transition()
+        transition.advTm = value
 
 
 class _Background(ElementProxy):
