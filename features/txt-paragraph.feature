@@ -82,6 +82,11 @@ Feature: Change paragraph properties
       | "a\vb\vc" |
 
 
+  Scenario: _Paragraph.text getter surfaces mc:Fallback text from math equation (#947)
+    Given a _Paragraph with a math equation bracketed by plain-text runs as paragraph
+     Then paragraph.text == "Formula: E=mc2 done."
+
+
   Scenario Outline: _Paragraph.text setter
     Given a _Paragraph object as paragraph
      When I assign paragraph.text = <value>

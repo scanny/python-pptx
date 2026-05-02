@@ -14,6 +14,18 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #947 ``TextFrame.text`` and ``_Paragraph.text`` now surface the
+  plain-text rendering carried by an ``mc:Fallback`` subtree when a
+  paragraph contains an ``mc:AlternateContent`` wrapper (typically an
+  inline OMML math equation PowerPoint auto-inserts when it recognises
+  mathematical syntax such as ``m^3``). Previously the walker only
+  iterated ``a:r`` / ``a:br`` / ``a:fld`` direct children of ``a:p``, so
+  the fallback text was invisible to text-extraction callers and
+  ``.text`` returned an empty string for equation-only paragraphs. The
+  live ``mc:Choice`` side is intentionally skipped to avoid
+  double-counting the OMML characters already mirrored under
+  ``mc:Fallback``.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

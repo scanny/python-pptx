@@ -25,6 +25,33 @@ def given_a_Paragraph_object_containing_value_as_paragraph(context, value):
     context.paragraph = prs.slides[0].shapes[1].text_frame.paragraphs[paragraph_idx]
 
 
+@given("a _Paragraph with a math equation bracketed by plain-text runs as paragraph")
+def given_a_Paragraph_with_a_math_equation_bracketed_by_plain_text_runs(context):
+    # -- authors an `a:p` that matches the shape PowerPoint emits when a user types
+    # -- math syntax like ``m^3`` and PowerPoint auto-formats it: an
+    # -- ``mc:AlternateContent`` wrapper with an ``a14:m/m:oMath`` live side and an
+    # -- ``mc:Fallback`` carrying the plain-text rendering. Previously
+    # -- ``_Paragraph.text`` dropped the fallback text; the fix includes it. See
+    # -- issue #947.
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    tb = slide.shapes.add_textbox(914400, 914400, 4000000, 1000000)
+    paragraph = tb.text_frame.paragraphs[0]
+    paragraph.add_run().text = "Formula: "
+    paragraph.add_math_equation(
+        "<m:oMathPara xmlns:m="
+        '"http://schemas.openxmlformats.org/officeDocument/2006/math">'
+        "<m:oMath>"
+        "<m:r><m:t>E=mc</m:t></m:r>"
+        "<m:sSup><m:e><m:r><m:t></m:t></m:r></m:e>"
+        "<m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup>"
+        "</m:oMath>"
+        "</m:oMathPara>"
+    )
+    paragraph.add_run().text = " done."
+    context.paragraph = paragraph
+
+
 @given("a paragraph having line spacing of {setting}")
 def given_a_paragraph_having_line_spacing_of_setting(context, setting):
     paragraph_idx = {"no explicit setting": 0, "1.5 lines": 1, "20 pt": 2}[setting]
