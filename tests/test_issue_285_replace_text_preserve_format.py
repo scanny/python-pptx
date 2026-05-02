@@ -37,71 +37,15 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.util import Inches, Pt
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against test-module pollution of ``PartFactory.part_type_for``.
-
-    Mirrors the guard used by ``tests/test_issue_234_blip_fill.py`` and
-    ``tests/test_issue_705_shape_shadows.py``; needed because earlier
-    test modules overwrite slide-part registrations with mocks and do
-    not restore them.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue285ReplaceTextPreservesFormatting:
     """End-to-end regression for "change text without editing formatting"."""
 
-    def it_preserves_run_formatting_when_replacing_a_token_inside_one_run(
-        self, _restore_part_factory
-    ):
+    def it_preserves_run_formatting_when_replacing_a_token_inside_one_run(self):
         """The simple #285 case: the whole token lives in a single run.
 
         Author a textbox whose single run carries bold + italic + 24-pt
@@ -155,9 +99,7 @@ class DescribeIssue285ReplaceTextPreservesFormatting:
         assert reloaded.font.name == "Courier New"
         assert reloaded.font.color.rgb == RGBColor(0x11, 0x22, 0x33)
 
-    def it_preserves_origin_run_formatting_when_token_spans_two_runs(
-        self, _restore_part_factory
-    ):
+    def it_preserves_origin_run_formatting_when_token_spans_two_runs(self):
         """The PowerPoint-splits-a-token case #285 really cares about.
 
         PowerPoint frequently splits a token like ``{NAME}`` across two
@@ -219,9 +161,7 @@ class DescribeIssue285ReplaceTextPreservesFormatting:
         assert reloaded.font.size == Pt(32)
         assert reloaded.font.color.rgb == RGBColor(0xFF, 0x00, 0x00)
 
-    def it_preserves_trailing_run_formatting_when_match_ends_mid_run(
-        self, _restore_part_factory
-    ):
+    def it_preserves_trailing_run_formatting_when_match_ends_mid_run(self):
         """A match that ends partway through a run: the surviving suffix
         keeps that run's own formatting, independent of the origin run.
 

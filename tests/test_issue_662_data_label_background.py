@@ -34,68 +34,12 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.dml.chtfmt import ChartFormat
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from tests that mutate `PartFactory.part_type_for`.
-
-    `tests/opc/test_package.py::DescribePartFactory` overwrites
-    `PartFactory.part_type_for[CT.PML_SLIDE]` (and friends) with Mock objects
-    and does not restore them. Without this guard, running this module after
-    ``tests/opc/test_package.py`` causes ``prs.slides[0]`` to return a Mock
-    instead of a real Slide. Same pattern as the fixture in
-    ``tests/test_issue_560_data_label_colors.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
 
 
 def _build_chart_with_label_backgrounds():
@@ -141,9 +85,7 @@ def _reloaded_series(prs):
 class DescribeIssue662DataLabelBackground(object):
     """Verify #662 — data-label background fill — is resolved."""
 
-    def it_sets_a_solid_background_on_all_series_data_labels(
-        self, _restore_part_factory
-    ):
+    def it_sets_a_solid_background_on_all_series_data_labels(self):
         """Reporter's exact use case: one API call colors every label.
 
         ``series.data_labels.format.fill.solid()`` +
@@ -158,9 +100,7 @@ class DescribeIssue662DataLabelBackground(object):
         assert isinstance(fmt, ChartFormat)
         assert fmt.fill.fore_color.rgb == RGBColor(0xFF, 0xFF, 0x00)
 
-    def it_sets_a_solid_background_on_an_individual_data_label(
-        self, _restore_part_factory
-    ):
+    def it_sets_a_solid_background_on_an_individual_data_label(self):
         """Per-point variant: ``points[i].data_label.format.fill`` — shipped by #716."""
         prs = _build_chart_with_label_backgrounds()
         series = _reloaded_series(prs)
@@ -169,7 +109,7 @@ class DescribeIssue662DataLabelBackground(object):
         assert isinstance(fmt, ChartFormat)
         assert fmt.fill.fore_color.rgb == RGBColor(0xAA, 0xBB, 0xCC)
 
-    def it_writes_c_spPr_under_c_dLbls_in_schema_order(self, _restore_part_factory):
+    def it_writes_c_spPr_under_c_dLbls_in_schema_order(self):
         """#560 specifically registered ``c:spPr`` on ``CT_DLbls``.
 
         Pin the in-XML placement so a future refactor that drops that

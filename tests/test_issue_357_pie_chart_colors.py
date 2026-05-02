@@ -32,8 +32,6 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.chart.series import PieSeries
@@ -41,61 +39,6 @@ from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml.ns import qn
 from pptx.util import Inches
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from tests that mutate `PartFactory.part_type_for`.
-
-    `tests/opc/test_package.py::DescribePartFactory` overwrites
-    `PartFactory.part_type_for[CT.PML_SLIDE]` (and friends) with Mock objects
-    and does not restore them. Without this guard, running this module after
-    ``tests/opc/test_package.py`` causes ``prs.slides[0]`` to return a Mock
-    instead of a real Slide. Same pattern as the fixture in
-    ``tests/test_issue_560_data_label_colors.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
 
 SLICE_COLORS = (
     RGBColor(0xFF, 0x00, 0x00),
@@ -147,14 +90,14 @@ def _roundtrip(prs):
 class DescribeIssue357PieChartColors(object):
     """Per-slice color control on a pie chart, end-to-end."""
 
-    def it_accesses_points_on_a_pie_series(self, _restore_part_factory):
+    def it_accesses_points_on_a_pie_series(self):
         prs, chart_shape = _build_pie_chart()
         series = chart_shape.chart.plots[0].series[0]
 
         assert isinstance(series, PieSeries)
         assert len(series.points) == 4
 
-    def it_sets_fill_on_each_slice(self, _restore_part_factory):
+    def it_sets_fill_on_each_slice(self):
         """The core #357 request: paint each slice a different color."""
         prs, chart_shape = _build_pie_chart()
         series = chart_shape.chart.plots[0].series[0]
@@ -164,9 +107,7 @@ class DescribeIssue357PieChartColors(object):
         for i, expected in enumerate(SLICE_COLORS):
             assert series.points[i].format.fill.fore_color.rgb == expected
 
-    def it_round_trips_per_slice_fill_through_save_and_reload(
-        self, _restore_part_factory
-    ):
+    def it_round_trips_per_slice_fill_through_save_and_reload(self):
         prs, chart_shape = _build_pie_chart()
         series = chart_shape.chart.plots[0].series[0]
         _set_per_slice_colors(series)
@@ -178,9 +119,7 @@ class DescribeIssue357PieChartColors(object):
         for i, expected in enumerate(SLICE_COLORS):
             assert reloaded_series.points[i].format.fill.fore_color.rgb == expected
 
-    def it_emits_one_dPt_per_slice_with_matching_idx_and_spPr(
-        self, _restore_part_factory
-    ):
+    def it_emits_one_dPt_per_slice_with_matching_idx_and_spPr(self):
         """Per-slice color must land on a ``c:dPt[c:idx/@val=i]/c:spPr``."""
         prs, chart_shape = _build_pie_chart()
         series = chart_shape.chart.plots[0].series[0]
@@ -198,7 +137,7 @@ class DescribeIssue357PieChartColors(object):
             assert srgbClr is not None
             assert srgbClr.get("val") == str(SLICE_COLORS[i])
 
-    def it_also_supports_per_slice_line_color(self, _restore_part_factory):
+    def it_also_supports_per_slice_line_color(self):
         """``points[i].format.line`` is the same ChartFormat wrapper, pins border."""
         prs, chart_shape = _build_pie_chart()
         series = chart_shape.chart.plots[0].series[0]

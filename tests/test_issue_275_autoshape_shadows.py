@@ -45,63 +45,11 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.util import Emu, Inches
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from tests that mutate ``PartFactory.part_type_for``.
-
-    See the identical fixture in ``tests/test_issue_705_shape_shadows.py`` for
-    the rationale.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
 
 
 class DescribeIssue275AutoshapeShadows(object):
@@ -144,9 +92,7 @@ class DescribeIssue275AutoshapeShadows(object):
         # -- so the shape no longer inherits its shadow from the theme --
         assert shape.shadow.inherit is False
 
-    def it_round_trips_autoshape_shadow_through_save_and_reopen(
-        self, _restore_part_factory
-    ):
+    def it_round_trips_autoshape_shadow_through_save_and_reopen(self):
         """Full #275 flow: author an autoshape shadow, save the deck,
         reopen, and assert every knob survived the XML round-trip.
         """

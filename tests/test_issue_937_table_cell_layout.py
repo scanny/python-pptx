@@ -49,8 +49,6 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_FILL_TYPE
@@ -58,67 +56,10 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from tests that mutate `PartFactory.part_type_for`.
-
-    See the identical fixture in ``tests/test_issue_705_shape_shadows.py``,
-    ``tests/test_issue_1033_line_arrow.py``, and
-    ``tests/test_issue_560_data_label_colors.py`` for the rationale — other
-    regression suites mock out the part registry and, if their teardown
-    leaks, this suite's ``Presentation.save`` + reopen round-trips
-    encounter a ``Mock`` in place of ``SlidePart`` and explode with
-    ``AttributeError: Mock object has no attribute 'slide'``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue937TableCellLayout(object):
     """End-to-end regression coverage for issue #937."""
 
-    def it_arranges_tickers_side_by_side_via_adjacent_cells_with_hidden_borders(
-        self, _restore_part_factory
-    ):
+    def it_arranges_tickers_side_by_side_via_adjacent_cells_with_hidden_borders(self):
         # -- Recipe A: one sub-cell per ticker, merged header row above,
         # -- internal vertical borders hidden so the group reads as a
         # -- single visual cell. This is the approach the reporter's
@@ -198,9 +139,7 @@ class DescribeIssue937TableCellLayout(object):
                 == MSO_FILL_TYPE.BACKGROUND
             )
 
-    def it_arranges_tickers_side_by_side_via_multiple_runs_in_one_cell(
-        self, _restore_part_factory
-    ):
+    def it_arranges_tickers_side_by_side_via_multiple_runs_in_one_cell(self):
         # -- Recipe B: everything lives in a single cell; each ticker is
         # -- its own `a:r` run inside the cell's one `a:p`, so the runs
         # -- flow horizontally on one line. Per-run `.font` lets the
@@ -261,9 +200,7 @@ class DescribeIssue937TableCellLayout(object):
             r.font.color.rgb == RGBColor(0x33, 0x66, 0x99) for r in ticker_runs
         )
 
-    def it_shrinks_cell_padding_so_small_text_fits_in_narrow_cells(
-        self, _restore_part_factory
-    ):
+    def it_shrinks_cell_padding_so_small_text_fits_in_narrow_cells(self):
         # -- the reporter's secondary complaint was "the output is
         # -- currently overflowing the PowerPoint slide". The fix is
         # -- not a new API — it is the existing `_Cell.margin_*`

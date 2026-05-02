@@ -36,59 +36,7 @@ from pptx.util import Inches
 
 
 @pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from other tests that mutate `PartFactory.part_type_for`.
-
-    ``tests/opc/test_package.py::DescribePartFactory`` overwrites
-    ``PartFactory.part_type_for[CT.PML_SLIDE]`` with a Mock and does
-    not restore it. Without this guard, running this module after
-    ``tests/opc/test_package.py`` causes
-    ``Presentation().slides.add_slide(...)`` to return a Mock instead
-    of a real Slide. Mirrors the identical fixture in
-    ``tests/test_issue_400_animation_umbrella.py`` / ``tests/test_comments.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
-@pytest.fixture
-def slide_with_shape(_restore_part_factory):
+def slide_with_shape():
     """Return (prs, slide, shape) for a fresh blank slide with one auto-shape."""
     prs = Presentation()
     slide = prs.slides.add_slide(prs.slide_layouts[5])
@@ -97,7 +45,7 @@ def slide_with_shape(_restore_part_factory):
 
 
 @pytest.fixture
-def slide_with_two_shapes(_restore_part_factory):
+def slide_with_two_shapes():
     """Return (prs, slide, shape_a, shape_b) for two shapes on the same slide."""
     prs = Presentation()
     slide = prs.slides.add_slide(prs.slide_layouts[5])
