@@ -1339,6 +1339,10 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
 
     @property
     def xml(self):
+        # -- issue #287: emit the optional chart-level `c:bubble3D` mirror of
+        # -- the per-series `c:bubble3D` so older/strict OOXML parsers (notably
+        # -- LibreOffice prior to its own fix) pick up the plot sub-type and
+        # -- render the bubbles rather than drawing only the axes. --
         xml = (
             "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
             '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
@@ -1360,6 +1364,7 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
             '          <c:showPercent val="0"/>\n'
             '          <c:showBubbleSize val="0"/>\n'
             "        </c:dLbls>\n"
+            '        <c:bubble3D val="%s"/>\n'
             '        <c:bubbleScale val="100"/>\n'
             '        <c:showNegBubbles val="0"/>\n'
             '        <c:axId val="-2115720072"/>\n'
@@ -1417,7 +1422,7 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
             "    </a:p>\n"
             "  </c:txPr>\n"
             "</c:chartSpace>\n"
-        ) % self._ser_xml
+        ) % (self._ser_xml, self._bubble3D_val)
         return xml
 
     @property

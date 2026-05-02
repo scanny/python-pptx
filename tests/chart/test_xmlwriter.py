@@ -235,6 +235,29 @@ class Describe_BubbleChartXmlWriter(object):
         xml_writer, expected_xml = xml_fixture
         assert xml_writer.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        ("enum_member", "expected_val"),
+        [("BUBBLE", "0"), ("BUBBLE_THREE_D_EFFECT", "1")],
+    )
+    def it_writes_chart_level_bubble3D_for_LibreOffice_issue_287(self, enum_member, expected_val):
+        # -- issue #287: LibreOffice (and other strict OOXML readers) fail to
+        # -- render the bubbles when the `c:bubbleChart` element omits the
+        # -- optional `c:bubble3D` child that specifies the plot sub-type. The
+        # -- ECMA-376 schema places it between `c:dLbls` and `c:bubbleScale`,
+        # -- and PowerPoint treats the chart-level value as the default for
+        # -- every series. Emitting it makes the per-series and chart-level
+        # -- values agree and restores rendering in affected viewers. --
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_bubble_chart_data(ser_count=1, point_count=3)
+
+        xml = _BubbleChartXmlWriter(chart_type, chart_data).xml
+
+        assert (
+            "        </c:dLbls>\n"
+            '        <c:bubble3D val="%s"/>\n'
+            '        <c:bubbleScale val="100"/>\n' % expected_val
+        ) in xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

@@ -156,6 +156,7 @@
           <c:showPercent val="0"/>
           <c:showBubbleSize val="0"/>
         </c:dLbls>
+        <c:bubble3D val="1"/>
         <c:bubbleScale val="100"/>
         <c:showNegBubbles val="0"/>
         <c:axId val="-2115720072"/>
