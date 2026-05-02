@@ -1296,6 +1296,52 @@ class Describe_Paragraph(object):
         paragraph.clear()
         assert paragraph._element.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "p_idx", "expected_cxml"),
+        [
+            # -- first of multiple paragraphs removed, others preserved --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
+                0,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"bar")',
+            ),
+            # -- middle paragraph removed --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"a",a:p/a:r/a:t"b",a:p/a:r/a:t"c")',
+                1,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"a",a:p/a:r/a:t"c")',
+            ),
+            # -- last paragraph of multiple removed --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")',
+                1,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"foo")',
+            ),
+            # -- sole paragraph removed; empty <a:p> added to preserve invariant --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"only")',
+                0,
+                "p:txBody/(a:bodyPr,a:p)",
+            ),
+            # -- a:txBody form (table-cell) is also handled --
+            (
+                'a:txBody/(a:bodyPr,a:p/a:r/a:t"only")',
+                0,
+                "a:txBody/(a:bodyPr,a:p)",
+            ),
+        ],
+    )
+    def it_can_delete_itself_from_its_text_frame(
+        self, txBody_cxml: str, p_idx: int, expected_cxml: str
+    ):
+        txBody = element(txBody_cxml)
+        p = txBody.p_lst[p_idx]
+        paragraph = _Paragraph(p, None)
+
+        paragraph.delete()
+
+        assert txBody.xml == xml(expected_cxml)
+
     def it_provides_access_to_the_default_paragraph_font(self, paragraph, Font_):
         font = paragraph.font
         Font_.assert_called_once_with(paragraph._defRPr)
@@ -2142,6 +2188,46 @@ class Describe_Run(object):
         run = _Run(element(r_cxml), None)
         run.text = new_value
         assert run._r.xml == xml(expected_r_cxml)
+
+    @pytest.mark.parametrize(
+        ("p_cxml", "r_idx", "expected_cxml"),
+        [
+            # -- first of two runs removed; sibling run preserved --
+            (
+                'a:p/(a:r/a:t"foo",a:r/a:t"bar")',
+                0,
+                'a:p/a:r/a:t"bar"',
+            ),
+            # -- second of two runs removed --
+            (
+                'a:p/(a:r/a:t"foo",a:r/a:t"bar")',
+                1,
+                'a:p/a:r/a:t"foo"',
+            ),
+            # -- sole run removed; paragraph remains (possibly empty of runs) --
+            (
+                'a:p/a:r/a:t"only"',
+                0,
+                "a:p",
+            ),
+            # -- pPr and line-break siblings are preserved --
+            (
+                'a:p/(a:pPr,a:r/a:t"foo",a:br,a:r/a:t"bar")',
+                0,
+                'a:p/(a:pPr,a:br,a:r/a:t"bar")',
+            ),
+        ],
+    )
+    def it_can_delete_itself_from_its_paragraph(
+        self, p_cxml: str, r_idx: int, expected_cxml: str
+    ):
+        p = element(p_cxml)
+        r = p.r_lst[r_idx]
+        run = _Run(r, None)
+
+        run.delete()
+
+        assert p.xml == xml(expected_cxml)
 
     # fixtures ---------------------------------------------
 

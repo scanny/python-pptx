@@ -1116,6 +1116,25 @@ class _Paragraph(Subshape):
             self._element.remove(elm)
         return self
 
+    def delete(self) -> None:
+        """Remove this paragraph from its containing text frame.
+
+        The paragraph's `a:p` element is removed from its parent `p:txBody` (or
+        `a:txBody` in the case of a table cell). PowerPoint requires every text
+        frame to contain at least one `a:p` child, so when this paragraph is the
+        last one in the text frame a fresh empty `a:p` is added in its place to
+        preserve that invariant. Subsequent use of this paragraph object is
+        undefined; most operations will raise an exception. See issue #144.
+        """
+        txBody = self._p.getparent()
+        if txBody is None:
+            return
+        txBody.remove(self._p)
+        # -- PowerPoint requires a text frame to contain at least one `a:p`;
+        # -- add a fresh empty paragraph when the deletion emptied the body.
+        if not txBody.findall(qn("a:p")):
+            txBody.add_p()  # pyright: ignore[reportAttributeAccessIssue]
+
     @property
     def font(self) -> Font:
         """|Font| object containing default character properties for the runs in this paragraph.
@@ -1289,6 +1308,20 @@ class _Run(Subshape):
     def __init__(self, r: CT_RegularTextRun, parent: ProvidesPart):
         super(_Run, self).__init__(parent)
         self._r = r
+
+    def delete(self) -> None:
+        """Remove this run from its containing paragraph.
+
+        The run's `a:r` element is removed from its parent `a:p`. Other content
+        (line-breaks, fields, sibling runs) is preserved. Paragraph-level
+        properties (``a:pPr``, ``a:endParaRPr``) are unaffected. Subsequent use
+        of this run object is undefined; most operations will raise an
+        exception. See issue #144.
+        """
+        p = self._r.getparent()
+        if p is None:
+            return
+        p.remove(self._r)
 
     @property
     def font(self):
