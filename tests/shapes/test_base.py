@@ -747,12 +747,24 @@ class DescribeBaseShape(object):
         with pytest.raises(NotImplementedError, match="simple shapes"):
             gf.duplicate()
 
-    def it_raises_when_duplicating_a_group_shape(self):
+    def it_can_duplicate_an_empty_group_shape(self):
+        # -- #1085: duplicating a group is now supported; duplicating an empty --
+        # -- group returns a fresh GroupShape with a new id and unique name.  --
+        from pptx.shapes.group import GroupShape
+
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
         gs = slide.shapes.add_group_shape()
-        with pytest.raises(NotImplementedError, match="simple shapes"):
-            gs.duplicate()
+        orig_count = len(slide.shapes)
+
+        dup = gs.duplicate()
+
+        assert isinstance(dup, GroupShape)
+        assert len(slide.shapes) == orig_count + 1
+        assert dup.shape_id != gs.shape_id
+        assert dup.name != gs.name
+        # -- dup is the last shape in z-order --
+        assert slide.shapes[-1]._element is dup._element
 
     def it_raises_when_duplicating_a_placeholder(self):
         prs = Presentation()
