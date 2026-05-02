@@ -7,6 +7,7 @@ presentations to and from a .pptx file.
 from __future__ import annotations
 
 import collections
+import copy
 from typing import IO, TYPE_CHECKING, DefaultDict, Iterator, Mapping, Set, cast
 
 from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
@@ -16,6 +17,7 @@ from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
 from pptx.opc.serialized import PackageReader, PackageWriter
 from pptx.opc.shared import CaseInsensitiveDict
 from pptx.oxml import parse_xml
+from pptx.oxml.ns import qn
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
@@ -25,6 +27,18 @@ if TYPE_CHECKING:
     from pptx.oxml.xmlchemy import BaseOxmlElement
     from pptx.package import Package
     from pptx.parts.presentation import PresentationPart
+
+
+# -- rId-bearing attributes recognized by :class:`PartRelationshipCloner`. These correspond
+# -- to the three relationship-reference attribute names used throughout OOXML: `r:id`
+# -- (standard target reference, e.g. on `p:sldId`, `c:chart`, `a:hlinkClick`); `r:embed`
+# -- (embedded-image reference on `a:blip`); and `r:link` (linked resource reference, e.g.
+# -- on `a:videoFile`, `p:audioFile`, or `a:blip` for a linked image).
+_R_ID_ATTRS: tuple[str, ...] = (
+    qn("r:id"),
+    qn("r:embed"),
+    qn("r:link"),
+)
 
 
 class _RelatableMixin:
@@ -372,6 +386,28 @@ class Part(_RelatableMixin):
         if callable(getattr(file, "seek")):
             file.seek(0)
         return file.read()
+
+    def _new_rId(self) -> str:
+        """Return str rId that is not yet used in this part's relationships.
+
+        This is a thin, package-public helper around the same logic used by
+        :meth:`_Relationships.get_or_add`. Primarily consumed by
+        :class:`PartRelationshipCloner` to pre-compute rId remappings before relationships
+        are added.
+        """
+        return self._rels._next_rId  # pyright: ignore[reportPrivateUsage]
+
+    def _next_partname(self, tmpl: str) -> PackURI:
+        """Return |PackURI| next available partname matching `tmpl` in the package.
+
+        `tmpl` is a printf (%)-style template string containing a single `%d` replacement,
+        e.g. `"/ppt/slides/slide%d.xml"`. The returned partname is guaranteed not to
+        collide with any part already present in the package.
+
+        A convenience wrapper over :meth:`OpcPackage.next_partname` so callers that only
+        hold a reference to a `Part` don't have to reach back into the package.
+        """
+        return self._package.next_partname(tmpl)
 
     @lazyproperty
     def _rels(self) -> _Relationships:
@@ -760,3 +796,188 @@ class _Relationship:
             return self._target
 
         return self.target_partname.relative_ref(self._base_uri)
+
+
+class PartRelationshipCloner:
+    """Clones an XML element plus every Part relationship it references.
+
+    Given a `src_element` belonging to `src_part` and a `tgt_part` to receive the clone,
+    walks every `r:id` / `r:embed` / `r:link` attribute in the source element (and its
+    descendants), clones each referenced part into the target package (reusing an existing
+    part when the source already belongs to the target package; materialising a
+    non-colliding clone otherwise), adds a corresponding relationship on `tgt_part`, and
+    rewrites the rId values in the returned cloned element so they match the new
+    relationships on `tgt_part`.
+
+    Intended use-cases:
+
+    * Slide duplication (copy a slide within, or across, a presentation).
+    * Shape duplication (copy a shape from one slide to another; brings its picture /
+      chart / OLE / media parts along).
+    * Chart-copy (clone a chart plus its embedded workbook).
+    * Any other operation that needs to move "an XML element plus every file-backed thing
+      it points at" between OPC parts.
+
+    External (`TargetMode="External"`) relationships such as hyperlinks are cloned as
+    plain string references — no new part is materialised.
+
+    Note: this helper deliberately does *not* recurse into the relationships *of* a cloned
+    target part (e.g. a chart part that points at an embedded xlsx). Cloning those "deep"
+    relationships is the responsibility of a content-aware helper layered on top of this
+    one. Keeping the scope narrow keeps the behaviour predictable and bounded.
+    """
+
+    def __init__(
+        self,
+        src_part: Part,
+        tgt_part: Part,
+        src_element: BaseOxmlElement,
+    ):
+        self._src_part = src_part
+        self._tgt_part = tgt_part
+        self._src_element = src_element
+
+    @classmethod
+    def clone(
+        cls,
+        src_part: Part,
+        tgt_part: Part,
+        src_element: BaseOxmlElement,
+    ) -> BaseOxmlElement:
+        """Return a deep-copy of `src_element` with its rIds remapped against `tgt_part`.
+
+        Every Part referenced from `src_element` via `r:id`, `r:embed`, or `r:link` is
+        ensured to exist in `tgt_part`'s package (cloned if necessary), a relationship is
+        established from `tgt_part` to each such part, and the rId values in the returned
+        element are rewritten to the newly-assigned rIds. `src_element` itself is not
+        modified.
+        """
+        return cls(src_part, tgt_part, src_element)._clone()
+
+    def _clone(self) -> BaseOxmlElement:
+        """Implementation of :meth:`clone`."""
+        # -- deep-copy up-front so the caller's source element is never mutated; all rId
+        # -- rewrites happen on the clone --
+        new_element: BaseOxmlElement = copy.deepcopy(self._src_element)
+
+        # -- build a {old_rId -> new_rId} mapping once, then apply it to every rId-bearing
+        # -- attribute in the clone. Each distinct old rId produces at most one target
+        # -- relationship (and at most one cloned part). --
+        rId_map = self._build_rId_map(new_element)
+        if rId_map:
+            self._remap_rIds(new_element, rId_map)
+        return new_element
+
+    # -- helpers ---------------------------------------------
+
+    def _build_rId_map(self, clone: BaseOxmlElement) -> dict[str, str]:
+        """Return `{old_rId: new_rId}` mapping for every distinct rId in `clone`."""
+        rId_map: dict[str, str] = {}
+        for old_rId in self._iter_rIds(clone):
+            if old_rId in rId_map:
+                continue
+            rId_map[old_rId] = self._clone_relationship(old_rId)
+        return rId_map
+
+    def _iter_rId_bearing_elements(self, element: BaseOxmlElement) -> Iterator[BaseOxmlElement]:
+        """Generate every element in `element`'s subtree (including itself) that carries an rId.
+
+        Preserves document order so callers can rely on stable rId allocation when the
+        mapping is built.
+        """
+        # -- the "descendant-or-self" axis picks up `element` and every descendant --
+        xpath_expr = "descendant-or-self::*[@r:id or @r:embed or @r:link]"
+        results = cast("list[BaseOxmlElement]", element.xpath(xpath_expr))
+        yield from results
+
+    def _clone_relationship(self, old_rId: str) -> str:
+        """Return new rId on `tgt_part` for the relationship keyed by `old_rId` on `src_part`.
+
+        Handles external relationships (e.g. hyperlinks) and internal relationships
+        (referenced parts) uniformly. The returned rId is freshly allocated on the target
+        part's relationship collection.
+        """
+        src_rel = self._src_part.rels[old_rId]
+
+        if src_rel.is_external:
+            # -- external references (hyperlinks, linked media) carry a URI rather than a
+            # -- part; duplicate the URI verbatim. `relate_to` returns an existing rId if
+            # -- the same URI is already linked, which is the desired behaviour. --
+            return self._tgt_part.relate_to(src_rel.target_ref, src_rel.reltype, is_external=True)
+
+        # -- internal: make sure the target package has a Part with the same content --
+        src_target_part = src_rel.target_part
+        tgt_target_part = self._get_or_clone_part(src_target_part)
+        return self._tgt_part.relate_to(tgt_target_part, src_rel.reltype)
+
+    def _get_or_clone_part(self, src_target_part: Part) -> Part:
+        """Return Part in tgt package that mirrors `src_target_part`.
+
+        If the source part already belongs to the target package (same-package clone),
+        reuse it directly — that's both safe and efficient. Otherwise, materialise a
+        shallow duplicate: a new Part with a non-colliding partname in the target
+        package, the same content-type, and the source part's binary blob.
+
+        "Shallow" here means relationships *within* `src_target_part` are *not* recursed
+        into. Callers that need deep graph cloning (e.g. a chart part that references an
+        embedded xlsx) must compose that logic on top of this helper.
+        """
+        tgt_package = self._tgt_part.package
+        if src_target_part.package is tgt_package:
+            return src_target_part
+
+        # -- derive a non-colliding partname in the target package using the source
+        # -- part's partname template (e.g. "/ppt/media/image%d.png"). We can't reuse the
+        # -- literal source partname because the target package may already have a part at
+        # -- that URI. --
+        partname_tmpl = _partname_template_for(src_target_part.partname)
+        new_partname = tgt_package.next_partname(partname_tmpl)
+        blob = src_target_part.blob
+        cloned = type(src_target_part)(
+            new_partname, src_target_part.content_type, tgt_package, blob
+        )
+        return cloned
+
+    def _iter_rIds(self, element: BaseOxmlElement) -> Iterator[str]:
+        """Generate rId values found in `element` and its descendants, in document order."""
+        for el in self._iter_rId_bearing_elements(element):
+            for attr in _R_ID_ATTRS:
+                value = el.get(attr)
+                if value is not None:
+                    yield value
+
+    def _remap_rIds(self, element: BaseOxmlElement, rId_map: Mapping[str, str]) -> None:
+        """Rewrite every rId attribute on `element` (or descendants) using `rId_map`."""
+        for el in self._iter_rId_bearing_elements(element):
+            for attr in _R_ID_ATTRS:
+                value = el.get(attr)
+                if value is None:
+                    continue
+                new_value = rId_map.get(value)
+                if new_value is None:  # pragma: no cover -- defensive: unknown rId
+                    continue
+                el.set(attr, new_value)
+
+
+def _partname_template_for(partname: PackURI) -> str:
+    """Return a printf-style template derived from `partname`.
+
+    The returned template contains a single `%d` replacement in the trailing numeric
+    position. For `/ppt/media/image3.png` this returns `/ppt/media/image%d.png`. For a
+    partname with no numeric suffix (e.g. `/ppt/theme/theme.xml`) the template is
+    returned with `%d` inserted before the extension: `/ppt/theme/theme%d.xml`.
+    """
+    s = str(partname)
+    # -- split off extension (everything after the last '.') --
+    dot = s.rfind(".")
+    if dot == -1:
+        stem, ext = s, ""
+    else:
+        stem, ext = s[:dot], s[dot:]
+
+    # -- strip trailing digits from stem to find the numeric suffix position --
+    i = len(stem)
+    while i > 0 and stem[i - 1].isdigit():
+        i -= 1
+    prefix = stem[:i]
+    return f"{prefix}%d{ext}"

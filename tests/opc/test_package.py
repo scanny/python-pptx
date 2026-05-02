@@ -19,15 +19,18 @@ from pptx.opc.package import (
     OpcPackage,
     Part,
     PartFactory,
+    PartRelationshipCloner,
     XmlPart,
     _ContentTypeMap,
     _PackageLoader,
+    _partname_template_for,
     _RelatableMixin,
     _Relationship,
     _Relationships,
 )
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 from pptx.oxml import parse_xml
+from pptx.oxml.ns import qn
 from pptx.parts.presentation import PresentationPart
 
 from ..unitutil.cxml import element
@@ -1029,3 +1032,236 @@ class Describe_Relationship:
     @pytest.fixture
     def part_(self, request):
         return instance_mock(request, Part)
+
+
+class DescribePartRelationshipCloner:
+    """Unit-test suite for `pptx.opc.package.PartRelationshipCloner`."""
+
+    def it_returns_a_deep_copy_when_the_source_has_no_rIds(self, request):
+        src_part_ = instance_mock(request, Part)
+        tgt_part_ = instance_mock(request, Part)
+        src_element = element("p:sld/p:cSld")
+
+        new_element = PartRelationshipCloner.clone(src_part_, tgt_part_, src_element)
+
+        # -- the returned element is a distinct object ... --
+        assert new_element is not src_element
+        # -- ... but has the same tag and children --
+        assert new_element.tag == src_element.tag
+        assert len(new_element) == len(src_element) == 1
+        # -- no relationships were added because none were needed --
+        tgt_part_.relate_to.assert_not_called()
+
+    def it_clones_internal_relationships_and_remaps_rIds(self, request):
+        # -- build a source element that references two rIds --
+        src_element = element(
+            "p:pic/(p:blipFill/a:blip{r:embed=rId3},p:nvPicPr/p:nvPr/a:hlinkClick{r:id=rId4})"
+        )
+
+        src_part_ = instance_mock(request, Part)
+        tgt_part_ = instance_mock(request, Part)
+
+        # -- src_part.rels[rId3] is an internal rel to an image part --
+        src_image_part_ = instance_mock(
+            request,
+            Part,
+            partname=PackURI("/ppt/media/image2.png"),
+            content_type=CT.PNG,
+            blob=b"image-bytes",
+        )
+        tgt_package_ = instance_mock(request, OpcPackage)
+        tgt_package_.next_partname.return_value = PackURI("/ppt/media/image7.png")
+
+        # -- src_image_part is in a different package --
+        other_package_ = instance_mock(request, OpcPackage)
+        src_image_part_.package = other_package_
+        tgt_part_.package = tgt_package_
+
+        rel_image_ = instance_mock(request, _Relationship)
+        rel_image_.is_external = False
+        rel_image_.target_part = src_image_part_
+        rel_image_.reltype = RT.IMAGE
+
+        # -- src_part.rels[rId4] is an external hyperlink --
+        rel_hlink_ = instance_mock(request, _Relationship)
+        rel_hlink_.is_external = True
+        rel_hlink_.target_ref = "http://example.com/"
+        rel_hlink_.reltype = RT.HYPERLINK
+
+        src_rels_ = instance_mock(request, _Relationships)
+        src_rels_.__getitem__ = Mock(
+            side_effect=lambda k: {"rId3": rel_image_, "rId4": rel_hlink_}[k]
+        )
+        src_part_.rels = src_rels_
+
+        # -- tgt_part.relate_to returns fresh rIds --
+        tgt_part_.relate_to.side_effect = ["rId8", "rId9"]
+
+        # -- Patch `type(src_image_part_)` to return the Part ctor. instance_mock
+        # --     returns a MagicMock, so `type(src_image_part_)` would return MagicMock; to
+        # --     prevent actual part construction, patch `_get_or_clone_part` directly. --
+        cloned_image_part_ = instance_mock(request, Part)
+        method_mock(
+            request,
+            PartRelationshipCloner,
+            "_get_or_clone_part",
+            return_value=cloned_image_part_,
+        )
+
+        new_element = PartRelationshipCloner.clone(src_part_, tgt_part_, src_element)
+
+        # -- two relate_to calls, one per rId, in document order --
+        assert tgt_part_.relate_to.call_args_list == [
+            call(cloned_image_part_, RT.IMAGE),
+            call("http://example.com/", RT.HYPERLINK, is_external=True),
+        ]
+        # -- rIds on the returned element are rewritten --
+        blip = new_element.find(qn("p:blipFill") + "/" + qn("a:blip"))
+        assert blip is not None
+        assert blip.get(qn("r:embed")) == "rId8"
+        hlink = new_element.find(qn("p:nvPicPr") + "/" + qn("p:nvPr") + "/" + qn("a:hlinkClick"))
+        assert hlink is not None
+        assert hlink.get(qn("r:id")) == "rId9"
+
+    def it_de_duplicates_repeated_rIds_into_a_single_relationship(self, request):
+        # -- two references to the same rId → one relate_to call, both attrs rewritten --
+        src_element = element(
+            "p:sld/(p:cSld/p:spTree/p:pic/p:blipFill/a:blip{r:embed=rId5},"
+            "p:clrMapOvr/a:blip{r:embed=rId5})"
+        )
+
+        src_part_ = instance_mock(request, Part)
+        tgt_part_ = instance_mock(request, Part)
+
+        rel_ = instance_mock(request, _Relationship)
+        rel_.is_external = False
+        target_part_ = instance_mock(request, Part)
+        rel_.target_part = target_part_
+        rel_.reltype = RT.IMAGE
+
+        src_rels_ = instance_mock(request, _Relationships)
+        src_rels_.__getitem__ = Mock(return_value=rel_)
+        src_part_.rels = src_rels_
+
+        method_mock(
+            request, PartRelationshipCloner, "_get_or_clone_part", return_value=target_part_
+        )
+        tgt_part_.relate_to.return_value = "rId42"
+
+        new_element = PartRelationshipCloner.clone(src_part_, tgt_part_, src_element)
+
+        # -- single relate_to call despite two references to rId5 --
+        tgt_part_.relate_to.assert_called_once_with(target_part_, RT.IMAGE)
+        # -- both attributes were remapped --
+        blip_values = new_element.xpath(".//@r:embed")
+        assert blip_values == ["rId42", "rId42"]
+
+    def it_reuses_the_source_part_when_same_package(self, request):
+        src_element = element("p:sld/p:cSld/p:spTree/p:pic/p:blipFill/a:blip{r:embed=rId9}")
+
+        shared_package_ = instance_mock(request, OpcPackage)
+        src_part_ = instance_mock(request, Part)
+        src_part_.package = shared_package_
+        tgt_part_ = instance_mock(request, Part)
+        tgt_part_.package = shared_package_
+
+        src_image_part_ = instance_mock(request, Part)
+        src_image_part_.package = shared_package_
+
+        rel_ = instance_mock(request, _Relationship)
+        rel_.is_external = False
+        rel_.target_part = src_image_part_
+        rel_.reltype = RT.IMAGE
+
+        src_rels_ = instance_mock(request, _Relationships)
+        src_rels_.__getitem__ = Mock(return_value=rel_)
+        src_part_.rels = src_rels_
+
+        tgt_part_.relate_to.return_value = "rId12"
+
+        new_element = PartRelationshipCloner.clone(src_part_, tgt_part_, src_element)
+
+        # -- the existing image part was reused, not cloned --
+        tgt_part_.relate_to.assert_called_once_with(src_image_part_, RT.IMAGE)
+        blip = new_element.find(
+            qn("p:cSld")
+            + "/"
+            + qn("p:spTree")
+            + "/"
+            + qn("p:pic")
+            + "/"
+            + qn("p:blipFill")
+            + "/"
+            + qn("a:blip")
+        )
+        assert blip is not None
+        assert blip.get(qn("r:embed")) == "rId12"
+
+    def it_materializes_a_fresh_part_when_cloning_across_packages(self, request):
+        """Using real Part instances verifies the construction path end-to-end."""
+        # -- a source package holds an image part with known blob and partname --
+        src_package_ = instance_mock(request, OpcPackage)
+        src_image_part = Part(PackURI("/ppt/media/image4.png"), CT.PNG, src_package_, b"png-bytes")
+
+        # -- a separate target package generates a collision-free partname --
+        tgt_package_ = instance_mock(request, OpcPackage)
+        tgt_package_.next_partname.return_value = PackURI("/ppt/media/image11.png")
+        tgt_part_ = instance_mock(request, Part, package=tgt_package_)
+        src_part_ = instance_mock(request, Part)
+
+        cloner = PartRelationshipCloner(src_part_, tgt_part_, element("p:sld"))
+
+        # -- act: call the private helper directly --
+        new_part = cloner._get_or_clone_part(src_image_part)
+
+        # -- assert: a fresh Part was created with the expected attrs --
+        assert new_part is not src_image_part
+        assert isinstance(new_part, Part)
+        assert new_part.partname == PackURI("/ppt/media/image11.png")
+        assert new_part.content_type == CT.PNG
+        assert new_part.blob == b"png-bytes"
+        tgt_package_.next_partname.assert_called_once_with("/ppt/media/image%d.png")
+
+
+class Describe_partname_template_for:
+    """Unit-test suite for :func:`pptx.opc.package._partname_template_for`."""
+
+    @pytest.mark.parametrize(
+        ("partname", "expected"),
+        [
+            ("/ppt/media/image3.png", "/ppt/media/image%d.png"),
+            ("/ppt/slides/slide17.xml", "/ppt/slides/slide%d.xml"),
+            ("/ppt/embeddings/oleObject1.bin", "/ppt/embeddings/oleObject%d.bin"),
+            # -- no numeric suffix: %d inserted before extension --
+            ("/ppt/theme/theme.xml", "/ppt/theme/theme%d.xml"),
+            # -- no extension: %d appended --
+            ("/foo/bar", "/foo/bar%d"),
+            # -- no extension with trailing digits --
+            ("/foo/bar42", "/foo/bar%d"),
+        ],
+    )
+    def it_derives_a_printf_template_from_a_partname(self, partname, expected):
+        assert _partname_template_for(PackURI(partname)) == expected
+
+
+class DescribePart_rId_helpers:
+    """Unit tests for the new `Part._new_rId()` and `Part._next_partname()` helpers."""
+
+    def it_proxies_next_rId_on_its_relationships(self, request):
+        relationships_ = instance_mock(request, _Relationships)
+        # -- `_next_rId` is a property on `_Relationships`; patch it explicitly --
+        type(relationships_)._next_rId = "rId99"
+        property_mock(request, Part, "_rels", return_value=relationships_)
+        part = Part(None, None, None)
+
+        assert part._new_rId() == "rId99"
+
+    def it_proxies_next_partname_on_the_package(self, request):
+        package_ = instance_mock(request, OpcPackage)
+        package_.next_partname.return_value = PackURI("/ppt/media/image5.png")
+        part = Part(None, None, package_)
+
+        partname = part._next_partname("/ppt/media/image%d.png")
+
+        package_.next_partname.assert_called_once_with("/ppt/media/image%d.png")
+        assert partname == PackURI("/ppt/media/image5.png")
