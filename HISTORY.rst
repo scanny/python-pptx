@@ -21,6 +21,28 @@ Unreleased
 
 - verify: #720 resolved by #337 EA/CS font slots
 
+- verify: #838 (bounding boxes wrongly parsed for shapes inside GroupShape)
+  resolved by #925's ``effective_*`` properties on :class:`.BaseShape`. The
+  #838 reporter's raw ``shape.left`` / ``shape.top`` / ``shape.width`` /
+  ``shape.height`` returned "wrong-looking" values for children of a resized
+  group because those values are expressed in the enclosing group's child
+  coordinate system (``a:chOff``/``a:chExt``) — when PowerPoint resizes the
+  group it diverges ``a:ext`` from ``a:chExt`` and leaves children's raw
+  offsets unchanged. #925 (``fix/issue-925-group-shape-transform``, Wave 3)
+  added :attr:`.BaseShape.effective_left` / :attr:`~.BaseShape.effective_top`
+  / :attr:`~.BaseShape.effective_width` / :attr:`~.BaseShape.effective_height`
+  which walk every enclosing ``p:grpSp`` ancestor and apply its
+  ``a:chOff``/``a:chExt`` → ``a:off``/``a:ext`` linear transform so the
+  returned values are the slide-relative geometry the shape renders at. The
+  pre-existing raw properties are unchanged for backwards compatibility.
+  Adds a regression suite ``DescribeIssue838GroupChildBoundingBox`` under
+  ``tests/test_issue_838_group_bbox_verify.py`` that authors a two-child
+  group, simulates a PowerPoint 2:1 horizontal resize by diverging the
+  group's ``a:ext`` from its ``a:chExt``, pins both the raw (group-local)
+  and effective (slide-relative) values on each child, exercises
+  compositing through nested groups, and round-trips the geometry through
+  ``Presentation.save`` + reopen.
+
 - verify: #1106 entrance/exit animations resolved by #102 set_animation API
 
 - docs: #963 "save slide as image" — close as out-of-scope (python-pptx
