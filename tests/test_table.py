@@ -211,6 +211,13 @@ class Describe_Cell(object):
         cell = fill_fixture
         assert isinstance(cell.fill, FillFormat)
 
+    def it_knows_its_row_and_col_idx_in_the_table(self, row_col_idx_fixture):
+        tc, expected_row_idx, expected_col_idx = row_col_idx_fixture
+        cell = _Cell(tc, None)
+
+        assert cell.row_idx == expected_row_idx
+        assert cell.col_idx == expected_col_idx
+
     def it_knows_whether_it_is_merge_origin_cell(self, origin_fixture):
         tc, expected_value = origin_fixture
         cell = _Cell(tc, None)
@@ -424,6 +431,23 @@ class Describe_Cell(object):
         cell = _Cell(element("a:tc"), None)
         val_of_invalid_type = "foobar"
         return cell, margin_prop_name, val_of_invalid_type
+
+    @pytest.fixture(
+        params=[
+            # (expected_row_idx, expected_col_idx, tc_idx) - 2 rows x 3 columns
+            (0, 0, 0),
+            (0, 1, 1),
+            (0, 2, 2),
+            (1, 0, 3),
+            (1, 1, 4),
+            (1, 2, 5),
+        ]
+    )
+    def row_col_idx_fixture(self, request):
+        expected_row_idx, expected_col_idx, tc_idx = request.param
+        tbl_cxml = "a:tbl/(a:tr/(a:tc,a:tc,a:tc),a:tr/(a:tc,a:tc,a:tc))"
+        tcs = element(tbl_cxml).xpath(".//a:tc")
+        return tcs[tc_idx], expected_row_idx, expected_col_idx
 
     @pytest.fixture(
         params=[

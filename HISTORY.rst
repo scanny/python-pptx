@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #849 expose `_Cell.row_idx` and `col_idx`
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
