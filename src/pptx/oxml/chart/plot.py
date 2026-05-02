@@ -342,4 +342,5 @@ class CT_ScatterChart(BaseChartElement):
     )
     varyColors = ZeroOrOne("c:varyColors", successors=_tag_seq[2:])
     ser = ZeroOrMore("c:ser", successors=_tag_seq[3:])
+    dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[4:])
     del _tag_seq

@@ -8,7 +8,7 @@ from xml.sax.saxutils import escape
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.shapes.shared import BaseShapeElement
-from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne
+from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 if TYPE_CHECKING:
     from pptx.oxml.shapes.shared import CT_ShapeProperties
@@ -22,16 +22,20 @@ class CT_Picture(BaseShapeElement):
     """
 
     nvPicPr = OneAndOnlyOne("p:nvPicPr")
-    blipFill = OneAndOnlyOne("p:blipFill")
+    blipFill = ZeroOrOne("p:blipFill", successors=("p:spPr",))
     spPr: CT_ShapeProperties = OneAndOnlyOne("p:spPr")  # pyright: ignore[reportAssignmentType]
 
     @property
     def blip_rId(self) -> str | None:
         """Value of `p:blipFill/a:blip/@r:embed`.
 
-        Returns |None| if not present.
+        Returns |None| if not present — including the malformed-but-observed
+        case where the ``p:blipFill`` element itself is missing (issue #434).
         """
-        blip = self.blipFill.blip
+        blipFill = self.blipFill
+        if blipFill is None:
+            return None
+        blip = blipFill.blip
         if blip is not None and blip.rEmbed is not None:
             return blip.rEmbed
         return None
@@ -82,7 +86,7 @@ class CT_Picture(BaseShapeElement):
         *image_size* will stretch to exactly fit *view_size* when its aspect
         ratio is preserved.
         """
-        self.blipFill.crop(self._fill_cropping(image_size, view_size))
+        self.get_or_add_blipFill().crop(self._fill_cropping(image_size, view_size))
 
     def get_or_add_ln(self):
         """
@@ -167,7 +171,7 @@ class CT_Picture(BaseShapeElement):
 
     @srcRect_b.setter
     def srcRect_b(self, value):
-        self.blipFill.get_or_add_srcRect().b = value
+        self.get_or_add_blipFill().get_or_add_srcRect().b = value
 
     @property
     def srcRect_l(self):
@@ -176,7 +180,7 @@ class CT_Picture(BaseShapeElement):
 
     @srcRect_l.setter
     def srcRect_l(self, value):
-        self.blipFill.get_or_add_srcRect().l = value  # noqa
+        self.get_or_add_blipFill().get_or_add_srcRect().l = value  # noqa
 
     @property
     def srcRect_r(self):
@@ -185,7 +189,7 @@ class CT_Picture(BaseShapeElement):
 
     @srcRect_r.setter
     def srcRect_r(self, value):
-        self.blipFill.get_or_add_srcRect().r = value
+        self.get_or_add_blipFill().get_or_add_srcRect().r = value
 
     @property
     def srcRect_t(self):
@@ -194,7 +198,7 @@ class CT_Picture(BaseShapeElement):
 
     @srcRect_t.setter
     def srcRect_t(self, value):
-        self.blipFill.get_or_add_srcRect().t = value
+        self.get_or_add_blipFill().get_or_add_srcRect().t = value
 
     def _fill_cropping(self, image_size, view_size):
         """
@@ -343,7 +347,10 @@ class CT_Picture(BaseShapeElement):
         """
         Value of `p:blipFill/a:srcRect/@{attr_name}` or 0.0 if not present.
         """
-        srcRect = self.blipFill.srcRect
+        blipFill = self.blipFill
+        if blipFill is None:
+            return 0.0
+        srcRect = blipFill.srcRect
         if srcRect is None:
             return 0.0
         return getattr(srcRect, attr_name)

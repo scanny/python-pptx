@@ -230,6 +230,27 @@ class TextFrame(Subshape):
         return sum(p.replace_text(find, replace) for p in self.paragraphs)
 
     @property
+    def rotation(self) -> float:
+        """Clockwise rotation in degrees applied to the text within this text frame.
+
+        Read/write. Corresponds to the ``rot`` attribute of the ``a:bodyPr``
+        element and rotates the text *inside* the shape (the shape itself is
+        unaffected). Distinct from :attr:`Shape.rotation`, which rotates the
+        whole shape via ``p:spPr/a:xfrm/@rot``.
+
+        Returns ``0.0`` (the default) when the attribute is not present.
+        Negative values assigned (e.g. ``-90``) are normalized to the
+        equivalent positive rotation in the range ``[0, 360)``. Both integer
+        and float values are accepted; PowerPoint stores the value in
+        60000ths of a degree under the hood. See issue #133.
+        """
+        return self._bodyPr.rot
+
+    @rotation.setter
+    def rotation(self, value: float):
+        self._bodyPr.rot = value
+
+    @property
     def text(self) -> str:
         """All text in this text-frame as a single string.
 
@@ -404,7 +425,7 @@ class Font(object):
 
         Provides access to fill properties such as fill color.
         """
-        return FillFormat.from_fill_parent(self._rPr)
+        return FillFormat.from_fill_parent(self._rPr, self._parent)
 
     @property
     def effective_color(self) -> RGBColor | None:
@@ -1076,6 +1097,28 @@ class _Paragraph(Subshape):
         """Add line break at end of this paragraph."""
         self._p.add_br()
 
+    def add_math_equation(self, omml_xml: str) -> None:
+        """Append an Office-Math (OMML) equation to this paragraph.
+
+        `omml_xml` is a string of caller-provided OMML -- typically the output of Microsoft's
+        ``MML2OMML.XSL`` transform (converting MathML to OMML) or another OMML producer. Its
+        root element must be ``m:oMath`` or ``m:oMathPara`` and must declare the ``m``
+        namespace (``http://schemas.openxmlformats.org/officeDocument/2006/math``) on the root.
+
+        The OMML fragment is wrapped in the ``mc:AlternateContent/mc:Choice[Requires="a14"]
+        /a14:m`` scaffolding PowerPoint emits for an equation embedded inline in a paragraph,
+        paired with an ``mc:Fallback`` run that carries the OMML reduced to its visible text
+        (concatenated ``m:t`` children) so pre-2010 consumers render *something* readable. Any
+        existing runs, line-breaks, or fields already on the paragraph are preserved -- the
+        equation is appended to the end of its content (before any ``a:endParaRPr``).
+
+        The companion read-side is :attr:`BaseShape.math_equation_xml` / :attr:`has_math_equation`
+        (see issue #126). Converting between OMML and LaTeX / MathML is **not** in scope -- the
+        caller is responsible for producing the OMML. Raises ``ValueError`` when ``omml_xml`` is
+        not well-formed XML or its root is neither ``m:oMath`` nor ``m:oMathPara``.
+        """
+        self._p.add_math_equation(omml_xml)
+
     def add_run(self) -> _Run:
         """Return a new run appended to the runs in this paragraph."""
         r = self._p.add_r()
@@ -1115,6 +1158,25 @@ class _Paragraph(Subshape):
         for elm in self._element.content_children:
             self._element.remove(elm)
         return self
+
+    def delete(self) -> None:
+        """Remove this paragraph from its containing text frame.
+
+        The paragraph's `a:p` element is removed from its parent `p:txBody` (or
+        `a:txBody` in the case of a table cell). PowerPoint requires every text
+        frame to contain at least one `a:p` child, so when this paragraph is the
+        last one in the text frame a fresh empty `a:p` is added in its place to
+        preserve that invariant. Subsequent use of this paragraph object is
+        undefined; most operations will raise an exception. See issue #144.
+        """
+        txBody = self._p.getparent()
+        if txBody is None:
+            return
+        txBody.remove(self._p)
+        # -- PowerPoint requires a text frame to contain at least one `a:p`;
+        # -- add a fresh empty paragraph when the deletion emptied the body.
+        if not txBody.findall(qn("a:p")):
+            txBody.add_p()  # pyright: ignore[reportAttributeAccessIssue]
 
     @property
     def font(self) -> Font:
@@ -1289,6 +1351,20 @@ class _Run(Subshape):
     def __init__(self, r: CT_RegularTextRun, parent: ProvidesPart):
         super(_Run, self).__init__(parent)
         self._r = r
+
+    def delete(self) -> None:
+        """Remove this run from its containing paragraph.
+
+        The run's `a:r` element is removed from its parent `a:p`. Other content
+        (line-breaks, fields, sibling runs) is preserved. Paragraph-level
+        properties (``a:pPr``, ``a:endParaRPr``) are unaffected. Subsequent use
+        of this run object is undefined; most operations will raise an
+        exception. See issue #144.
+        """
+        p = self._r.getparent()
+        if p is None:
+            return
+        p.remove(self._r)
 
     @property
     def font(self):

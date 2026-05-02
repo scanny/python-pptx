@@ -69,6 +69,17 @@ class Presentation(PartElementProxy):
         """
         return self.part.core_properties
 
+    @property
+    def custom_properties(self):
+        """Dict-like |CustomProperties| instance for this presentation.
+
+        Provides get/set/delete access to user-defined custom document properties — the
+        ones PowerPoint surfaces under *File → Info → Properties → Advanced → Custom* and
+        that ``{ DOCPROPERTY }`` field codes resolve against. Supported value types are
+        ``str``, ``int``, ``float``, ``bool``, and ``datetime.datetime``. See issue #259.
+        """
+        return self.part.package.custom_properties
+
     def embed_font(
         self,
         font_file: str | IO[bytes],

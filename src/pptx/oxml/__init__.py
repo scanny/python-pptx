@@ -262,6 +262,19 @@ register_element_cls("p:cmAuthorLst", CT_CommentAuthorList)
 register_element_cls("p:cmLst", CT_CommentList)
 
 
+from pptx.oxml.tags import (  # noqa: E402
+    CT_CustomerDataList,
+    CT_StringTag,
+    CT_TagList,
+    CT_TagsData,
+)
+
+register_element_cls("p:custDataLst", CT_CustomerDataList)
+register_element_cls("p:tag", CT_StringTag)
+register_element_cls("p:tagLst", CT_TagList)
+register_element_cls("p:tags", CT_TagsData)
+
+
 from pptx.oxml.coreprops import CT_CoreProperties  # noqa: E402
 
 register_element_cls("cp:coreProperties", CT_CoreProperties)
@@ -270,6 +283,11 @@ register_element_cls("cp:coreProperties", CT_CoreProperties)
 from pptx.oxml.extprops import CT_ExtendedProperties  # noqa: E402
 
 register_element_cls("ep:Properties", CT_ExtendedProperties)
+
+
+from pptx.oxml.custprops import CT_CustomProperties  # noqa: E402
+
+register_element_cls("cst:Properties", CT_CustomProperties)
 
 
 from pptx.oxml.dml.color import (  # noqa: E402

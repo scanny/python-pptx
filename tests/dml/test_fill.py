@@ -24,7 +24,7 @@ from pptx.enum.dml import MSO_FILL, MSO_PATTERN
 from pptx.oxml.dml.fill import CT_GradientStopList
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock, method_mock, property_mock
+from ..unitutil.mock import class_mock, instance_mock, loose_mock, method_mock, property_mock
 
 
 class DescribeFillFormat(object):
@@ -63,6 +63,44 @@ class DescribeFillFormat(object):
         assert fill._xPr.xml == expected_xml
         _PattFill_.assert_called_once_with(fill._xPr.eg_fillProperties)
         assert fill._fill is patt_fill_
+
+    def it_can_set_the_fill_type_to_blip_fill(self, request):
+        """Round-trip a blip_fill call end-to-end: image part added and
+        blipFill XML rewritten with the rId embedded.
+        """
+        # -- arrange: spPr (starting from a solid fill so we exercise the
+        # -- change-of-fill-type branch) plus a stubbed "part" that records
+        # -- the image-file argument and hands back a fixed rId.
+        spPr = element("p:spPr/a:solidFill")
+        image_file = "image.png"
+        image_part_ = loose_mock(request, name="image_part_")
+        part_ = loose_mock(request, name="part_")
+        part_.part = part_  # -- ProvidesPart protocol: .part returns self --
+        part_.get_or_add_image_part.return_value = (image_part_, "rId42")
+
+        fill = FillFormat.from_fill_parent(spPr, part_)
+
+        # -- act --
+        fill.blip_fill(image_file)
+
+        # -- assert: image part was added via the part we passed --
+        part_.get_or_add_image_part.assert_called_once_with(image_file)
+        # -- assert: the a:blip child references the new rId via r:embed --
+        blip = fill._xPr.xpath("a:blipFill/a:blip")[0]
+        assert blip.rEmbed == "rId42"
+        # -- assert: the fill type is PICTURE --
+        assert fill.type == MSO_FILL.PICTURE
+        # -- assert: a:stretch/a:fillRect is present (default stretch fill) --
+        assert fill._xPr.xpath("a:blipFill/a:stretch/a:fillRect") != []
+        # -- assert: any pre-existing a:solidFill was replaced --
+        assert fill._xPr.xpath("a:solidFill") == []
+
+    def it_raises_on_blip_fill_when_no_part_was_provided(self):
+        spPr = element("p:spPr")
+        fill = FillFormat.from_fill_parent(spPr)
+
+        with pytest.raises(ValueError, match="blip_fill requires a part reference"):
+            fill.blip_fill("image.png")
 
     def it_provides_access_to_its_foreground_color(self, fore_color_fixture):
         fill, color_ = fore_color_fixture

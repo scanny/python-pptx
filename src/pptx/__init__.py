@@ -12,6 +12,7 @@ from pptx.opc.package import PartFactory
 from pptx.parts.chart import ChartPart
 from pptx.parts.comments import CommentAuthorsPart, CommentsPart
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.customprops import CustomPropertiesPart
 from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.font import FontPart
 from pptx.parts.image import ImagePart
@@ -25,6 +26,7 @@ from pptx.parts.slide import (
     SlidePart,
     ThemePart,
 )
+from pptx.parts.tags import TagsPart
 
 if TYPE_CHECKING:
     from pptx.opc.package import Part
@@ -42,6 +44,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_TEMPLATE_MAIN: PresentationPart,
     CT.PML_SLIDESHOW_MAIN: PresentationPart,
     CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
+    CT.OFC_CUSTOM_PROPERTIES: CustomPropertiesPart,
     CT.OFC_EXTENDED_PROPERTIES: ExtendedPropertiesPart,
     CT.PML_COMMENTS: CommentsPart,
     CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
@@ -50,6 +53,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_SLIDE: SlidePart,
     CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
     CT.PML_SLIDE_MASTER: SlideMasterPart,
+    CT.PML_TAGS: TagsPart,
     CT.OFC_THEME: ThemePart,
     CT.DML_CHART: ChartPart,
     CT.X_FONTDATA: FontPart,
@@ -94,6 +98,7 @@ del (
     CommentAuthorsPart,
     CommentsPart,
     CorePropertiesPart,
+    CustomPropertiesPart,
     ExtendedPropertiesPart,
     FontPart,
     ImagePart,
@@ -101,6 +106,7 @@ del (
     SlidePart,
     SlideLayoutPart,
     SlideMasterPart,
+    TagsPart,
     ThemePart,
     PresentationPart,
     CT,

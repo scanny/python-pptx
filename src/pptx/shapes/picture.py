@@ -464,14 +464,18 @@ class Picture(_BasePicture):
 
     @property
     def image(self):
-        """The |Image| object for this picture.
+        """The |Image| object for this picture, or |None| when no image is embedded.
 
         Provides access to the properties and bytes of the image in this picture shape.
+        Returns |None| when the shape has no embedded image — either because the
+        ``a:blip`` element lacks an ``r:embed`` reference, or because the
+        ``p:blipFill`` sub-element itself is absent (issue #434 — graceful
+        handling of shapes whose image data was stripped by another tool).
         """
-        slide_part, rId = self.part, self._pic.blip_rId
+        rId = self._pic.blip_rId
         if rId is None:
-            raise ValueError("no embedded image")
-        return slide_part.get_image(rId)
+            return None
+        return self.part.get_image(rId)
 
     def replace_image(self, image_file: str | IO[bytes]) -> None:
         """Swap the embedded image with the one in `image_file`.
@@ -491,7 +495,8 @@ class Picture(_BasePicture):
         its ``a:blip`` element lacks an ``r:embed`` reference); such a
         picture is malformed and has no "current" image to replace.
         """
-        blip = self._pic.blipFill.blip
+        blipFill = self._pic.blipFill
+        blip = blipFill.blip if blipFill is not None else None
         if blip is None or blip.rEmbed is None:
             raise ValueError("no embedded image to replace")
         old_rId = blip.rEmbed

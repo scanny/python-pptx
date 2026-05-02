@@ -390,6 +390,54 @@ class BaseShape(object):
         return self._element
 
     @property
+    def flip_horizontal(self) -> bool:
+        """|True| if this shape is flipped horizontally (mirrored left-to-right).
+
+        Read/write. Maps to the ``flipH`` attribute on the shape's ``a:xfrm``
+        element. Returns |False| when the shape has no ``a:xfrm`` or when
+        ``flipH`` is absent (PowerPoint's default). Assigning a truthy value
+        creates an ``a:xfrm`` if one is not already present.
+        """
+        return bool(self._element.flipH)
+
+    @flip_horizontal.setter
+    def flip_horizontal(self, value: bool) -> None:
+        self._element.flipH = bool(value)
+
+    @property
+    def flip_vertical(self) -> bool:
+        """|True| if this shape is flipped vertically (mirrored top-to-bottom).
+
+        Read/write. Maps to the ``flipV`` attribute on the shape's ``a:xfrm``
+        element. Returns |False| when the shape has no ``a:xfrm`` or when
+        ``flipV`` is absent (PowerPoint's default). Assigning a truthy value
+        creates an ``a:xfrm`` if one is not already present.
+        """
+        return bool(self._element.flipV)
+
+    @flip_vertical.setter
+    def flip_vertical(self, value: bool) -> None:
+        self._element.flipV = bool(value)
+
+    def flip_horizontally(self) -> None:
+        """Toggle this shape's horizontal-flip state.
+
+        Equivalent to ``shape.flip_horizontal = not shape.flip_horizontal``.
+        Provided for parity with the PowerPoint UI's ``Flip Horizontal``
+        command, which mirrors the shape left-to-right on each invocation.
+        """
+        self._element.flipH = not bool(self._element.flipH)
+
+    def flip_vertically(self) -> None:
+        """Toggle this shape's vertical-flip state.
+
+        Equivalent to ``shape.flip_vertical = not shape.flip_vertical``.
+        Provided for parity with the PowerPoint UI's ``Flip Vertical``
+        command, which mirrors the shape top-to-bottom on each invocation.
+        """
+        self._element.flipV = not bool(self._element.flipV)
+
+    @property
     def has_chart(self) -> bool:
         """|True| if this shape is a graphic frame containing a chart object.
 

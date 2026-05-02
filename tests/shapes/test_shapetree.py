@@ -73,6 +73,14 @@ from ..unitutil.mock import (
 )
 
 
+class _FakeShape(object):
+    """Lightweight shape stand-in for unit tests that only care about name/id."""
+
+    def __init__(self, name, shape_id=None):
+        self.name = name
+        self.shape_id = shape_id
+
+
 class DescribeBaseShapeFactory(object):
     def it_constructs_the_right_shape_for_an_element(self, factory_fixture):
         shape_elm, parent_, ShapeClass_, shape_ = factory_fixture
@@ -1429,6 +1437,78 @@ class DescribeSlideShapes(object):
         shapes._add_video_timing(pic)
         assert sld.xml == expected_xml
 
+    def it_can_get_a_shape_by_name(self, _shape_factory_):
+        # --- #309: look up a shape by its @name attribute ---
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Rectangle 2},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Rectangle 3}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
+
+        result = shapes.get_by_name("Rectangle 2")
+
+        assert result is not None
+        assert result.name == "Rectangle 2"
+
+    def it_returns_None_when_no_shape_matches_get_by_name(self, _shape_factory_):
+        spTree = element(
+            "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
+
+        assert shapes.get_by_name("Missing") is None
+
+    def it_returns_first_match_when_names_collide(self, _shape_factory_):
+        # --- z-order: backmost (earliest) match wins ---
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Duplicate},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Other},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Duplicate}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(
+            sp.shape_name, sp.shape_id
+        )
+
+        result = shapes.get_by_name("Duplicate")
+
+        assert result is not None
+        assert result.name == "Duplicate"
+        assert result.shape_id == 2
+
+    def it_can_find_all_shapes_by_name(self, _shape_factory_):
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Duplicate},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Other},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Duplicate}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(
+            sp.shape_name, sp.shape_id
+        )
+
+        matches = shapes.find_all_by_name("Duplicate")
+
+        assert [m.shape_id for m in matches] == [2, 4]
+
+    def it_returns_empty_list_when_no_shape_matches_find_all_by_name(self, _shape_factory_):
+        spTree = element(
+            "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
+
+        assert shapes.find_all_by_name("Missing") == []
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -2007,6 +2087,45 @@ class Describe_MoviePicElementCreator(object):
         assert shape_name == filename
 
     @pytest.mark.parametrize(
+        "video_filename, expected_shape_name",
+        [
+            # -- typical video extensions stripped (#767) --
+            ("intro.mp4", "intro"),
+            ("clip.mkv", "clip"),
+            ("movie.mp4", "movie"),
+            ("sound.mp3", "sound"),
+            ("ANIMATION.MOV", "ANIMATION"),
+            # -- multiple dots: only the final extension is stripped --
+            ("my.promo.clip.mp4", "my.promo.clip"),
+            # -- no extension: returned unchanged --
+            ("README", "README"),
+            # -- hidden-style filename with only a leading dot and an extension --
+            (".mp4", ".mp4"),
+        ],
+    )
+    def it_strips_file_extension_from_shape_name_for_issue_767(
+        self,
+        request: pytest.FixtureRequest,
+        video_filename: str,
+        expected_shape_name: str,
+        _video_prop_,
+        video_,
+    ):
+        """Regression test for #767.
+
+        PowerPoint names movie shapes with the filename stem (no extension) in the
+        selection pane. ``_MoviePicElementCreator._shape_name`` must match by
+        stripping the final file extension from ``Video.filename``.
+        """
+        _video_prop_.return_value = video_
+        video_.filename = video_filename
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None  # type: ignore
+        )
+
+        assert movie_pic_element_creator._shape_name == expected_shape_name
+
+    @pytest.mark.parametrize(
         "mime_type, expected_is_audio",
         [
             (None, False),
@@ -2205,8 +2324,10 @@ class Describe_MoviePicElementCreator(object):
             None, None, None, None, None, None, None, None, None
         )
         _video_prop_.return_value = video_
-        video_.filename = filename = "movie.mp4"
-        return movie_pic_element_creator, filename
+        # -- the filename exposes a .mp4 extension, but _shape_name strips it
+        # -- to match PowerPoint's own selection-pane naming (#767) --
+        video_.filename = "movie.mp4"
+        return movie_pic_element_creator, "movie"
 
     @pytest.fixture
     def slide_part_fixture(self, shapes_, slide_part_):

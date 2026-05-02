@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         CT_SlideLayoutIdList,
         CT_SlideMaster,
     )
+    from pptx.oxml.tags import CT_TagList
     from pptx.oxml.xmlchemy import BaseOxmlElement
     from pptx.parts.presentation import PresentationPart
     from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
@@ -65,7 +66,7 @@ class _BaseSlide(PartElementProxy):
         The same |_Background| object is returned on every call for the same
         slide object.
         """
-        return _Background(self._element.cSld)
+        return _Background(self._element.cSld, self)
 
     @property
     def name(self) -> str:
@@ -229,6 +230,43 @@ class Slide(_BaseSlide):
         effect of creating one.
         """
         return self.part.comments_part is not None
+
+    @property
+    def has_tags(self) -> bool:
+        """`True` when this slide has a VBA-style custom-tags part attached.
+
+        A tags part is created lazily on the first *mutation* through
+        :attr:`tags` (e.g. ``slide.tags["foo"] = "bar"``). Read-only access
+        through :attr:`tags` is side-effect free; use this property to
+        distinguish a slide that currently has no tags from one that has
+        an empty tags part.
+        """
+        return self.part.tags_part is not None
+
+    @lazyproperty
+    def tags(self) -> SlideTags:
+        """Dict-like |SlideTags| proxy for this slide's custom name/value tags.
+
+        Tags are the VBA-style string name/value pairs PowerPoint surfaces
+        through ``Slide.Tags`` (see issue #578). They are stored in a
+        companion |TagsPart| that is created lazily the first time a tag is
+        written. Read access through this property never materializes a
+        tags part; an empty proxy is returned when one does not exist yet.
+
+        Typical usage::
+
+            slide.tags["priority"] = "high"   # writes tag
+            slide.tags["priority"]            # returns "high"
+            "priority" in slide.tags          # True
+            del slide.tags["priority"]        # removes tag
+            list(slide.tags)                  # ["priority", ...]
+
+        The returned object supports ``__getitem__`` / ``__setitem__`` /
+        ``__delitem__`` / ``__contains__`` / ``__iter__`` / ``__len__``
+        plus the read-only ``get`` convenience method, matching the
+        most-frequently-used subset of the built-in ``dict`` API.
+        """
+        return SlideTags(self.part)
 
     @property
     def follow_master_background(self):
@@ -1651,6 +1689,113 @@ def _nearest_shape_ancestor(elm):
     return None
 
 
+class SlideTags:
+    """Dict-like proxy for a slide's VBA-style custom tag collection.
+
+    Instances are obtained via :attr:`Slide.tags`. The proxy backs onto
+    an optional |TagsPart| that is materialized lazily — reading or
+    iterating a slide that has no tags returns empty results without
+    creating any XML. The tags part (and the ``p:cSld/p:custDataLst/p:tags``
+    reference inside the slide) is created the first time a tag is
+    written through :meth:`__setitem__`.
+
+    Tag names and values are ``str`` per the ECMA-376 ``CT_StringTag``
+    schema. A tag name is unique within a slide; writing an existing
+    name overwrites the stored value.
+    """
+
+    def __init__(self, slide_part: SlidePart):
+        self._slide_part = slide_part
+
+    def __contains__(self, name: object) -> bool:
+        if not isinstance(name, str):
+            return False
+        tag_list = self._tag_list_or_none
+        if tag_list is None:
+            return False
+        return tag_list.get_by_name(name) is not None
+
+    def __delitem__(self, name: str) -> None:
+        if not isinstance(name, str):
+            raise TypeError("tag name must be a str, got %s" % type(name).__name__)
+        tag_list = self._tag_list_or_none
+        if tag_list is None or not tag_list.remove_tag(name):
+            raise KeyError(name)
+
+    def __getitem__(self, name: str) -> str:
+        if not isinstance(name, str):
+            raise TypeError("tag name must be a str, got %s" % type(name).__name__)
+        tag_list = self._tag_list_or_none
+        if tag_list is not None:
+            tag = tag_list.get_by_name(name)
+            if tag is not None:
+                return tag.val
+        raise KeyError(name)
+
+    def __iter__(self) -> Iterator[str]:
+        tag_list = self._tag_list_or_none
+        if tag_list is None:
+            return
+        for tag in tag_list.tag_lst:
+            yield tag.name
+
+    def __len__(self) -> int:
+        tag_list = self._tag_list_or_none
+        if tag_list is None:
+            return 0
+        return len(tag_list.tag_lst)
+
+    def __setitem__(self, name: str, value: str) -> None:
+        if not isinstance(name, str):
+            raise TypeError("tag name must be a str, got %s" % type(name).__name__)
+        if not isinstance(value, str):
+            raise TypeError("tag value must be a str, got %s" % type(value).__name__)
+        tags_part = self._slide_part.get_or_add_tags_part()
+        tags_part.tag_list.set_tag(name, value)
+
+    def get(self, name: str, default: str | None = None) -> str | None:
+        """Return value of tag `name` if present, otherwise `default`.
+
+        Mirrors :meth:`dict.get`. Never raises ``KeyError`` for a missing
+        tag, and never materializes a tags part.
+        """
+        if not isinstance(name, str):
+            return default
+        tag_list = self._tag_list_or_none
+        if tag_list is None:
+            return default
+        tag = tag_list.get_by_name(name)
+        if tag is None:
+            return default
+        return tag.val
+
+    def keys(self) -> list[str]:
+        """Return a list of tag names in document order."""
+        return list(iter(self))
+
+    def values(self) -> list[str]:
+        """Return a list of tag values in document order."""
+        tag_list = self._tag_list_or_none
+        if tag_list is None:
+            return []
+        return [tag.val for tag in tag_list.tag_lst]
+
+    def items(self) -> list[tuple[str, str]]:
+        """Return a list of ``(name, value)`` pairs in document order."""
+        tag_list = self._tag_list_or_none
+        if tag_list is None:
+            return []
+        return [(tag.name, tag.val) for tag in tag_list.tag_lst]
+
+    @property
+    def _tag_list_or_none(self) -> CT_TagList | None:
+        """Return the backing ``p:tagLst`` element, or ``None`` when no tags part exists."""
+        tags_part = self._slide_part.tags_part
+        if tags_part is None:
+            return None
+        return tags_part.tag_list
+
+
 class _Background(ElementProxy):
     """Provides access to slide background properties.
 
@@ -1659,9 +1804,17 @@ class _Background(ElementProxy):
     has a |_Background| object.
     """
 
-    def __init__(self, cSld: CT_CommonSlideData):
+    def __init__(self, cSld: CT_CommonSlideData, parent: _BaseSlide | None = None):
         super(_Background, self).__init__(cSld)
         self._cSld = cSld
+        self._parent = parent
+
+    @property
+    def part(self):
+        """The package part containing this background (the slide/master/layout part)."""
+        if self._parent is None:
+            raise ValueError("background has no parent slide")
+        return self._parent.part
 
     @lazyproperty
     def fill(self):
@@ -1690,7 +1843,8 @@ class _Background(ElementProxy):
         makes no changes to the current background.
         """
         bgPr = self._cSld.get_or_add_bgPr()
-        return FillFormat.from_fill_parent(bgPr)
+        part = self._parent if self._parent is not None else None
+        return FillFormat.from_fill_parent(bgPr, part)
 
 
 def _parse_theme_element(theme_part: Part) -> BaseOxmlElement | None:

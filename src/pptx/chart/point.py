@@ -90,6 +90,22 @@ class Point(object):
         reversed. Returns |True| when no explicit `c:invertIfNegative`
         element is present on this data point, which is the default
         behavior.
+
+        .. note::
+
+           When assigning a solid fill to a data point that represents a
+           negative value, PowerPoint will render that bar as **white**
+           unless ``invert_if_negative`` is explicitly set to |False| on
+           that point. The inversion default is |True| at the point level,
+           so the explicit fill is *inverted* to white by PowerPoint. To
+           show your chosen fill color on a negative bar, pair the fill
+           assignment with ``point.invert_if_negative = False``::
+
+               point = plot.series[0].points[i]
+               fill = point.format.fill
+               fill.solid()
+               fill.fore_color.rgb = RGBColor(0xF3, 0x5D, 0x5D)
+               point.invert_if_negative = False  # preserve red on negatives
         """
         dPt = self._ser.get_or_add_dPt_for_point(self._idx)
         invertIfNegative = dPt.invertIfNegative

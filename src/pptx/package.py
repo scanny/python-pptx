@@ -13,6 +13,7 @@ from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
 from pptx.parts.comments import CommentAuthorsPart
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.customprops import CustomProperties, CustomPropertiesPart
 from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
@@ -69,6 +70,33 @@ class Package(OpcPackage):
             core_props = CorePropertiesPart.default(self)
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
+
+    @lazyproperty
+    def custom_properties(self) -> CustomProperties:
+        """Dict-like |CustomProperties| facade over the custom-properties part.
+
+        See :class:`pptx.parts.customprops.CustomProperties` for the supported operations
+        (``__getitem__`` / ``__setitem__`` / ``__delitem__`` / ``__contains__`` / ``keys``
+        / ``items`` / ``update`` / ``clear`` / ``pop`` / ``setdefault``). Reads against a
+        package that has no custom-properties part behave as though it were empty; writes
+        materialize the part lazily on first use. See issue #259.
+        """
+        return CustomProperties(self)
+
+    @property
+    def custom_properties_part(self) -> CustomPropertiesPart:
+        """Instance of |CustomPropertiesPart| (``/docProps/custom.xml``).
+
+        Creates a default (empty) custom-properties part if one is not present, wires up
+        the relationship from the package root, and returns it. Most callers should use
+        the higher-level :attr:`custom_properties` dict-facade instead of this part.
+        """
+        try:
+            return self.part_related_by(RT.CUSTOM_PROPERTIES)
+        except KeyError:
+            custom_props = CustomPropertiesPart.default(self)
+            self.relate_to(custom_props, RT.CUSTOM_PROPERTIES)
+            return custom_props
 
     @lazyproperty
     def extended_properties(self) -> ExtendedPropertiesPart:

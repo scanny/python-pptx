@@ -444,3 +444,142 @@ Remove an attached sound with
 :meth:`~pptx.action.ActionSetting.remove_sound`::
 
     shape.click_action.remove_sound()
+
+
+.. _templating-text:
+
+Templating text
+---------------
+
+A common request is "fill in the blanks" on a deck — load a `.pptx` that
+contains placeholders like ``{{ customer_name }}`` or ``{{ order.total }}``
+and replace them at render time with values computed in Python. python-pptx
+does not ship a templating engine; rendering Jinja2 (or any other template
+syntax) is the *caller's* responsibility. What python-pptx provides is the
+plumbing:
+
+* :attr:`.TextFrame.text` / :attr:`._Paragraph.text` — read the current text
+  out of a shape so you can feed it to your template engine.
+* :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text`
+  (added in python-pptx 1.1, see `issue #836`_) — write a replacement back
+  into the shape. ``replace_text`` matches across runs, so a token that
+  PowerPoint has split across multiple ``a:r`` elements (a common result of
+  editing a placeholder in the PowerPoint UI) is still replaced; the run
+  containing the start of the match keeps its formatting and absorbs the
+  replacement.
+
+The recommended pattern is therefore a three-step loop — **read placeholder
+text, apply Jinja2, write back with** ``replace_text`` — run across every
+text-bearing shape in the deck.
+
+
+Rendering an entire deck with Jinja2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a `.pptx` authored with ``{{ ... }}`` / ``{% ... %}`` Jinja2 tokens
+inside its text placeholders, the following renders the whole deck in
+place. Because :meth:`.TextFrame.replace_text` (and its paragraph
+counterpart) scopes each match to a single run-group — matches do not
+cross paragraph, line-break (``a:br``), or auto-refresh field (``a:fld``)
+boundaries — render **paragraph by paragraph**::
+
+    from jinja2 import Environment
+    from pptx import Presentation
+
+    env = Environment(autoescape=False)
+    context = {
+        "customer_name": "Acme Corp",
+        "order": {"total": "$12,450.00", "date": "2025-03-14"},
+        "items": ["Widget A", "Widget B", "Widget C"],
+    }
+
+    prs = Presentation("template.pptx")
+
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            for paragraph in shape.text_frame.paragraphs:
+                original = paragraph.text
+                rendered = env.from_string(original).render(**context)
+                if rendered != original:
+                    paragraph.replace_text(original, rendered)
+
+    prs.save("rendered.pptx")
+
+A few notes on this pattern:
+
+* The run in which the match starts keeps its formatting and absorbs the
+  replacement, so per-paragraph "mail merge" preserves fonts, colors, and
+  sizes even when PowerPoint has previously split a token across runs.
+* Keep each template token on a single paragraph and avoid putting a token
+  across a ``Shift+Enter`` soft line-break — ``replace_text`` will not
+  match across those boundaries.
+* Iterate ``shape.shapes`` recursively to descend into group shapes, and
+  use :meth:`.Table.iter_cells` (or nested ``for row in table.rows: for
+  cell in row.cells:``) to reach text frames inside table cells, since
+  ``slide.shapes`` does not yield them directly.
+
+
+Per-token replacement
+~~~~~~~~~~~~~~~~~~~~~
+
+If you'd rather keep token discovery and rendering separate — for example
+to log which tokens were filled, or to handle unresolved tokens explicitly
+— you can drive ``replace_text`` one token at a time::
+
+    import re
+    from jinja2 import Environment
+    from pptx import Presentation
+
+    TOKEN_RE = re.compile(r"\{\{\s*([\w.]+)\s*\}\}")
+
+    env = Environment(autoescape=False)
+    context = {"customer_name": "Acme Corp", "year": 2025}
+
+    prs = Presentation("template.pptx")
+
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            text_frame = shape.text_frame
+            for match in set(TOKEN_RE.findall(text_frame.text)):
+                token = "{{ %s }}" % match
+                value = env.from_string(token).render(**context)
+                text_frame.replace_text(token, value)
+
+    prs.save("rendered.pptx")
+
+This form is also handy when you want to restrict rendering to a subset
+of shapes (for example by shape name) or when the template tokens live
+inside table cells or chart text that ``slide.shapes`` does not walk for
+you.
+
+
+Third-party templating libraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need more than the thin pattern shown above — looped slides,
+conditional slide inclusion, image substitution, chart-data substitution,
+or block-level tags — a dedicated templating library built on top of
+python-pptx will save you a lot of code. Some options to evaluate:
+
+* `python-pptx-templater`_ — Jinja2-style text substitution that walks
+  shapes, placeholders, and tables for you.
+* `pptx-template`_ — template DSL with looped slides and data-driven
+  chart updates.
+* `python-pptx-interface`_ — higher-level authoring helpers that compose
+  cleanly with the pattern above.
+
+None of these are maintained by the python-pptx project; vet each for
+maintenance status, fitness, and license before adopting. The core
+``replace_text`` primitive is stable and sufficient for most "mail
+merge" style use cases, which is why templating itself is out of scope
+for python-pptx (see `issue #398`_).
+
+.. _`issue #398`: https://github.com/scanny/python-pptx/issues/398
+.. _`issue #836`: https://github.com/scanny/python-pptx/issues/836
+.. _`python-pptx-templater`: https://pypi.org/project/python-pptx-templater/
+.. _`pptx-template`: https://pypi.org/project/pptx-template/
+.. _`python-pptx-interface`: https://pypi.org/project/python-pptx-interface/

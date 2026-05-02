@@ -25,10 +25,210 @@ Unreleased
   owning slide -- are intentionally dropped on the copies. See
   :meth:`Presentation.merge` for the convenience API and
   :meth:`Slides.add_slide_from_external` for per-slide control.
+- docs: #398 Jinja2 / templating of text placeholders — close as out-of-scope
+  (templating is the caller's concern; python-pptx provides the plumbing via
+  :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text` shipped
+  by #836). Add a ``Templating text`` section to ``docs/user/text.rst`` that
+  documents the recommended read-render-write pattern with concrete Jinja2
+  examples (whole-deck rendering paragraph-by-paragraph and per-token
+  replacement), calls out the ``replace_text`` scoping rules (no crossing
+  of paragraph / ``a:br`` / ``a:fld`` boundaries, origin-run formatting
+  wins), and cross-references third-party libraries built on top of
+  python-pptx (``python-pptx-templater``, ``pptx-template``,
+  ``python-pptx-interface``) for callers who need looped slides,
+  conditional inclusion, or chart-data substitution.
+- verify: #705 resolved by F2 + #130. Foundation F2 (Wave 1) shipped the
+  full ``a:effectLst`` family on ``pptx.dml.effect`` — ``ShadowFormat``
+  now exposes read/write ``blur_radius`` / ``distance`` / ``direction``
+  / ``color`` (the four knobs the #705 reporter asked for) on top of
+  the pre-existing ``.inherit`` stub, and #130 (Wave 3) lifted the same
+  ``ShadowFormat`` onto ``ChartFormat.shadow``. Issue #446 (Wave 2)
+  tightened the ``inherit = False`` semantics to also zero any sibling
+  ``p:style/a:effectRef/@idx`` so an empty ``a:effectLst`` really does
+  suppress the theme-inherited shadow. Adds a regression suite
+  ``DescribeIssue705ShapeShadows`` under
+  ``tests/test_issue_705_shape_shadows.py`` that pins the full API
+  (blur / distance / direction / color on both ``Shape.shadow`` and
+  ``GroupShape.shadow``) and round-trips every knob through
+  ``Presentation.save`` + reopen.
+- verify: #808 (replaced chart data triggers PowerPoint "repair needed" on
+  open) resolved by ``fix/issue-396-replace-data-type-mismatch`` together
+  with ``fix/chart-replace-data-490`` (both Wave 3). The two root-causes
+  that put callers in the #808 state — passing a ``CategoryChartData`` to
+  an XY or bubble chart (or vice-versa), which wrote ``c:cat/c:val`` into
+  a plot expecting ``c:xVal/c:yVal`` / ``c:bubbleSize``, and a chart
+  whose embedded-workbook relationship was stripped so
+  ``ChartWorkbook.xlsx_part`` raised ``KeyError`` — are both handled up
+  front now (``ValueError`` with a name-the-expected-type message for
+  #396, transparent re-attach of a fresh ``EmbeddedXlsxPart`` for #490).
+  The reporter's exact scenario (2-series 100% stacked-bar chart,
+  replaced with 6 series and 5 categories via ``CategoryChartData``)
+  produces valid category-chart XML with unique ``c:idx`` / ``c:order``,
+  matched ``c:numRef`` / ``c:strRef`` caches, and a live
+  ``c:externalData`` pointing at a freshly-written embedded ``.xlsx``;
+  round-trips through save + reload with all 6 series intact. Adds a
+  regression suite ``DescribeIssue808ReplaceChartDataRepair`` under
+  ``tests/test_issue_808_replace_chart_data_repair.py`` that pins the
+  happy path, the #396 type-mismatch guard, and the #490 missing-rel
+  recovery so any future regression of either path would reproduce #808.
+- fix: #767 strip file extension from movie shape name to match PowerPoint.
+  ``SlideShapes.add_movie()`` previously named the newly-inserted ``p:pic`` shape
+  with the full movie filename including its extension (e.g. ``"intro.mp4"``),
+  so the selection pane showed ``"intro.mp4"``. PowerPoint itself strips the
+  extension when inserting a video, producing the stem (``"intro"``).
+  ``_MoviePicElementCreator._shape_name`` now returns
+  ``os.path.splitext(self._video.filename)[0]`` so the shape name matches
+  PowerPoint's convention.
+- fix: #434 ``Picture.image`` raised ``InvalidXmlError`` when the backing
+  ``p:pic`` element had no ``p:blipFill`` child (a malformed-but-observed
+  shape produced by tools that strip image data). ``CT_Picture.blipFill``
+  is now ``ZeroOrOne`` and every dependent accessor (``blip_rId``,
+  ``_srcRect_x``, ``Picture.image``) handles the missing child safely —
+  ``.image`` returns ``None``, crop accessors return ``0.0``, and shape-
+  factory construction succeeds unchanged. Adds a regression suite at
+  ``tests/test_issue_434_picture_missing_blipfill.py`` covering direct
+  element access and a save-then-reopen round-trip.
+- fix: #619 add data labels to XY Scatter chart.
+  ``plot.has_data_labels = True`` previously raised ``AttributeError:
+  'CT_ScatterChart' object has no attribute 'dLbls'`` because the
+  oxml class was missing its ``dLbls`` ``ZeroOrOne`` descriptor — the
+  slot was reserved in ``_tag_seq`` but never wired up. Adds the
+  descriptor so scatter plots use the same ``c:dLbls`` subtree as the
+  other Cartesian plot types (same default-off show-flags emitted by
+  ``CT_DLbls.new_dLbls``; PowerPoint picks sensible per-plot-type
+  defaults from those). Adds ``tests/test_issue_619_xy_scatter_data_
+  labels.py`` covering all five ``XL_CHART_TYPE.XY_SCATTER_*`` variants
+  and a save/reload round-trip.
+- docs: #504 negative bars render white when a point fill is set. This is
+  expected PowerPoint behavior: the point-level ``c:invertIfNegative``
+  element defaults to |True|, so an authored solid fill on a negative bar
+  is *inverted* to white on render. The workaround already landed as the
+  #776 setter (``Point.invert_if_negative = False``); this change expands
+  the ``Point.invert_if_negative`` docstring with the recipe (set the
+  fill, then assign ``invert_if_negative = False`` on the same point) and
+  adds a regression test (``tests/chart/test_point.py::DescribePoint::
+  it_can_preserve_a_solid_fill_color_on_negative_bars_issue_504``) that
+  asserts the combined XML carries both ``c:invertIfNegative val="0"`` and
+  the authored ``a:srgbClr``. No code change is required.
+- fix: #666 ``Chart.replace_data`` preserves author-set ``c:formatCode`` on
+  ``c:val`` / ``c:xVal`` / ``c:yVal`` / ``c:bubbleSize`` and numeric ``c:cat``
+  elements instead of silently resetting every series's number format back to
+  ``"General"``. An explicit ``number_format=`` on the replacement
+  ``CategoryChartData`` / ``XyChartData`` / ``BubbleChartData`` still wins —
+  the default ``"General"`` is now treated as "no opinion" so the existing
+  format survives. Implemented in
+  ``_BubbleSeriesXmlRewriter._rewrite_ser_data`` /
+  ``_CategorySeriesXmlRewriter._rewrite_ser_data`` /
+  ``_XySeriesXmlRewriter._rewrite_ser_data`` (see
+  ``src/pptx/chart/xmlwriter.py``) which capture the existing
+  ``c:numCache/c:formatCode`` before the element is removed and reapply it to
+  the freshly generated replacement. Regression coverage in
+  ``tests/test_issue_666_replace_data_preserve_format.py``.
+- feat: #309 look up slide shapes by name. Adds
+  ``SlideShapes.get_by_name(name)`` which returns the first shape in the
+  slide whose ``@name`` matches (or |None| when none do) and
+  ``SlideShapes.find_all_by_name(name)`` which returns every matching
+  shape in z-order. An explicit method pair was chosen over overloading
+  ``__getitem__`` with a string key to keep indexed access unambiguous.
+- feat: #133 add ``TextFrame.rotation`` read/write float property for the
+  ``a:bodyPr/@rot`` attribute. Rotates the text *inside* the text frame in
+  degrees clockwise (distinct from ``Shape.rotation`` which rotates the whole
+  shape via ``p:spPr/a:xfrm/@rot``). Returns ``0.0`` when the attribute is
+  absent; negative assignments are normalized to the equivalent
+  ``[0, 360)`` value. Values are stored by PowerPoint in 60000ths of a
+  degree; the existing ``ST_Angle`` converter handles that translation.
+- feat: #547 expose ``BaseShape.flip_horizontal`` / ``BaseShape.flip_vertical``
+  as read/write bool properties mapping to ``a:xfrm/@flipH`` / ``@flipV``, and
+  add ``BaseShape.flip_horizontally()`` / ``BaseShape.flip_vertically()``
+  convenience methods that toggle the corresponding attribute for parity with
+  the PowerPoint ``Flip Horizontal`` / ``Flip Vertical`` UI commands. Setting
+  a flip on a shape that has no ``a:xfrm`` creates one as needed; clearing a
+  flip attribute reverts the element to schema-default (i.e. ``flipH=False``
+  is represented by omitting the attribute).
+- feat: #266 emit valid chart XML for 3D chart types
+  (``THREE_D_AREA``/``_STACKED``/``_STACKED_100``,
+  ``THREE_D_BAR_CLUSTERED``/``_STACKED``/``_STACKED_100``,
+  ``THREE_D_COLUMN``/``_CLUSTERED``/``_STACKED``/``_STACKED_100``,
+  ``THREE_D_LINE``, ``THREE_D_PIE``/``_EXPLODED``). The
+  ``ChartXmlWriter`` factory previously raised ``NotImplementedError`` for
+  these enum members; it now dispatches to new
+  ``_Area3DChartXmlWriter`` / ``_Bar3DChartXmlWriter`` /
+  ``_Line3DChartXmlWriter`` / ``_Pie3DChartXmlWriter`` builders that emit
+  the ECMA-376 ``c:area3DChart`` / ``c:bar3DChart`` / ``c:line3DChart`` /
+  ``c:pie3DChart`` wrappers plus a ``c:view3D`` sibling on ``c:chart``
+  (PowerPoint's defaults: rotX=15, rotY=20, rAngAx=1, depthPercent=100).
+  MVP — per-chart rotation/perspective customization deferred to a
+  follow-up.
+- feat: #144 add ``_Run.delete()`` and ``_Paragraph.delete()`` to remove a
+  single run (``a:r``) from its paragraph and a single paragraph (``a:p``)
+  from its text frame. The paragraph variant preserves the PowerPoint
+  invariant that every text frame contains at least one ``<a:p>`` — when the
+  paragraph being deleted is the last one, a fresh empty ``<a:p/>`` is added
+  in its place. Both the ``p:txBody`` (shape) and ``a:txBody`` (table-cell)
+  forms are handled. Subsequent use of a deleted ``_Run`` or ``_Paragraph``
+  object is undefined.
+- feat: #528 add ``_Paragraph.add_math_equation(omml_xml)`` so callers can
+  insert an OMML equation (typically the output of Microsoft's
+  ``MML2OMML.XSL``) directly into a text-frame paragraph. The fragment is
+  wrapped in the ``mc:AlternateContent/mc:Choice[Requires="a14"]/a14:m``
+  scaffolding PowerPoint emits for an inline equation, accompanied by an
+  ``mc:Fallback/a:r`` run carrying the OMML reduced to its visible text
+  (concatenated ``m:t`` children) so pre-2010 consumers render something
+  readable. Existing runs, line-breaks and fields in the paragraph are
+  preserved -- the equation is appended before any ``a:endParaRPr``. The
+  companion read side is ``BaseShape.math_equation_xml`` /
+  ``has_math_equation`` (#126). Converting between OMML and LaTeX /
+  MathML remains out of scope -- the caller is responsible for producing
+  the OMML. Registers the ``a14`` namespace (``http://schemas.microsoft.com
+  /office/drawing/2010/main``) in ``pptx.oxml.ns``.
+- feat: #234 ``FillFormat.blip_fill(image_file)`` — picture (image) fill.
+  Adds a new ``blip_fill(image_file)`` method to |FillFormat| that embeds
+  *image_file* as an ``ImagePart`` on the containing part (reusing an
+  existing image part when the bytes match) and rewrites the underlying
+  ``EG_FillProperties`` as ``<a:blipFill><a:blip r:embed="…"/>
+  <a:stretch><a:fillRect/></a:stretch></a:blipFill>``. Works for auto-shape
+  fills, table-cell fills, slide background fills, font fills, and line
+  fills — any |FillFormat| whose factory call passes through a part
+  reference. Raises |ValueError| when called on a |FillFormat| created
+  without a part context (e.g. ``ChartFormat.fill``). Adds an end-to-end
+  regression suite ``DescribeIssue234BlipFill`` under
+  ``tests/test_issue_234_blip_fill.py`` that authors a rectangle shape,
+  applies ``shape.fill.blip_fill("tests/test_files/python-powered.png")``,
+  round-trips the presentation through save + reopen, and asserts both
+  the ``MSO_FILL.PICTURE`` fill type and the embedded image bytes survive.
+- feat: #259 custom document properties. Adds
+  ``Presentation.custom_properties`` as a dict-like accessor for the
+  ``/docProps/custom.xml`` OPC part (the "Custom" tab of PowerPoint's
+  Document-Properties dialog and the store a ``{ DOCPROPERTY }`` field
+  code reads from). Supports get / set / delete / ``__contains__`` /
+  ``__iter__`` / ``keys`` / ``items`` / ``values`` / ``update`` /
+  ``clear`` / ``pop`` / ``setdefault``; value types ``str`` /
+  ``int`` (32-bit signed) / ``float`` / ``bool`` / ``datetime.datetime``
+  are serialized as ``vt:lpwstr`` / ``vt:i4`` / ``vt:r8`` / ``vt:bool``
+  / ``vt:filetime`` respectively. New ``CustomPropertiesPart``
+  (``src/pptx/parts/customprops.py``) and ``CT_CustomProperties``
+  (``src/pptx/oxml/custprops.py``) mirror the Wave-2 #131
+  ``ExtendedPropertiesPart`` pattern. Reads against a package with no
+  custom-properties part are no-ops; writes create the part lazily so a
+  presentation that doesn't use custom properties round-trips without
+  gaining a stray ``docProps/custom.xml`` entry. Regression suite in
+  ``tests/test_issue_259_custom_properties.py`` plus unit coverage in
+  ``tests/oxml/test_custprops.py`` and ``tests/parts/test_customprops.py``.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
   reference to that issue's chartex roadmap.
+- #479/#651 waterfall chart: design analysis (F4-pending). Adds
+  ``docs/dev/analysis/chartex-waterfall.rst`` covering the
+  waterfall-specific ``cx:series`` shape with ``layoutId="waterfall"``,
+  the ``cx:layoutPr/cx:subtotals/cx:subtotal`` block that marks bars as
+  subtotal anchors, and the ``cx:visibility/@connectorLines`` toggle for
+  the step-lines between bars. Documents the pair of ``cx:axis``
+  children waterfall requires (unlike funnel) and proposes a minimal
+  authoring-API surface (``CategoryChartData.subtotal_indices``).
+  Documents the issue as blocked on full F4 (chartex foundation) with a
+  concrete unblock-and-ship checklist; #479 and #651 are the same ask
+  and will be resolved together.
 - #305 funnel chart: design analysis (F4-pending). Adds
   ``docs/dev/analysis/chartex-funnel.rst`` covering the ``cx:plotArea``
   subset, ``cx:series`` with ``layoutId="funnel"``, and the cached-data
@@ -53,6 +253,20 @@ Unreleased
   documented for MP4 / PNG rendering, and add a
   ``rendering-to-pdf-video-or-image-formats`` cross-reference label so other
   sections can link here.
+- verify: #539 (bar chart color duplicated when extending series count)
+  resolved by ``feat/issue-529-chart-theme-colors``. The #529 fix
+  (``_apply_accent_color_to_ser`` called from
+  ``_BaseSeriesXmlRewriter._add_cloned_sers``) rewrites any
+  ``a:srgbClr`` / ``a:schemeClr`` fill on a cloned ``c:ser`` to
+  ``a:schemeClr val="accent{n}"`` cycling 1..6 on the new series's
+  index, so growing a coloured chart from 1 to 6+ series via
+  ``Chart.replace_data()`` no longer repeats the source colour on every
+  new series — the #539 scenario exactly. Adds a regression suite
+  ``DescribeIssue539BarChartColorCycle`` under
+  ``tests/test_issue_539_chart_color_cycle.py`` that replays the
+  reporter's code (paint the source series red, grow to six series)
+  and pins the accent-cycling behaviour across an 8-series wrap case
+  and a save-and-reopen round-trip.
 - verify: #777 resolved by ``feat/issue-752-ole-embed-generic``. Embedding
   an HTML file as an OLE object now works via the generic
   ``add_ole_object(html_path, prog_id="MSHtml.MHT", ..., extension="html")``

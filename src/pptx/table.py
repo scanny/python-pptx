@@ -288,7 +288,7 @@ class _Cell(Subshape):
         Provides access to fill properties such as foreground color.
         """
         tcPr = self._tc.get_or_add_tcPr()
-        return FillFormat.from_fill_parent(tcPr)
+        return FillFormat.from_fill_parent(tcPr, self)
 
     @property
     def col_idx(self) -> int:
