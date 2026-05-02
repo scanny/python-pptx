@@ -6,6 +6,25 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #449 (``insert_chart`` on Content Placeholder) resolved by
+  ``feat/issue-333-content-placeholders`` (Wave 3) on top of
+  ``feat/issue-199-placeholder-insert-chart`` (Wave 2). #199 lifted
+  ``insert_chart`` from ``ChartPlaceholder`` onto
+  ``_BaseSlidePlaceholder`` so every slide placeholder inherits it;
+  #333 extended the same treatment to ``insert_picture`` and
+  ``insert_table`` and updated ``SlidePlaceholder`` to advertise the
+  full chart/picture/table insertion API. A Content placeholder has
+  ``ph_type == PP_PLACEHOLDER.OBJECT`` and is not mapped to a
+  specialized subclass by ``_SlidePlaceholderFactory``, so it lands on
+  generic ``SlidePlaceholder`` and picks up the inherited
+  ``insert_chart``. Adds a regression suite
+  ``DescribeIssue449ContentPlaceholderInsertChart`` under
+  ``tests/test_issue_449_content_placeholder_insert_chart.py`` that
+  pins the factory mapping, the happy path on a "Title and Content"
+  layout, a save-and-reload round trip, and coverage across every
+  default-template layout that carries a Content placeholder
+  (``Title and Content``, ``Two Content``, ``Comparison``,
+  ``Content with Caption``).
 - docs: #398 Jinja2 / templating of text placeholders — close as out-of-scope
   (templating is the caller's concern; python-pptx provides the plumbing via
   :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text` shipped
