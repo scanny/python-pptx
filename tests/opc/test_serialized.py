@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import io
 import zipfile
@@ -101,8 +102,19 @@ class DescribePackageWriter:
 
         PackageWriter.write("prs.pptx", relationships_, (part_, part_))
 
-        _init_.assert_called_once_with(ANY, "prs.pptx", relationships_, (part_, part_))
+        _init_.assert_called_once_with(ANY, "prs.pptx", relationships_, (part_, part_), None)
         _write_.assert_called_once_with(ANY)
+
+    def and_it_forwards_zip_date_time_to__init__(
+        self, request: FixtureRequest, relationships_: Mock, part_: Mock
+    ):
+        _init_ = initializer_mock(request, PackageWriter)
+        method_mock(request, PackageWriter, "_write")
+        fixed = dt.datetime(2000, 1, 2, 3, 4, 5)
+
+        PackageWriter.write("prs.pptx", relationships_, (part_,), fixed)
+
+        _init_.assert_called_once_with(ANY, "prs.pptx", relationships_, (part_,), fixed)
 
     def it_can_write_a_package(
         self, request: FixtureRequest, phys_writer_: Mock, relationships_: Mock
@@ -119,10 +131,26 @@ class DescribePackageWriter:
 
         package_writer._write()
 
-        _PhysPkgWriter_.factory.assert_called_once_with("prs.pptx")
+        _PhysPkgWriter_.factory.assert_called_once_with("prs.pptx", None)
         _write_content_types_stream_.assert_called_once_with(package_writer, phys_writer_)
         _write_pkg_rels_.assert_called_once_with(package_writer, phys_writer_)
         _write_parts_.assert_called_once_with(package_writer, phys_writer_)
+
+    def and_it_forwards_zip_date_time_to_the_phys_writer_factory(
+        self, request: FixtureRequest, phys_writer_: Mock, relationships_: Mock
+    ):
+        _PhysPkgWriter_ = class_mock(request, "pptx.opc.serialized._PhysPkgWriter")
+        phys_writer_.__enter__.return_value = phys_writer_
+        _PhysPkgWriter_.factory.return_value = phys_writer_
+        method_mock(request, PackageWriter, "_write_content_types_stream")
+        method_mock(request, PackageWriter, "_write_pkg_rels")
+        method_mock(request, PackageWriter, "_write_parts")
+        fixed = dt.datetime(1999, 12, 31, 23, 59, 58)
+        package_writer = PackageWriter("prs.pptx", relationships_, [], fixed)
+
+        package_writer._write()
+
+        _PhysPkgWriter_.factory.assert_called_once_with("prs.pptx", fixed)
 
     def it_can_write_a_content_types_stream(
         self, request: FixtureRequest, phys_writer_: Mock, relationships_: Mock, part_: Mock
@@ -308,7 +336,19 @@ class Describe_PhysPkgWriter:
 
         phys_writer = _PhysPkgWriter.factory("prs.pptx")
 
-        _ZipPkgWriter_.assert_called_once_with("prs.pptx")
+        _ZipPkgWriter_.assert_called_once_with("prs.pptx", None)
+        assert phys_writer is zip_pkg_writer_
+
+    def and_it_forwards_zip_date_time_to_the_ZipPkgWriter(self, request: FixtureRequest):
+        zip_pkg_writer_ = instance_mock(request, _ZipPkgWriter)
+        _ZipPkgWriter_ = class_mock(
+            request, "pptx.opc.serialized._ZipPkgWriter", return_value=zip_pkg_writer_
+        )
+        fixed = (2020, 5, 1, 12, 0, 0)
+
+        phys_writer = _PhysPkgWriter.factory("prs.pptx", fixed)
+
+        _ZipPkgWriter_.assert_called_once_with("prs.pptx", fixed)
         assert phys_writer is zip_pkg_writer_
 
 
@@ -334,6 +374,37 @@ class Describe_ZipPkgWriter:
         members = {PackURI("/%s" % name): zipf.read(name) for name in zipf.namelist()}
         assert len(members) == 1
         assert members[pack_uri] == b"blob"
+
+    def and_it_stamps_a_fixed_date_time_when_one_was_provided(self, _zipf_prop_: Mock):
+        pack_uri = PackURI("/part/name.xml")
+        _zipf_prop_.return_value = zipf = zipfile.ZipFile(
+            io.BytesIO(), "w", compression=zipfile.ZIP_DEFLATED
+        )
+        pkg_writer = _ZipPkgWriter("", dt.datetime(2000, 1, 2, 3, 4, 6))
+
+        pkg_writer.write(pack_uri, b"blob")
+
+        infos = zipf.infolist()
+        assert len(infos) == 1
+        # --- seconds are stored at 2s resolution in the zip format; 6s becomes 6s ---
+        assert infos[0].date_time == (2000, 1, 2, 3, 4, 6)
+        assert infos[0].compress_type == zipfile.ZIP_DEFLATED
+        assert zipf.read(pack_uri.membername) == b"blob"
+
+    def and_it_accepts_a_6_tuple_for_zip_date_time(self, _zipf_prop_: Mock):
+        pack_uri = PackURI("/part/name.xml")
+        _zipf_prop_.return_value = zipf = zipfile.ZipFile(
+            io.BytesIO(), "w", compression=zipfile.ZIP_DEFLATED
+        )
+        pkg_writer = _ZipPkgWriter("", (1980, 1, 1, 0, 0, 0))
+
+        pkg_writer.write(pack_uri, b"blob")
+
+        assert zipf.infolist()[0].date_time == (1980, 1, 1, 0, 0, 0)
+
+    def but_it_raises_on_malformed_zip_date_time(self):
+        with pytest.raises(TypeError, match="zip_date_time"):
+            _ZipPkgWriter("", (2020, 1))  # pyright: ignore[reportArgumentType]
 
     def it_provides_access_to_the_open_zip_file_to_help(self, request: FixtureRequest):
         ZipFile_ = class_mock(request, "pptx.opc.serialized.zipfile.ZipFile")

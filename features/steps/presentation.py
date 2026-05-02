@@ -121,6 +121,14 @@ def when_save_presentation_to_stream(context: Context):
     context.prs.save(context.stream)
 
 
+@when("I save it twice with zip_date_time fixed to 2020-01-01")
+def when_save_twice_with_fixed_zip_date_time(context: Context):
+    context.stream_a = io.BytesIO()
+    context.stream_b = io.BytesIO()
+    context.prs.save(context.stream_a, zip_date_time=(2020, 1, 1, 0, 0, 0))
+    context.prs.save(context.stream_b, zip_date_time=(2020, 1, 1, 0, 0, 0))
+
+
 # then ====================================================
 
 
@@ -220,3 +228,20 @@ def then_slide_height_matches_new_value(context: Context):
 def then_slide_width_matches_new_value(context: Context):
     presentation = context.presentation
     assert presentation.slide_width == Inches(4)
+
+
+@then("both saved streams are byte-for-byte identical")
+def then_both_streams_byte_identical(context: Context):
+    a = context.stream_a.getvalue()
+    b = context.stream_b.getvalue()
+    assert a == b, "streams differ (lengths %d vs %d)" % (len(a), len(b))
+
+
+@then("every zip member carries the 2020-01-01 00:00:00 last-modified stamp")
+def then_every_zip_member_has_fixed_date(context: Context):
+    context.stream_a.seek(0)
+    with zipfile.ZipFile(context.stream_a, "r") as z:
+        for info in z.infolist():
+            assert info.date_time == (2020, 1, 1, 0, 0, 0), (
+                "member %r has date_time %r" % (info.filename, info.date_time)
+            )

@@ -74,7 +74,13 @@ class DescribePresentation(object):
     def it_can_save_the_presentation_to_a_file(self, save_fixture):
         prs, file_, prs_part_ = save_fixture
         prs.save(file_)
-        prs_part_.save.assert_called_once_with(file_)
+        prs_part_.save.assert_called_once_with(file_, None)
+
+    def and_it_forwards_zip_date_time_to_the_presentation_part(self, save_fixture):
+        prs, file_, prs_part_ = save_fixture
+        zdt = (2024, 6, 15, 9, 30, 0)
+        prs.save(file_, zdt)
+        prs_part_.save.assert_called_once_with(file_, zdt)
 
     # fixtures -------------------------------------------------------
 

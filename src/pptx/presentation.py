@@ -9,6 +9,7 @@ from pptx.slide import SlideMasters, Slides
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
+    from pptx.opc.serialized import ZipDateTime
     from pptx.oxml.presentation import CT_Presentation, CT_SlideId
     from pptx.parts.presentation import PresentationPart
     from pptx.slide import NotesMaster, SlideLayouts
@@ -42,12 +43,23 @@ class Presentation(PartElementProxy):
         """
         return self.part.notes_master
 
-    def save(self, file: str | IO[bytes]):
+    def save(
+        self,
+        file: str | IO[bytes],
+        zip_date_time: ZipDateTime | None = None,
+    ):
         """Writes this presentation to `file`.
 
         `file` can be either a file-path or a file-like object open for writing bytes.
+
+        When `zip_date_time` is provided, every zip-member in the saved .pptx is stamped
+        with that fixed last-modified timestamp rather than the current wall-clock time.
+        This produces byte-identical output across repeated saves of identical content,
+        which is convenient for reproducible builds and source-control diffs. The value
+        may be a :class:`datetime.datetime` or a 6-tuple ``(year, month, day, hour,
+        minute, second)``. The earliest representable Zip date is 1980-01-01.
         """
-        self.part.save(file)
+        self.part.save(file, zip_date_time)
 
     @property
     def slide_height(self) -> Length | None:
