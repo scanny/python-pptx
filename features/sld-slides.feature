@@ -89,6 +89,26 @@ Feature: Access an individual slide
      Then slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]
 
 
+  Scenario: SlideLayouts.get_by_type() finds a layout by @type (#864)
+    Given a SlideLayouts object from the default template as slide_layouts
+     Then slide_layouts.get_by_type("blank").slide_layout_type is "blank"
+      And slide_layouts.get_by_type("title").slide_layout_type is "title"
+      And slide_layouts.get_by_type("not-a-real-type") is None
+
+
+  Scenario: SlideLayout.slide_layout_type exposes the @type token (#864)
+    Given a SlideLayouts object from the default template as slide_layouts
+     Then slide_layouts[0].slide_layout_type is "title"
+      And slide_layouts[6].slide_layout_type is "blank"
+
+
+  Scenario: SlideLayout.name falls back to "Layout N" when p:cSld/@name is empty (#864)
+    Given a SlideLayouts object from the default template as slide_layouts
+     When I clear p:cSld/@name on every layout in slide_layouts
+     Then slide_layouts[0].name is "Layout 1"
+      And slide_layouts[6].name is "Layout 7"
+
+
   Scenario: SlideLayouts.index()
     Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then slide_layouts.index(slide_layouts[1]) == 1

@@ -83,6 +83,30 @@ This class is not intended to be constructed directly.
    :exclude-members: iter_cloneable_placeholders
 
 
+Google Slides interop
+~~~~~~~~~~~~~~~~~~~~~
+
+Decks exported from Google Slides frequently strip the ``@type`` attribute
+from each ``<p:sldLayout>`` element and leave ``p:cSld/@name`` empty, which
+makes :meth:`SlideLayouts.get_by_name` return ``None`` for lookups like
+``slide_layouts.get_by_name("Blank")`` (see issue #864). Two mitigations ship
+with python-pptx:
+
+* :attr:`SlideLayout.name` falls back to a positional
+  ``"Layout N"`` (1-based index within the parent master's ``slide_layouts``)
+  when the underlying attribute is empty, so layouts remain
+  distinguishable in user-facing output.
+
+* :meth:`SlideLayouts.get_by_type` looks each layout up by its
+  ``ST_SlideLayoutType`` token (e.g. ``"title"``, ``"blank"``,
+  ``"cust"``) rather than by name. :attr:`SlideLayout.slide_layout_type`
+  exposes the underlying attribute directly and defaults to ``"cust"``
+  when absent, matching the ECMA-376 Part 1 §19.3.1.39 default. Layouts
+  that Google Slides preserves verbatim will still carry a useful
+  ``@type`` token, and for layouts authored entirely in Google Slides
+  (all ``"cust"``) a positional index remains the reliable identifier.
+
+
 |_HeaderFooter| objects
 -----------------------
 

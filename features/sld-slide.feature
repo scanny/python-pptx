@@ -97,7 +97,7 @@ Feature: slide properties
     Examples: name scenarios
       | name                 | value            |
       | Bullet Layout        | Bullet Layout    |
-      | of no explicit value | the empty string |
+      | of no explicit value | Layout 1         |
 
 
   Scenario: SlideLayout.shapes

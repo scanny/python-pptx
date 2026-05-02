@@ -6,6 +6,21 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #864 make slide layouts authored in Google Slides identifiable.
+  Google Slides exports ``.pptx`` files whose ``p:sldLayout`` elements
+  frequently lack a ``@type`` attribute and leave ``p:cSld/@name`` empty —
+  stripping the two handles python-pptx used to give each layout a stable
+  identity. :attr:`.SlideLayout.name` now falls back to a positional
+  ``"Layout N"`` (1-based index within the parent master's
+  ``slide_layouts``) when ``@name`` is empty, mirroring the existing
+  :attr:`.SlideMaster.name` behaviour landed for issue #679. A new
+  :attr:`.SlideLayout.slide_layout_type` property exposes the underlying
+  ``ST_SlideLayoutType`` token (``"title"``, ``"obj"``, ``"twoObj"``,
+  ``"titleOnly"``, ``"blank"``, ``"secHead"``, ``"picTx"``, ``"cust"``, ...;
+  defaults to ``"cust"`` per the schema when the attribute is absent), and
+  a new :meth:`.SlideLayouts.get_by_type` helper provides a
+  name-independent lookup path for decks originating in Google Slides.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

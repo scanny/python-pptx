@@ -16,6 +16,13 @@ def given_a_SlideLayouts_object_containing_2_layouts(context):
     context.slide_layouts = prs.slide_master.slide_layouts
 
 
+@given("a SlideLayouts object from the default template as slide_layouts")
+def given_a_SlideLayouts_object_from_default_template(context):
+    prs = Presentation()
+    context.prs = prs  # -- hold ref so layouts don't get GC'd --
+    context.slide_layouts = prs.slide_master.slide_layouts
+
+
 @given("a SlideMasters object containing 2 masters")
 def given_a_SlideMasters_object_containing_2_masters(context):
     prs = Presentation(test_pptx("prs-slide-masters"))
@@ -180,6 +187,53 @@ def then_slide_layouts_1_is_a_SlideLayout_object(context):
 def then_slide_layouts_get_by_name_is_slide_layout(context):
     slide_layouts = context.slide_layouts
     assert slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]
+
+
+@then('slide_layouts.get_by_type("blank").slide_layout_type is "blank"')
+def then_slide_layouts_get_by_type_blank(context):
+    slide_layouts = context.slide_layouts
+    layout = slide_layouts.get_by_type("blank")
+    assert layout is not None
+    assert layout.slide_layout_type == "blank"
+
+
+@then('slide_layouts.get_by_type("title").slide_layout_type is "title"')
+def then_slide_layouts_get_by_type_title(context):
+    slide_layouts = context.slide_layouts
+    layout = slide_layouts.get_by_type("title")
+    assert layout is not None
+    assert layout.slide_layout_type == "title"
+
+
+@then('slide_layouts.get_by_type("not-a-real-type") is None')
+def then_slide_layouts_get_by_type_unknown_is_None(context):
+    assert context.slide_layouts.get_by_type("not-a-real-type") is None
+
+
+@then('slide_layouts[0].slide_layout_type is "title"')
+def then_slide_layouts_0_slide_layout_type_is_title(context):
+    assert context.slide_layouts[0].slide_layout_type == "title"
+
+
+@then('slide_layouts[6].slide_layout_type is "blank"')
+def then_slide_layouts_6_slide_layout_type_is_blank(context):
+    assert context.slide_layouts[6].slide_layout_type == "blank"
+
+
+@when("I clear p:cSld/@name on every layout in slide_layouts")
+def when_I_clear_cSld_name_on_every_layout(context):
+    for layout in context.slide_layouts:
+        layout.name = ""
+
+
+@then('slide_layouts[0].name is "Layout 1"')
+def then_slide_layouts_0_name_is_Layout_1(context):
+    assert context.slide_layouts[0].name == "Layout 1"
+
+
+@then('slide_layouts[6].name is "Layout 7"')
+def then_slide_layouts_6_name_is_Layout_7(context):
+    assert context.slide_layouts[6].name == "Layout 7"
 
 
 @then("slide_layouts.index(slide_layouts[1]) == 1")

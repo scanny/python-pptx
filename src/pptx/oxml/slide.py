@@ -594,6 +594,16 @@ class CT_SlideLayout(_BaseSlideElement):
         "p:hf", successors=_tag_seq[5:]
     )
     del _tag_seq
+    # -- `@type` identifies the layout kind ("title", "obj", "twoObj", "cust", ...).
+    # -- Per ECMA-376 Part 1 §19.3.1.39 / `CT_SlideLayout`, the attribute is optional
+    # -- and defaults to "cust". PowerPoint always writes it; Google Slides exports
+    # -- routinely omit it (issue #864). Exposed as a raw string rather than an
+    # -- enum because downstream consumers typically pattern-match it and the
+    # -- full ST_SlideLayoutType vocabulary (36 values) has no precedent elsewhere
+    # -- in the library's enum layer.
+    type: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "type", XsdString, default="cust"
+    )
 
 
 class CT_SlideLayoutIdList(BaseOxmlElement):
