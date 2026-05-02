@@ -350,6 +350,121 @@ class DescribeColorFormat_to_rgb(object):
         with pytest.raises(ValueError, match="no entry for scheme color"):
             color_format.to_rgb({"accent2": RGBColor(0, 0, 0)})
 
+    def it_applies_tint_to_srgb(self):
+        # -- 4F81BD is the Office 2007 accent1; lumMod=75000/lumOff=25000 is
+        # -- the "Lighter 25%" tint which PowerPoint renders as 7BA0CD.
+        srgbClr_bldr = (
+            an_srgbClr()
+            .with_val("4F81BD")
+            .with_child(a_lumMod().with_val(75000))
+            .with_child(a_lumOff().with_val(25000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(0x7B, 0xA0, 0xCD)
+
+    def it_applies_shade_to_srgb(self):
+        # -- 4F81BD shaded with lumMod=50000 -> ~254061 ("Darker 50%") --
+        srgbClr_bldr = (
+            an_srgbClr().with_val("4F81BD").with_child(a_lumMod().with_val(50000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(0x25, 0x40, 0x61)
+
+    def it_applies_lum_mods_to_scheme_colors(self):
+        schemeClr_bldr = (
+            a_schemeClr()
+            .with_val("accent1")
+            .with_child(a_lumMod().with_val(75000))
+            .with_child(a_lumOff().with_val(25000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(schemeClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        theme_colors = {"accent1": RGBColor(0x4F, 0x81, 0xBD)}
+
+        assert color_format.to_rgb(theme_colors) == RGBColor(0x7B, 0xA0, 0xCD)
+
+    def it_applies_lum_mods_to_preset_colors(self):
+        # -- cornflowerBlue (6495ED) tinted 50% has luminance raised to 0.5 * L + 0.5 --
+        prstClr_bldr = (
+            a_prstClr()
+            .with_val("cornflowerBlue")
+            .with_child(a_lumMod().with_val(50000))
+            .with_child(a_lumOff().with_val(50000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(prstClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        # -- precompute expected via same algorithm --
+        import colorsys
+
+        r, g, b = 0x64 / 255.0, 0x95 / 255.0, 0xED / 255.0
+        h, lum, s = colorsys.rgb_to_hls(r, g, b)
+        nr, ng, nb = colorsys.hls_to_rgb(h, lum * 0.5 + 0.5, s)
+        expected = RGBColor(
+            int(round(nr * 255)), int(round(ng * 255)), int(round(nb * 255))
+        )
+        assert color_format.to_rgb() == expected
+
+    def it_applies_lum_mods_to_sys_colors(self):
+        sysClr_bldr = (
+            a_sysClr()
+            .with_val("windowText")
+            .with_lastClr("000000")
+            .with_child(a_lumOff().with_val(50000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(sysClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        # -- black with lumOff=0.5 yields mid-grey (L=0.5, S=0) --
+        assert color_format.to_rgb() == RGBColor(128, 128, 128)
+
+    def it_applies_lum_mods_to_scrgb_colors(self):
+        # -- white with lumMod=0.5 yields mid-grey --
+        scrgbClr_bldr = (
+            an_scrgbClr()
+            .with_r(100000)
+            .with_g(100000)
+            .with_b(100000)
+            .with_child(a_lumMod().with_val(50000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(scrgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(128, 128, 128)
+
+    def it_applies_lum_mods_to_hsl_colors(self):
+        # -- pure red (H=0, S=100%, L=50%) with lumMod=0.5 -> L=0.25 -> dark red --
+        hslClr_bldr = (
+            an_hslClr()
+            .with_hue(0)
+            .with_sat(100000)
+            .with_lum(50000)
+            .with_child(a_lumMod().with_val(50000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(hslClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        # -- L=0.25, S=1, H=0 -> R channel max at 0.5, G=B=0 -> 128, 0, 0 --
+        assert color_format.to_rgb() == RGBColor(128, 0, 0)
+
+    def it_clamps_luminance_to_valid_range(self):
+        # -- Luminance pushed above 1.0 should clamp to white --
+        srgbClr_bldr = (
+            an_srgbClr()
+            .with_val("FF0000")
+            .with_child(a_lumMod().with_val(100000))
+            .with_child(a_lumOff().with_val(90000))
+        )
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        # -- clamped L=1.0 with S reset effectively gives white --
+        assert color_format.to_rgb() == RGBColor(255, 255, 255)
+
 
 class DescribeRGBColor(object):
     def it_is_natively_constructed_using_three_ints_0_to_255(self):

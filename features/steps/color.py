@@ -34,9 +34,19 @@ def when_I_assign_RGBColor_to_color_rgb(context):
     context.color.rgb = RGBColor(12, 34, 56)
 
 
+@when("I assign RGBColor(79, 129, 189) to color.rgb")
+def when_I_assign_RGBColor_accent1_to_color_rgb(context):
+    context.color.rgb = RGBColor(79, 129, 189)
+
+
 @when("I assign 0.42 to color.brightness")
 def when_I_assign_0_42_to_color_brightness(context):
     context.color.brightness = 0.42
+
+
+@when("I assign 0.25 to color.brightness")
+def when_I_assign_0_25_to_color_brightness(context):
+    context.color.brightness = 0.25
 
 
 # then =====================================================
@@ -101,3 +111,13 @@ def then_color_to_rgb_resolves_via_theme_colors(context):
     assert rgb == expected, "expected %s, got %s" % (repr(expected), repr(rgb))
     # -- sanity: the resolved value must be a real RGBColor, not None --
     assert isinstance(rgb, RGBColor)
+
+
+@then("color.to_rgb() reflects the tinted RGB value")
+def then_color_to_rgb_reflects_tinted_value(context):
+    # -- 4F81BD with lumMod=75%/lumOff=25% (brightness=0.25) renders as 7BA0CD --
+    rgb = context.color.to_rgb()
+    expected = RGBColor(0x7B, 0xA0, 0xCD)
+    assert rgb == expected, "expected %s, got %s" % (repr(expected), repr(rgb))
+    # -- the raw .rgb value must still be the unmodified base --
+    assert context.color.rgb == RGBColor(79, 129, 189)

@@ -101,6 +101,11 @@ class ColorFormat(object):
         required only when this color is a scheme (theme) color. The mapping
         can be obtained from :attr:`SlideMaster.theme_colors`.
 
+        The returned value reflects any luminance modifiers (``<a:lumMod>``
+        and ``<a:lumOff>``, set via :attr:`brightness`) present on the color
+        element, so the result corresponds to the RGB PowerPoint would
+        actually render for the color — not just the unmodified base.
+
         Raises :class:`ValueError` for a scheme color when `theme_colors` is
         not provided or does not contain the required entry, and for a
         preset color whose name is not recognized.
@@ -201,6 +206,35 @@ class _Color(object):
         tmpl = "no .to_rgb() implementation on color type '%s'"
         raise NotImplementedError(tmpl % self.__class__.__name__)
 
+    def _apply_lum_mods(self, rgb: RGBColor) -> RGBColor:
+        """Return `rgb` adjusted by any `<a:lumMod>`/`<a:lumOff>` children.
+
+        Applies the ECMA-376 luminance transform::
+
+            new_L = old_L * lumMod + lumOff
+
+        in the HSL color space, with `lumMod` defaulting to `1.0` and
+        `lumOff` defaulting to `0.0`. When neither modifier is present the
+        input `rgb` is returned unchanged.
+        """
+        lumMod_elm = self._xClr.lumMod
+        lumOff_elm = self._xClr.lumOff
+        if lumMod_elm is None and lumOff_elm is None:
+            return rgb
+
+        lum_mod = 1.0 if lumMod_elm is None else float(lumMod_elm.val)
+        lum_off = 0.0 if lumOff_elm is None else float(lumOff_elm.val)
+
+        r, g, b = rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0
+        hue, lum, sat = colorsys.rgb_to_hls(r, g, b)
+        new_lum = max(0.0, min(1.0, lum * lum_mod + lum_off))
+        nr, ng, nb = colorsys.hls_to_rgb(hue, new_lum, sat)
+        return RGBColor(
+            max(0, min(255, int(round(nr * 255)))),
+            max(0, min(255, int(round(ng * 255)))),
+            max(0, min(255, int(round(nb * 255)))),
+        )
+
     def _shade(self, value):
         lumMod_val = 1.0 - abs(value)
         color_elm = self._xClr.clear_lum()
@@ -223,14 +257,16 @@ class _HslColor(_Color):
         """Return |RGBColor| computed from the HSL triple on `<a:hslClr>`.
 
         OOXML encodes `hue` as 60000-ths of a degree and `sat`/`lum` as
-        1000-ths of a percent.
+        1000-ths of a percent. Any `<a:lumMod>` or `<a:lumOff>` child is
+        applied to the result.
         """
         hue = _ST_Angle_to_degrees(self._xClr.get("hue", "0"))
         sat = _ST_Percentage_to_unit(self._xClr.get("sat", "0"))
         lum = _ST_Percentage_to_unit(self._xClr.get("lum", "0"))
         # -- colorsys.hls_to_rgb expects (h, l, s) where h is in [0, 1) --
         r, g, b = colorsys.hls_to_rgb(hue / 360.0, lum, sat)
-        return RGBColor(int(round(r * 255)), int(round(g * 255)), int(round(b * 255)))
+        base = RGBColor(int(round(r * 255)), int(round(g * 255)), int(round(b * 255)))
+        return self._apply_lum_mods(base)
 
 
 class _NoneColor(_Color):
@@ -260,6 +296,8 @@ class _PrstColor(_Color):
     def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
         """Return |RGBColor| for the preset color name on `<a:prstClr>`.
 
+        Any `<a:lumMod>` or `<a:lumOff>` child is applied to the result.
+
         Raises :class:`ValueError` when the preset name is not recognized.
         """
         name = self._xClr.get("val", "")
@@ -267,7 +305,7 @@ class _PrstColor(_Color):
             hex_str = PRESET_COLORS[name]
         except KeyError as exc:
             raise ValueError("unrecognized preset color name '%s'" % name) from exc
-        return RGBColor.from_string(hex_str)
+        return self._apply_lum_mods(RGBColor.from_string(hex_str))
 
 
 class _SchemeColor(_Color):
@@ -301,6 +339,10 @@ class _SchemeColor(_Color):
         color name (e.g. ``"accent1"``, ``"bg1"``) to |RGBColor|. Such a
         mapping can be obtained from :attr:`SlideMaster.theme_colors`.
 
+        Any `<a:lumMod>` or `<a:lumOff>` child is applied to the result, so
+        a tint- or shade-adjusted theme color resolves to the RGB value
+        PowerPoint actually renders.
+
         Raises :class:`ValueError` when `theme_colors` is None or does not
         contain an entry for this color's scheme name.
         """
@@ -311,9 +353,10 @@ class _SchemeColor(_Color):
             )
         name = self._schemeClr.get("val", "")
         try:
-            return theme_colors[name]
+            base = theme_colors[name]
         except KeyError as exc:
             raise ValueError("theme_colors has no entry for scheme color '%s'" % name) from exc
+        return self._apply_lum_mods(base)
 
 
 class _ScRgbColor(_Color):
@@ -322,15 +365,19 @@ class _ScRgbColor(_Color):
         return MSO_COLOR_TYPE.SCRGB
 
     def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
-        """Return |RGBColor| computed from the percentage-based RGB attrs."""
+        """Return |RGBColor| computed from the percentage-based RGB attrs.
+
+        Any `<a:lumMod>` or `<a:lumOff>` child is applied to the result.
+        """
         r = _ST_Percentage_to_unit(self._xClr.get("r", "0"))
         g = _ST_Percentage_to_unit(self._xClr.get("g", "0"))
         b = _ST_Percentage_to_unit(self._xClr.get("b", "0"))
-        return RGBColor(
+        base = RGBColor(
             max(0, min(255, int(round(r * 255)))),
             max(0, min(255, int(round(g * 255)))),
             max(0, min(255, int(round(b * 255)))),
         )
+        return self._apply_lum_mods(base)
 
 
 class _SRgbColor(_Color):
@@ -355,8 +402,11 @@ class _SRgbColor(_Color):
         self._srgbClr.val = str(rgb)
 
     def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
-        """Return |RGBColor| for this explicit RGB color."""
-        return RGBColor.from_string(self._srgbClr.val)
+        """Return |RGBColor| for this explicit RGB color.
+
+        Any `<a:lumMod>` or `<a:lumOff>` child is applied to the result.
+        """
+        return self._apply_lum_mods(RGBColor.from_string(self._srgbClr.val))
 
 
 class _SysColor(_Color):
@@ -369,7 +419,8 @@ class _SysColor(_Color):
 
         `lastClr` is the rendered RGB value PowerPoint most recently observed
         for the named system color (like ``"windowText"``) and is the closest
-        thing to a resolved RGB available without the rendering context.
+        thing to a resolved RGB available without the rendering context. Any
+        `<a:lumMod>` or `<a:lumOff>` child is applied to the result.
 
         Raises :class:`ValueError` when the element has no `lastClr`
         attribute.
@@ -380,7 +431,7 @@ class _SysColor(_Color):
                 "system color '%s' has no `lastClr` attribute; RGB cannot be "
                 "resolved without a rendering context" % self._xClr.get("val", "")
             )
-        return RGBColor.from_string(last_clr)
+        return self._apply_lum_mods(RGBColor.from_string(last_clr))
 
 
 class RGBColor(tuple):

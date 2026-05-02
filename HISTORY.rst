@@ -50,6 +50,14 @@ Unreleased
   (``p:spTree`` or ``p:grpSp``).
 - #946 Connector.adjustments for elbow/curved connectors
 - #420 universal ``to_rgb()`` across color classes
+- #308 Resolve RGB values of theme color. ``ColorFormat.to_rgb()`` now
+  applies any ``<a:lumMod>`` / ``<a:lumOff>`` luminance modifiers
+  (tint/shade, set via ``ColorFormat.brightness``) to the resolved base
+  color, so the returned ``RGBColor`` matches the RGB PowerPoint actually
+  renders — not just the unmodified scheme / preset / sRGB base. The
+  transform applies across every color type (``srgbClr``, ``schemeClr``,
+  ``prstClr``, ``hslClr``, ``scrgbClr``, ``sysClr``)
+  via the standard ECMA-376 HSL formula ``new_L = old_L * lumMod + lumOff``.
 - #716 DataLabel border and fill via ChartFormat
 - fix: #936 text_frame.fit_text crashes if no wrapped representation fits
         in the width of the shape
