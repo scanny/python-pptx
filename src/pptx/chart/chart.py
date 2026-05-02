@@ -397,6 +397,44 @@ class Chart(PartElementProxy):
             raise ValueError("chart has no secondary value axis")
         return ValueAxis(secondary_valAx)
 
+    def clone_to(self, shapes, x, y, cx, cy):
+        """Duplicate this chart onto `shapes` at (`x`, `y`) with size (`cx`, `cy`).
+
+        Implements the cross-slide chart-copy primitive (issue #877). `shapes`
+        is a slide shape-tree such as :attr:`Slide.shapes` on the same
+        presentation as this chart *or* on a different one. A new chart part
+        is created in `shapes`'s presentation containing a deep copy of this
+        chart's ``c:chartSpace`` XML and a freshly-duplicated
+        :class:`EmbeddedXlsxPart`, and a new ``p:graphicFrame`` referencing it
+        is appended to `shapes`. Every relationship carried by the source
+        chart part (chart image, theme override, ...) is re-established on
+        the new chart part as a side-effect — no cross-package or cross-part
+        references escape.
+
+        In the same-presentation case (copy from slide A to slide B within
+        one file), image/theme-override parts are reused by package
+        reference; only the chart part itself and the embedded workbook are
+        forcibly duplicated so PowerPoint's "Edit Data" dialog keeps working
+        per-chart. In the cross-presentation case every referenced part is
+        materialised in the destination package so the target file can be
+        saved and opened independently.
+
+        `x`, `y`, `cx`, `cy` are the position and extents of the new chart's
+        ``p:graphicFrame`` on `shapes`'s slide, in English Metric Units. They
+        are required: a chart's current position lives on its enclosing
+        ``p:graphicFrame`` (not on the chart XML itself), so callers that
+        want to preserve the source position should read those values from
+        the ``GraphicFrame`` shape wrapping the source chart (e.g.
+        ``source_gf.left``, ``source_gf.top``, ``source_gf.width``,
+        ``source_gf.height``).
+
+        Returns the newly-created :class:`~pptx.shapes.graphfrm.GraphicFrame`
+        containing the duplicated chart; reach the duplicate :class:`Chart`
+        via the returned graphic-frame's
+        :attr:`~pptx.shapes.graphfrm.GraphicFrame.chart` property.
+        """
+        return shapes.clone_chart(self, x, y, cx, cy)
+
     @property
     def workbook(self):
         """Bytes of this chart's embedded Excel workbook, or ``None``.

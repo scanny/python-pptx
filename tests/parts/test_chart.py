@@ -16,7 +16,13 @@ from pptx.parts.chart import ChartPart, ChartWorkbook
 from pptx.parts.embeddedpackage import EmbeddedXlsxPart
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import class_mock, instance_mock, method_mock, property_mock
+from ..unitutil.mock import (
+    class_mock,
+    function_mock,
+    instance_mock,
+    method_mock,
+    property_mock,
+)
 
 
 class DescribeChartPart(object):
@@ -40,6 +46,39 @@ class DescribeChartPart(object):
         )
         chart_part_.chart_workbook.update_from_xlsx_blob.assert_called_once_with(b"xlsx-blob")
         assert chart_part is chart_part_
+
+    def it_can_clone_a_chart_part_from_another(self, request):
+        """ChartPart.clone_from duplicates chart XML + embedded workbook (F5, #877)."""
+        source_cs = element("c:chartSpace{r:a=b}/c:externalData{r:id=rIdSRC}")
+        source_part = ChartPart(
+            PackURI("/ppt/charts/chart1.xml"), CT.DML_CHART, None, source_cs
+        )
+        target_package_ = instance_mock(request, OpcPackage)
+        target_package_.next_partname.return_value = PackURI("/ppt/charts/chart7.xml")
+        remapped_cs = element("c:chartSpace{r:a=b}/c:externalData{r:id=rIdNEW}")
+        PartRelationshipCloner_ = class_mock(
+            request, "pptx.parts.chart.PartRelationshipCloner"
+        )
+        PartRelationshipCloner_.clone.return_value = remapped_cs
+        clone_embedded_xlsx_ = function_mock(
+            request, "pptx.parts.chart.clone_embedded_xlsx"
+        )
+
+        new_part = ChartPart.clone_from(source_part, target_package_)
+
+        # -- the new part lives in the target package at the freshly-allocated partname
+        assert isinstance(new_part, ChartPart)
+        assert new_part.partname == PackURI("/ppt/charts/chart7.xml")
+        assert new_part.package is target_package_
+        # -- F1's PartRelationshipCloner drove the chartSpace clone + rId remap
+        PartRelationshipCloner_.clone.assert_called_once_with(
+            source_part, new_part, source_cs
+        )
+        assert new_part._element is remapped_cs
+        # -- The embedded workbook was forcibly re-cloned so source and target
+        # -- don't share an xlsx part (would otherwise break PowerPoint "Edit Data"
+        # -- per clone_embedded_xlsx docstring).
+        clone_embedded_xlsx_.assert_called_once_with(source_part, new_part)
 
     def it_provides_access_to_the_chart_object(self, request, chartSpace_):
         chart_ = instance_mock(request, Chart)
