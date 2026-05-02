@@ -19,6 +19,8 @@ Unreleased
   for introspection or :class:`pptx.animation.AnimationEffect` for
   authoring.
 
+- verify: #720 resolved by #337 EA/CS font slots
+
 - verify: #1106 entrance/exit animations resolved by #102 set_animation API
 
 - docs: #963 "save slide as image" — close as out-of-scope (python-pptx
