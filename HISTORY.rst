@@ -6,6 +6,31 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #1068 (edit individual data labels) resolved by
+  ``series.points[i].data_label`` — the per-point |DataLabel| proxy
+  wrapping the ``c:dLbl`` element addressed by ``c:idx`` matching the
+  point index. The capability has existed since ``Point.data_label``
+  was first added; the Wave-era work that closed the adjacent gaps —
+  ``feat/issue-716-datalabel-border`` (Wave 1) added
+  ``DataLabel.format`` (a |ChartFormat| wrapping the individual
+  ``c:dLbl``) with ``.fill`` / ``.line`` / ``.shadow``, and
+  ``feat/issue-560-data-label-colors`` (Wave 7) added the series-level
+  analogue ``DataLabels.format`` — round out the per-label API. The
+  #1068 reporter's screenshot (different label contents on one point
+  only) is achieved by assigning
+  ``series.points[i].data_label.text_frame.text = "..."``, which
+  writes a ``c:dLbl/c:tx/c:rich`` subtree PowerPoint renders in place
+  of the series-level ``show_value`` / ``show_series_name`` flags for
+  that point. Adds a regression suite
+  ``DescribeIssue1068IndividualDataLabels`` under
+  ``tests/test_issue_1068_individual_data_labels.py`` that pins
+  ``Series.points[i].data_label`` on category, XY, and bubble series,
+  round-trips per-point ``text_frame``, ``position``, ``font``, and
+  ``format.fill`` through ``Presentation.save`` + reopen, and asserts
+  per-point independence (customizing one label does not touch its
+  siblings and writes exactly one ``c:dLbl`` per customized point
+  with a matching ``c:idx/@val``).
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
