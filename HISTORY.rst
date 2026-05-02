@@ -14,6 +14,15 @@ Unreleased
   ``Sections.remove``, ``Sections.get_by_id``, ``Sections.get_by_name``,
   and per-section ``Section.name``, ``Section.id`` (GUID), ``Section.slides``,
   ``Section.add_slide``, and ``Section.remove_slide``.
+- feat: #257 Presentation sections — leaf API. Adds ordering and location
+  conveniences on top of the F7 foundation: ``Section.index`` /
+  ``Sections.index(section)`` expose a section's zero-based position;
+  ``Section.move_before(other)`` / ``Section.move_after(other)`` reorder
+  sections without touching the slide list; ``Sections.find_containing(slide)``
+  returns the |Section| that owns a given slide (or |None|); and
+  ``Section.add_slide()`` now raises a helpful ``ValueError`` naming the
+  existing owner when a slide is already assigned to another section — use
+  the new ``Section.move_slide(slide)`` to reassign in one step.
 - Foundation: animations/transitions XML layer (F8 — MVP). Adds element
   classes for ``p:timing`` / ``p:tnLst`` / ``p:par`` / ``p:seq`` / ``p:cTn``
   and the ``p:transition`` subtree (including the ``p14:morph`` Office 2010

@@ -423,6 +423,72 @@ class DescribeSections(object):
         with pytest.raises(ValueError):
             prs_a.sections.remove(foreign)
 
+    def it_reports_the_index_of_a_section(self):
+        prs = Presentation(element("p:presentation"), None)
+        s1 = prs.sections.add_section("Intro")
+        s2 = prs.sections.add_section("Body")
+        s3 = prs.sections.add_section("Outro")
+
+        assert prs.sections.index(s1) == 0
+        assert prs.sections.index(s2) == 1
+        assert prs.sections.index(s3) == 2
+
+    def it_raises_ValueError_on_index_of_a_foreign_section(self):
+        prs_a = Presentation(element("p:presentation"), None)
+        prs_b = Presentation(element("p:presentation"), None)
+        foreign = prs_b.sections.add_section("X")
+
+        with pytest.raises(ValueError, match="not a member"):
+            prs_a.sections.index(foreign)
+
+    def it_finds_the_section_containing_a_given_slide(self, request):
+        slide_a = instance_mock(request, Slide, name="slide_a")
+        slide_b = instance_mock(request, Slide, name="slide_b")
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.side_effect = lambda rId: (
+            slide_a if rId == "rId2" else slide_b
+        )
+        prs = Presentation(
+            element(
+                "p:presentation/p:sldIdLst/"
+                "(p:sldId{id=256,r:id=rId2},p:sldId{id=257,r:id=rId3})"
+            ),
+            prs_part_,
+        )
+        s_intro = prs.sections.add_section("Intro", slides=[slide_a])
+        s_body = prs.sections.add_section("Body", slides=[slide_b])
+
+        assert prs.sections.find_containing(slide_a) == s_intro
+        assert prs.sections.find_containing(slide_b) == s_body
+
+    def but_find_containing_returns_None_when_slide_is_unassigned(self, request):
+        slide_ = instance_mock(request, Slide)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+        # -- no section created at all --
+        assert prs.sections.find_containing(slide_) is None
+
+        # -- section exists but does not include the slide --
+        prs.sections.add_section("Empty")
+        assert prs.sections.find_containing(slide_) is None
+
+    def and_find_containing_raises_on_foreign_slide(self, request):
+        slide_ = instance_mock(request, Slide)
+        prs_part_ = instance_mock(request, PresentationPart)
+        # -- lookup against rId2 resolves to a *different* slide --
+        prs_part_.related_slide.return_value = instance_mock(request, Slide)
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+
+        with pytest.raises(ValueError, match="does not belong"):
+            prs.sections.find_containing(slide_)
+
 
 class DescribeSection(object):
     """Unit-test suite for `pptx.presentation.Section`."""
@@ -525,6 +591,129 @@ class DescribeSection(object):
         # -- re-access via indexing should yield an equal Section --
         assert section == prs.sections[0]
         assert section != "not a section"
+
+    def it_reports_its_index_within_the_section_list(self):
+        prs = Presentation(element("p:presentation"), None)
+        s1 = prs.sections.add_section("Intro")
+        s2 = prs.sections.add_section("Body")
+
+        assert s1.index == 0
+        assert s2.index == 1
+
+    def it_raises_ValueError_on_index_after_removal(self):
+        prs = Presentation(element("p:presentation"), None)
+        s1 = prs.sections.add_section("Intro")
+        prs.sections.add_section("Body")
+
+        prs.sections.remove(s1)
+
+        with pytest.raises(ValueError, match="not a member"):
+            _ = s1.index
+
+    def it_can_move_a_section_before_another(self):
+        prs = Presentation(element("p:presentation"), None)
+        s1 = prs.sections.add_section("Intro")
+        s2 = prs.sections.add_section("Body")
+        s3 = prs.sections.add_section("Outro")
+
+        s3.move_before(s1)
+
+        names = [s.name for s in prs.sections]
+        assert names == ["Outro", "Intro", "Body"]
+        assert [s2, s3][0].name == "Body"  # -- still the same Section objects --
+
+    def it_can_move_a_section_after_another(self):
+        prs = Presentation(element("p:presentation"), None)
+        s1 = prs.sections.add_section("Intro")
+        s2 = prs.sections.add_section("Body")
+        s3 = prs.sections.add_section("Outro")
+
+        s1.move_after(s2)
+
+        names = [s.name for s in prs.sections]
+        assert names == ["Body", "Intro", "Outro"]
+        # -- moving s1 after s3 pushes it to the end --
+        s1.move_after(s3)
+        assert [s.name for s in prs.sections] == ["Body", "Outro", "Intro"]
+
+    def it_treats_moving_a_section_relative_to_itself_as_a_noop(self):
+        prs = Presentation(element("p:presentation"), None)
+        s1 = prs.sections.add_section("Intro")
+        prs.sections.add_section("Body")
+
+        s1.move_before(s1)
+        s1.move_after(s1)
+
+        assert [s.name for s in prs.sections] == ["Intro", "Body"]
+
+    def it_raises_ValueError_moving_a_foreign_section(self):
+        prs_a = Presentation(element("p:presentation"), None)
+        prs_b = Presentation(element("p:presentation"), None)
+        s_a = prs_a.sections.add_section("Intro")
+        foreign = prs_b.sections.add_section("X")
+
+        with pytest.raises(ValueError, match="not a member"):
+            s_a.move_before(foreign)
+        with pytest.raises(ValueError, match="not a member"):
+            s_a.move_after(foreign)
+
+    def it_raises_ValueError_when_adding_a_slide_already_in_another_section(self, request):
+        slide_ = instance_mock(request, Slide)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+        prs.sections.add_section("Intro", slides=[slide_])
+        target = prs.sections.add_section("Body")
+
+        with pytest.raises(ValueError, match="already assigned to section 'Intro'"):
+            target.add_slide(slide_)
+
+    def it_can_move_a_slide_from_another_section(self, request):
+        slide_ = instance_mock(request, Slide)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+        source = prs.sections.add_section("Intro", slides=[slide_])
+        target = prs.sections.add_section("Body")
+
+        target.move_slide(slide_)
+
+        assert source._section_slide_ids == ()
+        assert target._section_slide_ids == (256,)
+
+    def and_move_slide_is_a_noop_when_already_in_target(self, request):
+        slide_ = instance_mock(request, Slide)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+        target = prs.sections.add_section("Body", slides=[slide_])
+
+        target.move_slide(slide_)
+
+        assert target._section_slide_ids == (256,)
+
+    def and_move_slide_adopts_an_unassigned_slide(self, request):
+        slide_ = instance_mock(request, Slide)
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.related_slide.return_value = slide_
+        prs = Presentation(
+            element("p:presentation/p:sldIdLst/p:sldId{id=256,r:id=rId2}"),
+            prs_part_,
+        )
+        target = prs.sections.add_section("Body")
+
+        target.move_slide(slide_)
+
+        assert target._section_slide_ids == (256,)
 
 
 class Describe_read_blob(object):

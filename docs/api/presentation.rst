@@ -56,6 +56,35 @@ exposes the PowerPoint-2010 *section list* feature — named groups of
 consecutive slides that appear as collapsible regions in the Navigation
 pane.
 
+Typical usage::
+
+    from pptx import Presentation
+
+    prs = Presentation("deck.pptx")
+
+    # -- inspect existing sections --
+    for section in prs.sections:
+        print(section.index, section.name, len(section.slides))
+
+    # -- create, rename, and reorder sections --
+    intro = prs.sections.add_section("Intro", slides=[prs.slides[0]])
+    body = prs.sections.add_section("Body", slides=prs.slides[1:])
+    intro.move_after(body)              # -- swap order --
+
+    # -- locate which section owns a slide --
+    owner = prs.sections.find_containing(prs.slides[2])
+    assert owner is body
+
+    # -- reassigning slides between sections --
+    #    add_slide() raises ValueError if `slide` is already in another section;
+    #    use Section.move_slide() to reassign in one step.
+    body.move_slide(prs.slides[0])
+
+    # -- remove a section (slides themselves are preserved) --
+    prs.sections.remove(intro)
+
+    prs.save("deck.pptx")
+
 .. autoclass:: pptx.presentation.Sections()
    :members:
    :member-order: bysource

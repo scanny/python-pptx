@@ -26,6 +26,41 @@ def when_add_section_with_two_slides(context: Context, name: str):
     context.prs.sections.add_section(name, slides=slides)
 
 
+@when('I add a section named "{name}" with slide 3')
+def when_add_section_with_slide_three(context: Context, name: str):
+    context.prs.sections.add_section(name, slides=[context.prs.slides[2]])
+
+
+@when('I add three sections "{a}", "{b}", "{c}"')
+def when_add_three_sections(context: Context, a: str, b: str, c: str):
+    context.prs.sections.add_section(a)
+    context.prs.sections.add_section(b)
+    context.prs.sections.add_section(c)
+
+
+@when('I move the "{mover}" section before the "{anchor}" section')
+def when_move_section_before(context: Context, mover: str, anchor: str):
+    section = context.prs.sections.get_by_name(mover)
+    other = context.prs.sections.get_by_name(anchor)
+    assert section is not None and other is not None
+    section.move_before(other)
+
+
+@when('I move the "{mover}" section after the "{anchor}" section')
+def when_move_section_after(context: Context, mover: str, anchor: str):
+    section = context.prs.sections.get_by_name(mover)
+    other = context.prs.sections.get_by_name(anchor)
+    assert section is not None and other is not None
+    section.move_after(other)
+
+
+@when('I move slide {n:d} into the "{target_name}" section')
+def when_move_slide_into_section(context: Context, n: int, target_name: str):
+    target = context.prs.sections.get_by_name(target_name)
+    assert target is not None
+    target.move_slide(context.prs.slides[n - 1])
+
+
 @when('I rename the first section to "{new_name}"')
 def when_rename_first_section(context: Context, new_name: str):
     context.prs.sections[0].name = new_name
@@ -76,3 +111,48 @@ def then_prs_xml_has_sectionLst(context: Context):
 def then_prs_has_no_extLst(context: Context):
     prs_element = context.prs._element  # pyright: ignore[reportPrivateUsage]
     assert prs_element.find(qn("p:extLst")) is None
+
+
+@then('the section names are "{a}", "{b}", "{c}"')
+def then_section_names_are(context: Context, a: str, b: str, c: str):
+    actual = [s.name for s in context.prs.sections]
+    assert actual == [a, b, c], "expected %r, got %r" % ([a, b, c], actual)
+
+
+@then('find_containing for slide {n:d} returns the "{expected_name}" section')
+def then_find_containing(context: Context, n: int, expected_name: str):
+    slide = context.prs.slides[n - 1]
+    section = context.prs.sections.find_containing(slide)
+    assert section is not None, "find_containing returned None"
+    assert section.name == expected_name, "expected %r, got %r" % (
+        expected_name,
+        section.name,
+    )
+
+
+@then('adding slide {n:d} to the "{target_name}" section raises a ValueError mentioning "{phrase}"')
+def then_add_slide_raises(context: Context, n: int, target_name: str, phrase: str):
+    target = context.prs.sections.get_by_name(target_name)
+    assert target is not None
+    try:
+        target.add_slide(context.prs.slides[n - 1])
+    except ValueError as exc:
+        assert phrase in str(exc), "expected %r in %r" % (phrase, str(exc))
+        return
+    raise AssertionError("add_slide did not raise ValueError")
+
+
+@then('the "{section_name}" section contains slides {a:d}')
+def then_section_contains_one_slide(context: Context, section_name: str, a: int):
+    section = context.prs.sections.get_by_name(section_name)
+    assert section is not None
+    expected = (context.prs.slides[a - 1],)
+    assert section.slides == expected, "expected %r, got %r" % (expected, section.slides)
+
+
+@then('the "{section_name}" section contains slides {a:d} and {b:d}')
+def then_section_contains_two_slides(context: Context, section_name: str, a: int, b: int):
+    section = context.prs.sections.get_by_name(section_name)
+    assert section is not None
+    expected = (context.prs.slides[a - 1], context.prs.slides[b - 1])
+    assert section.slides == expected, "expected %r, got %r" % (expected, section.slides)
