@@ -443,13 +443,20 @@ class CT_Slide(_BaseSlideElement):
 
         The `p:video` element causes play controls to appear under a video
         shape (pic shape containing video). There can be more than one video
-        shape on a slide, which causes the precondition to vary. It needs to
-        handle the case when there is no `p:sld/p:timing` element and when
-        that element already exists. If the case isn't simple, it just nukes
-        what's there and adds a fresh one. This could theoretically remove
-        desired existing timing information, but there isn't any evidence
-        available to me one way or the other, so I've taken the simple
-        approach.
+        shape on a slide, which causes the precondition to vary.
+
+        The method handles three cases:
+
+        1. No `p:timing` anywhere on the slide -- a fresh one is created.
+        2. An existing `p:timing` (plain or wrapped in
+           ``mc:AlternateContent``/``mc:Choice``, see issue #954) already
+           contains the expected ``p:tnLst/p:par/p:cTn/p:childTnLst``
+           descendant -- that descendant is returned so the new video
+           merges alongside any pre-existing animation/media entries.
+        3. An existing `p:timing` is present but does not match the
+           expected structure -- it is replaced with a freshly built
+           ``p:timing`` subtree (preserving the ``mc:AlternateContent``
+           wrapper when one is in use).
         """
         childTnLst = self._childTnLst
         if childTnLst is None:
@@ -459,24 +466,71 @@ class CT_Slide(_BaseSlideElement):
     def _add_childTnLst(self):
         """Add `./p:timing/p:tnLst/p:par/p:cTn/p:childTnLst` descendant.
 
-        Any existing `p:timing` child element is ruthlessly removed and
-        replaced.
+        Any existing `p:timing` child element is replaced with a freshly
+        built minimal timing subtree. When the existing `p:timing` is
+        wrapped inside an `mc:AlternateContent/mc:Choice` (as produced
+        when PowerPoint authors a slide whose timing references the
+        2010+ extension namespace) the replacement happens *inside* the
+        wrapper so that only one `p:timing` element ends up on the
+        slide -- see issue #954.
         """
-        self.remove(self.get_or_add_timing())
-        timing = parse_xml(self._childTnLst_timing_xml())
-        self._insert_timing(timing)
-        return timing.xpath("./p:tnLst/p:par/p:cTn/p:childTnLst")[0]
+        existing_timing, existing_parent = self._existing_timing_and_parent
+        new_timing = parse_xml(self._childTnLst_timing_xml())
+        if existing_timing is not None and existing_parent is not None:
+            existing_parent.replace(existing_timing, new_timing)
+        else:
+            # --- no pre-existing timing anywhere; insert at the schema-correct
+            # --- position among p:sld's direct children ---
+            self._insert_timing(new_timing)
+        return new_timing.xpath("./p:tnLst/p:par/p:cTn/p:childTnLst")[0]
 
     @property
     def _childTnLst(self):
-        """Return `./p:timing/p:tnLst/p:par/p:cTn/p:childTnLst` descendant.
+        """Return `p:timing/p:tnLst/p:par/p:cTn/p:childTnLst` descendant.
 
-        Return None if that element is not present.
+        Searches both the plain ``./p:timing`` location and the
+        ``mc:AlternateContent/mc:Choice`` wrapped location introduced
+        by PowerPoint 2010+ timing extensions (issue #954). Returns
+        ``None`` when no `p:timing` with the expected subtree is
+        present.
         """
-        childTnLsts = self.xpath("./p:timing/p:tnLst/p:par/p:cTn/p:childTnLst")
+        timing, _ = self._existing_timing_and_parent
+        if timing is None:
+            return None
+        childTnLsts = timing.xpath("./p:tnLst/p:par/p:cTn/p:childTnLst")
         if not childTnLsts:
             return None
         return childTnLsts[0]
+
+    @property
+    def _existing_timing_and_parent(self):
+        """The first `p:timing` element on the slide and its direct parent.
+
+        Returns ``(timing, parent)`` where both items are ``None`` when
+        no `p:timing` is present. ``parent`` is ``self`` (the `p:sld`
+        element) when `p:timing` is an unwrapped direct child, or an
+        ``mc:Choice`` element when the timing has been wrapped inside
+        an ``mc:AlternateContent`` block.
+
+        Only the *first* ``mc:Choice`` of any ``mc:AlternateContent``
+        is searched — the preferred-rendering slot. ``mc:Fallback``
+        timing is intentionally ignored; the fallback subtree is
+        preserved as-is on save.
+        """
+        # --- plain direct-child `p:timing` ---
+        timing = self.timing
+        if timing is not None:
+            return timing, self
+        # --- fall back to the wrapped form used by PowerPoint 2010+ ---
+        for ac in self.iterchildren(qn("mc:AlternateContent")):
+            choices = list(ac.iterchildren(qn("mc:Choice")))
+            if not choices:
+                continue
+            choice = choices[0]
+            wrapped = choice.find(qn("p:timing"))
+            if wrapped is not None:
+                return wrapped, choice
+        return None, None
 
     @staticmethod
     def _childTnLst_timing_xml():

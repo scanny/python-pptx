@@ -113,6 +113,16 @@ Unreleased
   kiosk-style (timer-only) playback; set it to ``True`` to allow either
   a click or the timer to advance. Builds on the F8 per-slide
   ``Slide.transition.advance_after_time`` / ``advance_on_click`` API.
+- fix: #954 ``SlideShapes.add_movie()`` produced a duplicate ``p:timing``
+  element when the slide already carried a pre-existing ``p:timing``
+  wrapped inside ``mc:AlternateContent``/``mc:Choice`` (the form
+  PowerPoint emits when timing content references 2010+ extensions
+  such as a morph trigger). The wrapped timing was invisible to the
+  previous ``./p:timing`` xpath and a second, orphan ``p:timing`` was
+  appended as a direct child of ``p:sld``. The fix finds an existing
+  ``p:timing`` whether plain or wrapped (via F3's ``mc:AlternateContent``
+  traversal and F8's typed ``CT_SlideTiming``) and merges the new
+  ``p:video`` into its ``p:childTnLst``.
 - Foundation: animations/transitions XML layer (F8 — MVP). Adds element
   classes for ``p:timing`` / ``p:tnLst`` / ``p:par`` / ``p:seq`` / ``p:cTn``
   and the ``p:transition`` subtree (including the ``p14:morph`` Office 2010
