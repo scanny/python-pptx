@@ -163,6 +163,29 @@ The containing shape controls the position and size. Everything else, like
 accessing cells and their contents, is done from the table object.
 
 
+Adding rows and columns
+-----------------------
+
+|Table| exposes two one-liner convenience methods for extending a table:
+:meth:`.Table.add_row` and :meth:`.Table.add_column`. Each is a thin
+wrapper around the collection-level ``add()`` method, so the semantics —
+default sizing, cell population, and graphic-frame resizing — match those
+described in the following sections::
+
+    >>> from pptx.util import Inches
+    >>> # ---append a row, inheriting the last row's height---
+    >>> new_row = table.add_row()
+
+    >>> # ---or append a row of explicit height---
+    >>> taller_row = table.add_row(height=Inches(1))
+
+    >>> # ---append a column, inheriting the last column's width---
+    >>> new_col = table.add_column()
+
+    >>> # ---or append a column of explicit width---
+    >>> wider_col = table.add_column(width=Inches(2))
+
+
 Adding a row to an existing table
 ---------------------------------
 

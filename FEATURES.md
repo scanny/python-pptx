@@ -1158,6 +1158,10 @@ tbl.cell(0, 2).text = "Q2"
 tbl.rows.add()
 tbl.columns.add(width=Inches(1))
 
+# or the one-liner Table shortcut (fork-era)
+tbl.add_row()
+tbl.add_column(width=Inches(1))
+
 # merge a range of cells
 tbl.cell(1, 1).merge(tbl.cell(1, 2))
 
@@ -1166,6 +1170,7 @@ prs.save("out.pptx")
 
 - `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
 - `Table.rows` / `Table.columns` / `Table.cell(row_idx, col_idx)` / `Table.iter_cells()` — Access helpers.
+- `Table.add_row(height=None)` / `Table.add_column(width=None)` — One-liner shortcuts that delegate to `_RowCollection.add` / `_ColumnCollection.add`. `[Added in 2026.05.0]`
 - `Table.style_id` — Apply a built-in table style by GUID. `[Added in 2026.05.0]`
 - `Table.first_row` / `last_row` / `first_col` / `last_col` / `horz_banding` / `vert_banding` — Style-flag booleans.
 - `Table.notify_height_changed()` / `Table.notify_width_changed()` — Hooks to recompute graphic-frame extents after cell mutation.

@@ -62,6 +62,14 @@ Feature: Table properties and methods
        And the new row height equals the prior last row height
 
 
+  Scenario: Table.add_row()
+     Given a 2x2 Table object as table
+      When I call table.add_row()
+      Then len(table.rows) == 3
+       And the new row has two cells
+       And the new row height equals the prior last row height
+
+
   Scenario: _Row.delete()
      Given a 2x2 Table object as table
       When I call table.rows[0].delete()
@@ -71,6 +79,14 @@ Feature: Table properties and methods
   Scenario: _ColumnCollection.add()
      Given a 2x2 Table object as table
       When I call table.columns.add()
+      Then len(table.columns) == 3
+       And every row has three cells
+       And the new column width equals the prior last column width
+
+
+  Scenario: Table.add_column()
+     Given a 2x2 Table object as table
+      When I call table.add_column()
       Then len(table.columns) == 3
        And every row has three cells
        And the new column width equals the prior last column width

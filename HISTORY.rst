@@ -12,6 +12,12 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #86 ``Table.add_row()`` and ``Table.add_column()`` one-liner convenience
+  methods that delegate to the existing ``_RowCollection.add`` /
+  ``_ColumnCollection.add`` (same defaults, same semantics). Saves a hop
+  through the collection property for the common "append a row/column"
+  case.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
