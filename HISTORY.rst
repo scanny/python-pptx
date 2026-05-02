@@ -36,6 +36,7 @@ Unreleased
   PowerPoint style slots (``regular``, ``bold``, ``italic``, ``boldItalic``).
   ``Presentation.embedded_fonts`` returns the tuple of embedded typeface
   names.
+- #349 feature: Axis.position
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal

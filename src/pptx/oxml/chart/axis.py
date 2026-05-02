@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from pptx.enum.chart import XL_AXIS_CROSSES, XL_TICK_LABEL_POSITION, XL_TICK_MARK
+from pptx.enum.chart import (
+    XL_AXIS_CROSSES,
+    XL_AXIS_POSITION,
+    XL_CROSS_BETWEEN,
+    XL_TICK_LABEL_POSITION,
+    XL_TICK_MARK,
+)
 from pptx.oxml.chart.shared import CT_Title
 from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset, ST_Orientation
 from pptx.oxml.text import CT_TextBody
@@ -60,6 +66,16 @@ class CT_AxisUnit(BaseOxmlElement):
     val = RequiredAttribute("val", ST_AxisUnit)
 
 
+class CT_AxPos(BaseOxmlElement):
+    """`c:axPos` element, specifying the position of an axis on a chart.
+
+    The `val` attribute takes one of `b` (bottom), `l` (left), `r` (right), or
+    `t` (top) — the values defined by `ST_AxPos` in `dml-chart.xsd`.
+    """
+
+    val = RequiredAttribute("val", XL_AXIS_POSITION)
+
+
 class CT_CatAx(BaseAxisElement):
     """`c:catAx` element, defining a category axis."""
 
@@ -90,6 +106,7 @@ class CT_CatAx(BaseAxisElement):
     )
     scaling = OneAndOnlyOne("c:scaling")
     delete_ = ZeroOrOne("c:delete", successors=_tag_seq[3:])
+    axPos = ZeroOrOne("c:axPos", successors=_tag_seq[4:])
     majorGridlines = ZeroOrOne("c:majorGridlines", successors=_tag_seq[5:])
     minorGridlines = ZeroOrOne("c:minorGridlines", successors=_tag_seq[6:])
     title = ZeroOrOne("c:title", successors=_tag_seq[7:])
@@ -118,6 +135,16 @@ class CT_Crosses(BaseOxmlElement):
     """`c:crosses` element, specifying where the other axis crosses this one."""
 
     val = RequiredAttribute("val", XL_AXIS_CROSSES)
+
+
+class CT_CrossBetween(BaseOxmlElement):
+    """`c:crossBetween` element, specifying how the value axis crosses categories.
+
+    The `val` attribute takes either `between` or `midCat` — the values defined
+    by `ST_CrossBetween` in `dml-chart.xsd`.
+    """
+
+    val = RequiredAttribute("val", XL_CROSS_BETWEEN)
 
 
 class CT_DateAx(BaseAxisElement):
@@ -151,6 +178,7 @@ class CT_DateAx(BaseAxisElement):
     )
     scaling = OneAndOnlyOne("c:scaling")
     delete_ = ZeroOrOne("c:delete", successors=_tag_seq[3:])
+    axPos = ZeroOrOne("c:axPos", successors=_tag_seq[4:])
     majorGridlines = ZeroOrOne("c:majorGridlines", successors=_tag_seq[5:])
     minorGridlines = ZeroOrOne("c:minorGridlines", successors=_tag_seq[6:])
     title = ZeroOrOne("c:title", successors=_tag_seq[7:])
@@ -280,6 +308,7 @@ class CT_ValAx(BaseAxisElement):
     )
     scaling = OneAndOnlyOne("c:scaling")
     delete_ = ZeroOrOne("c:delete", successors=_tag_seq[3:])
+    axPos = ZeroOrOne("c:axPos", successors=_tag_seq[4:])
     majorGridlines = ZeroOrOne("c:majorGridlines", successors=_tag_seq[5:])
     minorGridlines = ZeroOrOne("c:minorGridlines", successors=_tag_seq[6:])
     title = ZeroOrOne("c:title", successors=_tag_seq[7:])
@@ -292,6 +321,7 @@ class CT_ValAx(BaseAxisElement):
     crossAx = ZeroOrOne("c:crossAx", successors=_tag_seq[14:])
     crosses = ZeroOrOne("c:crosses", successors=_tag_seq[15:])
     crossesAt = ZeroOrOne("c:crossesAt", successors=_tag_seq[16:])
+    crossBetween = ZeroOrOne("c:crossBetween", successors=_tag_seq[17:])
     majorUnit = ZeroOrOne("c:majorUnit", successors=_tag_seq[18:])
     minorUnit = ZeroOrOne("c:minorUnit", successors=_tag_seq[19:])
     del _tag_seq

@@ -74,8 +74,10 @@ register_element_cls("a:snd", CT_EmbeddedWAVAudioFile)
 
 from pptx.oxml.chart.axis import (  # noqa: E402
     CT_AxisUnit,
+    CT_AxPos,
     CT_CatAx,
     CT_ChartLines,
+    CT_CrossBetween,
     CT_Crosses,
     CT_DateAx,
     CT_LblOffset,
@@ -86,7 +88,9 @@ from pptx.oxml.chart.axis import (  # noqa: E402
     CT_ValAx,
 )
 
+register_element_cls("c:axPos", CT_AxPos)
 register_element_cls("c:catAx", CT_CatAx)
+register_element_cls("c:crossBetween", CT_CrossBetween)
 register_element_cls("c:crosses", CT_Crosses)
 register_element_cls("c:dateAx", CT_DateAx)
 register_element_cls("c:lblOffset", CT_LblOffset)
