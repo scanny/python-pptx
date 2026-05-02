@@ -95,6 +95,35 @@ class DescribeCT_NotesSlide(object):
         assert notes.xml == snippet_text("default-notes")
 
 
+class DescribeCT_Slide_showMasterSp(object):
+    """Unit-test suite for the `showMasterSp` descriptor on CT_Slide (issue #845)."""
+
+    @pytest.mark.parametrize(
+        ("cxml", "expected"),
+        [
+            # -- attribute absent => schema default True --
+            ("p:sld/p:cSld", True),
+            ('p:sld{showMasterSp=1}/p:cSld', True),
+            ('p:sld{showMasterSp=true}/p:cSld', True),
+            ('p:sld{showMasterSp=0}/p:cSld', False),
+            ('p:sld{showMasterSp=false}/p:cSld', False),
+        ],
+    )
+    def it_reads_the_showMasterSp_attribute(self, cxml: str, expected: bool):
+        sld = element(cxml)
+        assert sld.showMasterSp is expected
+
+    def it_can_write_showMasterSp_false(self):
+        sld = element("p:sld/p:cSld")
+        sld.showMasterSp = False
+        assert sld.xml == xml('p:sld{showMasterSp=0}/p:cSld')
+
+    def it_removes_showMasterSp_when_set_to_default_true(self):
+        sld = element('p:sld{showMasterSp=0}/p:cSld')
+        sld.showMasterSp = True
+        assert sld.xml == xml("p:sld/p:cSld")
+
+
 class DescribeCT_Slide_transition(object):
     """Unit-test suite for the new `p:transition` descriptor on CT_Slide (F8)."""
 

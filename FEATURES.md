@@ -139,9 +139,9 @@ A `Presentation.slides` collection supports add, duplicate, delete, reorder
 (move), and external-slide-copy. Each `Slide` exposes `shapes`,
 `placeholders`, `slide_layout`, `slide_id`, `notes_slide`, `has_notes_slide`,
 `background`, `follow_master_background`, `name`, and the fork-era
-`is_hidden`, `comments`, `has_comments`, `tags`, `has_tags`, `transition`,
-`animation_sequence`, `iter_shape_animations`, `has_animations`,
-`timing_xml`, and `find_shapes_by_xpath`.
+`is_hidden`, `show_master_shapes`, `comments`, `has_comments`, `tags`,
+`has_tags`, `transition`, `animation_sequence`, `iter_shape_animations`,
+`has_animations`, `timing_xml`, and `find_shapes_by_xpath`.
 
 ```python
 from pptx import Presentation
@@ -187,6 +187,7 @@ prs.save("out.pptx")
 - `Slides.index(slide)` — Positional lookup.
 - `Slide.slide_id` / `Slide.slide_layout` / `Slide.shapes` / `Slide.placeholders` / `Slide.name` / `Slide.element` / `Slide.part`.
 - `Slide.is_hidden` (read/write `bool`) — `p:sld/@show="0"` for hidden slides. `[Added in 1.0.2.dev0]`
+- `Slide.show_master_shapes` (read/write `bool`) — `p:sld/@showMasterSp="0"` hides the master's non-placeholder shapes (e.g. a company logo) from this slide; mirrors PowerPoint's *Hide Background Graphics* checkbox. `[Added in 1.0.2.dev0]`
 - `Slide.background` / `Slide.follow_master_background()` — Per-slide background.
 - `Slide.has_notes_slide` / `Slide.notes_slide` — Lazy notes page.
 - `Slide.find_shapes_by_xpath(xpath_expr)` — Evaluate a namespaced XPath against `p:spTree` and return matching shapes. `[Added in 1.0.2.dev0]`

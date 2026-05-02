@@ -247,6 +247,9 @@ class CT_Slide(_BaseSlideElement):
     show: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "show", XsdBoolean, default=True
     )
+    showMasterSp: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "showMasterSp", XsdBoolean, default=True
+    )
     del _tag_seq
 
     @classmethod

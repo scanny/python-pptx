@@ -6,6 +6,16 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #845 :attr:`Slide.show_master_shapes` — read/write ``bool`` mirroring
+  PowerPoint's *Hide Background Graphics* checkbox (*Design > Format
+  Background*). Assigning ``False`` writes ``p:sld/@showMasterSp="0"``
+  so the master's non-placeholder shapes (company logo, footer bar,
+  etc.) no longer render underneath the slide; master placeholders
+  continue to inherit normally. Assigning ``True`` (the schema default)
+  removes the attribute for a minimal round-trip. Adds the
+  ``showMasterSp`` ``OptionalAttribute`` on ``CT_Slide`` plus unit,
+  acceptance, and documentation coverage.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
