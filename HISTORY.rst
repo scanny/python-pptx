@@ -6,6 +6,24 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #696 (move a slide from one .pptx to another) resolved by Wave 1
+  #1036 + Wave 7 #934. Issue #696
+  (https://github.com/scanny/python-pptx/issues/696) asked how to graft a
+  slide found by text search in one deck into another deck (the reporter's
+  "Nuestra experiencia en su industria" industry-experience slide); the
+  shipped recipe composes :meth:`Slides.add_slide_from_external` (Wave 1/2
+  #1036, promoted to the full-fidelity cloning pipeline by Wave 7 #934) +
+  :meth:`Slides.move_slide` + :meth:`Slides.delete` to pull a slide from a
+  library deck, position it where a placeholder slide was, and drop the
+  placeholder. For the "append every slide of ppt2 to ppt1" shortcut,
+  :meth:`Presentation.merge` does it in one call. Adds a regression suite
+  ``DescribeIssue696MoveSlideCrossPptx`` under
+  ``tests/test_issue_696_move_slide_cross_pptx_verify.py`` that pins the
+  reporter's text-keyed slide-location traversal, the graft-and-replace
+  workflow via ``add_slide_from_external`` + ``move_slide`` + ``delete``,
+  picture-bearing save/reopen round-trip, source-not-mutated, whole-deck
+  merge as the one-shot alternate path, and same-presentation self-copy.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
