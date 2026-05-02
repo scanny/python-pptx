@@ -939,3 +939,152 @@ def then_target_xlsx_part_differs_from_source(context):
         context.target_chart.part.chart_workbook.xlsx_part
         is not context._source_xlsx_part
     )
+
+
+# --- steps for cht-clone-to.feature (#877 cross-slide chart copy) -------
+
+
+@given("a chart with an embedded workbook on slide 1")
+def given_a_chart_on_slide_1_with_a_second_slide(context):
+    prs = Presentation()
+    slide1 = prs.slides.add_slide(prs.slide_layouts[5])
+    slide2 = prs.slides.add_slide(prs.slide_layouts[5])
+    cd = CategoryChartData()
+    cd.categories = ["A", "B", "C"]
+    cd.add_series("S1", (10.0, 20.0, 30.0))
+    gf = slide1.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1), Inches(1), Inches(5), Inches(3),
+        cd,
+    )
+    context.prs = prs
+    context.source_chart = gf.chart
+    context.source_gf = gf
+    context.slide_2 = slide2
+    context._x = Inches(2)
+    context._y = Inches(2)
+    context._cx = Inches(4)
+    context._cy = Inches(3)
+
+
+@when("I call chart.clone_to(slide_2.shapes, x, y, cx, cy)")
+def when_I_call_chart_clone_to_slide_2(context):
+    context._src_xlsx_part = context.source_chart.part.chart_workbook.xlsx_part
+    context._src_chart_part = context.source_chart.part
+    new_gf = context.source_chart.clone_to(
+        context.slide_2.shapes, context._x, context._y, context._cx, context._cy
+    )
+    context.new_gf = new_gf
+    context.cloned_chart = new_gf.chart
+
+
+@then("slide 2 has a chart shape at (x, y) sized (cx, cy)")
+def then_slide_2_has_chart_shape(context):
+    gf = context.new_gf
+    assert gf.has_chart
+    assert gf.left == context._x
+    assert gf.top == context._y
+    assert gf.width == context._cx
+    assert gf.height == context._cy
+
+
+@then("the cloned chart has a distinct chart part")
+def then_cloned_chart_has_distinct_chart_part(context):
+    assert context.cloned_chart.part is not context._src_chart_part
+
+
+@then("the cloned chart has a distinct embedded xlsx part")
+def then_cloned_chart_has_distinct_xlsx_part(context):
+    src_xlsx = context._src_xlsx_part
+    tgt_xlsx = context.cloned_chart.part.chart_workbook.xlsx_part
+    assert src_xlsx is not None
+    assert tgt_xlsx is not None
+    assert src_xlsx is not tgt_xlsx
+
+
+@then("the cloned chart's workbook bytes equal the source workbook bytes")
+def then_cloned_workbook_bytes_match(context):
+    assert context.cloned_chart.workbook == context.source_chart.workbook
+
+
+@then("the round-tripped presentation still has two charts")
+def then_round_tripped_prs_has_two_charts(context):
+    import io as _io
+
+    bio = _io.BytesIO()
+    context.prs.save(bio)
+    bio.seek(0)
+    prs2 = Presentation(bio)
+    slides = list(prs2.slides)
+    assert len(slides) == 2
+    # -- last shape of each slide is our chart graphicFrame --
+    gf1 = slides[0].shapes[-1]
+    gf2 = slides[1].shapes[-1]
+    assert gf1.has_chart and gf2.has_chart
+    # -- both charts have embedded workbooks --
+    assert gf1.chart.workbook is not None
+    assert gf2.chart.workbook is not None
+    # -- and the charts live in distinct parts on reload --
+    assert gf1.chart.part is not gf2.chart.part
+
+
+@given("a chart in presentation A")
+def given_a_chart_in_presentation_A(context):
+    prs_a = Presentation()
+    slide_a = prs_a.slides.add_slide(prs_a.slide_layouts[5])
+    cd = CategoryChartData()
+    cd.categories = ["X", "Y", "Z"]
+    cd.add_series("T", (5.0, 6.0, 7.0))
+    gf = slide_a.shapes.add_chart(
+        XL_CHART_TYPE.LINE,
+        Inches(1), Inches(1), Inches(5), Inches(3),
+        cd,
+    )
+    context.prs_a = prs_a
+    context.source_chart = gf.chart
+
+
+@given("an empty presentation B with one slide")
+def given_an_empty_presentation_B(context):
+    prs_b = Presentation()
+    slide_b = prs_b.slides.add_slide(prs_b.slide_layouts[5])
+    context.prs_b = prs_b
+    context.slide_B = slide_b
+    context._x = Inches(1)
+    context._y = Inches(1)
+    context._cx = Inches(4)
+    context._cy = Inches(3)
+
+
+@when("I call chart.clone_to(slide_B.shapes, x, y, cx, cy)")
+def when_I_call_chart_clone_to_slide_B(context):
+    new_gf = context.source_chart.clone_to(
+        context.slide_B.shapes, context._x, context._y, context._cx, context._cy
+    )
+    context.new_gf = new_gf
+    context.cloned_chart = new_gf.chart
+
+
+@then("presentation B's slide has a chart")
+def then_prs_B_slide_has_a_chart(context):
+    assert context.new_gf.has_chart
+
+
+@then("that chart's chart part belongs to presentation B's package")
+def then_chart_part_belongs_to_prs_B(context):
+    assert context.cloned_chart.part.package is context.prs_b.part.package
+
+
+@then("saving presentation B alone round-trips the chart")
+def then_prs_B_round_trips_the_chart(context):
+    import io as _io
+
+    bio = _io.BytesIO()
+    context.prs_b.save(bio)
+    bio.seek(0)
+    prs_b2 = Presentation(bio)
+    s = prs_b2.slides[0]
+    gf = s.shapes[-1]
+    assert gf.has_chart
+    assert gf.chart.workbook is not None
+    assert gf.chart.chart_type == XL_CHART_TYPE.LINE

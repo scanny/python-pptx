@@ -519,6 +519,22 @@ class DescribeChart(object):
         assert WorkbookReader_.call_args_list == []
         assert chartSpace.xml == original_xml
 
+    # -- Chart.clone_to (F5 + F1 cross-slide chart copy, #877) -------
+
+    def it_can_clone_itself_onto_another_shape_tree(self, request):
+        """Chart.clone_to delegates to shapes.clone_chart, returning the new GraphicFrame."""
+        from unittest.mock import MagicMock
+
+        chart = Chart(element("c:chartSpace"), None)
+        shapes_ = MagicMock()
+        clone_result_ = MagicMock()
+        shapes_.clone_chart.return_value = clone_result_
+
+        result = chart.clone_to(shapes_, 11, 22, 33, 44)
+
+        shapes_.clone_chart.assert_called_once_with(chart, 11, 22, 33, 44)
+        assert result is clone_result_
+
     # -- Chart.workbook property (F5) --------------------------------
 
     def it_reads_embedded_workbook_bytes_via_workbook_property(

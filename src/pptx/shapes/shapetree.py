@@ -9,11 +9,13 @@ from typing import IO, TYPE_CHECKING, Callable, Iterable, Iterator, cast
 from pptx.enum.shapes import PP_PLACEHOLDER, PROG_ID
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
 from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.oxml.simpletypes import ST_Direction
+from pptx.parts.chart import ChartPart
 from pptx.shapes.autoshape import AutoShapeType, Shape
 from pptx.shapes.base import BaseShape
 from pptx.shapes.connector import Connector
@@ -270,6 +272,43 @@ class _BaseGroupShapes(_BaseShapes):
         graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
         self._recalculate_extents()
         return cast("Chart", self._shape_factory(graphicFrame))
+
+    def clone_chart(
+        self,
+        source_chart: Chart,
+        x: Length,
+        y: Length,
+        cx: Length,
+        cy: Length,
+    ) -> GraphicFrame:
+        """Duplicate `source_chart` onto this shape tree at (`x`, `y`) size (`cx`, `cy`).
+
+        Implements the cross-slide chart-copy primitive (issue #877). The new
+        chart is a structurally-independent duplicate of `source_chart`: a
+        fresh :class:`ChartPart` is created on this slide's package containing
+        a deep copy of the source's ``c:chartSpace`` XML, every relationship
+        the source chart part carries (embedded xlsx, theme override, chart
+        images, ...) is re-established on the new chart part, and the
+        embedded workbook is duplicated into its own
+        :class:`EmbeddedXlsxPart` so each chart retains an independent "Edit
+        Data" workbook.
+
+        `source_chart` may live in this same presentation (e.g. copying a
+        chart from slide 1 to slide 5) or in a different presentation
+        entirely (cross-presentation copy). In the cross-package case every
+        referenced part — chart, xlsx, theme-override, image — is
+        materialised in this package; no cross-package references are
+        retained.
+
+        Returns the newly-created |GraphicFrame| containing the duplicated
+        chart; use its :attr:`~pptx.shapes.graphfrm.GraphicFrame.chart`
+        property to reach the underlying |Chart| object.
+        """
+        new_chart_part = ChartPart.clone_from(source_chart.part, self.part.package)
+        rId = self.part.relate_to(new_chart_part, RT.CHART)
+        graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
+        self._recalculate_extents()
+        return cast("GraphicFrame", self._shape_factory(graphicFrame))
 
     def add_connector(
         self,

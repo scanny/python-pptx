@@ -51,6 +51,19 @@ Unreleased
   four leaves; F8 provides the typed element classes and the
   ``Slide.has_animations`` / ``Slide.timing_xml`` introspection surface
   the umbrella pins.
+- feat: #877 cross-slide chart copy. Adds ``Chart.clone_to(shapes, x, y,
+  cx, cy)`` and ``SlideShapes.clone_chart(source_chart, x, y, cx, cy)``
+  for duplicating a chart onto another slide in the same presentation or
+  into a different presentation entirely. The duplicate receives its own
+  ``ChartPart`` (deep copy of the source ``c:chartSpace`` XML via
+  F1 ``PartRelationshipCloner``) and its own ``EmbeddedXlsxPart`` (cloned
+  via F5 ``clone_embedded_xlsx``) so each chart keeps a working "Edit
+  Data" workbook. All non-xlsx relationships the source chart part
+  carries (chart images, theme-override, ...) are re-established on the
+  duplicate; cross-package clones materialise each referenced part in
+  the destination package so the target file can be saved and opened
+  standalone. Adds ``ChartPart.clone_from(source_chart_part, package)``
+  as the supporting primitive.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

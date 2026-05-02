@@ -12,6 +12,7 @@ from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_CONNECTOR, PP_PLACEHOLDER, PROG_ID
 from pptx.media import SPEAKER_IMAGE_BYTES, Video
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import parse_xml
 from pptx.oxml.shapes.groupshape import CT_GroupShape
 from pptx.oxml.shapes.picture import CT_Picture
@@ -369,6 +370,46 @@ class Describe_BaseGroupShapes(object):
         _recalculate_extents_.assert_called_once_with(shapes)
         _shape_factory_.assert_called_once_with(shapes, graphicFrame)
         assert graphic_frame is graphic_frame_
+
+    def it_can_clone_a_chart_onto_this_shape_tree(
+        self,
+        request,
+        part_prop_,
+        slide_part_,
+        graphic_frame_,
+        _add_chart_graphicFrame_,
+        _recalculate_extents_,
+        _shape_factory_,
+    ):
+        """_BaseGroupShapes.clone_chart duplicates a chart + its xlsx onto this slide (#877)."""
+        from pptx.chart.chart import Chart
+        from pptx.parts.chart import ChartPart
+
+        x, y, cx, cy = 1, 2, 3, 4
+        part_prop_.return_value = slide_part_
+        source_chart_ = instance_mock(request, Chart)
+        new_chart_part_ = instance_mock(request, ChartPart)
+        ChartPart_ = class_mock(request, "pptx.shapes.shapetree.ChartPart")
+        ChartPart_.clone_from.return_value = new_chart_part_
+        slide_part_.relate_to.return_value = "rId99"
+        graphicFrame = element("p:graphicFrame")
+        _add_chart_graphicFrame_.return_value = graphicFrame
+        _shape_factory_.return_value = graphic_frame_
+        shapes = _BaseGroupShapes(None, None)
+
+        new_gf = shapes.clone_chart(source_chart_, x, y, cx, cy)
+
+        # -- a fresh chart part was materialised in this slide's package via ChartPart.clone_from
+        ChartPart_.clone_from.assert_called_once_with(
+            source_chart_.part, slide_part_.package
+        )
+        # -- that new chart part was related onto this slide with the CHART reltype
+        slide_part_.relate_to.assert_called_once_with(new_chart_part_, RT.CHART)
+        # -- and a graphicFrame referencing the new rId was appended at (x,y,cx,cy)
+        _add_chart_graphicFrame_.assert_called_once_with(shapes, "rId99", x, y, cx, cy)
+        _recalculate_extents_.assert_called_once_with(shapes)
+        _shape_factory_.assert_called_once_with(shapes, graphicFrame)
+        assert new_gf is graphic_frame_
 
     def it_can_add_a_connector_shape(self, connector_fixture):
         shapes, connector_type, begin_x, begin_y = connector_fixture[:4]

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING
 
 from pptx.chart.chart import Chart
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import XmlPart
-from pptx.parts.embeddedpackage import EmbeddedXlsxPart
+from pptx.opc.package import PartRelationshipCloner, XmlPart
+from pptx.parts.embeddedpackage import EmbeddedXlsxPart, clone_embedded_xlsx
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
@@ -39,6 +40,52 @@ class ChartPart(XmlPart):
         )
         chart_part.chart_workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
         return chart_part
+
+    @classmethod
+    def clone_from(cls, source_chart_part: ChartPart, package: Package) -> ChartPart:
+        """Return a new |ChartPart| in `package` that duplicates `source_chart_part`.
+
+        Implements the cross-slide chart-copy primitive (issue #877). The
+        returned chart part is a deep copy of the source: its ``c:chartSpace``
+        element is cloned (with all ``r:id`` / ``r:embed`` / ``r:link``
+        attributes rewritten against freshly-allocated relationships on the
+        new part) and its embedded ``.xlsx`` workbook is cloned into a
+        *distinct* :class:`EmbeddedXlsxPart` owned by `package`, so each
+        chart continues to own its own "Edit Data" workbook.
+
+        `package` is normally the package the caller will eventually relate
+        the new chart into (same-package for an intra-presentation copy,
+        cross-package for copying a chart between two open presentations).
+        In the same-package case, :class:`PartRelationshipCloner` reuses
+        non-xlsx relationship targets (images, theme-override, ...) because
+        they already live in the package; only the embedded workbook is
+        forcibly duplicated. In the cross-package case, the cloner
+        materialises non-xlsx targets in the destination package so no
+        cross-package references escape.
+        """
+        # -- Seed a placeholder chart part; `PartRelationshipCloner.clone` below
+        # -- produces the real (rId-remapped) chartSpace element and replaces it. --
+        partname = package.next_partname(cls.partname_template)
+        placeholder_cs = copy.deepcopy(source_chart_part._element)
+        new_chart_part = cls(partname, CT.DML_CHART, package, placeholder_cs)
+
+        # -- Delegate per-rId cloning of non-xlsx relationships to F1. This walks
+        # -- every `r:id` / `r:embed` / `r:link` on the source chartSpace, creates
+        # -- a matching relationship on `new_chart_part` (reusing existing target
+        # -- parts for same-package clones, materialising fresh duplicates for
+        # -- cross-package clones), and rewrites the rId attributes on the clone. --
+        new_chart_part._element = PartRelationshipCloner.clone(
+            source_chart_part, new_chart_part, source_chart_part._element
+        )
+
+        # -- Explicitly clone the embedded workbook into a fresh EmbeddedXlsxPart
+        # -- owned by the target and rewire `c:externalData/@r:id` to point at it.
+        # -- Sharing an xlsx part across charts breaks PowerPoint's "Edit Data"
+        # -- dialog, so we must override `PartRelationshipCloner`'s same-package
+        # -- "reuse" semantics for this specific relationship (see #877 / F5). --
+        clone_embedded_xlsx(source_chart_part, new_chart_part)
+
+        return new_chart_part
 
     @lazyproperty
     def chart(self):
