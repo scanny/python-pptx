@@ -151,6 +151,19 @@ class DescribeBaseShape(object):
         shape = BaseShape(None, None)
         assert shape.has_text_frame is False
 
+    def it_can_delete_itself_from_its_parent(self):
+        spTree = cast("ShapeElement", element("p:spTree/(p:sp,p:sp,p:sp)"))
+        sps = spTree.xpath("p:sp")
+        shape = BaseShape(cast("ShapeElement", sps[1]), None)
+
+        shape.delete()
+
+        remaining = spTree.xpath("p:sp")
+        assert len(remaining) == 2
+        assert sps[1] not in remaining
+        assert sps[0] in remaining
+        assert sps[2] in remaining
+
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder

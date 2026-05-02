@@ -145,6 +145,19 @@ class Picture(_BasePicture):
     Based on the `p:pic` element.
     """
 
+    def delete(self) -> None:
+        """Remove this picture from the slide and drop its image part if unreferenced.
+
+        Removes the `p:pic` element from its parent `p:spTree`. When the embedded image is not
+        referenced elsewhere in the slide part (reference count < 2), the matching relationship
+        is also removed, which allows the image part to be garbage-collected on save if no other
+        part refers to it.
+        """
+        rId = self._pic.blip_rId
+        if rId is not None:
+            self.part.drop_rel(rId)
+        super().delete()
+
     @property
     def auto_shape_type(self) -> MSO_SHAPE | None:
         """Member of MSO_SHAPE indicating masking shape.

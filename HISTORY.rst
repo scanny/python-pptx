@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #41 Shape.delete() method
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

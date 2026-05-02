@@ -382,3 +382,17 @@ Feature: Access a shape on a slide
       | picture   |  1  | Picture    |
       | rectangle |  2  | Shape      |
       | group     |  3  | GroupShape |
+
+
+  Scenario Outline: BaseShape.delete()
+    Given a <shape_type> object on a slide as shape
+     When I call shape.delete()
+     Then the shape is no longer in the slide
+
+    Examples: Deletable shape types
+      | shape_type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |
