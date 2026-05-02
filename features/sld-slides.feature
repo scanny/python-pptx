@@ -44,6 +44,12 @@ Feature: Access an individual slide
      Then the slide previously at index 0 is now at index 2
       And its slide_id is unchanged
       And len(slides) is 3
+  Scenario: Slides.delete() removes a slide from the presentation
+    Given a Slides object containing 3 slides
+     When I call slides.delete(slides[1])
+     Then len(slides) is 2
+      And the remaining slides are the originals at indices 0 and 2
+      And the presentation round-trips cleanly after delete
 
 
   Scenario: SlideLayouts.__getitem__()
