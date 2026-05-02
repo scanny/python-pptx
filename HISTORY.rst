@@ -22,6 +22,28 @@ Unreleased
   the gap was documentation. The same pattern generalizes to
   ``insert_table`` / ``insert_chart``.
 
+- verify: #607 resolved by Wave 2 #544. Issue #607
+  (https://github.com/scanny/python-pptx/issues/607) asked how to add
+  vertical (Y-direction) error bars to the data points of an XY scatter
+  chart — the reporter could see ``c:errBars`` in the schema but there
+  was no Python-API hook to configure it on a series. Wave 2 #544
+  (commit ``05072c75``, "feat(chart): #544 add error-bar support for
+  chart series") shipped the missing API on :class:`_BaseSeries`:
+  ``has_error_bars``, read/write ``error_bars`` returning an
+  |ErrorBars| proxy (assign ``None`` to remove), and
+  ``set_error_bars(type_, value, include, direction)`` which attaches a
+  fresh ``c:errBars`` block. The new :class:`XL_ERROR_BAR_DIRECTION`
+  enum exposes ``X`` and ``Y`` members so clients of XY-scatter and
+  bubble series — which have two value axes rather than a category axis
+  plus a value axis — can explicitly select the vertical whiskers shown
+  in the #607 screenshot. Adds an end-to-end verify suite
+  ``DescribeIssue607XyErrorBarsVerify`` under
+  ``tests/test_issue_607_xy_error_bars_verify.py`` that pins the
+  scenario from the user's perspective across all five XY-scatter
+  variants plus bubble, including a ``Presentation.save`` + reopen
+  round-trip to confirm the ``c:errBars`` subtree survives
+  serialization.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
