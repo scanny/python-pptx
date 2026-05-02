@@ -3,7 +3,9 @@ Working with charts
 ===================
 
 |pp| supports adding charts and modifying existing ones. Most chart types
-other than 3D types are supported.
+other than 3D types are supported; see :ref:`supported-chart-types` below for
+a member-by-member status table of the :class:`~pptx.enum.chart.XL_CHART_TYPE`
+enumeration.
 
 
 Adding a chart
@@ -501,6 +503,284 @@ case for charts edited in modern PowerPoint). It now transparently surfaces the 
 value, and writes the full ``<mc:AlternateContent>`` wrapper when you assign a value
 greater than 48.
 
+.. _supported-chart-types:
+
+Chart-type reference
+~~~~~~~~~~~~~~~~~~~~
+
+Every member of :class:`~pptx.enum.chart.XL_CHART_TYPE` (the ``XlChartType``
+enumeration from the Microsoft API) is listed below with its current
+support level in |pp|.
+
+* **create** — can be passed to :meth:`SlideShapes.add_chart` to author a
+  new chart.
+* **read** — returned by :attr:`Chart.chart_type` / :attr:`GraphicFrame.chart_type`
+  when loading a presentation that contains a chart of this type, with chart
+  contents readable through the normal |Chart| / :class:`.plot._BasePlot`
+  / |Series| object model.
+* **round-trip** — recognised on read and written back unchanged on save,
+  but the chart's contents are not introspectable through |pp|'s object
+  model. Today this only applies to the Office 2016+ "chartex" chart types
+  surfaced via the :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX` sentinel; see
+  the :ref:`chartex section <chartex-charts>` below.
+* **not yet** — the chart type exists in the Microsoft enumeration but no
+  |pp| support is wired up. Passing it to :meth:`SlideShapes.add_chart`
+  raises :class:`NotImplementedError`. In practice 3D variants, cone /
+  cylinder / pyramid variants, stock charts, surface charts, and
+  ``BAR_OF_PIE`` / ``PIE_OF_PIE`` fall in this bucket.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 20 40
+
+   * - ``XL_CHART_TYPE`` member
+     - Support
+     - Notes
+   * - ``AREA``
+     - create, read
+     - Area.
+   * - ``AREA_STACKED``
+     - create, read
+     - Stacked Area.
+   * - ``AREA_STACKED_100``
+     - create, read
+     - 100% Stacked Area.
+   * - ``BAR_CLUSTERED``
+     - create, read
+     - Clustered Bar. Also allowed as a secondary plot in a combo chart.
+   * - ``BAR_OF_PIE``
+     - not yet
+     - Bar of Pie.
+   * - ``BAR_STACKED``
+     - create, read
+     - Stacked Bar. Also allowed as a secondary plot in a combo chart.
+   * - ``BAR_STACKED_100``
+     - create, read
+     - 100% Stacked Bar. Also allowed as a secondary plot in a combo
+       chart.
+   * - ``BUBBLE``
+     - create, read
+     - Bubble. Requires :class:`~pptx.chart.data.BubbleChartData`.
+   * - ``BUBBLE_THREE_D_EFFECT``
+     - create, read
+     - Bubble with 3D effects. Requires
+       :class:`~pptx.chart.data.BubbleChartData`.
+   * - ``COLUMN_CLUSTERED``
+     - create, read
+     - Clustered Column. Also allowed as a secondary plot in a combo
+       chart.
+   * - ``COLUMN_STACKED``
+     - create, read
+     - Stacked Column. Also allowed as a secondary plot in a combo chart.
+   * - ``COLUMN_STACKED_100``
+     - create, read
+     - 100% Stacked Column. Also allowed as a secondary plot in a combo
+       chart.
+   * - ``CONE_BAR_CLUSTERED``
+     - not yet
+     - Clustered Cone Bar.
+   * - ``CONE_BAR_STACKED``
+     - not yet
+     - Stacked Cone Bar.
+   * - ``CONE_BAR_STACKED_100``
+     - not yet
+     - 100% Stacked Cone Bar.
+   * - ``CONE_COL``
+     - not yet
+     - 3D Cone Column.
+   * - ``CONE_COL_CLUSTERED``
+     - not yet
+     - Clustered Cone Column.
+   * - ``CONE_COL_STACKED``
+     - not yet
+     - Stacked Cone Column.
+   * - ``CONE_COL_STACKED_100``
+     - not yet
+     - 100% Stacked Cone Column.
+   * - ``CYLINDER_BAR_CLUSTERED``
+     - not yet
+     - Clustered Cylinder Bar.
+   * - ``CYLINDER_BAR_STACKED``
+     - not yet
+     - Stacked Cylinder Bar.
+   * - ``CYLINDER_BAR_STACKED_100``
+     - not yet
+     - 100% Stacked Cylinder Bar.
+   * - ``CYLINDER_COL``
+     - not yet
+     - 3D Cylinder Column.
+   * - ``CYLINDER_COL_CLUSTERED``
+     - not yet
+     - Clustered Cylinder Column.
+   * - ``CYLINDER_COL_STACKED``
+     - not yet
+     - Stacked Cylinder Column.
+   * - ``CYLINDER_COL_STACKED_100``
+     - not yet
+     - 100% Stacked Cylinder Column.
+   * - ``DOUGHNUT``
+     - create, read
+     - Doughnut.
+   * - ``DOUGHNUT_EXPLODED``
+     - create, read
+     - Exploded Doughnut.
+   * - ``LINE``
+     - create, read
+     - Line. Also allowed as a secondary plot in a combo chart.
+   * - ``LINE_MARKERS``
+     - create, read
+     - Line with Markers. Also allowed as a secondary plot in a combo
+       chart.
+   * - ``LINE_MARKERS_STACKED``
+     - create, read
+     - Stacked Line with Markers. Also allowed as a secondary plot in a
+       combo chart.
+   * - ``LINE_MARKERS_STACKED_100``
+     - create, read
+     - 100% Stacked Line with Markers. Also allowed as a secondary plot
+       in a combo chart.
+   * - ``LINE_STACKED``
+     - create, read
+     - Stacked Line. Also allowed as a secondary plot in a combo chart.
+   * - ``LINE_STACKED_100``
+     - create, read
+     - 100% Stacked Line. Also allowed as a secondary plot in a combo
+       chart.
+   * - ``PIE``
+     - create, read
+     - Pie.
+   * - ``PIE_EXPLODED``
+     - create, read
+     - Exploded Pie.
+   * - ``PIE_OF_PIE``
+     - not yet
+     - Pie of Pie.
+   * - ``PYRAMID_BAR_CLUSTERED``
+     - not yet
+     - Clustered Pyramid Bar.
+   * - ``PYRAMID_BAR_STACKED``
+     - not yet
+     - Stacked Pyramid Bar.
+   * - ``PYRAMID_BAR_STACKED_100``
+     - not yet
+     - 100% Stacked Pyramid Bar.
+   * - ``PYRAMID_COL``
+     - not yet
+     - 3D Pyramid Column.
+   * - ``PYRAMID_COL_CLUSTERED``
+     - not yet
+     - Clustered Pyramid Column.
+   * - ``PYRAMID_COL_STACKED``
+     - not yet
+     - Stacked Pyramid Column.
+   * - ``PYRAMID_COL_STACKED_100``
+     - not yet
+     - 100% Stacked Pyramid Column.
+   * - ``RADAR``
+     - create, read
+     - Radar.
+   * - ``RADAR_FILLED``
+     - create, read
+     - Filled Radar.
+   * - ``RADAR_MARKERS``
+     - create, read
+     - Radar with Data Markers.
+   * - ``STOCK_HLC``
+     - not yet
+     - High-Low-Close.
+   * - ``STOCK_OHLC``
+     - not yet
+     - Open-High-Low-Close.
+   * - ``STOCK_VHLC``
+     - not yet
+     - Volume-High-Low-Close.
+   * - ``STOCK_VOHLC``
+     - not yet
+     - Volume-Open-High-Low-Close.
+   * - ``SURFACE``
+     - not yet
+     - 3D Surface.
+   * - ``SURFACE_TOP_VIEW``
+     - not yet
+     - Surface (Top View).
+   * - ``SURFACE_TOP_VIEW_WIREFRAME``
+     - not yet
+     - Surface (Top View wireframe).
+   * - ``SURFACE_WIREFRAME``
+     - not yet
+     - 3D Surface (wireframe).
+   * - ``THREE_D_AREA``
+     - not yet
+     - 3D Area.
+   * - ``THREE_D_AREA_STACKED``
+     - not yet
+     - 3D Stacked Area.
+   * - ``THREE_D_AREA_STACKED_100``
+     - not yet
+     - 3D 100% Stacked Area.
+   * - ``THREE_D_BAR_CLUSTERED``
+     - not yet
+     - 3D Clustered Bar.
+   * - ``THREE_D_BAR_STACKED``
+     - not yet
+     - 3D Stacked Bar.
+   * - ``THREE_D_BAR_STACKED_100``
+     - not yet
+     - 3D 100% Stacked Bar.
+   * - ``THREE_D_COLUMN``
+     - not yet
+     - 3D Column.
+   * - ``THREE_D_COLUMN_CLUSTERED``
+     - not yet
+     - 3D Clustered Column.
+   * - ``THREE_D_COLUMN_STACKED``
+     - not yet
+     - 3D Stacked Column.
+   * - ``THREE_D_COLUMN_STACKED_100``
+     - not yet
+     - 3D 100% Stacked Column.
+   * - ``THREE_D_LINE``
+     - not yet
+     - 3D Line.
+   * - ``THREE_D_PIE``
+     - not yet
+     - 3D Pie.
+   * - ``THREE_D_PIE_EXPLODED``
+     - not yet
+     - Exploded 3D Pie.
+   * - ``XY_SCATTER``
+     - create, read
+     - Scatter. Requires :class:`~pptx.chart.data.XyChartData`.
+   * - ``XY_SCATTER_LINES``
+     - create, read
+     - Scatter with Lines. Requires
+       :class:`~pptx.chart.data.XyChartData`.
+   * - ``XY_SCATTER_LINES_NO_MARKERS``
+     - create, read
+     - Scatter with Lines and No Data Markers. Requires
+       :class:`~pptx.chart.data.XyChartData`.
+   * - ``XY_SCATTER_SMOOTH``
+     - create, read
+     - Scatter with Smoothed Lines. Requires
+       :class:`~pptx.chart.data.XyChartData`.
+   * - ``XY_SCATTER_SMOOTH_NO_MARKERS``
+     - create, read
+     - Scatter with Smoothed Lines and No Data Markers. Requires
+       :class:`~pptx.chart.data.XyChartData`.
+   * - ``UNSUPPORTED_CHARTEX``
+     - round-trip
+     - python-pptx sentinel (no Microsoft counterpart). Returned by
+       :attr:`GraphicFrame.chart_type` for Office 2016+ chartex shapes —
+       funnel, treemap, sunburst, waterfall, histogram / Pareto,
+       box-and-whisker, and map — so they round-trip unchanged. See the
+       :ref:`chartex section <chartex-charts>` below and `issue #386`_ for
+       the roadmap that extends |pp| to read and author these types.
+
+.. _issue #386: https://github.com/scanny/python-pptx/issues/386
+
+
+.. _chartex-charts:
+
 Office 2016+ extended chart types (funnel, treemap, sunburst, waterfall, histogram,
 box-and-whisker, map)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -535,3 +815,13 @@ PowerPoint frequently wraps these chart shapes in an ``mc:AlternateContent``
 envelope (providing a legacy chart fallback for older viewers); |pp| unwraps the
 ``mc:Choice`` branch transparently so the chartex shape is visible on
 ``slide.shapes``, and keeps the ``mc:Fallback`` subtree intact on save.
+
+Roadmap. The passthrough landed here is the MVP step of
+`issue #386`_ ("chartex passthrough"). Incremental follow-ups — typed
+element classes for the ``cx:`` shapes, a ``Chart``-compatible
+introspection surface, then authoring support for each chartex type
+(funnel / treemap / sunburst / waterfall / histogram / Pareto /
+box-and-whisker / map) — are tracked on that issue; see
+``docs/dev/analysis/chartex-foundation.rst`` for the staged design
+notes. Until those land the sentinel :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX`
+is what :attr:`GraphicFrame.chart_type` returns for these shapes.
