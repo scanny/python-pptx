@@ -74,6 +74,10 @@ rst_epilog = """
 
 .. |Adjustment| replace:: :class:`.Adjustment`
 
+.. |AnimationEffect| replace:: :class:`.AnimationEffect`
+
+.. |AnimationEffectView| replace:: :class:`.AnimationEffectView`
+
 .. |AdjustmentCollection| replace:: :class:`.AdjustmentCollection`
 
 .. |AreaSeries| replace:: :class:`.AreaSeries`
@@ -240,6 +244,8 @@ rst_epilog = """
 
 .. |_MediaFormat| replace:: :class:`._MediaFormat`
 
+.. |Movie| replace:: :class:`.Movie`
+
 .. |None| replace:: :class:`None`
 
 .. |NotesMaster| replace:: :class:`.NotesMaster`
@@ -300,6 +306,10 @@ rst_epilog = """
 
 .. |_Run| replace:: :class:`_Run`
 
+.. |Section| replace:: :class:`.Section`
+
+.. |Sections| replace:: :class:`.Sections`
+
 .. |Series| replace:: :class:`.Series`
 
 .. |SeriesCollection| replace:: :class:`.SeriesCollection`
@@ -338,6 +348,8 @@ rst_epilog = """
 
 .. |SlideShapes| replace:: :class:`.SlideShapes`
 
+.. |SmartArt| replace:: :class:`.SmartArt`
+
 .. |str| replace:: :class:`str`
 
 .. |Table| replace:: :class:`Table`
@@ -353,6 +365,8 @@ rst_epilog = """
 .. |ValueAxis| replace:: :class:`.ValueAxis`
 
 .. |ValueError| replace:: :exc:`ValueError`
+
+.. |Video| replace:: :class:`.Video`
 
 .. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
 

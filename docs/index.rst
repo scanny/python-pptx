@@ -106,6 +106,7 @@ API Documentation
 
    api/presentation
    api/slides
+   api/animation
    api/comments
    api/shapes
    api/placeholders
