@@ -40,7 +40,15 @@ from pptx.slide import (
 from pptx.text.text import TextFrame
 
 from .unitutil.cxml import element, xml
-from .unitutil.mock import call, class_mock, instance_mock, method_mock, property_mock
+from .unitutil.mock import (
+    call,
+    class_mock,
+    function_mock,
+    instance_mock,
+    loose_mock,
+    method_mock,
+    property_mock,
+)
 
 
 class Describe_BaseSlide(object):
@@ -911,6 +919,22 @@ class DescribeSlideMaster(object):
         SlideLayouts_.assert_called_once_with(sldLayoutIdLst, slide_master)
         assert slide_layouts is slide_layouts_
 
+    def it_exposes_a_theme_colors_mapping(self, request):
+        from pptx.dml.color import RGBColor
+
+        _resolve_ = function_mock(
+            request,
+            "pptx.slide._resolve_theme_colors",
+            return_value={"accent1": RGBColor(0x4F, 0x81, 0xBD)},
+        )
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(None, slide_master_part_)
+
+        mapping = slide_master.theme_colors
+
+        _resolve_.assert_called_once_with(slide_master_part_)
+        assert mapping == {"accent1": RGBColor(0x4F, 0x81, 0xBD)}
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1038,3 +1062,62 @@ class Describe_Background(object):
         assert cSld.xml == xml(expected_cxml)
         from_fill_parent_.assert_called_once_with(cSld.xpath("p:bg/p:bgPr")[0])
         assert fill is fill_
+
+
+class Describe_resolve_theme_colors(object):
+    """Unit-test suite for `pptx.slide._resolve_theme_colors` helper."""
+
+    def it_returns_an_empty_mapping_when_no_theme_is_related(self, request):
+        from pptx.slide import _resolve_theme_colors
+
+        master_part_ = loose_mock(request, name="slide_master_part_")
+        master_part_.part_related_by.side_effect = KeyError("no theme")
+
+        assert _resolve_theme_colors(master_part_) == {}
+
+    def it_returns_the_srgb_sys_and_prst_values_of_the_clrScheme(self, request):
+        from pptx.dml.color import RGBColor
+        from pptx.oxml import parse_xml
+        from pptx.slide import _resolve_theme_colors
+
+        theme_xml = (
+            "<a:theme xmlns:a='http://schemas.openxmlformats.org/drawingml/2006/main'>"
+            "  <a:themeElements>"
+            "    <a:clrScheme name='Office'>"
+            "      <a:dk1><a:sysClr val='windowText' lastClr='000000'/></a:dk1>"
+            "      <a:lt1><a:sysClr val='window' lastClr='FFFFFF'/></a:lt1>"
+            "      <a:dk2><a:srgbClr val='1F497D'/></a:dk2>"
+            "      <a:lt2><a:srgbClr val='EEECE1'/></a:lt2>"
+            "      <a:accent1><a:srgbClr val='4F81BD'/></a:accent1>"
+            "      <a:accent2><a:prstClr val='cornflowerBlue'/></a:accent2>"
+            "    </a:clrScheme>"
+            "  </a:themeElements>"
+            "</a:theme>"
+        )
+        master_xml = (
+            "<p:sldMaster xmlns:p='http://schemas.openxmlformats.org/presentationml/2006/main'>"
+            "  <p:clrMap bg1='lt1' tx1='dk1' bg2='lt2' tx2='dk2'/>"
+            "</p:sldMaster>"
+        )
+        theme_elm = parse_xml(theme_xml)
+        master_elm = parse_xml(master_xml)
+
+        theme_part_ = loose_mock(request, name="theme_part_")
+        theme_part_._element = theme_elm
+        master_part_ = loose_mock(request, name="slide_master_part_")
+        master_part_.part_related_by.return_value = theme_part_
+        master_part_._element = master_elm
+
+        colors = _resolve_theme_colors(master_part_)
+
+        assert colors["dk1"] == RGBColor(0, 0, 0)
+        assert colors["lt1"] == RGBColor(0xFF, 0xFF, 0xFF)
+        assert colors["dk2"] == RGBColor(0x1F, 0x49, 0x7D)
+        assert colors["accent1"] == RGBColor(0x4F, 0x81, 0xBD)
+        # -- preset-color scheme entry resolves via PRESET_COLORS --
+        assert colors["accent2"] == RGBColor(0x64, 0x95, 0xED)
+        # -- clrMap alias applied --
+        assert colors["bg1"] == colors["lt1"]
+        assert colors["tx1"] == colors["dk1"]
+        assert colors["bg2"] == colors["lt2"]
+        assert colors["tx2"] == colors["dk2"]

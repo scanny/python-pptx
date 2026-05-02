@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator, cast
 
+from pptx.dml.color import RGBColor
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.oxml.ns import qn
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
     LayoutShapes,
@@ -20,6 +23,7 @@ from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
+    from pptx.opc.package import Part
     from pptx.oxml.presentation import CT_SlideIdList, CT_SlideMasterIdList
     from pptx.oxml.slide import (
         CT_CommonSlideData,
@@ -28,6 +32,7 @@ if TYPE_CHECKING:
         CT_SlideLayoutIdList,
         CT_SlideMaster,
     )
+    from pptx.oxml.xmlchemy import BaseOxmlElement
     from pptx.parts.presentation import PresentationPart
     from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
     from pptx.presentation import Presentation
@@ -425,6 +430,19 @@ class SlideMaster(_BaseMaster):
         """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
 
+    @lazyproperty
+    def theme_colors(self) -> dict[str, RGBColor]:
+        """Mapping of scheme-color name (e.g. ``"accent1"``) to |RGBColor|.
+
+        Keys are the scheme-color names from the theme's `a:clrScheme`
+        (``"dk1"``, ``"lt1"``, ``"dk2"``, ``"lt2"``, ``"accent1"``..``"accent6"``,
+        ``"hlink"``, ``"folHlink"``) plus the color-map aliases from this
+        master's ``p:clrMap`` (``"bg1"``, ``"bg2"``, ``"tx1"``, ``"tx2"``).
+
+        Useful for calling :meth:`ColorFormat.to_rgb` on a scheme color.
+        """
+        return _resolve_theme_colors(self.part)
+
 
 class SlideMasters(ParentedElementProxy):
     """Sequence of |SlideMaster| objects belonging to a presentation.
@@ -496,3 +514,87 @@ class _Background(ElementProxy):
         """
         bgPr = self._cSld.get_or_add_bgPr()
         return FillFormat.from_fill_parent(bgPr)
+
+
+def _parse_theme_element(theme_part: Part) -> BaseOxmlElement | None:
+    """Return root `a:theme` element of `theme_part` or `None` on failure.
+
+    The theme part may be an |XmlPart| (already parsed) or a plain |Part|
+    (raw blob) depending on whether a subtype is registered for it.
+    """
+    from pptx.oxml import parse_xml
+
+    element = getattr(theme_part, "_element", None)
+    if element is not None:
+        return cast("BaseOxmlElement", element)
+    try:
+        return cast("BaseOxmlElement", parse_xml(theme_part.blob))
+    except Exception:  # pragma: no cover - defensive
+        return None
+
+
+def _resolve_theme_colors(slide_master_part: Part) -> dict[str, RGBColor]:
+    """Return scheme-name-to-|RGBColor| mapping for `slide_master_part`.
+
+    The mapping fuses the slide-master's `p:clrMap` aliases with the RGB
+    values found in the related theme part's `a:clrScheme`. Each `a:clrScheme`
+    child (e.g. `a:accent1`) contains exactly one color-choice element; we
+    resolve it to an RGB value using a best-effort walk of the color element.
+    """
+    # -- scheme entries carry one of these color elements as their child --
+    _SRGB = qn("a:srgbClr")
+    _SYSC = qn("a:sysClr")
+    _PRST = qn("a:prstClr")
+
+    # -- 1. Follow the theme relationship from this master --
+    try:
+        theme_part = slide_master_part.part_related_by(RT.THEME)
+    except KeyError:
+        return {}
+    # -- The theme part is registered as a plain Part (content is in its blob);
+    # -- parse its XML lazily here so callers don't pay if they never resolve
+    # -- a scheme color.
+    theme_elm = _parse_theme_element(theme_part)
+    if theme_elm is None:
+        return {}
+
+    # -- 2. Collect scheme colors from `a:clrScheme` --
+    colors: dict[str, RGBColor] = {}
+    clrScheme = theme_elm.find(qn("a:themeElements") + "/" + qn("a:clrScheme"))
+    if clrScheme is None:
+        return colors
+    for child in clrScheme:
+        # -- strip namespace from entry tag, e.g. "{..}accent1" -> "accent1" --
+        tag = child.tag
+        name = tag.split("}", 1)[1] if "}" in tag else tag
+        inner = next(iter(child), None)
+        if inner is None:
+            continue
+        rgb: RGBColor | None = None
+        if inner.tag == _SRGB:
+            rgb = RGBColor.from_string(inner.get("val", "000000"))
+        elif inner.tag == _SYSC:
+            last_clr = inner.get("lastClr")
+            if last_clr is not None:
+                rgb = RGBColor.from_string(last_clr)
+        elif inner.tag == _PRST:
+            from pptx.dml._preset_colors import PRESET_COLORS
+
+            prst_name = inner.get("val", "")
+            hex_str = PRESET_COLORS.get(prst_name)
+            if hex_str is not None:
+                rgb = RGBColor.from_string(hex_str)
+        if rgb is not None:
+            colors[name] = rgb
+
+    # -- 3. Apply the master's `p:clrMap` aliases (bg1/bg2/tx1/tx2) --
+    master_elm = getattr(slide_master_part, "_element", None)
+    if master_elm is not None:
+        clrMap = master_elm.find(qn("p:clrMap"))
+        if clrMap is not None:
+            for alias in ("bg1", "bg2", "tx1", "tx2"):
+                target = clrMap.get(alias)
+                if target and target in colors:
+                    colors[alias] = colors[target]
+
+    return colors

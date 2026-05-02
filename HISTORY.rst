@@ -44,6 +44,7 @@ Unreleased
   reports the shape's zero-based position within its parent shape-tree
   (``p:spTree`` or ``p:grpSp``).
 - #946 Connector.adjustments for elbow/curved connectors
+- #420 universal ``to_rgb()`` across color classes
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

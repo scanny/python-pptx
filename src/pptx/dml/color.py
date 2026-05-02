@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import colorsys
+from typing import Mapping
+
+from pptx.dml._preset_colors import PRESET_COLORS
 from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.oxml.dml.color import (
     CT_HslColor,
@@ -86,6 +90,22 @@ class ColorFormat(object):
             schemeClr = self._xFill.get_or_change_to_schemeClr()
             self._color = _SchemeColor(schemeClr)
         self._color.theme_color = mso_theme_color_idx
+
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor | None:
+        """Return |RGBColor| resolved from whichever color type is present.
+
+        Return |None| when no color is defined (color-type is None).
+
+        `theme_colors` is an optional mapping from scheme-color name
+        (e.g. ``"accent1"``, ``"bg1"``, ``"dk1"``) to |RGBColor| and is
+        required only when this color is a scheme (theme) color. The mapping
+        can be obtained from :attr:`SlideMaster.theme_colors`.
+
+        Raises :class:`ValueError` for a scheme color when `theme_colors` is
+        not provided or does not contain the required entry, and for a
+        preset color whose name is not recognized.
+        """
+        return self._color.to_rgb(theme_colors)
 
     @property
     def type(self):
@@ -173,6 +193,14 @@ class _Color(object):
         """
         return MSO_THEME_COLOR.NOT_THEME_COLOR
 
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor | None:
+        """Return |RGBColor| corresponding to this color.
+
+        Must be overridden by subclasses that can be resolved to RGB.
+        """
+        tmpl = "no .to_rgb() implementation on color type '%s'"
+        raise NotImplementedError(tmpl % self.__class__.__name__)
+
     def _shade(self, value):
         lumMod_val = 1.0 - abs(value)
         color_elm = self._xClr.clear_lum()
@@ -191,6 +219,19 @@ class _HslColor(_Color):
     def color_type(self):
         return MSO_COLOR_TYPE.HSL
 
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
+        """Return |RGBColor| computed from the HSL triple on `<a:hslClr>`.
+
+        OOXML encodes `hue` as 60000-ths of a degree and `sat`/`lum` as
+        1000-ths of a percent.
+        """
+        hue = _ST_Angle_to_degrees(self._xClr.get("hue", "0"))
+        sat = _ST_Percentage_to_unit(self._xClr.get("sat", "0"))
+        lum = _ST_Percentage_to_unit(self._xClr.get("lum", "0"))
+        # -- colorsys.hls_to_rgb expects (h, l, s) where h is in [0, 1) --
+        r, g, b = colorsys.hls_to_rgb(hue / 360.0, lum, sat)
+        return RGBColor(int(round(r * 255)), int(round(g * 255)), int(round(b * 255)))
+
 
 class _NoneColor(_Color):
     @property
@@ -206,11 +247,27 @@ class _NoneColor(_Color):
         tmpl = "no .theme_color property on color type '%s'"
         raise AttributeError(tmpl % self.__class__.__name__)
 
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> None:
+        """Return |None|, indicating no color is defined at this level."""
+        return None
+
 
 class _PrstColor(_Color):
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.PRESET
+
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
+        """Return |RGBColor| for the preset color name on `<a:prstClr>`.
+
+        Raises :class:`ValueError` when the preset name is not recognized.
+        """
+        name = self._xClr.get("val", "")
+        try:
+            hex_str = PRESET_COLORS[name]
+        except KeyError as exc:
+            raise ValueError("unrecognized preset color name '%s'" % name) from exc
+        return RGBColor.from_string(hex_str)
 
 
 class _SchemeColor(_Color):
@@ -237,11 +294,43 @@ class _SchemeColor(_Color):
     def theme_color(self, mso_theme_color_idx):
         self._schemeClr.val = mso_theme_color_idx
 
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
+        """Return |RGBColor| for this scheme color.
+
+        `theme_colors` must be provided and must be a mapping from scheme
+        color name (e.g. ``"accent1"``, ``"bg1"``) to |RGBColor|. Such a
+        mapping can be obtained from :attr:`SlideMaster.theme_colors`.
+
+        Raises :class:`ValueError` when `theme_colors` is None or does not
+        contain an entry for this color's scheme name.
+        """
+        if theme_colors is None:
+            raise ValueError(
+                "scheme color resolution requires a `theme_colors` mapping; "
+                "see SlideMaster.theme_colors"
+            )
+        name = self._schemeClr.get("val", "")
+        try:
+            return theme_colors[name]
+        except KeyError as exc:
+            raise ValueError("theme_colors has no entry for scheme color '%s'" % name) from exc
+
 
 class _ScRgbColor(_Color):
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.SCRGB
+
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
+        """Return |RGBColor| computed from the percentage-based RGB attrs."""
+        r = _ST_Percentage_to_unit(self._xClr.get("r", "0"))
+        g = _ST_Percentage_to_unit(self._xClr.get("g", "0"))
+        b = _ST_Percentage_to_unit(self._xClr.get("b", "0"))
+        return RGBColor(
+            max(0, min(255, int(round(r * 255)))),
+            max(0, min(255, int(round(g * 255)))),
+            max(0, min(255, int(round(b * 255)))),
+        )
 
 
 class _SRgbColor(_Color):
@@ -265,11 +354,33 @@ class _SRgbColor(_Color):
     def rgb(self, rgb):
         self._srgbClr.val = str(rgb)
 
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
+        """Return |RGBColor| for this explicit RGB color."""
+        return RGBColor.from_string(self._srgbClr.val)
+
 
 class _SysColor(_Color):
     @property
     def color_type(self):
         return MSO_COLOR_TYPE.SYSTEM
+
+    def to_rgb(self, theme_colors: Mapping[str, RGBColor] | None = None) -> RGBColor:
+        """Return |RGBColor| stored on the `lastClr` attribute.
+
+        `lastClr` is the rendered RGB value PowerPoint most recently observed
+        for the named system color (like ``"windowText"``) and is the closest
+        thing to a resolved RGB available without the rendering context.
+
+        Raises :class:`ValueError` when the element has no `lastClr`
+        attribute.
+        """
+        last_clr = self._xClr.get("lastClr")
+        if last_clr is None:
+            raise ValueError(
+                "system color '%s' has no `lastClr` attribute; RGB cannot be "
+                "resolved without a rendering context" % self._xClr.get("val", "")
+            )
+        return RGBColor.from_string(last_clr)
 
 
 class RGBColor(tuple):
@@ -299,3 +410,28 @@ class RGBColor(tuple):
         g = int(rgb_hex_str[2:4], 16)
         b = int(rgb_hex_str[4:], 16)
         return cls(r, g, b)
+
+
+def _ST_Percentage_to_unit(value: str | float) -> float:
+    """Parse an `ST_Percentage`-style OOXML value into a float in [0.0, 1.0].
+
+    Accepts either the OOXML integer form (``"55000"`` = 55%) or the
+    schema-form with trailing ``%`` (``"55%"``).
+    """
+    if isinstance(value, (int, float)):
+        # -- already a numeric fraction, assume 1000-ths of a percent --
+        return float(value) / 100000.0
+    if value.endswith("%"):
+        return float(value[:-1]) / 100.0
+    return float(value) / 100000.0
+
+
+def _ST_Angle_to_degrees(value: str | float) -> float:
+    """Parse an `ST_Angle`-style OOXML value into a float in [0.0, 360.0).
+
+    Accepts either the OOXML integer form (``"21600000"`` = 360°, i.e.
+    60000-ths of a degree) or the plain decimal-degree form.
+    """
+    if isinstance(value, (int, float)):
+        return (float(value) / 60000.0) % 360.0
+    return (float(value) / 60000.0) % 360.0
