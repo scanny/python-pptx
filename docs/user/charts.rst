@@ -209,12 +209,59 @@ a particular chart type, like column or line. This distinction is needed for
 charts that combine more than one type, like a line chart appearing on top of
 a column chart. A chart like this would have two plot objects, one for the
 series appearing as columns and the other for the lines. Most charts only
-have a single plot and |pp| doesn't yet support creating multi-plot charts,
-but you can access multiple plots on a chart that already has them.
+have a single plot, but |pp| now supports adding an additional plot to a
+chart via :meth:`Chart.add_plot` (see :ref:`combo-charts` below).
 
 In the Microsoft API, the name *ChartGroup* is used for this object. I found
 that term confusing for a long time while I was learning about MS Office
 charts so I chose the name Plot for that object in |pp|.
+
+
+.. _combo-charts:
+
+Combo charts (adding a second plot)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A *combo chart* draws two (or more) chart types in a single plot area —
+for example a line plotted on top of a column chart. Create one by first
+building an ordinary single-plot chart and then appending a second plot
+with :meth:`Chart.add_plot`::
+
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+
+    chart_data = CategoryChartData()
+    chart_data.categories = ['Q1', 'Q2', 'Q3', 'Q4']
+    chart_data.add_series('Revenue', (10, 20, 30, 40))
+    chart_data.add_series('Cost',    ( 5, 12, 18, 25))
+
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED, x, y, cx, cy, chart_data
+    ).chart
+
+    line_data = CategoryChartData()
+    line_data.categories = ['Q1', 'Q2', 'Q3', 'Q4']
+    line_data.add_series('Trend', (7, 15, 25, 35))
+
+    chart.add_plot(XL_CHART_TYPE.LINE_MARKERS, line_data)
+
+The new plot reuses the existing plot's category and value axes. The
+MVP supports bar/column and line variants for the added plot
+(``BAR_CLUSTERED``, ``COLUMN_CLUSTERED``, ``BAR_STACKED``,
+``COLUMN_STACKED``, ``BAR_STACKED_100``, ``COLUMN_STACKED_100``,
+``LINE``, ``LINE_MARKERS``, ``LINE_STACKED``, ``LINE_STACKED_100``,
+``LINE_MARKERS_STACKED`` and ``LINE_MARKERS_STACKED_100``). Other
+chart types raise :class:`NotImplementedError`.
+
+.. note::
+   In this MVP, values for the added plot are written inline in the
+   chart XML (``c:numLit`` / ``c:strLit``) rather than appended to the
+   embedded Excel workbook. The chart renders correctly in PowerPoint
+   and LibreOffice, but PowerPoint's **Edit Data** dialog will show
+   only the original plot's data — the added plot's values are not
+   surfaced into the workbook. A follow-up that synchronizes the
+   workbook is planned; see ``docs/dev/analysis/combo-chart.rst`` for
+   the design notes.
 
 Collection-level text-frame properties (such as whether label text should
 word-wrap, the autofit strategy, vertical anchor, and internal margins) are
