@@ -299,9 +299,14 @@ register_element_cls("a:reflection", CT_ReflectionEffect)
 register_element_cls("a:softEdge", CT_SoftEdgesEffect)
 
 
-from pptx.oxml.dml.line import CT_PresetLineDashProperties  # noqa: E402
+from pptx.oxml.dml.line import (  # noqa: E402
+    CT_LineEndProperties,
+    CT_PresetLineDashProperties,
+)
 
 register_element_cls("a:prstDash", CT_PresetLineDashProperties)
+register_element_cls("a:headEnd", CT_LineEndProperties)
+register_element_cls("a:tailEnd", CT_LineEndProperties)
 
 
 from pptx.oxml.presentation import (  # noqa: E402

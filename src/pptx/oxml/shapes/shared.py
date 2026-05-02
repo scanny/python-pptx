@@ -32,6 +32,7 @@ from pptx.util import Emu
 
 if TYPE_CHECKING:
     from pptx.oxml.action import CT_Hyperlink
+    from pptx.oxml.dml.line import CT_LineEndProperties
     from pptx.oxml.shapes.autoshape import CT_CustomGeometry2D, CT_PresetGeometry2D
     from pptx.util import Length
 
@@ -239,6 +240,11 @@ class CT_ApplicationNonVisualDrawingProps(BaseOxmlElement):
 class CT_LineProperties(BaseOxmlElement):
     """Custom element class for <a:ln> element"""
 
+    get_or_add_headEnd: Callable[[], CT_LineEndProperties]
+    get_or_add_tailEnd: Callable[[], CT_LineEndProperties]
+    _remove_headEnd: Callable[[], None]
+    _remove_tailEnd: Callable[[], None]
+
     _tag_seq = (
         "a:noFill",
         "a:solidFill",
@@ -264,6 +270,12 @@ class CT_LineProperties(BaseOxmlElement):
     )
     prstDash = ZeroOrOne("a:prstDash", successors=_tag_seq[5:])
     custDash = ZeroOrOne("a:custDash", successors=_tag_seq[6:])
+    headEnd: CT_LineEndProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:headEnd", successors=_tag_seq[10:]
+    )
+    tailEnd: CT_LineEndProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:tailEnd", successors=_tag_seq[11:]
+    )
     del _tag_seq
     w = OptionalAttribute("w", ST_LineWidth, default=Emu(0))
 

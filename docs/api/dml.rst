@@ -31,6 +31,14 @@ various aspects of shapes.
    :undoc-members:
 
 
+|LineEndFormat| objects
+-----------------------
+
+.. autoclass:: pptx.dml.line.LineEndFormat
+   :members:
+   :undoc-members:
+
+
 |ColorFormat| objects
 ---------------------
 

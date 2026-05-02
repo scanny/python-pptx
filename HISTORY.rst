@@ -93,6 +93,7 @@ Unreleased
   ``PIL.UnidentifiedImageError`` bubbled up from Pillow. See the new
   "Inserting SVG images" section of the user guide.
 - #337 support East-Asian and complex-script font slots
+- #375 line end arrows via LineFormat
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

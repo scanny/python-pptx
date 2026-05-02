@@ -184,6 +184,29 @@ The shape outline also has a read/write width property::
     2.0
 
 
+Line-end arrows
+~~~~~~~~~~~~~~~
+
+The outline of a shape (or a connector line) can carry an arrowhead decoration
+at either or both ends. The decoration at the head (begin) of the line is
+exposed as ``line.begin_arrow`` and the decoration at the tail (end) of the
+line is exposed as ``line.end_arrow``. Each exposes three read/write
+sub-properties — ``type``, ``width``, and ``length``::
+
+    >>> from pptx.enum.dml import (
+    ...     MSO_LINE_END_TYPE, MSO_LINE_END_WIDTH, MSO_LINE_END_LENGTH,
+    ... )
+    >>> line = shape.line
+    >>> line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE
+    >>> line.end_arrow.width = MSO_LINE_END_WIDTH.LARGE
+    >>> line.end_arrow.length = MSO_LINE_END_LENGTH.SMALL
+    >>> line.begin_arrow.type = MSO_LINE_END_TYPE.OVAL
+
+Assigning ``None`` to any sub-property removes that attribute from the line-end
+element. When all three attributes are cleared, the line-end element itself is
+removed.
+
+
 Adjusting an autoshape
 ----------------------
 

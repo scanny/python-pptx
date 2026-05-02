@@ -6,8 +6,14 @@ import pytest
 
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
-from pptx.dml.line import LineFormat
-from pptx.enum.dml import MSO_FILL, MSO_LINE
+from pptx.dml.line import LineEndFormat, LineFormat
+from pptx.enum.dml import (
+    MSO_FILL,
+    MSO_LINE,
+    MSO_LINE_END_LENGTH,
+    MSO_LINE_END_TYPE,
+    MSO_LINE_END_WIDTH,
+)
 from pptx.oxml.shapes.shared import CT_LineProperties
 from pptx.shapes.autoshape import Shape
 
@@ -75,6 +81,25 @@ class DescribeLineFormat(object):
         color = line.color
         assert fill_.solid.mock_calls == expected_solid_calls
         assert color is color_
+
+    def it_provides_access_to_its_begin_arrow(self):
+        spPr = element("p:spPr")
+        line = LineFormat(spPr)
+
+        begin_arrow = line.begin_arrow
+
+        assert isinstance(begin_arrow, LineEndFormat)
+        # -- idempotent (lazyproperty caches result) --
+        assert line.begin_arrow is begin_arrow
+
+    def it_provides_access_to_its_end_arrow(self):
+        spPr = element("p:spPr")
+        line = LineFormat(spPr)
+
+        end_arrow = line.end_arrow
+
+        assert isinstance(end_arrow, LineEndFormat)
+        assert line.end_arrow is end_arrow
 
     # fixtures -------------------------------------------------------
 
@@ -166,3 +191,212 @@ class DescribeLineFormat(object):
         shape_ = instance_mock(request, Shape)
         shape_.get_or_add_ln.return_value = ln_
         return shape_
+
+
+class DescribeLineEndFormat(object):
+    """Unit-test suite for `pptx.dml.line.LineEndFormat`."""
+
+    def it_raises_on_invalid_end_tag(self):
+        line = LineFormat(element("p:spPr"))
+        with pytest.raises(ValueError, match="end_tag must be"):
+            LineEndFormat(line, "bogus")
+
+    @pytest.mark.parametrize(
+        ("spPr_cxml", "end_tag", "expected_value"),
+        [
+            ("p:spPr", "headEnd", None),
+            ("p:spPr", "tailEnd", None),
+            ("p:spPr/a:ln", "tailEnd", None),
+            ("p:spPr/a:ln/a:tailEnd", "tailEnd", None),
+            (
+                "p:spPr/a:ln/a:tailEnd{type=triangle}",
+                "tailEnd",
+                MSO_LINE_END_TYPE.TRIANGLE,
+            ),
+            (
+                "p:spPr/a:ln/a:headEnd{type=arrow}",
+                "headEnd",
+                MSO_LINE_END_TYPE.ARROW,
+            ),
+        ],
+    )
+    def it_knows_its_type(self, spPr_cxml, end_tag, expected_value):
+        line = LineFormat(element(spPr_cxml))
+        end = LineEndFormat(line, end_tag)
+
+        assert end.type == expected_value
+
+    @pytest.mark.parametrize(
+        ("spPr_cxml", "end_tag", "value", "expected_cxml"),
+        [
+            # -- creates ln and tailEnd when missing --
+            (
+                "p:spPr{a:b=c}",
+                "tailEnd",
+                MSO_LINE_END_TYPE.TRIANGLE,
+                "p:spPr{a:b=c}/a:ln/a:tailEnd{type=triangle}",
+            ),
+            # -- creates headEnd when ln exists --
+            (
+                "p:spPr/a:ln",
+                "headEnd",
+                MSO_LINE_END_TYPE.ARROW,
+                "p:spPr/a:ln/a:headEnd{type=arrow}",
+            ),
+            # -- updates existing type attribute --
+            (
+                "p:spPr/a:ln/a:tailEnd{type=oval}",
+                "tailEnd",
+                MSO_LINE_END_TYPE.STEALTH,
+                "p:spPr/a:ln/a:tailEnd{type=stealth}",
+            ),
+            # -- assigning None with no ln is a no-op --
+            ("p:spPr", "tailEnd", None, "p:spPr"),
+            # -- assigning None with no end element is a no-op --
+            ("p:spPr/a:ln", "tailEnd", None, "p:spPr/a:ln"),
+            # -- assigning None removes the end element when it was the only attr --
+            (
+                "p:spPr/a:ln/a:tailEnd{type=triangle}",
+                "tailEnd",
+                None,
+                "p:spPr/a:ln",
+            ),
+            # -- assigning None clears just the type attr, leaving other attrs intact --
+            (
+                "p:spPr/a:ln/a:tailEnd{type=triangle,w=lg}",
+                "tailEnd",
+                None,
+                "p:spPr/a:ln/a:tailEnd{w=lg}",
+            ),
+        ],
+    )
+    def it_can_change_its_type(self, spPr_cxml, end_tag, value, expected_cxml):
+        spPr = element(spPr_cxml)
+        line = LineFormat(spPr)
+        end = LineEndFormat(line, end_tag)
+
+        end.type = value
+
+        assert spPr.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("spPr_cxml", "end_tag", "expected_value"),
+        [
+            ("p:spPr", "tailEnd", None),
+            ("p:spPr/a:ln/a:tailEnd", "tailEnd", None),
+            (
+                "p:spPr/a:ln/a:tailEnd{w=sm}",
+                "tailEnd",
+                MSO_LINE_END_WIDTH.SMALL,
+            ),
+            (
+                "p:spPr/a:ln/a:headEnd{w=lg}",
+                "headEnd",
+                MSO_LINE_END_WIDTH.LARGE,
+            ),
+        ],
+    )
+    def it_knows_its_width(self, spPr_cxml, end_tag, expected_value):
+        line = LineFormat(element(spPr_cxml))
+        end = LineEndFormat(line, end_tag)
+
+        assert end.width == expected_value
+
+    @pytest.mark.parametrize(
+        ("spPr_cxml", "end_tag", "value", "expected_cxml"),
+        [
+            (
+                "p:spPr{a:b=c}",
+                "tailEnd",
+                MSO_LINE_END_WIDTH.MEDIUM,
+                "p:spPr{a:b=c}/a:ln/a:tailEnd{w=med}",
+            ),
+            (
+                "p:spPr/a:ln/a:tailEnd{w=sm}",
+                "tailEnd",
+                MSO_LINE_END_WIDTH.LARGE,
+                "p:spPr/a:ln/a:tailEnd{w=lg}",
+            ),
+            ("p:spPr", "tailEnd", None, "p:spPr"),
+            (
+                "p:spPr/a:ln/a:tailEnd{w=lg}",
+                "tailEnd",
+                None,
+                "p:spPr/a:ln",
+            ),
+        ],
+    )
+    def it_can_change_its_width(self, spPr_cxml, end_tag, value, expected_cxml):
+        spPr = element(spPr_cxml)
+        end = LineEndFormat(LineFormat(spPr), end_tag)
+
+        end.width = value
+
+        assert spPr.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("spPr_cxml", "end_tag", "expected_value"),
+        [
+            ("p:spPr", "tailEnd", None),
+            ("p:spPr/a:ln/a:tailEnd", "tailEnd", None),
+            (
+                "p:spPr/a:ln/a:tailEnd{len=sm}",
+                "tailEnd",
+                MSO_LINE_END_LENGTH.SMALL,
+            ),
+            (
+                "p:spPr/a:ln/a:headEnd{len=med}",
+                "headEnd",
+                MSO_LINE_END_LENGTH.MEDIUM,
+            ),
+        ],
+    )
+    def it_knows_its_length(self, spPr_cxml, end_tag, expected_value):
+        line = LineFormat(element(spPr_cxml))
+        end = LineEndFormat(line, end_tag)
+
+        assert end.length == expected_value
+
+    @pytest.mark.parametrize(
+        ("spPr_cxml", "end_tag", "value", "expected_cxml"),
+        [
+            (
+                "p:spPr{a:b=c}",
+                "tailEnd",
+                MSO_LINE_END_LENGTH.LARGE,
+                "p:spPr{a:b=c}/a:ln/a:tailEnd{len=lg}",
+            ),
+            (
+                "p:spPr/a:ln/a:tailEnd{len=sm}",
+                "tailEnd",
+                MSO_LINE_END_LENGTH.MEDIUM,
+                "p:spPr/a:ln/a:tailEnd{len=med}",
+            ),
+            ("p:spPr", "tailEnd", None, "p:spPr"),
+            (
+                "p:spPr/a:ln/a:tailEnd{len=lg}",
+                "tailEnd",
+                None,
+                "p:spPr/a:ln",
+            ),
+        ],
+    )
+    def it_can_change_its_length(self, spPr_cxml, end_tag, value, expected_cxml):
+        spPr = element(spPr_cxml)
+        end = LineEndFormat(LineFormat(spPr), end_tag)
+
+        end.length = value
+
+        assert spPr.xml == xml(expected_cxml)
+
+    def it_supports_setting_all_three_sub_properties(self):
+        spPr = element("p:spPr{a:b=c}")
+        line = LineFormat(spPr)
+
+        line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE
+        line.end_arrow.width = MSO_LINE_END_WIDTH.LARGE
+        line.end_arrow.length = MSO_LINE_END_LENGTH.SMALL
+
+        assert spPr.xml == xml(
+            "p:spPr{a:b=c}/a:ln/a:tailEnd{type=triangle,w=lg,len=sm}"
+        )
