@@ -10,6 +10,17 @@ Unreleased
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
   reference to that issue's chartex roadmap.
+- #479/#651 waterfall chart: design analysis (F4-pending). Adds
+  ``docs/dev/analysis/chartex-waterfall.rst`` covering the
+  waterfall-specific ``cx:series`` shape with ``layoutId="waterfall"``,
+  the ``cx:layoutPr/cx:subtotals/cx:subtotal`` block that marks bars as
+  subtotal anchors, and the ``cx:visibility/@connectorLines`` toggle for
+  the step-lines between bars. Documents the pair of ``cx:axis``
+  children waterfall requires (unlike funnel) and proposes a minimal
+  authoring-API surface (``CategoryChartData.subtotal_indices``).
+  Documents the issue as blocked on full F4 (chartex foundation) with a
+  concrete unblock-and-ship checklist; #479 and #651 are the same ask
+  and will be resolved together.
 - #305 funnel chart: design analysis (F4-pending). Adds
   ``docs/dev/analysis/chartex-funnel.rst`` covering the ``cx:plotArea``
   subset, ``cx:series`` with ``layoutId="funnel"``, and the cached-data
