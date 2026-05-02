@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from behave import given, then
+import io
+
+from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
@@ -96,7 +98,47 @@ def given_a_SlideMaster_object_as_slide(context):
     context.slide = context.slide_master = prs.slide_masters[0]
 
 
+@given("a presentation with {n_masters} slide master and no explicit master name")
+@given("a presentation with {n_masters} slide masters and no explicit master name")
+def given_a_presentation_with_n_masters_and_no_explicit_master_name(context, n_masters):
+    fixture = "sld-slide" if int(n_masters) == 1 else "prs-slide-masters"
+    context.prs = Presentation(test_pptx(fixture))
+    assert len(context.prs.slide_masters) == int(n_masters), (
+        "fixture %s has %d masters, expected %s"
+        % (fixture, len(context.prs.slide_masters), n_masters)
+    )
+
+
+# when ====================================================
+
+
+@when('I set prs.slide_masters[{idx:d}].name to "{value}"')
+def when_I_set_prs_slide_masters_idx_name_to_value(context, idx, value):
+    context.prs.slide_masters[idx].name = value
+
+
+@when("I set prs.slide_masters[{idx:d}].name to None")
+def when_I_set_prs_slide_masters_idx_name_to_None(context, idx):
+    context.prs.slide_masters[idx].name = None
+
+
 # then ====================================================
+
+
+@then("prs.slide_masters[{idx:d}].name is {expected}")
+def then_prs_slide_masters_idx_name_is(context, idx, expected):
+    actual = context.prs.slide_masters[idx].name
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("after a save/load round-trip prs.slide_masters[{idx:d}].name is {expected}")
+def then_after_save_load_prs_slide_masters_idx_name_is(context, idx, expected):
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    actual = reopened.slide_masters[idx].name
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
 
 
 @then("len(notes_slide.shapes) is {count}")

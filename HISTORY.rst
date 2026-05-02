@@ -6,6 +6,14 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #679 ``SlideMaster.name`` now falls back to a positional name of the
+  form ``"Master N"`` (1-based index in ``prs.slide_masters``) when the
+  underlying ``p:cSld/@name`` is empty — PowerPoint-authored masters almost
+  always leave that attribute blank, so ``prs.slide_masters[0].name`` no
+  longer surprises callers with an empty string. A ``SlideMaster.name``
+  setter is added that writes ``p:cSld/@name`` (round-tripping through
+  save/load); assigning ``""`` or ``None`` clears the attribute and restores
+  the positional fallback.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
