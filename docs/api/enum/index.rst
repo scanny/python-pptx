@@ -8,6 +8,8 @@ can be found here:
 .. toctree::
    :titlesonly:
 
+   MsoAnimationTrigger
+   MsoAnimationType
    MsoAutoShapeType
    MsoAutoSize
    MsoColorType
@@ -30,6 +32,9 @@ can be found here:
    PpMediaType
    PpParagraphAlignment
    PpPlaceholderType
+   PpTransitionSideDirection
+   PpTransitionSpeed
+   PpTransitionType
 
    XlAxisCrosses
    XlAxisPosition
