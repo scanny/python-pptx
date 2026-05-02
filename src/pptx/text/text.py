@@ -20,7 +20,7 @@ from pptx.enum.text import (
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_TextWrappingType
-from pptx.oxml.text import CT_RegularTextRun
+from pptx.oxml.text import CT_RegularTextRun, CT_TextField, CT_TextLineBreak
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from pptx.oxml.text import (
         CT_TextBody,
         CT_TextCharacterProperties,
-        CT_TextField,
         CT_TextParagraph,
         CT_TextParagraphProperties,
     )
@@ -1129,6 +1128,43 @@ def _paragraph_level(p_elm):
         return 0
 
 
+def _iter_paragraph_text_chunks(p_elm: Any) -> Iterator[str]:
+    """Yield text chunks for `p_elm` in document order.
+
+    Walks the direct children of the `a:p` element. For each `a:r`, `a:br`,
+    or `a:fld` child, yields that element's ``.text`` (which already encodes
+    line-breaks as vertical-tab). For each `mc:AlternateContent` child, drops
+    into its `mc:Fallback` subtree and yields the text of every `a:r`, `a:br`,
+    and `a:fld` descendant there. The `mc:Choice` side is intentionally
+    ignored -- it typically holds an `a14:m/m:oMath` equation whose rendered
+    text is already reproduced under `mc:Fallback`, and yielding both would
+    double-count.
+
+    See issue #947: PowerPoint emits an inline math equation as an
+    ``mc:AlternateContent`` child of the enclosing ``a:p`` with a plain-text
+    ``mc:Fallback`` rendering; ``_Paragraph.text`` must surface that
+    rendering so callers doing text extraction see the equation's characters
+    rather than an empty string.
+    """
+    ac_tag = qn("mc:AlternateContent")
+    fb_tag = qn("mc:Fallback")
+    # -- first-class text children, matching `CT_TextParagraph.content_children`.
+    text_types = (CT_RegularTextRun, CT_TextLineBreak, CT_TextField)
+
+    for child in p_elm:
+        if isinstance(child, text_types):
+            yield child.text
+        elif child.tag == ac_tag:
+            fallback = child.find(fb_tag)
+            if fallback is None:
+                continue
+            # -- yield text of every a:r / a:br / a:fld descendant of the
+            # -- fallback subtree, preserving document order via `iter()`.
+            for descendant in fallback.iter():
+                if isinstance(descendant, text_types):
+                    yield descendant.text
+
+
 def _lvl_defRPr(style_elm, lvl):
     """Return the `a:defRPr` for paragraph `lvl` from a list-style-like element.
 
@@ -1695,6 +1731,11 @@ class _Paragraph(Subshape):
         is consistent with PowerPoint's clipboard copy behavior and allows a line-break to be
         distinguished from a paragraph boundary within the str return value.
 
+        When the paragraph contains an `mc:AlternateContent` wrapper (e.g. an inline OMML math
+        equation), the text inside its `mc:Fallback` subtree is included in document order, so
+        PowerPoint's downgrade-friendly plain-text rendering of the equation is surfaced for
+        callers that just want a readable string. See issue #947.
+
         Assignment causes all content in the paragraph to be replaced. Each vertical-tab character
         (`"\\v"`) in the assigned str is translated to a line-break, as is each line-feed
         character (`"\\n"`). Contrast behavior of line-feed character in `TextFrame.text` setter.
@@ -1702,7 +1743,7 @@ class _Paragraph(Subshape):
         instead. Any other control characters in the assigned string are escaped as a hex
         representation like "_x001B_" (for ESC (ASCII 27) in this example).
         """
-        return "".join(elm.text for elm in self._element.content_children)
+        return "".join(_iter_paragraph_text_chunks(self._element))
 
     @text.setter
     def text(self, text: str):

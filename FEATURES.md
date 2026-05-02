@@ -1646,6 +1646,7 @@ All members in this section are `[Added in 1.0.2.dev0]`.
 - `_Paragraph.add_math_equation(omml_xml)` — Append an inline equation wrapped in the `a14:m` / `mc:Fallback` scaffolding PowerPoint uses.
 - `BaseShape.has_math_equation` — `True` when the shape contains an `a14:m` equation (descends into `mc:AlternateContent/mc:Choice`).
 - `BaseShape.math_equation_xml` — Raw OMML fragment (`m:oMath` element text) or `None`.
+- `_Paragraph.text` / `TextFrame.text` — Include the `mc:Fallback` plain-text rendering of any inline `mc:AlternateContent` equation in document order, so callers doing text extraction see the equation's characters rather than an empty string. `[Added in 2026.05.0]` (see issue #947)
 
 ---
 
