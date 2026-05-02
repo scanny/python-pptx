@@ -39,6 +39,20 @@ Unreleased
   accessible, and cross-part isolation from
   :attr:`Presentation.core_properties`. See
   ``tests/test_issue_586_company_manager_verify.py``.
+
+- verify: #768 resolved by #720 (name_ea / name_cs slots). Issue #768
+  ("Change font name not working for asian characters") is marked upstream
+  as a duplicate of #720 — both hit the OOXML font-slot dispatch rule
+  (``a:rPr`` carries independent ``a:latin`` / ``a:ea`` / ``a:cs`` children
+  and PowerPoint routes each Unicode script to the matching slot).
+  ``Font.name_ea`` and ``Font.name_cs``, shipped by Wave 1 #337, make the
+  East-Asian and complex-script slots addressable from Python, which is
+  the fix the #768 reporter needed. ``tests/test_issue_768_asian_font_verify.py``
+  pins the three-slot contract from the #768 perspective: single-slot
+  Latin, single-slot EA, single-slot CS, all-three-together, a
+  ``Presentation.save`` + reopen round trip, and a public-surface
+  cross-reference to #720.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
