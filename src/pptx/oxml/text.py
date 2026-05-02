@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Callable, cast
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import (
     MSO_AUTO_SIZE,
+    MSO_TEXT_STRIKE_TYPE,
     MSO_TEXT_UNDERLINE_TYPE,
     MSO_VERTICAL_ANCHOR,
     PP_AUTO_NUMBER_SCHEME,
@@ -354,6 +355,9 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     u: MSO_TEXT_UNDERLINE_TYPE | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "u", MSO_TEXT_UNDERLINE_TYPE
     )
+    strike: MSO_TEXT_STRIKE_TYPE | None = OptionalAttribute(
+        "strike", MSO_TEXT_STRIKE_TYPE
+    )  # pyright: ignore[reportAssignmentType]
 
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()

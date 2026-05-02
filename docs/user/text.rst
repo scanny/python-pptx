@@ -325,3 +325,16 @@ Setting :attr:`.Font.name` alone has no effect on how CJK text is displayed,
 which is the most common reason ``font.name`` appeared not to work for
 East-Asian text — the typeface used for CJK characters is controlled by
 :attr:`.Font.name_ea`, not :attr:`.Font.name`.
+Strikethrough text
+~~~~~~~~~~~~~~~~~~
+
+The ``Font.strikethrough`` property mirrors ``Font.bold`` and ``Font.italic``:
+it accepts ``True``, ``False``, or ``None`` (inherit). For a double-line
+strikethrough, assign ``MSO_STRIKE.DOUBLE_LINE``::
+
+    from pptx.enum.text import MSO_STRIKE
+
+    run.font.strikethrough = True                    # single-line strikethrough
+    run.font.strikethrough = MSO_STRIKE.DOUBLE_LINE  # double-line strikethrough
+    run.font.strikethrough = False                   # explicitly no strikethrough
+    run.font.strikethrough = None                    # inherit from style hierarchy

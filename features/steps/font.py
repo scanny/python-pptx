@@ -7,7 +7,7 @@ from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_UNDERLINE
+from pptx.enum.text import MSO_STRIKE, MSO_UNDERLINE
 
 # given ===================================================
 
@@ -82,6 +82,14 @@ def given_run_with_underline_set_to_state(context, state):
     context.font = runs[run_idx].font
 
 
+@given("a font with strikethrough set {state}")
+def given_a_font_with_strikethrough_set_state(context, state):
+    shape_idx = ["on", "off", "to inherit", "to DOUBLE_LINE"].index(state)
+    prs = Presentation(test_pptx("txt-font-props"))
+    shape = prs.slides[5].shapes[shape_idx]
+    context.font = shape.text_frame.paragraphs[0].runs[0].font
+
+
 # when ===================================================
 
 
@@ -147,6 +155,17 @@ def when_assign_none_to_font_name_cs(context):
     if not hasattr(context, "original_name"):
         context.original_name = context.font.name
     context.font.name_cs = None
+@when("I assign {value} to font.strikethrough")
+def when_I_assign_value_to_font_strikethrough(context, value):
+    new_value = {
+        "True": True,
+        "False": False,
+        "None": None,
+        "DOUBLE_LINE": MSO_STRIKE.DOUBLE_LINE,
+        "NONE": MSO_STRIKE.NONE,
+        "SINGLE_LINE": MSO_STRIKE.SINGLE_LINE,
+    }[value]
+    context.font.strikethrough = new_value
 
 
 # then ===================================================
@@ -229,3 +248,14 @@ def then_font_name_ea_is_none(context):
 @then("font.name_cs is None")
 def then_font_name_cs_is_none(context):
     assert context.font.name_cs is None, "got %s" % context.font.name_cs
+@then("font.strikethrough is {value}")
+def then_font_strikethrough_is_value(context, value):
+    expected_value = {
+        "True": True,
+        "False": False,
+        "None": None,
+        "DOUBLE_LINE": MSO_STRIKE.DOUBLE_LINE,
+        "SINGLE_LINE": MSO_STRIKE.SINGLE_LINE,
+    }[value]
+    font = context.font
+    assert font.strikethrough is expected_value, "got %s" % font.strikethrough

@@ -20,6 +20,7 @@ can be found here:
    MsoLineEndWidth
    MsoPatternType
    MsoShapeType
+   MsoTextStrikeType
    MsoTextUnderlineType
    MsoThemeColorIndex
    MsoVerticalAnchor

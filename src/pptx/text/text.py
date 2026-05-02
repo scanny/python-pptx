@@ -8,6 +8,7 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR, PP_AUTO_NUMBER_SCHEME
+from pptx.enum.text import MSO_AUTO_SIZE, MSO_STRIKE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
@@ -18,6 +19,7 @@ from pptx.util import Centipoints, Emu, Length, Pt, lazyproperty
 if TYPE_CHECKING:
     from pptx.dml.color import ColorFormat
     from pptx.enum.text import (
+        MSO_TEXT_STRIKE_TYPE,
         MSO_TEXT_UNDERLINE_TYPE,
         MSO_VERTICAL_ANCHOR,
         PP_PARAGRAPH_ALIGNMENT,
@@ -450,6 +452,31 @@ class Font(object):
         else:
             sz = Emu(emu).centipoints
             self._rPr.sz = sz
+
+    @property
+    def strikethrough(self) -> bool | MSO_TEXT_STRIKE_TYPE | None:
+        """Indicates the strikethrough setting for this font.
+
+        Value is |True|, |False|, |None|, or a member of the :ref:`MsoTextStrikeType`
+        enumeration. |None| is the default and indicates the strikethrough setting should
+        be inherited from the style hierarchy, such as from a placeholder. |True|
+        indicates single-line strikethrough. |False| indicates no strikethrough. A double
+        strikethrough is indicated with `MSO_STRIKE.DOUBLE_LINE`.
+        """
+        strike = self._rPr.strike
+        if strike is MSO_STRIKE.NONE:
+            return False
+        if strike is MSO_STRIKE.SINGLE_LINE:
+            return True
+        return strike
+
+    @strikethrough.setter
+    def strikethrough(self, value: bool | MSO_TEXT_STRIKE_TYPE | None):
+        if value is True:
+            value = MSO_STRIKE.SINGLE_LINE
+        elif value is False:
+            value = MSO_STRIKE.NONE
+        self._element.strike = value
 
     @property
     def underline(self) -> bool | MSO_TEXT_UNDERLINE_TYPE | None:

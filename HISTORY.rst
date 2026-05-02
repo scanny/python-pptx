@@ -112,6 +112,7 @@ Unreleased
   its ``<Slides>`` count recomputed from the live ``sldIdLst`` at save-time,
   restoring Gmail attachment preview and other downstream tools that key on
   that count.
+- #574 Font.strikethrough property
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

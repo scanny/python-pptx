@@ -115,6 +115,35 @@ Feature: Change appearance of font used to render text
       | to WAVY_LINE   | DOUBLE_LINE | DOUBLE_LINE    |
 
 
+  Scenario Outline: Get Font.strikethrough
+    Given a font with strikethrough set <strike-state>
+     Then font.strikethrough is <expected-value>
+
+    Examples: font.strikethrough states
+      | strike-state    | expected-value |
+      | on              | True           |
+      | off             | False          |
+      | to inherit      | None           |
+      | to DOUBLE_LINE  | DOUBLE_LINE    |
+
+
+  Scenario Outline: Set Font.strikethrough
+    Given a font with strikethrough set <initial-state>
+     When I assign <new-value> to font.strikethrough
+     Then font.strikethrough is <expected-value>
+
+    Examples: Expected results of changing font.strikethrough setting
+      | initial-state  | new-value   | expected-value |
+      | on             | True        | True           |
+      | off            | SINGLE_LINE | True           |
+      | to inherit     | True        | True           |
+      | to DOUBLE_LINE | False       | False          |
+      | to inherit     | NONE        | False          |
+      | to DOUBLE_LINE | None        | None           |
+      | off            | DOUBLE_LINE | DOUBLE_LINE    |
+      | to DOUBLE_LINE | SINGLE_LINE | True           |
+
+
   Scenario Outline: Get Font.size
     Given a font having size of <value>
      Then font.size is <reported-size>
