@@ -638,11 +638,13 @@ class DescribeXmlPart:
 class DescribePartFactory:
     """Unit-test suite for `pptx.opc.package.PartFactory` objects."""
 
-    def it_constructs_custom_part_type_for_registered_content_types(self, request, package_, part_):
+    def it_constructs_custom_part_type_for_registered_content_types(
+        self, request, monkeypatch, package_, part_
+    ):
         SlidePart_ = class_mock(request, "pptx.opc.package.XmlPart")
         SlidePart_.load.return_value = part_
         partname = PackURI("/ppt/slides/slide7.xml")
-        PartFactory.part_type_for[CT.PML_SLIDE] = SlidePart_
+        monkeypatch.setitem(PartFactory.part_type_for, CT.PML_SLIDE, SlidePart_)
 
         part = PartFactory(partname, CT.PML_SLIDE, package_, b"blob")
 

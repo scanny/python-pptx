@@ -34,59 +34,6 @@ from pptx.shapes.connector import Connector, ConnectorAdjustmentCollection
 from pptx.util import Emu
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from other tests that mutate ``PartFactory.part_type_for``.
-
-    See the identical fixture in ``tests/test_issue_400_animation_umbrella.py``
-    and ``tests/test_comments.py``. Without this guard, running this module
-    after ``tests/opc/test_package.py`` causes
-    ``Presentation().slides.add_slide(...)`` to return a Mock instead of a
-    real Slide.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 # -- A minimal "real" bent-connector PPTX built by python-pptx itself, then --
 # -- re-loaded so the saved ZIP is what we're reading. This mirrors the  --
 # -- reporter's setup (they load a .pptx authored in PowerPoint).        --
@@ -108,7 +55,7 @@ def _make_bent_connector_pptx() -> io.BytesIO:
 class DescribeIssue1017ElbowConnectorAdjust(object):
     """End-to-end coverage of the #1017 flow against a real saved .pptx."""
 
-    def it_bends_an_elbow_connector_via_the_adjustments_api(self, _restore_part_factory):
+    def it_bends_an_elbow_connector_via_the_adjustments_api(self):
         """Reporter's core ask: bend the elbow and have it stick after save.
 
         Loads a package that contains a ``bentConnector3``, asserts the
@@ -154,7 +101,7 @@ class DescribeIssue1017ElbowConnectorAdjust(object):
         assert gds[0].get("name") == "adj1"
         assert gds[0].get("fmla") == "val 25000"
 
-    def it_reads_a_prebent_connector_from_an_authored_avLst(self, _restore_part_factory):
+    def it_reads_a_prebent_connector_from_an_authored_avLst(self):
         """Also covers the "I already bent it in PowerPoint" direction:
 
         if the incoming ``a:avLst`` already carries a non-default
@@ -184,7 +131,7 @@ class DescribeIssue1017ElbowConnectorAdjust(object):
         assert reopened_connector.adjustments[0] == pytest.approx(0.33333)
 
     def it_round_trips_multiple_adjustments_on_a_five_segment_connector(
-        self, _restore_part_factory
+        self
     ):
         """A ``bentConnector5`` has three adjustments (adj1/2/3). Setting
         just one of them must not clobber the other two — all three

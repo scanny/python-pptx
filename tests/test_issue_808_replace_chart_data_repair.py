@@ -55,60 +55,6 @@ from pptx.oxml.ns import qn
 from pptx.util import Inches
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from tests that mutate ``PartFactory.part_type_for``.
-
-    ``tests/opc/test_package.py::DescribePartFactory`` replaces the
-    ``CT.PML_SLIDE`` entry with a Mock and does not restore it. Without
-    this fixture, the round-trip test below would get a Mock back for
-    ``slide`` on reload. See the identical fixture in
-    ``tests/test_issue_400_animation_umbrella.py`` and
-    ``tests/test_issue_640_chart_duplicate.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue808ReplaceChartDataRepair:
     """``Chart.replace_data`` no longer produces a repair-needed file (issue #808)."""
 
@@ -190,7 +136,7 @@ class DescribeIssue808ReplaceChartDataRepair:
         assert chart.workbook is not None
 
     def it_round_trips_the_reporter_scenario_through_save_and_reopen(
-        self, _restore_part_factory
+        self
     ):
         """The repaired file survives a save + reopen without losing series.
 

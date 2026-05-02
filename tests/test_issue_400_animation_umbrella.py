@@ -38,65 +38,10 @@ from __future__ import annotations
 
 import io
 
-import pytest
-
 from pptx import Presentation
 from pptx.enum.transition import PP_TRANSITION_TYPE
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls, qn
-
-
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against pollution from other tests that mutate `PartFactory.part_type_for`.
-
-    In particular, `tests/opc/test_package.py::DescribePartFactory` overwrites
-    `PartFactory.part_type_for[CT.PML_SLIDE]` with a Mock and does not restore
-    it. Without this guard, running this module after ``tests/opc/test_package.py``
-    causes ``Presentation().slides.add_slide(...)`` to return a Mock instead of
-    a real Slide. See the identical fixture in ``tests/test_comments.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
 
 
 # -- A realistic "fade in" entrance-effect timing tree, as PowerPoint
@@ -196,7 +141,7 @@ class DescribeIssue400AnimationUmbrella(object):
     confirm the animation tree survived, and introspect it via the F8 API.
     """
 
-    def it_round_trips_an_authored_entrance_animation(self, _restore_part_factory):
+    def it_round_trips_an_authored_entrance_animation(self):
         """The reporter's core ask: add an animation effect on a shape
         (for later video rendering) and have python-pptx not drop it.
 
@@ -254,7 +199,7 @@ class DescribeIssue400AnimationUmbrella(object):
         assert 'dur="500"' in reloaded_xml
 
     def it_does_not_clobber_an_existing_animation_tree_when_setting_transition(
-        self, _restore_part_factory
+        self
     ):
         """A slide may carry BOTH a transition and an animation tree.
         Setting ``Slide.transition.type`` (F8 MVP API) must not drop the
@@ -290,7 +235,7 @@ class DescribeIssue400AnimationUmbrella(object):
         assert "<p:animEffect" in (slide2.timing_xml or "")
 
     def it_exposes_the_shape_targeted_by_an_animation_via_timing_xml(
-        self, _restore_part_factory
+        self
     ):
         """Issue #400's follow-up comment wanted to *inspect* which
         shape an animation targets (so a video-rendering pipeline can
@@ -320,7 +265,7 @@ class DescribeIssue400AnimationUmbrella(object):
         # -- and the real shape the spid refers to is reachable --
         assert shape is not None
 
-    def it_reports_has_animations_False_for_a_bare_transition(self, _restore_part_factory):
+    def it_reports_has_animations_False_for_a_bare_transition(self):
         """A slide with ONLY a transition (and no ``p:timing``) must
         not report ``has_animations`` — the two are separate subtrees.
         Pins the #400 invariant that ``has_animations`` means "authored

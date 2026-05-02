@@ -32,64 +32,11 @@ from pptx import Presentation
 from pptx.util import Emu, Inches
 
 
-@pytest.fixture
-def _restore_part_factory():
-    """Guard against test-module pollution of `PartFactory.part_type_for`.
-
-    ``tests/opc/test_package.py::DescribePartFactory`` overwrites the
-    slide-part registration with a Mock and does not restore it. Without
-    this guard, running this module in the wrong test order makes
-    ``Presentation().slides[0]`` return a Mock. See the identical fixture
-    in ``tests/test_comments.py`` and ``tests/test_issue_400_animation_umbrella.py``.
-    """
-    from pptx.opc.constants import CONTENT_TYPE as CT
-    from pptx.opc.package import PartFactory
-    from pptx.parts.chart import ChartPart
-    from pptx.parts.comments import CommentAuthorsPart, CommentsPart
-    from pptx.parts.coreprops import CorePropertiesPart
-    from pptx.parts.image import ImagePart
-    from pptx.parts.media import MediaPart
-    from pptx.parts.presentation import PresentationPart
-    from pptx.parts.slide import (
-        NotesMasterPart,
-        NotesSlidePart,
-        SlideLayoutPart,
-        SlideMasterPart,
-        SlidePart,
-    )
-
-    saved = dict(PartFactory.part_type_for)
-    expected = {
-        CT.PML_PRESENTATION_MAIN: PresentationPart,
-        CT.PML_PRES_MACRO_MAIN: PresentationPart,
-        CT.PML_TEMPLATE_MAIN: PresentationPart,
-        CT.PML_SLIDESHOW_MAIN: PresentationPart,
-        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
-        CT.PML_COMMENTS: CommentsPart,
-        CT.PML_COMMENT_AUTHORS: CommentAuthorsPart,
-        CT.PML_NOTES_MASTER: NotesMasterPart,
-        CT.PML_NOTES_SLIDE: NotesSlidePart,
-        CT.PML_SLIDE: SlidePart,
-        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
-        CT.PML_SLIDE_MASTER: SlideMasterPart,
-        CT.DML_CHART: ChartPart,
-        CT.JPEG: ImagePart,
-        CT.PNG: ImagePart,
-        CT.MP4: MediaPart,
-    }
-    PartFactory.part_type_for.update(expected)
-    try:
-        yield
-    finally:
-        PartFactory.part_type_for.clear()
-        PartFactory.part_type_for.update(saved)
-
-
 class DescribeIssue834PictureReplaceImage:
     """Round-trip regression for Picture.replace_image (issues #834, #116)."""
 
     def it_swaps_the_embedded_image_preserving_geometry(
-        self, _restore_part_factory
+        self
     ):
         prs = Prs_with_picture_at(
             "tests/test_files/python-powered.png",
@@ -144,7 +91,7 @@ class DescribeIssue834PictureReplaceImage:
         assert abs(reloaded_picture.crop_bottom - 0.4) < 1e-6
 
     def it_reuses_the_image_part_when_the_replacement_is_the_existing_image(
-        self, _restore_part_factory
+        self
     ):
         # -- Replacing with the same file content should reuse the image part
         # -- and leave the blip/@r:embed pointing at the same rId.
@@ -166,7 +113,7 @@ class DescribeIssue834PictureReplaceImage:
         assert picture.image.blob == original_image_blob
 
     def it_adds_a_new_image_part_and_drops_the_old_rel_when_replaced(
-        self, _restore_part_factory
+        self
     ):
         # -- Count image parts before/after a genuine replacement to confirm
         # -- the old rel is dropped and a new image part is added.
