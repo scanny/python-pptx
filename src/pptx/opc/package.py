@@ -557,9 +557,21 @@ class PartFactory:
         """Return the custom part class registered for `content_type`.
 
         Returns |Part| if no custom class is registered for `content_type`.
+
+        Lookup is case-insensitive. Per RFC 2046 §4.1 MIME type tokens are
+        case-insensitive, and real-world `.pptx` files occasionally carry
+        content-type strings whose casing differs from python-pptx's canonical
+        registration (e.g. ``Image/Tiff`` vs ``image/tiff``). Without this
+        normalization such parts fall through to the generic |Part|, producing
+        ``AttributeError: 'Part' object has no attribute 'image'`` at access
+        time — see issue #1084.
         """
         if content_type in cls.part_type_for:
             return cls.part_type_for[content_type]
+        # -- fall back to case-insensitive match against the registered keys --
+        lowered = content_type.lower()
+        if lowered != content_type and lowered in cls.part_type_for:
+            return cls.part_type_for[lowered]
         return Part
 
 

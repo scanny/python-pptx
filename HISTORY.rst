@@ -233,6 +233,16 @@ Unreleased
   and ``Importing slide layouts from another presentation`` sections
   documenting :meth:`Presentation.merge` and the layout-import recipe.
 
+- fix: #1084 avoid ``AttributeError: 'Part' object has no attribute 'image'``
+  when opening a ``.pptx`` whose ``[Content_Types].xml`` declares an image
+  with a non-canonical MIME type or casing. Registers ``image/tif`` as an
+  alias for ``image/tiff`` (mirroring the existing ``image/jpg`` alias for
+  ``image/jpeg``), and makes ``PartFactory._part_cls_for`` lookup
+  case-insensitive so content-types such as ``Image/Tiff`` or ``IMAGE/PNG``
+  also resolve to :class:`ImagePart` rather than falling through to the
+  generic :class:`Part`. Per RFC 2046 §4.1 MIME type tokens are
+  case-insensitive.
+
 - fix: #844 restore ``from pptx.oxml import qn`` backwards compatibility.
   ``qn()`` had been relocated to :mod:`pptx.oxml.ns` during an early
   refactor without being re-exported from :mod:`pptx.oxml`, breaking

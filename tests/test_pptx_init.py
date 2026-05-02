@@ -10,7 +10,8 @@ import pytest
 
 from pptx import Presentation, content_type_to_part_class_map
 from pptx.opc.constants import CONTENT_TYPE as CT
-from pptx.opc.package import PartFactory
+from pptx.opc.package import Part, PartFactory
+from pptx.parts.image import ImagePart
 from pptx.parts.media import MediaPart
 from pptx.util import Inches
 
@@ -58,6 +59,70 @@ class DescribeContentTypeRegistrations(object):
             CT.X_MS_VIDEO,
         ):
             assert content_type_to_part_class_map[ct] is MediaPart
+
+    @pytest.mark.parametrize(
+        "content_type",
+        [
+            CT.BMP,
+            CT.GIF,
+            CT.JPEG,
+            CT.MS_PHOTO,
+            CT.PNG,
+            CT.TIFF,
+            CT.X_EMF,
+            CT.X_WMF,
+            # -- non-standard aliases (issue #929, #1084) --
+            "image/jpg",
+            "image/tif",
+        ],
+    )
+    def it_maps_image_content_types_to_ImagePart(self, content_type):
+        """Image MIME-types (including non-standard aliases) resolve to |ImagePart|.
+
+        The ``image/tif`` alias was added for issue #1084, which reports
+        ``AttributeError: 'Part' object has no attribute 'image'`` when
+        reading a deck whose ``[Content_Types].xml`` declares TIFF images
+        with the non-IANA ``image/tif`` media type.
+        """
+        assert content_type_to_part_class_map[content_type] is ImagePart
+        assert PartFactory.part_type_for[content_type] is ImagePart
+
+
+class DescribePartFactoryCaseInsensitiveLookup(object):
+    """``PartFactory._part_cls_for`` is case-insensitive — issue #1084.
+
+    Real-world ``.pptx`` files occasionally carry content-type strings whose
+    casing differs from python-pptx's canonical lowercase registration
+    (e.g. ``Image/Tiff`` rather than ``image/tiff``). Per RFC 2046 §4.1 MIME
+    type tokens are case-insensitive, so the lookup should normalize before
+    falling through to the generic |Part|.
+    """
+
+    @pytest.mark.parametrize(
+        "content_type",
+        [
+            "image/tiff",  # -- canonical, control --
+            "Image/Tiff",  # -- mixed case --
+            "IMAGE/TIFF",  # -- all upper --
+            "image/TIFF",  # -- type/SUBTYPE --
+        ],
+    )
+    def it_resolves_tiff_variants_to_ImagePart(self, content_type):
+        assert PartFactory._part_cls_for(content_type) is ImagePart
+
+    @pytest.mark.parametrize(
+        "content_type",
+        [
+            "Audio/MPEG",
+            "AUDIO/MPEG",
+        ],
+    )
+    def it_resolves_audio_content_type_case_variants_to_MediaPart(self, content_type):
+        assert PartFactory._part_cls_for(content_type) is MediaPart
+
+    def it_still_falls_back_to_Part_for_unknown_content_types(self):
+        """Unknown content-types still resolve to the generic |Part|."""
+        assert PartFactory._part_cls_for("application/made-up") is Part
 
 
 class DescribeIssue323Regression(object):
