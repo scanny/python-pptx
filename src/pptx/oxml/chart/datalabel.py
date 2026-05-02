@@ -76,11 +76,16 @@ class CT_DLbl(BaseOxmlElement):
     def new_dLbl(cls):
         """Return a newly created "loose" `c:dLbl` element.
 
-        The `c:dLbl` element contains the same (fairly extensive) default
-        subtree added by PowerPoint when an individual data label is
-        customized in the UI. Note that the idx value must be set by the
+        Contains a `c:spPr` and `c:txPr` default subtree for shape- and
+        text-property overrides. Note that the idx value must be set by the
         client. Failure to set the idx value will likely result in any
         changes not being visible and may result in a repair error on open.
+
+        The `c:show*` children are intentionally *omitted* so that values set
+        on the parent series-level or plot-level `c:dLbls` are inherited.
+        Hard-coding them here would override those defaults and e.g. cause
+        category names set on the series to disappear when a point-level
+        color override creates this `c:dLbl` (see issue #650).
         """
         return parse_xml(
             "<c:dLbl %s>\n"
@@ -95,12 +100,6 @@ class CT_DLbl(BaseOxmlElement):
             "      </a:pPr>\n"
             "    </a:p>\n"
             "  </c:txPr>\n"
-            '  <c:showLegendKey val="0"/>\n'
-            '  <c:showVal val="1"/>\n'
-            '  <c:showCatName val="0"/>\n'
-            '  <c:showSerName val="0"/>\n'
-            '  <c:showPercent val="0"/>\n'
-            '  <c:showBubbleSize val="0"/>\n'
             "</c:dLbl>" % nsdecls("c", "a")
         )
 

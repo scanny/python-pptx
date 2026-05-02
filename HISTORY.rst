@@ -183,6 +183,17 @@ Unreleased
   getter now returns a read-only proxy that reports ``.type is None`` when no
   explicit color is set; ``<a:solidFill>`` is created only when the caller
   writes ``color.rgb = ...`` or ``color.theme_color = ...``.
+- fix: #650 per-point ``DataLabel.font.color.rgb`` (or any customization that
+  auto-creates a ``c:dLbl`` via the per-point factory) no longer clobbers
+  categories, values, and other ``c:show*`` settings inherited from the
+  series-level ``c:dLbls``. ``CT_DLbl.new_dLbl`` used to hard-code
+  ``c:showCatName val="0"`` (and the other show-flag children) on every new
+  per-point ``c:dLbl`` container; children under ``c:dLbl`` *override* the
+  series-level defaults, so author-visible categories would vanish the moment
+  a color override touched a single point. The factory now omits the show-flag
+  children, letting series-/plot-level settings inherit as intended. The
+  series-level ``CT_DLbls.new_dLbls`` factory is unchanged (its show-flag
+  defaults are the meaningful fallback when no series-level toggles exist).
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
