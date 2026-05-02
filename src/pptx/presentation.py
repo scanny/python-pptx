@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import IO, TYPE_CHECKING, cast
+import re
+import uuid
+from typing import IO, TYPE_CHECKING, Iterable, Iterator, cast
 
 from pptx.shared import PartElementProxy
 from pptx.slide import SlideMasters, Slides
@@ -10,13 +12,27 @@ from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
     from pptx.opc.serialized import ZipDateTime
-    from pptx.oxml.presentation import CT_Presentation, CT_SlideId
+    from pptx.oxml.presentation import (
+        CT_Presentation,
+        CT_Section,
+        CT_SlideId,
+    )
     from pptx.parts.presentation import PresentationPart
-    from pptx.slide import NotesMaster, SlideLayouts
+    from pptx.slide import NotesMaster, Slide, SlideLayouts
     from pptx.util import Length
 
 
 _VALID_FONT_STYLES = ("regular", "bold", "italic", "boldItalic")
+
+# -- e.g. "{521415D9-36F7-43E2-AB2F-B90AF26B5E84}" -- PowerPoint GUID format --
+_GUID_RE = re.compile(
+    r"^\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}" r"-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\}$"
+)
+
+
+def _new_section_id() -> str:
+    """Return a freshly-generated section GUID in PowerPoint canonical form."""
+    return "{%s}" % str(uuid.uuid4()).upper()
 
 
 def _read_blob(file: str | IO[bytes]) -> bytes:
@@ -197,3 +213,270 @@ class Presentation(PartElementProxy):
         sldIdLst = self._element.get_or_add_sldIdLst()
         self.part.rename_slide_parts([cast("CT_SlideId", sldId).rId for sldId in sldIdLst])
         return Slides(sldIdLst, self)
+
+    @lazyproperty
+    def sections(self) -> Sections:
+        """|Sections| object providing access to the presentation's section list.
+
+        Supports iteration, ``len()``, and indexed access. Returns an empty collection when
+        the presentation has no sections defined. Adding the first section creates the
+        ``p:extLst/p:ext/p14:sectionLst`` chain on demand.
+        """
+        return Sections(self._element, self.part)
+
+
+class Sections:
+    """Sequence of |Section| objects belonging to a |Presentation|.
+
+    Has list semantics for indexed access, ``len()``, and iteration. Create sections
+    via :meth:`add_section` and remove them with :meth:`remove`. Sections are
+    identified by a GUID in the PowerPoint-canonical string form
+    ``"{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"``.
+    """
+
+    def __init__(self, prs_element: CT_Presentation, prs_part: PresentationPart | None):
+        super().__init__()
+        self._prs_element = prs_element
+        self._prs_part = prs_part
+
+    def __getitem__(self, idx: int) -> Section:
+        """Provide indexed access to sections, e.g. ``presentation.sections[0]``."""
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is None:
+            raise IndexError("section index out of range")
+        try:
+            section_el = sectionLst.section_lst[idx]
+        except IndexError as exc:
+            raise IndexError("section index out of range") from exc
+        return Section(section_el, self._prs_element, self._prs_part)
+
+    def __iter__(self) -> Iterator[Section]:
+        """Iterate sections in document order."""
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is None:
+            return
+        for section_el in sectionLst.section_lst:
+            yield Section(section_el, self._prs_element, self._prs_part)
+
+    def __len__(self) -> int:
+        """Number of sections defined on this presentation (zero when absent)."""
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is None:
+            return 0
+        return len(sectionLst.section_lst)
+
+    def add_section(
+        self,
+        name: str,
+        slides: Iterable[Slide] = (),
+        id: str | None = None,
+    ) -> Section:
+        """Append and return a new |Section| with display name `name`.
+
+        `slides` is an optional iterable of |Slide| objects (each must already belong
+        to this presentation) to be assigned to the new section; slides are referenced
+        by `sldId` value, not by the slide's position in the deck.
+
+        `id` optionally specifies the section GUID in PowerPoint-canonical form
+        ``"{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"``; when omitted a fresh GUID is
+        generated. A |ValueError| is raised if `id` is supplied but malformed,
+        or if it duplicates an existing section's id.
+        """
+        if id is None:
+            section_id = _new_section_id()
+        else:
+            if not _GUID_RE.match(id):
+                raise ValueError(
+                    "id must be a GUID in '{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}' form, got %r"
+                    % id
+                )
+            for existing in self:
+                if existing.id.lower() == id.lower():
+                    raise ValueError("a section with id %r already exists" % id)
+            section_id = id
+
+        sectionLst = self._prs_element.get_or_add_sectionLst()
+        section_el = sectionLst.add_section(name, section_id)
+        section = Section(section_el, self._prs_element, self._prs_part)
+
+        for slide in slides:
+            section.add_slide(slide)
+
+        return section
+
+    def get_by_id(self, id: str) -> Section | None:
+        """Return the section whose GUID equals `id` (case-insensitive), or |None|."""
+        target = id.lower()
+        for section in self:
+            if section.id.lower() == target:
+                return section
+        return None
+
+    def get_by_name(self, name: str) -> Section | None:
+        """Return the first section whose `name` equals `name`, or |None|.
+
+        Section names are *not* required to be unique in the presentation; the first
+        match in document order is returned.
+        """
+        for section in self:
+            if section.name == name:
+                return section
+        return None
+
+    def remove(self, section: Section) -> None:
+        """Remove `section` from this presentation.
+
+        The `p14:section` element is removed from the section list. If the last
+        section is removed the enclosing `p14:sectionLst` and `p:ext` elements are
+        pruned as well, leaving the `p:extLst` clean.
+
+        Raises |ValueError| if `section` does not belong to this presentation.
+        """
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is None or section.element not in list(sectionLst.section_lst):
+            raise ValueError("section is not a member of this collection")
+
+        sectionLst.remove(section.element)
+
+        # -- prune empty containers so we don't leave dangling scaffolding --
+        if not sectionLst.section_lst:
+            ext = sectionLst.getparent()
+            extLst = ext.getparent() if ext is not None else None
+            if ext is not None and extLst is not None:
+                extLst.remove(ext)
+            if extLst is not None and len(extLst) == 0:
+                prs = extLst.getparent()
+                if prs is not None:
+                    prs.remove(extLst)
+
+
+class Section:
+    """A single presentation section — a named grouping of slides.
+
+    Exposes :attr:`name` (read/write), :attr:`id` (GUID, read-only), and
+    :attr:`slides`, a tuple of the slides currently assigned to this section.
+    Not intended to be constructed directly; obtain |Section| instances via
+    :attr:`Presentation.sections`.
+    """
+
+    def __init__(
+        self,
+        section_elm: CT_Section,
+        prs_element: CT_Presentation,
+        prs_part: PresentationPart | None,
+    ):
+        super().__init__()
+        self._element = section_elm
+        self._prs_element = prs_element
+        self._prs_part = prs_part
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Section):
+            return NotImplemented
+        return self._element is other._element
+
+    def __hash__(self) -> int:
+        return id(self._element)
+
+    @property
+    def element(self) -> CT_Section:
+        """The underlying `p14:section` oxml element for this section."""
+        return self._element
+
+    @property
+    def id(self) -> str:
+        """Section GUID in PowerPoint-canonical form, e.g. ``"{9B1E...DCB9C}"``.
+
+        Read-only; ids are assigned when the section is added and are not modified
+        afterwards (matching PowerPoint's behavior).
+        """
+        return self._element.id
+
+    @property
+    def name(self) -> str:
+        """Display name of this section (read/write).
+
+        Setting an empty string is permitted and matches PowerPoint's "rename to
+        blank" behavior, though the UI will usually re-populate the field.
+        """
+        return self._element.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._element.name = value
+
+    @property
+    def slides(self) -> tuple[Slide, ...]:
+        """Tuple of |Slide| objects assigned to this section, in section order.
+
+        Slides referenced by a `p14:sldId/@id` value that does not match any slide
+        currently in the presentation (e.g. stale reference left by third-party
+        tools) are silently skipped rather than raising.
+        """
+        sldIdLst = self._prs_element.sldIdLst
+        if sldIdLst is None or self._prs_part is None:
+            return ()
+        id_to_rId = {sldId.id: sldId.rId for sldId in sldIdLst.sldId_lst}
+        slides: list[Slide] = []
+        for slide_id in self._section_slide_ids:
+            rId = id_to_rId.get(slide_id)
+            if rId is None:
+                continue
+            slides.append(self._prs_part.related_slide(rId))
+        return tuple(slides)
+
+    def add_slide(self, slide: Slide) -> None:
+        """Append `slide` to this section.
+
+        `slide` must belong to the owning presentation; assigning a slide from a
+        different presentation raises |ValueError|. If `slide` is already a member
+        of this section the call is a no-op (PowerPoint preserves the existing
+        position rather than appending a duplicate reference).
+        """
+        # -- locate the `p:sldId` for `slide` to obtain its id value --
+        slide_id = self._resolve_slide_id(slide)
+
+        if slide_id in self._section_slide_ids:
+            return
+
+        sldIdLst = self._element.get_or_add_sldIdLst()
+        sldIdLst.add_sldId(slide_id)
+
+    def remove_slide(self, slide: Slide) -> None:
+        """Remove `slide`'s reference from this section.
+
+        Raises |ValueError| if `slide` is not assigned to this section. The slide
+        itself is left untouched in the presentation; only the section-membership
+        reference is removed.
+        """
+        slide_id = self._resolve_slide_id(slide)
+
+        sldIdLst = self._element.sldIdLst
+        if sldIdLst is None:
+            raise ValueError("slide is not a member of this section")
+
+        for entry in sldIdLst.sldId_lst:
+            if entry.id == slide_id:
+                sldIdLst.remove(entry)
+                return
+        raise ValueError("slide is not a member of this section")
+
+    @property
+    def _section_slide_ids(self) -> tuple[int, ...]:
+        """Tuple of `p14:sldId/@id` values currently in this section, in order."""
+        sldIdLst = self._element.sldIdLst
+        if sldIdLst is None:
+            return ()
+        return tuple(entry.id for entry in sldIdLst.sldId_lst)
+
+    def _resolve_slide_id(self, slide: Slide) -> int:
+        """Return the `p:sldId/@id` integer value of `slide` in the owning presentation.
+
+        Raises |ValueError| if `slide` does not belong to this presentation.
+        """
+        sldIdLst = self._prs_element.sldIdLst
+        if sldIdLst is not None and self._prs_part is not None:
+            for sldId in sldIdLst.sldId_lst:
+                if self._prs_part.related_slide(sldId.rId) == slide:
+                    return sldId.id
+        raise ValueError("slide does not belong to the owning presentation")

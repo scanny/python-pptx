@@ -26,6 +26,7 @@ class CT_Presentation(BaseOxmlElement):
     get_or_add_sldIdLst: Callable[[], CT_SlideIdList]
     get_or_add_sldMasterIdLst: Callable[[], CT_SlideMasterIdList]
     get_or_add_embeddedFontLst: Callable[[], CT_EmbeddedFontList]
+    get_or_add_extLst: Callable[[], CT_ExtensionList]
 
     sldMasterIdLst: CT_SlideMasterIdList | None = (
         ZeroOrOne(  # pyright: ignore[reportAssignmentType]
@@ -59,6 +60,31 @@ class CT_Presentation(BaseOxmlElement):
             ),
         )
     )
+    extLst: CT_ExtensionList | None = ZeroOrOne("p:extLst")  # pyright: ignore[reportAssignmentType]
+
+    # -- URI identifying the 2010 sections extension (p14:sectionLst) --
+    _SECTION_LIST_EXT_URI = "{521415D9-36F7-43E2-AB2F-B90AF26B5E84}"
+
+    @property
+    def sectionLst(self) -> CT_SectionList | None:
+        """The `p14:sectionLst` element for this presentation, or |None| if not present.
+
+        The section list is nested under `p:extLst/p:ext[uri="{521415D9-…}"]/p14:sectionLst`;
+        this property walks the chain and returns the innermost element when all links exist.
+        """
+        extLst = self.extLst
+        if extLst is None:
+            return None
+        ext = extLst.get_ext_by_uri(self._SECTION_LIST_EXT_URI)
+        if ext is None:
+            return None
+        return ext.sectionLst
+
+    def get_or_add_sectionLst(self) -> CT_SectionList:
+        """Return `p14:sectionLst`, creating the extLst/ext/sectionLst chain if needed."""
+        extLst = self.get_or_add_extLst()
+        ext = extLst.get_or_add_ext_by_uri(self._SECTION_LIST_EXT_URI)
+        return ext.get_or_add_sectionLst()
 
 
 class CT_SlideId(BaseOxmlElement):
@@ -250,3 +276,123 @@ class CT_EmbeddedFontList(BaseOxmlElement):
             if entry.typeface == typeface:
                 return entry
         return None
+
+
+class CT_Extension(BaseOxmlElement):
+    """`p:ext` element.
+
+    An extension point that wraps arbitrary extension-namespaced content,
+    scoped by a required ``uri`` attribute whose value identifies the
+    extension.
+    """
+
+    get_or_add_sectionLst: Callable[[], CT_SectionList]
+
+    uri: str = RequiredAttribute("uri", XsdString)  # pyright: ignore[reportAssignmentType]
+
+    sectionLst: CT_SectionList | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p14:sectionLst"
+    )
+
+
+class CT_ExtensionList(BaseOxmlElement):
+    """`p:extLst` element.
+
+    A container for one or more `p:ext` extension elements. Each `p:ext` is
+    identified by its ``uri`` attribute; extensions carry namespaced content
+    defined outside the core ECMA-376 schemas (Office 2010/2013/2016 additions,
+    notably ``p14:sectionLst`` for PowerPoint sections).
+    """
+
+    ext_lst: list[CT_Extension]
+
+    ext = ZeroOrMore("p:ext")
+
+    def get_ext_by_uri(self, uri: str) -> CT_Extension | None:
+        """Return the `p:ext` child whose `uri` attribute equals `uri`, or |None|."""
+        for ext in self.ext_lst:
+            if ext.uri == uri:
+                return ext
+        return None
+
+    def get_or_add_ext_by_uri(self, uri: str) -> CT_Extension:
+        """Return the `p:ext` child for `uri`, creating it if not already present."""
+        ext = self.get_ext_by_uri(uri)
+        if ext is None:
+            ext = cast("CT_Extension", OxmlElement("p:ext"))
+            ext.uri = uri
+            self.append(ext)
+        return ext
+
+
+class CT_SectionList(BaseOxmlElement):
+    """`p14:sectionLst` element.
+
+    Top-level container for presentation sections; nested under
+    ``p:extLst/p:ext[uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}"]``.
+    """
+
+    section_lst: list[CT_Section]
+
+    _add_section: Callable[..., CT_Section]
+    section = ZeroOrMore("p14:section")
+
+    def add_section(self, name: str, id: str) -> CT_Section:
+        """Create and return a new `p14:section` child with an empty `p14:sldIdLst`.
+
+        `id` must be a GUID string in the PowerPoint-canonical form
+        ``"{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"``. `name` is the
+        user-visible section name.
+        """
+        section = cast("CT_Section", OxmlElement("p14:section"))
+        section.name = name
+        section.id = id
+        # -- every p14:section element carries a p14:sldIdLst, even if empty --
+        section.get_or_add_sldIdLst()
+        self.append(section)
+        return section
+
+
+class CT_Section(BaseOxmlElement):
+    """`p14:section` element.
+
+    One section in a presentation's section list. A section has a display
+    `name`, a stable `id` (GUID), and an owned `p14:sldIdLst` that lists
+    the slides belonging to the section by their `p:sldId/@id` value.
+    """
+
+    get_or_add_sldIdLst: Callable[[], CT_SectionSlideIdList]
+
+    name: str = RequiredAttribute("name", XsdString)  # pyright: ignore[reportAssignmentType]
+    id: str = RequiredAttribute("id", XsdString)  # pyright: ignore[reportAssignmentType]
+
+    sldIdLst: CT_SectionSlideIdList | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p14:sldIdLst"
+    )
+
+
+class CT_SectionSlideIdList(BaseOxmlElement):
+    """`p14:sldIdLst` element (the section-scoped one).
+
+    Child of `p14:section` that lists the slide-ids of the slides assigned to
+    the containing section, in presentation order.
+    """
+
+    sldId_lst: list[CT_SectionSlideId]
+
+    _add_sldId: Callable[..., CT_SectionSlideId]
+    sldId = ZeroOrMore("p14:sldId")
+
+    def add_sldId(self, slide_id: int) -> CT_SectionSlideId:
+        """Append a new `p14:sldId` child whose `id` attribute is `slide_id`."""
+        return self._add_sldId(id=slide_id)
+
+
+class CT_SectionSlideId(BaseOxmlElement):
+    """`p14:sldId` element, child of `p14:sldIdLst` (the section-scoped list).
+
+    References a slide by the value of its corresponding `p:sldId/@id`
+    attribute in the main `p:sldIdLst`.
+    """
+
+    id: int = RequiredAttribute("id", ST_SlideId)  # pyright: ignore[reportAssignmentType]

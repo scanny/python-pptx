@@ -357,7 +357,13 @@ from pptx.oxml.presentation import (  # noqa: E402
     CT_EmbeddedFontDataId,
     CT_EmbeddedFontList,
     CT_EmbeddedFontListEntry,
+    CT_Extension,
+    CT_ExtensionList,
     CT_Presentation,
+    CT_Section,
+    CT_SectionList,
+    CT_SectionSlideId,
+    CT_SectionSlideIdList,
     CT_SlideId,
     CT_SlideIdList,
     CT_SlideMasterIdList,
@@ -369,6 +375,8 @@ register_element_cls("p:bold", CT_EmbeddedFontDataId)
 register_element_cls("p:boldItalic", CT_EmbeddedFontDataId)
 register_element_cls("p:embeddedFont", CT_EmbeddedFontListEntry)
 register_element_cls("p:embeddedFontLst", CT_EmbeddedFontList)
+register_element_cls("p:ext", CT_Extension)
+register_element_cls("p:extLst", CT_ExtensionList)
 register_element_cls("p:italic", CT_EmbeddedFontDataId)
 register_element_cls("p:presentation", CT_Presentation)
 register_element_cls("p:regular", CT_EmbeddedFontDataId)
@@ -377,6 +385,10 @@ register_element_cls("p:sldIdLst", CT_SlideIdList)
 register_element_cls("p:sldMasterId", CT_SlideMasterIdListEntry)
 register_element_cls("p:sldMasterIdLst", CT_SlideMasterIdList)
 register_element_cls("p:sldSz", CT_SlideSize)
+register_element_cls("p14:section", CT_Section)
+register_element_cls("p14:sectionLst", CT_SectionList)
+register_element_cls("p14:sldId", CT_SectionSlideId)
+register_element_cls("p14:sldIdLst", CT_SectionSlideIdList)
 
 
 from pptx.oxml.shapes.autoshape import (  # noqa: E402
@@ -553,8 +565,8 @@ from pptx.oxml.text import (  # noqa: E402
     CT_TextBulletColor,
     CT_TextBulletSizePercent,
     CT_TextBulletSizePoint,
-    CT_TextCharBullet,
     CT_TextCharacterProperties,
+    CT_TextCharBullet,
     CT_TextField,
     CT_TextFont,
     CT_TextLineBreak,

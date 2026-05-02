@@ -128,6 +128,7 @@ Presentation
    :maxdepth: 1
 
    prs-properties
+   f7-sections
 
 
 DrawingML

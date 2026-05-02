@@ -246,12 +246,13 @@ def grammar():
     close_brace = Suppress("}")
 
     # np:tagName ---------------------------------
-    nspfx = Word(alphas)
+    # -- Prefix starts with an alpha but may contain digits (e.g. "p14"). --
+    nspfx = Word(alphas, alphanums)
     local_name = Word(alphanums)
     tagname = Combine(nspfx + colon + local_name)
 
     # np:attr_name=attr_val ----------------------
-    attr_name = Word(alphas + ":")
+    attr_name = Word(alphas, alphanums + ":")
     attr_val = Word(alphanums + " %-./:_")
     attr_def = Group(attr_name + equal + attr_val)
     attr_list = open_brace + DelimitedList(attr_def) + close_brace

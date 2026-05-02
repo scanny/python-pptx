@@ -40,6 +40,8 @@ Feature Support
   master or layout, and insert auto-refresh slide-number or date fields in a
   text frame
 * Read and write legacy PowerPoint review comments on slides
+* Organize slides into named sections (``p14:sectionLst``): create, rename,
+  delete, and assign slide-to-section membership
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still
