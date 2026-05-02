@@ -6,6 +6,30 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #944 (TreeMap and ScatterPlot chart support) — *scatter half*
+  resolved; treemap half cross-referenced to the existing design doc.
+  Issue #944 asked for two chart kinds. The **scatter** half has
+  shipped all along: :meth:`Shapes.add_chart` accepts all five
+  ``XL_CHART_TYPE.XY_SCATTER*`` members
+  (``XY_SCATTER``, ``XY_SCATTER_LINES``, ``XY_SCATTER_LINES_NO_MARKERS``,
+  ``XY_SCATTER_SMOOTH``, ``XY_SCATTER_SMOOTH_NO_MARKERS``) and
+  dispatches to ``_XyChartXmlWriter`` which emits a schema-valid
+  ``c:scatterChart`` whose ``c:scatterStyle/@val``
+  (``"lineMarker"``/``"smoothMarker"``) and optional
+  ``c:marker/c:symbol="none"`` select the visual variant; the read
+  path is covered by :class:`XyPlot` / :class:`XySeries`. Adds a
+  regression suite ``DescribeIssue944ScatterVerify`` under
+  ``tests/test_issue_944_scatter_verify.py`` that pins each of the
+  five enum members through the real :meth:`Shapes.add_chart` API,
+  asserts the ``scatterStyle`` distinction and the *_NO_MARKERS*
+  marker-suppression shape, and round-trips every variant through
+  ``Presentation.save`` + reopen. The **treemap** half of #944 is a
+  duplicate of `#371`_ and is blocked on the F4 chartex-foundation
+  work; see ``docs/dev/analysis/chartex-treemap.rst`` for the full
+  design analysis (which now cross-references #944).
+
+.. _#371: https://github.com/scanny/python-pptx/issues/371
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

@@ -10,11 +10,20 @@ XML shape python-pptx must be able to emit, and the narrow slice of the
 chartex grammar that treemap actually exercises on top of the funnel /
 waterfall baseline.
 
+Also closes as duplicate-of-#371: `#944`_ ("TreeMap and ScatterPlot"). The
+scatter half of #944 is already shipping — ``Shapes.add_chart`` accepts
+all five ``XL_CHART_TYPE.XY_SCATTER*`` members and emits a
+``c:scatterChart`` that round-trips cleanly through save + reopen (see
+:doc:`cht-xy-chart` for the legacy-``c:`` grammar). The treemap half of
+#944 is the same feature #371 tracks, blocked on the same F4 work
+described below.
+
 .. _#371: https://github.com/scanny/python-pptx/issues/371
 .. _#305: https://github.com/scanny/python-pptx/issues/305
 .. _#479: https://github.com/scanny/python-pptx/issues/479
 .. _#386: https://github.com/scanny/python-pptx/issues/386
 .. _#583: https://github.com/scanny/python-pptx/issues/583
+.. _#944: https://github.com/scanny/python-pptx/issues/944
 
 
 Status — blocked on F4
