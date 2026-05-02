@@ -85,6 +85,29 @@ def when_I_call_slides_add_slide(context):
 @when("I call slides.add_slide() with that layout")
 def when_I_call_slides_add_slide_with_that_layout(context):
     context.slide = context.prs.slides.add_slide(context.slide_layout)
+
+
+@when("I call slides.add_slide(layout, index=0)")
+def when_I_call_slides_add_slide_at_index_0(context):
+    slide_layout = context.prs.slide_masters[0].slide_layouts[0]
+    context.existing_slide_ids = tuple(s.slide_id for s in context.slides)
+    context.new_slide = context.slides.add_slide(slide_layout, index=0)
+
+
+@then("the newly added slide is at index 0")
+def then_new_slide_is_at_index_0(context):
+    assert context.slides[0] is context.new_slide, (
+        "expected new slide at index 0, got %r" % context.slides[0]
+    )
+
+
+@then("its slide_id is unique within the presentation")
+def then_new_slide_slide_id_is_unique(context):
+    all_ids = tuple(s.slide_id for s in context.slides)
+    assert len(set(all_ids)) == len(all_ids), "duplicate slide_ids detected: %r" % (all_ids,)
+    assert context.new_slide.slide_id not in context.existing_slide_ids, (
+        "new slide_id %d collides with an existing id" % context.new_slide.slide_id
+    )
 @when("I call slides.move_slide(slides[0], 2)")
 def when_I_call_slides_move_slide(context):
     slides = context.slides

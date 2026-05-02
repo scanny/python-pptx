@@ -12,6 +12,13 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #194 ``Slides.add_slide(slide_layout, index=None)`` now accepts an
+  optional ``index`` keyword so callers can insert a new slide at a
+  specific zero-based position rather than only appending. Index semantics
+  match :meth:`Slides.move_slide` and :meth:`Slides.duplicate`: ``None``
+  appends (the historical behavior), a negative index counts from the end,
+  and an index beyond the end is clamped to the last position.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /

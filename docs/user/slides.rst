@@ -79,12 +79,19 @@ A few things to note:
 
 * ``prs.slides`` is the collection of slides in the presentation, also has
   list semantics for item access, and len() works on it. Note that the method
-  to add the slide is on the slide collection, not the presentation. The
-  ``add_slide()`` method appends the new slide to the end of the collection. At
-  the time of writing it's the only way to add a slide, but sooner or later
-  I expect someone will want to insert one in the middle, and when they post
-  a feature request for that I expect I'll add an ``insert_slide(idx, ...)``
-  method.
+  to add the slide is on the slide collection, not the presentation. By
+  default ``add_slide()`` appends the new slide to the end of the collection;
+  pass ``index=N`` to insert it at a specific zero-based position instead::
+
+      # insert the new slide at the front of the deck
+      prs.slides.add_slide(slide_layout, index=0)
+
+      # insert the new slide as the third slide
+      prs.slides.add_slide(slide_layout, index=2)
+
+  Index semantics match :meth:`Slides.move_slide`: a negative ``index`` counts
+  from the end (``-1`` is the last position), and an ``index`` beyond the end
+  is clamped to the last position rather than raising.
 
 
 Doing other things with slides

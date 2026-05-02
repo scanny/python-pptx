@@ -30,6 +30,14 @@ Feature: Access an individual slide
     Given a Presentation with a layout placeholder renamed to "Agenda Title"
      When I call slides.add_slide() with that layout
      Then the new slide has a placeholder named "Agenda Title"
+
+
+  Scenario: Slides.add_slide() inserts at a specific index (#194)
+    Given a Slides object containing 3 slides
+     When I call slides.add_slide(layout, index=0)
+     Then len(slides) is 4
+      And the newly added slide is at index 0
+      And its slide_id is unique within the presentation
   Scenario: Slides.add_slide_from_external()
     Given a source slide with two pictures
       And an empty target Presentation
