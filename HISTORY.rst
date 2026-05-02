@@ -6,6 +6,22 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #403 resolved by #934. Issue #403 asked for "a merge function
+  that combines the two filled [.pptx] file[s] into a single [.pptx]",
+  which is exactly the workflow :meth:`Presentation.merge` now provides:
+  ``a = Presentation("a.pptx"); a.merge(Presentation("b.pptx"));
+  a.save("c.pptx")``. Wave 7 #934 shipped the merge API with full-fidelity
+  cloning of pictures, media, charts (distinct embedded workbook per
+  merged chart), OLE objects, and external hyperlinks in the target
+  package, and guarantees the source presentation is not mutated by the
+  merge — so each input template can be filled separately, combined
+  without side-effects, and served to additional merges. Adds a
+  regression suite ``DescribeIssue403MergePresentationFile`` under
+  ``tests/test_issue_403_merge_presentation_verify.py`` that pins the
+  "combine two filled .pptx files into a single .pptx" workflow
+  end-to-end (save + reopen round-trip, distinct-workbook check,
+  three-deck chaining, source-not-mutated, self-merge rejection).
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
