@@ -11,7 +11,12 @@ from pptx.chart.data import BubbleChartData, CategoryChartData, XyChartData
 from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
 from pptx.chart.series import SeriesCollection
-from pptx.chart.xlsx import WorkbookReader, parse_sheet_range_ref
+from pptx.chart.xlsx import (
+    WorkbookReader,
+    WorkbookUpdater,
+    parse_a1_cell,
+    parse_sheet_range_ref,
+)
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory, _PlotFragmentBuilder
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE
@@ -19,7 +24,6 @@ from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
-
 
 # -- chart-type families for Chart.replace_data() compatibility check (#396). --
 # -- Bubble and XY chart types use distinct XML shapes (c:xVal/c:yVal and --
@@ -394,6 +398,43 @@ class Chart(PartElementProxy):
         return ValueAxis(secondary_valAx)
 
     @property
+    def workbook(self):
+        """Bytes of this chart's embedded Excel workbook, or ``None``.
+
+        Reads the raw bytes of the ``.xlsx`` part referenced by this chart's
+        ``c:externalData`` element. Returns ``None`` when the chart has no
+        embedded workbook — for example when it is linked to an external
+        Excel file via ``c:externalData/@externalDataId`` without an
+        embedded copy, or when the embedded-workbook relationship is
+        missing (e.g. a chart pasted from a pre-2007 ``.xls`` source; see
+        issue #490).
+
+        Assigning a bytes object replaces the embedded workbook in-place —
+        the existing :class:`EmbeddedXlsxPart` keeps its part name and
+        relationship id, only its ``blob`` is overwritten. If the chart
+        does not yet have an embedded workbook, a new
+        :class:`EmbeddedXlsxPart` is created and attached via a ``PACKAGE``
+        relationship, and a ``c:externalData`` element pointing at it is
+        added to the chart XML. Setting ``None`` is not supported (raise
+        :class:`TypeError`). This accessor is the F5 cross-part handler
+        used by combo-chart, cross-slide chart copy, and targeted cell
+        updates via :func:`update_embedded_xlsx_cell`.
+        """
+        xlsx_part = self._workbook.xlsx_part
+        if xlsx_part is None:
+            return None
+        return xlsx_part.blob
+
+    @workbook.setter
+    def workbook(self, xlsx_blob):
+        if not isinstance(xlsx_blob, (bytes, bytearray)):
+            raise TypeError(
+                "Chart.workbook must be set to a bytes object, got %s"
+                % type(xlsx_blob).__name__
+            )
+        self._workbook.update_from_xlsx_blob(bytes(xlsx_blob))
+
+    @property
     def _workbook(self):
         """
         The |ChartWorkbook| object providing access to the Excel source data
@@ -455,6 +496,216 @@ class ChartTitle(ElementProxy):
         """
         rich = self._title.get_or_add_tx_rich()
         return TextFrame(rich, self)
+
+
+def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):
+    """Write `value` to cell `a1_ref` on `sheet` of `chart`'s embedded workbook.
+
+    This is the F5 targeted-cell helper: it rewrites the single cell
+    ``sheet!a1_ref`` in the chart's embedded ``.xlsx`` workbook *and*
+    synchronously rewrites every ``c:numCache`` / ``c:strCache`` entry in
+    the chart XML that points at that cell — both sides are updated as a
+    single transaction so the chart never renders with stale cached values
+    after a cell edit.
+
+    Parameters
+    ----------
+    chart : :class:`Chart`
+        The chart whose embedded workbook will be updated.
+    sheet : str
+        The worksheet name (e.g. ``"Sheet1"``). Chart workbooks
+        authored by python-pptx always use ``"Sheet1"``; files authored
+        elsewhere may have been renamed. When `sheet` is not found in
+        the workbook, the updater falls back to the first sheet — this
+        matches PowerPoint's own behaviour for chart-data edits.
+    a1_ref : str
+        A single-cell A1-style reference (e.g. ``"B2"`` or ``"$B$2"``).
+        Multi-cell ranges (``"A1:B2"``) are not supported; use several
+        calls instead. A sheet-qualified reference (``"Sheet1!B2"``)
+        raises :class:`ValueError`.
+    value : None | bool | int | float | str
+        The new cell value. ``None`` clears the cell. Numeric values
+        become numeric cells; strings become inline strings
+        (``t="inlineStr"``); booleans become ``t="b"`` cells.
+
+    Behaviour
+    ---------
+    * When the chart has no embedded workbook (``c:externalData`` missing
+      or its rel stripped; see issue #490), this function raises
+      :class:`ValueError` rather than silently succeeding — callers can
+      use :attr:`Chart.workbook` first to probe presence.
+    * The function does **not** re-author the entire workbook. Only the
+      bytes of the single cell change; styles, shared strings, other
+      cells, and docProps are preserved byte-for-byte modulo any XML
+      re-serialization of the target worksheet.
+    * After the blob is rewritten, each chart ``c:numRef``/``c:strRef``
+      whose ``c:f`` resolves to this cell has its sibling cache
+      replaced with a single-point ``c:numCache`` or ``c:strCache`` so
+      the chart renders the new value immediately, without requiring a
+      ``Chart.update_cached_values()`` pass.
+
+    Returns the updated xlsx blob bytes (also now stored on the chart).
+    """
+    workbook_bytes = chart.workbook
+    if workbook_bytes is None:
+        raise ValueError(
+            "chart has no embedded workbook to update"
+        )
+    if "!" in a1_ref:
+        raise ValueError(
+            "a1_ref must be a single-cell reference without sheet qualifier, "
+            "got %r" % a1_ref
+        )
+    row, col = parse_a1_cell(a1_ref)
+    updater = WorkbookUpdater(workbook_bytes)
+    updater.set_cell(sheet, row, col, value)
+    new_blob = updater.blob()
+    chart.workbook = new_blob
+    # --- refresh any caches that point at this cell ---
+    _SingleCellCacheRefresher(
+        chart._chartSpace, sheet, row, col, value
+    ).refresh()
+    return new_blob
+
+
+class _SingleCellCacheRefresher(object):
+    """Rewrite ``c:numCache`` / ``c:strCache`` entries targeting one cell.
+
+    Scans every ``c:numRef`` / ``c:strRef`` descendant of a ``c:chartSpace``
+    and, when its ``c:f`` resolves to (sheet, row, col), overwrites the
+    corresponding entry in the sibling cache with `value`. Ranges that
+    *include* the target cell have only the one matching ``c:pt`` updated;
+    other points in the range are left alone so that a cell-write doesn't
+    destructively truncate a multi-cell cache.
+    """
+
+    def __init__(self, chartSpace, sheet, row, col, value):
+        self._chartSpace = chartSpace
+        self._sheet = sheet
+        self._row = row
+        self._col = col
+        self._value = value
+
+    def refresh(self):
+        for numRef in self._chartSpace.iter(qn("c:numRef")):
+            self._update_numRef(numRef)
+        for strRef in self._chartSpace.iter(qn("c:strRef")):
+            self._update_strRef(strRef)
+
+    def _matching_index(self, ref_elm):
+        """Return the point index within `ref_elm` that targets the cell.
+
+        Returns ``None`` when the cell is not covered by this ref's range
+        or the range can't be parsed. Returns an int index (0-based into
+        the range's cell list, which is row-major) otherwise.
+        """
+        f_elm = ref_elm.find(qn("c:f"))
+        if f_elm is None or not f_elm.text:
+            return None
+        parsed = parse_sheet_range_ref(f_elm.text)
+        if parsed is None:
+            return None
+        ref_sheet, cells = parsed
+        # --- compare sheet names case-sensitively; PowerPoint preserves
+        # --- case. Fall back to first-sheet semantics only when updater
+        # --- couldn't find the named sheet either. --
+        if ref_sheet != self._sheet:
+            return None
+        for idx, (r, c) in enumerate(cells):
+            if r == self._row and c == self._col:
+                return idx
+        return None
+
+    def _update_numRef(self, numRef):
+        idx = self._matching_index(numRef)
+        if idx is None:
+            return
+        numeric = self._as_number(self._value)
+        self._set_cache_pt(
+            numRef, "c:numCache", "c:numLit", idx, numeric
+        )
+
+    def _update_strRef(self, strRef):
+        idx = self._matching_index(strRef)
+        if idx is None:
+            return
+        text = self._as_text(self._value)
+        self._set_cache_pt(
+            strRef, "c:strCache", "c:strLit", idx, text
+        )
+
+    @staticmethod
+    def _as_number(value):
+        if value is None or isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            return float(value)
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _as_text(value):
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return "TRUE" if value else "FALSE"
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+        return str(value)
+
+    def _set_cache_pt(self, ref_elm, cache_tag, lit_tag, idx, value):
+        """Replace ``c:pt[@idx=idx]/c:v`` in the ref's cache with `value`.
+
+        Creates the cache + ``c:pt`` entries if they don't exist.
+        Removes any sibling ``c:numLit`` / ``c:strLit`` since those would
+        otherwise take precedence over the cache for some readers.
+        """
+        # --- drop any literal counterpart; cache is the authoritative form ---
+        for child in ref_elm.findall(qn(lit_tag)):
+            ref_elm.remove(child)
+        cache = ref_elm.find(qn(cache_tag))
+        if cache is None:
+            cache = etree.SubElement(ref_elm, qn(cache_tag))
+            # --- ptCount is required by the schema; keep it at least idx+1 ---
+            ptCount = etree.SubElement(cache, qn("c:ptCount"))
+            ptCount.set("val", str(idx + 1))
+        else:
+            ptCount = cache.find(qn("c:ptCount"))
+            if ptCount is None:
+                ptCount = etree.SubElement(cache, qn("c:ptCount"))
+                ptCount.set("val", str(idx + 1))
+            else:
+                try:
+                    cur = int(ptCount.get("val", "0"))
+                except ValueError:
+                    cur = 0
+                if cur < idx + 1:
+                    ptCount.set("val", str(idx + 1))
+        pt = None
+        for existing in cache.findall(qn("c:pt")):
+            try:
+                if int(existing.get("idx", "-1")) == idx:
+                    pt = existing
+                    break
+            except ValueError:
+                continue
+        if value is None:
+            if pt is not None:
+                cache.remove(pt)
+            return
+        if pt is None:
+            pt = etree.SubElement(cache, qn("c:pt"))
+            pt.set("idx", str(idx))
+        # --- rewrite the c:v child in place ---
+        for child in list(pt):
+            pt.remove(child)
+        v_elm = etree.SubElement(pt, qn("c:v"))
+        if cache_tag == "c:numCache":
+            v_elm.text = _format_numeric(value)
+        else:
+            v_elm.text = value
 
 
 class _ChartCacheRefresher(object):

@@ -519,6 +519,173 @@ class DescribeChart(object):
         assert WorkbookReader_.call_args_list == []
         assert chartSpace.xml == original_xml
 
+    # -- Chart.workbook property (F5) --------------------------------
+
+    def it_reads_embedded_workbook_bytes_via_workbook_property(
+        self, workbook_prop_, workbook_
+    ):
+        workbook_.xlsx_part = _XlsxPartStub(b"blob-bytes")
+        chart = Chart(element("c:chartSpace"), None)
+
+        assert chart.workbook == b"blob-bytes"
+
+    def but_workbook_returns_None_when_chart_has_no_embedded_xlsx(
+        self, workbook_prop_, workbook_
+    ):
+        workbook_.xlsx_part = None
+        chart = Chart(element("c:chartSpace"), None)
+
+        assert chart.workbook is None
+
+    def it_updates_the_embedded_workbook_bytes_on_assignment(
+        self, workbook_prop_, workbook_
+    ):
+        chart = Chart(element("c:chartSpace"), None)
+
+        chart.workbook = b"new-bytes"
+
+        workbook_.update_from_xlsx_blob.assert_called_once_with(b"new-bytes")
+
+    def it_raises_TypeError_when_assigning_non_bytes_to_workbook(
+        self, workbook_prop_, workbook_
+    ):
+        chart = Chart(element("c:chartSpace"), None)
+
+        with pytest.raises(TypeError, match="must be set to a bytes object"):
+            chart.workbook = "not-bytes"
+
+    # -- update_embedded_xlsx_cell helper (F5) ------------------------
+
+    def it_updates_workbook_and_matching_numCache_via_helper(
+        self, request, workbook_prop_, workbook_
+    ):
+        from pptx.chart.chart import update_embedded_xlsx_cell
+
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$B$3</c:f><c:numCache>"
+            '<c:ptCount val="2"/>'
+            '<c:pt idx="0"><c:v>1</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>2</c:v></c:pt>'
+            "</c:numCache></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chartSpace = parse_xml(chartSpace_xml)
+        chart = Chart(chartSpace, None)
+        workbook_.xlsx_part = _XlsxPartStub(
+            _build_update_cached_xlsx_blob({}, {("Sheet1", 2, 2): 1.0, ("Sheet1", 3, 2): 2.0})
+        )
+
+        update_embedded_xlsx_cell(chart, "Sheet1", "B2", 42.0)
+
+        # --- blob was refreshed via ChartWorkbook.update_from_xlsx_blob ---
+        workbook_.update_from_xlsx_blob.assert_called_once()
+        # --- the numCache cell for B2 (idx 0) now reads 42 ---
+        C = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
+        numCache = chartSpace.find(f".//{C}numCache")
+        assert numCache is not None
+        # locate pt idx=0
+        for pt in numCache.findall(f"{C}pt"):
+            if pt.get("idx") == "0":
+                assert pt.find(f"{C}v").text == "42"
+                break
+        else:
+            pytest.fail("numCache pt idx=0 not found")
+
+    def it_updates_workbook_and_strCache_for_a_string_cell(
+        self, request, workbook_prop_, workbook_
+    ):
+        from pptx.chart.chart import update_embedded_xlsx_cell
+
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            "<c:tx><c:strRef><c:f>Sheet1!$B$1</c:f><c:strCache>"
+            '<c:ptCount val="1"/>'
+            '<c:pt idx="0"><c:v>Old</c:v></c:pt>'
+            "</c:strCache></c:strRef></c:tx>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chartSpace = parse_xml(chartSpace_xml)
+        chart = Chart(chartSpace, None)
+        workbook_.xlsx_part = _XlsxPartStub(
+            _build_update_cached_xlsx_blob({("Sheet1", 1, 2): "Old"}, {})
+        )
+
+        update_embedded_xlsx_cell(chart, "Sheet1", "B1", "New")
+
+        C = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
+        v = chartSpace.find(f".//{C}strCache/{C}pt/{C}v")
+        assert v.text == "New"
+
+    def it_raises_when_chart_has_no_embedded_workbook(
+        self, workbook_prop_, workbook_
+    ):
+        from pptx.chart.chart import update_embedded_xlsx_cell
+
+        workbook_.xlsx_part = None
+        chart = Chart(element("c:chartSpace"), None)
+        with pytest.raises(ValueError, match="no embedded workbook"):
+            update_embedded_xlsx_cell(chart, "Sheet1", "B2", 7)
+
+    def it_raises_when_a1_ref_is_sheet_qualified(
+        self, workbook_prop_, workbook_
+    ):
+        from pptx.chart.chart import update_embedded_xlsx_cell
+
+        workbook_.xlsx_part = _XlsxPartStub(
+            _build_update_cached_xlsx_blob({}, {("Sheet1", 1, 1): 1.0})
+        )
+        chart = Chart(element("c:chartSpace"), None)
+        with pytest.raises(ValueError, match="single-cell"):
+            update_embedded_xlsx_cell(chart, "Sheet1", "Sheet1!B2", 1)
+
+    def it_does_not_truncate_other_cells_in_a_range_cache(
+        self, request, workbook_prop_, workbook_
+    ):
+        from pptx.chart.chart import update_embedded_xlsx_cell
+
+        # --- range B2:B4, updating only B3 (idx=1) ---
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$B$4</c:f><c:numCache>"
+            '<c:ptCount val="3"/>'
+            '<c:pt idx="0"><c:v>1</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>2</c:v></c:pt>'
+            '<c:pt idx="2"><c:v>3</c:v></c:pt>'
+            "</c:numCache></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chartSpace = parse_xml(chartSpace_xml)
+        chart = Chart(chartSpace, None)
+        workbook_.xlsx_part = _XlsxPartStub(
+            _build_update_cached_xlsx_blob(
+                {},
+                {
+                    ("Sheet1", 2, 2): 1.0,
+                    ("Sheet1", 3, 2): 2.0,
+                    ("Sheet1", 4, 2): 3.0,
+                },
+            )
+        )
+
+        update_embedded_xlsx_cell(chart, "Sheet1", "B3", 99)
+
+        C = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
+        pts = {pt.get("idx"): pt.find(f"{C}v").text for pt in chartSpace.iter(f"{C}pt")}
+        # -- other idx values are preserved --
+        assert pts["0"] == "1"
+        assert pts["1"] == "99"
+        assert pts["2"] == "3"
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
