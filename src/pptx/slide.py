@@ -318,6 +318,59 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def duplicate(self, slide: Slide, index: int | None = None) -> Slide:
+        """Return a newly added slide that is a duplicate of `slide`.
+
+        `slide` must be a member of this collection. The duplicate has a deep
+        copy of `slide`'s shape tree and inherits from the same slide layout.
+        Image, chart, OLE-object, media, and hyperlink relationships on the
+        source slide are cloned onto the duplicate: each target part is
+        *reused* (a duplicate slide and its source share the same image,
+        chart, etc. parts by package reference), while each relationship-id
+        is freshly allocated on the new slide.
+
+        `index` is the zero-based position at which the duplicate should be
+        inserted in this slide sequence. When omitted (or ``None``), the
+        duplicate is appended to the end. A negative `index` counts from the
+        end in the usual Python way; an `index` beyond the end is clamped to
+        the last position (matching :meth:`move_slide`).
+
+        The duplicate receives a freshly-allocated `slide_id`; the source
+        slide's `slide_id` is unchanged.
+
+        Any notes-slide attached to `slide` is *not* copied onto the
+        duplicate, because a notes slide carries a back-reference to its
+        owning slide. The returned slide has no notes slide attached;
+        accessing :attr:`Slide.notes_slide` will create a fresh one on
+        demand.
+
+        Raises |ValueError| if `slide` is not a member of this collection.
+        """
+        # -- Locate `slide` in this collection (raises ValueError on miss). --
+        self.index(slide)
+
+        # -- Create the duplicate slide part and register it with this presentation. --
+        rId, new_slide = self.part.duplicate_slide(slide)
+
+        # -- Always append the new `p:sldId` first so a fresh slide-id is allocated
+        # -- against the full set of existing ids. Then reposition if needed. --
+        new_sldId = self._sldIdLst.add_sldId(rId)
+
+        if index is not None:
+            # -- Normalize negative / out-of-range indices identically to move_slide. --
+            n = len(self._sldIdLst)
+            # -- The just-appended sldId is currently at position n-1. --
+            target_idx = max(0, index + n) if index < 0 else min(index, n - 1)
+            if target_idx != n - 1:
+                self._sldIdLst.remove(new_sldId)
+                siblings = self._sldIdLst.sldId_lst
+                if target_idx >= len(siblings):
+                    self._sldIdLst.append(new_sldId)
+                else:
+                    siblings[target_idx].addprevious(new_sldId)
+
+        return new_slide
+
     def delete(self, slide: Slide) -> None:
         """Remove `slide` from this presentation.
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from behave import given, then, when
-from helpers import test_pptx
+from helpers import test_image, test_pptx
 
 from pptx import Presentation
 
@@ -46,6 +46,21 @@ def given_a_source_slide_with_two_pictures(context):
     context.source_slide = context.source_prs.slides[0]
 
 
+@given("a Presentation with a slide carrying a chart and a picture")
+def given_a_presentation_with_chart_and_picture(context):
+    # -- cht-charts has a slide with a chart; we add a picture so the duplicate's
+    # -- PartRelationshipCloner path exercises both the chart and image rel kinds. --
+    from pptx.util import Inches
+
+    prs = Presentation(test_pptx("cht-charts"))
+    slide = prs.slides[0]
+    slide.shapes.add_picture(
+        test_image("python-icon.jpeg"), Inches(1), Inches(1), height=Inches(1)
+    )
+    context.prs = prs
+    context.slides = prs.slides
+
+
 @given("an empty target Presentation")
 def given_an_empty_target_presentation(context):
     context.target_prs = Presentation()
@@ -69,6 +84,16 @@ def when_I_call_slides_move_slide(context):
     context.original_slide = slides[0]
     context.original_slide_id = slides[0].slide_id
     slides.move_slide(slides[0], 2)
+@when("I call slides.duplicate(slides[0])")
+def when_I_call_slides_duplicate(context):
+    slides = context.slides
+    context.source_slide = slides[0]
+    context.source_slide_id = slides[0].slide_id
+    context.source_layout = slides[0].slide_layout
+    context.source_shape_names = [sh.name for sh in slides[0].shapes]
+    context.duplicate_slide = slides.duplicate(slides[0])
+
+
 @when("I call slides.delete(slides[1])")
 def when_I_call_slides_delete(context):
     slides = context.slides
@@ -309,6 +334,48 @@ def then_presentation_round_trips_after_delete(context):
         "expected slide_ids %r after round-trip, got %r"
         % (context.surviving_slide_ids, reopened_ids)
     )
+
+@then("the duplicate slide's shape names match the source slide")
+def then_duplicate_shape_names_match_source(context):
+    dup_names = [sh.name for sh in context.duplicate_slide.shapes]
+    assert dup_names == context.source_shape_names, "dup=%r source=%r" % (
+        dup_names,
+        context.source_shape_names,
+    )
+
+
+@then("the duplicate's slide_id differs from the source")
+def then_duplicate_slide_id_differs(context):
+    assert context.duplicate_slide.slide_id != context.source_slide_id, (
+        "duplicate slide_id %d matches source" % context.duplicate_slide.slide_id
+    )
+
+
+@then("the duplicate's slide_layout matches the source")
+def then_duplicate_layout_matches_source(context):
+    assert context.duplicate_slide.slide_layout is context.source_layout
+
+
+@then("the presentation round-trips cleanly after duplicate")
+def then_presentation_round_trips_after_duplicate(context):
+    import io
+
+    from pptx import Presentation
+
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    prs2 = Presentation(buf)
+    assert len(prs2.slides) == len(context.slides), (
+        "expected %d slides after round-trip, got %d"
+        % (len(context.slides), len(prs2.slides))
+    )
+    # -- confirm the duplicate's shape names survived the round-trip --
+    reopened_names = [sh.name for sh in prs2.slides[-1].shapes]
+    assert reopened_names == context.source_shape_names, (
+        "after round-trip dup=%r source=%r" % (reopened_names, context.source_shape_names)
+    )
+
 
 @then("len(target.slides) is {count}")
 def then_len_target_slides_is_count(context, count):

@@ -34,6 +34,24 @@ class PresentationPart(XmlPart):
         rId = self.relate_to(slide_part, RT.SLIDE)
         return rId, slide_part.slide
 
+    def duplicate_slide(self, source_slide: Slide) -> tuple[str, Slide]:
+        """Return (rId, slide) pair for a duplicate of `source_slide` in this presentation.
+
+        `source_slide` must belong to this presentation. The returned |Slide|
+        has a deep copy of the source slide's shape tree, is bound to the same
+        slide layout as the source, and shares (by relationship reuse) the same
+        image / chart / OLE / media / hyperlink targets.
+
+        The caller is responsible for adding a matching `p:sldId` to the
+        `p:sldIdLst` at the desired position; this method only creates the
+        duplicate slide part and registers a relationship from this
+        presentation part to it.
+        """
+        partname = self._next_slide_partname
+        slide_part = SlidePart.clone_within(source_slide.part, partname)
+        rId = self.relate_to(slide_part, RT.SLIDE)
+        return rId, slide_part.slide
+
     def add_slide_from_external(
         self, source_slide: Slide, slide_layout: SlideLayout
     ) -> tuple[str, Slide]:

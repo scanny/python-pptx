@@ -429,6 +429,42 @@ class DescribeSlidePart(object):
         # -- Image part was fetched from target package, not the source. --
         target_package_.get_or_add_image_part.assert_called_once()
 
+    def it_can_clone_a_slide_part_within_the_same_package(self, request):
+        """SlidePart.clone_within duplicates a slide in its own package via F1."""
+        # -- Source SlidePart whose shape tree holds an `r:embed` reference. --
+        src_sld = element("p:sld/p:cSld/p:spTree/p:pic/p:blipFill/a:blip{r:embed=rId9}")
+        package_ = instance_mock(request, Package)
+        src_part = SlidePart(PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, package_, src_sld)
+
+        # -- Stub the source's layout lookup and the cloner's remap result. --
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+        part_related_by_ = method_mock(
+            request, SlidePart, "part_related_by", return_value=slide_layout_part_, autospec=True
+        )
+        relate_to_ = method_mock(
+            request, SlidePart, "relate_to", return_value="rIdL", autospec=True
+        )
+        remapped_sld = element("p:sld/p:cSld/p:spTree/p:pic/p:blipFill/a:blip{r:embed=rIdNEW}")
+        PartRelationshipCloner_ = class_mock(
+            request, "pptx.parts.slide.PartRelationshipCloner"
+        )
+        PartRelationshipCloner_.clone.return_value = remapped_sld
+
+        partname = PackURI("/ppt/slides/slide2.xml")
+        new_part = SlidePart.clone_within(src_part, partname)
+
+        # -- a new SlidePart instance bound to the target partname and package --
+        assert isinstance(new_part, SlidePart)
+        assert new_part.partname == partname
+        assert new_part.package is package_
+        # -- the layout rel was established via part_related_by + relate_to --
+        part_related_by_.assert_called_once_with(src_part, RT.SLIDE_LAYOUT)
+        relate_to_.assert_called_once_with(new_part, slide_layout_part_, RT.SLIDE_LAYOUT)
+        # -- the cloner was invoked with the canonical (src_part, new_part, src_sld) triple --
+        PartRelationshipCloner_.clone.assert_called_once_with(src_part, new_part, src_sld)
+        # -- and the cloner's return value replaced the new part's element tree. --
+        assert new_part._element is remapped_sld
+
     def it_drops_the_notes_slide_when_cloning(self, request):
         from unittest.mock import MagicMock
 

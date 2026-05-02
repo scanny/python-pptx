@@ -6,6 +6,15 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #132 ``Slides.duplicate(slide, index=None)`` to clone a slide within
+  its own presentation. The duplicate inherits from the same slide layout as
+  the source, carries a deep copy of the shape tree, and shares (by
+  relationship reuse) the source's image, chart, OLE-object, media, and
+  hyperlink parts — no content is re-embedded. A freshly-allocated slide-id
+  is assigned; the source's slide-id is unchanged. Notes slides on the
+  source are not copied onto the duplicate (notes slides carry a
+  back-reference to their owning slide and can't be shared); accessing
+  ``notes_slide`` on the duplicate creates a fresh empty one on demand.
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
