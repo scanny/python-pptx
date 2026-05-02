@@ -603,6 +603,35 @@ class CT_SlideLayout(_BaseSlideElement):
         "type", XsdString, default="cust"
     )
 
+    @classmethod
+    def new_blank(cls, name: str = "") -> CT_SlideLayout:
+        """Return a new `p:sldLayout` element configured as a minimal blank layout.
+
+        The returned layout carries ``@type="cust"`` (the schema default for custom
+        layouts), ``@preserve="1"``, a ``p:cSld/@name`` matching `name`, and an
+        empty ``p:spTree`` (no placeholders). A ``p:clrMapOvr/a:masterClrMapping``
+        element is included so the layout's color-map inherits from its master.
+        """
+        name_attr = ' name="%s"' % name if name else ""
+        xml = (
+            '<p:sldLayout %s type="cust" preserve="1">\n'
+            "  <p:cSld%s>\n"
+            "    <p:spTree>\n"
+            "      <p:nvGrpSpPr>\n"
+            '        <p:cNvPr id="1" name=""/>\n'
+            "        <p:cNvGrpSpPr/>\n"
+            "        <p:nvPr/>\n"
+            "      </p:nvGrpSpPr>\n"
+            "      <p:grpSpPr/>\n"
+            "    </p:spTree>\n"
+            "  </p:cSld>\n"
+            "  <p:clrMapOvr>\n"
+            "    <a:masterClrMapping/>\n"
+            "  </p:clrMapOvr>\n"
+            "</p:sldLayout>" % (nsdecls("a", "p", "r"), name_attr)
+        )
+        return cast(CT_SlideLayout, parse_xml(xml))
+
 
 class CT_SlideLayoutIdList(BaseOxmlElement):
     """`p:sldLayoutIdLst` element, child of `p:sldMaster`.

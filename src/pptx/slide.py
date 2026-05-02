@@ -1141,6 +1141,63 @@ class SlideMaster(_BaseMaster):
 
     part: SlideMasterPart  # pyright: ignore[reportIncompatibleMethodOverride]
 
+    def add_layout(self, name: str, based_on: SlideLayout | None = None) -> SlideLayout:
+        """Return a new |SlideLayout| created on this master with `name`.
+
+        This is the "add a fresh layout to an existing master" path of
+        issue #413 — the same-master cousin of :meth:`add_layout_from`
+        (#1028, for *cross*-master layout import). It mirrors the *Insert
+        Layout* action that PowerPoint's *Slide Master* view exposes:
+        a new slide layout is created on this master and appended to its
+        :attr:`slide_layouts` collection.
+
+        `name` is the string written to the new layout's ``p:cSld/@name``
+        and is the identifier subsequent :meth:`SlideLayouts.get_by_name`
+        lookups resolve against. It must be unique within this master's
+        layouts — supplying a name that collides with an existing layout
+        raises :class:`ValueError`.
+
+        `based_on` optionally selects an existing layout on *this* master
+        to use as the starting point. When provided, the new layout's
+        shape tree and header/footer settings are deep-cloned from
+        `based_on` and then its ``p:cSld/@name`` is overwritten with
+        `name`. When |None| (the default), the new layout is built from a
+        minimal blank template: no placeholders, a ``@type="cust"``
+        marker, and a ``p:clrMapOvr/a:masterClrMapping`` element so the
+        color map inherits from this master. In both forms the new
+        layout is related to this master via a fresh ``SLIDE_MASTER``
+        relationship and a freshly allocated ``p:sldLayoutId`` entry
+        is appended to this master's ``p:sldLayoutIdLst``.
+
+        Raises :class:`ValueError` when `based_on` belongs to a different
+        master (use :meth:`add_layout_from` for cross-master import), or
+        when `name` is already in use on this master.
+
+        .. versionadded:: 2026.05.0
+        """
+        if not name:
+            raise ValueError("name must be a non-empty string")
+
+        # -- guard against a name collision on this master --
+        for existing in self.slide_layouts:
+            if existing.name == name:
+                raise ValueError(
+                    "this master already has a layout named %r; pick a "
+                    "different name or rename the existing layout first" % name
+                )
+
+        if based_on is not None and based_on.slide_master is not self:
+            raise ValueError(
+                "based_on layout must belong to this master; use "
+                "SlideMaster.add_layout_from() to import a layout from "
+                "a different master"
+            )
+
+        rId, new_layout = self.part.add_layout(name, based_on)
+        sldLayoutIdLst = self._element.get_or_add_sldLayoutIdLst()
+        sldLayoutIdLst.add_sldLayoutId(rId)
+        return new_layout
+
     def add_layout_from(self, source_layout: SlideLayout) -> SlideLayout:
         """Return a new |SlideLayout| on this master cloned from `source_layout`.
 

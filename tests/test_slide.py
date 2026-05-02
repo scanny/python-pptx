@@ -1795,6 +1795,83 @@ class DescribeSlideMaster(object):
         # -- the part-level clone must not have been invoked --
         slide_master_part_.add_layout_from.assert_not_called()
 
+    def it_can_add_a_fresh_blank_layout_on_this_master(self, request):
+        """add_layout(name) creates a new blank layout and registers its p:sldLayoutId."""
+        # -- seed an existing entry so the r: namespace is bound on the parent --
+        sldMaster = element("p:sldMaster/p:sldLayoutIdLst/p:sldLayoutId{id=2147483649,r:id=rId1}")
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(sldMaster, slide_master_part_)
+        # -- no name collisions on this master --
+        property_mock(request, SlideMaster, "slide_layouts", return_value=())
+        new_layout_ = instance_mock(request, SlideLayout)
+        slide_master_part_.add_layout.return_value = ("rId77", new_layout_)
+
+        result = slide_master.add_layout("Fresh Blank")
+
+        slide_master_part_.add_layout.assert_called_once_with("Fresh Blank", None)
+        # -- a fresh p:sldLayoutId was appended with the new rId and next id --
+        assert sldMaster.sldLayoutIdLst.xml == xml(
+            "p:sldLayoutIdLst/("
+            "p:sldLayoutId{id=2147483649,r:id=rId1},"
+            "p:sldLayoutId{id=2147483650,r:id=rId77}"
+            ")"
+        )
+        assert result is new_layout_
+
+    def it_can_add_a_layout_based_on_an_existing_layout_on_this_master(self, request):
+        """add_layout(name, based_on=layout) forwards the basis layout to the part."""
+        sldMaster = element("p:sldMaster")
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(sldMaster, slide_master_part_)
+        property_mock(request, SlideMaster, "slide_layouts", return_value=())
+        basis_layout_ = instance_mock(request, SlideLayout)
+        # -- belongs to this master so the guard passes --
+        basis_layout_.slide_master = slide_master
+        new_layout_ = instance_mock(request, SlideLayout)
+        slide_master_part_.add_layout.return_value = ("rId99", new_layout_)
+
+        result = slide_master.add_layout("Derived", based_on=basis_layout_)
+
+        slide_master_part_.add_layout.assert_called_once_with("Derived", basis_layout_)
+        assert result is new_layout_
+
+    def it_raises_when_add_layout_name_collides(self, request):
+        """add_layout() raises ValueError when another layout already has that name."""
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(element("p:sldMaster/p:sldLayoutIdLst"), slide_master_part_)
+        existing_layout_ = instance_mock(request, SlideLayout)
+        existing_layout_.name = "Fresh Blank"
+        property_mock(request, SlideMaster, "slide_layouts", return_value=[existing_layout_])
+
+        with pytest.raises(ValueError, match="already has a layout named"):
+            slide_master.add_layout("Fresh Blank")
+
+        slide_master_part_.add_layout.assert_not_called()
+
+    def it_raises_when_add_layout_name_is_empty(self, request):
+        """add_layout('') raises ValueError — a layout must have an identifying name."""
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(element("p:sldMaster"), slide_master_part_)
+
+        with pytest.raises(ValueError, match="non-empty string"):
+            slide_master.add_layout("")
+
+        slide_master_part_.add_layout.assert_not_called()
+
+    def it_raises_when_add_layout_based_on_belongs_to_a_different_master(self, request):
+        """add_layout(based_on=foreign) raises — use add_layout_from for cross-master."""
+        slide_master_part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(element("p:sldMaster"), slide_master_part_)
+        property_mock(request, SlideMaster, "slide_layouts", return_value=())
+        foreign_master_ = instance_mock(request, SlideMaster)
+        basis_layout_ = instance_mock(request, SlideLayout)
+        basis_layout_.slide_master = foreign_master_  # -- different master --
+
+        with pytest.raises(ValueError, match="based_on layout must belong to this master"):
+            slide_master.add_layout("Derived", based_on=basis_layout_)
+
+        slide_master_part_.add_layout.assert_not_called()
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

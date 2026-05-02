@@ -73,6 +73,28 @@ class DescribeCT_SlideLayout(object):
         hf = sldLayout.get_or_add_hf()
         assert hf is sldLayout.hf
 
+    def it_can_create_a_new_blank_sldLayout_element(self):
+        """new_blank() produces a minimal p:sldLayout with @type="cust" and no placeholders."""
+        from pptx.oxml.slide import CT_SlideLayout
+
+        sldLayout = CT_SlideLayout.new_blank("My Layout")
+
+        # -- @type defaults to "cust" for custom user-created layouts --
+        assert sldLayout.type == "cust"
+        # -- the cSld name matches the argument --
+        assert sldLayout.cSld.name == "My Layout"
+        # -- there are zero placeholder shapes in the spTree --
+        assert sldLayout.xpath("./p:cSld/p:spTree/p:sp") == []
+        # -- the color-map inherits from its master --
+        assert len(sldLayout.xpath("./p:clrMapOvr/a:masterClrMapping")) == 1
+
+    def it_defaults_the_new_blank_layout_name_to_empty(self):
+        from pptx.oxml.slide import CT_SlideLayout
+
+        sldLayout = CT_SlideLayout.new_blank()
+
+        assert sldLayout.cSld.name == ""
+
 
 class DescribeCT_SlideLayoutIdListEntry(object):
     """Unit-test suite for `pptx.oxml.slide.CT_SlideLayoutIdListEntry`."""
