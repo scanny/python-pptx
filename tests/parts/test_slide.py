@@ -7,7 +7,7 @@ import pytest
 from pptx.chart.data import ChartData
 from pptx.enum.chart import XL_CHART_TYPE as XCT
 from pptx.enum.shapes import PROG_ID
-from pptx.media import Video
+from pptx.media import Audio, Video
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part
@@ -361,6 +361,20 @@ class DescribeSlidePart(object):
             call(slide_part, media_part_, RT.VIDEO),
         ]
         assert result == (media_rId, video_rId)
+
+    def it_can_get_or_add_a_sound_part(
+        self, request, package_, relate_to_, media_part_
+    ):
+        audio_ = instance_mock(request, Audio)
+        package_.get_or_add_media_part.return_value = media_part_
+        relate_to_.return_value = "rId7"
+        slide_part = SlidePart(None, None, package_, None)
+
+        rId = slide_part.get_or_add_sound_media_part(audio_)
+
+        package_.get_or_add_media_part.assert_called_once_with(audio_)
+        relate_to_.assert_called_once_with(slide_part, media_part_, RT.AUDIO)
+        assert rId == "rId7"
 
     def it_can_create_a_new_slide_part(self, request, package_, relate_to_):
         partname = PackURI("/foobar.xml")

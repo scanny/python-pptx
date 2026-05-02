@@ -28,6 +28,7 @@ default_content_types = (
     ("tiff", CT.TIFF),
     ("vid", CT.VIDEO),
     ("wav", CT.AUDIO_WAV),
+    ("wav", CT.WAV),
     ("wdp", CT.MS_PHOTO),
     ("wma", CT.AUDIO_X_MS_WMA),
     ("wmf", CT.X_WMF),

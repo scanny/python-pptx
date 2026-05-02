@@ -119,6 +119,7 @@ Unreleased
 - #201 slide numbers / date / footer via p:hf and a:fld
 - #516 Chart Colors Sometimes Using Extended Alternates
 - #386 surface unsupported chartex chart types without dropping
+- feat: #734 add ``<a:snd>`` (sound) support to click-action
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

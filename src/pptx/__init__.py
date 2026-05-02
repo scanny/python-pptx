@@ -74,6 +74,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.MS_VIDEO: MediaPart,
     CT.SWF: MediaPart,
     CT.VIDEO: MediaPart,
+    CT.WAV: MediaPart,
     CT.WMV: MediaPart,
     CT.X_MS_VIDEO: MediaPart,
     # -- accommodate "image/jpg" as an alias for "image/jpeg" --

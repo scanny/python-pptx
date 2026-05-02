@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import IO, TYPE_CHECKING, cast
 
 from pptx.enum.action import PP_ACTION
+from pptx.media import Audio
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.shapes import Subshape
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
-    from pptx.oxml.action import CT_Hyperlink
+    from pptx.oxml.action import CT_EmbeddedWAVAudioFile, CT_Hyperlink
     from pptx.oxml.shapes.shared import CT_NonVisualDrawingProps
     from pptx.oxml.text import CT_TextCharacterProperties
     from pptx.parts.slide import SlidePart
@@ -86,6 +87,97 @@ class ActionSetting(Subshape):
         return Hyperlink(self._element, self._parent, self._hover)
 
     @property
+    def sound(self) -> Sound | None:
+        """A |Sound| object for the WAV audio played on click/hover, or |None|.
+
+        Returns |None| when no ``a:snd`` child element is present on the click/hover
+        action. When present, the returned |Sound| provides read-only access to the
+        sound name and the embedded audio blob.
+        """
+        hlink = self._sound_hlink()
+        if hlink is None:
+            return None
+        snd = hlink.snd
+        if snd is None:
+            return None
+        return Sound(snd, cast("SlidePart", self.part))
+
+    def set_sound(
+        self,
+        audio_file: str | IO[bytes] | Audio,
+        name: str | None = None,
+        mime_type: str | None = None,
+    ) -> Sound:
+        """Attach a WAV audio clip to be played on this click/hover action.
+
+        `audio_file` may be a filesystem path, a file-like binary stream, or a
+        pre-built :class:`~pptx.media.Audio` instance. Any sound previously set on
+        this action is removed (including its relationship when no other shape
+        references the same audio part). The audio is embedded as a media part inside
+        the package and an ``a:snd`` child element referencing it is added to the
+        ``a:hlinkClick`` / ``a:hlinkHover`` element, creating that hyperlink element
+        if necessary.
+
+        `name` sets the ``name`` attribute on the ``a:snd`` element; when omitted it
+        defaults to the base filename of the source file (or ``'sound.wav'`` for
+        in-memory streams).
+
+        Returns the newly-created |Sound| object.
+        """
+        if isinstance(audio_file, Audio):
+            audio = audio_file
+        else:
+            audio = Audio.from_path_or_file_like(audio_file, mime_type)
+
+        self.remove_sound()
+
+        if self._hover:
+            hlink = cast(
+                "CT_NonVisualDrawingProps", self._element
+            ).get_or_add_hlinkHover()
+        else:
+            hlink = self._element.get_or_add_hlinkClick()
+
+        slide_part = cast("SlidePart", self.part)
+        rId = slide_part.get_or_add_sound_media_part(audio)
+
+        snd = hlink.get_or_add_snd()
+        snd.rEmbed = rId
+        snd.name = name if name is not None else audio.filename
+
+        return Sound(snd, slide_part)
+
+    def remove_sound(self) -> None:
+        """Remove any ``a:snd`` sound from this click/hover action.
+
+        Also drops the AUDIO relationship associated with the sound. Does nothing
+        when no sound is currently set. The enclosing ``a:hlinkClick`` /
+        ``a:hlinkHover`` element itself is preserved because it may still carry a
+        separate hyperlink or action.
+        """
+        hlink = self._sound_hlink()
+        if hlink is None:
+            return
+        snd = hlink.snd
+        if snd is None:
+            return
+        rId = snd.rEmbed
+        if rId:
+            self.part.drop_rel(rId)
+        hlink.remove(snd)
+
+    def _sound_hlink(self) -> CT_Hyperlink | None:
+        """`a:hlinkClick`/`a:hlinkHover` element for sound manipulation, or None.
+
+        This parallels :attr:`_hlink` but skips the ``isinstance`` assert used there
+        so sound code can be tested (and type-checked) without materializing a full
+        `CT_NonVisualDrawingProps` instance.
+        """
+        if self._hover:
+            return getattr(self._element, "hlinkHover", None)
+        return self._element.hlinkClick
+
+    @property
     def target_slide(self) -> Slide | None:
         """
         A reference to the slide in this presentation that is the target of
@@ -154,6 +246,11 @@ class ActionSetting(Subshape):
         rId = hlink.rId
         if rId:
             self.part.drop_rel(rId)
+        # -- also drop any audio relationship carried by an `a:snd` child so we don't
+        # -- leave a dangling AUDIO rel when the whole hyperlink element is removed
+        snd = hlink.snd
+        if snd is not None and snd.rEmbed:
+            self.part.drop_rel(snd.rEmbed)
         self._element.remove(hlink)
 
     @property
@@ -267,4 +364,47 @@ class Hyperlink(Subshape):
         rId = hlink.rId
         if rId:
             self.part.drop_rel(rId)
+        # -- also drop any audio relationship carried by an `a:snd` child so we
+        # -- don't leave a dangling AUDIO rel when the hyperlink is removed
+        snd = hlink.snd
+        if snd is not None and snd.rEmbed:
+            self.part.drop_rel(snd.rEmbed)
         self._element.remove(hlink)
+
+
+class Sound(object):
+    """Represents an ``a:snd`` embedded WAV sound on a click or hover action.
+
+    A |Sound| object provides read-only access to an existing click-action sound; use
+    :meth:`ActionSetting.set_sound` to create or replace one and
+    :meth:`ActionSetting.remove_sound` to delete it.
+    """
+
+    def __init__(self, snd: CT_EmbeddedWAVAudioFile, part: SlidePart):
+        super(Sound, self).__init__()
+        self._snd = snd
+        self._part = part
+
+    @property
+    def blob(self) -> bytes:
+        """The bytestream of the embedded audio "file"."""
+        return self._media_part.blob
+
+    @property
+    def name(self) -> str:
+        """The ``name`` attribute of the ``a:snd`` element (defaults to an empty string).
+
+        This is the display name PowerPoint shows for the sound; it typically matches
+        the original filename (for example ``'applause.wav'``).
+        """
+        return self._snd.name or ""
+
+    @property
+    def rId(self) -> str:
+        """The ``r:embed`` relationship id pointing at the embedded audio part."""
+        return self._snd.rEmbed
+
+    @property
+    def _media_part(self):
+        """The |MediaPart| holding the audio binary referenced by this sound."""
+        return self._part.related_part(self._snd.rEmbed)
