@@ -10,6 +10,7 @@ from pptx.api import Presentation
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.package import PartFactory
 from pptx.parts.chart import ChartPart
+from pptx.parts.chartdrawing import ChartDrawingPart
 from pptx.parts.comments import CommentAuthorsPart, CommentsPart
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.customprops import CustomPropertiesPart
@@ -56,6 +57,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_TAGS: TagsPart,
     CT.OFC_THEME: ThemePart,
     CT.DML_CHART: ChartPart,
+    CT.DML_CHARTSHAPES: ChartDrawingPart,
     CT.X_FONTDATA: FontPart,
     CT.X_FONT_TTF: FontPart,
     CT.BMP: ImagePart,
@@ -95,6 +97,7 @@ PartFactory.part_type_for.update(content_type_to_part_class_map)
 
 del (
     ChartPart,
+    ChartDrawingPart,
     CommentAuthorsPart,
     CommentsPart,
     CorePropertiesPart,

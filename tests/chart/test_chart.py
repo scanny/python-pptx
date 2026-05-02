@@ -660,6 +660,65 @@ class DescribeChart(object):
         shapes_.clone_chart.assert_called_once_with(chart, 11, 22, 33, 44)
         assert result is clone_result_
 
+    # -- Chart.user_shapes / has_user_shapes (issue #351) -------------
+
+    def it_returns_the_related_chart_drawing_part_for_user_shapes(self, request):
+        from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+        from pptx.parts.chart import ChartPart
+        from pptx.parts.chartdrawing import ChartDrawingPart
+
+        chart_drawing_part_ = instance_mock(request, ChartDrawingPart)
+        chart_part_ = instance_mock(request, ChartPart)
+        chart_part_.part_related_by.return_value = chart_drawing_part_
+        part_prop_ = property_mock(request, Chart, "part")
+        part_prop_.return_value = chart_part_
+        chart = Chart(element("c:chartSpace"), None)
+
+        result = chart.user_shapes
+
+        chart_part_.part_related_by.assert_called_once_with(RT.CHART_USER_SHAPES)
+        assert result is chart_drawing_part_
+
+    def but_user_shapes_returns_None_when_no_such_relationship_exists(self, request):
+        from pptx.parts.chart import ChartPart
+
+        chart_part_ = instance_mock(request, ChartPart)
+        chart_part_.part_related_by.side_effect = KeyError("no such rel")
+        part_prop_ = property_mock(request, Chart, "part")
+        part_prop_.return_value = chart_part_
+        chart = Chart(element("c:chartSpace"), None)
+
+        assert chart.user_shapes is None
+
+    def it_reports_True_for_has_user_shapes_when_anchors_exist(self, request):
+        from pptx.parts.chartdrawing import ChartDrawingPart
+
+        chart_drawing_part_ = instance_mock(request, ChartDrawingPart)
+        chart_drawing_part_.anchor_count = 2
+        user_shapes_prop_ = property_mock(request, Chart, "user_shapes")
+        user_shapes_prop_.return_value = chart_drawing_part_
+        chart = Chart(element("c:chartSpace"), None)
+
+        assert chart.has_user_shapes is True
+
+    def but_has_user_shapes_is_False_when_part_absent(self, request):
+        user_shapes_prop_ = property_mock(request, Chart, "user_shapes")
+        user_shapes_prop_.return_value = None
+        chart = Chart(element("c:chartSpace"), None)
+
+        assert chart.has_user_shapes is False
+
+    def and_has_user_shapes_is_False_when_part_has_no_anchors(self, request):
+        from pptx.parts.chartdrawing import ChartDrawingPart
+
+        chart_drawing_part_ = instance_mock(request, ChartDrawingPart)
+        chart_drawing_part_.anchor_count = 0
+        user_shapes_prop_ = property_mock(request, Chart, "user_shapes")
+        user_shapes_prop_.return_value = chart_drawing_part_
+        chart = Chart(element("c:chartSpace"), None)
+
+        assert chart.has_user_shapes is False
+
     # -- Chart.workbook property (F5) --------------------------------
 
     def it_reads_embedded_workbook_bytes_via_workbook_property(

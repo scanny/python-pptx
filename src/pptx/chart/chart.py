@@ -24,6 +24,7 @@ from pptx.chart.xlsx import (
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory, _PlotFragmentBuilder
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy, PartElementProxy
@@ -645,6 +646,53 @@ class Chart(PartElementProxy):
         :attr:`~pptx.shapes.graphfrm.GraphicFrame.chart` property.
         """
         return shapes.clone_chart(self, x, y, cx, cy)
+
+    @property
+    def has_user_shapes(self):
+        """Read-only |bool| specifying whether this chart has any user-shape annotations.
+
+        ``True`` when the chart has a ``chartUserShapes`` relationship (the
+        ``c:userShapes`` element) carrying one or more
+        ``cdr:relSizeAnchor`` / ``cdr:absSizeAnchor`` annotation anchors.
+        ``False`` when the relationship is missing or the related part
+        contains no anchors. Use this to probe for annotation shapes
+        non-destructively before touching :attr:`user_shapes`.
+
+        MVP scope (issue #351) is read-only inspection; see
+        :attr:`user_shapes` and the
+        ``docs/dev/analysis/chart-user-shapes.rst`` analysis for context.
+        """
+        user_shapes = self.user_shapes
+        if user_shapes is None:
+            return False
+        return user_shapes.anchor_count > 0
+
+    @property
+    def user_shapes(self):
+        """The |ChartDrawingPart| carrying this chart's user-shape annotations, or ``None``.
+
+        A user-shapes drawing overlays annotation shapes (arrows, call-outs,
+        text boxes) onto the chart plot area — PowerPoint authors them via
+        *Insert > Shapes* while the chart is selected, and stores them in
+        a separate ``cdr:userShapes`` XML part linked from the chart via a
+        ``chartUserShapes`` relationship.
+
+        This MVP exposes read-only access: the returned part offers
+        :meth:`~pptx.parts.chartdrawing.ChartDrawingPart.iter_anchor_elements`
+        and :attr:`~pptx.parts.chartdrawing.ChartDrawingPart.anchor_count`
+        for enumerating the raw anchor elements. Authoring annotation
+        shapes is not yet supported; see
+        ``docs/dev/analysis/chart-user-shapes.rst`` for the full
+        design note and the reason the proxy hierarchy is deferred.
+
+        Returns ``None`` when the chart has no ``chartUserShapes``
+        relationship (the common case for charts authored through this
+        library, since python-pptx does not add one).
+        """
+        try:
+            return self.part.part_related_by(RT.CHART_USER_SHAPES)
+        except KeyError:
+            return None
 
     @property
     def workbook(self):

@@ -1159,6 +1159,122 @@ def then_first_value_cell_holds_new_value(context):
         assert reader.cell_value("Sheet1", 2, 2) == 10.0
 
 
+# ---------------------------------------------------------------------------
+# Chart user-shapes (issue #351)
+# ---------------------------------------------------------------------------
+
+
+@given("a newly-authored bar chart")
+def given_a_newly_authored_bar_chart(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    chart_data.add_series("S", (1.0, 2.0, 3.0))
+    context.chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        chart_data,
+    ).chart
+
+
+@given("a chart with two user-shape anchors attached")
+def given_a_chart_with_two_user_shape_anchors(context):
+    # -- build a baseline bar chart and attach a ChartDrawingPart seeded
+    # -- with one cdr:relSizeAnchor and one cdr:absSizeAnchor. This mirrors
+    # -- the on-disk structure PowerPoint writes when a user annotates a
+    # -- chart via Insert > Shapes; python-pptx itself has no authoring
+    # -- API yet (see docs/dev/analysis/chart-user-shapes.rst), so the
+    # -- anchors are synthesised directly on the raw lxml element.
+    from lxml import etree
+
+    from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+    from pptx.oxml.ns import qn
+    from pptx.parts.chartdrawing import ChartDrawingPart
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    chart_data.add_series("S", (1.0, 2.0, 3.0))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        chart_data,
+    ).chart
+
+    drawing_part = ChartDrawingPart.new(chart.part.package)
+    rel_anchor = etree.SubElement(drawing_part._element, qn("cdr:relSizeAnchor"))
+    etree.SubElement(rel_anchor, qn("cdr:from"))
+    etree.SubElement(rel_anchor, qn("cdr:to"))
+    etree.SubElement(rel_anchor, qn("cdr:sp"))
+    abs_anchor = etree.SubElement(drawing_part._element, qn("cdr:absSizeAnchor"))
+    etree.SubElement(abs_anchor, qn("cdr:from"))
+    etree.SubElement(abs_anchor, qn("cdr:ext"))
+    etree.SubElement(abs_anchor, qn("cdr:cxnSp"))
+
+    chart.part.relate_to(drawing_part, RT.CHART_USER_SHAPES)
+    context.chart = chart
+
+
+@then("chart.user_shapes is None")
+def then_chart_user_shapes_is_None(context):
+    assert context.chart.user_shapes is None, (
+        "expected chart.user_shapes to be None, got %r" % context.chart.user_shapes
+    )
+
+
+@then("chart.has_user_shapes is {value}")
+def then_chart_has_user_shapes_is(context, value):
+    expected = {"True": True, "False": False}[value]
+    actual = context.chart.has_user_shapes
+    assert actual is expected, (
+        "expected chart.has_user_shapes to be %r, got %r" % (expected, actual)
+    )
+
+
+@then("chart.user_shapes is a ChartDrawingPart object")
+def then_chart_user_shapes_is_a_ChartDrawingPart_object(context):
+    from pptx.parts.chartdrawing import ChartDrawingPart
+
+    assert isinstance(context.chart.user_shapes, ChartDrawingPart), (
+        "expected chart.user_shapes to be a ChartDrawingPart, got %r"
+        % type(context.chart.user_shapes).__name__
+    )
+
+
+@then("chart.user_shapes.anchor_count is {count_:d}")
+def then_chart_user_shapes_anchor_count_is(context, count_):
+    actual = context.chart.user_shapes.anchor_count
+    assert actual == count_, (
+        "expected chart.user_shapes.anchor_count to be %d, got %d" % (count_, actual)
+    )
+
+
+@then("iterating chart.user_shapes yields {count_:d} anchor elements")
+def then_iterating_chart_user_shapes_yields_n_anchors(context, count_):
+    anchors = list(context.chart.user_shapes.iter_anchor_elements())
+    assert len(anchors) == count_, (
+        "expected %d anchor elements, got %d" % (count_, len(anchors))
+    )
+    context.anchors = anchors
+
+
+@then("the anchor tags are cdr:relSizeAnchor and cdr:absSizeAnchor")
+def then_anchor_tags_match(context):
+    from pptx.oxml.ns import qn
+
+    expected = [qn("cdr:relSizeAnchor"), qn("cdr:absSizeAnchor")]
+    actual = [a.tag for a in context.anchors]
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
 @then("the formula cell still contains its original formula")
 def then_formula_cell_unchanged(context):
     import io
