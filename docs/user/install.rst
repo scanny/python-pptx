@@ -3,35 +3,47 @@
 Installing
 ==========
 
-|pp| is hosted on PyPI, so installing with `pip` is simple::
+|pp| is published on PyPI. Install it with ``pip``::
 
     pip install python-pptx
 
-|pp| depends on the ``lxml`` package and ``Pillow``, the modern version of
-the Python Imaging Library (``PIL``). The charting features depend on
-``XlsxWriter``. Both ``pip`` and ``easy_install`` will take care of
-satisfying these dependencies for you, but if you use the ``setup.py``
-installation method you will need to install the dependencies yourself.
+Or, with `uv <https://docs.astral.sh/uv/>`_::
 
-Currently |pp| requires Python 2.7 or 3.3 or later. The tests are run against 2.7 and
-3.8 on Travis CI.
+    uv pip install python-pptx
 
-Dependencies
+To add |pp| as a project dependency with uv::
+
+    uv add python-pptx
+
+Requirements
 ------------
 
-* Python 2.6, 2.7, 3.3 or later
-* lxml
-* Pillow
-* XlsxWriter (to use charting features)
+* Python 3.8 or later
+* `lxml <https://pypi.org/project/lxml/>`_
+* `Pillow <https://pypi.org/project/Pillow/>`_
+* `XlsxWriter <https://pypi.org/project/XlsxWriter/>`_ (used by the charting features)
+* `typing_extensions <https://pypi.org/project/typing-extensions/>`_
+
+``pip`` (and ``uv``) resolve and install these dependencies automatically.
 
 Optional dependencies
 ---------------------
 
-* ``msoffcrypto-tool`` (to open or save password-protected ``.pptx`` files)
-
-  ``msoffcrypto-tool`` is only imported when a ``password`` is passed to
-  :func:`pptx.Presentation` or :meth:`Presentation.save`. Install it with::
+* `msoffcrypto-tool <https://pypi.org/project/msoffcrypto-tool/>`_ — required only
+  to open or save password-protected ``.pptx`` files. It is imported lazily the
+  first time a ``password`` argument is passed to :func:`pptx.Presentation` or
+  :meth:`Presentation.save`. Install it with::
 
       pip install msoffcrypto-tool
 
-  If the argument is not used, |pp| has no extra runtime dependency.
+  If you never use the ``password`` argument, |pp| has no extra runtime
+  dependency.
+
+Related projects
+----------------
+
+|pp| is part of a family of pure-Python libraries for reading and writing
+Office Open XML files:
+
+* `python-docx <https://python-docx.readthedocs.io/en/latest/user/install.html>`_ — Microsoft Word (``.docx``) documents
+* `python-xlsx <https://python-xlsx.readthedocs.io/en/latest/user/install.html>`_ — Microsoft Excel (``.xlsx``) workbooks
