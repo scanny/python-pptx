@@ -8,6 +8,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.package import Package
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.font import FontPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import NotesMasterPart, SlideMasterPart, SlidePart
 from pptx.presentation import Presentation
@@ -127,6 +128,20 @@ class DescribePresentationPart(object):
         zdt = (2024, 6, 15, 9, 30, 0)
         PresentationPart(None, None, package_, None).save("prs.pptx", zdt)
         package_.save.assert_called_once_with("prs.pptx", zdt)
+
+    def it_can_add_a_font_part_and_relate_it(self, request, package_, relate_to_):
+        font_blob = b"fake-ttf"
+        font_part_ = instance_mock(request, FontPart)
+        FontPart_ = class_mock(request, "pptx.parts.presentation.FontPart")
+        FontPart_.new.return_value = font_part_
+        relate_to_.return_value = "rId7"
+        prs_part = PresentationPart(None, None, package_, None)
+
+        rId = prs_part.add_embedded_font(font_blob)
+
+        FontPart_.new.assert_called_once_with(font_blob, package_)
+        prs_part.relate_to.assert_called_once_with(prs_part, font_part_, RT.FONT)
+        assert rId == "rId7"
 
     def it_can_add_a_new_slide(self, request, package_, slide_part_, slide_, relate_to_):
         slide_layout_ = instance_mock(request, SlideLayout)

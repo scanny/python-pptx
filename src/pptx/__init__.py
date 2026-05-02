@@ -13,6 +13,7 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.comments import CommentAuthorsPart, CommentsPart
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.extprops import ExtendedPropertiesPart
+from pptx.parts.font import FontPart
 from pptx.parts.image import ImagePart
 from pptx.parts.media import MediaPart
 from pptx.parts.presentation import PresentationPart
@@ -51,6 +52,8 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_SLIDE_MASTER: SlideMasterPart,
     CT.OFC_THEME: ThemePart,
     CT.DML_CHART: ChartPart,
+    CT.X_FONTDATA: FontPart,
+    CT.X_FONT_TTF: FontPart,
     CT.BMP: ImagePart,
     CT.GIF: ImagePart,
     CT.JPEG: ImagePart,
@@ -92,6 +95,7 @@ del (
     CommentsPart,
     CorePropertiesPart,
     ExtendedPropertiesPart,
+    FontPart,
     ImagePart,
     MediaPart,
     SlidePart,

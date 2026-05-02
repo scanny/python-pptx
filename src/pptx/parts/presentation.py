@@ -7,6 +7,7 @@ from typing import IO, TYPE_CHECKING, Iterable
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.opc.packuri import PackURI
+from pptx.parts.font import FontPart
 from pptx.parts.slide import NotesMasterPart, SlidePart
 from pptx.presentation import Presentation
 from pptx.util import lazyproperty
@@ -33,6 +34,18 @@ class PresentationPart(XmlPart):
         slide_part = SlidePart.new(partname, self.package, slide_layout_part)
         rId = self.relate_to(slide_part, RT.SLIDE)
         return rId, slide_part.slide
+
+    def add_embedded_font(self, font_blob: bytes) -> str:
+        """Return the rId of a new |FontPart| added from `font_blob`.
+
+        `font_blob` is the raw bytes of a TrueType / OpenType font file. A new
+        |FontPart| is added to the package (partname
+        `/ppt/fonts/font{n}.fntdata`) and related to this presentation part via
+        an `http://schemas.openxmlformats.org/officeDocument/2006/relationships/font`
+        relationship whose rId is returned.
+        """
+        font_part = FontPart.new(font_blob, self.package)
+        return self.relate_to(font_part, RT.FONT)
 
     def add_slide_from_external(
         self, source_slide: Slide, slide_layout: SlideLayout
