@@ -13,6 +13,7 @@ from pptx.enum.chart import (
     XL_ERROR_BAR_INCLUDE,
     XL_ERROR_BAR_TYPE,
     XL_MARKER_STYLE,
+    XL_TRENDLINE_TYPE,
 )
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 
@@ -418,3 +419,84 @@ def then_series_error_bars_include_is(context, include_name):
     expected = getattr(XL_ERROR_BAR_INCLUDE, include_name)
     actual = context.series.error_bars.include
     assert actual == expected, "got %s" % actual
+
+
+# trendline steps -----------------------------------------
+
+
+@given("series has a linear trendline attached")
+def given_series_has_a_linear_trendline_attached(context):
+    context.series.add_trendline(XL_TRENDLINE_TYPE.LINEAR)
+
+
+@when("I call series.add_trendline with type {type_name} and display equation on")
+def when_I_call_series_add_trendline_with_display_equation(context, type_name):
+    context.series.add_trendline(
+        getattr(XL_TRENDLINE_TYPE, type_name),
+        display_equation=True,
+    )
+
+
+@when("I call series.add_trendline with type {type_name} and order {order}")
+def when_I_call_series_add_trendline_with_order(context, type_name, order):
+    context.series.add_trendline(
+        getattr(XL_TRENDLINE_TYPE, type_name),
+        order=int(order),
+    )
+
+
+@when("I call series.add_trendline with type {type_name} and period {period}")
+def when_I_call_series_add_trendline_with_period(context, type_name, period):
+    context.series.add_trendline(
+        getattr(XL_TRENDLINE_TYPE, type_name),
+        period=int(period),
+    )
+
+
+@when("I call delete() on series.trendlines[0]")
+def when_I_call_delete_on_series_trendlines_0(context):
+    context.series.trendlines[0].delete()
+
+
+@then("series.trendlines is an empty list")
+def then_series_trendlines_is_an_empty_list(context):
+    assert context.series.trendlines == [], "got %s" % context.series.trendlines
+
+
+@then("series.trendlines has length {count:d}")
+def then_series_trendlines_has_length(context, count):
+    actual = len(context.series.trendlines)
+    assert actual == count, "got %d" % actual
+
+
+@then("series.trendlines[0].trendline_type is {type_name}")
+def then_series_trendlines_0_trendline_type_is(context, type_name):
+    expected = getattr(XL_TRENDLINE_TYPE, type_name)
+    actual = context.series.trendlines[0].trendline_type
+    assert actual == expected, "got %s" % actual
+
+
+@then("series.trendlines[0].display_equation is {value}")
+def then_series_trendlines_0_display_equation_is(context, value):
+    expected = {"True": True, "False": False}[value]
+    actual = context.series.trendlines[0].display_equation
+    assert actual is expected, "got %s" % actual
+
+
+@then("series.trendlines[0].display_r_squared is {value}")
+def then_series_trendlines_0_display_r_squared_is(context, value):
+    expected = {"True": True, "False": False}[value]
+    actual = context.series.trendlines[0].display_r_squared
+    assert actual is expected, "got %s" % actual
+
+
+@then("series.trendlines[0].order is {value:d}")
+def then_series_trendlines_0_order_is(context, value):
+    actual = context.series.trendlines[0].order
+    assert actual == value, "got %s" % actual
+
+
+@then("series.trendlines[0].period is {value:d}")
+def then_series_trendlines_0_period_is(context, value):
+    actual = context.series.trendlines[0].period
+    assert actual == value, "got %s" % actual

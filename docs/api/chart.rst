@@ -240,6 +240,52 @@ bars must edit the underlying XML directly for the 1.x series.
    :undoc-members:
 
 
+|Trendline| objects
+-------------------
+
+A *trendline* overlays a fitted curve on the data points of a chart series.
+The fitted shape is selected by :class:`pptx.enum.chart.XL_TRENDLINE_TYPE` —
+linear, logarithmic, polynomial (orders 2–6), power, exponential, or
+moving-average. A series may carry any number of trendlines; each is drawn
+as its own line on the plot and may optionally be annotated on-chart with
+its fitted equation and/or R-squared value.
+
+Example::
+
+    from pptx.enum.chart import XL_TRENDLINE_TYPE
+
+    series = chart.plots[0].series[0]
+
+    # Linear regression with the equation and R^2 shown on the chart.
+    series.add_trendline(
+        XL_TRENDLINE_TYPE.LINEAR,
+        display_equation=True,
+        display_r_squared=True,
+    )
+
+    # Add a second trendline — a cubic polynomial fit, extended two
+    # categories past the last data point.
+    series.add_trendline(
+        XL_TRENDLINE_TYPE.POLYNOMIAL,
+        order=3,
+        forward=2.0,
+    )
+
+    # Enumerate and tweak.
+    for tl in series.trendlines:
+        tl.name = "Forecast"
+    series.trendlines[0].delete()  # remove the linear trendline
+
+Custom trendline labels (``c:trendlineLbl``) are not modeled by the MVP;
+callers that need full label-positioning control must edit the underlying
+XML directly.
+
+.. autoclass:: pptx.chart.series.Trendline()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |DataLabels| objects
 --------------------
 

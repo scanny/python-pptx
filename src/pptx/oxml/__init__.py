@@ -201,6 +201,8 @@ from pptx.oxml.chart.series import (  # noqa: E402
     CT_NumDataSource,
     CT_SeriesComposite,
     CT_StrVal_NumVal_Composite,
+    CT_Trendline,
+    CT_TrendlineType,
 )
 
 register_element_cls("c:bubbleSize", CT_NumDataSource)
@@ -215,6 +217,8 @@ register_element_cls("c:minus", CT_NumDataSource)
 register_element_cls("c:plus", CT_NumDataSource)
 register_element_cls("c:pt", CT_StrVal_NumVal_Composite)
 register_element_cls("c:ser", CT_SeriesComposite)
+register_element_cls("c:trendline", CT_Trendline)
+register_element_cls("c:trendlineType", CT_TrendlineType)
 register_element_cls("c:val", CT_NumDataSource)
 register_element_cls("c:xVal", CT_NumDataSource)
 register_element_cls("c:yVal", CT_NumDataSource)
@@ -235,11 +239,16 @@ from pptx.oxml.chart.shared import (  # noqa: E402
 
 register_element_cls("c:autoTitleDeleted", CT_Boolean_Explicit)
 register_element_cls("c:autoUpdate", CT_Boolean)
+register_element_cls("c:backward", CT_Double)
 register_element_cls("c:bubble3D", CT_Boolean)
 register_element_cls("c:crossAx", CT_UnsignedInt)
 register_element_cls("c:crossesAt", CT_Double)
 register_element_cls("c:date1904", CT_Boolean)
 register_element_cls("c:delete", CT_Boolean)
+register_element_cls("c:dispEq", CT_Boolean_Explicit)
+register_element_cls("c:dispRSqr", CT_Boolean_Explicit)
+register_element_cls("c:forward", CT_Double)
+register_element_cls("c:intercept", CT_Double)
 register_element_cls("c:idx", CT_UnsignedInt)
 register_element_cls("c:invertIfNegative", CT_Boolean_Explicit)
 register_element_cls("c:layout", CT_Layout)
@@ -250,6 +259,7 @@ register_element_cls("c:min", CT_Double)
 register_element_cls("c:numFmt", CT_NumFmt)
 register_element_cls("c:order", CT_UnsignedInt)
 register_element_cls("c:overlay", CT_Boolean_Explicit)
+register_element_cls("c:period", CT_UnsignedInt)
 register_element_cls("c:ptCount", CT_UnsignedInt)
 register_element_cls("c:showCatName", CT_Boolean_Explicit)
 register_element_cls("c:showLegendKey", CT_Boolean_Explicit)
@@ -570,6 +580,7 @@ from pptx.oxml.slide import (  # noqa: E402
     CT_TransitionMorph,
     CT_TransitionVariant,
 )
+
 # -- `p:cond` / `p:stCondLst` / `p:endCondLst` are registered below in
 # -- the `pptx.oxml.animation` block (canonical home shipped by #102).
 # -- #861 originally registered them here; duplicates were dropped as

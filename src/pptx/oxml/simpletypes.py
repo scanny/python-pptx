@@ -693,6 +693,49 @@ class ST_TargetMode(XsdString):
             raise ValueError("must be one of 'Internal' or 'External', got '%s'" % value)
 
 
+class ST_TrendlineType(XsdStringEnumeration):
+    """Valid values for `val` attribute on `c:trendlineType` (CT_TrendlineType).
+
+    Maps ``ST_TrendlineType`` from ``dml-chart.xsd``: one of ``exp``, ``linear``,
+    ``log``, ``movingAvg``, ``poly``, ``power``.
+    """
+
+    EXP = "exp"
+    LINEAR = "linear"
+    LOG = "log"
+    MOVING_AVG = "movingAvg"
+    POLY = "poly"
+    POWER = "power"
+
+    _members = (EXP, LINEAR, LOG, MOVING_AVG, POLY, POWER)
+
+
+class ST_TrendlineOrder(XsdUnsignedByte):
+    """Polynomial order for a trendline (`c:order/@val`).
+
+    Maps ``ST_Order`` from ``dml-chart.xsd``: an unsigned byte restricted to the
+    inclusive range 2..6. Only meaningful when the trendline type is ``poly``.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 2, 6)
+
+
+class ST_TrendlinePeriod(XsdUnsignedInt):
+    """Moving-average window size for a trendline (`c:period/@val`).
+
+    Maps ``ST_Period`` from ``dml-chart.xsd``: an unsigned int of 2 or greater.
+    Only meaningful when the trendline type is ``movingAvg``.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int(value)
+        if value < 2:
+            raise ValueError("value must be >= 2, got %d" % value)
+
+
 class ST_TextFontScalePercentOrPercentString(BaseFloatType):
     """
     Valid values for the `fontScale` attribute of ``<a:normAutofit>``.
@@ -742,9 +785,7 @@ class ST_TextFontScaleReductionPercent(BaseFloatType):
     def validate(cls, value):
         BaseFloatType.validate(value)
         if value < 0.0 or value > 100.0:
-            raise ValueError(
-                "value must be in range 0.0..100.0 (percent), got %s" % value
-            )
+            raise ValueError("value must be in range 0.0..100.0 (percent), got %s" % value)
 
 
 class ST_TextFontSize(BaseIntType):
@@ -785,9 +826,7 @@ class ST_TextBulletSizePercent(BaseFloatType):
     def validate(cls, value):
         BaseFloatType.validate(value)
         if value < 0.25 or value > 4.0:
-            raise ValueError(
-                "value must be in range 0.25..4.0 (25%% to 400%%), got %s" % value
-            )
+            raise ValueError("value must be in range 0.25..4.0 (25%% to 400%%), got %s" % value)
 
 
 class ST_TextIndentLevelType(BaseIntType):

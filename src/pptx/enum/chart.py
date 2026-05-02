@@ -380,6 +380,39 @@ class XL_ERROR_BAR_TYPE(BaseXmlEnum):
     """Error bar magnitude is the standard error of the series values."""
 
 
+class XL_TRENDLINE_TYPE(BaseXmlEnum):
+    """Specifies the regression type for a chart trendline.
+
+    Example::
+
+        from pptx.enum.chart import XL_TRENDLINE_TYPE
+
+        series.add_trendline(XL_TRENDLINE_TYPE.LINEAR)
+
+    MS API Name: `XlTrendlineType`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xltrendlinetype
+    """
+
+    EXPONENTIAL = (5, "exp", "Exponential trendline (`y = a * e^(b*x)`).")
+    """Exponential trendline (`y = a * e^(b*x)`)."""
+
+    LINEAR = (-4132, "linear", "Linear-regression trendline.")
+    """Linear-regression trendline."""
+
+    LOGARITHMIC = (-4133, "log", "Logarithmic trendline (`y = a * ln(x) + b`).")
+    """Logarithmic trendline (`y = a * ln(x) + b`)."""
+
+    MOVING_AVG = (6, "movingAvg", "Moving-average trendline over a given window.")
+    """Moving-average trendline over a given window."""
+
+    POLYNOMIAL = (3, "poly", "Polynomial-regression trendline of a given order.")
+    """Polynomial-regression trendline of a given order."""
+
+    POWER = (4, "power", "Power trendline (`y = a * x^b`).")
+    """Power trendline (`y = a * x^b`)."""
+
+
 class XL_DATA_LABEL_POSITION(BaseXmlEnum):
     """Specifies where the data label is positioned.
 
@@ -634,7 +667,11 @@ class XL_CROSS_BETWEEN(BaseXmlEnum):
     BETWEEN = (2, "between", "Value axis crosses the category axis between categories.")
     """Value axis crosses the category axis between categories."""
 
-    MIDPOINT = (1, "midCat", "Value axis crosses the category axis at the midpoint of each category.")
+    MIDPOINT = (
+        1,
+        "midCat",
+        "Value axis crosses the category axis at the midpoint of each category.",
+    )
     """Value axis crosses the category axis at the midpoint of each category."""
 
 
