@@ -102,12 +102,29 @@ class NotesMasterPart(BaseSlidePart):
     @classmethod
     def _new_theme_part(cls, package):
         """Return new default theme-part suitable for use with a notes master."""
-        return XmlPart(
+        return ThemePart(
             package.next_partname("/ppt/theme/theme%d.xml"),
             CT.OFC_THEME,
             package,
             CT_OfficeStyleSheet.new_default(),
         )
+
+
+class ThemePart(XmlPart):
+    """Theme part.
+
+    Corresponds to package files ``ppt/theme/theme[1-9][0-9]*.xml`` and holds the
+    color scheme, font scheme, and effect scheme that drive inheritance throughout
+    a presentation. Exposed primarily as an anchor for accessors such as
+    :attr:`~pptx.oxml.theme.CT_OfficeStyleSheet.hlink_color` (see issue #940).
+    """
+
+    _element: CT_OfficeStyleSheet
+
+    @property
+    def theme(self) -> CT_OfficeStyleSheet:
+        """The `a:theme` XML element proxied by this part."""
+        return self._element
 
 
 class NotesSlidePart(BaseSlidePart):

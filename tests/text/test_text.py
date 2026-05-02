@@ -590,6 +590,76 @@ class DescribeFont(object):
     def it_provides_access_to_its_fill(self, font):
         assert isinstance(font.fill, FillFormat)
 
+    # -- use_theme_hyperlink_color (issue #940) -------------------------
+
+    def it_returns_None_for_use_theme_hyperlink_color_when_no_hyperlink(self):
+        # -- no `a:hlinkClick` on the run => no override marker possible --
+        font = Font(element("a:rPr"))
+        assert font.use_theme_hyperlink_color is None
+
+    def it_returns_None_when_hlinkClick_has_no_override_marker(self):
+        # -- an `a:hlinkClick` without the python-pptx marker => theme applies --
+        font = Font(element("a:rPr/a:hlinkClick"))
+        assert font.use_theme_hyperlink_color is None
+
+    def it_returns_False_when_hlinkClick_carries_override_marker(self):
+        rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:hlinkClick><a:extLst><a:ext uri="{PY-PPTX-940}"/></a:extLst>'
+            "</a:hlinkClick></a:rPr>"
+        )
+        from pptx.oxml import parse_xml
+
+        font = Font(parse_xml(rPr_xml))
+        assert font.use_theme_hyperlink_color is False
+
+    def it_can_opt_out_of_theme_hyperlink_color(self):
+        font = Font(element("a:rPr/a:hlinkClick"))
+        font.use_theme_hyperlink_color = False
+        assert font.use_theme_hyperlink_color is False
+        # -- marker is present exactly once --
+        from pptx.oxml.ns import qn
+
+        hlinkClick = font._element.find(qn("a:hlinkClick"))
+        extLst = hlinkClick.find(qn("a:extLst"))
+        assert extLst is not None
+        exts = extLst.findall(qn("a:ext"))
+        assert len(exts) == 1
+        assert exts[0].get("uri") == "{PY-PPTX-940}"
+
+    def it_is_idempotent_when_opting_out_twice(self):
+        font = Font(element("a:rPr/a:hlinkClick"))
+        font.use_theme_hyperlink_color = False
+        font.use_theme_hyperlink_color = False
+        from pptx.oxml.ns import qn
+
+        hlinkClick = font._element.find(qn("a:hlinkClick"))
+        exts = hlinkClick.find(qn("a:extLst")).findall(qn("a:ext"))
+        assert len(exts) == 1
+
+    def it_can_restore_theme_hyperlink_color_by_setting_True(self):
+        font = Font(element("a:rPr/a:hlinkClick"))
+        font.use_theme_hyperlink_color = False
+        font.use_theme_hyperlink_color = True
+        assert font.use_theme_hyperlink_color is None
+        from pptx.oxml.ns import qn
+
+        hlinkClick = font._element.find(qn("a:hlinkClick"))
+        assert hlinkClick.find(qn("a:extLst")) is None
+
+    def it_can_restore_theme_hyperlink_color_by_setting_None(self):
+        font = Font(element("a:rPr/a:hlinkClick"))
+        font.use_theme_hyperlink_color = False
+        font.use_theme_hyperlink_color = None
+        assert font.use_theme_hyperlink_color is None
+
+    def it_is_a_no_op_to_opt_out_when_run_has_no_hyperlink(self):
+        font = Font(element("a:rPr"))
+        font.use_theme_hyperlink_color = False
+        # -- still None, and rPr still has no children --
+        assert font.use_theme_hyperlink_color is None
+        assert len(font._element) == 0
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[("a:rPr", None), ("a:rPr{b=0}", False), ("a:rPr{b=1}", True)])

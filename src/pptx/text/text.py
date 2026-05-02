@@ -503,6 +503,47 @@ class Font(object):
             value = MSO_UNDERLINE.NONE
         self._element.u = value
 
+    @property
+    def use_theme_hyperlink_color(self) -> bool | None:
+        """Whether the theme hyperlink color applies to this run.
+
+        Read-write tri-state. Addresses issue #940: in PowerPoint the theme
+        color-scheme's `a:hlink` / `a:folHlink` color overrides any explicit
+        `a:solidFill` color set on a run that carries an `a:hlinkClick`, making
+        it impossible to recolor a hyperlinked run from python-pptx alone.
+
+        Values:
+
+        - |None| -- No override marker is present (default). The theme's
+          hyperlink color applies in PowerPoint as usual.
+        - |True| -- Same XML shape as |None| (no marker). Any pre-existing
+          opt-out marker is cleared. Provided for symmetry.
+        - |False| -- Writes a python-pptx-owned `a:extLst/a:ext` marker under
+          the run's `a:hlinkClick` element to record the caller's intent that
+          the run's explicit color be preferred. The marker round-trips
+          through python-pptx and is ignored by PowerPoint.
+
+        Setting the flag has no effect when the run does not yet carry a
+        hyperlink; call `Run.hyperlink.address = ...` first. PowerPoint
+        honors the run's explicit color only if the theme's hyperlink color
+        is also replaced -- see
+        :ref:`hyperlink-color <text-hyperlink-color-guide>` in the user guide
+        for the recommended pattern.
+        """
+        hlinkClick = self._rPr.hlinkClick
+        if hlinkClick is None:
+            return None
+        return False if hlinkClick.suppress_theme_color else None
+
+    @use_theme_hyperlink_color.setter
+    def use_theme_hyperlink_color(self, value: bool | None):
+        hlinkClick = self._rPr.hlinkClick
+        if hlinkClick is None:
+            # -- no-op when the run has no hyperlink; nothing to annotate --
+            return
+        # -- `None` and `True` both mean "no override marker" --
+        hlinkClick.suppress_theme_color = value is False
+
 
 class _Hyperlink(Subshape):
     """Text run hyperlink object.

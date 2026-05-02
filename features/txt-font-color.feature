@@ -53,3 +53,18 @@ Feature: Query and set font color
     | an RGB     | -0.25 |
     | a theme    |  0.4  |
     | an RGB     |  0    |
+
+  # -- hyperlink color override (issue #940) -----------------------
+
+  Scenario: Override theme hyperlink color on a run
+    Given a font on a hyperlinked run with an explicit RGB color
+     Then font.use_theme_hyperlink_color is None
+     When I assign False to font.use_theme_hyperlink_color
+      And I save and reload the presentation
+     Then font.use_theme_hyperlink_color is False
+      And the run's explicit RGB color is preserved
+
+  Scenario: Restore theme hyperlink color on a run
+    Given a font on a hyperlinked run with theme color opted out
+     When I assign True to font.use_theme_hyperlink_color
+     Then font.use_theme_hyperlink_color is None

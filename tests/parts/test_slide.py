@@ -144,7 +144,7 @@ class DescribeNotesMasterPart(object):
         assert notes_master_part is notes_master_part_
 
     def it_creates_a_new_theme_part_to_help(self, request, package_, theme_part_):
-        XmlPart_ = class_mock(request, "pptx.parts.slide.XmlPart", return_value=theme_part_)
+        ThemePart_ = class_mock(request, "pptx.parts.slide.ThemePart", return_value=theme_part_)
         theme_elm = element("p:theme")
         method_mock(
             request,
@@ -161,7 +161,7 @@ class DescribeNotesMasterPart(object):
 
         package_.next_partname.assert_called_once_with(pn_tmpl)
         CT_OfficeStyleSheet.new_default.assert_called_once_with()
-        XmlPart_.assert_called_once_with(partname, CT.OFC_THEME, package_, theme_elm)
+        ThemePart_.assert_called_once_with(partname, CT.OFC_THEME, package_, theme_elm)
         assert theme_part is theme_part_
 
     # fixture components ---------------------------------------------
