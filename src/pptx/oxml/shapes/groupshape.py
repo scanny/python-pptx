@@ -142,10 +142,33 @@ class CT_GroupShape(BaseShapeElement):
         """Generate each child of this `p:spTree` element that corresponds to a shape.
 
         Items appear in XML document order.
+
+        Shapes wrapped in ``mc:AlternateContent`` are unwrapped to surface the first
+        ``mc:Choice`` child's shape element. This is specifically required for Office 2016+
+        extended (``cx:``/chartex) charts — funnel, treemap, sunburst, waterfall, histogram,
+        box-and-whisker, and map — which PowerPoint commonly writes inside an
+        ``mc:AlternateContent`` envelope with a legacy-chart fallback. Without this
+        unwrapping those shapes are invisible to :attr:`slide.shapes` and are silently
+        dropped on save.
+
+        This is a targeted precursor to full ``mc:AlternateContent`` traversal; the
+        subtree is kept in the XML so round-trip fidelity is preserved.
         """
+        ac_tag = qn("mc:AlternateContent")
         for elm in self.iterchildren():
             if elm.tag in self._shape_tags:
                 yield elm
+            elif elm.tag == ac_tag:
+                # -- unwrap first mc:Choice that contains a known shape element --
+                for choice_or_fallback in elm.iterchildren():
+                    # -- prefer mc:Choice over mc:Fallback --
+                    if choice_or_fallback.tag != qn("mc:Choice"):
+                        continue
+                    for inner in choice_or_fallback.iterchildren():
+                        if inner.tag in self._shape_tags:
+                            yield inner
+                            break
+                    break
 
     @property
     def max_shape_id(self) -> int:

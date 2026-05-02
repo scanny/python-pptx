@@ -290,6 +290,20 @@ class XL_CHART_TYPE(BaseEnum):
     XY_SCATTER_SMOOTH_NO_MARKERS = (73, "Scatter with Smoothed Lines and No Data Markers.")
     """Scatter with Smoothed Lines and No Data Markers."""
 
+    UNSUPPORTED_CHARTEX = (
+        -9999,
+        "Unsupported Office 2016+ extended chart (chartex: funnel, treemap, sunburst, waterfall,"
+        " histogram, box-and-whisker, map).",
+    )
+    """Unsupported Office 2016+ extended chart type.
+
+    Returned for charts in the ``cx:`` (chartex) namespace — funnel, treemap, sunburst,
+    waterfall, histogram/Pareto, box-and-whisker, and map. python-pptx cannot currently read or
+    modify the contents of these charts; they are surfaced as discoverable graphic frames so
+    round-trip preserves the original XML rather than silently dropping the shape. This value
+    is a python-pptx sentinel and has no Microsoft API counterpart.
+    """
+
 
 class XL_DATA_LABEL_POSITION(BaseXmlEnum):
     """Specifies where the data label is positioned.

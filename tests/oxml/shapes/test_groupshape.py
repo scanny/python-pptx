@@ -88,6 +88,55 @@ class DescribeCT_GroupShape(object):
         x, y, cx, cy = xSp._child_extents
         assert (x, y, cx, cy) == expected_values
 
+    def it_iterates_over_direct_shape_children_in_document_order(self):
+        spTree = element("p:spTree/(p:sp,p:pic,p:graphicFrame)")
+
+        elms = list(spTree.iter_shape_elms())
+
+        tags = [e.tag.rsplit("}", 1)[1] for e in elms]
+        assert tags == ["sp", "pic", "graphicFrame"]
+
+    def it_unwraps_mc_AlternateContent_to_surface_its_Choice_shape_child(self):
+        spTree = element(
+            "p:spTree/mc:AlternateContent/(mc:Choice/p:graphicFrame/a:graphic/"
+            "a:graphicData{uri=http://schemas.microsoft.com/office/drawing/2014/"
+            "chartex},mc:Fallback/p:graphicFrame/a:graphic/a:graphicData{uri=foo})"
+        )
+
+        elms = list(spTree.iter_shape_elms())
+
+        assert len(elms) == 1
+        elm = elms[0]
+        assert elm.tag.endswith("}graphicFrame")
+        assert elm.graphic.graphicData.uri == (
+            "http://schemas.microsoft.com/office/drawing/2014/chartex"
+        )
+
+    def and_it_preserves_the_AlternateContent_subtree_in_the_XML(self):
+        # -- unwrapping is transient at iteration; the XML tree is untouched --
+        spTree = element(
+            "p:spTree/mc:AlternateContent/(mc:Choice/p:graphicFrame/a:graphic/"
+            "a:graphicData{uri=http://schemas.microsoft.com/office/drawing/2014/"
+            "chartex},mc:Fallback/p:graphicFrame/a:graphic/a:graphicData{uri=foo})"
+        )
+
+        list(spTree.iter_shape_elms())  # -- iterating must not mutate tree --
+
+        assert "AlternateContent" in spTree.xml
+        assert "Fallback" in spTree.xml
+
+    def it_mixes_direct_shapes_and_AlternateContent_children_in_document_order(self):
+        spTree = element(
+            "p:spTree/(p:sp,mc:AlternateContent/mc:Choice/p:graphicFrame/a:graphic"
+            "/a:graphicData{uri=http://schemas.microsoft.com/office/drawing/2014/"
+            "chartex},p:pic)"
+        )
+
+        elms = list(spTree.iter_shape_elms())
+
+        tags = [e.tag.rsplit("}", 1)[1] for e in elms]
+        assert tags == ["sp", "graphicFrame", "pic"]
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture

@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #386 surface unsupported chartex chart types without dropping
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
