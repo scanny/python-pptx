@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #773 guard fit_text() when no fitting layout is found
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

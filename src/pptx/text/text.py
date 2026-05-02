@@ -93,6 +93,10 @@ class TextFrame(Subshape):
         as `font_file`, that font file will be used for the font metrics. If `font_file` is |None|,
         best efforts are made to locate a font file with matchhing `font_family`, `bold`, and
         `italic` installed on the current system (usually succeeds if the font is installed).
+
+        Raises :class:`pptx.exc.TextLayoutError` when no point size between 1 and `max_size`
+        allows the text to fit the shape -- for example when a single word is too wide to fit
+        the shape at the smallest considered size.
         """
         # ---no-op when empty as fit behavior not defined for that case---
         if self.text == "":
