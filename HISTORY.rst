@@ -154,6 +154,36 @@ Unreleased
   full ``Presentation.save`` + reopen round-trip confirming the
   rewired relationships survive packaging.
 
+- verify: #819 (image replacing) resolved by #834 / #116
+  :meth:`.Picture.replace_image`. The #819 reporter wanted to locate a
+  picture on a later program run via its ``cNvPr/@descr`` alt-text and
+  swap its pixel bytes without disturbing its position, size, or
+  identifying attributes. Their sketched workaround ``deleteShape`` +
+  :meth:`.SlideShapes.add_picture` failed because ``add_picture`` mints
+  a fresh ``descr`` from the new source image's filename (the reporter's
+  observed "replaced with image.png" symptom), so the next run's
+  find-by-descr loop could no longer locate the shape. Their second
+  attempt reached into :class:`.ImagePart` internals via a non-existent
+  ``SlidePart.relatedpart`` method and rewrote ``_blob`` directly — a
+  path that cannot work correctly because image parts are shared across
+  shapes via content-hash deduplication. Wave 6 #834
+  (``feat/issue-834-picture-replace-image``) shipped
+  :meth:`.Picture.replace_image` which answers #819 directly: it adds
+  (or reuses, via :meth:`.SlidePart.get_or_add_image_part`) an image
+  part, rebinds ``p:pic/p:blipFill/a:blip/@r:embed`` to the new rId,
+  and drops the previous image relationship — leaving position, size,
+  rotation, cropping, masking shape, outline, and crucially the
+  ``cNvPr/@name`` + ``cNvPr/@descr`` identity of the shape untouched,
+  so the reporter's find-by-descr loop keeps working across every
+  subsequent program run. #819 is therefore a duplicate of #834 / #116.
+  Adds a regression suite ``DescribeIssue819ImageReplacing`` under
+  ``tests/test_issue_819_picture_replace.py`` that pins the reporter's
+  exact workflow — find a picture by :attr:`.BaseShape.alt_text`,
+  :meth:`.Picture.replace_image` its pixels, save + reopen, confirm the
+  descr still locates the shape, and repeat the cycle — alongside the
+  file-like-replacement form matching the reporter's ``open(path,
+  "rb")`` snippet.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
