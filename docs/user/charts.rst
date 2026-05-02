@@ -274,3 +274,26 @@ series, darker and lighter versions of those same colors are used. While it's
 possible to assign specific colors to data points (bar, line, pie segment,
 etc.) for at least some chart types, the best strategy to start with is
 changing the theme colors in your starting "template" presentation.
+
+
+Extended chart-style values (Office 2010+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :attr:`Chart.chart_style` property accepts two ranges:
+
+* ``1..48`` — the classic *chart style* gallery introduced with Office 2007. Stored
+  as a bare ``<c:style val="N"/>`` child of the chart part.
+* ``101..148`` (and, in principle, any ``xsd:unsignedByte`` above 48) — the *extended*
+  chart styles introduced with Office 2010. These are stored as a ``<c14:style val="N"/>``
+  element wrapped in a ``<mc:AlternateContent>`` / ``<mc:Choice Requires="c14">`` element,
+  together with a ``<c:style val="M"/>`` fallback (``M = N mod 100``) for Office 2007-era
+  readers. The extended styles let PowerPoint pick pure *Accent-N* colours for every
+  series in a chart with six or more series instead of darker/lighter shaded alternates of
+  Accent 1 through Accent 6. See GitHub issue
+  `#516 <https://github.com/scanny/python-pptx/issues/516>`_ for background.
+
+Before |pp| 1.0.1, reading :attr:`Chart.chart_style` returned ``None`` when the chart
+was authored by PowerPoint with an extended ``c14:style`` value (which is the common
+case for charts edited in modern PowerPoint). It now transparently surfaces the extended
+value, and writes the full ``<mc:AlternateContent>`` wrapper when you assign a value
+greater than 48.

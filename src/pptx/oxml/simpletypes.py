@@ -615,6 +615,21 @@ class ST_Style(XsdUnsignedByte):
         cls.validate_int_in_range(value, 1, 48)
 
 
+class ST_StyleEx(XsdUnsignedByte):
+    """Valid values for the `val` attribute of `c14:style`.
+
+    The `c14:style` extension (Office 2010+, wrapped in `mc:AlternateContent`) supplies a chart
+    style index that can exceed the 1-48 range of `c:style`. The extended index typically adds
+    100 to a base 1-48 index (e.g. 118 = AccentN-colored variant of base style 18), enabling
+    charts with 6+ series to use pure accent colors instead of shaded alternates. Values outside
+    the 1-255 range are rejected because the underlying XSD type is `xsd:unsignedByte`.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 1, 255)
+
+
 class ST_TargetMode(XsdString):
     """
     The valid values for the ``TargetMode`` attribute in a Relationship

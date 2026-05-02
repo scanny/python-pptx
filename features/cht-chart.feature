@@ -106,3 +106,16 @@ Feature: Chart properties
   Scenario: Chart.series
     Given a Chart object as chart
      Then chart.series is a SeriesCollection object
+
+
+  Scenario: Chart.chart_style reads extended c14:style value (issue #516)
+    Given a chart with an extended c14:style wrapped in mc:AlternateContent
+     Then chart.chart_style is 118
+
+
+  Scenario: Chart.chart_style writes an mc:AlternateContent wrapper for extended values
+    Given a chart with no explicit chart style
+     When I assign 118 to chart.chart_style
+     Then chart.chart_style is 118
+      And chartSpace has an mc:AlternateContent/mc:Choice/c14:style val=118
+      And chartSpace has an mc:AlternateContent/mc:Fallback/c:style val=18

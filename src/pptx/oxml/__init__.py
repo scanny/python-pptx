@@ -87,6 +87,7 @@ from pptx.oxml.chart.chart import (  # noqa: E402
     CT_ExternalData,
     CT_PlotArea,
     CT_Style,
+    CT_StyleEx,
 )
 
 register_element_cls("c:chart", CT_Chart)
@@ -94,6 +95,7 @@ register_element_cls("c:chartSpace", CT_ChartSpace)
 register_element_cls("c:externalData", CT_ExternalData)
 register_element_cls("c:plotArea", CT_PlotArea)
 register_element_cls("c:style", CT_Style)
+register_element_cls("c14:style", CT_StyleEx)
 
 
 from pptx.oxml.chart.datalabel import CT_DLbl, CT_DLblPos, CT_DLbls  # noqa: E402

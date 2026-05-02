@@ -7,6 +7,7 @@ Unreleased
 ++++++++++
 
 - Foundation: mc:AlternateContent traversal
+- #516 Chart Colors Sometimes Using Extended Alternates
 
 
 1.0.2 (2024-08-07)

@@ -127,6 +127,133 @@ class DescribeChart(object):
         chart.chart_style = new_value
         assert chart._chartSpace.xml == expected_xml
 
+    def it_reads_the_c14_extended_style_when_mc_AlternateContent_wraps_it(self):
+        # -- #516 — chart style wrapped in mc:AlternateContent should be surfaced --
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006'
+            '/chart" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibili'
+            'ty/2006">\n'
+            "  <mc:AlternateContent>\n"
+            '    <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/'
+            '2007/8/2/chart" Requires="c14">\n'
+            '      <c14:style val="118"/>\n'
+            "    </mc:Choice>\n"
+            "    <mc:Fallback>\n"
+            '      <c:style val="18"/>\n'
+            "    </mc:Fallback>\n"
+            "  </mc:AlternateContent>\n"
+            "  <c:chart><c:plotArea/></c:chart>\n"
+            "</c:chartSpace>"
+        )
+        from pptx.oxml import parse_xml
+
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        assert chart.chart_style == 118
+
+    def it_falls_back_to_plain_style_when_no_alternate_content_wrapper(self):
+        chart = Chart(element("c:chartSpace/c:style{val=34}"), None)
+        assert chart.chart_style == 34
+
+    def it_returns_None_when_neither_style_nor_c14_style_present(self):
+        chart = Chart(element("c:chartSpace"), None)
+        assert chart.chart_style is None
+
+    def it_can_set_an_extended_chart_style_value(self):
+        chart = Chart(element("c:chartSpace/c:chart"), None)
+
+        chart.chart_style = 118
+
+        # -- reading back yields the extended value --
+        assert chart.chart_style == 118
+        # -- wrapper was inserted --
+        ac = chart._chartSpace.find(
+            "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
+            "AlternateContent"
+        )
+        assert ac is not None
+        choice = ac.find(
+            "{http://schemas.openxmlformats.org/markup-compatibility/2006}Choice"
+        )
+        assert choice.get("Requires") == "c14"
+        c14_style = choice.find(
+            "{http://schemas.microsoft.com/office/drawing/2007/8/2/chart}style"
+        )
+        assert c14_style is not None
+        assert c14_style.get("val") == "118"
+        fallback = ac.find(
+            "{http://schemas.openxmlformats.org/markup-compatibility/2006}Fallback"
+        )
+        c_style = fallback.find(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}style"
+        )
+        # -- fallback is the base style (118 % 100 = 18) --
+        assert c_style.get("val") == "18"
+
+    def it_drops_the_AlternateContent_wrapper_when_set_to_a_plain_value(self):
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006'
+            '/chart" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibili'
+            'ty/2006">\n'
+            "  <mc:AlternateContent>\n"
+            '    <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/'
+            '2007/8/2/chart" Requires="c14">\n'
+            '      <c14:style val="118"/>\n'
+            "    </mc:Choice>\n"
+            "    <mc:Fallback>\n"
+            '      <c:style val="18"/>\n'
+            "    </mc:Fallback>\n"
+            "  </mc:AlternateContent>\n"
+            "  <c:chart><c:plotArea/></c:chart>\n"
+            "</c:chartSpace>"
+        )
+        from pptx.oxml import parse_xml
+
+        chart = Chart(parse_xml(chartSpace_xml), None)
+
+        chart.chart_style = 4
+
+        assert chart.chart_style == 4
+        assert (
+            chart._chartSpace.find(
+                "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
+                "AlternateContent"
+            )
+            is None
+        )
+
+    def it_drops_both_plain_and_extended_style_when_set_to_None(self):
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006'
+            '/chart" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibili'
+            'ty/2006">\n'
+            "  <mc:AlternateContent>\n"
+            '    <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/'
+            '2007/8/2/chart" Requires="c14">\n'
+            '      <c14:style val="118"/>\n'
+            "    </mc:Choice>\n"
+            "    <mc:Fallback>\n"
+            '      <c:style val="18"/>\n'
+            "    </mc:Fallback>\n"
+            "  </mc:AlternateContent>\n"
+            "  <c:chart><c:plotArea/></c:chart>\n"
+            "</c:chartSpace>"
+        )
+        from pptx.oxml import parse_xml
+
+        chart = Chart(parse_xml(chartSpace_xml), None)
+
+        chart.chart_style = None
+
+        assert chart.chart_style is None
+        assert (
+            chart._chartSpace.find(
+                "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
+                "AlternateContent"
+            )
+            is None
+        )
+        assert chart._chartSpace.style is None
+
     def it_can_replace_the_chart_data(self, replace_fixture):
         (
             chart,
