@@ -12,6 +12,23 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #620 (dynamically replicating a slide) resolved by Wave 1 #132.
+  Issue #620 (https://github.com/scanny/python-pptx/issues/620) asked for
+  a way to duplicate an existing slide — one that carries text
+  placeholders, a picture, a chart, and a table — and then mutate content
+  on the copy without disturbing the source. Wave 1 #132 shipped
+  :meth:`Slides.duplicate`, which returns a newly-added slide with a
+  deep-copied shape tree, shares image/chart/OLE/media parts with the
+  source by relationship reuse (no content is re-embedded), and allocates
+  a fresh slide-id so the copy is fully independent. Adds a regression
+  suite ``DescribeIssue620DuplicateAndEdit`` under
+  ``tests/test_issue_620_duplicate_and_edit_verify.py`` that pins the
+  reporter's workflow end-to-end: duplicate a rich slide carrying all
+  four content kinds, edit the duplicate's title and confirm the source
+  title is unchanged, round-trip the pair through ``Presentation.save`` +
+  reopen, and duplicate the same source twice in a row without mutating
+  its shape tree.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
