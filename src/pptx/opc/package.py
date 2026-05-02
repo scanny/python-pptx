@@ -208,6 +208,22 @@ class OpcPackage(_RelatableMixin):
             password=password,
         )
 
+    def save_flat_xml(self, pkg_file: str | IO[bytes]) -> None:
+        """Save this package to `pkg_file` as a Flat OPC (single-XML) document.
+
+        Flat OPC is the "XML Presentation" format defined in ECMA-376 Part 4:
+        the entire package is serialized as a single XML document with one
+        ``<pkg:part>`` child per package item. XML parts are embedded inline,
+        binary parts (images, embedded fonts, OLE, media) are base64-encoded.
+
+        `pkg_file` is either a filesystem path (``str``) or a file-like object
+        opened for binary writing.
+        """
+        # -- imported lazily to keep the hot-path save unaffected --
+        from pptx.opc.flat_opc import FlatOpcWriter
+
+        FlatOpcWriter.write(pkg_file, self._rels, tuple(self.iter_parts()))
+
 
     def _load(self) -> Self:
         """Return the package after loading all parts and relationships."""

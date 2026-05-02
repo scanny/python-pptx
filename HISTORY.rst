@@ -145,6 +145,18 @@ Unreleased
   without inspecting the image bytes, so callers should supply explicit
   dimensions to match the target image). End-to-end coverage lives in
   ``tests/test_issue_806_linked_picture.py``.
+- feat: #1059 save as Flat OPC (XML Presentation) single-file XML. Adds
+  ``Presentation.save_flat_xml(path_or_stream)`` (with matching
+  ``PresentationPart.save_flat_xml`` / ``OpcPackage.save_flat_xml`` on the
+  lower layers) that serializes the entire package as one ECMA-376 Part 4
+  ``<pkg:package>`` document: every part is emitted as a ``<pkg:part>``
+  child with its content type carried inline, XML parts embedded inside
+  ``<pkg:xmlData>`` and binary parts (images, fonts, OLE, media)
+  base64-encoded inside ``<pkg:binaryData>``. The output is prefixed with
+  the ``<?mso-application progid="PowerPoint.Show"?>`` processing
+  instruction so PowerPoint opens the resulting ``.xml`` file in the same
+  way as its native "Save As → XML Presentation" command. Implemented in a
+  new ``pptx.opc.flat_opc`` module.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

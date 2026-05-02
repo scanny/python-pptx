@@ -174,6 +174,15 @@ class PresentationPart(XmlPart):
         """
         self.package.save(path_or_stream, zip_date_time, password=password)
 
+    def save_flat_xml(self, path_or_stream: str | IO[bytes]) -> None:
+        """Save this presentation package to `path_or_stream` as Flat OPC XML.
+
+        Flat OPC is the single-file "XML Presentation" format defined in
+        ECMA-376 Part 4. See :meth:`pptx.presentation.Presentation.save_flat_xml`
+        for details.
+        """
+        self.package.save_flat_xml(path_or_stream)
+
     def slide_id(self, slide_part):
         """Return the slide-id associated with `slide_part`."""
         for sldId in self._element.sldIdLst:
