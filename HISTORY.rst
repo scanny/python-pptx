@@ -134,6 +134,8 @@ Unreleased
 
 - verify: #720 resolved by #337 EA/CS font slots
 
+- verify: #343 resolved by #337 EA/CS font slots
+
 - verify: #838 (bounding boxes wrongly parsed for shapes inside GroupShape)
   resolved by #925's ``effective_*`` properties on :class:`.BaseShape`. The
   #838 reporter's raw ``shape.left`` / ``shape.top`` / ``shape.width`` /
