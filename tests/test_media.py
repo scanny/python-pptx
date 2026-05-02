@@ -80,6 +80,16 @@ class DescribeVideo(object):
             (None, "foo.bar", "bar"),
             ("video/mp4", None, "mp4"),
             ("video/xyz", None, "vid"),
+            ("audio/mpeg", None, "mp3"),
+            ("audio/mp3", None, "mp3"),
+            ("audio/mp4", None, "m4a"),
+            ("audio/wav", None, "wav"),
+            ("audio/x-wav", None, "wav"),
+            ("audio/midi", None, "mid"),
+            ("audio/aiff", None, "aiff"),
+            ("audio/ogg", None, "ogg"),
+            ("audio/x-ms-wma", None, "wma"),
+            (None, "song.mp3", "mp3"),
         ]
     )
     def ext_fixture(self, request):

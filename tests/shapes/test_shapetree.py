@@ -1845,7 +1845,16 @@ class Describe_MoviePicElementCreator(object):
         pic = movie_pic_element_creator._pic
 
         new_video_pic_.assert_called_once_with(
-            shape_id, shape_name, video_rId, media_rId, poster_frame_rId, x, y, cx, cy
+            shape_id,
+            shape_name,
+            video_rId,
+            media_rId,
+            poster_frame_rId,
+            x,
+            y,
+            cx,
+            cy,
+            is_audio=False,
         )
         assert pic is pic_
 
@@ -1853,6 +1862,43 @@ class Describe_MoviePicElementCreator(object):
         movie_pic_element_creator, filename = shape_name_fixture
         shape_name = movie_pic_element_creator._shape_name
         assert shape_name == filename
+
+    @pytest.mark.parametrize(
+        "mime_type, expected_is_audio",
+        [
+            (None, False),
+            ("video/mp4", False),
+            ("video/unknown", False),
+            ("VIDEO/mp4", False),
+            ("audio/mpeg", True),
+            ("audio/wav", True),
+            ("audio/x-ms-wma", True),
+            ("AUDIO/mp3", True),
+        ],
+    )
+    def it_detects_audio_from_mime_type(self, mime_type, expected_is_audio):
+        """`_is_audio` returns True for 'audio/*' mime-types and False otherwise."""
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, mime_type  # type: ignore
+        )
+        assert movie_pic_element_creator._is_audio is expected_is_audio
+
+    def it_creates_an_audio_pic_element_for_audio_mime_type(self, request: pytest.FixtureRequest):
+        """`_pic` passes `is_audio=True` to `new_video_pic` when mime-type is audio."""
+        new_video_pic_ = method_mock(request, CT_Picture, "new_video_pic", autospec=False)
+        property_mock(request, _MoviePicElementCreator, "_shape_name", return_value="audio.mp3")
+        property_mock(request, _MoviePicElementCreator, "_video_rId", return_value="rId1")
+        property_mock(request, _MoviePicElementCreator, "_media_rId", return_value="rId2")
+        property_mock(request, _MoviePicElementCreator, "_poster_frame_rId", return_value="rId3")
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, 42, None, 1, 2, 3, 4, None, "audio/mpeg"  # type: ignore
+        )
+
+        movie_pic_element_creator._pic  # noqa: B018
+
+        new_video_pic_.assert_called_once_with(
+            42, "audio.mp3", "rId1", "rId2", "rId3", 1, 2, 3, 4, is_audio=True
+        )
 
     def it_constructs_the_video_to_help(self, video_fixture):
         movie_pic_element_creator, movie_file = video_fixture[:2]

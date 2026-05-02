@@ -82,12 +82,19 @@ class CT_Picture(BaseShapeElement):
         y: Length,
         cx: Length,
         cy: Length,
+        is_audio: bool = False,
     ) -> CT_Picture:
-        """Return a new `p:pic` populated with the specified video."""
+        """Return a new `p:pic` populated with the specified media.
+
+        Emits an `<a:audioFile>` sub-element when `is_audio` is |True| and an
+        `<a:videoFile>` sub-element otherwise. Both element types occur as
+        alternatives in the `EG_Media` element group and are structurally
+        identical aside from their tag name.
+        """
         return cast(
             CT_Picture,
             parse_xml(
-                cls._pic_video_tmpl()
+                cls._pic_video_tmpl(is_audio=is_audio)
                 % (
                     shape_id,
                     shape_name,
@@ -212,8 +219,9 @@ class CT_Picture(BaseShapeElement):
         )
 
     @classmethod
-    def _pic_video_tmpl(cls):
-        return (
+    def _pic_video_tmpl(cls, is_audio: bool = False):
+        media_tag = "a:audioFile" if is_audio else "a:videoFile"
+        tmpl = (
             "<p:pic %s>\n"
             "  <p:nvPicPr>\n"
             '    <p:cNvPr id="%%d" name="%%s">\n'
@@ -223,7 +231,7 @@ class CT_Picture(BaseShapeElement):
             '      <a:picLocks noChangeAspect="1"/>\n'
             "    </p:cNvPicPr>\n"
             "    <p:nvPr>\n"
-            '      <a:videoFile r:link="%%s"/>\n'
+            '      <__MEDIA_TAG__ r:link="%%s"/>\n'
             "      <p:extLst>\n"
             '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">\n'
             '          <p14:media xmlns:p14="http://schemas.microsoft.com/of'
@@ -249,6 +257,7 @@ class CT_Picture(BaseShapeElement):
             "  </p:spPr>\n"
             "</p:pic>" % nsdecls("a", "p", "r")
         )
+        return tmpl.replace("__MEDIA_TAG__", media_tag)
 
     def _srcRect_x(self, attr_name):
         """
