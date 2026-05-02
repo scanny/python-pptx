@@ -12,6 +12,18 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
+  documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
+  text frame into a numbered list via the existing
+  ``paragraph.bullet.auto_number(scheme, start_at=None)`` API (shipped under
+  #100). The recipe covers the happy path, skipping a heading paragraph,
+  starting mid-sequence with ``start_at``, and interleaving numbered and
+  un-numbered paragraphs. No API change — the building block already
+  existed; the gap was documentation. A regression test under
+  ``tests/test_issue_655_numbered_lists_verify.py`` asserts the recipe
+  round-trips through ``Presentation.save`` and reads back the expected
+  ``a:buAutoNum`` elements on each paragraph.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
