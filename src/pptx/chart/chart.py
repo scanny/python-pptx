@@ -668,6 +668,52 @@ class ChartTitle(ElementProxy):
         rich = self._title.get_or_add_tx_rich()
         return TextFrame(rich, self)
 
+    @property
+    def position(self):
+        """Read/write ``(x, y)`` tuple of fractional manual-layout offsets.
+
+        Returns ``None`` when the title is laid out automatically (the
+        PowerPoint default). When non-``None``, the tuple contains two
+        ``float`` values in the 0.0-1.0 relative-coordinate space defined by
+        ``c:title/c:layout/c:manualLayout/c:x`` and ``c:y``: ``(0.0, 0.0)``
+        pins the top-left of the title to the top-left of the chart, and
+        ``(1.0, 1.0)`` to the bottom-right; values outside that range are
+        accepted and render as off-chart positions just as PowerPoint allows.
+
+        Assigning a 2-tuple writes ``c:layout/c:manualLayout`` with both
+        ``c:xMode`` and ``c:yMode`` set to ``"factor"`` (the relative-
+        coordinate mode PowerPoint writes when a user drags the title). This
+        pins the title to the manual position — PowerPoint will not
+        automatically reposition it on subsequent edits. Assigning ``None``
+        removes the ``c:layout`` entirely, restoring auto-layout. Assigning
+        a non-2-tuple raises :class:`ValueError`.
+
+        Implements GitHub issue #1030.
+        """
+        layout = self._title.layout
+        if layout is None:
+            return None
+        manualLayout = layout.manualLayout
+        if manualLayout is None:
+            return None
+        return manualLayout.position
+
+    @position.setter
+    def position(self, value):
+        if value is None:
+            self._title._remove_layout()
+            return
+        try:
+            x, y = value
+        except (TypeError, ValueError):
+            raise ValueError(
+                "ChartTitle.position must be a 2-tuple (x, y) or None, got %r"
+                % (value,)
+            )
+        layout = self._title.get_or_add_layout()
+        manualLayout = layout.get_or_add_manualLayout()
+        manualLayout.position = (x, y)
+
 
 def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):
     """Write `value` to cell `a1_ref` on `sheet` of `chart`'s embedded workbook.

@@ -118,7 +118,9 @@ class CT_ManualLayout(BaseOxmlElement):
         "c:extLst",
     )
     xMode = ZeroOrOne("c:xMode", successors=_tag_seq[2:])
+    yMode = ZeroOrOne("c:yMode", successors=_tag_seq[3:])
     x = ZeroOrOne("c:x", successors=_tag_seq[6:])
+    y = ZeroOrOne("c:y", successors=_tag_seq[7:])
     del _tag_seq
 
     @property
@@ -140,6 +142,34 @@ class CT_ManualLayout(BaseOxmlElement):
         self.get_or_add_xMode().val = ST_LayoutMode.FACTOR
         self.get_or_add_x().val = offset
 
+    @property
+    def position(self):
+        """``(x, y)`` tuple of fractional manual-layout offsets, or ``None``.
+
+        Returns ``None`` when either axis is unset or its mode is not
+        ``"factor"`` — matching PowerPoint's "auto" layout semantics where
+        both coordinates must be present for a manual position to take
+        effect. Otherwise returns a ``(float, float)`` pair in the 0.0-1.0
+        relative-to-plot-area coordinate space used by ``c:x`` / ``c:y``.
+        """
+        x, y, xMode, yMode = self.x, self.y, self.xMode, self.yMode
+        if x is None or y is None:
+            return None
+        if xMode is None or xMode.val != ST_LayoutMode.FACTOR:
+            return None
+        if yMode is None or yMode.val != ST_LayoutMode.FACTOR:
+            return None
+        return (x.val, y.val)
+
+    @position.setter
+    def position(self, pos):
+        """Set ``c:x`` + ``c:y`` (mode ``"factor"``) from `(x, y)` tuple."""
+        x, y = pos
+        self.get_or_add_xMode().val = ST_LayoutMode.FACTOR
+        self.get_or_add_yMode().val = ST_LayoutMode.FACTOR
+        self.get_or_add_x().val = float(x)
+        self.get_or_add_y().val = float(y)
+
 
 class CT_NumFmt(BaseOxmlElement):
     """
@@ -156,6 +186,7 @@ class CT_Title(BaseOxmlElement):
 
     _tag_seq = ("c:tx", "c:layout", "c:overlay", "c:spPr", "c:txPr", "c:extLst")
     tx = ZeroOrOne("c:tx", successors=_tag_seq[1:])
+    layout = ZeroOrOne("c:layout", successors=_tag_seq[2:])
     spPr = ZeroOrOne("c:spPr", successors=_tag_seq[4:])
     del _tag_seq
 

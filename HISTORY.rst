@@ -148,6 +148,15 @@ Unreleased
   assigning |None| or the empty string clears the attribute without
   removing the hyperlink element itself so an accompanying URL, sound,
   or slide-jump target survives.
+- feat: #1030 manually set chart title position. ``ChartTitle.position``
+  is a new read/write property returning ``(x, y)`` as a tuple of floats
+  in the 0.0-1.0 relative-to-chart coordinate space defined by
+  ``c:title/c:layout/c:manualLayout/c:x`` + ``c:y``, or ``None`` when
+  the title is laid out automatically (the PowerPoint default).
+  Assigning a 2-tuple writes ``c:layout/c:manualLayout`` with both
+  ``c:xMode`` and ``c:yMode`` set to ``"factor"`` (the same element the
+  PowerPoint UI writes when a user drags the title); assigning ``None``
+  removes the ``c:layout`` entirely, restoring auto-layout.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
