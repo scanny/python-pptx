@@ -6,6 +6,20 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #705 resolved by F2 + #130. Foundation F2 (Wave 1) shipped the
+  full ``a:effectLst`` family on ``pptx.dml.effect`` — ``ShadowFormat``
+  now exposes read/write ``blur_radius`` / ``distance`` / ``direction``
+  / ``color`` (the four knobs the #705 reporter asked for) on top of
+  the pre-existing ``.inherit`` stub, and #130 (Wave 3) lifted the same
+  ``ShadowFormat`` onto ``ChartFormat.shadow``. Issue #446 (Wave 2)
+  tightened the ``inherit = False`` semantics to also zero any sibling
+  ``p:style/a:effectRef/@idx`` so an empty ``a:effectLst`` really does
+  suppress the theme-inherited shadow. Adds a regression suite
+  ``DescribeIssue705ShapeShadows`` under
+  ``tests/test_issue_705_shape_shadows.py`` that pins the full API
+  (blur / distance / direction / color on both ``Shape.shadow`` and
+  ``GroupShape.shadow``) and round-trips every knob through
+  ``Presentation.save`` + reopen.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
