@@ -44,3 +44,8 @@ Feature: Round-trip a presentation
        And I save it twice with zip_date_time fixed to 2020-01-01
       Then both saved streams are byte-for-byte identical
        And every zip member carries the 2020-01-01 00:00:00 last-modified stamp
+  Scenario: Open a PowerPoint template (.potx) file
+     Given a clean working directory
+      When I open a PowerPoint template file
+      Then the presentation is loaded
+       And I see the pptx file in the working directory after saving

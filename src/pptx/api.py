@@ -44,6 +44,16 @@ def _default_pptx_path() -> str:
 
 
 def _is_pptx_package(prs_part: PresentationPart):
-    """Return |True| if *prs_part* is a valid main document part, |False| otherwise."""
-    valid_content_types = (CT.PML_PRESENTATION_MAIN, CT.PML_PRES_MACRO_MAIN)
+    """Return |True| if *prs_part* is a valid main document part, |False| otherwise.
+
+    Accepts the four PresentationML main-part content types: a regular presentation
+    (``.pptx``), a macro-enabled presentation (``.pptm``), a template (``.potx``), and a
+    slideshow (``.ppsx``).
+    """
+    valid_content_types = (
+        CT.PML_PRESENTATION_MAIN,
+        CT.PML_PRES_MACRO_MAIN,
+        CT.PML_TEMPLATE_MAIN,
+        CT.PML_SLIDESHOW_MAIN,
+    )
     return prs_part.content_type in valid_content_types
