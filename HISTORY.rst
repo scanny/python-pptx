@@ -19,6 +19,7 @@ Unreleased
   for introspection or :class:`pptx.animation.AnimationEffect` for
   authoring.
 
+- verify: #1106 entrance/exit animations resolved by #102 set_animation API
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
