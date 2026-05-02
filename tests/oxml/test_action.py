@@ -69,3 +69,21 @@ class DescribeCT_Hyperlink(object):
         exts = extLst.findall(qn("a:ext"))
         assert len(exts) == 1
         assert exts[0].get("uri") == "{OTHER-EXT-UUID}"
+
+    def it_returns_None_tooltip_when_absent(self):
+        hlinkClick = parse_xml(f"<a:hlinkClick {_A_NS}/>")
+        assert hlinkClick.tooltip is None
+
+    def it_reads_the_tooltip_attribute(self):
+        hlinkClick = parse_xml(f'<a:hlinkClick {_A_NS} tooltip="hi"/>')
+        assert hlinkClick.tooltip == "hi"
+
+    def it_can_set_the_tooltip_attribute(self):
+        hlinkClick = parse_xml(f"<a:hlinkClick {_A_NS}/>")
+        hlinkClick.tooltip = "hover text"
+        assert hlinkClick.get("tooltip") == "hover text"
+
+    def it_can_clear_the_tooltip_attribute(self):
+        hlinkClick = parse_xml(f'<a:hlinkClick {_A_NS} tooltip="go away"/>')
+        hlinkClick.tooltip = None
+        assert hlinkClick.get("tooltip") is None

@@ -52,6 +52,9 @@ class CT_Hyperlink(BaseOxmlElement):
     action: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "action", XsdString
     )
+    tooltip: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "tooltip", XsdString
+    )
 
     @property
     def action_fields(self) -> dict[str, str]:
