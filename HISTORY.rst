@@ -23,6 +23,13 @@ Unreleased
   ``tests/test_issue_655_numbered_lists_verify.py`` asserts the recipe
   round-trips through ``Presentation.save`` and reads back the expected
   ``a:buAutoNum`` elements on each paragraph.
+- feat: #378 add ``Font.effective_size``, ``Font.effective_bold``,
+  ``Font.effective_italic``, and ``Font.effective_name`` — read-only
+  properties that walk the inheritance chain (run ``a:rPr`` → paragraph
+  ``a:defRPr`` → text body ``a:lstStyle`` → slide-master ``p:txStyles`` →
+  presentation ``p:defaultTextStyle``) and return the value PowerPoint
+  would actually render, rather than |None| when the run itself declares no
+  explicit value. Mirrors the existing ``Font.effective_color``.
 
 - feat: #194 ``Slides.add_slide(slide_layout, index=None)`` now accepts an
   optional ``index`` keyword so callers can insert a new slide at a

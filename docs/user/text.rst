@@ -285,6 +285,32 @@ run carries a slide-jump, and |None| otherwise. To remove a slide-jump on a
 run, assign |None| or ``del run.hyperlink.target_slide``. The URL-based
 :attr:`._Hyperlink.address` and the slide-jump :attr:`._Hyperlink.target_slide`
 are mutually exclusive -- setting one clears the other.
+Reading effective font properties
+---------------------------------
+
+Most runs do not carry explicit character properties — instead they inherit
+size, typeface, bold, italic, and color from the enclosing paragraph, the
+text body's list style, the slide layout / master's ``p:txStyles``, or the
+presentation's ``p:defaultTextStyle``. Plain ``run.font.size``,
+``run.font.bold``, ``run.font.italic``, ``run.font.name``, and
+``run.font.color.rgb`` therefore frequently return |None| even though
+PowerPoint is rendering something concrete.
+
+The ``effective_*`` read-only properties on |Font| walk the inheritance
+chain in the order PowerPoint uses and return the resolved value::
+
+    for para in text_frame.paragraphs:
+        for run in para.runs:
+            print(run.text,
+                  run.font.effective_name,   # e.g. '+mn-lt' for theme minor
+                  run.font.effective_size,   # Length (EMU), or None
+                  run.font.effective_bold,   # True / False / None
+                  run.font.effective_italic, # True / False / None
+                  run.font.effective_color)  # RGBColor or None
+
+Each ``effective_*`` property returns |None| when no ancestor in the chain
+declares an explicit value (i.e. the run would render using a downstream
+fallback, such as PowerPoint's built-in 18pt default). See issue #378.
 
 
 Text highlight (background) color

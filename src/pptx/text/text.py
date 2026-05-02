@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, NamedTuple, cast
+from typing import TYPE_CHECKING, Any, Iterator, NamedTuple, cast
 
 from pptx.dml.color import ColorFormat as _ColorFormat
 from pptx.dml.color import _Color  # pyright: ignore[reportPrivateUsage]  # noqa: PLC2701
@@ -10,8 +10,13 @@ from pptx.dml.effect import EffectFormat, ShadowFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR, PP_AUTO_NUMBER_SCHEME
-from pptx.enum.text import MSO_AUTO_SIZE, MSO_STRIKE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR
+from pptx.enum.text import (
+    MSO_AUTO_SIZE,
+    MSO_STRIKE,
+    MSO_UNDERLINE,
+    MSO_VERTICAL_ANCHOR,
+    PP_AUTO_NUMBER_SCHEME,
+)
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_TextWrappingType
@@ -565,40 +570,92 @@ class Font(object):
         .. versionadded:: 2026.05.0
         """
         theme_colors = self._theme_colors
-        # -- 1. direct run rPr --
-        rgb = _resolve_solid_fill_rgb(self._rPr, theme_colors)
-        if rgb is not None:
-            return rgb
+        for rPr_like in self._iter_inheritance_rPrs():
+            rgb = _resolve_solid_fill_rgb(rPr_like, theme_colors)
+            if rgb is not None:
+                return rgb
+        return None
 
-        # -- 2. paragraph pPr/defRPr; 3. txBody lstStyle/lvlNpPr/defRPr --
-        p = self._rPr.getparent()
-        # -- walk up until we find an a:p or run out of parents --
-        while p is not None and p.tag != qn("a:p"):
-            p = p.getparent()
-        if p is None:
-            return self._master_txStyle_rgb(0, theme_colors)
+    @property
+    def effective_size(self) -> Length | None:
+        """Resolved font size for this run, walking the inheritance chain.
 
-        lvl = _paragraph_level(p)
-        pPr = p.find(qn("a:pPr"))
-        if pPr is not None:
-            defRPr = pPr.find(qn("a:defRPr"))
-            if defRPr is not None:
-                rgb = _resolve_solid_fill_rgb(defRPr, theme_colors)
-                if rgb is not None:
-                    return rgb
+        Returns the |Length| (in EMU) PowerPoint would render for this run's
+        text, tracing the style hierarchy until an explicit ``sz`` attribute
+        is found:
 
-        txBody = p.getparent()
-        if txBody is not None:
-            lstStyle = txBody.find(qn("a:lstStyle"))
-            if lstStyle is not None:
-                defRPr = _lvl_defRPr(lstStyle, lvl)
-                if defRPr is not None:
-                    rgb = _resolve_solid_fill_rgb(defRPr, theme_colors)
-                    if rgb is not None:
-                        return rgb
+        1. The run's own ``a:rPr/@sz``
+        2. The enclosing paragraph's ``a:pPr/a:defRPr/@sz``
+        3. The enclosing text body's ``a:lstStyle/a:lvl{N}pPr/a:defRPr/@sz``
+           (level-matched to the paragraph's ``@lvl``)
+        4. The slide master's ``p:txStyles`` (``bodyStyle`` / ``otherStyle`` /
+           ``titleStyle``) for the matching paragraph level
+        5. The presentation's ``p:defaultTextStyle`` for the matching level
+        6. |None| when no explicit size can be resolved (PowerPoint will
+           typically fall back to its own default, around 18pt)
 
-        # -- 4. fall back to master's txStyles --
-        return self._master_txStyle_rgb(lvl, theme_colors)
+        Returns |None| when this |Font| was constructed without a part-aware
+        parent (e.g., obtained from a chart ``a:defRPr``), when the
+        inheritance walk can't reach a slide master, or when no ancestor in
+        the chain declares an explicit size. Addresses issue #378.
+
+        .. versionadded:: 2026.05.0
+        """
+        for rPr_like in self._iter_inheritance_rPrs():
+            sz = rPr_like.get("sz")
+            if sz is not None:
+                try:
+                    return Centipoints(int(sz))
+                except (TypeError, ValueError):
+                    continue
+        return None
+
+    @property
+    def effective_bold(self) -> bool | None:
+        """Resolved bold setting for this run, walking the inheritance chain.
+
+        Returns |True| / |False| using the same chain described for
+        :attr:`effective_size` (run rPr → paragraph defRPr → lstStyle →
+        master ``p:txStyles`` → presentation ``p:defaultTextStyle``). Returns
+        |None| when no ancestor in the chain declares an explicit ``b``
+        attribute, the |Font| was constructed without a part-aware parent,
+        or the walk can't reach a slide master. See issue #378.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._effective_bool_attr("b")
+
+    @property
+    def effective_italic(self) -> bool | None:
+        """Resolved italic setting for this run, walking the inheritance chain.
+
+        Returns |True| / |False| using the same chain described for
+        :attr:`effective_size`. Returns |None| when no ancestor declares an
+        explicit ``i`` attribute. See issue #378.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._effective_bool_attr("i")
+
+    @property
+    def effective_name(self) -> str | None:
+        """Resolved Latin typeface name for this run, walking the chain.
+
+        Returns the ``a:latin/@typeface`` value PowerPoint would render for
+        this run's Latin-script text, using the same walk as
+        :attr:`effective_size`. Returns |None| when no ancestor declares an
+        explicit ``a:latin`` child (PowerPoint falls back to the theme's
+        ``a:majorFont`` / ``a:minorFont`` in that case). See issue #378.
+
+        .. versionadded:: 2026.05.0
+        """
+        for rPr_like in self._iter_inheritance_rPrs():
+            latin = rPr_like.find(qn("a:latin"))
+            if latin is not None:
+                typeface = latin.get("typeface")
+                if typeface:
+                    return typeface
+        return None
 
     @property
     def italic(self) -> bool | None:
@@ -846,6 +903,33 @@ class Font(object):
         return None
 
     @property
+    def _presentation_elm(self) -> Any:
+        """The `p:presentation` element reachable from this Font, or |None|.
+
+        Returns the root XML element of the presentation part (which carries
+        the ``p:defaultTextStyle`` consulted by :attr:`effective_size` et al.)
+        when the parent graph makes it reachable. Returns |None| for a Font
+        constructed without a part-aware parent, or when the package has no
+        presentation part bound.
+        """
+        if self._parent is None:
+            return None
+        try:
+            part = self._parent.part
+        except AttributeError:
+            return None
+        try:
+            prs_part = part.package.presentation_part
+        except AttributeError:
+            return None
+        if prs_part is None:
+            return None
+        try:
+            return prs_part.element
+        except AttributeError:
+            return None
+
+    @property
     def _theme_colors(self):
         """Mapping of scheme-color name to |RGBColor|, or |None|."""
         master = self._slide_master
@@ -853,34 +937,94 @@ class Font(object):
             return None
         return master.theme_colors
 
-    def _master_txStyle_rgb(self, lvl, theme_colors):
-        """Return resolved RGB from master's `p:txStyles` for paragraph `lvl`.
+    def _iter_inheritance_rPrs(self) -> Iterator[Any]:
+        """Yield rPr-like elements in style-inheritance order.
 
-        Returns |None| when no color can be resolved. This consults only the
-        `bodyStyle` / `otherStyle` fall-backs (the most common sources for a
-        non-title placeholder or a non-placeholder shape); a more complete
-        walk (title-vs-body selection driven by the placeholder type, and
-        individual layout/master placeholder `a:rPr` overrides) is not
-        attempted in this first cut.
+        Each yielded element is an ``a:rPr`` or ``a:defRPr`` carrying the
+        character properties that PowerPoint consults for this run, ordered
+        from most specific to least specific:
+
+        1. The run's own ``a:rPr``
+        2. The enclosing paragraph's ``a:pPr/a:defRPr``
+        3. The enclosing text body's ``a:lstStyle/a:lvl{N}pPr/a:defRPr``
+           (level-matched to the paragraph)
+        4. The slide master's ``p:txStyles/p:{body,other,title}Style
+           /a:lvl{N}pPr/a:defRPr``
+        5. The presentation's ``p:defaultTextStyle/a:lvl{N}pPr/a:defRPr``
+
+        Consumers that stop at the first match implement the inheritance
+        semantics for a specific attribute (e.g. ``@sz``, ``@b``,
+        ``a:latin``). Used by :attr:`effective_color`,
+        :attr:`effective_size`, :attr:`effective_bold`, :attr:`effective_italic`,
+        and :attr:`effective_name`.
         """
+        # -- 1. direct run rPr --
+        yield self._rPr
+
+        # -- find enclosing a:p --
+        p = self._rPr.getparent()
+        while p is not None and p.tag != qn("a:p"):
+            p = p.getparent()
+
+        lvl = _paragraph_level(p) if p is not None else 0
+
+        # -- 2. paragraph pPr/defRPr --
+        if p is not None:
+            pPr = p.find(qn("a:pPr"))
+            if pPr is not None:
+                defRPr = pPr.find(qn("a:defRPr"))
+                if defRPr is not None:
+                    yield defRPr
+
+            # -- 3. txBody lstStyle/lvlNpPr/defRPr --
+            txBody = p.getparent()
+            if txBody is not None:
+                lstStyle = txBody.find(qn("a:lstStyle"))
+                if lstStyle is not None:
+                    defRPr = _lvl_defRPr(lstStyle, lvl)
+                    if defRPr is not None:
+                        yield defRPr
+
+        # -- 4. master p:txStyles --
         master = self._slide_master
-        if master is None:
-            return None
-        master_elm = master._element  # pyright: ignore[reportPrivateUsage]
-        txStyles = master_elm.find(qn("p:txStyles"))
-        if txStyles is None:
-            return None
-        # -- probe body, other, title styles in that order --
-        for style_tag in ("p:bodyStyle", "p:otherStyle", "p:titleStyle"):
-            style = txStyles.find(qn(style_tag))
-            if style is None:
+        if master is not None:
+            master_elm = master._element  # pyright: ignore[reportPrivateUsage]
+            txStyles = master_elm.find(qn("p:txStyles"))
+            if txStyles is not None:
+                for style_tag in ("p:bodyStyle", "p:otherStyle", "p:titleStyle"):
+                    style = txStyles.find(qn(style_tag))
+                    if style is None:
+                        continue
+                    defRPr = _lvl_defRPr(style, lvl)
+                    if defRPr is not None:
+                        yield defRPr
+
+        # -- 5. presentation p:defaultTextStyle --
+        prs_elm = self._presentation_elm
+        if prs_elm is not None:
+            default_style = prs_elm.find(qn("p:defaultTextStyle"))
+            if default_style is not None:
+                defRPr = _lvl_defRPr(default_style, lvl)
+                if defRPr is not None:
+                    yield defRPr
+
+    def _effective_bool_attr(self, attr_name: str) -> bool | None:
+        """Return the first explicit boolean value of `attr_name` in the chain.
+
+        `attr_name` is the local-name of an OOXML boolean attribute on
+        ``a:rPr`` / ``a:defRPr`` — typically ``"b"`` (bold) or ``"i"``
+        (italic). Returns |None| when no ancestor in the inheritance chain
+        declares the attribute.
+        """
+        for rPr_like in self._iter_inheritance_rPrs():
+            raw = rPr_like.get(attr_name)
+            if raw is None:
                 continue
-            defRPr = _lvl_defRPr(style, lvl)
-            if defRPr is None:
-                continue
-            rgb = _resolve_solid_fill_rgb(defRPr, theme_colors)
-            if rgb is not None:
-                return rgb
+            # -- OOXML boolean lexical space: "1"/"true" / "0"/"false" --
+            if raw in ("1", "true"):
+                return True
+            if raw in ("0", "false"):
+                return False
         return None
 
 

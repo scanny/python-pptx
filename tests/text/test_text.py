@@ -1015,6 +1015,173 @@ class DescribeFont(object):
         font = Font(rPr)
         assert font.effective_color == RGBColor(0x11, 0x22, 0x33)
 
+    # -- effective_size / effective_bold / effective_italic / effective_name
+    # -- (issue #378) ---------------------------------------------------
+
+    def it_returns_None_for_effective_size_when_no_size_declared(self):
+        # -- Font with bare rPr and no containing paragraph => no ancestor --
+        font = Font(element("a:rPr"))
+        assert font.effective_size is None
+
+    def it_resolves_effective_size_from_run_rPr_sz(self):
+        font = Font(element("a:rPr{sz=2400}"))
+        assert font.effective_size == Pt(24)
+
+    def it_resolves_effective_size_from_paragraph_defRPr(self):
+        from pptx.oxml import parse_xml
+
+        p_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:pPr><a:defRPr sz="3600"/></a:pPr>'
+            "<a:r><a:rPr/><a:t>hi</a:t></a:r>"
+            "</a:p>"
+        )
+        p = parse_xml(p_xml)
+        rPr = p[1].rPr
+        font = Font(rPr)
+        assert font.effective_size == Pt(36)
+
+    def it_resolves_effective_size_from_lstStyle_level(self):
+        from pptx.oxml import parse_xml
+
+        txBody_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '         xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<a:bodyPr/>"
+            "<a:lstStyle>"
+            '<a:lvl2pPr><a:defRPr sz="2800"/></a:lvl2pPr>'
+            "</a:lstStyle>"
+            '<a:p><a:pPr lvl="1"/><a:r><a:rPr/><a:t>x</a:t></a:r></a:p>'
+            "</p:txBody>"
+        )
+        txBody = parse_xml(txBody_xml)
+        rPr = txBody[2][1].rPr  # -- a:p -> a:r -> a:rPr --
+        font = Font(rPr)
+        assert font.effective_size == Pt(28)
+
+    def it_prefers_run_rPr_sz_over_paragraph_defRPr_sz(self):
+        # -- run-level setting always wins --
+        from pptx.oxml import parse_xml
+
+        p_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:pPr><a:defRPr sz="3600"/></a:pPr>'
+            '<a:r><a:rPr sz="1800"/><a:t>hi</a:t></a:r>'
+            "</a:p>"
+        )
+        p = parse_xml(p_xml)
+        font = Font(p[1].rPr)
+        assert font.effective_size == Pt(18)
+
+    def it_returns_None_for_effective_bold_when_not_declared(self):
+        font = Font(element("a:rPr"))
+        assert font.effective_bold is None
+
+    def it_resolves_effective_bold_from_run_rPr(self):
+        font_true = Font(element("a:rPr{b=1}"))
+        assert font_true.effective_bold is True
+
+        font_false = Font(element("a:rPr{b=0}"))
+        assert font_false.effective_bold is False
+
+    def it_resolves_effective_bold_from_paragraph_defRPr(self):
+        from pptx.oxml import parse_xml
+
+        p_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:pPr><a:defRPr b="1"/></a:pPr>'
+            "<a:r><a:rPr/><a:t>hi</a:t></a:r>"
+            "</a:p>"
+        )
+        p = parse_xml(p_xml)
+        font = Font(p[1].rPr)
+        assert font.effective_bold is True
+
+    def it_returns_None_for_effective_italic_when_not_declared(self):
+        font = Font(element("a:rPr"))
+        assert font.effective_italic is None
+
+    def it_resolves_effective_italic_from_paragraph_defRPr(self):
+        from pptx.oxml import parse_xml
+
+        p_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:pPr><a:defRPr i="1"/></a:pPr>'
+            "<a:r><a:rPr/><a:t>hi</a:t></a:r>"
+            "</a:p>"
+        )
+        p = parse_xml(p_xml)
+        font = Font(p[1].rPr)
+        assert font.effective_italic is True
+
+    def it_returns_None_for_effective_name_when_no_latin_declared(self):
+        font = Font(element("a:rPr"))
+        assert font.effective_name is None
+
+    def it_resolves_effective_name_from_run_rPr(self):
+        font = Font(element("a:rPr/a:latin{typeface=Arial}"))
+        assert font.effective_name == "Arial"
+
+    def it_resolves_effective_name_from_paragraph_defRPr(self):
+        from pptx.oxml import parse_xml
+
+        p_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<a:pPr><a:defRPr>"
+            '<a:latin typeface="Times New Roman"/>'
+            "</a:defRPr></a:pPr>"
+            "<a:r><a:rPr/><a:t>hi</a:t></a:r>"
+            "</a:p>"
+        )
+        p = parse_xml(p_xml)
+        font = Font(p[1].rPr)
+        assert font.effective_name == "Times New Roman"
+
+    def it_resolves_effective_name_from_lstStyle_level(self):
+        from pptx.oxml import parse_xml
+
+        txBody_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '         xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<a:bodyPr/>"
+            "<a:lstStyle>"
+            '<a:lvl2pPr><a:defRPr><a:latin typeface="Verdana"/></a:defRPr></a:lvl2pPr>'
+            "</a:lstStyle>"
+            '<a:p><a:pPr lvl="1"/><a:r><a:rPr/><a:t>x</a:t></a:r></a:p>'
+            "</p:txBody>"
+        )
+        txBody = parse_xml(txBody_xml)
+        rPr = txBody[2][1].rPr
+        font = Font(rPr)
+        assert font.effective_name == "Verdana"
+
+    def it_resolves_effective_size_end_to_end_through_placeholder(self):
+        """Round-trip: a new textbox with an unset run.font.size resolves
+        through the inheritance chain to a real |Length|.
+
+        Exercises the full path: run.font.size is None, but effective_size
+        walks to the slide master's `p:bodyStyle/a:lvl1pPr/a:defRPr/@sz`.
+        """
+        from pptx import Presentation
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        box = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+        tf = box.text_frame
+        tf.text = "hello"
+        run = tf.paragraphs[0].runs[0]
+
+        # -- the run itself carries no explicit size --
+        assert run.font.size is None
+        # -- but the effective size resolves via the chain (32pt in the
+        # -- bundled default master bodyStyle's lvl1pPr/defRPr) --
+        size = run.font.effective_size
+        assert size is not None
+        assert size == Pt(32)
+        # -- Latin typeface resolves to the theme placeholder (+mn-lt) --
+        assert run.font.effective_name == "+mn-lt"
+
     # -- use_theme_hyperlink_color (issue #940) -------------------------
 
     def it_returns_None_for_use_theme_hyperlink_color_when_no_hyperlink(self):
