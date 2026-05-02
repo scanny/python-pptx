@@ -30,6 +30,21 @@ A |Table| object is added to a slide using the
    :undoc-members:
 
 
+|_ColumnCollection| objects
+---------------------------
+
+A |_ColumnCollection| object is accessed using the :attr:`.Table.columns`
+property. Columns can be iterated, indexed, added to the right side of the
+table using its :meth:`~._ColumnCollection.add` method, and individual
+columns can be removed with :meth:`~._ColumnCollection.remove` (or by
+calling :meth:`._Column.delete` on the column directly).
+
+.. autoclass:: _ColumnCollection()
+   :members: add, remove
+   :member-order: bysource
+   :undoc-members:
+
+
 |_Row| objects
 --------------
 

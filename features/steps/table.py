@@ -169,6 +169,20 @@ def when_I_call_table_rows_0_delete(context):
     context.table_.rows[0].delete()
 
 
+@when("I call table.columns.add()")
+def when_I_call_table_columns_add(context):
+    # ---remember the prior last column's width before adding---
+    context.prior_last_column_width = context.table_.columns[
+        len(context.table_.columns) - 1
+    ].width
+    context.added_column = context.table_.columns.add()
+
+
+@when("I call table.columns[0].delete()")
+def when_I_call_table_columns_0_delete(context):
+    context.table_.columns[0].delete()
+
+
 @when("I call cell.split()")
 def when_I_call_cell_split_other_cell(context):
     context.cell.split()
@@ -292,6 +306,13 @@ def then_len_table_rows_eq(context, int_lit):
     assert actual == expected, "len(table.rows) == %s" % actual
 
 
+@then("len(table.columns) == {int_lit}")
+def then_len_table_columns_eq(context, int_lit):
+    actual = len(context.table_.columns)
+    expected = int(int_lit)
+    assert actual == expected, "len(table.columns) == %s" % actual
+
+
 @then("the new row has two cells")
 def then_new_row_has_two_cells(context):
     actual = len(list(context.added_row.cells))
@@ -303,6 +324,29 @@ def then_new_row_height_equals_prior(context):
     actual = context.added_row.height
     expected = context.prior_last_row_height
     assert actual == expected, "new row height %s != prior %s" % (actual, expected)
+
+
+@then("every row has {count} cells")
+@then("every row has {count} cell")
+def then_every_row_has_count_cells(context, count):
+    word_to_int = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+    expected = word_to_int.get(count, None)
+    if expected is None:
+        expected = int(count)
+    for idx, row in enumerate(context.table_.rows):
+        actual = len(list(row.cells))
+        assert actual == expected, "row %d has %d cell(s), expected %d" % (
+            idx,
+            actual,
+            expected,
+        )
+
+
+@then("the new column width equals the prior last column width")
+def then_new_column_width_equals_prior(context):
+    actual = context.added_column.width
+    expected = context.prior_last_column_width
+    assert actual == expected, "new column width %s != prior %s" % (actual, expected)
 
 
 @then("origin_cell.text == {value}")

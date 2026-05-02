@@ -208,6 +208,52 @@ exception.
    the row first using :meth:`._Cell.split` on the merge-origin cell.
 
 
+Adding a column to an existing table
+------------------------------------
+
+A column can be appended to the right side of an existing table using the
+:meth:`~._ColumnCollection.add` method on the table's columns collection::
+
+    >>> from pptx.util import Inches
+    >>> # ---append a column using the last existing column's width as default---
+    >>> new_column = table.columns.add()
+
+    >>> # ---or specify an explicit width---
+    >>> wider_column = table.columns.add(width=Inches(2))
+
+The new column is represented by a new ``a:gridCol`` in the table's
+``a:tblGrid`` and a new empty ``a:tc`` cell in every existing row. The width
+of the containing graphic-frame shape is automatically increased by the new
+column's width.
+
+
+Deleting a column from an existing table
+----------------------------------------
+
+A column can be removed from a table either by calling :meth:`._Column.delete`
+on the column itself, or by passing the column to
+:meth:`._ColumnCollection.remove` on the table's columns collection::
+
+    >>> # ---delete the first column---
+    >>> table.columns[0].delete()
+
+    >>> # ---or, equivalently, via the collection---
+    >>> table.columns.remove(table.columns[0])
+
+The column's ``a:gridCol`` element is removed from the table's ``a:tblGrid``
+and the ``a:tc`` cell at the same column offset is removed from every row.
+The width of the containing graphic-frame shape is reduced accordingly.
+Subsequent use of a deleted column object is undefined.
+
+.. note::
+
+   Deleting a column whose cells participate in a horizontal-merge range (as
+   either the merge-origin or a spanned cell) may leave the table in an
+   inconsistent merge state. If merge integrity matters, split any merged
+   cells that span the column first using :meth:`._Cell.split` on the
+   merge-origin cell.
+
+
 Accessing a cell
 ----------------
 

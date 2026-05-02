@@ -769,6 +769,29 @@ class Describe_Column(object):
         assert column._gridCol.xml == expected_xml
         parent_.notify_width_changed.assert_called_once_with()
 
+    def it_can_delete_itself_from_the_table(self, request):
+        parent_ = instance_mock(request, _ColumnCollection)
+        tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        gridCol_to_delete = tbl.tblGrid.gridCol_lst[0]
+        # ---remember tcs at col 0 for post-check---
+        tcs_to_delete = [tr.tc_lst[0] for tr in tbl.tr_lst]
+        column = _Column(gridCol_to_delete, parent_)
+
+        column.delete()
+
+        # ---the target gridCol is no longer a child of tblGrid---
+        assert len(tbl.tblGrid.gridCol_lst) == 1
+        assert gridCol_to_delete not in tbl.tblGrid.gridCol_lst
+        # ---and every row lost its cell at col 0---
+        for tr in tbl.tr_lst:
+            assert len(tr.tc_lst) == 1
+        for tc in tcs_to_delete:
+            assert tc.getparent() is None
+        parent_.notify_width_changed.assert_called_once_with()
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=[("a:gridCol{w=914400}", Inches(1)), ("a:gridCol{w=10pt}", Pt(10))])
@@ -823,6 +846,92 @@ class Describe_ColumnCollection(object):
             columns[-1]
         with pytest.raises(IndexError):
             columns[9]
+
+    def it_can_add_a_column(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        tbl = element(tbl_cxml)
+        columns = _ColumnCollection(tbl, parent_)
+
+        column = columns.add()
+
+        assert isinstance(column, _Column)
+        # ---new column inherits width from the last existing column---
+        assert column.width == 914400
+        # ---new column appended to the tblGrid---
+        assert len(columns) == 3
+        assert columns[2]._gridCol is column._gridCol
+        # ---every row gained one cell---
+        for tr in tbl.tr_lst:
+            assert len(tr.tc_lst) == 3
+        parent_.notify_width_changed.assert_called_once_with()
+
+    def it_can_add_a_column_with_a_specified_width(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        columns = _ColumnCollection(element(tbl_cxml), parent_)
+
+        column = columns.add(width=Inches(2))
+
+        assert column.width == Inches(2)
+        parent_.notify_width_changed.assert_called_once_with()
+
+    def it_defaults_the_column_width_when_table_has_no_columns(self, request):
+        parent_ = instance_mock(request, Table)
+        # ---no rows and no cols---
+        tbl_cxml = "a:tbl/a:tblGrid"
+        columns = _ColumnCollection(element(tbl_cxml), parent_)
+
+        column = columns.add()
+
+        assert column.width == 914400
+        assert len(columns) == 1
+
+    def it_can_remove_a_column(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400},"
+            "a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc,a:tc))"
+        )
+        columns = _ColumnCollection(tbl, parent_)
+        column_to_remove = columns[1]
+        gridCol_to_remove = column_to_remove._gridCol
+
+        columns.remove(column_to_remove)
+
+        assert len(columns) == 2
+        assert gridCol_to_remove not in tbl.tblGrid.gridCol_lst
+        # ---every row lost its middle cell---
+        for tr in tbl.tr_lst:
+            assert len(tr.tc_lst) == 2
+        parent_.notify_width_changed.assert_called_once_with()
+
+    def it_raises_when_removing_a_column_from_a_different_table(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        columns = _ColumnCollection(element(tbl_cxml), parent_)
+        # ---a column from a separate table---
+        other_tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        foreign_column = _Column(other_tbl.tblGrid.gridCol_lst[0], None)
+
+        with pytest.raises(ValueError, match="column is not a member of this table"):
+            columns.remove(foreign_column)
+        # ---no structural change, no notification---
+        assert len(columns) == 2
+        parent_.notify_width_changed.assert_not_called()
 
     # fixtures -------------------------------------------------------
 

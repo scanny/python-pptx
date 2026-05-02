@@ -6,6 +6,15 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #895 add/delete a column on an existing table. Adds
+  ``_ColumnCollection.add(width=None)`` which appends a new ``a:gridCol`` to
+  the table's ``a:tblGrid`` and a new empty ``a:tc`` to every existing row
+  (new column inherits width from the last existing column or defaults to
+  914,400 EMU = 1 inch when the table has no columns). Adds
+  ``_Column.delete()`` and ``_ColumnCollection.remove(column)`` as the
+  delete counterpart: the target ``a:gridCol`` and the ``a:tc`` at the same
+  column offset in every row are detached, and the containing graphic-frame
+  width is recomputed. Mirrors the row-mutation API landed by #832 and #837.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
