@@ -71,6 +71,17 @@ class CT_Picture(BaseShapeElement):
         return parse_xml(cls._pic_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy))
 
     @classmethod
+    def new_pic_link(cls, shape_id, name, desc, rId, x, y, cx, cy):
+        """Return new `<p:pic>` element tree configured with supplied parameters.
+
+        The emitted `a:blip` carries `r:link` instead of `r:embed`, referencing an external
+        relationship rather than an embedded image part.
+        """
+        return parse_xml(
+            cls._pic_link_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy)
+        )
+
+    @classmethod
     def new_video_pic(
         cls,
         shape_id: int,
@@ -202,6 +213,35 @@ class CT_Picture(BaseShapeElement):
             "  </p:nvPicPr>\n"
             "  <p:blipFill>\n"
             '    <a:blip r:embed="%%s"/>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
+            '      <a:off x="%%d" y="%%d"/>\n'
+            '      <a:ext cx="%%d" cy="%%d"/>\n'
+            "    </a:xfrm>\n"
+            '    <a:prstGeom prst="rect">\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>" % nsdecls("a", "p", "r")
+        )
+
+    @classmethod
+    def _pic_link_tmpl(cls):
+        return (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="%%d" name="%%s" descr="%%s"/>\n'
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:link="%%s"/>\n'
             "    <a:stretch>\n"
             "      <a:fillRect/>\n"
             "    </a:stretch>\n"
