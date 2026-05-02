@@ -1248,6 +1248,69 @@ class DescribeSlideMaster(object):
         # ---same instance returned on each access---
         assert slide_master.header_footer is header_footer
 
+    def it_returns_an_explicit_name_verbatim(self):
+        slide_master = SlideMaster(element("p:sldMaster/p:cSld{name=Custom}"), None)
+
+        assert slide_master.name == "Custom"
+
+    def it_falls_back_to_a_positional_name_when_no_explicit_name(self, request):
+        """Regression for issue #679.
+
+        PowerPoint leaves ``p:cSld/@name`` empty on a slide master. The property
+        should fall back to a 1-based ``"Master N"`` derived from this master's
+        position in ``presentation.slide_masters`` rather than returning ``""``.
+        """
+        sldMaster = element("p:sldMaster/p:cSld")
+        slide_master = SlideMaster(sldMaster, None)
+        # -- install a stub `_positional_name` so this unit test doesn't need a
+        # -- full presentation graph; the positional-lookup plumbing is
+        # -- exercised separately in `it_computes_a_positional_name_from_...`.
+        method_mock(
+            request, SlideMaster, "_positional_name", autospec=True, return_value="Master 2"
+        )
+
+        assert slide_master.name == "Master 2"
+
+    def it_computes_a_positional_name_from_the_presentation_masters(self, request):
+        """Positional fallback resolves the 1-based index in prs.slide_masters."""
+        sldMaster = element("p:sldMaster/p:cSld")
+        other_sldMaster = element("p:sldMaster/p:cSld")
+        part_ = instance_mock(request, SlideMasterPart)
+        slide_master = SlideMaster(sldMaster, part_)
+        other_master = SlideMaster(other_sldMaster, None)
+        # -- part.package.presentation_part.presentation.slide_masters --
+        presentation_ = part_.package.presentation_part.presentation
+        presentation_.slide_masters = [other_master, slide_master]
+
+        assert slide_master.name == "Master 2"
+
+    def it_returns_Master_when_detached_from_a_presentation(self):
+        """Fallback when the master has no part (e.g. constructed from raw XML)."""
+        slide_master = SlideMaster(element("p:sldMaster/p:cSld"), None)
+        assert slide_master.name == "Master"
+
+    def it_can_change_its_name(self):
+        """Setter writes `p:cSld/@name`; a read then returns the explicit value."""
+        slide_master = SlideMaster(element("p:sldMaster/p:cSld"), None)
+
+        slide_master.name = "Office Theme"
+
+        assert slide_master._element.xml == xml("p:sldMaster/p:cSld{name=Office Theme}")
+        # -- setter-then-getter round-trip returns the explicit value, not "Master 1" --
+        assert slide_master.name == "Office Theme"
+
+    def it_clears_the_name_when_assigned_empty_string_or_None(self, request):
+        """Assigning '' or None clears @name and restores positional fallback."""
+        slide_master = SlideMaster(element("p:sldMaster/p:cSld{name=Office}"), None)
+        method_mock(
+            request, SlideMaster, "_positional_name", autospec=True, return_value="Master 1"
+        )
+
+        slide_master.name = None
+
+        assert slide_master._element.xml == xml("p:sldMaster/p:cSld")
+        assert slide_master.name == "Master 1"
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

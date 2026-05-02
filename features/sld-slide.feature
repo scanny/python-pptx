@@ -126,6 +126,31 @@ Feature: slide properties
      Then slide_master.slide_layouts is a SlideLayouts object
 
 
+  Scenario Outline: SlideMaster.name falls back to positional name
+    Given a presentation with <n-masters> slide masters and no explicit master name
+     Then prs.slide_masters[<idx>].name is <expected-name>
+
+    Examples: positional-fallback cases (issue #679)
+      | n-masters | idx | expected-name |
+      | 1         | 0   | Master 1      |
+      | 2         | 0   | Master 1      |
+      | 2         | 1   | Master 2      |
+
+
+  Scenario: SlideMaster.name can be set and round-trips
+    Given a presentation with 1 slide master and no explicit master name
+     When I set prs.slide_masters[0].name to "Office Theme"
+     Then prs.slide_masters[0].name is Office Theme
+      And after a save/load round-trip prs.slide_masters[0].name is Office Theme
+
+
+  Scenario: SlideMaster.name clears back to positional fallback
+    Given a presentation with 1 slide master and no explicit master name
+     When I set prs.slide_masters[0].name to "Office Theme"
+      And I set prs.slide_masters[0].name to None
+     Then prs.slide_masters[0].name is Master 1
+
+
   Scenario: NotesSlide.placeholders
     Given a notes slide
      Then notes_slide.placeholders is a NotesSlidePlaceholders object

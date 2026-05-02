@@ -774,6 +774,28 @@ class SlideMaster(_BaseMaster):
 
     _element: CT_SlideMaster  # pyright: ignore[reportIncompatibleVariableOverride]
 
+    @property
+    def name(self) -> str:
+        """String representing the internal name of this slide master.
+
+        PowerPoint rarely writes a ``p:cSld/@name`` on a slide master, so the underlying
+        attribute is typically empty. To provide a usable identifier (see issue #679), this
+        property falls back to a positional name of the form ``"Master N"`` (1-based index in
+        ``presentation.slide_masters``) when no explicit name is set on the master. Assigning
+        a non-empty string persists it to ``p:cSld/@name`` and subsequent reads return that
+        explicit value verbatim. Assigning an empty string or |None| clears the attribute and
+        restores the positional fallback.
+        """
+        explicit_name = self._element.cSld.name
+        if explicit_name:
+            return explicit_name
+        return self._positional_name()
+
+    @name.setter
+    def name(self, value: str | None):
+        new_value = "" if value is None else value
+        self._element.cSld.name = new_value
+
     @lazyproperty
     def slide_layouts(self) -> SlideLayouts:
         """|SlideLayouts| object providing access to this slide-master's layouts."""
@@ -791,6 +813,32 @@ class SlideMaster(_BaseMaster):
         Useful for calling :meth:`ColorFormat.to_rgb` on a scheme color.
         """
         return _resolve_theme_colors(self.part)
+
+    def _positional_name(self) -> str:
+        """Return a positional name like ``"Master 3"`` for this master.
+
+        Used as a fallback when ``p:cSld/@name`` is empty, which is the common case for
+        PowerPoint-authored masters (see issue #679). The index is 1-based and matches this
+        master's zero-based position in ``presentation.slide_masters``. Falls back to
+        ``"Master"`` (no index) when the master has been detached from its presentation or
+        the presentation context cannot be located — this avoids crashing a ``.name`` read
+        on a standalone |SlideMaster| built from an XML element.
+        """
+        part = self.part
+        if part is None:
+            return "Master"
+        try:
+            presentation_part = part.package.presentation_part
+        except AttributeError:  # pragma: no cover - defensive against exotic packages
+            return "Master"
+        try:
+            slide_masters = presentation_part.presentation.slide_masters
+        except AttributeError:  # pragma: no cover - defensive
+            return "Master"
+        for idx, master in enumerate(slide_masters):
+            if master is self or master._element is self._element:
+                return "Master %d" % (idx + 1)
+        return "Master"
 
 
 class SlideMasters(ParentedElementProxy):
