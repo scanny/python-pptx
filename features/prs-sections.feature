@@ -31,3 +31,36 @@ Feature: Organize a presentation into sections
      When I remove the first section
      Then Presentation.sections has 0 sections
       And the presentation has no p:extLst element
+
+
+  Scenario: Reorder sections with move_before and move_after
+    Given a presentation with three slides
+     When I add three sections "Intro", "Body", "Outro"
+      And I move the "Outro" section before the "Intro" section
+     Then the section names are "Outro", "Intro", "Body"
+     When I move the "Intro" section after the "Body" section
+     Then the section names are "Outro", "Body", "Intro"
+
+
+  Scenario: Locate the section that owns a slide
+    Given a presentation with three slides
+     When I add a section named "Intro" with slides 1 and 2
+      And I add a section named "Outro" with slide 3
+     Then find_containing for slide 1 returns the "Intro" section
+      And find_containing for slide 3 returns the "Outro" section
+
+
+  Scenario: Adding a slide already in another section raises
+    Given a presentation with three slides
+     When I add a section named "Intro" with slides 1 and 2
+      And I add a section named "Outro" with slide 3
+     Then adding slide 1 to the "Outro" section raises a ValueError mentioning "Intro"
+
+
+  Scenario: Move a slide between sections
+    Given a presentation with three slides
+     When I add a section named "Intro" with slides 1 and 2
+      And I add a section named "Outro" with slide 3
+      And I move slide 2 into the "Outro" section
+     Then the "Intro" section contains slides 1
+      And the "Outro" section contains slides 3 and 2

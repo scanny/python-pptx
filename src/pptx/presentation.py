@@ -311,6 +311,34 @@ class Sections:
 
         return section
 
+    def find_containing(self, slide: Slide) -> Section | None:
+        """Return the |Section| that currently owns `slide`, or |None|.
+
+        A slide can only belong to a single section at a time (matching PowerPoint's
+        rule that every slide appears in exactly one section once the deck is
+        partitioned), so the first containing section in document order is returned.
+
+        Returns |None| when the presentation has no sections or the slide is not
+        assigned to any section (e.g. it was added to the deck after the last
+        section was created). Raises |ValueError| if `slide` does not belong to
+        this presentation.
+        """
+        sldIdLst = self._prs_element.sldIdLst
+        if sldIdLst is None or self._prs_part is None:
+            raise ValueError("slide does not belong to the owning presentation")
+        slide_id: int | None = None
+        for sldId in sldIdLst.sldId_lst:
+            if self._prs_part.related_slide(sldId.rId) == slide:
+                slide_id = sldId.id
+                break
+        if slide_id is None:
+            raise ValueError("slide does not belong to the owning presentation")
+
+        for section in self:
+            if slide_id in section._section_slide_ids:  # pyright: ignore[reportPrivateUsage]
+                return section
+        return None
+
     def get_by_id(self, id: str) -> Section | None:
         """Return the section whose GUID equals `id` (case-insensitive), or |None|."""
         target = id.lower()
@@ -329,6 +357,18 @@ class Sections:
             if section.name == name:
                 return section
         return None
+
+    def index(self, section: Section) -> int:
+        """Return the zero-based position of `section` in this collection.
+
+        Raises |ValueError| if `section` does not belong to this presentation.
+        """
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is not None:
+            for idx, section_el in enumerate(sectionLst.section_lst):
+                if section_el is section.element:
+                    return idx
+        raise ValueError("section is not a member of this collection")
 
     def remove(self, section: Section) -> None:
         """Remove `section` from this presentation.
@@ -400,6 +440,20 @@ class Section:
         return self._element.id
 
     @property
+    def index(self) -> int:
+        """Zero-based position of this section within the presentation's section list.
+
+        Raises |ValueError| if the section has been removed from its presentation
+        (e.g. still held in a local variable after :meth:`Sections.remove`).
+        """
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is not None:
+            for idx, section_el in enumerate(sectionLst.section_lst):
+                if section_el is self._element:
+                    return idx
+        raise ValueError("section is not a member of its presentation")
+
+    @property
     def name(self) -> str:
         """Display name of this section (read/write).
 
@@ -439,12 +493,63 @@ class Section:
         different presentation raises |ValueError|. If `slide` is already a member
         of this section the call is a no-op (PowerPoint preserves the existing
         position rather than appending a duplicate reference).
+
+        A slide may belong to at most one section. If `slide` is already assigned
+        to a *different* section, |ValueError| is raised; call
+        :meth:`Section.remove_slide` on that section (or :meth:`move_slide` on the
+        target section) before re-assigning.
         """
         # -- locate the `p:sldId` for `slide` to obtain its id value --
         slide_id = self._resolve_slide_id(slide)
 
         if slide_id in self._section_slide_ids:
             return
+
+        # -- reject reassignment from another section; PowerPoint's model is
+        # -- one-section-per-slide and silently duplicating the reference would
+        # -- corrupt the deck on save.
+        other = self._find_other_section_owning(slide_id)
+        if other is not None:
+            raise ValueError(
+                "slide is already assigned to section %r; remove it from that "
+                "section first, or call Section.move_slide()" % other.name
+            )
+
+        sldIdLst = self._element.get_or_add_sldIdLst()
+        sldIdLst.add_sldId(slide_id)
+
+    def move_after(self, other: Section) -> None:
+        """Reposition this section immediately after `other` in the section list.
+
+        `other` must belong to the same presentation. Moving a section before or
+        after itself is a no-op. Raises |ValueError| if either section is not a
+        member of this presentation's section list.
+        """
+        self._reposition(other, before=False)
+
+    def move_before(self, other: Section) -> None:
+        """Reposition this section immediately before `other` in the section list.
+
+        `other` must belong to the same presentation. Moving a section before or
+        after itself is a no-op. Raises |ValueError| if either section is not a
+        member of this presentation's section list.
+        """
+        self._reposition(other, before=True)
+
+    def move_slide(self, slide: Slide) -> None:
+        """Reassign `slide` to this section, removing it from its current section.
+
+        Convenience for the common "move this slide into section X" workflow.
+        If `slide` is already a member of this section, the call is a no-op.
+        Raises |ValueError| if `slide` does not belong to the owning presentation.
+        """
+        slide_id = self._resolve_slide_id(slide)
+        if slide_id in self._section_slide_ids:
+            return
+
+        other = self._find_other_section_owning(slide_id)
+        if other is not None:
+            other.remove_slide(slide)
 
         sldIdLst = self._element.get_or_add_sldIdLst()
         sldIdLst.add_sldId(slide_id)
@@ -475,6 +580,46 @@ class Section:
         if sldIdLst is None:
             return ()
         return tuple(entry.id for entry in sldIdLst.sldId_lst)
+
+    def _find_other_section_owning(self, slide_id: int) -> Section | None:
+        """Return a *different* |Section| that currently contains `slide_id`, or |None|."""
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is None:
+            return None
+        for section_el in sectionLst.section_lst:
+            if section_el is self._element:
+                continue
+            sldIdLst = section_el.sldIdLst
+            if sldIdLst is None:
+                continue
+            for entry in sldIdLst.sldId_lst:
+                if entry.id == slide_id:
+                    return Section(section_el, self._prs_element, self._prs_part)
+        return None
+
+    def _reposition(self, other: Section, before: bool) -> None:
+        """Shared implementation for :meth:`move_before` / :meth:`move_after`."""
+        if other == self:
+            return
+
+        sectionLst = self._prs_element.sectionLst
+        if sectionLst is None:
+            raise ValueError("section is not a member of this presentation")
+
+        members = list(sectionLst.section_lst)
+        if self._element not in members or other.element not in members:
+            raise ValueError("section is not a member of this presentation")
+
+        # -- pull self out of the list then re-insert relative to `other` --
+        sectionLst.remove(self._element)
+
+        # -- `other` index may shift once `self` is removed, so recompute --
+        anchor_idx = list(sectionLst.section_lst).index(other.element)
+        target_idx = anchor_idx if before else anchor_idx + 1
+        # -- lxml.etree._Element.insert; typed-stub gap in CT_SectionList --
+        sectionLst.insert(  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue]
+            target_idx, self._element
+        )
 
     def _resolve_slide_id(self, slide: Slide) -> int:
         """Return the `p:sldId/@id` integer value of `slide` in the owning presentation.
