@@ -939,3 +939,92 @@ def then_target_xlsx_part_differs_from_source(context):
         context.target_chart.part.chart_workbook.xlsx_part
         is not context._source_xlsx_part
     )
+
+
+# --- replace_data_preserve_formulas (issue #239) --------------------
+
+@given("a chart with an embedded workbook and a formula in the last value cell")
+def given_chart_with_formula_cell_in_workbook(context):
+    """Build a BAR chart then inject a formula into B4 (3rd value cell)."""
+    import io
+    import zipfile
+
+    from lxml import etree
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    chart_data.add_series("S1", (1.0, 2.0, 3.0))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1), Inches(1), Inches(6), Inches(4),
+        chart_data,
+    ).chart
+
+    # -- rewrite the embedded workbook to mark B4 (row 4, col 2) as a formula --
+    orig = chart.workbook
+    with zipfile.ZipFile(io.BytesIO(orig)) as zin:
+        files = {n: zin.read(n) for n in zin.namelist()}
+    SML = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    ws_path = "xl/worksheets/sheet1.xml"
+    ws = etree.fromstring(files[ws_path])
+    sheetData = ws.find(f"{{{SML}}}sheetData")
+    for row in sheetData.findall(f"{{{SML}}}row"):
+        if row.get("r") != "4":
+            continue
+        for c in row.findall(f"{{{SML}}}c"):
+            if c.get("r") == "B4":
+                # -- replace <v>3</v> with <f>B2+B3</f><v>3</v> --
+                for child in list(c):
+                    c.remove(child)
+                f_elm = etree.SubElement(c, f"{{{SML}}}f")
+                f_elm.text = "B2+B3"
+                v_elm = etree.SubElement(c, f"{{{SML}}}v")
+                v_elm.text = "3"
+    files[ws_path] = etree.tostring(
+        ws, xml_declaration=True, encoding="UTF-8", standalone=True
+    )
+    out = io.BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zout:
+        for n, b in files.items():
+            zout.writestr(n, b)
+    chart.workbook = out.getvalue()
+    context.chart = chart
+
+
+@when("I call chart.replace_data_preserve_formulas(new_data)")
+def when_I_call_replace_data_preserve_formulas(context):
+    cd = CategoryChartData()
+    cd.categories = ["A", "B", "C"]
+    cd.add_series("S1", (10.0, 20.0, 30.0))
+    context._written = context.chart.replace_data_preserve_formulas(cd)
+
+
+@then("the first-series first-value cell holds the new value")
+def then_first_value_cell_holds_new_value(context):
+    from pptx.chart.xlsx import WorkbookReader
+
+    with WorkbookReader(context.chart.workbook) as reader:
+        # -- B2 is the first value cell (row 2, col 2) --
+        assert reader.cell_value("Sheet1", 2, 2) == 10.0
+
+
+@then("the formula cell still contains its original formula")
+def then_formula_cell_unchanged(context):
+    import io
+    import zipfile
+
+    from lxml import etree
+
+    SML = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    with zipfile.ZipFile(io.BytesIO(context.chart.workbook)) as z:
+        ws = etree.fromstring(z.read("xl/worksheets/sheet1.xml"))
+    for c in ws.iter(f"{{{SML}}}c"):
+        if c.get("r") == "B4":
+            f_elm = c.find(f"{{{SML}}}f")
+            assert f_elm is not None, "formula element missing"
+            assert f_elm.text == "B2+B3", "formula text was modified: %r" % f_elm.text
+            break
+    else:
+        raise AssertionError("B4 cell not found in worksheet")

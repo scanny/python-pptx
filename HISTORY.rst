@@ -6,6 +6,15 @@ Release History
 Unreleased
 ++++++++++
 
+- feat(chart): #239 ``Chart.replace_data_preserve_formulas(chart_data)``.
+  A targeted-refresh counterpart to ``Chart.replace_data`` that walks the
+  data cells of the embedded workbook and rewrites only the cells that
+  don't carry an ``<f>`` formula element, so author-entered formulas
+  survive a data refresh. Reuses the F5 ``WorkbookUpdater`` /
+  ``_SingleCellCacheRefresher`` machinery so cached chart values stay in
+  sync. Limited to data-only refresh — cannot add/remove series or
+  categories — and skipped formula cells retain their prior
+  ``c:numCache`` entry until ``Chart.update_cached_values`` is called.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

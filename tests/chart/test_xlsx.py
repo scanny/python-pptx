@@ -67,6 +67,11 @@ class Describe_BaseWorkbookWriter(object):
         with pytest.raises(NotImplementedError):
             workbook_writer._populate_worksheet(None, None)
 
+    def it_raises_on_no_override_of_iter_cell_writes_239(self):
+        workbook_writer = _BaseWorkbookWriter(None)
+        with pytest.raises(NotImplementedError):
+            next(workbook_writer.iter_cell_writes())
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -162,6 +167,30 @@ class DescribeCategoryWorkbookWriter(object):
         workbook_writer, workbook_, worksheet_, calls = write_sers_fixture
         workbook_writer._write_series(workbook_, worksheet_)
         assert worksheet_.mock_calls == calls
+
+    def it_enumerates_cell_writes_matching_the_worksheet_layout_239(self):
+        """`iter_cell_writes` mirrors `_populate_worksheet` layout (#239)."""
+        from pptx.chart.data import CategoryChartData
+
+        cd = CategoryChartData()
+        cd.categories = ["CA", "CB"]
+        cd.add_series("S1", (10, 20))
+        cd.add_series("S2", (30, 40))
+        writer = cd._workbook_writer
+
+        cells = list(writer.iter_cell_writes())
+
+        # -- 2 category cells (A2, A3) + 2 series * (heading + 2 values) --
+        assert cells == [
+            ("Sheet1", 2, 1, "CA"),
+            ("Sheet1", 3, 1, "CB"),
+            ("Sheet1", 1, 2, "S1"),
+            ("Sheet1", 2, 2, 10),
+            ("Sheet1", 3, 2, 20),
+            ("Sheet1", 1, 3, "S2"),
+            ("Sheet1", 2, 3, 30),
+            ("Sheet1", 3, 3, 40),
+        ]
 
     # fixtures -------------------------------------------------------
 
@@ -348,6 +377,24 @@ class DescribeBubbleWorkbookWriter(object):
         workbook_writer._populate_worksheet(workbook_, worksheet_)
         assert worksheet_.mock_calls == expected_calls
 
+    def it_enumerates_cell_writes_matching_the_worksheet_layout_239(self):
+        """`iter_cell_writes` mirrors `_populate_worksheet` layout (#239)."""
+        chart_data = BubbleChartData()
+        series_1 = chart_data.add_series("Series 1")
+        for pt in ((1, 1.1, 10),):
+            series_1.add_data_point(*pt)
+        writer = chart_data._workbook_writer
+
+        cells = list(writer.iter_cell_writes())
+
+        assert cells == [
+            ("Sheet1", 2, 1, 1),
+            ("Sheet1", 1, 2, "Series 1"),
+            ("Sheet1", 2, 2, 1.1),
+            ("Sheet1", 1, 3, "Size"),
+            ("Sheet1", 2, 3, 10),
+        ]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -394,6 +441,32 @@ class DescribeXyWorkbookWriter(object):
         workbook_writer, workbook_, worksheet_, expected_calls = populate_fixture
         workbook_writer._populate_worksheet(workbook_, worksheet_)
         assert worksheet_.mock_calls == expected_calls
+
+    def it_enumerates_cell_writes_matching_the_worksheet_layout_239(self):
+        """`iter_cell_writes` mirrors `_populate_worksheet` layout (#239)."""
+        chart_data = XyChartData()
+        series_1 = chart_data.add_series("Series 1")
+        for pt in ((1, 1.1), (2, 2.2)):
+            series_1.add_data_point(*pt)
+        series_2 = chart_data.add_series("Series 2")
+        for pt in ((3, 3.3),):
+            series_2.add_data_point(*pt)
+        writer = chart_data._workbook_writer
+
+        cells = list(writer.iter_cell_writes())
+
+        # -- series 1 table at row offset 0 (title+spacer 0, data 0) --
+        # -- series 2 table at row offset 4 (title+spacer 2, data 2) --
+        assert cells == [
+            ("Sheet1", 2, 1, 1),
+            ("Sheet1", 3, 1, 2),
+            ("Sheet1", 1, 2, "Series 1"),
+            ("Sheet1", 2, 2, 1.1),
+            ("Sheet1", 3, 2, 2.2),
+            ("Sheet1", 6, 1, 3),
+            ("Sheet1", 5, 2, "Series 2"),
+            ("Sheet1", 6, 2, 3.3),
+        ]
 
     # fixtures -------------------------------------------------------
 
@@ -588,6 +661,35 @@ class DescribeWorkbookReader(object):
             # --- returned for any requested sheet name. This also proves
             # --- the parser did not hang or abort on the entity payload.
             assert reader.cell_value("Sheet1", 1, 1) == 1.0
+
+    def it_detects_cells_with_formula_references_239(self):
+        """`cell_has_formula` returns True only for `<f>`-bearing cells."""
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                "<sheetData>"
+                '<row r="1"><c r="A1"><v>1</v></c>'
+                '<c r="B1"><f>A1*2</f><v>2</v></c></row>'
+                "</sheetData></worksheet>"
+            ),
+            shared_strings=(),
+        )
+        with WorkbookReader(blob) as reader:
+            assert reader.cell_has_formula("Sheet1", 1, 1) is False
+            assert reader.cell_has_formula("Sheet1", 1, 2) is True
+            # -- empty/missing cells are not formulas --
+            assert reader.cell_has_formula("Sheet1", 99, 99) is False
+
+    def it_returns_False_for_formula_check_when_workbook_has_no_sheets_239(self):
+        buf = io.BytesIO()
+        import zipfile as _zipfile
+
+        with _zipfile.ZipFile(buf, "w") as z:
+            z.writestr("dummy.txt", "not a real workbook")
+        with WorkbookReader(buf.getvalue()) as reader:
+            assert reader.cell_has_formula("Sheet1", 1, 1) is False
 
 
 class Describe_parse_a1_cell(object):

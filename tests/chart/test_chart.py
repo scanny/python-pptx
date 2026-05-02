@@ -686,6 +686,111 @@ class DescribeChart(object):
         assert pts["1"] == "99"
         assert pts["2"] == "3"
 
+    # -- replace_data_preserve_formulas (issue #239) -----------------
+
+    def it_refreshes_data_cells_but_skips_formula_cells_239(
+        self, request, workbook_prop_, workbook_
+    ):
+        """Data cells get new values; formula cells are left untouched."""
+        from pptx.chart.chart import Chart as _Chart  # local to use property_mock
+
+        # -- chart: 1 series, 2 categories; B3 is a formula that must NOT
+        # -- be overwritten when new series values (10, 20) are supplied. --
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            "<c:tx><c:strRef><c:f>Sheet1!$B$1</c:f><c:strCache>"
+            '<c:ptCount val="1"/>'
+            '<c:pt idx="0"><c:v>Old</c:v></c:pt>'
+            "</c:strCache></c:strRef></c:tx>"
+            "<c:cat><c:strRef><c:f>Sheet1!$A$2:$A$3</c:f><c:strCache>"
+            '<c:ptCount val="2"/>'
+            '<c:pt idx="0"><c:v>CA</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>CB</c:v></c:pt>'
+            "</c:strCache></c:strRef></c:cat>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$B$3</c:f><c:numCache>"
+            '<c:ptCount val="2"/>'
+            '<c:pt idx="0"><c:v>1</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>2</c:v></c:pt>'
+            "</c:numCache></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chartSpace = parse_xml(chartSpace_xml)
+        chart = Chart(chartSpace, None)
+        property_mock(
+            request, _Chart, "chart_type", return_value=XL_CHART_TYPE.BAR_CLUSTERED
+        )
+        # -- existing workbook has B3 as a formula =B2*2 (cached value 2). --
+        workbook_.xlsx_part = _XlsxPartStub(
+            _build_update_cached_xlsx_blob(
+                {("Sheet1", 1, 2): "Old", ("Sheet1", 2, 1): "CA", ("Sheet1", 3, 1): "CB"},
+                {("Sheet1", 2, 2): 1.0},
+                formula_cells={("Sheet1", 3, 2): ("B2*2", 2.0)},
+            )
+        )
+
+        cd = CategoryChartData()
+        cd.categories = ["NewA", "NewB"]
+        cd.add_series("NewName", (10.0, 20.0))
+
+        written = chart.replace_data_preserve_formulas(cd)
+
+        # -- 5 cells in layout (A2, A3, B1, B2, B3); B3 is a formula so
+        # -- it's skipped, leaving 4 writes. --
+        assert written == 4
+        # -- B2 got its new numCache value; B3 kept its original cache entry --
+        C = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
+        pts = {
+            pt.get("idx"): pt.find(f"{C}v").text
+            for pt in chartSpace.find(f".//{C}numCache").findall(f"{C}pt")
+        }
+        assert pts["0"] == "10"
+        assert pts["1"] == "2"
+        # -- series-name strCache was refreshed --
+        strCaches = chartSpace.findall(f".//{C}strCache")
+        # first strCache is the series name cell (B1); second is categories
+        name_pts = {
+            pt.get("idx"): pt.find(f"{C}v").text for pt in strCaches[0].findall(f"{C}pt")
+        }
+        assert name_pts["0"] == "NewName"
+        # -- workbook was updated (bytes differ from input blob) --
+        workbook_.update_from_xlsx_blob.assert_called_once()
+
+    def it_raises_when_chart_has_no_embedded_workbook_on_preserve_formulas_239(
+        self, request, workbook_prop_, workbook_
+    ):
+        from pptx.chart.chart import Chart as _Chart
+
+        workbook_.xlsx_part = None
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        property_mock(
+            request, _Chart, "chart_type", return_value=XL_CHART_TYPE.BAR_CLUSTERED
+        )
+        cd = CategoryChartData()
+        cd.categories = ["A"]
+        cd.add_series("S", (1.0,))
+
+        with pytest.raises(ValueError, match="no embedded workbook to refresh"):
+            chart.replace_data_preserve_formulas(cd)
+
+    def it_validates_chart_data_type_on_preserve_formulas_239(
+        self, request, workbook_prop_, workbook_
+    ):
+        """Mismatched ChartData subclass raises ValueError (#396 reuse)."""
+        from pptx.chart.chart import Chart as _Chart
+
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        property_mock(
+            request, _Chart, "chart_type", return_value=XL_CHART_TYPE.XY_SCATTER
+        )
+        # -- passing CategoryChartData to an XY chart is invalid --
+        with pytest.raises(ValueError, match=r"XY \(scatter\) chart"):
+            chart.replace_data_preserve_formulas(CategoryChartData())
+        # -- validation short-circuits before any workbook touch --
+        workbook_.update_from_xlsx_blob.assert_not_called()
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
@@ -1231,11 +1336,14 @@ class _XlsxPartStub(object):
         self.blob = blob
 
 
-def _build_update_cached_xlsx_blob(string_cells, number_cells):
+def _build_update_cached_xlsx_blob(string_cells, number_cells, formula_cells=None):
     """Return a minimal xlsx blob containing the given cells.
 
     `string_cells` maps (sheet, row, col) -> str; values go through
     sharedStrings. `number_cells` maps (sheet, row, col) -> float.
+    `formula_cells` (optional) maps (sheet, row, col) -> (formula, cached);
+    each cell is written with a ``<f>formula</f><v>cached</v>`` body so the
+    ``WorkbookReader`` flags it as a formula cell.
     """
     import io as _io
     import zipfile as _zipfile
@@ -1265,6 +1373,10 @@ def _build_update_cached_xlsx_blob(string_cells, number_cells):
         )
     for (_s, r, c), v in number_cells.items():
         rows.setdefault(r, []).append('<c r="%s"><v>%r</v></c>' % (_addr(r, c), v))
+    for (_s, r, c), (formula, cached) in (formula_cells or {}).items():
+        rows.setdefault(r, []).append(
+            '<c r="%s"><f>%s</f><v>%r</v></c>' % (_addr(r, c), formula, cached)
+        )
 
     row_xml = "".join(
         '<row r="%d">%s</row>' % (r, "".join(cells)) for r, cells in sorted(rows.items())

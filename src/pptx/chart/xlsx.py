@@ -45,6 +45,10 @@ def parse_a1_cell(a1_ref):
 class _BaseWorkbookWriter(object):
     """Base class for workbook writers, providing shared members."""
 
+    # --- chart workbooks authored by python-pptx always place data on the ---
+    # --- first worksheet, which XlsxWriter names "Sheet1". --
+    _data_sheet_name = "Sheet1"
+
     def __init__(self, chart_data):
         super(_BaseWorkbookWriter, self).__init__()
         self._chart_data = chart_data
@@ -56,6 +60,20 @@ class _BaseWorkbookWriter(object):
         with self._open_worksheet(xlsx_file) as (workbook, worksheet):
             self._populate_worksheet(workbook, worksheet)
         return xlsx_file.getvalue()
+
+    def iter_cell_writes(self):
+        """Yield ``(sheet, row, col, value)`` tuples for each cell write.
+
+        Enumerates every cell that :meth:`xlsx_blob` would write, in the
+        same layout and order. Used by
+        :meth:`Chart.replace_data_preserve_formulas` to update an existing
+        workbook cell-by-cell rather than re-authoring it from scratch —
+        skipping cells that carry formula references so author-entered
+        formulas survive a data refresh (issue #239).
+
+        Must be overridden by each subclass to match its workbook layout.
+        """
+        raise NotImplementedError("must be provided by each subclass")
 
     @contextmanager
     def _open_worksheet(self, xlsx_file):
@@ -161,6 +179,33 @@ class CategoryWorkbookWriter(_BaseWorkbookWriter):
         """
         self._write_categories(workbook, worksheet)
         self._write_series(workbook, worksheet)
+
+    def iter_cell_writes(self):
+        """Yield ``(sheet, row, col, value)`` for each cell in the layout.
+
+        Mirrors :meth:`_populate_worksheet` — one cell per category leaf in
+        each hierarchy level plus the series-name heading and one cell per
+        series value. Rows and columns are 1-based to match
+        :class:`WorkbookUpdater`.
+        """
+        sheet = self._data_sheet_name
+        categories = self._chart_data.categories
+        depth = categories.depth
+        # --- categories: one column per hierarchy level, leaves in row 2.. ---
+        for idx, level in enumerate(categories.levels):
+            # -- CategoryWorkbookWriter writes level idx=0 (leaves) in the
+            # -- rightmost column, consistent with `_write_categories`. --
+            col = depth - idx
+            for off, label in level:
+                row = off + 2
+                yield sheet, row, col, label
+        # --- series: heading in row 1, values in rows 2..N+1 of series col ---
+        col_offset = depth
+        for series in self._chart_data:
+            series_col = series.index + col_offset + 1
+            yield sheet, 1, series_col, series.name
+            for val_idx, value in enumerate(series.values):
+                yield sheet, val_idx + 2, series_col, value
 
     def _series_col_letter(self, series):
         """
@@ -268,6 +313,24 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
             worksheet.write(offset, 1, series.name)
             worksheet.write_column(offset + 1, 1, series.y_values, series_num_format)
 
+    def iter_cell_writes(self):
+        """Yield ``(sheet, row, col, value)`` for each cell in the layout.
+
+        Mirrors :meth:`_populate_worksheet` — a two-column table per
+        series, X in column A and series name + Y values in column B.
+        """
+        sheet = self._data_sheet_name
+        for series in self._chart_data:
+            offset = self.series_table_row_offset(series)
+            # -- X values in column 1 (A), starting at row offset+2 --
+            for val_idx, x in enumerate(series.x_values):
+                yield sheet, offset + 2 + val_idx, 1, x
+            # -- series name heading in column 2 (B), row offset+1 --
+            yield sheet, offset + 1, 2, series.name
+            # -- Y values in column 2 (B), starting at row offset+2 --
+            for val_idx, y in enumerate(series.y_values):
+                yield sheet, offset + 2 + val_idx, 2, y
+
 
 class BubbleWorkbookWriter(XyWorkbookWriter):
     """
@@ -304,6 +367,24 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
             # write bubble sizes
             worksheet.write(offset, 2, "Size")
             worksheet.write_column(offset + 1, 2, series.bubble_sizes, chart_num_format)
+
+    def iter_cell_writes(self):
+        """Yield ``(sheet, row, col, value)`` for each cell in the layout.
+
+        Extends the XY layout with a third column C carrying the bubble
+        sizes, headed by a literal ``"Size"`` label.
+        """
+        sheet = self._data_sheet_name
+        for series in self._chart_data:
+            offset = self.series_table_row_offset(series)
+            for val_idx, x in enumerate(series.x_values):
+                yield sheet, offset + 2 + val_idx, 1, x
+            yield sheet, offset + 1, 2, series.name
+            for val_idx, y in enumerate(series.y_values):
+                yield sheet, offset + 2 + val_idx, 2, y
+            yield sheet, offset + 1, 3, "Size"
+            for val_idx, size in enumerate(series.bubble_sizes):
+                yield sheet, offset + 2 + val_idx, 3, size
 
 
 # --- Excel range reference parsing --------------------------------------------------
@@ -393,6 +474,10 @@ class WorkbookReader(object):
         self._sheet_names = None  # list[str] ordered by workbook.xml
         self._sheet_targets = None  # dict[str, str] sheet_name -> internal path
         self._sheet_cache = {}  # dict[str, dict[(row,col), value]]
+        # --- per-sheet set of `(row, col)` cells that carry an `<f>` formula
+        # --- element in the source xlsx. Populated lazily alongside
+        # --- `_sheet_cache` during `_load_sheet`. --
+        self._formula_cells = {}
         self._zf = None
 
     def __enter__(self):
@@ -427,6 +512,41 @@ class WorkbookReader(object):
         if sheet_cells is None:
             return None
         return sheet_cells.get((row, col))
+
+    def cell_has_formula(self, sheet_name, row, col):
+        """Return |True| when cell (`row`, `col`) on `sheet_name` has a formula.
+
+        A formula cell is one whose xlsx ``<c>`` element carries an ``<f>``
+        child (e.g. ``<f>SUM(A1:A5)</f>``). Rows and columns are 1-based.
+        Returns |False| when the sheet is not present in the workbook, when
+        the cell is empty, or when the cell has no formula. Falls back to
+        the first worksheet when `sheet_name` cannot be resolved — matching
+        :meth:`cell_value` semantics for chart workbooks whose data lives on
+        ``Sheet1`` even when the tab was renamed.
+        """
+        self._open()
+        self._load_workbook_meta()
+        # --- `_load_sheet` populates both cell-values and formula-cells. ---
+        sheet_cells = self._load_sheet(sheet_name)
+        if sheet_cells is None:
+            return False
+        resolved_name = self._resolved_sheet_name(sheet_name)
+        if resolved_name is None:
+            return False
+        return (row, col) in self._formula_cells.get(resolved_name, set())
+
+    def _resolved_sheet_name(self, sheet_name):
+        """Return the actual sheet-name key used by `_sheet_cache`.
+
+        Mirrors `_load_sheet`'s fallback-to-first-sheet logic so other
+        accessors can reach the same cached data when the caller's
+        `sheet_name` doesn't match any tab.
+        """
+        if sheet_name in self._sheet_targets:
+            return sheet_name
+        if self._sheet_names:
+            return self._sheet_names[0]
+        return None
 
     # -- internal helpers --------------------------------------------------
 
@@ -498,9 +618,10 @@ class WorkbookReader(object):
         # (PowerPoint/XlsxWriter always put chart data in Sheet1; real-world
         # files sometimes keep the literal "Sheet1" reference even when the
         # tab has been renamed.) ---
-        path = self._sheet_targets.get(sheet_name)
-        if path is None and self._sheet_names:
-            path = self._sheet_targets.get(self._sheet_names[0])
+        resolved_name = sheet_name if sheet_name in self._sheet_targets else None
+        if resolved_name is None and self._sheet_names:
+            resolved_name = self._sheet_names[0]
+        path = self._sheet_targets.get(resolved_name) if resolved_name else None
         if path is None:
             self._sheet_cache[sheet_name] = None
             return None
@@ -511,6 +632,7 @@ class WorkbookReader(object):
             return None
         self._load_shared_strings()
         cells = {}
+        formulas = set()
         ws = etree.fromstring(sheet_bytes, _xlsx_xml_parser)
         for c in ws.iter(f"{{{_SML_NS}}}c"):
             addr = c.get("r")
@@ -523,6 +645,10 @@ class WorkbookReader(object):
             row = int(m.group(2))
             t = c.get("t")
             v = c.find(f"{{{_SML_NS}}}v")
+            # --- record formula presence so callers (e.g. preserve-formulas
+            # --- replace-data) can skip cells that carry an `<f>` element. --
+            if c.find(f"{{{_SML_NS}}}f") is not None:
+                formulas.add((row, col))
             if t == "inlineStr":
                 is_elm = c.find(f"{{{_SML_NS}}}is")
                 text = ""
@@ -555,6 +681,8 @@ class WorkbookReader(object):
                 except ValueError:
                     cells[(row, col)] = raw
         self._sheet_cache[sheet_name] = cells
+        if resolved_name is not None:
+            self._formula_cells[resolved_name] = formulas
         return cells
 
 

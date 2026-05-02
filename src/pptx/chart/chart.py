@@ -275,6 +275,79 @@ class Chart(PartElementProxy):
         rewriter.replace_series_data(self._chartSpace)
         self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
 
+    def replace_data_preserve_formulas(self, chart_data):
+        """Refresh data cells in the embedded workbook, skipping formulas (#239).
+
+        A targeted-refresh counterpart to :meth:`replace_data`: instead of
+        re-authoring the workbook from scratch (which discards any
+        author-entered formulas), this method walks the cells that
+        *chart_data* would write and updates each one individually via
+        :func:`update_embedded_xlsx_cell` — but only for cells that do
+        **not** carry an ``<f>`` formula element in the existing workbook.
+        Formula cells are left alone so their computed values continue to
+        drive the chart after the refresh.
+
+        *chart_data* must be a |ChartData| subtype compatible with this
+        chart's type (same validation as :meth:`replace_data`); see that
+        method's docstring and GitHub issue #396 for the compatibility
+        matrix. Raises |ValueError| when the chart has no embedded
+        workbook (``c:externalData`` missing or its relationship
+        stripped — see issue #490).
+
+        Limitations
+        -----------
+        This is a *data-only refresh*, not a structural rewrite:
+
+        * Chart dimensions are fixed by the existing ``c:ser`` / ``c:cat``
+          / ``c:val`` cell ranges. If *chart_data* carries **more** series
+          or categories than the chart currently has, the excess cells are
+          written to the workbook but no new ``c:ser`` elements are added
+          to the chart XML — the chart will not render them until the
+          workbook is opened in Excel / PowerPoint and the chart refreshes
+          its range. If *chart_data* carries **fewer** series or
+          categories than the chart has, the surplus cells in the workbook
+          are left at their previous values (they are not cleared). Use
+          :meth:`replace_data` when you need to change chart dimensions.
+        * Cached chart values (``c:numCache`` / ``c:strCache``) are
+          refreshed only for cells that were written. Cells skipped
+          because they carry a formula retain their existing cache entry
+          — call :meth:`update_cached_values` afterward to reconcile
+          caches against the post-refresh formula results.
+
+        Returns the number of cells that were written (i.e. excluding
+        formula cells that were skipped).
+        """
+        self._validate_chart_data_type(chart_data)
+        workbook_bytes = self.workbook
+        if workbook_bytes is None:
+            raise ValueError(
+                "chart has no embedded workbook to refresh; use "
+                "Chart.replace_data() to create one"
+            )
+        # --- inspect the current workbook to find formula cells that must
+        # --- be skipped. Use a read-only WorkbookReader so we touch each
+        # --- sheet at most once regardless of how many cells the writer
+        # --- enumerates. --
+        writer = chart_data._workbook_writer
+        with WorkbookReader(workbook_bytes) as reader:
+            writes = []
+            for sheet, row, col, value in writer.iter_cell_writes():
+                if reader.cell_has_formula(sheet, row, col):
+                    continue
+                writes.append((sheet, row, col, value))
+        # --- apply non-formula writes to the workbook blob in one pass,
+        # --- then refresh matching chart caches for each written cell. --
+        updater = WorkbookUpdater(workbook_bytes)
+        for sheet, row, col, value in writes:
+            updater.set_cell(sheet, row, col, value)
+        new_blob = updater.blob()
+        self._workbook.update_from_xlsx_blob(new_blob)
+        for sheet, row, col, value in writes:
+            _SingleCellCacheRefresher(
+                self._chartSpace, sheet, row, col, value
+            ).refresh()
+        return len(writes)
+
     def _validate_chart_data_type(self, chart_data):
         """Raise |ValueError| when *chart_data* is incompatible with the chart-type.
 
