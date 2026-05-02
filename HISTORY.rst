@@ -126,6 +126,20 @@ Unreleased
   a flip on a shape that has no ``a:xfrm`` creates one as needed; clearing a
   flip attribute reverts the element to schema-default (i.e. ``flipH=False``
   is represented by omitting the attribute).
+- feat: #266 emit valid chart XML for 3D chart types
+  (``THREE_D_AREA``/``_STACKED``/``_STACKED_100``,
+  ``THREE_D_BAR_CLUSTERED``/``_STACKED``/``_STACKED_100``,
+  ``THREE_D_COLUMN``/``_CLUSTERED``/``_STACKED``/``_STACKED_100``,
+  ``THREE_D_LINE``, ``THREE_D_PIE``/``_EXPLODED``). The
+  ``ChartXmlWriter`` factory previously raised ``NotImplementedError`` for
+  these enum members; it now dispatches to new
+  ``_Area3DChartXmlWriter`` / ``_Bar3DChartXmlWriter`` /
+  ``_Line3DChartXmlWriter`` / ``_Pie3DChartXmlWriter`` builders that emit
+  the ECMA-376 ``c:area3DChart`` / ``c:bar3DChart`` / ``c:line3DChart`` /
+  ``c:pie3DChart`` wrappers plus a ``c:view3D`` sibling on ``c:chart``
+  (PowerPoint's defaults: rotX=15, rotY=20, rAngAx=1, depthPercent=100).
+  MVP — per-chart rotation/perspective customization deferred to a
+  follow-up.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
