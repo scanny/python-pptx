@@ -336,6 +336,16 @@ Unreleased
   ``a:ext`` rewritten to its slide rectangle) so its descendants still
   render exactly where they did before.
 
+- Add #675 :attr:`Font.highlight_color` — read/write
+  :class:`~pptx.dml.color.ColorFormat` for the text-highlight
+  (text-background) swatch PowerPoint exposes on the Home ribbon.
+  Corresponds to ``a:rPr/a:highlight`` and supports both RGB and
+  theme-color settings. Companion :meth:`Font.clear_highlight_color`
+  removes any explicit highlight, restoring inheritance. Registers
+  ``a:highlight`` as ``CT_Color`` in the oxml layer and adds a
+  ``highlight`` ``ZeroOrOne`` descriptor to
+  ``CT_TextCharacterProperties``.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import io
+
 from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
+from pptx.dml.color import RGBColor
+from pptx.enum.dml import MSO_COLOR_TYPE, MSO_THEME_COLOR
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_STRIKE, MSO_UNDERLINE
+from pptx.oxml.ns import qn
 
 # given ===================================================
 
@@ -18,6 +23,22 @@ def given_a_font(context):
     slide = prs.slides[1]
     textbox = slide.shapes[0]
     run = textbox.text_frame.paragraphs[0].runs[0]
+    context.prs = prs
+    # -- path used by `save and reload the font's presentation` to locate
+    # -- the same run after round-trip (slide_idx, shape_idx, para_idx, run_idx).
+    context.font_run_path = (1, 0, 0, 0)
+    context.font = run.font
+
+
+@given("a font with a yellow RGB highlight color")
+def given_a_font_with_yellow_highlight(context):
+    prs = Presentation(test_pptx("txt-font-props"))
+    slide = prs.slides[1]
+    textbox = slide.shapes[0]
+    run = textbox.text_frame.paragraphs[0].runs[0]
+    run.font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+    context.prs = prs
+    context.font_run_path = (1, 0, 0, 0)
     context.font = run.font
 
 
@@ -188,6 +209,41 @@ def when_assign_value_to_font_shadow_inherit(context, value):
     context.font.shadow.inherit = {"True": True, "False": False, "None": None}[value]
 
 
+# -- highlight color (issue #675) -----------------------------------------
+
+
+@when("I set font.highlight_color.rgb to {hex_color}")
+def when_set_font_highlight_rgb(context, hex_color):
+    context.font.highlight_color.rgb = RGBColor.from_string(hex_color)
+
+
+@when("I set font.highlight_color.theme_color to MSO_THEME_COLOR.{member}")
+def when_set_font_highlight_theme_color(context, member):
+    context.font.highlight_color.theme_color = getattr(MSO_THEME_COLOR, member)
+
+
+@when("I call font.clear_highlight_color()")
+def when_call_font_clear_highlight_color(context):
+    context.font.clear_highlight_color()
+
+
+@when("I save and reload the font's presentation")
+def when_save_and_reload_fonts_presentation(context):
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    context.prs = Presentation(buf)
+    slide_idx, shape_idx, para_idx, run_idx = context.font_run_path
+    run = (
+        context.prs.slides[slide_idx]
+        .shapes[shape_idx]
+        .text_frame.paragraphs[para_idx]
+        .runs[run_idx]
+    )
+    context.run = run
+    context.font = run.font
+
+
 # then ===================================================
 
 
@@ -305,3 +361,49 @@ def then_font_shadow_inherit_is_value(context, value):
     expected = {"True": True, "False": False}[value]
     got = context.font.shadow.inherit
     assert got is expected, "expected %r, got %r" % (expected, got)
+
+
+# -- highlight color (issue #675) ----------------------------------
+
+
+@then("font.highlight_color.type is {type_name}")
+def then_font_highlight_color_type_is(context, type_name):
+    expected = {
+        "RGB": MSO_COLOR_TYPE.RGB,
+        "SCHEME": MSO_COLOR_TYPE.SCHEME,
+        "None": None,
+    }[type_name]
+    got = context.font.highlight_color.type
+    assert got == expected, "expected %r, got %r" % (expected, got)
+
+
+@then("font.highlight_color.rgb is {hex_color}")
+def then_font_highlight_color_rgb_is(context, hex_color):
+    expected = RGBColor.from_string(hex_color)
+    got = context.font.highlight_color.rgb
+    assert got == expected, "expected %r, got %r" % (expected, got)
+
+
+@then("font.highlight_color.theme_color is MSO_THEME_COLOR.{member}")
+def then_font_highlight_color_theme_color_is(context, member):
+    expected = getattr(MSO_THEME_COLOR, member)
+    got = context.font.highlight_color.theme_color
+    assert got == expected, "expected %r, got %r" % (expected, got)
+
+
+@then("the run has no a:highlight element")
+def then_run_has_no_highlight_element(context):
+    slide_idx, shape_idx, para_idx, run_idx = context.font_run_path
+    run = (
+        context.prs.slides[slide_idx]
+        .shapes[shape_idx]
+        .text_frame.paragraphs[para_idx]
+        .runs[run_idx]
+    )
+    # -- drill down into the underlying r/rPr element --
+    rPr = run._r.rPr  # pyright: ignore[reportPrivateUsage]
+    if rPr is None:
+        return  # -- no rPr at all means certainly no highlight --
+    assert rPr.find(qn("a:highlight")) is None, (
+        "expected no a:highlight under a:rPr, got:\n%s" % rPr.xml
+    )

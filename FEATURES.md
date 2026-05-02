@@ -873,7 +873,8 @@ preserves origin-run formatting), `TextFrame.font_scale` and
 `_Paragraph.replace_text()`, `_Paragraph.delete()`, `_Run.delete()`,
 a full `Font.effective_color` resolver that walks style inheritance (para
 `a:defRPr` → body `a:lstStyle` → master `p:txStyles` → theme
-`a:clrScheme`), `Font.strikethrough`, `Font.use_theme_hyperlink_color`,
+`a:clrScheme`), `Font.strikethrough`, `Font.highlight_color`,
+`Font.use_theme_hyperlink_color`,
 `Font.name_ea` / `name_cs` (East-Asian and complex-script slots), and a
 complete bullet-format API via `_Paragraph.bullet`.
 
@@ -902,6 +903,41 @@ font.language_id = MSO_LANGUAGE_ID.ENGLISH_US
 
 # effective color walking the inheritance chain (master / theme)
 print(font.effective_color)
+
+# build a paragraph
+p = tf.paragraphs[0]
+r = p.add_run()
+r.text = "Hello {NAME}"
+r.font.name = "Calibri"
+r.font.size = Pt(18)
+r.font.bold = True
+r.font.strikethrough = MSO_TEXT_STRIKE_TYPE.SINGLE_LINE
+r.font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+
+# text shadow (issue #546)
+r.font.shadow.blur_radius = Emu(50800)
+r.font.shadow.distance = Emu(38100)
+r.font.shadow.direction = 45.0
+r.font.shadow.color.rgb = RGBColor(0x80, 0x80, 0x80)
+
+# text highlight / background color (issue #675)
+r.font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+# r.font.clear_highlight_color()  # to remove an explicit highlight
+
+# template-style replacement (cross-run safe, origin-run formatting wins)
+tf.replace_text("{NAME}", "World")
+
+# strip autofit hints for a placeholder
+# tf.font_scale = 100.0
+# tf.line_space_reduction = 0.0
+
+# per-paragraph bullet
+p2 = tf.add_paragraph()
+p2.text = "Bulleted"
+p2.bullet.character(u"•")
+
+# delete a run
+# r.delete()
 
 prs.save("out.pptx")
 ```
@@ -1144,6 +1180,31 @@ prs.save("out.pptx")
 - `_Cell.row_idx` / `_Cell.col_idx` — Positional readback. `[Added in 2026.05.0]`
 - `_Cell.margin_top` / `.margin_bottom` / `.margin_left` / `.margin_right` — Cell padding.
 - `_Cell.border_top` / `.border_bottom` / `.border_left` / `.border_right` / `.border_diagonal_down` / `.border_diagonal_up` — Cell-border `_CellBorder` proxies. `[Added in 2026.05.0]`
+
+- `TextFrame.paragraphs` / `TextFrame.add_paragraph()` / `TextFrame.text` / `TextFrame.clear()`.
+- `TextFrame.word_wrap` / `.vertical_anchor` / `.auto_size` / `.margin_left` / `.margin_right` / `.margin_top` / `.margin_bottom` — Body-property knobs.
+- `TextFrame.rotation` — Read/write float degrees (rotates text inside the frame, distinct from shape rotation). `[Added in 1.0.2.dev0]`
+- `TextFrame.font_scale` — Autofit font-scale percent (reads/writes `a:normAutofit/@fontScale`). `[Added in 1.0.2.dev0]`
+- `TextFrame.line_space_reduction` — Autofit line-space reduction percent. `[Added in 1.0.2.dev0]`
+- `TextFrame.fit_text(font_family=..., max_size=..., bold=..., italic=..., font_file=...)` — Compute and store autofit hints.
+- `TextFrame.replace_text(find, replace)` — Cross-run text replacement preserving origin-run formatting. Returns replacement count. `[Added in 1.0.2.dev0]`
+- `_Paragraph.add_run()` / `_Paragraph.add_line_break()` / `_Paragraph.add_field(field_type, text="")` — Content.
+- `_Paragraph.add_math_equation(omml_xml)` — Insert a pre-authored OMML equation (see [Math equations](#math-equations)). `[Added in 1.0.2.dev0]`
+- `_Paragraph.replace_text(find, replace)` — Paragraph-scoped cross-run replace. `[Added in 1.0.2.dev0]`
+- `_Paragraph.delete()` — Remove the paragraph (fresh empty `a:p` inserted when it was the last one). `[Added in 1.0.2.dev0]`
+- `_Paragraph.alignment` / `.level` / `.font` / `.line_spacing` / `.space_before` / `.space_after` / `.text` — Paragraph formatting.
+- `_Paragraph.bullet` — `_BulletFormat` with `.character(char)` / `.auto_number(scheme, start_at=None)` / `.none()` / `.clear()` / `.font` / `.size_points` / `.size_pct` / `.color`. `[Added in 1.0.2.dev0]`
+- `_Run.text` / `_Run.font` / `_Run.hyperlink` — Run properties.
+- `_Run.delete()` — Remove the run. `[Added in 1.0.2.dev0]`
+- `Font.name` / `.size` / `.bold` / `.italic` / `.underline` / `.language_id` / `.color` / `.fill`.
+- `Font.strikethrough` — `bool` / `MSO_TEXT_STRIKE_TYPE` (NONE / SINGLE_LINE / DOUBLE_LINE). `[Added in 1.0.2.dev0]`
+- `Font.name_ea` / `Font.name_cs` — East-Asian and complex-script font slots (`a:ea`, `a:cs`). `[Added in 1.0.2.dev0]`
+- `Font.effective_color` — Read-only resolver that walks placeholder / master / theme inheritance and returns the rendered `RGBColor`. `[Added in 1.0.2.dev0]`
+- `Font.use_theme_hyperlink_color` — Tri-state `bool` toggling `a:uFill`/`uFillTx` on a hyperlink run. `[Added in 1.0.2.dev0]`
+- `Font.shadow` — `ShadowFormat` for the run's text-shadow. Full read/write `.inherit` / `.blur_radius` / `.distance` / `.direction` / `.color` API, backed by `a:rPr/a:effectLst/a:outerShdw` (see [Fills, colors, and effects](#fills-colors-and-effects)). Issue #546. `[Added in 1.0.2.dev0]`
+- `Font.effect_format` — `EffectFormat` exposing the full `a:effectLst` family (`.shadow` / `.glow` / `.reflection` / `.soft_edge`) on the run's `a:rPr`. `[Added in 1.0.2.dev0]`
+- `Font.highlight_color` / `Font.clear_highlight_color()` — Read/write `ColorFormat` for the text-highlight (text-background) swatch PowerPoint exposes on the Home ribbon. Accepts both `.rgb = RGBColor(...)` and `.theme_color = MSO_THEME_COLOR.ACCENT_1`. Backed by `a:rPr/a:highlight`. Issue #675. `[Added in 1.0.2.dev0]`
+- `_Hyperlink.address` — Run-level hyperlink URL (setter creates/clears the `a:hlinkClick`).
 
 ---
 

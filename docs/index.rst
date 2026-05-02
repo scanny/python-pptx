@@ -78,6 +78,10 @@ Feature Support
   connector
 * Ungroup a :class:`.GroupShape` in place via :meth:`.GroupShape.ungroup`,
   hoisting each child onto the slide at its slide-relative effective rectangle
+
+* Read and write the text-highlight (text-background) color on a run via
+  :attr:`Font.highlight_color` (RGB or theme color) — the swatch PowerPoint
+  exposes as the text background-color marker on the Home ribbon
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

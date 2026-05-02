@@ -49,6 +49,7 @@ from pptx.util import Centipoints, Emu, Length
 
 if TYPE_CHECKING:
     from pptx.oxml.action import CT_Hyperlink
+    from pptx.oxml.dml.color import CT_Color
     from pptx.oxml.dml.effect import CT_EffectList
 
 
@@ -338,11 +339,13 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     """
 
     get_or_add_effectLst: Callable[[], "CT_EffectList"]
+    get_or_add_highlight: Callable[[], "CT_Color"]
     get_or_add_hlinkClick: Callable[[], CT_Hyperlink]
     get_or_add_latin: Callable[[], CT_TextFont]
     get_or_add_ea: Callable[[], CT_TextFont]
     get_or_add_cs: Callable[[], CT_TextFont]
     _remove_effectLst: Callable[[], None]
+    _remove_highlight: Callable[[], None]
     _remove_latin: Callable[[], None]
     _remove_ea: Callable[[], None]
     _remove_cs: Callable[[], None]
@@ -380,6 +383,23 @@ class CT_TextCharacterProperties(BaseOxmlElement):
         successors=(
             "a:effectDag",
             "a:highlight",
+            "a:uLnTx",
+            "a:uLn",
+            "a:uFillTx",
+            "a:uFill",
+            "a:latin",
+            "a:ea",
+            "a:cs",
+            "a:sym",
+            "a:hlinkClick",
+            "a:hlinkMouseOver",
+            "a:rtl",
+            "a:extLst",
+        ),
+    )
+    highlight: "CT_Color | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:highlight",
+        successors=(
             "a:uLnTx",
             "a:uLn",
             "a:uFillTx",
