@@ -18,7 +18,13 @@ class DescribePresentation(object):
     def it_opens_default_template_on_no_path_provided(self, call_fixture):
         Package_, path, prs_ = call_fixture
         prs = Presentation()
-        Package_.open.assert_called_once_with(path)
+        Package_.open.assert_called_once_with(path, password=None)
+        assert prs is prs_
+
+    def it_can_open_a_password_protected_presentation(self, call_fixture):
+        Package_, path, prs_ = call_fixture
+        prs = Presentation(path, password="s3cret")
+        Package_.open.assert_called_once_with(path, password="s3cret")
         assert prs is prs_
 
     # fixtures -------------------------------------------------------

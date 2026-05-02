@@ -95,5 +95,27 @@ to open or save a presentation like so::
     prs.save(target_stream)
 
 
+Opening and saving a password-protected presentation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|pp| can read and write password-protected (encrypted) ``.pptx`` files that use
+the ECMA-376 Agile Encryption scheme PowerPoint writes when a user chooses
+"Encrypt with Password" in the desktop application. Pass the password via the
+``password`` keyword argument::
+
+    prs = Presentation('secret.pptx', password='hunter2')
+    # ... edit as normal ...
+    prs.save('new-secret.pptx', password='hunter2')
+
+This feature requires the optional ``msoffcrypto-tool`` package::
+
+    pip install msoffcrypto-tool
+
+If a password-protected file is opened without a password, or with the wrong
+password, a :class:`pptx.exc.EncryptedPackageError` is raised. Omitting the
+``password`` argument when saving produces a plain (unencrypted) ``.pptx`` as
+before.
+
+
 Okay, so you've got a presentation open and are pretty sure you can save it
 somewhere later. Next step is to get a slide in there ...

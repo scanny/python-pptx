@@ -42,12 +42,15 @@ class Presentation(PartElementProxy):
         """
         return self.part.notes_master
 
-    def save(self, file: str | IO[bytes]):
+    def save(self, file: str | IO[bytes], password: str | None = None):
         """Writes this presentation to `file`.
 
         `file` can be either a file-path or a file-like object open for writing bytes.
+        When `password` is provided, the saved .pptx is password-protected using ECMA-376
+        Agile Encryption (the same scheme PowerPoint uses). Encryption requires the
+        optional ``msoffcrypto-tool`` dependency.
         """
-        self.part.save(file)
+        self.part.save(file, password=password)
 
     @property
     def slide_height(self) -> Length | None:

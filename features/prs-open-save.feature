@@ -37,3 +37,18 @@ Feature: Round-trip a presentation
   Scenario: Load presentation with invalid image/jpg MIME-type
      Given a presentation with an image/jpg MIME-type
       Then I can access the JPEG image
+
+  Scenario: Round-trip a password-protected presentation
+     Given a clean working directory
+      When I save a password-protected presentation
+       And I open the password-protected presentation with the correct password
+      Then I see the pptx file in the working directory
+       And the saved .pptx starts with the OLE2 magic signature
+
+  Scenario: Opening a password-protected presentation without a password fails
+     Given a password-protected presentation on disk
+      Then opening it without a password raises EncryptedPackageError
+
+  Scenario: Opening a password-protected presentation with the wrong password fails
+     Given a password-protected presentation on disk
+      Then opening it with the wrong password raises EncryptedPackageError

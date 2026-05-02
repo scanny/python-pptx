@@ -80,8 +80,18 @@ class DescribePackageReader:
 
         blob_reader = package_reader._blob_reader
 
-        _PhysPkgReader_.factory.assert_called_once_with("prs.pptx")
+        _PhysPkgReader_.factory.assert_called_once_with("prs.pptx", None)
         assert blob_reader is phys_pkg_reader_
+
+    def it_passes_its_password_through_to_the_blob_reader(self, request: FixtureRequest):
+        phys_pkg_reader_ = instance_mock(request, _PhysPkgReader)
+        _PhysPkgReader_ = class_mock(request, "pptx.opc.serialized._PhysPkgReader")
+        _PhysPkgReader_.factory.return_value = phys_pkg_reader_
+        package_reader = PackageReader("prs.pptx", password="s3cret")
+
+        _ = package_reader._blob_reader
+
+        _PhysPkgReader_.factory.assert_called_once_with("prs.pptx", "s3cret")
 
     # fixture components -----------------------------------
 
@@ -101,8 +111,18 @@ class DescribePackageWriter:
 
         PackageWriter.write("prs.pptx", relationships_, (part_, part_))
 
-        _init_.assert_called_once_with(ANY, "prs.pptx", relationships_, (part_, part_))
+        _init_.assert_called_once_with(ANY, "prs.pptx", relationships_, (part_, part_), None)
         _write_.assert_called_once_with(ANY)
+
+    def it_passes_its_password_through_to_the_constructor(
+        self, request: FixtureRequest, relationships_: Mock, part_: Mock
+    ):
+        _init_ = initializer_mock(request, PackageWriter)
+        method_mock(request, PackageWriter, "_write")
+
+        PackageWriter.write("prs.pptx", relationships_, (part_,), "s3cret")
+
+        _init_.assert_called_once_with(ANY, "prs.pptx", relationships_, (part_,), "s3cret")
 
     def it_can_write_a_package(
         self, request: FixtureRequest, phys_writer_: Mock, relationships_: Mock
@@ -174,6 +194,44 @@ class DescribePackageWriter:
 
         phys_writer_.write.assert_called_once_with("/_rels/.rels", b"pkg-rels-xml")
 
+    def it_encrypts_the_package_when_a_password_is_provided(
+        self, request: FixtureRequest, relationships_: Mock
+    ):
+        # -- stub out the per-component writers; they're tested separately --
+        method_mock(request, PackageWriter, "_write_content_types_stream")
+        method_mock(request, PackageWriter, "_write_pkg_rels")
+        method_mock(request, PackageWriter, "_write_parts")
+        encrypt_bytes_ = function_mock(
+            request, "pptx.opc.serialized.encrypt_bytes", return_value=b"ciphertext"
+        )
+        out_stream = io.BytesIO()
+        package_writer = PackageWriter(out_stream, relationships_, [], password="s3cret")
+
+        package_writer._write()
+
+        # -- the plain in-memory buffer was passed to encrypt_bytes --
+        assert encrypt_bytes_.call_count == 1
+        plain_arg, pw_arg = encrypt_bytes_.call_args[0]
+        assert isinstance(plain_arg, bytes)
+        assert pw_arg == "s3cret"
+        # -- and the ciphertext ended up in the destination stream --
+        assert out_stream.getvalue() == b"ciphertext"
+
+    def it_writes_encrypted_bytes_to_a_path_when_password_and_path_given(
+        self, request: FixtureRequest, relationships_: Mock, tmp_path: object
+    ):
+        method_mock(request, PackageWriter, "_write_content_types_stream")
+        method_mock(request, PackageWriter, "_write_pkg_rels")
+        method_mock(request, PackageWriter, "_write_parts")
+        function_mock(request, "pptx.opc.serialized.encrypt_bytes", return_value=b"ciphertext")
+        out_path = str(tmp_path) + "/enc.pptx"  # pyright: ignore[reportAttributeAccessIssue]
+        package_writer = PackageWriter(out_path, relationships_, [], password="s3cret")
+
+        package_writer._write()
+
+        with open(out_path, "rb") as f:
+            assert f.read() == b"ciphertext"
+
     # -- fixtures ----------------------------------------------------
 
     @pytest.fixture
@@ -229,6 +287,57 @@ class Describe_PhysPkgReader:
         with pytest.raises(PackageNotFoundError) as e:
             _PhysPkgReader.factory("foobar")
         assert str(e.value) == "Package not found at 'foobar'"
+
+    def it_raises_EncryptedPackageError_when_stream_is_encrypted_and_no_password(
+        self, request: FixtureRequest
+    ):
+        from pptx.exc import EncryptedPackageError
+
+        function_mock(request, "pptx.opc.serialized.is_encrypted_stream", return_value=True)
+        stream = io.BytesIO(b"CFBF-looking-bytes")
+
+        with pytest.raises(EncryptedPackageError, match="password-protected"):
+            _PhysPkgReader.factory(stream)
+
+    def it_decrypts_an_encrypted_stream_when_password_is_given(
+        self, request: FixtureRequest, _ZipPkgReader_: Mock, zip_pkg_reader_: Mock
+    ):
+        function_mock(request, "pptx.opc.serialized.is_encrypted_stream", return_value=True)
+        function_mock(
+            request, "pptx.opc.serialized.decrypt_stream", return_value=b"PK\x03\x04plain"
+        )
+        _ZipPkgReader_.return_value = zip_pkg_reader_
+        stream = io.BytesIO(b"CFBF")
+
+        phys_reader = _PhysPkgReader.factory(stream, password="pw")
+
+        # -- a BytesIO wrapping the plaintext bytes was handed to _ZipPkgReader --
+        (call_arg,), _ = _ZipPkgReader_.call_args
+        assert isinstance(call_arg, io.BytesIO)
+        assert call_arg.getvalue() == b"PK\x03\x04plain"
+        assert phys_reader is zip_pkg_reader_
+
+    def it_decrypts_an_encrypted_file_path_when_password_is_given(
+        self,
+        request: FixtureRequest,
+        _ZipPkgReader_: Mock,
+        zip_pkg_reader_: Mock,
+        tmp_path: object,
+    ):
+        # -- write a file whose first bytes are the OLE magic so the sniff matches --
+        p = str(tmp_path) + "/encrypted.pptx"  # pyright: ignore[reportAttributeAccessIssue]
+        with open(p, "wb") as f:
+            f.write(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 16)
+        function_mock(
+            request,
+            "pptx.opc.serialized.decrypt_stream",
+            return_value=b"plain-zip-bytes",
+        )
+        _ZipPkgReader_.return_value = zip_pkg_reader_
+
+        phys_reader = _PhysPkgReader.factory(p, password="pw")
+
+        assert phys_reader is zip_pkg_reader_
 
     # --- fixture components -------------------------------
 

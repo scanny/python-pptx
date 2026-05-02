@@ -103,13 +103,14 @@ class PresentationPart(XmlPart):
             slide_part = self.related_part(rId)
             slide_part.partname = PackURI("/ppt/slides/slide%d.xml" % (idx + 1))
 
-    def save(self, path_or_stream: str | IO[bytes]):
+    def save(self, path_or_stream: str | IO[bytes], password: str | None = None):
         """Save this presentation package to `path_or_stream`.
 
         `path_or_stream` can be either a path to a filesystem location (a string) or a
-        file-like object.
+        file-like object. When `password` is provided, the saved package is encrypted;
+        see :meth:`pptx.presentation.Presentation.save` for details.
         """
-        self.package.save(path_or_stream)
+        self.package.save(path_or_stream, password=password)
 
     def slide_id(self, slide_part):
         """Return the slide-id associated with `slide_part`."""

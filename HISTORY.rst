@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #668 read password-protected PPTX files (optional msoffcrypto-tool dep)
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

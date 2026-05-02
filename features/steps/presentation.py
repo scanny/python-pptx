@@ -12,6 +12,7 @@ from behave.runner import Context
 from helpers import saved_pptx_path, test_file, test_pptx
 
 from pptx import Presentation
+from pptx.exc import EncryptedPackageError
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.util import Inches
 
@@ -51,6 +52,17 @@ def given_prs_with_image_jpg_MIME_type(context):
 @given("a presentation with external relationships")
 def given_prs_with_ext_rels(context: Context):
     context.prs = Presentation(test_pptx("ext-rels"))
+
+
+@given("a password-protected presentation on disk")
+def given_password_protected_presentation_on_disk(context: Context):
+    # -- encrypt a small in-memory .pptx and leave the bytes in context for the
+    # -- subsequent Then steps; using a stream avoids writing to disk.
+    prs = Presentation(test_pptx("test"))
+    buf = io.BytesIO()
+    prs.save(buf, password="right-password")
+    buf.seek(0)
+    context.encrypted_pptx_bytes = buf.getvalue()
 
 
 @given("an initialized pptx environment")
@@ -119,6 +131,17 @@ def when_save_presentation(context: Context):
 def when_save_presentation_to_stream(context: Context):
     context.stream = io.BytesIO()
     context.prs.save(context.stream)
+
+
+@when("I save a password-protected presentation")
+def when_save_password_protected_presentation(context: Context):
+    prs = Presentation(test_pptx("test"))
+    prs.save(saved_pptx_path, password="pw4behave")
+
+
+@when("I open the password-protected presentation with the correct password")
+def when_open_password_protected_with_correct_pw(context: Context):
+    context.prs = Presentation(saved_pptx_path, password="pw4behave")
 
 
 # then ====================================================
@@ -220,3 +243,32 @@ def then_slide_height_matches_new_value(context: Context):
 def then_slide_width_matches_new_value(context: Context):
     presentation = context.presentation
     assert presentation.slide_width == Inches(4)
+
+
+@then("the saved .pptx starts with the OLE2 magic signature")
+def then_saved_pptx_starts_with_ole2_magic(context: Context):
+    with open(saved_pptx_path, "rb") as f:
+        header = f.read(8)
+    assert header == b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", (
+        "expected OLE2 magic for an encrypted .pptx, got %r" % header
+    )
+
+
+@then("opening it without a password raises EncryptedPackageError")
+def then_opening_without_password_raises(context: Context):
+    try:
+        Presentation(io.BytesIO(context.encrypted_pptx_bytes))
+    except EncryptedPackageError:
+        return
+    raise AssertionError("expected EncryptedPackageError was not raised")
+
+
+@then("opening it with the wrong password raises EncryptedPackageError")
+def then_opening_with_wrong_password_raises(context: Context):
+    try:
+        Presentation(
+            io.BytesIO(context.encrypted_pptx_bytes), password="definitely-wrong"
+        )
+    except EncryptedPackageError:
+        return
+    raise AssertionError("expected EncryptedPackageError was not raised")

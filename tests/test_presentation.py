@@ -74,7 +74,12 @@ class DescribePresentation(object):
     def it_can_save_the_presentation_to_a_file(self, save_fixture):
         prs, file_, prs_part_ = save_fixture
         prs.save(file_)
-        prs_part_.save.assert_called_once_with(file_)
+        prs_part_.save.assert_called_once_with(file_, password=None)
+
+    def it_can_save_a_password_protected_presentation_to_a_file(self, save_fixture):
+        prs, file_, prs_part_ = save_fixture
+        prs.save(file_, password="s3cret")
+        prs_part_.save.assert_called_once_with(file_, password="s3cret")
 
     # fixtures -------------------------------------------------------
 

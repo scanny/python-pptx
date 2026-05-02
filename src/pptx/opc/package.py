@@ -73,13 +73,18 @@ class OpcPackage(_RelatableMixin):
     file or file-like object containing a package (.pptx file).
     """
 
-    def __init__(self, pkg_file: str | IO[bytes]):
+    def __init__(self, pkg_file: str | IO[bytes], password: str | None = None):
         self._pkg_file = pkg_file
+        self._password = password
 
     @classmethod
-    def open(cls, pkg_file: str | IO[bytes]) -> Self:
-        """Return an |OpcPackage| instance loaded with the contents of `pkg_file`."""
-        return cls(pkg_file)._load()
+    def open(cls, pkg_file: str | IO[bytes], password: str | None = None) -> Self:
+        """Return an |OpcPackage| instance loaded with the contents of `pkg_file`.
+
+        When `password` is provided and the package is encrypted, the package is decrypted
+        before loading. Decryption requires the optional ``msoffcrypto-tool`` dependency.
+        """
+        return cls(pkg_file, password)._load()
 
     def drop_rel(self, rId: str) -> None:
         """Remove relationship identified by `rId`."""
@@ -148,16 +153,20 @@ class OpcPackage(_RelatableMixin):
                 return PackURI(candidate_partname)
         raise Exception("ProgrammingError: ran out of candidate_partnames")  # pragma: no cover
 
-    def save(self, pkg_file: str | IO[bytes]) -> None:
+    def save(self, pkg_file: str | IO[bytes], password: str | None = None) -> None:
         """Save this package to `pkg_file`.
 
-        `file` can be either a path to a file (a string) or a file-like object.
+        `file` can be either a path to a file (a string) or a file-like object. When
+        `password` is provided, the resulting .pptx is password-protected using ECMA-376
+        Agile Encryption; this requires the optional ``msoffcrypto-tool`` dependency.
         """
-        PackageWriter.write(pkg_file, self._rels, tuple(self.iter_parts()))
+        PackageWriter.write(pkg_file, self._rels, tuple(self.iter_parts()), password)
 
     def _load(self) -> Self:
         """Return the package after loading all parts and relationships."""
-        pkg_xml_rels, parts = _PackageLoader.load(self._pkg_file, cast("Package", self))
+        pkg_xml_rels, parts = _PackageLoader.load(
+            self._pkg_file, cast("Package", self), self._password
+        )
         self._rels.load_from_xml(PACKAGE_URI, pkg_xml_rels, parts)
         return self
 
@@ -170,13 +179,17 @@ class OpcPackage(_RelatableMixin):
 class _PackageLoader:
     """Function-object that loads a package from disk (or other store)."""
 
-    def __init__(self, pkg_file: str | IO[bytes], package: Package):
+    def __init__(self, pkg_file: str | IO[bytes], package: Package, password: str | None = None):
         self._pkg_file = pkg_file
         self._package = package
+        self._password = password
 
     @classmethod
     def load(
-        cls, pkg_file: str | IO[bytes], package: Package
+        cls,
+        pkg_file: str | IO[bytes],
+        package: Package,
+        password: str | None = None,
     ) -> tuple[CT_Relationships, dict[PackURI, Part]]:
         """Return (pkg_xml_rels, parts) pair resulting from loading `pkg_file`.
 
@@ -187,7 +200,7 @@ class _PackageLoader:
         package relationships. It is the caller's responsibility (the package object) to load
         those relationships into its |_Relationships| object.
         """
-        return cls(pkg_file, package)._load()
+        return cls(pkg_file, package, password)._load()
 
     def _load(self) -> tuple[CT_Relationships, dict[PackURI, Part]]:
         """Return (pkg_xml_rels, parts) pair resulting from loading pkg_file."""
@@ -209,7 +222,7 @@ class _PackageLoader:
     @lazyproperty
     def _package_reader(self) -> PackageReader:
         """|PackageReader| object providing access to package-items in pkg_file."""
-        return PackageReader(self._pkg_file)
+        return PackageReader(self._pkg_file, self._password)
 
     @lazyproperty
     def _parts(self) -> dict[PackURI, Part]:

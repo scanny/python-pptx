@@ -18,17 +18,24 @@ if TYPE_CHECKING:
     from pptx.parts.presentation import PresentationPart
 
 
-def Presentation(pptx: str | IO[bytes] | None = None) -> presentation.Presentation:
+def Presentation(
+    pptx: str | IO[bytes] | None = None, password: str | None = None
+) -> presentation.Presentation:
     """
     Return a |Presentation| object loaded from *pptx*, where *pptx* can be
     either a path to a ``.pptx`` file (a string) or a file-like object. If
     *pptx* is missing or ``None``, the built-in default presentation
     "template" is loaded.
+
+    When *password* is provided, an encrypted (password-protected) ``.pptx``
+    file is decrypted before loading. This requires the optional
+    ``msoffcrypto-tool`` dependency. Opening an encrypted package without
+    a password raises :class:`pptx.exc.EncryptedPackageError`.
     """
     if pptx is None:
         pptx = _default_pptx_path()
 
-    presentation_part = Package.open(pptx).main_document_part
+    presentation_part = Package.open(pptx, password=password).main_document_part
 
     if not _is_pptx_package(presentation_part):
         tmpl = "file '%s' is not a PowerPoint file, content type is '%s'"

@@ -121,7 +121,11 @@ class DescribePresentationPart(object):
 
     def it_can_save_the_package_to_a_file(self, package_):
         PresentationPart(None, None, package_, None).save("prs.pptx")
-        package_.save.assert_called_once_with("prs.pptx")
+        package_.save.assert_called_once_with("prs.pptx", password=None)
+
+    def it_can_save_a_password_protected_package_to_a_file(self, package_):
+        PresentationPart(None, None, package_, None).save("prs.pptx", password="s3cret")
+        package_.save.assert_called_once_with("prs.pptx", password="s3cret")
 
     def it_can_add_a_new_slide(self, request, package_, slide_part_, slide_, relate_to_):
         slide_layout_ = instance_mock(request, SlideLayout)

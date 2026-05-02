@@ -140,7 +140,18 @@ class DescribeOpcPackage:
 
         package = OpcPackage.open("package.pptx")
 
-        _init_.assert_called_once_with(ANY, "package.pptx")
+        _init_.assert_called_once_with(ANY, "package.pptx", None)
+        _load_.assert_called_once_with(ANY)
+        assert package is package_
+
+    def it_can_open_a_password_protected_pkg_file(self, request):
+        package_ = instance_mock(request, OpcPackage)
+        _init_ = initializer_mock(request, OpcPackage)
+        _load_ = method_mock(request, OpcPackage, "_load", return_value=package_)
+
+        package = OpcPackage.open("package.pptx", password="s3cret")
+
+        _init_.assert_called_once_with(ANY, "package.pptx", "s3cret")
         _load_.assert_called_once_with(ANY)
         assert package is package_
 
@@ -254,7 +265,18 @@ class DescribeOpcPackage:
 
         package.save("prs.pptx")
 
-        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_)
+        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_, None)
+
+    def it_can_save_a_password_protected_pkg_file(self, request, _rels_prop_, relationships_):
+        _rels_prop_.return_value = relationships_
+        parts_ = tuple(instance_mock(request, Part) for _ in range(3))
+        method_mock(request, OpcPackage, "iter_parts", return_value=iter(parts_))
+        PackageWriter_ = class_mock(request, "pptx.opc.package.PackageWriter")
+        package = OpcPackage(None)
+
+        package.save("prs.pptx", password="s3cret")
+
+        PackageWriter_.write.assert_called_once_with("prs.pptx", relationships_, parts_, "s3cret")
 
     def it_loads_the_pkg_file_to_help(self, request, _rels_prop_, relationships_):
         _PackageLoader_ = class_mock(request, "pptx.opc.package._PackageLoader")
@@ -264,7 +286,7 @@ class DescribeOpcPackage:
 
         return_value = package._load()
 
-        _PackageLoader_.load.assert_called_once_with("prs.pptx", package)
+        _PackageLoader_.load.assert_called_once_with("prs.pptx", package, None)
         relationships_.load_from_xml.assert_called_once_with(
             PACKAGE_URI, "pkg-rels-xml", {"partname": "part"}
         )
@@ -307,7 +329,7 @@ class Describe_PackageLoader:
 
         pkg_xml_rels, parts = _PackageLoader.load("prs.pptx", package_)
 
-        _init_.assert_called_once_with(ANY, "prs.pptx", package_)
+        _init_.assert_called_once_with(ANY, "prs.pptx", package_, None)
         _load_.assert_called_once_with(ANY)
         assert pkg_xml_rels is pkg_xml_rels_
         assert parts == {"partname": "part"}
