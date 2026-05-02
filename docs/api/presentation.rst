@@ -48,6 +48,25 @@ of their containing object.
    :undoc-members:
 
 
+Presentation sections
+---------------------
+
+A presentation's :attr:`~pptx.presentation.Presentation.sections` attribute
+exposes the PowerPoint-2010 *section list* feature — named groups of
+consecutive slides that appear as collapsible regions in the Navigation
+pane.
+
+.. autoclass:: pptx.presentation.Sections()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.presentation.Section()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 Embedding custom fonts
 ----------------------
 

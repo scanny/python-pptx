@@ -169,6 +169,53 @@ Okay, so you've got a presentation open and are pretty sure you can save it
 somewhere later. Next step is to get a slide in there ...
 
 
+Organizing slides into sections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting with PowerPoint 2010, a presentation can be partitioned into
+named *sections* that group consecutive slides together in the
+Navigation pane. |pp| exposes these through the
+:attr:`~pptx.presentation.Presentation.sections` collection::
+
+    from pptx import Presentation
+
+    prs = Presentation("deck.pptx")
+
+    # -- add a section containing the first two slides --
+    intro = prs.sections.add_section(
+        "Intro", slides=[prs.slides[0], prs.slides[1]]
+    )
+
+    # -- read-only id, read/write name --
+    print(intro.id)        # -> '{EA541957-60A5-47A7-8DF8-F51D8F183008}'
+    intro.name = "Overview"
+
+    # -- assign / revoke section membership for individual slides --
+    intro.add_slide(prs.slides[2])
+    intro.remove_slide(prs.slides[0])
+
+    # -- look up by name or id --
+    prs.sections.get_by_name("Overview")
+    prs.sections.get_by_id(intro.id)
+
+    # -- tear it down --
+    prs.sections.remove(intro)
+
+A few things to note:
+
+* Each section carries a stable GUID ``id``. |pp| generates one
+  automatically; pass ``id="{...}"`` to :meth:`Sections.add_section` if
+  you need a specific value (e.g. preserving ids from another source).
+* A slide can belong to at most one section in PowerPoint. |pp| does
+  **not** automatically move a slide out of another section when you
+  call :meth:`Section.add_slide` on a new section; if you need that
+  mutual-exclusion behavior, remove the slide from the prior section
+  first.
+* Removing the last section also prunes the empty ``p:extLst``
+  scaffolding so a round-tripped deck does not retain an empty
+  extension block.
+
+
 Extended document properties are synced on save
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

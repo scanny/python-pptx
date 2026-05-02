@@ -6,6 +6,13 @@ Release History
 Unreleased
 ++++++++++
 
+- Foundation: presentation sections (F7). Adds read/write access to
+  PowerPoint-2010 *sections* (``p14:sectionLst`` under
+  ``p:extLst/p:ext[uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}"]``) via a
+  new ``Presentation.sections`` collection, with ``Sections.add_section``,
+  ``Sections.remove``, ``Sections.get_by_id``, ``Sections.get_by_name``,
+  and per-section ``Section.name``, ``Section.id`` (GUID), ``Section.slides``,
+  ``Section.add_slide``, and ``Section.remove_slide``.
 - docs: #1049 PPT ---> MP4: Automation — add a "Rendering to video, PDF,
   or image formats" section to the user guide clarifying that python-pptx
   does not render slides and pointing at ``libreoffice --headless
