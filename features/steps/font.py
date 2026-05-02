@@ -168,6 +168,26 @@ def when_I_assign_value_to_font_strikethrough(context, value):
     context.font.strikethrough = new_value
 
 
+@when("I assign {value:d} to font.shadow.blur_radius")
+def when_assign_value_to_font_shadow_blur_radius(context, value):
+    context.font.shadow.blur_radius = value
+
+
+@when("I assign {value:d} to font.shadow.distance")
+def when_assign_value_to_font_shadow_distance(context, value):
+    context.font.shadow.distance = value
+
+
+@when("I assign {value:f} to font.shadow.direction")
+def when_assign_value_to_font_shadow_direction(context, value):
+    context.font.shadow.direction = value
+
+
+@when("I assign {value} to font.shadow.inherit")
+def when_assign_value_to_font_shadow_inherit(context, value):
+    context.font.shadow.inherit = {"True": True, "False": False, "None": None}[value]
+
+
 # then ===================================================
 
 
@@ -259,3 +279,29 @@ def then_font_strikethrough_is_value(context, value):
     }[value]
     font = context.font
     assert font.strikethrough is expected_value, "got %s" % font.strikethrough
+
+
+@then("font.shadow.blur_radius is {value}")
+def then_font_shadow_blur_radius_is_value(context, value):
+    expected = None if value == "None" else int(value)
+    got = context.font.shadow.blur_radius
+    assert got == expected, "expected %r, got %r" % (expected, got)
+
+
+@then("font.shadow.distance is {value:d}")
+def then_font_shadow_distance_is_value(context, value):
+    got = context.font.shadow.distance
+    assert got == value, "expected %r, got %r" % (value, got)
+
+
+@then("font.shadow.direction is {value:f}")
+def then_font_shadow_direction_is_value(context, value):
+    got = context.font.shadow.direction
+    assert got == value, "expected %r, got %r" % (value, got)
+
+
+@then("font.shadow.inherit is {value}")
+def then_font_shadow_inherit_is_value(context, value):
+    expected = {"True": True, "False": False}[value]
+    got = context.font.shadow.inherit
+    assert got is expected, "expected %r, got %r" % (expected, got)

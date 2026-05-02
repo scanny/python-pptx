@@ -817,6 +817,49 @@ class DescribeFont(object):
     def it_provides_access_to_its_fill(self, font):
         assert isinstance(font.fill, FillFormat)
 
+    # -- shadow / effect_format (issue #546) ----------------------------
+
+    def it_provides_access_to_its_shadow(self):
+        from pptx.dml.effect import ShadowFormat
+
+        font = Font(element("a:rPr"))
+        assert isinstance(font.shadow, ShadowFormat)
+        assert font.shadow.inherit is True
+
+    def it_writes_shadow_xml_under_rPr_effectLst_outerShdw(self):
+        from pptx.util import Emu
+
+        font = Font(element("a:rPr"))
+        font.shadow.blur_radius = Emu(50800)
+        font.shadow.distance = Emu(38100)
+        font.shadow.direction = 45.0
+
+        assert font.shadow.blur_radius == 50800
+        assert font.shadow.distance == 38100
+        assert font.shadow.direction == 45.0
+        assert font.shadow.inherit is False
+        # -- XML shape is a:rPr/a:effectLst/a:outerShdw --
+        assert "effectLst" in font._element.xml
+        assert "outerShdw" in font._element.xml
+
+    def it_restores_inheritance_when_shadow_inherit_set_True(self):
+        from pptx.util import Emu
+
+        font = Font(element("a:rPr"))
+        font.shadow.blur_radius = Emu(50800)
+        assert font.shadow.inherit is False
+
+        font.shadow.inherit = True
+
+        assert font.shadow.inherit is True
+        assert font.shadow.blur_radius is None
+
+    def it_provides_access_to_its_effect_format(self):
+        from pptx.dml.effect import EffectFormat
+
+        font = Font(element("a:rPr"))
+        assert isinstance(font.effect_format, EffectFormat)
+
     # -- effective_color (issue #938) -----------------------------------
 
     def it_returns_None_for_effective_color_without_part_context(self):
