@@ -73,6 +73,7 @@ User Guide
    user/charts
    user/table
    user/media
+   user/math-equations
    user/notes
    user/ole-objects
    user/comments

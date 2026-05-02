@@ -116,6 +116,12 @@ def given_a_slide_with_an_mc_AlternateContent_wrapped_shape(context):
     context.slide = context.prs.slides[0]
 
 
+@given("a slide with a math-equation shape")
+def given_a_slide_with_a_math_equation_shape(context):
+    context.prs = Presentation(test_pptx("shp-math-equation"))
+    context.slide = context.prs.slides[0]
+
+
 # when ====================================================
 
 
@@ -433,3 +439,50 @@ def then_the_saved_table_has_integer_position_and_size(context):
         assert gc.get("w").lstrip("-").isdigit(), gc.get("w")
     for tr in tbl.tr_lst:
         assert tr.get("h").lstrip("-").isdigit(), tr.get("h")
+
+
+def _math_equation_shape(context):
+    for shape in context.slide.shapes:
+        if shape.name == "Math-Equation":
+            return shape
+    raise AssertionError("'Math-Equation' shape not found in slide")
+
+
+@then("shape.has_math_equation is True for the equation shape")
+def then_shape_has_math_equation_is_True_for_equation_shape(context):
+    shape = _math_equation_shape(context)
+    assert shape.has_math_equation is True, "expected has_math_equation to be True"
+
+
+@then("shape.has_math_equation is False for non-equation shapes")
+def then_shape_has_math_equation_is_False_for_non_equation_shapes(context):
+    for shape in context.slide.shapes:
+        if shape.name == "Math-Equation":
+            continue
+        assert shape.has_math_equation is False, (
+            "expected has_math_equation False for %r" % shape.name
+        )
+
+
+@then("shape.math_equation_xml returns the raw OMML XML")
+def then_shape_math_equation_xml_returns_the_raw_OMML_XML(context):
+    shape = _math_equation_shape(context)
+    oMath_xml = shape.math_equation_xml
+    assert oMath_xml is not None, "expected math_equation_xml to be a string"
+    assert oMath_xml.startswith("<m:oMath"), "expected OMML to begin with <m:oMath, got %r" % (
+        oMath_xml[:40],
+    )
+    assert (
+        'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"' in oMath_xml
+    ), "expected m: namespace declaration in returned OMML"
+
+
+@then("shape.math_equation_xml is None for non-equation shapes")
+def then_shape_math_equation_xml_is_None_for_non_equation_shapes(context):
+    for shape in context.slide.shapes:
+        if shape.name == "Math-Equation":
+            continue
+        assert shape.math_equation_xml is None, (
+            "expected math_equation_xml None for %r, got %r"
+            % (shape.name, shape.math_equation_xml)
+        )

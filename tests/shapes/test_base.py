@@ -508,6 +508,58 @@ class DescribeBaseShape(object):
         assert title is not None
         with pytest.raises(NotImplementedError, match="placeholder"):
             title.duplicate()
+    @pytest.mark.parametrize(
+        ("shape_cxml", "expected_value"),
+        [
+            # -- no OMML at all --
+            ("p:sp/p:txBody/a:p", False),
+            # -- text-frame with regular text but no equation --
+            ("p:sp/p:txBody/a:p/a:r/a:t", False),
+            # -- inline m:oMath in a paragraph (typical choice-wrapped shape) --
+            ("p:sp/p:txBody/a:p/m:oMath", True),
+            # -- m:oMath inside m:oMathPara --
+            ("p:sp/p:txBody/a:p/m:oMathPara/m:oMath", True),
+            # -- m:oMath as a direct descendant, no paragraph wrapper --
+            ("p:sp/m:oMath", True),
+            # -- non-shape element types also work (graphicFrame, pic, grpSp, cxnSp) --
+            ("p:pic/p:nvPicPr", False),
+            ("p:graphicFrame/m:oMath", True),
+        ],
+    )
+    def it_knows_whether_it_contains_an_OMML_equation(
+        self, shape_cxml: str, expected_value: bool
+    ):
+        shape_elm = cast("ShapeElement", element(shape_cxml))
+        shape = BaseShape(shape_elm, None)
+        assert shape.has_math_equation is expected_value
+
+    def it_returns_None_for_math_equation_xml_when_no_equation(self):
+        shape_elm = cast("ShapeElement", element("p:sp/p:txBody/a:p"))
+        shape = BaseShape(shape_elm, None)
+        assert shape.math_equation_xml is None
+
+    def it_returns_the_raw_OMML_XML_for_the_first_equation(self):
+        shape_elm = cast("ShapeElement", element("p:sp/p:txBody/a:p/m:oMath"))
+        shape = BaseShape(shape_elm, None)
+
+        oMath_xml = shape.math_equation_xml
+
+        assert oMath_xml is not None
+        assert oMath_xml.startswith("<m:oMath")
+        assert 'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"' in oMath_xml
+
+    def and_it_returns_only_the_first_equation_when_multiple_are_present(self):
+        shape_elm = cast(
+            "ShapeElement",
+            element("p:sp/p:txBody/(a:p/m:oMath,a:p/m:oMath)"),
+        )
+        shape = BaseShape(shape_elm, None)
+
+        oMath_xml = shape.math_equation_xml
+
+        assert oMath_xml is not None
+        # -- exactly one `<m:oMath` open-tag (the first), not two --
+        assert oMath_xml.count("<m:oMath") == 1
 
     # fixtures -------------------------------------------------------
 

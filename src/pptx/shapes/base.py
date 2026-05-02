@@ -5,6 +5,8 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, cast
 
+from lxml import etree
+
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.oxml.ns import qn
@@ -191,6 +193,50 @@ class BaseShape(object):
         # This implementation is unconditionally False, the True version is
         # on GraphicFrame subclass.
         return False
+
+    @property
+    def has_math_equation(self) -> bool:
+        """|True| if this shape contains an Office Math (OMML) equation.
+
+        An equation is detected by the presence of one or more `m:oMath` descendants
+        anywhere within the shape's XML subtree. This covers both the `m:oMath` that
+        appears directly under an `a14:m` wrapper (PowerPoint 2010+ equation shapes
+        surfaced via an `mc:AlternateContent/mc:Choice` element) and the `m:oMath` that
+        appears inside an `m:oMathPara` container.
+
+        This is a read-only, MVP-scope property. Writing OMML and converting to/from
+        LaTeX are explicitly deferred (see `math_equation_xml`).
+        """
+        return bool(self._element.xpath(".//m:oMath"))
+
+    @property
+    def math_equation_xml(self) -> str | None:
+        """Serialized `m:oMath` XML for the first equation in this shape, or |None|.
+
+        Returns the raw OMML (Office Math Markup Language) subtree of the first
+        `m:oMath` descendant of the shape's XML element, serialized as a Unicode
+        string. Returns |None| when the shape contains no equation (see
+        `has_math_equation`).
+
+        The returned string is a best-effort read-only snapshot -- it includes whatever
+        namespace declarations lxml chooses to emit so the fragment is well-formed on
+        its own. Mutating the returned string has no effect on the presentation.
+
+        MVP scope -- read-only access to the raw OMML is provided so callers can feed
+        it into an external renderer (e.g. a MathML/LaTeX converter). The following
+        are **explicitly deferred** to a follow-up feature iteration of issue #126:
+
+        - writing / inserting equations programmatically
+        - converting OMML to or from LaTeX or MathML
+        - a structured `Equation` proxy object with typed accessors
+
+        Until then, callers who need to modify an equation must edit the underlying
+        XML element directly (via `shape.element`) and re-save the presentation.
+        """
+        oMath_elms = self._element.xpath(".//m:oMath")
+        if not oMath_elms:
+            return None
+        return etree.tostring(oMath_elms[0], encoding="unicode")
 
     @property
     def has_table(self) -> bool:

@@ -121,6 +121,9 @@ Unreleased
 - #386 surface unsupported chartex chart types without dropping
 - feat: #734 add ``<a:snd>`` (sound) support to click-action
 - #487 read/write legacy PowerPoint comments
+- Add #126 read-only access to OMML equations via
+  ``Shape.has_math_equation`` and ``Shape.math_equation_xml``. Writing
+  equations and LaTeX/MathML conversion remain deferred.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

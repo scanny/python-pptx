@@ -96,6 +96,7 @@ Shape
    shp-movie
    shp-hyperlink
    shp-mc-alternate-content
+   shp-math-equation
    placeholders/index
    shp-preset-geom
 
