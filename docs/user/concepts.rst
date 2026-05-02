@@ -90,3 +90,39 @@ in to specify the layout the new slide should take on::
     prs = Presentation()
     title_slide_layout = prs.slide_layouts[0]
     new_slide = prs.slides.add_slide(title_slide_layout)
+
+
+Reaching past the API: raw XML access
+-------------------------------------
+
+PowerPoint's OOXML schema is vast and |pp| does not yet wrap every element or
+attribute it defines. When you need to read or modify something the public
+API does not surface, you can drop down to the underlying ``lxml`` element
+tree without leaving the library. Every proxy object descending from
+``ElementProxy`` (presentation, slide, section, chart, …) exposes a public
+``element`` property that returns its backing ``lxml`` element, and every
+shape provides the same via ``shape.element``::
+
+    # The underlying <p:sld> element
+    slide_elm = slide.element
+
+    # The underlying <p:sp> / <p:pic> / … element
+    shape_elm = shape.element
+
+    # The underlying <c:chartSpace> element
+    chartSpace = chart.element
+
+You can mutate these elements in place; the changes are serialized when you
+call ``prs.save(...)``. For XPath-based shape lookup on a slide, see
+:meth:`Slide.find_shapes_by_xpath` (issue #224) — it evaluates an XPath
+against the slide's ``p:spTree`` with the standard OOXML namespace prefixes
+(``p``, ``a``, ``r``, ``mc``, ``p14``, …) pre-registered and returns matching
+shape proxies::
+
+    shapes = slide.find_shapes_by_xpath(
+        './/p:sp[p:nvSpPr/p:cNvPr/@name="Title 1"]'
+    )
+
+Raw-XML access is supported but advanced; see :doc:`../dev/raw-xml-access` in
+the contributor guide for guidance on when (and when not) to use it, and on
+pairing it with the ``xmlchemy`` descriptor layer for typesafe access.

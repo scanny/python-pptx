@@ -129,6 +129,7 @@ Contributor Guide
 
    dev/runtests
    dev/xmlchemy
+   dev/raw-xml-access
    dev/development_practices
    dev/philosophy
    dev/security
