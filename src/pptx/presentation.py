@@ -269,6 +269,54 @@ class Presentation(PartElementProxy):
 
         return appended
 
+    def strip_slides(self) -> Presentation:
+        """Remove every slide from this presentation and return ``self``.
+
+        Provides the "use an existing ``.pptx`` as a blank template" workflow
+        of issue #310: open an existing deck with :func:`pptx.Presentation`,
+        strip the slides it came with, and use the remaining (empty)
+        presentation as the starting point for a new deck — the slide
+        masters, slide layouts, theme, default table styles, embedded fonts,
+        and any other template-level resources are preserved.
+
+        Every slide currently in :attr:`slides` is deleted via
+        :meth:`Slides.delete`, so the same reference-counting cleanup applies
+        (the slide parts and any image / media / chart parts reachable only
+        from them become unreachable from the package root and are omitted on
+        the next save; parts shared with the slide master, layouts, or other
+        surviving parts are retained).
+
+        Any presentation :attr:`sections` are cleared as well, since sections
+        reference slides by slide-id and an empty ``p14:sectionLst`` with
+        dangling ids would confuse PowerPoint. The presentation's section
+        scaffolding (``p:extLst/p:ext/p14:sectionLst``) is pruned so a
+        freshly-stripped presentation round-trips to an empty
+        ``sldIdLst`` and no ``sectionLst``.
+
+        Returns ``self`` so the method chains after the
+        :func:`pptx.Presentation` factory call::
+
+            blank = Presentation("branded-template.pptx").strip_slides()
+            blank.slides.add_slide(blank.slide_layouts[0])
+
+        Calling :meth:`strip_slides` on a presentation that already has no
+        slides is a no-op (returns ``self`` unchanged).
+        """
+        # -- Drop every slide using the public delete() API so reference-
+        # -- counting and part cleanup run identically to per-slide deletes.
+        # -- Iterate over a snapshot since `delete()` mutates the collection. --
+        for slide in list(self.slides):
+            self.slides.delete(slide)
+
+        # -- Clear sections: an empty section list with stale sldId refs
+        # -- would confuse PowerPoint. Removing each section via the Sections
+        # -- API prunes the enclosing p:extLst/p:ext scaffolding when the
+        # -- last section is removed. --
+        for section in list(self.sections):
+            self.sections.remove(section)
+
+        return self
+
     def save(
         self,
         file: str | IO[bytes],

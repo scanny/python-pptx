@@ -108,6 +108,9 @@ prs.save_flat_xml("deck.xml")
 # append one deck to another
 # other = Presentation("chapter2.pptx")
 # appended_slides = prs.merge(other)
+
+# use an existing .pptx as a blank template (keep masters, drop slides)
+# blank = Presentation("branded-template.pptx").strip_slides()
 ```
 
 - `pptx.Presentation(pptx=None, pptx_format=None, password=None)` — Factory returning a `pptx.presentation.Presentation`. `pptx_format` accepts paper-size preset strings or `(cx, cy)` EMU tuples `[Added in 1.0.2.dev0]`; `password` decrypts on open `[Added in 1.0.2.dev0]`.
@@ -116,6 +119,7 @@ prs.save_flat_xml("deck.xml")
 - `Presentation.save_ppsx(file, zip_date_time=None, password=None)` — Write as a PowerPoint Show (`.ppsx`). `[Added in 1.0.2.dev0]`
 - `Presentation.save_flat_xml(file)` — Write as ECMA-376 Part 4 Flat-OPC single-file XML. `[Added in 1.0.2.dev0]`
 - `Presentation.merge(other_presentation)` — Append every slide of another presentation with full-fidelity deep-copy (images, charts with distinct embedded workbooks, OLE, external hyperlinks). Returns the list of newly-appended `Slide` objects. `[Added in 1.0.2.dev0]`
+- `Presentation.strip_slides()` — Remove every slide (and any sections) from this presentation while preserving slide masters, slide layouts, theme, embedded fonts, and other template-level resources. Returns `self` so it chains after the `Presentation()` factory call (`blank = Presentation("template.pptx").strip_slides()`). `[Added in 1.0.2.dev0]`
 - `Presentation.slides` / `Presentation.slide_masters` / `Presentation.slide_layouts` / `Presentation.notes_master` — Core collections.
 - `Presentation.slide_width` / `Presentation.slide_height` — Slide dimensions (read/write `Length`).
 - `Presentation.sections` — `Sections` collection (presentation sections). `[Added in 1.0.2.dev0]`

@@ -415,3 +415,56 @@ def then_merged_prs_round_trips(context: Context):
         "expected %d slides after round-trip, got %d"
         % (len(context.appended_slides), len(reopened.slides))
     )
+
+
+# -- #310 Presentation.strip_slides scenarios ------------------------
+
+
+@given("an existing presentation with three slides and two sections")
+def given_prs_with_three_slides_and_two_sections(context: Context):
+    prs = Presentation()
+    layout = prs.slide_masters[0].slide_layouts[0]
+    for _ in range(3):
+        prs.slides.add_slide(layout)
+    prs.sections.add_section("Intro", slides=[prs.slides[0]])
+    prs.sections.add_section("Body", slides=[prs.slides[1], prs.slides[2]])
+    context.prs = prs
+    context.slide_masters_before = len(prs.slide_masters)
+    context.slide_layouts_before = len(prs.slide_layouts)
+
+
+@when("I call prs.strip_slides()")
+def when_call_strip_slides(context: Context):
+    result = context.prs.strip_slides()
+    assert result is context.prs, "strip_slides() must return self"
+
+
+@then("the reloaded presentation has no slides")
+def then_reloaded_prs_has_no_slides(context: Context):
+    actual = len(context.prs.slides)
+    assert actual == 0, "expected 0 slides, got %d" % actual
+
+
+@then("the reloaded presentation has no sections")
+def then_reloaded_prs_has_no_sections(context: Context):
+    actual = len(context.prs.sections)
+    assert actual == 0, "expected 0 sections, got %d" % actual
+
+
+@then("the reloaded presentation retains its slide masters and layouts")
+def then_reloaded_prs_retains_masters_and_layouts(context: Context):
+    assert len(context.prs.slide_masters) == context.slide_masters_before, (
+        "expected %d masters, got %d"
+        % (context.slide_masters_before, len(context.prs.slide_masters))
+    )
+    assert len(context.prs.slide_layouts) == context.slide_layouts_before, (
+        "expected %d layouts, got %d"
+        % (context.slide_layouts_before, len(context.prs.slide_layouts))
+    )
+
+
+@then("I can add a new slide to the reloaded presentation")
+def then_can_add_new_slide_to_reloaded_prs(context: Context):
+    layout = context.prs.slide_masters[0].slide_layouts[0]
+    context.prs.slides.add_slide(layout)
+    assert len(context.prs.slides) == 1

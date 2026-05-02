@@ -436,6 +436,92 @@ class DescribePresentation(object):
         target.save(buf)
         assert len(buf.getvalue()) > 0
 
+    # -- #310 strip_slides() scenarios -----------------------------------
+
+    def it_removes_every_slide_and_preserves_masters_and_layouts(self):
+        from pptx import Presentation as open_prs
+
+        prs = open_prs()
+        layout = prs.slide_masters[0].slide_layouts[0]
+        for _ in range(3):
+            prs.slides.add_slide(layout)
+        masters_before = len(prs.slide_masters)
+        layouts_before = len(prs.slide_layouts)
+
+        result = prs.strip_slides()
+
+        assert result is prs
+        assert len(prs.slides) == 0
+        assert len(prs.slide_masters) == masters_before
+        assert len(prs.slide_layouts) == layouts_before
+
+    def it_round_trips_cleanly_after_strip_slides(self):
+        from pptx import Presentation as open_prs
+
+        prs = open_prs()
+        for _ in range(2):
+            prs.slides.add_slide(prs.slide_masters[0].slide_layouts[0])
+
+        prs.strip_slides()
+        buf = io.BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+        reopened = open_prs(buf)
+
+        assert len(reopened.slides) == 0
+        # -- Masters and layouts survive the round-trip --
+        assert len(reopened.slide_masters) >= 1
+        assert len(reopened.slide_layouts) >= 1
+        # -- The stripped presentation is usable as a template for new slides. --
+        reopened.slides.add_slide(reopened.slide_masters[0].slide_layouts[0])
+        assert len(reopened.slides) == 1
+
+    def it_is_a_noop_on_a_presentation_with_no_slides(self):
+        from pptx import Presentation as open_prs
+
+        prs = open_prs()
+        assert len(prs.slides) == 0
+        masters_before = len(prs.slide_masters)
+        layouts_before = len(prs.slide_layouts)
+
+        result = prs.strip_slides()
+
+        assert result is prs
+        assert len(prs.slides) == 0
+        assert len(prs.slide_masters) == masters_before
+        assert len(prs.slide_layouts) == layouts_before
+
+    def it_clears_sections_and_prunes_the_sectionLst_scaffolding(self):
+        from pptx import Presentation as open_prs
+
+        prs = open_prs()
+        for _ in range(3):
+            prs.slides.add_slide(prs.slide_masters[0].slide_layouts[0])
+        prs.sections.add_section("Intro", slides=[prs.slides[0]])
+        prs.sections.add_section("Body", slides=[prs.slides[1], prs.slides[2]])
+        assert len(prs.sections) == 2
+
+        prs.strip_slides()
+
+        assert len(prs.sections) == 0
+        # -- the p14:sectionLst scaffold itself is pruned when the last section
+        # -- is removed, matching the behavior of Sections.remove() --
+        assert prs._element.sectionLst is None  # pyright: ignore[reportPrivateUsage]
+
+    def it_drops_slide_relationships_so_shared_parts_are_reference_counted(self):
+        from pptx import Presentation as open_prs
+        from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+
+        prs = open_prs()
+        for _ in range(2):
+            prs.slides.add_slide(prs.slide_masters[0].slide_layouts[0])
+
+        prs.strip_slides()
+
+        # -- No slide relationships survive on the presentation part. --
+        slide_rels = [rel for rel in prs.part.rels.values() if rel.reltype == RT.SLIDE]
+        assert slide_rels == []
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
