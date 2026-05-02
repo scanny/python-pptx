@@ -82,3 +82,14 @@ class DescribeBaseXmlEnum:
         """
         assert MSO_LINE_DASH_STYLE.to_xml(MSO_LINE_DASH_STYLE.ROUND_DOT) == "dot"
         assert MSO_LINE_DASH_STYLE.from_xml("dot") == MSO_LINE_DASH_STYLE.ROUND_DOT
+
+    def it_does_not_map_ROUND_DOT_to_sysDot(self):
+        """Regression for #611 — `sysDot` is NOT the correct preset for `ROUND_DOT`.
+
+        Issue #611 proposed reverting `ROUND_DOT` back to `sysDot`; that proposal
+        is incorrect. `msoLineRoundDot` (Office VBA) corresponds to the `dot`
+        preset in `ST_PresetLineDashVal`; `sysDot` is a distinct, denser system
+        dot preset with no VBA equivalent. This test guards against a naive
+        revert based on #611's suggested change.
+        """
+        assert MSO_LINE_DASH_STYLE.to_xml(MSO_LINE_DASH_STYLE.ROUND_DOT) != "sysDot"

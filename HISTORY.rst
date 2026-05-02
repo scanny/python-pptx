@@ -22,6 +22,13 @@ Unreleased
   until the file is opened and saved by PowerPoint (known limitation /
   wontfix). The user guide gains a new "Table height and row height" section
   describing the limitation and suggested workarounds.
+- fix: #611 (resolved with #332) ``MSO_LINE_DASH_STYLE.ROUND_DOT`` had been
+  mapped to the ``sysDot`` preset, which the #611 reporter pointed to as
+  "correct" while others pointed to the opposite (``dot``). Per
+  ``ST_PresetLineDashVal`` in ``dml-main.xsd`` and PowerPoint's own output
+  for ``msoLineRoundDot``, ``dot`` is the correct preset; the mapping was
+  corrected as part of the #332 fix above and a regression test now pins the
+  mapping so a naive revert per #611's proposal cannot land silently.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
