@@ -39,6 +39,7 @@ Feature Support
 * Toggle header / footer / slide-number / date placeholder visibility on a slide
   master or layout, and insert auto-refresh slide-number or date fields in a
   text frame
+* Read and write legacy PowerPoint review comments on slides
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still
@@ -74,6 +75,7 @@ User Guide
    user/media
    user/notes
    user/ole-objects
+   user/comments
    user/use-cases
    user/concepts
 
@@ -99,6 +101,7 @@ API Documentation
 
    api/presentation
    api/slides
+   api/comments
    api/shapes
    api/placeholders
    api/table

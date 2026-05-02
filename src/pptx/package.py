@@ -5,11 +5,13 @@ from __future__ import annotations
 import os
 import re
 from typing import IO, Iterator
+from typing import IO, Iterator, cast
 
 from pptx.exc import UnsupportedImageTypeError
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
+from pptx.parts.comments import CommentAuthorsPart
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.image import Image, ImagePart
@@ -28,6 +30,32 @@ _SVG_SNIFF_RE = re.compile(rb"<svg[\s>/]", re.IGNORECASE)
 
 class Package(OpcPackage):
     """An overall .pptx package."""
+
+    @property
+    def comment_authors_part(self) -> CommentAuthorsPart | None:
+        """The package's legacy |CommentAuthorsPart|, or None if not present.
+
+        The relationship lives on the presentation part per ECMA-376 §13.3.3.
+        """
+        try:
+            return cast(
+                CommentAuthorsPart,
+                self.presentation_part.part_related_by(RT.COMMENT_AUTHORS),
+            )
+        except KeyError:
+            return None
+
+    def get_or_add_comment_authors_part(self) -> CommentAuthorsPart:
+        """Return this package's legacy comment-authors part, adding one if needed.
+
+        The relationship is attached to the presentation part.
+        """
+        part = self.comment_authors_part
+        if part is not None:
+            return part
+        part = CommentAuthorsPart.new(self)
+        self.presentation_part.relate_to(part, RT.COMMENT_AUTHORS)
+        return part
 
     @lazyproperty
     def core_properties(self) -> CorePropertiesPart:

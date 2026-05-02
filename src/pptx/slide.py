@@ -24,6 +24,7 @@ from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
     from pptx.opc.package import Part
+    from pptx.comments import Comments
     from pptx.oxml.presentation import CT_SlideIdList, CT_SlideMasterIdList
     from pptx.oxml.slide import (
         CT_CommonSlideData,
@@ -195,6 +196,33 @@ class Slide(_BaseSlide):
     """Slide object. Provides access to shapes and slide-level properties."""
 
     part: SlidePart  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    @lazyproperty
+    def comments(self) -> Comments:
+        """|Comments| collection of legacy review comments anchored on this slide.
+
+        If the slide does not yet have a comments part, a new one is created (and,
+        if necessary, the package-level comment-authors part as well). The same
+        |Comments| instance is returned on subsequent calls.
+        """
+        # -- local import avoids circular import between slide and comments --
+        from pptx.comments import CommentAuthors, Comments
+
+        package = self.part.package
+        authors_part = package.get_or_add_comment_authors_part()
+        authors = CommentAuthors(authors_part)
+        comments_part = self.part.get_or_add_comments_part()
+        return Comments(self, comments_part, authors)
+
+    @property
+    def has_comments(self) -> bool:
+        """`True` if this slide has a legacy comments part, `False` otherwise.
+
+        A comments part is created by :attr:`comments` when first accessed; use this
+        property to test whether a comments part already exists without the side
+        effect of creating one.
+        """
+        return self.part.comments_part is not None
 
     @property
     def follow_master_background(self):
