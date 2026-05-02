@@ -1003,6 +1003,67 @@ class DescribeTickLabels(object):
         tick_labels.offset = new_value
         assert tick_labels._element.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        ("xAx_cxml", "expected_value"),
+        [
+            # -- no txPr element: default 0.0 --
+            ("c:catAx", 0.0),
+            ("c:valAx", 0.0),
+            ("c:dateAx", 0.0),
+            # -- txPr with bodyPr but no rot attribute: default 0.0 --
+            ("c:catAx/c:txPr/(a:bodyPr,a:p)", 0.0),
+            # -- 45 degrees == 45 * 60000 == 2700000 --
+            ("c:valAx/c:txPr/(a:bodyPr{rot=2700000},a:p)", 45.0),
+            # -- 90 degrees --
+            ("c:catAx/c:txPr/(a:bodyPr{rot=5400000},a:p)", 90.0),
+            # -- 270 degrees --
+            ("c:valAx/c:txPr/(a:bodyPr{rot=16200000},a:p)", 270.0),
+        ],
+    )
+    def it_knows_its_rotation(self, xAx_cxml, expected_value):
+        tick_labels = TickLabels(element(xAx_cxml))
+        assert tick_labels.rotation == expected_value
+
+    @pytest.mark.parametrize(
+        ("xAx_cxml", "new_value", "expected_cxml"),
+        [
+            # -- no txPr present: creates full c:txPr scaffold with bodyPr@rot --
+            (
+                "c:catAx{a:b=c}",
+                45,
+                "c:catAx{a:b=c}/c:txPr/(a:bodyPr{rot=2700000},a:lstStyle,a:p/a:pPr/a:defRPr)",
+            ),
+            # -- updates existing rot attribute --
+            (
+                "c:valAx/c:txPr/(a:bodyPr{rot=2700000},a:p)",
+                90,
+                "c:valAx/c:txPr/(a:bodyPr{rot=5400000},a:p)",
+            ),
+            # -- negative value normalizes to equivalent positive rotation --
+            (
+                "c:valAx/c:txPr/(a:bodyPr,a:p)",
+                -90,
+                "c:valAx/c:txPr/(a:bodyPr{rot=16200000},a:p)",
+            ),
+            # -- float value accepted (45.5 deg -> 45.5 * 60000 == 2730000) --
+            (
+                "c:valAx/c:txPr/(a:bodyPr,a:p)",
+                45.5,
+                "c:valAx/c:txPr/(a:bodyPr{rot=2730000},a:p)",
+            ),
+            # -- assigning default (0) removes the rot attribute --
+            (
+                "c:catAx/c:txPr/(a:bodyPr{rot=2700000},a:p)",
+                0,
+                "c:catAx/c:txPr/(a:bodyPr,a:p)",
+            ),
+        ],
+    )
+    def it_can_change_its_rotation(self, xAx_cxml, new_value, expected_cxml):
+        tick_labels = TickLabels(element(xAx_cxml))
+        tick_labels.rotation = new_value
+        assert tick_labels._element.xml == xml(expected_cxml)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

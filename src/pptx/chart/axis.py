@@ -488,6 +488,29 @@ class TickLabels(object):
         lblOffset = self._element._add_lblOffset()
         lblOffset.val = value
 
+    @property
+    def rotation(self) -> float:
+        """Clockwise rotation in degrees applied to these axis tick labels.
+
+        Read/write. Corresponds to the ``rot`` attribute of the ``a:bodyPr``
+        descendant of the axis ``c:txPr`` element. Returns ``0.0`` (the default)
+        when no explicit rotation is set.
+
+        Both ``int`` and ``float`` values are accepted; PowerPoint stores the
+        value in 60000ths of a degree under the hood. Negative values are
+        normalized to the equivalent positive rotation in the range
+        ``[0, 360)``. See issue #329.
+        """
+        txPr = self._element.txPr
+        if txPr is None:
+            return 0.0
+        return txPr.bodyPr.rot
+
+    @rotation.setter
+    def rotation(self, value: float):
+        txPr = self._element.get_or_add_txPr()
+        txPr.bodyPr.rot = value
+
 
 class ValueAxis(_BaseAxis):
     """An axis having continuous (as opposed to discrete) values.
