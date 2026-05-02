@@ -7,9 +7,11 @@ non-trivial class inheritance structure.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING
 
 from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+from pptx.oxml.ns import qn
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.picture import CT_Picture
 from pptx.shapes.autoshape import Shape
@@ -19,6 +21,7 @@ from pptx.util import Emu
 
 if TYPE_CHECKING:
     from pptx.oxml.shapes.autoshape import CT_Shape
+    from pptx.oxml.shapes.shared import CT_ShapeProperties
 
 
 class _InheritsDimensions(object):
@@ -256,7 +259,54 @@ class _BaseSlidePlaceholder(_InheritsDimensions, Shape):
             pic.crop_to_fit(image_size, (self.width, self.height))
         else:
             self._fit_pic_to_placeholder(pic, image_size)
+        self._copy_inherited_spPr_decorations(pic.spPr)
         return pic
+
+    def _copy_inherited_spPr_decorations(self, target_spPr: CT_ShapeProperties) -> None:
+        """Copy styling decorations from the source placeholder into `target_spPr`.
+
+        Addresses issue #907: when a picture placeholder on a layout defines
+        `a:prstGeom`, `a:ln`, or `a:effectLst` on its `p:spPr`, promoting the
+        slide placeholder to a `p:pic` via :meth:`insert_picture` would drop
+        those styling elements. This helper copies them from the slide
+        placeholder's own `p:spPr` when present, otherwise falls back to the
+        layout (and then master) placeholder's `p:spPr`. Fill-related children
+        (`a:blipFill`, `a:solidFill`, etc.) and `a:xfrm` are intentionally NOT
+        copied — the new picture supplies its own fill and transform.
+        """
+        # ---decoration precedence: direct > layout > master---
+        sources: list[CT_ShapeProperties] = []
+        self_element = self._element
+        if self_element is not None:
+            sources.append(self_element.spPr)
+        try:
+            layout_ph = self._base_placeholder
+        except AttributeError:
+            # ---no parent/part context (common in unit tests); only direct source---
+            layout_ph = None
+        if layout_ph is not None:
+            sources.append(layout_ph._element.spPr)
+            # ---master via layout's own _base_placeholder, when applicable---
+            try:
+                master_base = getattr(layout_ph, "_base_placeholder", None)
+            except AttributeError:
+                master_base = None
+            if master_base is not None:
+                sources.append(master_base._element.spPr)
+
+        for tagname, inserter in (
+            ("a:prstGeom", "_insert_prstGeom"),
+            ("a:ln", "_insert_ln"),
+            ("a:effectLst", "_insert_effectLst"),
+        ):
+            # ---skip if target already has it (e.g. from _pic_tmpl)---
+            if target_spPr.find(qn(tagname)) is not None:
+                continue
+            for src in sources:
+                elm = src.find(qn(tagname))
+                if elm is not None:
+                    getattr(target_spPr, inserter)(deepcopy(elm))
+                    break
 
     def _new_placeholder_table(self, rows, cols):
         """Return a newly added `p:graphicFrame` element containing an empty table.

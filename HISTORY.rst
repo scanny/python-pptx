@@ -14,6 +14,18 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #907 ``PicturePlaceholder.insert_picture`` (and the same method on
+  the generic ``SlidePlaceholder``) now preserves styling decorations that
+  the slide layout's picture placeholder defines on its ``p:spPr`` — in
+  particular ``a:prstGeom`` (including preset-geometry adjustments),
+  ``a:ln`` outlines, and ``a:effectLst`` entries like soft edges. Prior
+  behavior promoted the placeholder ``p:sp`` to a ``p:pic`` with an empty
+  ``p:spPr``, so any outline / soft-edge / clipped-geometry styling the
+  layout designer intended for inserted pictures silently disappeared.
+  Direct decorations on the slide-level placeholder win over inherited
+  ones, and fill-related children (``a:blipFill`` / ``a:solidFill`` / ...)
+  are intentionally not copied — the picture supplies its own fill.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
