@@ -217,6 +217,15 @@ Unreleased
   part-creation helpers that currently live only on ``SlidePart``
   (``add_chart``, ``add_ole_object``, ``add_movie``) remain
   slide-only for now.
+- fix: #991 normalize XML-declaration quoting to double quotes. lxml's
+  ``etree.tostring`` emits the XML declaration with single quotes
+  (``<?xml version='1.0' encoding='UTF-8' standalone='yes'?>``) while
+  element attributes use double quotes, producing mixed quoting that
+  trips some strict validators. ``serialize_part_xml``,
+  ``oxml_to_encoded_bytes``, ``oxml_tostring``, and
+  ``FlatOpcWriter.xml_bytes`` now rewrite the declaration to use double
+  quotes so the entire saved package has consistent quoting matching
+  Microsoft Office's own output.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

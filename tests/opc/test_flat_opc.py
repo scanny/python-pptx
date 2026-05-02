@@ -65,7 +65,7 @@ class DescribeFlatOpcWriter:
 
         # -- declaration + PI present --
         assert blob.startswith(
-            b"<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
             b'<?mso-application progid="PowerPoint.Show"?>'
         )
         # -- parseable by lxml --

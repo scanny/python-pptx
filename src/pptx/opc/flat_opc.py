@@ -23,6 +23,7 @@ from typing import IO, TYPE_CHECKING, Iterable, Sequence
 from lxml import etree
 
 from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.opc.oxml import _normalize_xml_decl_quotes
 from pptx.opc.packuri import PACKAGE_URI, PackURI
 
 if TYPE_CHECKING:
@@ -83,7 +84,11 @@ class FlatOpcWriter:
                 "mso-application", 'progid="%s"' % _MSO_APPLICATION_PROGID
             )
         )
-        return etree.tostring(tree, xml_declaration=True, encoding="UTF-8", standalone=True)
+        xml = etree.tostring(tree, xml_declaration=True, encoding="UTF-8", standalone=True)
+        # -- lxml emits the XML declaration with single quotes; rewrite to
+        # -- double quotes for consistency with element-attribute quoting
+        # -- and to match MS Office's own output (see issue #991).
+        return _normalize_xml_decl_quotes(xml)
 
     # -- internal -----------------------------------------------------------
 

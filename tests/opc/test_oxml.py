@@ -119,7 +119,7 @@ class DescribeCT_Relationships:
 
     def it_can_generate_rels_file_xml(self):
         assert CT_Relationships.new().xml_file_bytes == (
-            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
             '<Relationships xmlns="http://schemas.openxmlformats.org/package'
             '/2006/relationships"/>'.encode("utf-8")
         )
@@ -206,6 +206,6 @@ class Describe_serialize_part_xml:
         # len of 134 if it's unicode and 137 if it's bytes
         assert len(xml) == 137
         assert xml == (
-            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
             '<f:foo xmlns:f="http://foo" xmlns:b="http://bar"><f:bar>fØØbÅr</f:bar></f:foo>'
         ).encode("utf-8")
