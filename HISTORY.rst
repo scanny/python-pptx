@@ -14,6 +14,24 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #821 resolved by Font.use_theme_hyperlink_color + run-level color
+  override. The #821 thread ("How to change hyperlink text color") asked for
+  a first-class surface to recolor hyperlinked text from python-pptx — an
+  ask that was previously frustrated by PowerPoint's theme ``a:hlink``
+  entry overriding any ``a:rPr/a:solidFill`` on a run carrying an
+  ``a:hlinkClick``. The #940 feature shipped
+  :attr:`.Font.use_theme_hyperlink_color` — a tri-state property that
+  writes a python-pptx-owned ``a:extLst/a:ext`` marker under the run's
+  ``a:hlinkClick`` to record the caller's intent that the run's explicit
+  colour be preferred over the theme. Combined with
+  ``run.font.color.rgb = ...`` the caller now has the full "red hyperlink"
+  recipe. ``tests/test_issue_821_hyperlink_text_color_verify.py`` pins
+  the canonical recipe, the default (theme-applies) read path, the
+  toggle-back-and-forth idempotency, ``Presentation.save`` + reopen
+  round-trip, underline preservation across the colour change, and
+  independence between hyperlinked and plain sibling runs in the same
+  paragraph.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
