@@ -1,41 +1,26 @@
 # CLAUDE.md
 
-Guidance for Claude Code (and other AI assistants) working in this repository.
-
----
-
-## 1. Project summary
-
-**python-pptx** is a mature, MIT-licensed Python library for creating, reading, and updating PowerPoint (`.pptx`) files. It parses and emits Office Open XML via `lxml`, does not require PowerPoint to be installed, and is intended to be **industrial-grade** — suitable for commercial use, which demands correctness and round-trip fidelity.
-
-- Upstream: `scanny/python-pptx` (tracked by the `upstream` git remote)
-- Active release line: v1.0.x
-- Python support: ≥3.8 (classifiers list 3.8–3.12)
-- Runtime deps: `Pillow`, `XlsxWriter`, `lxml`, `typing_extensions`
-
-### Sibling projects
+python-pptx fork (loadfix/python-pptx) — a mature, MIT-licensed Python library for creating, reading, and updating PowerPoint (`.pptx`) files. It parses and emits Office Open XML via `lxml`, does not require PowerPoint to be installed, and is intended to be industrial-grade — suitable for commercial use, which demands correctness and round-trip fidelity.
 
 This project is one of a sibling series of OOXML libraries under the loadfix org:
 
 - **loadfix/python-docx** — Word `.docx`
-- **loadfix/python-pptx** — PowerPoint `.pptx`
+- **loadfix/python-pptx** — PowerPoint `.pptx` (this repo)
 - **loadfix/python-xlsx** — Excel `.xlsx`
 
 The three libraries share an architectural lineage (three-layer proxy/part/oxml pattern over lxml) and OOXML spec conventions. When implementing a feature that exists across the trio, consult the sibling repos for naming and API-shape precedent.
 
----
-
-## 2. Architecture
+## Architecture
 
 Three-layer pattern:
 
 ```
 Presentation API  (src/pptx/api.py, src/pptx/presentation.py, src/pptx/slide.py, …)
-    │  Proxy objects wrapping oxml elements (Shape, Slide, Chart, Table, …)
+    |  Proxy objects wrapping oxml elements (Shape, Slide, Chart, Table, …)
 Parts Layer       (src/pptx/parts/*.py)
-    │  XmlPart subclasses owning XML trees, managing relationships
+    |  XmlPart subclasses owning XML trees, managing relationships
 oxml Layer        (src/pptx/oxml/*.py)
-    │  CT_* element classes extending lxml.etree.ElementBase via `xmlchemy`
+    |  CT_* element classes extending lxml.etree.ElementBase via `xmlchemy`
 lxml              (XML parsing/serialization)
 ```
 
@@ -43,7 +28,7 @@ Cross-cutting concerns:
 - `src/pptx/opc/` — Open Packaging Conventions (zip/rel/content-type machinery under the parts layer)
 - `src/pptx/enum/` — public enumerations consumed from all layers
 
-## 3. Repository layout
+## Source Layout
 
 ```
 src/pptx/           # library source (src-layout)
@@ -76,102 +61,135 @@ tox.ini             py38–py312 test envs
 
 The `spec/` directory is **intentionally undisciplined**. Ruff and pyright exclude it. Do not "clean it up" or reformat its contents; it's a reference archive and that's a feature.
 
----
+## Key Patterns
 
-## 4. Remotes and branching
+### CT_ Element Classes (oxml layer)
 
-- `upstream` → `https://github.com/scanny/python-pptx.git` — do **not** push here.
-- `origin` → the developer's fork — push all work here.
-- Default branch is `master`.
+Define in `src/pptx/oxml/…`, register via the `ns` registry at the top of `src/pptx/oxml/__init__.py`. The descriptor vocabulary (`ZeroOrOne`, `OneAndOnlyOne`, `ZeroOrMore`, `RequiredAttribute`, `OptionalAttribute`, …) is the `xmlchemy` layer on top of `lxml.etree`. Don't bypass it with raw `etree` access in production code — the descriptors carry namespace, type, and default semantics.
 
-When contributing a PR upstream, branch from `master`, push to `origin`, and open the PR against `upstream/master`.
+- `successors` tuple must match XSD schema ordering exactly — consult `spec/ISO-IEC-29500-1/schemas/xsd/` for authoritative grammar.
+- Read `docs/dev/xmlchemy.rst` first if you're new to the descriptor layer.
+- Read a neighboring element class in the same subpackage (`src/pptx/oxml/…`) before adding a new one — it keeps the descriptor layer consistent.
 
----
+### Part Classes
 
-## 5. Tooling and style
+Parts live under `src/pptx/parts/…` and extend `XmlPart`. They own the XML tree for a single package part, manage relationships to other parts, and plug into the package assembly in `src/pptx/package.py`. The OPC machinery (zip / rel / content-type) lives under `src/pptx/opc/`.
 
-All three tools are strict. Respect them — don't disable or silence lints/types to make a patch land.
+### Proxy Objects
 
-| Tool | Config | Notes |
-|---|---|---|
-| **Black** | `pyproject.toml` → `[tool.black]` | line length 100 |
-| **Ruff** | `pyproject.toml` → `[tool.ruff]` | line length 100; lint rule set includes `C4`, `COM`, `E/F/W`, `I`, `PT`, `SIM`, `TCH001`, select `UP` rules; `isort` first-party is `pptx`; `spec/`, `docs/`, `ref/` excluded |
-| **Pyright** | `pyproject.toml` → `[tool.pyright]` | `typeCheckingMode = "strict"`, `pythonVersion = "3.9"`, `reportUnnecessaryTypeIgnoreComment = true`, `reportUnnecessaryCast = true`, custom stubs under `typings/` |
+Proxy objects wrap `CT_*` oxml elements and form the public API (`Slide`, `Shape`, `Chart`, `Table`, `TextFrame`, `Run`, …). They live alongside their subpackage (`src/pptx/slide.py`, `src/pptx/shapes/…`, `src/pptx/chart/…`, `src/pptx/text/…`). Public API additions need to be exported through the relevant `__init__.py` and referenced from the API docs page.
 
-**Style rules to follow when editing:**
-- Keep docstrings concise; this project uses short imperative-voice docstrings. No multi-paragraph essays.
-- Prefer editing existing modules over adding new ones. If a new module is genuinely needed, mirror the existing layout.
-- Public API additions need to be exported through the relevant `__init__.py` and referenced from the API docs page (see §7).
-- If `pyright --strict` flags something, **fix the types**. Don't reach for `# type: ignore` as a first resort. If you must, suppress the specific rule (e.g., `# pyright: ignore[reportPrivateUsage]`) and include a one-line reason.
-- `from __future__ import annotations` is used throughout — keep it.
-- Imports follow isort ordering (ruff `I` rule). Keep first-party `pptx` imports in the dedicated group.
+### Constants
 
----
+- Content types and relationship types: `src/pptx/opc/constants.py`.
+- Namespaces: `src/pptx/oxml/ns.py` — `qn("a:solidFill")`, `nsmap`, `nsdecls`. Use these helpers consistently; don't hand-assemble Clark-notation strings.
+- Units: `src/pptx/util.py` — `Emu`, `Pt`, `Inches`, `Cm`, `Mm`.
 
-## 6. Testing
+## OOXML spec vs Microsoft PowerPoint reality
 
-There are **two** test suites and both must pass for any feature/fix:
+Microsoft PowerPoint does NOT strictly implement ISO/IEC 29500 / ECMA-376. Treat the spec as a starting point, not ground truth.
 
-### Unit tests (pytest) — `tests/`
+- PowerPoint writes the **Transitional** flavor, not **Strict**. The 4th/5th/6th editions of ISO 29500-1 tightened the spec toward Strict; PowerPoint still emits Transitional namespaces that trace back to the original 1st edition / ECMA-376 2006.
+- PowerPoint emits Microsoft extensions in the `p14:`, `p15:`, `a14:`, `c14:`, `cx:`, and related namespaces (PowerPoint 2010/2013/2016+), gated by `mc:AlternateContent` / `mc:Ignorable`. These are documented in the `[MS-PPTX]` / `[MS-OE376]` / `[MS-ODRAWXML]` extension series, not in the ISO PDFs under `spec/`.
+- PowerPoint's reader tolerates out-of-order, extra, and missing elements that the spec forbids. PowerPoint's writer emits shapes the spec doesn't mandate. A spec-valid file is not automatically a file PowerPoint will open cleanly.
+- **When the spec and PowerPoint disagree, match PowerPoint.** The canonical way to resolve ambiguity is: save a minimal `.pptx` from PowerPoint, unzip it, and inspect the XML. `spec/…/xsd/*.xsd` tells you what is *allowed*; PowerPoint tells you what is *interoperable*.
 
-- Layout mirrors `src/pptx/` (e.g., `src/pptx/chart/axis.py` ↔ `tests/chart/test_axis.py`).
-- **Test-function naming** (configured in `pyproject.toml`):
+Workflow before writing code for a new element or feature:
+
+1. **Produce a real PowerPoint sample.** Create a minimal `.pptx` in Microsoft PowerPoint that exercises the feature, unzip it, and read the XML. This is ground truth.
+2. **Look up the grammar in `spec/ISO-IEC-29500-1/schemas/xsd/`** (or Part 2's `opc-xsd/` for packaging work). This gives the formal parent/child relationships, attribute types, defaults, and cardinality.
+3. **Reconcile steps 1 and 2.** They will diverge. python-pptx's commitment is round-trip fidelity with what PowerPoint actually writes, not strict ECMA-376 conformance. Prefer the real sample when the two conflict; use the XSD to understand structure and type.
+4. **Check `src/pptx/oxml/…` for similar elements already modeled.** Copy the established pattern from a neighboring element.
+
+The XSDs do not cover Microsoft extensions (`cx:` 2016+ chart types, `p14:` / `a14:` / `p15:` additions, the modern-comments format). For these, rely on the real-sample approach and/or Microsoft's extension documentation (MS-PPTX, MS-OE376, MS-ODRAWXML).
+
+## Test Conventions
+
+- Framework: pytest with BDD-style naming.
+- Test-function naming (configured in `pyproject.toml`):
   - classes: `Test…` or `Describe…`
   - functions: `test_…`, `it_…`, `they_…`, `but_…`, `and_…`
+- Test layout mirrors `src/pptx/` (e.g., `src/pptx/chart/axis.py` ↔ `tests/chart/test_axis.py`).
 - **Warnings are errors** (`filterwarnings = ["error"]`). A new `DeprecationWarning` anywhere will fail the suite — fix the cause.
 - Test fixtures for XML are commonly built with the helpers in `tests/unitdata.py` and per-subpackage `unitdata` modules.
 - Private-access suppression: some test files start with `# pyright: reportPrivateUsage=false` — fine, since unit tests exercise internals.
+- Acceptance tests live under `features/` (behave + Gherkin). Naming uses a short area prefix: `cht-*` (charts), `dml-*` (DrawingML fill/line/effect/color), `shp-*` (shapes), `txt-*` (text), `tbl-*` (tables), `ph-*` (placeholders), `prs-*` (presentation-level), `act-*` (actions/hyperlinks). `features/environment.py` creates a `_scratch/` dir for generated pptx output.
 
-Run:
-```bash
-pytest                # entire suite
-pytest tests/chart    # subtree
-pytest -k <pattern>   # filter by test name
-make coverage         # pytest with coverage
-```
-
-### Acceptance tests (behave) — `features/`
-
-- Each capability area has a `*.feature` file in Gherkin, plus a matching step module under `features/steps/`.
-- Naming convention uses a short area prefix: `cht-*` (charts), `dml-*` (DrawingML fill/line/effect/color), `shp-*` (shapes), `txt-*` (text), `tbl-*` (tables), `ph-*` (placeholders), `prs-*` (presentation-level), `act-*` (actions/hyperlinks), etc.
-- `features/environment.py` creates a `_scratch/` dir for generated pptx output.
-
-Run:
-```bash
-make accept           # behave --stop
-behave features/cht-chart.feature    # single file
-behave --tags=-wip                   # skip work-in-progress
-```
-
-### Full CI-equivalent local run
+## Commands
 
 ```bash
-tox              # py38..py312 in parallel; runs pytest + behave per env
+# Run tests
+pytest                             # entire unit suite
+pytest tests/chart                 # subtree
+
+# Run a specific test
+pytest -k <pattern>
+
+# Run acceptance tests
+make accept                        # behave --stop
+behave features/cht-chart.feature  # single file
+behave --tags=-wip                 # skip work-in-progress
+
+# Type check
+pyright src/pptx tests
+
+# Lint / format
+ruff check .
+black src tests
+
+# Coverage / full CI-equivalent / build
+make coverage
+tox                                # py38..py312 in parallel; pytest + behave per env
+make build
+
+# Install in dev mode
+pip install -e ".[dev]"
 ```
 
----
+## What NOT to do
 
-## 7. The strict feature-work rule
+- Don't amend or force-push to `master`, and never force-push to an upstream remote under any circumstance.
+- Don't commit secrets, API tokens, local scratch output (`_scratch/`), or generated docs (`.build/`).
+- Don't add runtime dependencies lightly — every new dep affects a large user base. If you must, raise it first.
+- Don't introduce backwards-incompatible API changes without a HISTORY/FEATURES note and a transition plan (deprecation warning where possible).
+- Don't silence warnings with broad `filterwarnings` ignores — they exist to catch real problems.
+- Don't delete `py.typed`; removing it silently breaks downstream type-checking.
+- Don't "fix" code inside `spec/` just because lint would catch it elsewhere — it's an intentionally undisciplined reference archive.
+- Don't bypass the xmlchemy descriptor layer with raw `lxml.etree` access in production code — the descriptors carry namespace, type, and default semantics.
+- Don't move unit tests out of their current location or rename test methods away from the `Describe*` / `it_*` BDD convention — test discovery relies on it.
+- Don't reach for `# type: ignore` as a first resort when `pyright --strict` flags something — fix the types. If you must suppress, target the specific rule (e.g. `# pyright: ignore[reportPrivateUsage]`) and include a one-line reason.
 
-**Every user-visible feature change requires updates in lockstep across these places:**
+## Common workflows
 
-1. **Implementation** under `src/pptx/`.
-2. **Unit tests** under `tests/` — new tests exercising the new code paths, covering both the happy path and failure modes. The test file path should mirror the source file path.
-3. **Acceptance tests** under `features/` — a new `Scenario` (or a new `.feature` file for a new area) plus its step implementation. BDD scenarios document the capability from the user's perspective; they must execute the real API, not mocks.
-4. **Documentation** under `docs/`:
-   - **User guide** (`docs/user/…`) if the feature is part of the public API — add a section or code example showing how to use it.
-   - **API reference** (`docs/api/…`) for every new class, method, or property — at minimum a `.. autoclass::` or `.. automethod::` directive in the right page.
-   - **Feature Support** bullet in `docs/index.rst` for a capability-level addition (new shape kind, new chart type, new round-trip area, etc.).
-5. **`HISTORY.rst`** — add a one-line entry for any user-visible change (new feature, fix of a user-reported bug, API change) under the pending release heading. Use the existing style (`- fix: #NNN …` for bugs, `- Add #NNN …` for features, or a short description for other items).
-6. **`FEATURES.md`** — the single-page catalogue of every public capability this fork offers. For each public-API addition, modification, or removal: add/update the entry under the relevant section, refresh the snippet if the API surface shifted, and verify the snippet runs against a fresh `Presentation()`. Fork-era additions are marked `[Added in <version>.dev0]`.
+### Adding a new public method on an existing class
+1. Implement in the appropriate `src/pptx/…` module.
+2. Add unit tests in the mirrored test file under `tests/`.
+3. Add a behave scenario to the relevant `*.feature` file and its step function.
+4. Add `.. automethod::` to the corresponding `docs/api/…` page.
+5. Update `docs/user/…` if end users should know about it.
+6. Add a `HISTORY.rst` line and refresh the `FEATURES.md` entry.
 
-"N/A" is acceptable for items genuinely not applicable — e.g., a pure internal refactor with no public-surface change may legitimately skip docs, HISTORY, and FEATURES.md — but the default assumption is **all six apply**. If you skip an item, state why in the PR description.
+### Adding a new enum value
+- Enums live in `src/pptx/enum/`. They use a custom metaclass; read a neighboring enum first to see the pattern (in particular, the "return value" XML mapping).
+- Update the enum's doc in `docs/api/enum/` if present.
 
-For pure bug fixes, items 3 (acceptance) and the user-guide portion of 4 may be skipped if the bug is purely internal; a unit test and a HISTORY line are still required.
+### Adding a new XML element class
+- Custom element classes live in `src/pptx/oxml/…`. Read `docs/dev/xmlchemy.rst` first — it explains `ZeroOrOne`, `OneAndOnlyOne`, `ZeroOrMore`, `RequiredAttribute`, etc.
+- Consult `spec/ISO-IEC-29500-1/schemas/xsd/` for authoritative element ordering before declaring `successors`.
+- Register the new element with the `ns` registry (see top of `src/pptx/oxml/__init__.py`).
+- Save a minimal `.pptx` from PowerPoint that exercises the element, unzip it, and compare — **when the spec and PowerPoint disagree, match PowerPoint**.
 
----
+## Important
 
-## 8. Documentation build
+- Before implementing a new feature or element class, consult `spec/` for authoritative schema information. The subdirectories: `spec/ISO-IEC-29500-1/schemas/xsd/` (Part 1 grammars for DrawingML, PresentationML, SpreadsheetML, shared types), `spec/ISO-IEC-29500-2/opc-xsd/` (Open Packaging Conventions), `spec/ISO-IEC-29500-3/` (Markup Compatibility — `mc:AlternateContent` / `mc:Choice` / `mc:Fallback`), `spec/ISO-IEC-29500-4/` (Transitional conformance). These are not runtime dependencies — they are the canonical sources for element ordering, attribute types, and cardinality. When you find a useful sample file or annotated fragment during investigation, keep it local to your worktree rather than committing it; `spec/` is intentionally an immutable reference archive.
+- Keep `FEATURES.md` and `HISTORY.rst` current when adding, modifying, or deleting public API. `FEATURES.md` is a single-page catalogue of every public capability; fork-era additions are marked `[Added in <version>.dev0]`. For each change: add the new entry (or update/remove the existing one) under the relevant section, refresh the snippet if the API surface shifted, and verify the snippet runs against a fresh `Presentation()`.
+- Always run tests after changes: `pytest` and `make accept`.
+- Use `src/` layout — all code is under `src/pptx/`, not `pptx/`.
+- Follow existing code style: short imperative-voice docstrings; `from __future__ import annotations` is used throughout; isort ordering (ruff `I` rule) keeps first-party `pptx` imports in a dedicated group.
+- Public API additions need to be exported through the relevant `__init__.py` and referenced from the API docs page.
+- Tooling is strict (Black line length 100, Ruff with a targeted rule set, Pyright in strict mode with custom stubs under `typings/`). Respect it — don't disable or silence lints/types to make a patch land.
+
+## Documentation build
 
 ```bash
 make docs        # Sphinx HTML under docs/.build/html/
@@ -184,100 +202,13 @@ make opendocs    # open built docs in browser
 - `docs/api/` — API reference (one file per module/area)
 - `docs/dev/` — contributor docs (`development_practices.rst`, `philosophy.rst`, `xmlchemy.rst`, etc.)
 - `docs/community/` — support, FAQ, updates
-- `docs/index.rst` — top-level page; includes the "Feature Support" bullet list that must be updated when capability is added
+- `docs/index.rst` — top-level page; includes the "Feature Support" bullet list that must be updated when capability is added.
 
 Sphinx config is in `docs/conf.py`.
 
----
+## Release prep
 
-## 9. Common workflows
+Reference only — ask before running.
 
-### Adding a new public method on an existing class
-1. Implement in the appropriate `src/pptx/…` module.
-2. Add unit tests in the mirrored test file.
-3. Add a behave scenario to the relevant `*.feature` file and its step function.
-4. Add `.. automethod::` to the corresponding `docs/api/…` page.
-5. Update `docs/user/…` if end users should know about it.
-6. Add a `HISTORY.rst` line.
-
-### Adding a new enum value
-- Enums live in `src/pptx/enum/`. They use a custom metaclass; read a neighboring enum first to see the pattern (in particular, the "return value" XML mapping).
-- Update the enum's doc in `docs/api/enum/` if present.
-
-### Adding a new XML element class
-- Custom element classes live in `src/pptx/oxml/…`. Read `docs/dev/xmlchemy.rst` first — it explains `ZeroOrOne`, `OneAndOnlyOne`, `ZeroOrMore`, `RequiredAttribute`, etc.
-- Register the new element with the `ns` registry (see top of `src/pptx/oxml/__init__.py`).
-
-### Release prep (reference only — ask before running)
 - See `docs/dev/development_practices.rst`.
 - Update `src/pptx/__init__.py` version, `HISTORY.rst`, confirm docs compile, full tox run clean, build (`make build`), upload (`make upload`).
-
----
-
-## 10. OOXML / XML tips
-
-- `oxml/` uses a home-grown descriptor layer (`xmlchemy`) on top of `lxml.etree`. Don't bypass it with raw `etree` access in production code — the descriptors carry namespace/type/default semantics.
-- The `ns` helpers (`qn("a:solidFill")`, `nsmap`, `nsdecls`) are how namespaces are handled throughout — use them consistently.
-
-### OOXML spec vs Microsoft PowerPoint reality
-
-Microsoft PowerPoint does NOT strictly implement ISO/IEC 29500 / ECMA-376. Treat the spec as a starting point, not ground truth.
-
-- PowerPoint writes the **Transitional** flavor, not **Strict**. The 4th/5th/6th editions of ISO 29500-1 tightened the spec toward Strict; PowerPoint still emits Transitional namespaces that trace back to the original 1st edition / ECMA-376 2006.
-- PowerPoint emits Microsoft extensions in the `p14:`, `p15:`, `a14:`, `c14:`, `cx:`, and related namespaces (PowerPoint 2010/2013/2016+), gated by `mc:AlternateContent` / `mc:Ignorable`. These are documented in the `[MS-PPTX]` / `[MS-OE376]` / `[MS-ODRAWXML]` extension series, not in the ISO PDFs under `spec/`.
-- PowerPoint's reader tolerates out-of-order, extra, and missing elements that the spec forbids. PowerPoint's writer emits shapes the spec doesn't mandate. A spec-valid file is not automatically a file PowerPoint will open cleanly.
-- **When the spec and PowerPoint disagree, match PowerPoint.** The canonical way to resolve ambiguity is: save a minimal `.pptx` from PowerPoint, unzip it, and inspect the XML. `spec/…/xsd/*.xsd` tells you what is *allowed*; PowerPoint tells you what is *interoperable*.
-
-### Consulting `spec/` before implementing a new OOXML element
-
-`spec/` is an offline archive of the ECMA-376 / ISO/IEC 29500 specification. It is **not** imported or executed by the library; it's the reference-reading room. The subdirectories:
-
-- `spec/ISO-IEC-29500-1/` — Part 1 ("Fundamentals & Markup Language Reference"). The `schemas/xsd/` tree is the authoritative grammar for every DrawingML (`dml-*.xsd`), PresentationML (`pml.xsd`), SpreadsheetML (`sml.xsd`), and shared-type (`shared-*.xsd`) element the library models. `schemas/dml-geometries/` is the preset-geometry reference for autoshapes.
-- `spec/ISO-IEC-29500-2/` — Part 2 (Open Packaging Conventions). Read `opc-xsd/` for relationship / content-type / package grammar.
-- `spec/ISO-IEC-29500-3/` — Part 3 (Markup Compatibility). Defines `mc:AlternateContent` / `mc:Choice` / `mc:Fallback`, which wrap most Office 2010+ extended features.
-- `spec/ISO-IEC-29500-4/` — Part 4 (Transitional conformance). Relevant when round-trip fidelity diverges between the "strict" and "transitional" variants.
-- `spec/gen_spec/` — one-off maintainer tooling used to seed `src/pptx/spec.py`. Do not try to run it; treat it as historical.
-
-**Workflow before writing code for a new element or feature:**
-
-1. **Produce a real PowerPoint sample.** Create a minimal `.pptx` in Microsoft PowerPoint that exercises the feature, unzip it, and read the XML. **This is ground truth** — what the library must emit to round-trip cleanly.
-2. **Look up the grammar in `spec/ISO-IEC-29500-1/schemas/xsd/`** (or Part 2's `opc-xsd/` for packaging work). This gives the formal parent/child relationships, attribute types, defaults, and cardinality — which map directly onto `ZeroOrOne` / `OneAndOnlyOne` / `ZeroOrMore` / `RequiredAttribute` descriptors.
-3. **Reconcile steps 1 and 2.** They will diverge. PowerPoint routinely emits XML the strict schema wouldn't validate, omits optional attributes inconsistently, and uses undocumented conventions. **python-pptx's commitment is round-trip fidelity with what PowerPoint actually writes, not strict ECMA-376 conformance.** Prefer the real sample when the two conflict; use the XSD to understand structure and type, not to police PowerPoint's output.
-4. **Check `src/pptx/oxml/…` for similar elements already modeled.** Copy the established pattern from a neighboring element — this keeps the descriptor layer consistent.
-
-**The XSDs do not cover everything.** Microsoft extension namespaces — `cx:` (Office 2016+ chart types: funnel, treemap, sunburst, waterfall, histogram, box-whisker), `p14:` / `a14:` / `p15:` (2010/2013/2015-era PowerPoint additions), and the "modern comments" format — are not in the Part 1 XSDs. For these, you must rely on the real-sample approach in step 1 and/or Microsoft's extension documentation (MS-PPTX, MS-OE376, MS-ODRAWXML). Note this in the PR when relevant.
-
-When you find a useful sample file or annotated fragment during investigation, keep it local to your worktree rather than committing it — `spec/` is intentionally an immutable reference archive.
-
----
-
-## 11. What NOT to do
-
-- Don't amend or force-push to `master`, and never force-push to `upstream` under any circumstance.
-- Don't commit secrets, API tokens, local `_scratch/` output, or generated docs (`.build/`).
-- Don't add runtime dependencies lightly — every new dep affects a large user base. If you must, raise it first.
-- Don't introduce backwards-incompatible API changes without a HISTORY note and a transition plan (deprecation warning where possible).
-- Don't silence warnings with broad `filterwarnings` ignores — they exist to catch real problems.
-- Don't delete `py.typed`; removing it silently breaks downstream type-checking.
-- Don't "fix" code inside `spec/` just because lint would catch it elsewhere.
-
----
-
-## 12. Quick command reference
-
-| Task | Command |
-|---|---|
-| Unit tests | `pytest` |
-| Unit test subtree | `pytest tests/chart` |
-| Acceptance tests | `make accept` |
-| Type check | `pyright src/pptx tests` |
-| Lint | `ruff check .` |
-| Format | `black src tests` |
-| Coverage | `make coverage` |
-| Build docs | `make docs` |
-| All envs | `tox` |
-| Build dist | `make build` |
-
----
-
-_Last updated: 2026-05-02. Update this file when the layout, conventions, or workflows change._
