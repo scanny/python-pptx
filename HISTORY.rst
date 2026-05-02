@@ -113,6 +113,20 @@ Unreleased
   content-type, a save + reopen round-trip (bytes preserved
   verbatim), and multi-style (regular + bold) OTF embedding under
   a single typeface.
+- verify: #937 (arrange tickers side-by-side in table cells) resolved by
+  ``feat/issue-71-cell-borders`` (Wave 3) on top of the pre-existing
+  ``_Cell.margin_*`` / ``_Cell.merge`` / ``_Paragraph.add_run`` /
+  ``paragraph.alignment`` APIs. Two recipes now cover the reporter's
+  "tickers side-by-side" layout without any new feature surface: (A)
+  one sub-cell per ticker with ``cell.border_<side>.fill.background()``
+  hiding the internal edges and ``cell.merge`` spanning a header above
+  the group, or (B) a single cell whose paragraph holds one
+  ``paragraph.add_run()`` per ticker so the runs flow side-by-side on
+  one line with independent per-run font / bold / colour. Adds a
+  regression suite ``DescribeIssue937TableCellLayout`` under
+  ``tests/test_issue_937_table_cell_layout.py`` that pins both recipes
+  plus the ``_Cell.margin_*`` knobs (the reporter's secondary complaint
+  about slide overflow) through ``Presentation.save`` + reopen.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
