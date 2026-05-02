@@ -165,6 +165,24 @@ content. When `crop=False` is used, the resulting picture's position and
 size on the slide will not inherit from the layout placeholder; instead an
 explicit position and size are written into the slide XML so the aspect
 ratio is preserved regardless of the placeholder's aspect ratio.
+
+.. note:: :meth:`insert_picture` is also available on generic
+   :class:`.SlidePlaceholder` instances, not only on
+   :class:`.PicturePlaceholder`. This is convenient when a layout does not
+   provide a specialized picture placeholder — for example a generic
+   "content", "body", or "object" placeholder can have a picture inserted
+   into it directly::
+
+       >>> prs = Presentation()
+       >>> slide = prs.slides.add_slide(prs.slide_layouts[1])
+       >>> placeholder = slide.placeholders[1]  # a content placeholder
+       >>> type(placeholder).__name__
+       'SlidePlaceholder'
+       >>> picture = placeholder.insert_picture('my-image.png')
+
+   The resulting picture takes the position and size of the placeholder,
+   exactly as with :meth:`.PicturePlaceholder.insert_picture`.
+
 .. _inserting-svg-images:
 
 Inserting SVG images
@@ -252,6 +270,25 @@ in this case.
    and methods of a |GraphicFrame| object along with those specific to
    placeholders. The inserted table is contained in the graphic frame and can
    be obtained using its :attr:`~.PlaceholderGraphicFrame.table` property.
+
+.. note:: :meth:`insert_table` is also available on generic
+   :class:`.SlidePlaceholder` instances, not only on
+   :class:`.TablePlaceholder`. This is convenient when a layout does not
+   provide a specialized table placeholder — for example a generic "content",
+   "body", or "object" placeholder can have a table inserted into it
+   directly::
+
+       >>> prs = Presentation()
+       >>> slide = prs.slides.add_slide(prs.slide_layouts[1])
+       >>> placeholder = slide.placeholders[1]  # a content placeholder
+       >>> type(placeholder).__name__
+       'SlidePlaceholder'
+       >>> graphic_frame = placeholder.insert_table(rows=2, cols=3)
+       >>> graphic_frame.table.rows, graphic_frame.table.columns
+       (2, 3)
+
+   The resulting table takes the position and width of the placeholder,
+   exactly as with :meth:`.TablePlaceholder.insert_table`.
 
 :meth:`.ChartPlaceholder.insert_chart`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

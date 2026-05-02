@@ -170,6 +170,15 @@ Unreleased
 - feat: #199 add ``SlidePlaceholder.insert_chart()`` so a chart can be
   inserted into any slide placeholder, not just a specialized
   ``ChartPlaceholder``.
+- feat: #333 Support content placeholders — ``SlidePlaceholder`` (the class
+  returned for generic "content", "body", and "object" placeholders) now
+  supports the full ``insert_chart()``, ``insert_picture()``, and
+  ``insert_table()`` rich-content insertion API. The three methods have been
+  lifted onto the common ``_BaseSlidePlaceholder`` so specialized
+  ``ChartPlaceholder``, ``PicturePlaceholder``, and ``TablePlaceholder``
+  classes continue to expose the same interface while any generic slide
+  placeholder can now be populated with a chart, picture, or table without
+  needing the specialized subclass.
 - fix: #652 Errors when loading a SVG image into a picture placeholder.
   ``SlideShapes.add_picture()`` and ``PicturePlaceholder.insert_picture()``
   now detect SVG content in the incoming image and raise the new
