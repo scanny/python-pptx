@@ -30,6 +30,7 @@ Feature Support
 * Add textbox to a slide; manipulate text font size and bold
 * Add table to a slide
 * Add auto shapes (e.g. polygons, flowchart shapes, etc.) to a slide
+* Toggle bullet formatting on paragraphs (character, auto-number, none, inherit)
 * Add and manipulate column, bar, line, and pie charts
 * Access and change core document properties such as title and subject
 * And many others ...

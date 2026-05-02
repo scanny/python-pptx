@@ -118,6 +118,8 @@ rst_epilog = """
 
 .. |BubbleChartData| replace:: :class:`.BubbleChartData`
 
+.. |_BulletFormat| replace:: :class:`._BulletFormat`
+
 .. |BubblePlot| replace:: :class:`.BubblePlot`
 
 .. |BubblePoints| replace:: :class:`.BubblePoints`

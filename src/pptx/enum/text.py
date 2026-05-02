@@ -228,3 +228,235 @@ class PP_PARAGRAPH_ALIGNMENT(BaseXmlEnum):
 
 
 PP_ALIGN = PP_PARAGRAPH_ALIGNMENT
+
+
+class PP_AUTO_NUMBER_SCHEME(BaseXmlEnum):
+    """Specifies the numbering scheme used to generate automatic numbers for a paragraph bullet.
+
+    Used with :attr:`._BulletFormat.number_scheme` and as the ``scheme`` argument to
+    :meth:`._BulletFormat.auto_number`.
+
+    Alias: ``PP_AUTO_NUMBER``
+
+    Example::
+
+        from pptx.enum.text import PP_AUTO_NUMBER
+
+        paragraph.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+
+    MS API Name: `PpAutoNumberScheme` (mapped from OOXML ``ST_TextAutonumberScheme``).
+    """
+
+    ALPHA_LC_PAREN_BOTH = (
+        0,
+        "alphaLcParenBoth",
+        "Lowercase alphabetical characters with both parentheses, e.g. (a), (b), (c).",
+    )
+    """Lowercase alphabetical characters with both parentheses, e.g. (a), (b), (c)."""
+
+    ALPHA_UC_PAREN_BOTH = (
+        1,
+        "alphaUcParenBoth",
+        "Uppercase alphabetical characters with both parentheses, e.g. (A), (B), (C).",
+    )
+    """Uppercase alphabetical characters with both parentheses, e.g. (A), (B), (C)."""
+
+    ALPHA_LC_PAREN_R = (
+        2,
+        "alphaLcParenR",
+        "Lowercase alphabetical characters with a right parenthesis, e.g. a), b), c).",
+    )
+    """Lowercase alphabetical characters with a right parenthesis, e.g. a), b), c)."""
+
+    ALPHA_UC_PAREN_R = (
+        3,
+        "alphaUcParenR",
+        "Uppercase alphabetical characters with a right parenthesis, e.g. A), B), C).",
+    )
+    """Uppercase alphabetical characters with a right parenthesis, e.g. A), B), C)."""
+
+    ALPHA_LC_PERIOD = (
+        4,
+        "alphaLcPeriod",
+        "Lowercase alphabetical characters with a period, e.g. a., b., c.",
+    )
+    """Lowercase alphabetical characters with a period, e.g. a., b., c."""
+
+    ALPHA_UC_PERIOD = (
+        5,
+        "alphaUcPeriod",
+        "Uppercase alphabetical characters with a period, e.g. A., B., C.",
+    )
+    """Uppercase alphabetical characters with a period, e.g. A., B., C."""
+
+    ARABIC_PAREN_BOTH = (
+        6,
+        "arabicParenBoth",
+        "Arabic numerals with both parentheses, e.g. (1), (2), (3).",
+    )
+    """Arabic numerals with both parentheses, e.g. (1), (2), (3)."""
+
+    ARABIC_PAREN_R = (
+        7,
+        "arabicParenR",
+        "Arabic numerals with a right parenthesis, e.g. 1), 2), 3).",
+    )
+    """Arabic numerals with a right parenthesis, e.g. 1), 2), 3)."""
+
+    ARABIC_PERIOD = (8, "arabicPeriod", "Arabic numerals with a period, e.g. 1., 2., 3.")
+    """Arabic numerals with a period, e.g. 1., 2., 3."""
+
+    ARABIC_PLAIN = (9, "arabicPlain", "Arabic numerals without punctuation, e.g. 1, 2, 3.")
+    """Arabic numerals without punctuation, e.g. 1, 2, 3."""
+
+    ROMAN_LC_PAREN_BOTH = (
+        10,
+        "romanLcParenBoth",
+        "Lowercase Roman numerals with both parentheses, e.g. (i), (ii), (iii).",
+    )
+    """Lowercase Roman numerals with both parentheses, e.g. (i), (ii), (iii)."""
+
+    ROMAN_UC_PAREN_BOTH = (
+        11,
+        "romanUcParenBoth",
+        "Uppercase Roman numerals with both parentheses, e.g. (I), (II), (III).",
+    )
+    """Uppercase Roman numerals with both parentheses, e.g. (I), (II), (III)."""
+
+    ROMAN_LC_PAREN_R = (
+        12,
+        "romanLcParenR",
+        "Lowercase Roman numerals with a right parenthesis, e.g. i), ii), iii).",
+    )
+    """Lowercase Roman numerals with a right parenthesis, e.g. i), ii), iii)."""
+
+    ROMAN_UC_PAREN_R = (
+        13,
+        "romanUcParenR",
+        "Uppercase Roman numerals with a right parenthesis, e.g. I), II), III).",
+    )
+    """Uppercase Roman numerals with a right parenthesis, e.g. I), II), III)."""
+
+    ROMAN_LC_PERIOD = (
+        14,
+        "romanLcPeriod",
+        "Lowercase Roman numerals with a period, e.g. i., ii., iii.",
+    )
+    """Lowercase Roman numerals with a period, e.g. i., ii., iii."""
+
+    ROMAN_UC_PERIOD = (
+        15,
+        "romanUcPeriod",
+        "Uppercase Roman numerals with a period, e.g. I., II., III.",
+    )
+    """Uppercase Roman numerals with a period, e.g. I., II., III."""
+
+    CIRCLE_NUM_DB_PLAIN = (
+        16,
+        "circleNumDbPlain",
+        "Double-byte circled numbers, 1 through 10.",
+    )
+    """Double-byte circled numbers, 1 through 10."""
+
+    CIRCLE_NUM_WD_BLACK_PLAIN = (
+        17,
+        "circleNumWdBlackPlain",
+        "Wingdings black circled numbers.",
+    )
+    """Wingdings black circled numbers."""
+
+    CIRCLE_NUM_WD_WHITE_PLAIN = (
+        18,
+        "circleNumWdWhitePlain",
+        "Wingdings white circled numbers.",
+    )
+    """Wingdings white circled numbers."""
+
+    ARABIC_DB_PERIOD = (
+        19,
+        "arabicDbPeriod",
+        "Double-byte Arabic numerals with a double-byte period.",
+    )
+    """Double-byte Arabic numerals with a double-byte period."""
+
+    ARABIC_DB_PLAIN = (20, "arabicDbPlain", "Double-byte Arabic numerals.")
+    """Double-byte Arabic numerals."""
+
+    EA_1_CHS_PERIOD = (
+        21,
+        "ea1ChsPeriod",
+        "East-Asian Simplified Chinese with single-byte period.",
+    )
+    """East-Asian Simplified Chinese with single-byte period."""
+
+    EA_1_CHS_PLAIN = (22, "ea1ChsPlain", "East-Asian Simplified Chinese.")
+    """East-Asian Simplified Chinese."""
+
+    EA_1_CHT_PERIOD = (
+        23,
+        "ea1ChtPeriod",
+        "East-Asian Traditional Chinese with single-byte period.",
+    )
+    """East-Asian Traditional Chinese with single-byte period."""
+
+    EA_1_CHT_PLAIN = (24, "ea1ChtPlain", "East-Asian Traditional Chinese.")
+    """East-Asian Traditional Chinese."""
+
+    EA_1_JPN_CHS_DB_PERIOD = (
+        25,
+        "ea1JpnChsDbPeriod",
+        "East-Asian Japanese double-byte period.",
+    )
+    """East-Asian Japanese double-byte period."""
+
+    EA_1_JPN_KOR_PLAIN = (26, "ea1JpnKorPlain", "East-Asian Japanese/Korean.")
+    """East-Asian Japanese/Korean."""
+
+    EA_1_JPN_KOR_PERIOD = (
+        27,
+        "ea1JpnKorPeriod",
+        "East-Asian Japanese/Korean with single-byte period.",
+    )
+    """East-Asian Japanese/Korean with single-byte period."""
+
+    ARABIC_1_MINUS = (28, "arabic1Minus", "Bidi Arabic 1 (AraAlpha) with ANSI minus symbol.")
+    """Bidi Arabic 1 (AraAlpha) with ANSI minus symbol."""
+
+    ARABIC_2_MINUS = (29, "arabic2Minus", "Bidi Arabic 2 (AraAbjad) with ANSI minus symbol.")
+    """Bidi Arabic 2 (AraAbjad) with ANSI minus symbol."""
+
+    HEBREW_2_MINUS = (30, "hebrew2Minus", "Bidi Hebrew 2 with ANSI minus symbol.")
+    """Bidi Hebrew 2 with ANSI minus symbol."""
+
+    THAI_ALPHA_PERIOD = (31, "thaiAlphaPeriod", "Thai alphabet with a period.")
+    """Thai alphabet with a period."""
+
+    THAI_ALPHA_PAREN_R = (32, "thaiAlphaParenR", "Thai alphabet with a right parenthesis.")
+    """Thai alphabet with a right parenthesis."""
+
+    THAI_ALPHA_PAREN_BOTH = (33, "thaiAlphaParenBoth", "Thai alphabet with both parentheses.")
+    """Thai alphabet with both parentheses."""
+
+    THAI_NUM_PERIOD = (34, "thaiNumPeriod", "Thai numerals with a period.")
+    """Thai numerals with a period."""
+
+    THAI_NUM_PAREN_R = (35, "thaiNumParenR", "Thai numerals with a right parenthesis.")
+    """Thai numerals with a right parenthesis."""
+
+    THAI_NUM_PAREN_BOTH = (36, "thaiNumParenBoth", "Thai numerals with both parentheses.")
+    """Thai numerals with both parentheses."""
+
+    HINDI_ALPHA_PERIOD = (37, "hindiAlphaPeriod", "Hindi alphabet with a period.")
+    """Hindi alphabet with a period."""
+
+    HINDI_NUM_PERIOD = (38, "hindiNumPeriod", "Hindi numerals with a period.")
+    """Hindi numerals with a period."""
+
+    HINDI_NUM_PAREN_R = (39, "hindiNumParenR", "Hindi numerals with a right parenthesis.")
+    """Hindi numerals with a right parenthesis."""
+
+    HINDI_ALPHA_1_PERIOD = (40, "hindiAlpha1Period", "Hindi alphabet period (variant).")
+    """Hindi alphabet period (variant)."""
+
+
+PP_AUTO_NUMBER = PP_AUTO_NUMBER_SCHEME

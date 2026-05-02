@@ -11,11 +11,18 @@ import pytest
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
+from pptx.enum.text import (
+    MSO_ANCHOR,
+    MSO_AUTO_SIZE,
+    MSO_UNDERLINE,
+    PP_ALIGN,
+    PP_AUTO_NUMBER,
+    PP_AUTO_NUMBER_SCHEME,
+)
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.shapes.autoshape import Shape
-from pptx.text.text import Font, TextFrame, _Hyperlink, _Paragraph, _Run
+from pptx.text.text import Font, TextFrame, _BulletFormat, _Hyperlink, _Paragraph, _Run
 from pptx.util import Inches, Pt
 
 from ..oxml.unitdata.text import a_p, a_t, an_hlinkClick, an_r, an_rPr
@@ -817,6 +824,14 @@ class Describe_Paragraph(object):
         Font_.assert_called_once_with(paragraph._defRPr)
         assert font == Font_.return_value
 
+    def it_provides_access_to_its_bullet_format(self, paragraph: _Paragraph):
+        bullet = paragraph.bullet
+        assert isinstance(bullet, _BulletFormat)
+        # -- bullet is a lazyproperty so the same instance is returned every time --
+        assert paragraph.bullet is bullet
+        # -- bullet wraps the paragraph's a:pPr element --
+        assert bullet._pPr is paragraph._pPr  # pyright: ignore[reportPrivateUsage]
+
     def it_knows_its_indentation_level(self, level_get_fixture):
         paragraph, expected_value = level_get_fixture
         assert paragraph.level == expected_value
@@ -1137,6 +1152,199 @@ class Describe_Paragraph(object):
     @pytest.fixture
     def paragraph(self, p_bldr):
         return _Paragraph(p_bldr.element, None)
+
+
+class Describe_BulletFormat(object):
+    """Unit-test suite for `pptx.text.text._BulletFormat` object."""
+
+    # -- type getter --------------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_type"),
+        [
+            ("a:pPr", None),
+            ("a:pPr/a:buNone", "none"),
+            ('a:pPr/a:buChar{char=-}', "char"),
+            ('a:pPr/a:buAutoNum{type=arabicPeriod}', "autonum"),
+        ],
+    )
+    def it_knows_its_bullet_type(self, pPr_cxml: str, expected_type: str | None):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.type == expected_type
+
+    # -- char getter --------------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_char"),
+        [
+            ("a:pPr", None),
+            ("a:pPr/a:buNone", None),
+            ('a:pPr/a:buChar{char=-}', "-"),
+            ('a:pPr/a:buChar{char=x}', "x"),
+        ],
+    )
+    def it_knows_its_bullet_char(self, pPr_cxml: str, expected_char: str | None):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.char == expected_char
+
+    # -- number_scheme getter -----------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_scheme"),
+        [
+            ("a:pPr", None),
+            ("a:pPr/a:buNone", None),
+            ('a:pPr/a:buAutoNum{type=arabicPeriod}', PP_AUTO_NUMBER.ARABIC_PERIOD),
+            ('a:pPr/a:buAutoNum{type=romanUcPeriod}', PP_AUTO_NUMBER.ROMAN_UC_PERIOD),
+        ],
+    )
+    def it_knows_its_number_scheme(
+        self, pPr_cxml: str, expected_scheme: PP_AUTO_NUMBER_SCHEME | None
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.number_scheme == expected_scheme
+
+    # -- start_at getter ----------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_start_at"),
+        [
+            ("a:pPr", None),
+            ('a:pPr/a:buAutoNum{type=arabicPeriod}', 1),
+            ('a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}', 5),
+        ],
+    )
+    def it_knows_its_start_at(self, pPr_cxml: str, expected_start_at: int | None):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.start_at == expected_start_at
+
+    # -- character() setter -------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "char", "expected_cxml"),
+        [
+            ("a:pPr", "-", 'a:pPr/a:buChar{char=-}'),
+            ("a:pPr/a:buNone", "-", 'a:pPr/a:buChar{char=-}'),
+            (
+                'a:pPr/a:buAutoNum{type=arabicPeriod}',
+                "-",
+                'a:pPr/a:buChar{char=-}',
+            ),
+            ('a:pPr/a:buChar{char=-}', "x", 'a:pPr/a:buChar{char=x}'),
+        ],
+    )
+    def it_can_set_a_character_bullet(
+        self, pPr_cxml: str, char: str, expected_cxml: str
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        return_value = bullet.character(char)
+
+        assert pPr.xml == xml(expected_cxml)
+        assert return_value is bullet
+
+    @pytest.mark.parametrize("bad_char", ["", "xy", 42, None])
+    def it_raises_on_invalid_bullet_character(self, bad_char: object):
+        pPr = element("a:pPr")
+        bullet = _BulletFormat(pPr)
+
+        with pytest.raises(ValueError, match="single-character"):
+            bullet.character(bad_char)  # pyright: ignore[reportArgumentType]
+
+    # -- auto_number() setter -----------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "scheme", "start_at", "expected_cxml"),
+        [
+            (
+                "a:pPr",
+                PP_AUTO_NUMBER.ARABIC_PERIOD,
+                None,
+                'a:pPr/a:buAutoNum{type=arabicPeriod}',
+            ),
+            (
+                "a:pPr/a:buNone",
+                PP_AUTO_NUMBER.ROMAN_LC_PERIOD,
+                None,
+                'a:pPr/a:buAutoNum{type=romanLcPeriod}',
+            ),
+            (
+                'a:pPr/a:buChar{char=-}',
+                PP_AUTO_NUMBER.ARABIC_PERIOD,
+                3,
+                'a:pPr/a:buAutoNum{type=arabicPeriod,startAt=3}',
+            ),
+        ],
+    )
+    def it_can_set_an_auto_number_bullet(
+        self,
+        pPr_cxml: str,
+        scheme: PP_AUTO_NUMBER_SCHEME,
+        start_at: int | None,
+        expected_cxml: str,
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        return_value = bullet.auto_number(scheme, start_at)
+
+        assert pPr.xml == xml(expected_cxml)
+        assert return_value is bullet
+
+    def it_raises_on_invalid_auto_number_scheme(self):
+        pPr = element("a:pPr")
+        bullet = _BulletFormat(pPr)
+        # -- an int outside the member set raises ValueError --
+        with pytest.raises(ValueError):
+            bullet.auto_number(9999)  # pyright: ignore[reportArgumentType]
+
+    # -- none() setter ------------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_cxml"),
+        [
+            ("a:pPr", "a:pPr/a:buNone"),
+            ("a:pPr/a:buNone", "a:pPr/a:buNone"),
+            ('a:pPr/a:buChar{char=-}', "a:pPr/a:buNone"),
+            (
+                'a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}',
+                "a:pPr/a:buNone",
+            ),
+        ],
+    )
+    def it_can_explicitly_suppress_a_bullet(self, pPr_cxml: str, expected_cxml: str):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        return_value = bullet.none()
+
+        assert pPr.xml == xml(expected_cxml)
+        assert return_value is bullet
+
+    # -- clear() setter -----------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_cxml"),
+        [
+            ("a:pPr", "a:pPr"),
+            ("a:pPr/a:buNone", "a:pPr"),
+            ('a:pPr/a:buChar{char=-}', "a:pPr"),
+            ('a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}', "a:pPr"),
+        ],
+    )
+    def it_can_remove_any_bullet_setting(self, pPr_cxml: str, expected_cxml: str):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        return_value = bullet.clear()
+
+        assert pPr.xml == xml(expected_cxml)
+        assert return_value is bullet
 
 
 class Describe_Run(object):

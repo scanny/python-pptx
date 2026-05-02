@@ -37,6 +37,19 @@ future other presentation text objects.
    :undoc-members:
 
 
+|_BulletFormat| objects
+-----------------------
+
+The |_BulletFormat| object is a proxy for the bullet-related child elements of
+a paragraph's ``a:pPr`` element. It is obtained as the
+:attr:`._Paragraph.bullet` property.
+
+.. autoclass:: _BulletFormat()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |_Run| objects
 --------------
 

@@ -663,6 +663,12 @@ class ST_TextFontSize(BaseIntType):
         cls.validate_int_in_range(value, 100, 400000)
 
 
+class ST_TextBulletStartAtNum(BaseIntType):
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 1, 32767)
+
+
 class ST_TextIndentLevelType(BaseIntType):
     @classmethod
     def validate(cls, value):

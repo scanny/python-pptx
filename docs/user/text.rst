@@ -177,3 +177,60 @@ this will not change color when the theme is changed::
 A run can also be made into a hyperlink by providing a target URL::
 
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
+
+
+Paragraph bullets
+-----------------
+
+Each paragraph has a |_BulletFormat| proxy, obtained via ``paragraph.bullet``,
+that controls the paragraph-level bullet. A paragraph may use a literal
+character bullet (e.g. ``•``, ``-``, ``*``), an auto-numbered bullet
+(Arabic, Roman, alphabetical, etc.), or it may explicitly suppress a bullet
+that would otherwise be inherited from a layout or master.
+
+With no explicit setting, the bullet is inherited from the paragraph's style
+hierarchy (layout / master / theme)::
+
+    paragraph = text_frame.paragraphs[0]
+    paragraph.bullet.type  # -> None, the paragraph's bullet is inherited
+
+To use a literal character as the bullet::
+
+    paragraph.bullet.character('•')
+    paragraph.bullet.type  # -> 'char'
+    paragraph.bullet.char  # -> '•'
+
+To use automatic numbering, choose a scheme from :ref:`PpAutoNumberScheme`::
+
+    from pptx.enum.text import PP_AUTO_NUMBER
+
+    paragraph.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD)
+
+An optional ``start_at`` argument controls the ordinal at which numbering
+starts (1 by default, must be in range 1..32767)::
+
+    paragraph.bullet.auto_number(PP_AUTO_NUMBER.ROMAN_UC_PERIOD, start_at=3)
+
+To explicitly suppress any inherited bullet on a paragraph (produces an
+``<a:buNone/>`` child)::
+
+    paragraph.bullet.none()
+    paragraph.bullet.type  # -> 'none'
+
+To remove any explicit bullet setting so the paragraph once again inherits
+from its style hierarchy::
+
+    paragraph.bullet.clear()
+    paragraph.bullet.type  # -> None
+
+Each of ``.character()``, ``.auto_number()``, ``.none()``, and ``.clear()``
+returns the |_BulletFormat| itself to support chaining, e.g.
+``paragraph.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD, 2)``.
+
+.. note::
+
+    This initial release covers the bullet *type* (character, auto-number,
+    none, inherit). Bullet-font, bullet-color, and bullet-size overrides
+    (``<a:buFont>``, ``<a:buClr>``, ``<a:buSzPct>``, ``<a:buSzPts>``) are
+    not yet exposed on |_BulletFormat|; use the underlying XML via
+    ``paragraph._pPr`` if you need them in the interim.
