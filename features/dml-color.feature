@@ -20,3 +20,16 @@ Feature: Control color
     Given a ColorFormat object as color
      When I assign 0.42 to color.brightness
      Then color.brightness is 0.42
+
+
+  Scenario: ColorFormat.to_rgb() for an explicit RGB color
+    Given a ColorFormat object as color
+     When I assign RGBColor(12, 34, 56) to color.rgb
+     Then color.to_rgb() is RGBColor(12, 34, 56)
+
+
+  Scenario: ColorFormat.to_rgb() for a theme (scheme) color
+    Given a ColorFormat object as color
+     When I assign MSO_THEME_COLOR.ACCENT_1 to color.theme_color
+      And I resolve color.to_rgb() using the slide master's theme_colors
+     Then color.to_rgb(theme_colors) is the theme's accent1 RGB value

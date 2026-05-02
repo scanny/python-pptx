@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #420 universal ``to_rgb()`` across color classes
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

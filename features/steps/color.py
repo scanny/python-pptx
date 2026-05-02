@@ -14,8 +14,10 @@ from pptx.enum.dml import MSO_THEME_COLOR
 
 @given("a ColorFormat object as color")
 def given_a_ColorFormat_object_as_color(context):
-    shape = Presentation(test_pptx("dml-fill")).slides[0].shapes[2]
+    prs = Presentation(test_pptx("dml-fill"))
+    shape = prs.slides[0].shapes[2]
     color = shape.fill.fore_color
+    context.prs = prs
     context.color = color
 
 
@@ -68,3 +70,34 @@ def then_color_theme_color_is_MSO_THEME_COLOR_ACCENT_6(context):
         expected_value,
         theme_color,
     )
+
+
+@when("I assign MSO_THEME_COLOR.ACCENT_1 to color.theme_color")
+def when_assign_MSO_THEME_COLOR_ACCENT_1_to_color_theme_color(context):
+    context.color.theme_color = MSO_THEME_COLOR.ACCENT_1
+
+
+@when("I resolve color.to_rgb() using the slide master's theme_colors")
+def when_I_resolve_color_to_rgb_using_slide_master_theme_colors(context):
+    slide_master = context.prs.slide_masters[0]
+    context.theme_colors = slide_master.theme_colors
+    context.resolved_rgb = context.color.to_rgb(context.theme_colors)
+
+
+@then("color.to_rgb() is RGBColor(12, 34, 56)")
+def then_color_to_rgb_is_RGBColor_12_34_56(context):
+    rgb = context.color.to_rgb()
+    expected_value = RGBColor(12, 34, 56)
+    assert rgb == expected_value, "expected %s, got %s" % (
+        repr(expected_value),
+        repr(rgb),
+    )
+
+
+@then("color.to_rgb(theme_colors) is the theme's accent1 RGB value")
+def then_color_to_rgb_resolves_via_theme_colors(context):
+    expected = context.theme_colors["accent1"]
+    rgb = context.resolved_rgb
+    assert rgb == expected, "expected %s, got %s" % (repr(expected), repr(rgb))
+    # -- sanity: the resolved value must be a real RGBColor, not None --
+    assert isinstance(rgb, RGBColor)

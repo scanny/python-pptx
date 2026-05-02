@@ -262,6 +262,95 @@ class DescribeColorFormat(object):
         return color_format, theme_color
 
 
+class DescribeColorFormat_to_rgb(object):
+    """Unit-tests for ColorFormat.to_rgb()."""
+
+    def it_returns_rgb_for_srgb_colors(self):
+        srgbClr_bldr = an_srgbClr().with_val("FF8800")
+        solidFill = a_solidFill().with_nsdecls().with_child(srgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(0xFF, 0x88, 0x00)
+
+    def it_returns_rgb_for_preset_colors(self):
+        prstClr_bldr = a_prstClr().with_val("cornflowerBlue")
+        solidFill = a_solidFill().with_nsdecls().with_child(prstClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(0x64, 0x95, 0xED)
+
+    def it_raises_for_unknown_preset_name(self):
+        prstClr_bldr = a_prstClr().with_val("notAColorName")
+        solidFill = a_solidFill().with_nsdecls().with_child(prstClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        with pytest.raises(ValueError, match="unrecognized preset color"):
+            color_format.to_rgb()
+
+    def it_returns_rgb_for_hsl_colors(self):
+        # HSL(0, 100%, 50%) = pure red. OOXML: hue=0 (60000-ths of a deg),
+        # sat=100000 (thousandths of a percent), lum=50000.
+        hslClr_bldr = an_hslClr().with_hue(0).with_sat(100000).with_lum(50000)
+        solidFill = a_solidFill().with_nsdecls().with_child(hslClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(255, 0, 0)
+
+    def it_returns_rgb_for_scrgb_colors(self):
+        # r=100000 ⟶ 100% ⟶ 255, g=0, b=50000 ⟶ 50% ⟶ 128 (rounded)
+        scrgbClr_bldr = an_scrgbClr().with_r(100000).with_g(0).with_b(50000)
+        solidFill = a_solidFill().with_nsdecls().with_child(scrgbClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        rgb = color_format.to_rgb()
+        assert rgb == RGBColor(255, 0, 128)
+
+    def it_returns_rgb_for_sys_colors_with_lastClr(self):
+        sysClr_bldr = a_sysClr().with_val("windowText").with_lastClr("000000")
+        solidFill = a_solidFill().with_nsdecls().with_child(sysClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() == RGBColor(0, 0, 0)
+
+    def it_raises_for_sys_colors_without_lastClr(self):
+        sysClr_bldr = a_sysClr().with_val("windowText")
+        solidFill = a_solidFill().with_nsdecls().with_child(sysClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        with pytest.raises(ValueError, match="has no `lastClr`"):
+            color_format.to_rgb()
+
+    def it_returns_None_for_none_colors(self):
+        solidFill = a_solidFill().with_nsdecls().element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        assert color_format.to_rgb() is None
+
+    def it_resolves_scheme_colors_via_theme_colors(self):
+        schemeClr_bldr = a_schemeClr().with_val("accent1")
+        solidFill = a_solidFill().with_nsdecls().with_child(schemeClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+        theme_colors = {"accent1": RGBColor(0x4F, 0x81, 0xBD)}
+
+        assert color_format.to_rgb(theme_colors) == RGBColor(0x4F, 0x81, 0xBD)
+
+    def it_raises_on_scheme_to_rgb_without_theme_colors(self):
+        schemeClr_bldr = a_schemeClr().with_val("accent1")
+        solidFill = a_solidFill().with_nsdecls().with_child(schemeClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        with pytest.raises(ValueError, match="requires a `theme_colors`"):
+            color_format.to_rgb()
+
+    def it_raises_on_scheme_to_rgb_when_theme_colors_missing_key(self):
+        schemeClr_bldr = a_schemeClr().with_val("accent1")
+        solidFill = a_solidFill().with_nsdecls().with_child(schemeClr_bldr).element
+        color_format = ColorFormat.from_colorchoice_parent(solidFill)
+
+        with pytest.raises(ValueError, match="no entry for scheme color"):
+            color_format.to_rgb({"accent2": RGBColor(0, 0, 0)})
+
+
 class DescribeRGBColor(object):
     def it_is_natively_constructed_using_three_ints_0_to_255(self):
         RGBColor(0x12, 0x34, 0x56)
