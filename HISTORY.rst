@@ -12,6 +12,30 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #941 (unable to open generated presentation) closed as
+  non-reproducible. The #941 reporter copied the Hello-World quickstart
+  snippet from the manual verbatim and reported that the resulting
+  ``.pptx`` was rejected as corrupt/invalid by Microsoft PowerPoint,
+  PowerPoint-online, and Google Slides; a follow-up comment narrowed
+  the trigger to "any textbox being present". A second contributor
+  (MartinPacker) ran the exact same snippet on macOS and PowerPoint
+  opened the output cleanly, and no traceback, file, or environment
+  detail was ever posted by the reporter. The symptom is a hallmark of
+  environment-local failure — a corrupted or partial wheel install, a
+  Windows-editor CRLF/EOL mangling of the uploaded ``.pptx``, a zip
+  re-compressor in the transfer chain, or antivirus quarantining the
+  file — and no bug in ``pptx`` matching the claim has ever been
+  identified. Adds a defensive regression suite
+  ``DescribeIssue941QuickstartOpensCleanly`` under
+  ``tests/test_issue_941_verify.py`` that pins both the verbatim
+  quickstart reproducer and the "add a textbox" follow-up as producing
+  well-formed ``.pptx`` packages (valid zip container, every member's
+  CRC verifies, all required OPC parts present) and surviving
+  ``Presentation.save`` + reopen. Any future regression at the zip,
+  content-types, relationships, or default-template layer that would
+  break the manual's first code example for real will reproduce the
+  #941 symptom and be caught here.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
