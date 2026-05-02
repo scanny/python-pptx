@@ -112,6 +112,14 @@ Unreleased
   setter is added that writes ``p:cSld/@name`` (round-tripping through
   save/load); assigning ``""`` or ``None`` clears the attribute and restores
   the positional fallback.
+- feat: #472 add ``DateAxis.major_unit`` and ``DateAxis.minor_unit``
+  read/write properties so callers can set the tick-spacing on a
+  date-scaled category axis (e.g. ``date_axis.major_unit = 3`` together
+  with a ``c:majorTimeUnit`` of ``months`` yields a major tick every
+  three months). The properties mirror the existing ``ValueAxis``
+  accessors: ``None`` removes the ``c:majorUnit`` / ``c:minorUnit``
+  child (restoring PowerPoint's Auto behaviour) and assigning a
+  numeric value adds or replaces the child.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

@@ -862,6 +862,24 @@ class DescribeDateAxis(object):
         date_axis, expected_value = cat_type_get_fixture
         assert date_axis.category_type is expected_value
 
+    def it_knows_its_major_unit(self, major_unit_get_fixture):
+        date_axis, expected_value = major_unit_get_fixture
+        assert date_axis.major_unit == expected_value
+
+    def it_can_change_its_major_unit(self, major_unit_set_fixture):
+        date_axis, new_value, expected_xml = major_unit_set_fixture
+        date_axis.major_unit = new_value
+        assert date_axis._element.xml == expected_xml
+
+    def it_knows_its_minor_unit(self, minor_unit_get_fixture):
+        date_axis, expected_value = minor_unit_get_fixture
+        assert date_axis.minor_unit == expected_value
+
+    def it_can_change_its_minor_unit(self, minor_unit_set_fixture):
+        date_axis, new_value, expected_xml = minor_unit_set_fixture
+        date_axis.minor_unit = new_value
+        assert date_axis._element.xml == expected_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -869,6 +887,46 @@ class DescribeDateAxis(object):
         date_axis = DateAxis(None)
         expected_value = XL_CATEGORY_TYPE.TIME_SCALE
         return date_axis, expected_value
+
+    @pytest.fixture(params=[("c:dateAx", None), ("c:dateAx/c:majorUnit{val=3.0}", 3.0)])
+    def major_unit_get_fixture(self, request):
+        dateAx_cxml, expected_value = request.param
+        date_axis = DateAxis(element(dateAx_cxml))
+        return date_axis, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:dateAx", 3, "c:dateAx/c:majorUnit{val=3.0}"),
+            ("c:dateAx", None, "c:dateAx"),
+            ("c:dateAx/c:majorUnit{val=3.0}", 6.0, "c:dateAx/c:majorUnit{val=6.0}"),
+            ("c:dateAx/c:majorUnit{val=3.0}", None, "c:dateAx"),
+        ]
+    )
+    def major_unit_set_fixture(self, request):
+        dateAx_cxml, new_value, expected_dateAx_cxml = request.param
+        date_axis = DateAxis(element(dateAx_cxml))
+        expected_xml = xml(expected_dateAx_cxml)
+        return date_axis, new_value, expected_xml
+
+    @pytest.fixture(params=[("c:dateAx", None), ("c:dateAx/c:minorUnit{val=1.0}", 1.0)])
+    def minor_unit_get_fixture(self, request):
+        dateAx_cxml, expected_value = request.param
+        date_axis = DateAxis(element(dateAx_cxml))
+        return date_axis, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:dateAx", 1, "c:dateAx/c:minorUnit{val=1.0}"),
+            ("c:dateAx", None, "c:dateAx"),
+            ("c:dateAx/c:minorUnit{val=1.0}", 2.0, "c:dateAx/c:minorUnit{val=2.0}"),
+            ("c:dateAx/c:minorUnit{val=1.0}", None, "c:dateAx"),
+        ]
+    )
+    def minor_unit_set_fixture(self, request):
+        dateAx_cxml, new_value, expected_dateAx_cxml = request.param
+        date_axis = DateAxis(element(dateAx_cxml))
+        expected_xml = xml(expected_dateAx_cxml)
+        return date_axis, new_value, expected_xml
 
 
 class DescribeMajorGridlines(object):
