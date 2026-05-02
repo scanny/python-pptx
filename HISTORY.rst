@@ -439,6 +439,17 @@ Unreleased
   hover / missing-sound branches at the proxy-object level so the
   user-visible contract cannot silently regress.
 
+- fix: #287 Bubble chart data points now render in LibreOffice (and other
+  strict OOXML readers). The ``c:bubbleChart`` element emitted for a freshly
+  authored bubble chart was missing the optional ``c:bubble3D`` child
+  specified by ``CT_BubbleChart`` between ``c:dLbls`` and ``c:bubbleScale``.
+  PowerPoint treats the chart-level value as the default for every series
+  and ignored its absence, but older LibreOffice versions silently skipped
+  drawing the bubbles (only the axes rendered). ``_BubbleChartXmlWriter``
+  now emits ``<c:bubble3D val="0"/>`` for ``BUBBLE`` (and ``val="1"`` for
+  ``BUBBLE_THREE_D_EFFECT``) in the schema-declared position, matching the
+  per-series ``c:bubble3D`` already written on each ``c:ser``.
+
 - fix: #852 ``chart.category_axis.visible = False`` (and the same property on
   any value or date axis) no longer produces a ``<c:delete/>`` element with a
   missing ``val`` attribute. Although the OOXML schema specifies the default
