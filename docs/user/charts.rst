@@ -356,6 +356,50 @@ the underlying ``series._element`` to edit those directly if needed. Removing
 error bars is as easy as ``series.error_bars = None``.
 
 
+Series source-data references
+-----------------------------
+
+Each series in a chart typically stores two parallel pieces of information:
+the formula (``c:f``) pointing to a range in the chart's embedded xlsx, and a
+cached copy of the numeric/text values that live at that range
+(``c:numCache`` / ``c:strCache``). |pp| exposes the *formula* side as three
+read-mostly properties on any series::
+
+    series = chart.plots[0].series[0]
+    series.source_range        # "Sheet1!$B$2:$F$2"  — values range
+    series.category_range      # "Sheet1!$A$2:$A$6"  — category labels range
+    series.name_range          # "Sheet1!$B$1"       — series-name single cell
+
+Any of them may return ``None`` when the series stores its data inline
+(``c:numLit`` / ``c:strLit``) rather than referencing the workbook.
+
+A convenience parser splits the values formula into its ``(sheet_name,
+a1_range)`` parts::
+
+    ref = series.values_sheet_reference
+    if ref is not None:
+        ref.sheet_name       # "Sheet1"
+        ref.a1_range         # "$B$2:$F$2"
+
+Assigning :attr:`~pptx.chart.series._BaseSeries.source_range` rewrites the
+``c:f`` text in place — useful when you've added rows/columns to the embedded
+workbook and want the series to sweep in the extra cells::
+
+    series.source_range = "Sheet1!$B$2:$J$2"
+
+.. note::
+
+   The setter updates only the *formula* — the cached values under
+   ``c:numCache`` are left pointing at whatever was previously read from the
+   workbook. To reconcile the cache with the new range, call
+   :meth:`Chart.update_cached_values <pptx.chart.chart.Chart.update_cached_values>`
+   (which re-reads the embedded xlsx) or overwrite the cache with fresh data
+   via :meth:`Chart.replace_data_preserve_formulas
+   <pptx.chart.chart.Chart.replace_data_preserve_formulas>`. Without one of
+   these, PowerPoint will display the *old* values until it re-opens and
+   recomputes from the workbook.
+
+
 Legend
 ------
 

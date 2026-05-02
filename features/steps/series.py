@@ -500,3 +500,57 @@ def then_series_trendlines_0_order_is(context, value):
 def then_series_trendlines_0_period_is(context, value):
     actual = context.series.trendlines[0].period
     assert actual == value, "got %s" % actual
+
+
+# source-range / category-range / name-range steps --------
+
+
+@when("I assign a new source_range formula to series.source_range")
+def when_I_assign_new_source_range(context):
+    context.new_source_range = "Sheet1!$B$2:$Z$2"
+    context.series.source_range = context.new_source_range
+
+
+@then("series.source_range is a non-empty string")
+def then_series_source_range_is_a_non_empty_string(context):
+    actual = context.series.source_range
+    assert isinstance(actual, str), "got %r" % (actual,)
+    assert actual, "source_range is empty"
+
+
+@then("series.source_range ends with the value-range A1 reference")
+def then_series_source_range_ends_with_a1(context):
+    # -- whatever sheet name the fixture uses, the A1-portion must be present --
+    ref = context.series.values_sheet_reference
+    assert ref is not None, "values_sheet_reference is None"
+    assert "!" in context.series.source_range
+    assert ref.a1_range, "a1_range is empty"
+
+
+@then("series.values_sheet_reference.sheet_name is a non-empty string")
+def then_series_values_sheet_reference_sheet_name(context):
+    ref = context.series.values_sheet_reference
+    assert ref is not None, "values_sheet_reference is None"
+    assert isinstance(ref.sheet_name, str), "got %r" % (ref.sheet_name,)
+    assert ref.sheet_name, "sheet_name is empty"
+
+
+@then("series.category_range is a non-empty string")
+def then_series_category_range_is_a_non_empty_string(context):
+    actual = context.series.category_range
+    assert isinstance(actual, str), "got %r" % (actual,)
+    assert actual, "category_range is empty"
+
+
+@then("series.name_range is a non-empty string")
+def then_series_name_range_is_a_non_empty_string(context):
+    actual = context.series.name_range
+    assert isinstance(actual, str), "got %r" % (actual,)
+    assert actual, "name_range is empty"
+
+
+@then("series.source_range reflects the new formula")
+def then_series_source_range_reflects_new(context):
+    assert context.series.source_range == context.new_source_range, (
+        "got %r" % context.series.source_range
+    )
