@@ -6,6 +6,7 @@ from typing import IO, TYPE_CHECKING, Literal
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
+from pptx.media import Video
 from pptx.oxml.ns import qn
 from pptx.shapes.base import BaseShape
 from pptx.shared import ParentedElementProxy
@@ -15,6 +16,7 @@ if TYPE_CHECKING:
     from pptx.oxml.shapes.picture import CT_Picture
     from pptx.oxml.shapes.shared import CT_LineProperties
     from pptx.oxml.timing import CT_TLTimeCondition
+    from pptx.parts.slide import SlidePart
     from pptx.types import ProvidesPart
 
 MovieStartCondition = Literal["onClick", "withPrevious", "afterPrevious"]
@@ -132,6 +134,69 @@ class Movie(_BasePicture):
         if rId is None:
             return None
         return slide_part.get_image(rId)
+
+    def replace_media(
+        self,
+        new_path_or_file: str | IO[bytes],
+        mime_type: str | None = None,
+    ) -> None:
+        """Swap the underlying audio/video binary, keeping this shape in place.
+
+        Loads the media at `new_path_or_file` (a filesystem path or a binary
+        file-like object) into a new |MediaPart| and rewrites this shape's
+        ``a:videoFile`` / ``a:audioFile`` ``@r:link`` and ``p14:media``
+        ``@r:embed`` rIds to point at it. Position, size, cropping, poster
+        frame, hyperlink, and ``p:timing`` entries on the shape are
+        unchanged — only the media bytes behind the shape are replaced.
+
+        Parameters
+        ----------
+        new_path_or_file
+            Either a filesystem path (``str``) or a binary file-like object
+            containing the replacement audio or video. Binary file-like
+            objects are read to EOF.
+        mime_type
+            Optional hint like ``"audio/mpeg"`` or ``"video/mp4"``. When
+            omitted, the package falls back to ``video/unknown``; providing
+            the correct MIME type helps downstream viewers pick the right
+            codec.
+
+        Notes
+        -----
+        The shape's media-element tag (``a:videoFile`` vs ``a:audioFile``) is
+        preserved. If you replace audio media with video media (or vice
+        versa) the tag will *not* change — callers that need to switch
+        modality should use :meth:`SlideShapes.add_movie` to create a fresh
+        shape. The old media part becomes eligible for garbage-collection on
+        save once nothing else references its rIds.
+        """
+        # -- read the new media file into a Video value object (handles both
+        #    audio and video payloads via the same MediaPart pipeline) --
+        new_video = Video.from_path_or_file_like(new_path_or_file, mime_type)
+
+        pic = self._pic
+        old_video_rId = pic.media_video_rId
+        old_media_rId = pic.media_embed_rId
+        if old_video_rId is None or old_media_rId is None:
+            raise ValueError(
+                "cannot replace_media: this shape is not a media pic (no "
+                "a:videoFile/a:audioFile or p14:media descriptor found)"
+            )
+
+        # -- add the new media part to the package and get its rIds --
+        slide_part: SlidePart = self.part  # pyright: ignore[reportAssignmentType]
+        new_media_rId, new_video_rId = slide_part.get_or_add_video_media_part(new_video)
+
+        # -- rewrite the pic XML to point at the new rIds --
+        pic.media_video_rId = new_video_rId
+        pic.media_embed_rId = new_media_rId
+
+        # -- drop old rels; drop_rel is a no-op when the rId is still referenced
+        #    (e.g. same media shared by two shapes, or new == old) --
+        if old_video_rId != new_video_rId:
+            slide_part.drop_rel(old_video_rId)
+        if old_media_rId != new_media_rId:
+            slide_part.drop_rel(old_media_rId)
 
     @property
     def shape_type(self) -> MSO_SHAPE_TYPE:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+
 import pytest
 
 from pptx.dml.line import LineFormat
@@ -334,6 +336,105 @@ class DescribeMovie(object):
 
         with pytest.raises(ValueError, match="start_time must be"):
             movie.start_time = -1.0
+
+    def it_can_replace_its_media_blob(self, request):
+        # -- construct a p:pic with a video media reference plus an extLst/p14:media --
+        pic_xml = (
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="movie.mp4"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr>"
+            '      <a:videoFile r:link="rId_old_v"/>'
+            "      <p:extLst>"
+            '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
+            '          <p14:media'
+            '            xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'
+            '            r:embed="rId_old_m"/>'
+            "        </p:ext>"
+            "      </p:extLst>"
+            "    </p:nvPr>"
+            "  </p:nvPicPr>"
+            '  <p:blipFill><a:blip r:embed="rId_poster"/><a:stretch/></p:blipFill>'
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        pic = parse_xml(pic_xml)
+        movie = Movie(pic, None)
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_video_media_part.return_value = ("rId_new_m", "rId_new_v")
+        property_mock(request, Movie, "part", return_value=slide_part_)
+
+        movie.replace_media(io.BytesIO(b"new-video-bytes"), mime_type="video/mp4")
+
+        # -- rewrote rIds on the pic XML --
+        assert pic.media_video_rId == "rId_new_v"
+        assert pic.media_embed_rId == "rId_new_m"
+        # -- dropped old rels --
+        assert slide_part_.drop_rel.call_args_list == [call("rId_old_v"), call("rId_old_m")]
+        # -- called with a Video value object --
+        (video_arg,), _ = slide_part_.get_or_add_video_media_part.call_args
+        assert video_arg.content_type == "video/mp4"
+
+    def it_preserves_the_audio_tag_on_replace_media(self, request):
+        # -- a pic with an a:audioFile (audio clip added via add_movie) --
+        pic_xml = (
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="clip.wav"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr>"
+            '      <a:audioFile r:link="rId_a"/>'
+            "      <p:extLst>"
+            '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
+            '          <p14:media'
+            '            xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'
+            '            r:embed="rId_m"/>'
+            "        </p:ext>"
+            "      </p:extLst>"
+            "    </p:nvPr>"
+            "  </p:nvPicPr>"
+            '  <p:blipFill><a:blip r:embed="rId_poster"/><a:stretch/></p:blipFill>'
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        pic = parse_xml(pic_xml)
+        movie = Movie(pic, None)
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_video_media_part.return_value = ("rId_m2", "rId_a2")
+        property_mock(request, Movie, "part", return_value=slide_part_)
+
+        movie.replace_media(io.BytesIO(b"payload"), mime_type="audio/mpeg")
+
+        # -- the a:audioFile tag is preserved; we only swapped rIds --
+        audioFiles = pic.xpath("./p:nvPicPr/p:nvPr/a:audioFile")
+        assert len(audioFiles) == 1
+        assert pic.media_video_rId == "rId_a2"
+        assert pic.media_embed_rId == "rId_m2"
+
+    def it_raises_when_replace_media_called_on_non_media_pic(self):
+        # -- a plain p:pic (no a:videoFile / a:audioFile) should reject replace_media --
+        pic = parse_xml(
+            '<p:pic xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '        xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            '        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            "  <p:nvPicPr>"
+            '    <p:cNvPr id="5" name="p"/>'
+            "    <p:cNvPicPr/>"
+            "    <p:nvPr/>"
+            "  </p:nvPicPr>"
+            '  <p:blipFill><a:blip r:embed="rId_poster"/><a:stretch/></p:blipFill>'
+            "  <p:spPr/>"
+            "</p:pic>"
+        )
+        movie = Movie(pic, None)
+
+        with pytest.raises(ValueError, match="not a media pic"):
+            movie.replace_media(io.BytesIO(b"data"), mime_type="video/mp4")
 
     def it_adds_a_cond_element_when_stCondLst_is_empty_on_write(self):
         # -- a p:video exists but its stCondLst has no p:cond yet --

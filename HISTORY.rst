@@ -170,6 +170,22 @@ Unreleased
   landed on master and the minimal swap turned out not to need the
   cross-part cloner. End-to-end regression in
   ``tests/test_issue_834_picture_replace_image.py``.
+- feat: #784 add ``Movie.replace_media(new_path_or_file, mime_type=None)``.
+  Swaps the audio/video binary behind an existing media shape while
+  preserving its position, size, poster frame, hyperlink, and
+  ``p:timing`` entries — a direct parallel of ``Picture.replace_image``
+  (#116). A new |MediaPart| is created for the replacement bytes and the
+  shape's ``a:videoFile`` / ``a:audioFile`` ``@r:link`` and ``p14:media``
+  ``@r:embed`` rIds are rewired at it; the old relationships are dropped
+  when no longer referenced so the previous media part is eligible for
+  garbage-collection on save. Introduces ``CT_Picture.media_video_rId``
+  and ``CT_Picture.media_embed_rId`` read/write properties as the XML
+  attachment points. The shape's media-element tag
+  (``a:videoFile`` vs ``a:audioFile``) is preserved across the swap;
+  switching modality (audio ↔ video) requires
+  ``SlideShapes.add_movie`` + delete instead. Verified end-to-end by a
+  new ``tests/test_issue_784_replace_audio.py`` regression suite that
+  round-trips a rewritten audio shape through save + reload.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
