@@ -93,6 +93,32 @@ finishes, or with a delay — assign to :attr:`Movie.start_condition` and
     movie.start_condition = "afterPrevious"
     movie.start_time = 2.5  # seconds
 
+Extracting an embedded media clip
+---------------------------------
+
+A |Movie| shape exposes the underlying media bytes directly, mirroring the
+``Picture.image.blob`` / ``.ext`` / ``.content_type`` surface on
+|Picture|. This is useful when you need to extract the embedded audio or
+video from an existing presentation — for transcription, re-encoding, or
+republishing — without reaching into the package internals.
+
+.. code-block:: python
+
+    from pptx import Presentation
+
+    prs = Presentation("deck-with-movie.pptx")
+    movie = prs.slides[0].shapes[0]  # assuming shape 0 is a Movie
+
+    # write the embedded clip out to disk using its native extension
+    with open(f"clip.{movie.ext}", "wb") as f:
+        f.write(movie.blob)
+
+    print(movie.content_type)  # e.g. 'video/mp4'
+
+All three accessors return |None| when the shape has no associated media
+part (a malformed file), so callers can test with a simple ``if
+movie.blob is not None`` guard.
+
 Limitations
 -----------
 

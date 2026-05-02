@@ -521,12 +521,14 @@ prs.save("out.pptx")
 `SlideShapes.add_movie()` adds an audio or video clip. The fork adds an
 `autoplay=True` kwarg on `add_movie` for the common "start with the slide"
 case, `Movie.replace_media()` for swapping the underlying bytes while keeping
-the shape, `Movie.start_time` / `Movie.start_condition` for fine-grained
-timing control, `Movie.delete()` that correctly removes the timing-tree entry
-and the three media-related slide-part rels, MIME-type registrations for
-common audio formats (so `add_movie` works on a slide whose layout already
-holds an MP3), and a movie-shape name that strips the file extension to
-match PowerPoint's convention.
+the shape, `Movie.blob` / `Movie.ext` / `Movie.content_type` for *reading*
+the embedded media bytes and MIME type, `Movie.start_time` /
+`Movie.start_condition` for fine-grained timing control, `Movie.delete()`
+that correctly removes the timing-tree entry and the three media-related
+slide-part rels, MIME-type registrations for common audio formats (so
+`add_movie` works on a slide whose layout already holds an MP3), and a
+movie-shape name that strips the file extension to match PowerPoint's
+convention.
 
 ```python
 import io
@@ -548,6 +550,11 @@ movie = slide.shapes.add_movie(
 movie.start_condition = "afterPrevious"
 movie.start_time = 2.5
 
+# read embedded media bytes back out
+ext = movie.ext                 # e.g. 'mp3'
+ctype = movie.content_type      # e.g. 'audio/mpeg'
+media_bytes = movie.blob        # raw bytes of the embedded clip
+
 # swap the media in place
 movie.replace_media(io.BytesIO(b"ID3\x03\x00\x00\x00\x00\x00\x00"),
                     mime_type="audio/mpeg")
@@ -560,6 +567,7 @@ prs.save("out.pptx")
 
 - `SlideShapes.add_movie(movie_file, left, top, width, height, poster_frame_image=None, mime_type=None, autoplay=False)` — Add a movie / audio. Supports MP3, WAV, AIFF, MIDI, MP4, MPEG, OGG, WMA, AVI, MOV, WMV, SWF, and generic `audio/*` / `video/*`. `autoplay=True` sets `start_condition="withPrevious"` on the new shape (issue #427). `[Added in 1.0.2.dev0]`.
 - `Movie.replace_media(new_path_or_file, mime_type=None)` — Swap the bytes while preserving position, poster, hyperlink, and timing entries. `[Added in 1.0.2.dev0]`
+- `Movie.blob` / `Movie.ext` / `Movie.content_type` — Read embedded media bytes, file extension, and MIME type. Return `None` when the shape has no associated media part. `[Added in 1.0.2.dev0]`
 - `Movie.start_condition` — `"onClick"` / `"withPrevious"` / `"afterPrevious"`. `[Added in 1.0.2.dev0]`
 - `Movie.start_time` — Float seconds, or `None` for `"indefinite"`. `[Added in 1.0.2.dev0]`
 - `Movie.delete()` — Remove the movie shape, the three media rels, and the `p:timing/.../p:video` entry. `[Added in 1.0.2.dev0]`

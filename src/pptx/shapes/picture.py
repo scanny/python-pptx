@@ -8,6 +8,7 @@ from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
 from pptx.media import Video
 from pptx.oxml.ns import qn
+from pptx.parts.media import MediaPart
 from pptx.shapes.base import BaseShape
 from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
@@ -133,6 +134,26 @@ class Movie(_BasePicture):
         super().delete()
 
     @property
+    def _media_part(self) -> MediaPart | None:
+        """The |MediaPart| holding this movie's embedded audio / video bytes.
+
+        Located via the ``p14:media`` ``@r:embed`` (``RT.MEDIA`` rel) when
+        present, falling back to the ``a:videoFile`` / ``a:audioFile``
+        ``@r:link`` (``RT.VIDEO`` / ``RT.AUDIO`` rel). In a well-formed
+        ``add_movie``-authored shape both rIds point at the same
+        |MediaPart|. Returns |None| when neither descriptor carries an
+        rId — e.g. a malformed pic with no media references at all.
+        """
+        pic = self._pic
+        rId = pic.media_embed_rId or pic.media_video_rId
+        if rId is None:
+            return None
+        part = self.part.related_part(rId)
+        if not isinstance(part, MediaPart):
+            return None
+        return part
+
+    @property
     def _media_rIds(self) -> list[str]:
         """The rIds referenced by this movie's media sub-elements.
 
@@ -188,6 +209,56 @@ class Movie(_BasePicture):
         The return value is unconditionally `PP_MEDIA_TYPE.MOVIE` in this case.
         """
         return PP_MEDIA_TYPE.MOVIE
+
+    @property
+    def blob(self) -> bytes | None:
+        """Bytes of the embedded media (video or audio) or |None| when absent.
+
+        This is the raw binary payload of the underlying :class:`.MediaPart`
+        referenced by the shape — for example the MP4 / MP3 / WAV bytes
+        written into ``ppt/media/mediaN.ext`` inside the package. Returns
+        |None| when no media part is associated with this shape (e.g. the
+        shape was loaded from a malformed file whose media relationships
+        are missing).
+
+        Mirrors :attr:`Picture.image` + :attr:`Image.blob` for the movie
+        case; useful for extracting embedded audio / video from an existing
+        presentation without going through the package internals.
+        """
+        media_part = self._media_part
+        if media_part is None:
+            return None
+        return media_part.blob
+
+    @property
+    def content_type(self) -> str | None:
+        """MIME type of the embedded media, e.g. ``"video/mp4"`` or |None|.
+
+        Read from the underlying :class:`.MediaPart`'s ``Content-Type``
+        (the value recorded in ``[Content_Types].xml`` for the media
+        partname). Returns |None| when no media part is associated with
+        this shape.
+        """
+        media_part = self._media_part
+        if media_part is None:
+            return None
+        return media_part.content_type
+
+    @property
+    def ext(self) -> str | None:
+        """File extension of the embedded media, e.g. ``"mp4"`` or |None|.
+
+        The returned extension does not include the leading period and is
+        read from the media part's partname (``ppt/media/mediaN.<ext>``) —
+        i.e. the extension PowerPoint actually wrote into the package, which
+        is chosen by :meth:`Video.ext` / :meth:`Audio.ext` at add-time based
+        on the supplied filename or MIME type. Returns |None| when no media
+        part is associated with this shape.
+        """
+        media_part = self._media_part
+        if media_part is None:
+            return None
+        return media_part.partname.ext
 
     @property
     def poster_frame(self):
