@@ -6,6 +6,16 @@ Release History
 Unreleased
 ++++++++++
 
+- docs: #960 add a "Check placeholder state before inserting a picture"
+  recipe to ``docs/user/placeholders-using.rst`` showing how to use
+  ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
+  ``OBJECT``) together with ``placeholder.shape_type`` (flips to
+  ``MSO_SHAPE_TYPE.PICTURE`` once populated) to guard ``insert_picture``
+  against mis-typed placeholders and against re-populating a slot that
+  already contains a picture. No API change — the accessors already exist;
+  the gap was documentation. The same pattern generalizes to
+  ``insert_table`` / ``insert_chart``.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
