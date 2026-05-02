@@ -214,6 +214,90 @@ class DescribeActionSetting(object):
         slide_part_.drop_rel.assert_not_called()
         assert action_setting._element.xml == xml("p:cNvPr/a:hlinkClick{r:id=rId1}")
 
+    def it_returns_None_screen_tip_when_no_hyperlink_is_present(self):
+        action_setting = ActionSetting(element("p:cNvPr"), None)
+        assert action_setting.screen_tip is None
+
+    def it_returns_None_screen_tip_when_hyperlink_has_no_tooltip(self):
+        action_setting = ActionSetting(element("p:cNvPr/a:hlinkClick{r:id=rId1}"), None)
+        assert action_setting.screen_tip is None
+
+    def it_reads_the_tooltip_attribute_when_present(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1,tooltip=Click me}")
+        action_setting = ActionSetting(cNvPr, None)
+        assert action_setting.screen_tip == "Click me"
+
+    def it_reads_the_tooltip_from_an_hlinkHover_element(self):
+        cNvPr = element("p:cNvPr/a:hlinkHover{r:id=rId1,tooltip=Hover}")
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+        assert action_setting.screen_tip == "Hover"
+
+    def it_creates_a_hlinkClick_when_setting_a_tip_with_no_hyperlink(self):
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.screen_tip = "Hello"
+
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{tooltip=Hello}"
+        )
+
+    def it_adds_the_tooltip_attribute_to_an_existing_hyperlink(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.screen_tip = "Visit site"
+
+        assert action_setting._element.xml == xml(
+            "p:cNvPr/a:hlinkClick{r:id=rId1,tooltip=Visit site}"
+        )
+
+    def it_replaces_an_existing_tooltip(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1,tooltip=old}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.screen_tip = "new"
+
+        assert action_setting._element.xml == xml(
+            "p:cNvPr/a:hlinkClick{r:id=rId1,tooltip=new}"
+        )
+
+    def it_sets_the_tooltip_on_hlinkHover_when_hover_is_True(self):
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        action_setting.screen_tip = "Hovered"
+
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:a=a,r:r=r}/a:hlinkHover{tooltip=Hovered}"
+        )
+
+    def it_removes_the_tooltip_when_assigned_None(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1,tooltip=Clickme}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.screen_tip = None
+
+        # the hyperlink element itself is preserved (may carry URL/action)
+        assert action_setting._element.xml == xml("p:cNvPr/a:hlinkClick{r:id=rId1}")
+
+    def it_removes_the_tooltip_when_assigned_empty_string(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1,tooltip=Clickme}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.screen_tip = ""
+
+        assert action_setting._element.xml == xml("p:cNvPr/a:hlinkClick{r:id=rId1}")
+
+    def it_silently_ignores_removing_tooltip_when_no_hyperlink_is_present(self):
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.screen_tip = None
+
+        # no hyperlink is created just to clear a non-existent tooltip
+        assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

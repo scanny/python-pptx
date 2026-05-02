@@ -6,6 +6,14 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #425 add read/write ``ActionSetting.screen_tip`` exposing the
+  tooltip (ScreenTip) text that PowerPoint displays on mouse-over of a
+  shape carrying a click or hover action. Backed by
+  ``a:hlinkClick/@tooltip`` (or ``a:hlinkHover/@tooltip`` on hover
+  actions); returns |None| when no hyperlink element is present, and
+  assigning |None| or the empty string clears the attribute without
+  removing the hyperlink element itself so an accompanying URL, sound,
+  or slide-jump target survives.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

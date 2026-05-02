@@ -87,6 +87,42 @@ class ActionSetting(Subshape):
         return Hyperlink(self._element, self._parent, self._hover)
 
     @property
+    def screen_tip(self) -> str | None:
+        """The ScreenTip (tooltip) shown on hover for this click/hover action.
+
+        This corresponds to the ``tooltip`` attribute of the
+        ``a:hlinkClick`` / ``a:hlinkHover`` element. Returns |None| when no
+        hyperlink element is present or when the element carries no
+        ``tooltip`` attribute.
+
+        Assigning a string sets the tooltip (creating the hyperlink element
+        if necessary). Assigning |None| or the empty string removes the
+        ``tooltip`` attribute, leaving the hyperlink element itself
+        untouched because it may still carry a URL, sound, or slide-jump
+        action.
+        """
+        hlink = self._sound_hlink()
+        if hlink is None:
+            return None
+        return hlink.tooltip
+
+    @screen_tip.setter
+    def screen_tip(self, value: str | None) -> None:
+        if not value:
+            hlink = self._sound_hlink()
+            if hlink is None:
+                return
+            hlink.tooltip = None
+            return
+        if self._hover:
+            hlink = cast(
+                "CT_NonVisualDrawingProps", self._element
+            ).get_or_add_hlinkHover()
+        else:
+            hlink = self._element.get_or_add_hlinkClick()
+        hlink.tooltip = value
+
+    @property
     def sound(self) -> Sound | None:
         """A |Sound| object for the WAV audio played on click/hover, or |None|.
 
@@ -167,10 +203,11 @@ class ActionSetting(Subshape):
         hlink.remove(snd)
 
     def _sound_hlink(self) -> CT_Hyperlink | None:
-        """`a:hlinkClick`/`a:hlinkHover` element for sound manipulation, or None.
+        """`a:hlinkClick`/`a:hlinkHover` element for read-side access, or None.
 
-        This parallels :attr:`_hlink` but skips the ``isinstance`` assert used there
-        so sound code can be tested (and type-checked) without materializing a full
+        This parallels :attr:`_hlink` but skips the ``isinstance`` assert used
+        there so callers (sound lookup, screen-tip lookup, etc.) can be tested
+        and type-checked without materializing a full
         `CT_NonVisualDrawingProps` instance.
         """
         if self._hover:
