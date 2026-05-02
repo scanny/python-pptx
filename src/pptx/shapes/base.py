@@ -330,10 +330,15 @@ class BaseShape(object):
         a new unique shape-id and a new unique name.
 
         Only simple shapes are supported in this implementation: auto-shapes, text-boxes, and
-        connectors. Duplicating a picture, chart, table, group-shape, or media shape raises
+        connectors. Duplicating a picture, chart, table, or media shape raises
         `NotImplementedError` because those shapes own one or more package-relationships (to an
         image, embedded chart or xlsx part, etc.) that must also be copied for the duplicate to be
         valid; that work is deferred to a follow-up.
+
+        Duplicating a group-shape is handled by :meth:`GroupShape.duplicate` (issue #1085),
+        which overrides this method to clone the whole subtree via
+        :class:`~pptx.opc.package.PartRelationshipCloner` and place the duplicate at the
+        original's slide-relative effective rectangle (see :attr:`effective_left`).
         """
         sp_tag = qn("p:sp")
         cxnSp_tag = qn("p:cxnSp")

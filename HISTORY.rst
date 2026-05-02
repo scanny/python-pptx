@@ -236,6 +236,18 @@ Unreleased
   delete counterpart: the target ``a:gridCol`` and the ``a:tc`` at the same
   column offset in every row are detached, and the containing graphic-frame
   width is recomputed. Mirrors the row-mutation API landed by #832 and #837.
+- fix: #1085 ``GroupShape.duplicate()`` places the clone at the source's
+  slide-relative rectangle even when the source is nested inside one or
+  more enclosing groups. Overrides ``BaseShape.duplicate()`` on
+  ``GroupShape`` to clone the whole ``p:grpSp`` subtree via F1
+  ``PartRelationshipCloner`` (so inner picture / media / OLE
+  relationships are re-materialised on the target slide part), reassigns
+  every ``cNvPr/@id`` in the clone to fresh unique ids, and sets the new
+  group's ``a:off``/``a:ext`` to the source's
+  ``effective_left``/``effective_top``/``effective_width``/``effective_height``
+  (which apply the #925 group-transform cascade). The clone's
+  ``a:chOff``/``a:chExt`` child coord system is preserved from the source
+  so inner shapes retain their local positions.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
