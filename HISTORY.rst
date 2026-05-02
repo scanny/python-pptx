@@ -12,6 +12,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #378 add ``Font.effective_size``, ``Font.effective_bold``,
+  ``Font.effective_italic``, and ``Font.effective_name`` — read-only
+  properties that walk the inheritance chain (run ``a:rPr`` → paragraph
+  ``a:defRPr`` → text body ``a:lstStyle`` → slide-master ``p:txStyles`` →
+  presentation ``p:defaultTextStyle``) and return the value PowerPoint
+  would actually render, rather than |None| when the run itself declares no
+  explicit value. Mirrors the existing ``Font.effective_color``.
+
+- feat: #194 ``Slides.add_slide(slide_layout, index=None)`` now accepts an
+  optional ``index`` keyword so callers can insert a new slide at a
+  specific zero-based position rather than only appending. Index semantics
+  match :meth:`Slides.move_slide` and :meth:`Slides.duplicate`: ``None``
+  appends (the historical behavior), a negative index counts from the end,
+  and an index beyond the end is clamped to the last position.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /

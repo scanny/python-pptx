@@ -154,6 +154,45 @@ Feature: Change appearance of font used to render text
       | 42pt              | 42.0 points   |
 
 
+  # -- effective font metrics (issue #378) -------------------------
+
+  Scenario Outline: Get Font.effective_size walking the inheritance chain
+    Given a font having size of <value>
+     Then font.effective_size is <reported-size>
+
+    Examples: resolved sizes
+      | value             | reported-size |
+      | no explicit value | 32.0 points   |
+      | 42pt              | 42.0 points   |
+
+
+  Scenario Outline: Get Font.effective_bold walking the inheritance chain
+    Given a font with bold set <bold-state>
+     Then font.effective_bold is <expected-value>
+
+    Examples: resolved bold states
+      | bold-state | expected-value |
+      | on         | True           |
+      | off        | False          |
+      | to inherit | None           |
+
+
+  Scenario Outline: Get Font.effective_italic walking the inheritance chain
+    Given a font with italic set <italic-state>
+     Then font.effective_italic is <expected-value>
+
+    Examples: resolved italic states
+      | italic-state | expected-value |
+      | on           | True           |
+      | off          | False          |
+      | to inherit   | None           |
+
+
+  Scenario: Get Font.effective_name walking the inheritance chain
+    Given a font having size of no explicit value
+     Then font.effective_name is the theme minor-latin placeholder
+
+
   Scenario: Set Font.name
     Given a font
      When I assign a typeface name to the font

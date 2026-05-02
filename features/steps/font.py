@@ -276,6 +276,46 @@ def then_font_size_is_value(context, value_str):
     assert value == expected_value, "expected %s, got %s" % (expected_value, value)
 
 
+# -- effective font metrics (issue #378) ----------------------------------
+
+
+@then("font.effective_size is {value_str}")
+def then_font_effective_size_is_value(context, value_str):
+    expected_value = {
+        "32.0 points": 32.0,
+        "42.0 points": 42.0,
+        "None": None,
+    }[value_str]
+    font = context.font
+    size = font.effective_size
+    value = size if size is None else size.pt
+    assert value == expected_value, "expected %s, got %s" % (expected_value, value)
+
+
+@then("font.effective_bold is {value}")
+def then_font_effective_bold_is_value(context, value):
+    expected_value = {"True": True, "False": False, "None": None}[value]
+    assert context.font.effective_bold is expected_value, (
+        "got %s" % context.font.effective_bold
+    )
+
+
+@then("font.effective_italic is {value}")
+def then_font_effective_italic_is_value(context, value):
+    expected_value = {"True": True, "False": False, "None": None}[value]
+    assert context.font.effective_italic is expected_value, (
+        "got %s" % context.font.effective_italic
+    )
+
+
+@then("font.effective_name is the theme minor-latin placeholder")
+def then_font_effective_name_is_theme_placeholder(context):
+    # -- PowerPoint uses `+mn-lt` to denote "inherit from theme's minor Latin font" --
+    assert context.font.effective_name == "+mn-lt", (
+        "got %r" % context.font.effective_name
+    )
+
+
 @then("font.underline is {value}")
 def then_font_underline_is_value(context, value):
     expected_value = {

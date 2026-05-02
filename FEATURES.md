@@ -873,7 +873,10 @@ preserves origin-run formatting), `TextFrame.font_scale` and
 `_Paragraph.replace_text()`, `_Paragraph.delete()`, `_Run.delete()`,
 a full `Font.effective_color` resolver that walks style inheritance (para
 `a:defRPr` → body `a:lstStyle` → master `p:txStyles` → theme
-`a:clrScheme`), `Font.strikethrough`, `Font.highlight_color`,
+`a:clrScheme`), sibling `Font.effective_size` / `.effective_bold` /
+`.effective_italic` / `.effective_name` resolvers that walk the same chain
+for size / bold / italic / Latin typeface, `Font.strikethrough`,
+`Font.highlight_color`,
 `Font.use_theme_hyperlink_color`,
 `Font.name_ea` / `name_cs` (East-Asian and complex-script slots), and a
 complete bullet-format API via `_Paragraph.bullet`.
@@ -903,6 +906,10 @@ font.language_id = MSO_LANGUAGE_ID.ENGLISH_US
 
 # effective color walking the inheritance chain (master / theme)
 print(font.effective_color)
+
+# resolved size / bold / italic / typeface via the same chain (issue #378)
+print(font.effective_size, font.effective_name,
+      font.effective_bold, font.effective_italic)
 
 # build a paragraph
 p = tf.paragraphs[0]
@@ -950,6 +957,7 @@ prs.save("out.pptx")
 - `Font.effect_format` — `EffectFormat` for glow / shadow / reflection. `[Added in 2026.05.0]`
 - `Font.shadow` — `ShadowFormat` for this run. `[Added in 2026.05.0]`
 - `Font.effective_color` — Resolved RGB, walking paragraph/placeholder/layout/master/theme inheritance. `[Added in 2026.05.0]`
+- `Font.effective_size` / `Font.effective_bold` / `Font.effective_italic` / `Font.effective_name` — Resolved size / bold / italic / Latin-typeface for this run, walking the same inheritance chain (run `a:rPr` → paragraph `a:defRPr` → body `a:lstStyle` → master `p:txStyles` → presentation `p:defaultTextStyle`). Returns `None` when no ancestor in the chain declares the property. `[Added in 2026.05.0]`
 - `Font.language_id` — `MSO_LANGUAGE_ID` enum.
 - `Font.use_theme_hyperlink_color` — When the run wraps a hyperlink, toggle using the theme's hyperlink color. `[Added in 2026.05.0]`
 - `ColorFormat.rgb` / `.theme_color` / `.brightness` / `.type` / `.alpha` / `.to_rgb()` — Color type resolution, tint/shade, plus `alpha` and `to_rgb()`. `[Added in 2026.05.0]` for `alpha` and `to_rgb`.
