@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
+
 from pptx.enum.chart import (
     XL_ERROR_BAR_DIRECTION,
     XL_ERROR_BAR_INCLUDE,
@@ -10,7 +12,7 @@ from pptx.enum.chart import (
 )
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.datalabel import CT_DLbls
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.simpletypes import XsdUnsignedInt
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -73,6 +75,41 @@ class CT_DPt(BaseOxmlElement):
         dPt = OxmlElement("c:dPt")
         dPt.append(OxmlElement("c:idx"))
         return dPt
+
+    def _new_spPr(self):
+        """Create a new `c:spPr` element pre-populated with inherited overrides.
+
+        When a data-point-level `c:spPr` is introduced, PowerPoint treats it as a
+        complete replacement for series-level shape properties -- any
+        `a:ln`, `a:effectLst`, `a:effectDag`, `a:scene3d`, or `a:sp3d` present
+        on the series `c:spPr` is no longer inherited at render time. To preserve
+        round-trip fidelity (see issue #450, where a series-level shadow is lost
+        when a single data point's fill color is overridden), pre-seed the new
+        data-point `c:spPr` with deep copies of these non-fill children when the
+        parent `c:ser` has its own `c:spPr`. The caller then adds a fill on top.
+        """
+        spPr = OxmlElement("c:spPr")
+        ser = self.getparent()
+        if ser is None:
+            return spPr
+        ser_spPr = ser.find(qn("c:spPr"))
+        if ser_spPr is None:
+            return spPr
+        # -- copy non-fill children in schema order so that fill added later
+        # -- inserts ahead of them (ln/effectLst/... are successors of the fill
+        # -- choice group in CT_ShapeProperties). --
+        _inherited_tags = (
+            "a:ln",
+            "a:effectLst",
+            "a:effectDag",
+            "a:scene3d",
+            "a:sp3d",
+        )
+        for tag in _inherited_tags:
+            child = ser_spPr.find(qn(tag))
+            if child is not None:
+                spPr.append(deepcopy(child))
+        return spPr
 
 
 class CT_Lvl(BaseOxmlElement):

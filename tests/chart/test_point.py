@@ -170,6 +170,67 @@ class DescribePoint(object):
         point.invert_if_negative = new_value
         assert point._element.xml == xml(expected_cxml)
 
+    def it_preserves_series_shadow_when_coloring_a_point_issue_450(self):
+        """Regression for #450.
+
+        When a series defines its own `c:spPr` with an outer shadow (or any
+        other non-fill visual override such as `a:ln`), assigning a solid
+        fill color to a single data point must NOT drop those inherited
+        visual properties. PowerPoint treats a point-level `c:spPr` as a
+        complete override of the series-level shape properties -- anything
+        not present on the point's `c:spPr` is rendered without that effect.
+        The fix seeds a freshly-created point `c:spPr` with deep copies of
+        the series `c:spPr`'s non-fill children.
+        """
+        from pptx.dml.color import RGBColor
+
+        ser = element(
+            "c:ser/c:spPr/("
+            "a:solidFill/a:srgbClr{val=2288CC},"
+            "a:ln{w=19050}/a:solidFill/a:srgbClr{val=000000},"
+            "a:effectLst/a:outerShdw{blurRad=50800,dist=38100,dir=2700000}"
+            "/a:srgbClr{val=000000}/a:alpha{val=40000})"
+        )
+        point = Point(ser, 1)
+
+        point.format.fill.solid()
+        point.format.fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+
+        dPt = ser.xpath('c:dPt[c:idx/@val="1"]')[0]
+        # -- point fill override present --
+        assert dPt.xpath("c:spPr/a:solidFill/a:srgbClr/@val") == ["FF0000"]
+        # -- inherited line preserved on the point --
+        assert dPt.xpath("c:spPr/a:ln/a:solidFill/a:srgbClr/@val") == ["000000"]
+        # -- inherited outer shadow preserved on the point --
+        assert dPt.xpath("c:spPr/a:effectLst/a:outerShdw/@blurRad") == ["50800"]
+        assert dPt.xpath("c:spPr/a:effectLst/a:outerShdw/a:srgbClr/@val") == ["000000"]
+        # -- series spPr is not mutated (deep copy) --
+        ser_spPr = ser.xpath("c:spPr")[0]
+        assert ser_spPr.xpath("a:solidFill/a:srgbClr/@val") == ["2288CC"]
+        assert ser_spPr.xpath("a:effectLst/a:outerShdw/@blurRad") == ["50800"]
+
+    def it_creates_empty_point_spPr_when_series_has_no_spPr_issue_450(self):
+        """Baseline behavior when the series has no own `c:spPr`.
+
+        With no series-level overrides to inherit, the newly-created point
+        `c:spPr` must remain empty before the fill is added -- i.e. the
+        shadow-preservation logic must not fabricate children out of thin
+        air.
+        """
+        from pptx.dml.color import RGBColor
+
+        ser = element("c:ser")
+        point = Point(ser, 0)
+
+        point.format.fill.solid()
+        point.format.fill.fore_color.rgb = RGBColor(0xAA, 0xBB, 0xCC)
+
+        dPt = ser.xpath('c:dPt[c:idx/@val="0"]')[0]
+        assert dPt.xpath("c:spPr/a:solidFill/a:srgbClr/@val") == ["AABBCC"]
+        # -- no spurious inherited children --
+        assert dPt.xpath("c:spPr/a:ln") == []
+        assert dPt.xpath("c:spPr/a:effectLst") == []
+
     def it_can_preserve_a_solid_fill_color_on_negative_bars_issue_504(self):
         """Regression for #504.
 

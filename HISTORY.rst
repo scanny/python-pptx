@@ -12,6 +12,20 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #450 preserve series-level shadow (and other non-fill visual
+  overrides) when assigning a color to a single ``CategoryPoint`` on a
+  chart series. PowerPoint treats a per-point ``c:spPr`` as a complete
+  replacement for the series-level shape properties, so any
+  ``a:effectLst`` / ``a:ln`` / ``a:scene3d`` / ``a:sp3d`` authored on
+  the series was silently dropped from that point's rendering the moment
+  the user overrode its fill. ``CT_DPt._new_spPr`` now seeds a
+  newly-created point ``c:spPr`` with deep copies of those non-fill
+  children from the series ``c:spPr``, so overriding a point's color
+  keeps the series shadow (and outline) on that point. Adds unit
+  coverage under :class:`DescribePoint` and an end-to-end regression
+  suite ``tests/test_issue_450_point_shadow_preservation.py`` that
+  round-trips an authored shadow through save-and-reopen.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
