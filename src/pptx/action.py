@@ -271,7 +271,12 @@ class ActionSetting(Subshape):
         self._clear_click_action()
         if slide is None:
             return
-        hlink = self._element.get_or_add_hlinkClick()
+        if self._hover:
+            hlink = cast(
+                "CT_NonVisualDrawingProps", self._element
+            ).get_or_add_hlinkHover()
+        else:
+            hlink = self._element.get_or_add_hlinkClick()
         hlink.action = "ppaction://hlinksldjump"
         hlink.rId = self.part.relate_to(slide.part, RT.SLIDE)
 
@@ -297,8 +302,7 @@ class ActionSetting(Subshape):
         click action. Returns |None| if the element is not present.
         """
         if self._hover:
-            assert isinstance(self._element, CT_NonVisualDrawingProps)
-            return self._element.hlinkHover
+            return cast("CT_NonVisualDrawingProps", self._element).hlinkHover
         return self._element.hlinkClick
 
     @lazyproperty

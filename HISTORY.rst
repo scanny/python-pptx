@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #236 :attr:`BaseShape.hover_action` — an :class:`ActionSetting` proxy
+  parallel to :attr:`BaseShape.click_action` but bound to the shape's
+  ``a:hlinkMouseOver`` element instead of ``a:hlinkClick``. A hover
+  action fires as the slideshow viewer's mouse pointer passes over the
+  shape without a click. The returned |ActionSetting| exposes the same
+  API surface as the click variant — ``action``, ``hyperlink.address``,
+  ``target_slide``, ``screen_tip``, and
+  ``set_sound()`` / ``remove_sound()`` / ``sound`` — so hover hyperlinks,
+  slide-jumps, tooltips, and sounds can all be authored through the
+  existing proxy.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

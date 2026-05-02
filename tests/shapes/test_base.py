@@ -58,6 +58,25 @@ class DescribeBaseShape(object):
         ActionSetting_.assert_called_once_with(cNvPr, shape)
         assert click_action is click_action_
 
+    def it_provides_access_to_its_hover_action(self, hover_action_fixture):
+        shape, ActionSetting_, cNvPr, hover_action_ = hover_action_fixture
+        hover_action = shape.hover_action
+        ActionSetting_.assert_called_once_with(cNvPr, shape, hover=True)
+        assert hover_action is hover_action_
+
+    def it_returns_the_same_hover_action_on_repeated_access(
+        self, ActionSetting_, action_setting_
+    ):
+        sp = element("p:sp/p:nvSpPr/p:cNvPr")
+        shape = BaseShape(sp, None)
+
+        first = shape.hover_action
+        second = shape.hover_action
+
+        # lazyproperty: one construction, two reads
+        assert ActionSetting_.call_count == 1
+        assert first is second is action_setting_
+
     def it_knows_its_shape_id(self, id_fixture):
         shape, expected_value = id_fixture
         assert shape.shape_id == expected_value
@@ -1133,6 +1152,22 @@ class DescribeBaseShape(object):
         ]
     )
     def click_action_fixture(self, request, ActionSetting_, action_setting_):
+        sp_cxml = request.param
+        sp = element(sp_cxml)
+        cNvPr = sp.xpath("//p:cNvPr")[0]
+        shape = BaseShape(sp, None)
+        return shape, ActionSetting_, cNvPr, action_setting_
+
+    @pytest.fixture(
+        params=[
+            "p:sp/p:nvSpPr/p:cNvPr",
+            "p:grpSp/p:nvGrpSpPr/p:cNvPr",
+            "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr",
+            "p:cxnSp/p:nvCxnSpPr/p:cNvPr",
+            "p:pic/p:nvPicPr/p:cNvPr",
+        ]
+    )
+    def hover_action_fixture(self, request, ActionSetting_, action_setting_):
         sp_cxml = request.param
         sp = element(sp_cxml)
         cNvPr = sp.xpath("//p:cNvPr")[0]

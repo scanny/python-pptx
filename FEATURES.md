@@ -382,6 +382,7 @@ prs.save("out.pptx")
 - `BaseShape.has_math_equation` / `.math_equation_xml` — OMML equation read (see [Math equations](#math-equations)). `[Added in 1.0.2.dev0]`
 - `BaseShape.shadow` — `ShadowFormat` with full read/write `.blur_radius` / `.distance` / `.direction` / `.color` (see [Fills, colors, and effects](#fills-colors-and-effects)).
 - `BaseShape.click_action` — `ActionSetting` (hyperlink / click action).
+- `BaseShape.hover_action` — `ActionSetting` bound to `a:hlinkMouseOver`; parallel to `click_action` for mouse-over behaviors. `[Added in 1.0.2.dev0]`
 - `BaseShape.placeholder_format` — `_PlaceholderFormat` or `None`.
 - `BaseShape.animation` — Read-only `AnimationEffect` proxy for this shape's main-sequence animation. `[Added in 1.0.2.dev0]`
 - `BaseShape.set_animation(effect_type, trigger="onClick", delay=0)` — Author an entrance/exit/emphasis preset (see [Animations and transitions](#animations-and-transitions)). `[Added in 1.0.2.dev0]`
@@ -1201,8 +1202,10 @@ Shapes and runs support click-actions and hyperlinks. `ActionSetting`
 covers both a plain hyperlink and the PowerPoint-specific "click actions"
 (jump to slide, run program, play sound, etc.). The fork adds
 `ActionSetting.screen_tip` (hover tooltip), `set_sound()` /
-`remove_sound()` / `sound`, jump-to-named-slide targets for runs, and
-`Font.use_theme_hyperlink_color` to override the hyperlink color.
+`remove_sound()` / `sound`, jump-to-named-slide targets for runs,
+`BaseShape.hover_action` (the mouse-over counterpart of `click_action`,
+backed by `a:hlinkMouseOver`), and `Font.use_theme_hyperlink_color` to
+override the hyperlink color.
 
 ```python
 from pptx import Presentation
@@ -1230,6 +1233,14 @@ rect2 = slide1.shapes.add_shape(
 )
 rect2.click_action.target_slide = slide2
 
+# mouse-over action: hyperlink that fires as the pointer passes over the shape
+rect3 = slide1.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE,
+    Inches(1), Inches(3), Inches(2), Inches(1),
+)
+rect3.hover_action.hyperlink.address = "https://example.net/"
+rect3.hover_action.screen_tip = "Hover to open"
+
 # run-level hyperlink via a run's font / hyperlink
 tb = slide1.shapes.add_textbox(Inches(1), Inches(3), Inches(4), Inches(0.5))
 p = tb.text_frame.paragraphs[0]
@@ -1242,6 +1253,7 @@ prs.save("out.pptx")
 ```
 
 - `BaseShape.click_action` — `ActionSetting`.
+- `BaseShape.hover_action` — `ActionSetting` bound to `a:hlinkMouseOver`; parallel surface (`.action`, `.hyperlink`, `.target_slide`, `.screen_tip`, `.set_sound()` / `.remove_sound()` / `.sound`) for mouse-hover behaviors. `[Added in 1.0.2.dev0]`
 - `ActionSetting.hyperlink` — `Hyperlink` proxy with `.address` (read/write URL).
 - `ActionSetting.action` — `PP_ACTION` (HYPERLINK, FIRST_SLIDE, NEXT_SLIDE, PREVIOUS_SLIDE, LAST_SLIDE, NAMED_SLIDE, END_SHOW, RUN_PROGRAM, ...).
 - `ActionSetting.target_slide` — Read/write `Slide` (auto-sets `action` to `NAMED_SLIDE`).

@@ -33,6 +33,32 @@ class DescribeActionSetting(object):
         Hyperlink_.assert_called_once_with(xPr, parent, False)
         assert hyperlink is hyperlink_
 
+    def it_threads_the_hover_flag_through_to_its_hyperlink(
+        self, Hyperlink_, hyperlink_
+    ):
+        xPr, parent = "xPr", "parent"
+        action_setting = ActionSetting(xPr, parent, hover=True)
+
+        hyperlink = action_setting.hyperlink
+
+        Hyperlink_.assert_called_once_with(xPr, parent, True)
+        assert hyperlink is hyperlink_
+
+    def it_reads_the_action_type_from_the_hover_hyperlink(self):
+        cNvPr = element("p:cNvPr/a:hlinkHover{r:id=rId6}")
+        cNvPr.hlinkHover.action = "ppaction://hlinkshowjump?jump=nextslide"
+
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        assert action_setting.action is PP_ACTION.NEXT_SLIDE
+
+    def it_returns_NONE_for_hover_action_when_no_hlinkHover_is_present(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1}")
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        # -- a plain hlinkClick does not count as a hover action --
+        assert action_setting.action is PP_ACTION.NONE
+
     def it_can_find_its_slide_jump_target(self, target_get_fixture):
         action_setting, expected_value = target_get_fixture
         target_slide = action_setting.target_slide
@@ -62,6 +88,26 @@ class DescribeActionSetting(object):
 
         _clear_click_action_.assert_called_once_with(action_setting)
         assert action_setting._element.xml == xml("p:cNvPr{a:b=c,r:s=t}")
+
+    def it_sets_target_slide_on_hlinkHover_when_hover_is_True(
+        self, request, _clear_click_action_, slide_, part_prop_, part_
+    ):
+        part_prop_.return_value = part_
+        part_.relate_to.return_value = "rId42"
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_.part = slide_part_
+        action_setting = ActionSetting(
+            element("p:cNvPr{a:b=c,r:s=t}"), None, hover=True
+        )
+
+        action_setting.target_slide = slide_
+
+        _clear_click_action_.assert_called_once_with(action_setting)
+        part_.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:b=c,r:s=t}/a:hlinkHover{action=ppaction://hlinksldjump,"
+            "r:id=rId42}",
+        )
 
     def it_raises_on_no_next_prev_slide(self, target_raise_fixture):
         action_setting = target_raise_fixture
@@ -93,6 +139,16 @@ class DescribeActionSetting(object):
         action_setting._clear_click_action()
 
         assert part_.drop_rel.call_args_list == [call("rId3"), call("rId4")]
+        assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
+
+    def it_clears_the_hlinkHover_element_when_hover_is_True(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}/a:hlinkHover{r:id=rId5}")
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        action_setting._clear_click_action()
+
+        assert part_.drop_rel.call_args_list == [call("rId5")]
         assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
 
     def it_returns_None_sound_when_no_hyperlink_is_present(self):
