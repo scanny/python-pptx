@@ -177,3 +177,30 @@ this will not change color when the theme is changed::
 A run can also be made into a hyperlink by providing a target URL::
 
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
+
+
+Attaching a click-action sound
+------------------------------
+
+A shape can be configured to play a WAV-format sound when the user clicks
+it (or hovers over it) during a slideshow. The sound is an ``a:snd``
+child of the shape's ``a:hlinkClick`` (or ``a:hlinkHover``) element and
+is embedded in the package as an audio part.
+
+Use :meth:`~pptx.action.ActionSetting.set_sound` to attach one::
+
+    shape.click_action.set_sound('applause.wav')
+
+The method accepts a filesystem path, a binary file-like object, or a
+pre-built :class:`~pptx.media.Audio` instance. A :class:`~pptx.action.Sound`
+object is returned and is also accessible via
+:attr:`ActionSetting.sound <pptx.action.ActionSetting.sound>`::
+
+    sound = shape.click_action.sound
+    sound.name            # 'applause.wav'
+    sound.blob            # raw WAV bytestream
+
+Remove an attached sound with
+:meth:`~pptx.action.ActionSetting.remove_sound`::
+
+    shape.click_action.remove_sound()

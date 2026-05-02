@@ -6,7 +6,7 @@ import io
 
 import pytest
 
-from pptx.media import Video
+from pptx.media import Audio, Video
 
 from .unitutil.file import absjoin, test_file_dir
 from .unitutil.mock import initializer_mock, instance_mock, method_mock, property_mock
@@ -132,3 +132,47 @@ class DescribeVideo(object):
     @pytest.fixture
     def Video_init_(self, request):
         return initializer_mock(request, Video, autospec=True)
+
+
+class DescribeAudio(object):
+    """Unit-test suite for `pptx.media.Audio` objects."""
+
+    def it_can_construct_from_a_path(self, tmp_path):
+        wav_path = tmp_path / "applause.wav"
+        wav_path.write_bytes(b"RIFFWAV")
+
+        audio = Audio.from_path_or_file_like(str(wav_path), "audio/wav")
+
+        assert audio.blob == b"RIFFWAV"
+        assert audio.filename == "applause.wav"
+        assert audio.ext == "wav"
+        assert audio.content_type == "audio/wav"
+
+    def it_can_construct_from_a_file_like_stream(self):
+        audio = Audio.from_path_or_file_like(io.BytesIO(b"RIFFWAV"))
+
+        assert audio.blob == b"RIFFWAV"
+        # -- no filename available; falls back to sound.wav
+        assert audio.filename == "sound.wav"
+        assert audio.content_type == "audio/wav"
+
+    def it_can_construct_from_a_blob(self):
+        audio = Audio.from_blob(b"abc", "audio/mpeg", "clip.mp3")
+
+        assert audio.blob == b"abc"
+        assert audio.filename == "clip.mp3"
+        assert audio.ext == "mp3"
+        assert audio.content_type == "audio/mpeg"
+
+    def it_defaults_content_type_to_audio_wav(self):
+        assert Audio(b"x", None, None).content_type == "audio/wav"
+
+    def it_uses_extension_from_filename_when_present(self):
+        assert Audio(b"x", None, "zap.mp3").ext == "mp3"
+
+    def it_falls_back_to_wav_when_filename_has_no_extension(self):
+        assert Audio(b"x", None, "zap").ext == "wav"
+
+    def it_knows_its_sha1_hash(self):
+        audio = Audio(b"blobish", None, None)
+        assert audio.sha1 == "de731a6eed12f427642325193b8e57af3c624d62"

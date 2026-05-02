@@ -19,7 +19,7 @@ from pptx.util import lazyproperty
 if TYPE_CHECKING:
     from pptx.chart.data import ChartData
     from pptx.enum.chart import XL_CHART_TYPE
-    from pptx.media import Video
+    from pptx.media import Audio, Video
     from pptx.parts.image import Image, ImagePart
 
 
@@ -187,6 +187,17 @@ class SlidePart(BaseSlidePart):
             ),
             relationship_type,
         )
+
+    def get_or_add_sound_media_part(self, audio: Audio) -> str:
+        """Return rId of AUDIO relationship to a media part containing `audio`.
+
+        A new |MediaPart| object is created if the package does not already contain a
+        media part with this audio's binary content (for example when the same sound
+        appears on more than one click-action). A single AUDIO relationship to the part
+        is created from this slide part and its rId is returned.
+        """
+        media_part = self._package.get_or_add_media_part(audio)
+        return self.relate_to(media_part, RT.AUDIO)
 
     def get_or_add_video_media_part(self, video: Video) -> tuple[str, str]:
         """Return rIds for media and video relationships to media part.

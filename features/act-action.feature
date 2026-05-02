@@ -86,3 +86,17 @@ Feature: Get and set click action properties
       | NONE        | slide | NAMED_SLIDE | slide |
       | NAMED_SLIDE | slide | NAMED_SLIDE | slide |
       | NAMED_SLIDE | None  | NONE        | None  |
+
+
+  Scenario: Attach a click-action sound
+    Given a shape having click action none
+     When I call click_action.set_sound with a WAV file
+     Then click_action.sound is a Sound object
+      And click_action.sound.name is the WAV filename
+      And click_action.sound.blob is the WAV bytes
+
+  Scenario: Remove a click-action sound
+    Given a shape having click action none
+      And a WAV sound attached as click_action.sound
+     When I call click_action.remove_sound
+     Then click_action.sound is None

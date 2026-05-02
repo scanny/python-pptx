@@ -185,11 +185,13 @@ class _MediaParts(object):
         # A media part can appear in more than one relationship (and commonly
         # does in the case of video). Use media_parts to keep track of those
         # that have been "yielded"; they can be skipped if they occur again.
+        # AUDIO relationships are included so click-action sounds (a:snd) can be
+        # de-duplicated alongside video media.
         media_parts = []
         for rel in self._package.iter_rels():
             if rel.is_external:
                 continue
-            if rel.reltype not in (RT.MEDIA, RT.VIDEO):
+            if rel.reltype not in (RT.AUDIO, RT.MEDIA, RT.VIDEO):
                 continue
             media_part = rel.target_part
             if media_part in media_parts:
@@ -214,9 +216,14 @@ class _MediaParts(object):
 
         All media parts belonging to this package are considered. A media
         part is identified by the SHA1 hash digest of its bytestream
-        ("file").
+        ("file"). Parts that were loaded as generic |Part| instances (for
+        example an audio clip whose content type was not mapped to
+        |MediaPart|) are skipped — they can never match and don't expose a
+        ``sha1`` attribute.
         """
         for media_part in self:
+            if not isinstance(media_part, MediaPart):
+                continue
             if media_part.sha1 == sha1:
                 return media_part
         return None

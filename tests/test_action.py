@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import io
+
 import pytest
 
-from pptx.action import ActionSetting, Hyperlink
+from pptx.action import ActionSetting, Hyperlink, Sound
 from pptx.enum.action import PP_ACTION
+from pptx.media import Audio
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.parts.slide import SlidePart
@@ -78,6 +81,138 @@ class DescribeActionSetting(object):
 
         assert action_setting.part.drop_rel.call_args_list == calls
         assert action_setting._element.xml == expected_xml
+
+    def it_also_drops_an_audio_rel_when_clearing_the_click_action(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        cNvPr = element(
+            "p:cNvPr{a:a=a,r:r=r}/a:hlinkClick{r:id=rId3}"
+            "/a:snd{r:embed=rId4,name=applause.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting._clear_click_action()
+
+        assert part_.drop_rel.call_args_list == [call("rId3"), call("rId4")]
+        assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
+
+    def it_returns_None_sound_when_no_hyperlink_is_present(self):
+        action_setting = ActionSetting(element("p:cNvPr"), None)
+        assert action_setting.sound is None
+
+    def it_returns_None_sound_when_hyperlink_has_no_snd(self):
+        action_setting = ActionSetting(element("p:cNvPr/a:hlinkClick{r:id=rId1}"), None)
+        assert action_setting.sound is None
+
+    def it_provides_a_Sound_object_when_snd_is_present(self, part_prop_, slide_part_):
+        part_prop_.return_value = slide_part_
+        cNvPr = element(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId2,name=applause.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None)
+
+        sound = action_setting.sound
+
+        assert isinstance(sound, Sound)
+        assert sound.rId == "rId2"
+        assert sound.name == "applause.wav"
+
+    def it_can_set_a_sound_from_a_file_like(self, part_prop_, slide_part_):
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_sound_media_part.return_value = "rId9"
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        sound = action_setting.set_sound(io.BytesIO(b"RIFFWAV"), name="boing.wav")
+
+        assert slide_part_.get_or_add_sound_media_part.call_count == 1
+        assert sound.rId == "rId9"
+        assert sound.name == "boing.wav"
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:a=a,r:r=r}/a:hlinkClick/a:snd{r:embed=rId9,name=boing.wav}"
+        )
+
+    def it_can_set_a_sound_on_a_hover_action(self, part_prop_, slide_part_):
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_sound_media_part.return_value = "rId9"
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        action_setting.set_sound(io.BytesIO(b"RIFFWAV"), name="boing.wav")
+
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:a=a,r:r=r}/a:hlinkHover/a:snd{r:embed=rId9,name=boing.wav}"
+        )
+
+    def it_replaces_an_existing_sound_when_setting_a_new_one(
+        self, part_prop_, slide_part_
+    ):
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_sound_media_part.return_value = "rId99"
+        cNvPr = element(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId5,name=old.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None)
+
+        sound = action_setting.set_sound(io.BytesIO(b"RIFFWAV"), name="new.wav")
+
+        # -- the original audio rel is dropped before the new one is attached
+        assert slide_part_.drop_rel.call_args_list == [call("rId5")]
+        assert sound.rId == "rId99"
+        assert action_setting._element.xml == xml(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId99,name=new.wav}"
+        )
+
+    def it_defaults_sound_name_to_the_audio_filename(
+        self, part_prop_, slide_part_, tmp_path
+    ):
+        wav_path = tmp_path / "bell.wav"
+        wav_path.write_bytes(b"RIFFWAV")
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_sound_media_part.return_value = "rId7"
+        cNvPr = element("p:cNvPr")
+        action_setting = ActionSetting(cNvPr, None)
+
+        sound = action_setting.set_sound(str(wav_path))
+
+        assert sound.name == "bell.wav"
+
+    def it_accepts_an_Audio_instance_directly_without_rereading(
+        self, part_prop_, slide_part_
+    ):
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_sound_media_part.return_value = "rId8"
+        audio = Audio.from_blob(b"RIFFWAV", None, "zap.wav")
+        action_setting = ActionSetting(element("p:cNvPr"), None)
+
+        action_setting.set_sound(audio)
+
+        # -- the Audio instance is passed through untouched to the media-part helper
+        (args, _) = slide_part_.get_or_add_sound_media_part.call_args
+        assert args[0] is audio
+
+    def it_removes_a_sound_and_drops_the_audio_rel(self, part_prop_, slide_part_):
+        part_prop_.return_value = slide_part_
+        cNvPr = element(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId2,name=applause.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.remove_sound()
+
+        assert slide_part_.drop_rel.call_args_list == [call("rId2")]
+        assert action_setting._element.xml == xml("p:cNvPr/a:hlinkClick{r:id=rId1}")
+
+    def it_silently_ignores_remove_sound_when_none_is_present(
+        self, part_prop_, slide_part_
+    ):
+        part_prop_.return_value = slide_part_
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId1}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.remove_sound()
+
+        slide_part_.drop_rel.assert_not_called()
+        assert action_setting._element.xml == xml("p:cNvPr/a:hlinkClick{r:id=rId1}")
 
     # fixtures -------------------------------------------------------
 
@@ -246,6 +381,10 @@ class DescribeActionSetting(object):
         return instance_mock(request, Slide)
 
     @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
+
+    @pytest.fixture
     def _slide_index_prop_(self, request):
         return property_mock(request, ActionSetting, "_slide_index")
 
@@ -371,3 +510,34 @@ class DescribeHyperlink(object):
     @pytest.fixture
     def part_prop_(self, request):
         return property_mock(request, Hyperlink, "part")
+
+
+class DescribeSound(object):
+    """Unit-test suite for `pptx.action.Sound` objects."""
+
+    def it_exposes_name_and_rId_of_the_snd_element(self, request):
+        snd = element("a:snd{r:embed=rId2,name=boo.wav}")
+        part_ = instance_mock(request, SlidePart)
+        sound = Sound(snd, part_)
+
+        assert sound.rId == "rId2"
+        assert sound.name == "boo.wav"
+
+    def it_defaults_name_to_empty_string_when_absent(self, request):
+        snd = element("a:snd{r:embed=rId2}")
+        part_ = instance_mock(request, SlidePart)
+        sound = Sound(snd, part_)
+
+        assert sound.name == ""
+
+    def it_returns_the_audio_blob_from_the_related_media_part(self, request):
+        snd = element("a:snd{r:embed=rId2,name=a.wav}")
+        media_part_ = instance_mock(request, SlidePart)
+        media_part_.blob = b"RIFFWAVE..."
+        part_ = instance_mock(request, SlidePart)
+        part_.related_part.return_value = media_part_
+
+        sound = Sound(snd, part_)
+
+        assert sound.blob == b"RIFFWAVE..."
+        part_.related_part.assert_called_once_with("rId2")

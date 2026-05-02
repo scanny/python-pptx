@@ -6,8 +6,10 @@ from behave import given, then, when
 from helpers import test_file
 
 from pptx import Presentation
-from pptx.action import Hyperlink
+from pptx.action import Hyperlink, Sound
 from pptx.enum.action import PP_ACTION
+
+WAV_FILENAME = "act-click-sound.wav"
 
 # given ===================================================
 
@@ -23,6 +25,11 @@ def given_an_ActionSetting_object_as_click_action(context, action):
 @given("another slide in the deck as slide")
 def given_another_slide_in_the_deck_as_slide(context):
     context.slide = context.slides[1]
+
+
+@given("a WAV sound attached as click_action.sound")
+def given_a_WAV_sound_attached_as_click_action_sound(context):
+    context.click_action.set_sound(test_file(WAV_FILENAME))
 
 
 @given("a shape having click action {action}")
@@ -65,6 +72,16 @@ def when_I_assign_value_to_click_action_target_slide(context, value):
     context.click_action.target_slide = rhs
 
 
+@when("I call click_action.set_sound with a WAV file")
+def when_I_call_click_action_set_sound_with_a_WAV_file(context):
+    context.click_action.set_sound(test_file(WAV_FILENAME))
+
+
+@when("I call click_action.remove_sound")
+def when_I_call_click_action_remove_sound(context):
+    context.click_action.remove_sound()
+
+
 # then ====================================================
 
 
@@ -89,6 +106,28 @@ def then_click_action_hyperlink_address_is_value(context, value):
         expected_value,
         hyperlink.address,
     )
+
+
+@then("click_action.sound is a Sound object")
+def then_click_action_sound_is_a_Sound_object(context):
+    assert isinstance(context.click_action.sound, Sound)
+
+
+@then("click_action.sound is None")
+def then_click_action_sound_is_None(context):
+    assert context.click_action.sound is None
+
+
+@then("click_action.sound.name is the WAV filename")
+def then_click_action_sound_name_is_the_WAV_filename(context):
+    assert context.click_action.sound.name == WAV_FILENAME
+
+
+@then("click_action.sound.blob is the WAV bytes")
+def then_click_action_sound_blob_is_the_WAV_bytes(context):
+    with open(test_file(WAV_FILENAME), "rb") as f:
+        expected = f.read()
+    assert context.click_action.sound.blob == expected
 
 
 @then("click_action.target_slide is {value}")

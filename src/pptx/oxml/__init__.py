@@ -46,10 +46,12 @@ def register_element_cls(nsptagname: str, cls: Type[BaseOxmlElement]):
     namespace[nsptag.local_part] = cls
 
 
-from pptx.oxml.action import CT_Hyperlink  # noqa: E402
+from pptx.oxml.action import CT_EmbeddedWAVAudioFile, CT_Hyperlink  # noqa: E402
 
 register_element_cls("a:hlinkClick", CT_Hyperlink)
 register_element_cls("a:hlinkHover", CT_Hyperlink)
+register_element_cls("a:hlinkMouseOver", CT_Hyperlink)
+register_element_cls("a:snd", CT_EmbeddedWAVAudioFile)
 
 
 from pptx.oxml.chart.axis import (  # noqa: E402

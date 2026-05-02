@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- feat: #734 add ``<a:snd>`` (sound) support to click-action
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

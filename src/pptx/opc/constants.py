@@ -144,6 +144,7 @@ class CONTENT_TYPE:
     SWF = "application/x-shockwave-flash"
     TIFF = "image/tiff"
     VIDEO = "video/unknown"
+    WAV = "audio/wav"
     WML_COMMENTS = "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"
     WML_DOCUMENT = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     WML_DOCUMENT_GLOSSARY = (

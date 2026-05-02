@@ -11,6 +11,88 @@ from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.util import lazyproperty
 
 
+class Audio(object):
+    """Immutable value object representing an embedded audio clip such as a WAV file.
+
+    This is used by click-action sound support to carry the audio payload from the user
+    into the package as a media part.
+    """
+
+    def __init__(self, blob: bytes, mime_type: str | None, filename: str | None):
+        super(Audio, self).__init__()
+        self._blob = blob
+        self._mime_type = mime_type
+        self._filename = filename
+
+    @classmethod
+    def from_blob(
+        cls, blob: bytes, mime_type: str | None = None, filename: str | None = None
+    ) -> Audio:
+        """Return a new |Audio| object for binary audio data in `blob`."""
+        return cls(blob, mime_type, filename)
+
+    @classmethod
+    def from_path_or_file_like(
+        cls, audio_file: str | IO[bytes], mime_type: str | None = None
+    ) -> Audio:
+        """Return a new |Audio| object containing audio in `audio_file`.
+
+        `audio_file` may be either a path (string) or a file-like object. When a path is
+        provided, the base filename is preserved so the ``name`` attribute of the
+        ``a:snd`` element round-trips correctly.
+        """
+        if isinstance(audio_file, str):
+            with open(audio_file, "rb") as f:
+                blob = f.read()
+            filename = os.path.basename(audio_file)
+        else:
+            blob = audio_file.read()
+            filename = None
+
+        return cls.from_blob(blob, mime_type, filename)
+
+    @property
+    def blob(self) -> bytes:
+        """The bytestream of the audio "file"."""
+        return self._blob
+
+    @property
+    def content_type(self) -> str:
+        """MIME-type of this audio, e.g. ``'audio/wav'``.
+
+        Defaults to ``audio/wav`` when none was provided, matching the PowerPoint
+        convention of using WAV-format audio for click-action sounds.
+        """
+        return self._mime_type or CT.WAV
+
+    @property
+    def ext(self) -> str:
+        """File extension for this audio, e.g. ``'wav'``.
+
+        Uses the actual filename when known; otherwise falls back to ``'wav'`` (the
+        default format expected in click-action ``a:snd`` elements).
+        """
+        if self._filename:
+            return os.path.splitext(self._filename)[1].lstrip(".") or "wav"
+        return "wav"
+
+    @property
+    def filename(self) -> str:
+        """Return a ``filename.ext`` string appropriate for this audio.
+
+        The original filename is used if the audio was loaded from the filesystem.
+        Otherwise the fallback ``'sound.<ext>'`` is produced.
+        """
+        if self._filename is not None:
+            return self._filename
+        return "sound.%s" % self.ext
+
+    @lazyproperty
+    def sha1(self) -> str:
+        """The SHA1 hash digest for the binary "file" of this audio clip."""
+        return hashlib.sha1(self._blob).hexdigest()
+
+
 class Video(object):
     """Immutable value object representing a video such as MP4."""
 
