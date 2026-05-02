@@ -135,6 +135,11 @@ Unreleased
   round-trips to the default-visible state. Hidden slides are skipped by
   PowerPoint during a normal slide-show run but remain in the package
   and in :attr:`.Presentation.slides`.
+- feat: #971 add ``BaseShape.is_hidden`` read/write bool mapping to the
+  ``hidden`` attribute on the shape's ``cNvPr`` element. When |True|,
+  PowerPoint skips the shape during slide-show and print while leaving
+  it visible in the editing surface. Available on all shape types
+  (``p:sp``, ``p:pic``, ``p:cxnSp``, ``p:graphicFrame``, ``p:grpSp``).
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

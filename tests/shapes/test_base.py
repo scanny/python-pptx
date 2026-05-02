@@ -397,6 +397,48 @@ class DescribeBaseShape(object):
         shape.flip_vertically()
         assert shape.flip_vertical is False
 
+    @pytest.mark.parametrize(
+        ("sp_cxml", "expected_value"),
+        [
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}", False),
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,hidden=0}", False),
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,hidden=1}", True),
+            ("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,hidden=true}", True),
+            ("p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,hidden=1}", True),
+            ("p:grpSp/p:nvGrpSpPr/p:cNvPr{id=1,name=A,hidden=1}", True),
+            ("p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=1,name=A,hidden=1}", True),
+            ("p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=1,name=A,hidden=1}", True),
+        ],
+    )
+    def it_knows_whether_it_is_hidden(self, sp_cxml, expected_value):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        assert shape.is_hidden is expected_value
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "new_value", "expected_cxml"),
+        [
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+                True,
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,hidden=1}",
+            ),
+            (
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A,hidden=1}",
+                False,
+                "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+            ),
+            (
+                "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A}",
+                True,
+                "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A,hidden=1}",
+            ),
+        ],
+    )
+    def it_can_change_its_hidden_state(self, sp_cxml, new_value, expected_cxml):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        shape.is_hidden = new_value
+        assert shape._element.xml == xml(expected_cxml)
+
     def it_provides_access_to_its_shadow(self, shadow_fixture):
         shape, ShadowFormat_, spPr, shadow_ = shadow_fixture
 
