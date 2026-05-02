@@ -90,6 +90,23 @@ Unreleased
   Follow-up: convenience "add secondary value axis" /
   ``add_plot(..., secondary=True)`` authoring shortcut remains
   deferred; see ``docs/dev/analysis/combo-chart.rst``.
+- verify: #366 (set a slide's background — solid / gradient / picture
+  — and revert to master-inherited background) resolved by the existing
+  :attr:`.Slide.background` / :attr:`.Slide.follow_master_background`
+  surface. The #366 reporter asked for a Python-side hook to author a
+  per-slide background; the ``_Background`` proxy's ``.fill`` property
+  already exposes the standard :class:`.FillFormat` API — ``solid()``,
+  ``gradient()``, and ``blip_fill(image_file)`` — so a solid-color,
+  gradient, or picture background is authored with the same
+  ``fill.fore_color.rgb = RGBColor(...)`` / ``fill.gradient()`` /
+  ``fill.blip_fill(...)`` idioms used for shapes and table cells.
+  :attr:`.Slide.follow_master_background` is ``True`` when the slide
+  has no ``p:bg`` override and ``False`` once a custom background
+  is applied; removing the ``p:bg`` child restores master inheritance.
+  Adds ``tests/test_issue_366_slide_background_verify.py`` with an
+  end-to-end verify suite covering the default master-inherited state,
+  solid / gradient / picture authoring with ``Presentation.save`` +
+  reopen round-trips, and the revert-to-inherited transition.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
