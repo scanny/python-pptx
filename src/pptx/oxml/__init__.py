@@ -530,6 +530,10 @@ from pptx.oxml.slide import (  # noqa: E402
     CT_TransitionMorph,
     CT_TransitionVariant,
 )
+# -- `p:cond` / `p:stCondLst` / `p:endCondLst` are registered below in
+# -- the `pptx.oxml.animation` block (canonical home shipped by #102).
+# -- #861 originally registered them here; duplicates were dropped as
+# -- part of the Wave-5 animation-API consolidation.
 
 register_element_cls("p:bg", CT_Background)
 register_element_cls("p:bgPr", CT_BackgroundProperties)

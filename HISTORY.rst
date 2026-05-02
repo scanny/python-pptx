@@ -73,6 +73,16 @@ Unreleased
   sync. Limited to data-only refresh — cannot add/remove series or
   categories — and skipped formula cells retain their prior
   ``c:numCache`` entry until ``Chart.update_cached_values`` is called.
+- feat: #861 read/write access to animation delays. Adds ``stCondLst`` /
+  ``endCondLst`` ``ZeroOrOne`` descriptors on ``CT_TLCommonTimeNodeData``
+  and a convenience ``CT_TLCommonTimeNodeData.delay`` property that
+  reads/writes the ``@delay`` attribute of the first
+  ``p:stCondLst/p:cond`` child as an ``int`` (milliseconds) or the
+  sentinel string ``"indefinite"``. Introduces typed ``CT_TLTimeCondition``
+  (``p:cond``) and ``CT_TLTimeConditionList`` (``p:stCondLst`` /
+  ``p:endCondLst``) element classes. A user-facing ``AnimationEffect``
+  proxy is deferred to whatever #102 / #1106 land; today's scope is the
+  XML-layer primitives on the existing F8 foundation.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

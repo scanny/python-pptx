@@ -294,11 +294,19 @@ in place for the downstream work.
     ``CT_TLTimeNodeSequence`` are the leverage point.
 
 ``#861`` — animation delay read/write
-    *Wave 5. Effort M.*
-    Surface ``stCondLst`` / ``endCondLst`` on
-    ``CT_TLCommonTimeNodeData`` and build a ``Delay`` property on
-    the downstream-defined animation proxy. ``ST_TLTime`` (F8)
-    handles the value conversion including ``"indefinite"``.
+    *Wave 5. Effort M.* Delivered (XML-layer scope).
+    ``CT_TLCommonTimeNodeData.stCondLst`` / ``.endCondLst`` are now
+    ``ZeroOrOne`` descriptors, and a convenience
+    ``CT_TLCommonTimeNodeData.delay`` property reads/writes the
+    ``@delay`` attribute of the first ``p:stCondLst/p:cond`` child
+    as an ``int`` milliseconds or the sentinel string
+    ``"indefinite"``. New ``CT_TLTimeCondition`` (``p:cond``) and
+    ``CT_TLTimeConditionList`` (``p:stCondLst`` / ``p:endCondLst``)
+    element classes are registered so the condition tree is typed.
+    A user-facing ``AnimationEffect.delay`` / ``.duration`` wrapper is
+    deferred to whatever animation-proxy API lands with #102 / #1106;
+    until then, delays are read/written via the ``p:cTn.delay``
+    descriptor on each timing node.
 
 ``#400`` — animation control (legacy umbrella)
     *Wave 10. Effort XL.*

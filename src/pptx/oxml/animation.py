@@ -134,7 +134,24 @@ class CT_TLTimeConditionList(BaseOxmlElement):
     A sequence of ``p:cond`` children. The MVP only reads/writes a
     single ``cond`` (the first one) for effect triggers; multiple
     conditions round-trip transparently.
+
+    The :meth:`add_cond` helper appends a new empty ``p:cond`` and
+    returns it, for callers (issue #861) that build a condition
+    imperatively.
     """
+
+    def add_cond(self):
+        """Append a new empty ``p:cond`` child and return it.
+
+        The new element has no attributes and no child — callers assign
+        ``@delay`` / ``@evt`` / choice-child afterwards.
+        """
+        from pptx.oxml import parse_xml
+        from pptx.oxml.ns import nsdecls
+
+        cond = parse_xml("<p:cond %s/>" % nsdecls("p"))
+        self.append(cond)
+        return cond
 
 
 class CT_TLCommonBehaviorData(BaseOxmlElement):
