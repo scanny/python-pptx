@@ -15,6 +15,39 @@ from pptx.oxml.ns import nsdecls, qn
 _ACCENT_COLORS = ("accent1", "accent2", "accent3", "accent4", "accent5", "accent6")
 
 
+def _captured_format_code(child):
+    """Return the text of `.//c:numCache/c:formatCode` under *child*, or None.
+
+    Used by :class:`_BaseSeriesXmlRewriter` subclasses so a call to
+    :meth:`pptx.chart.chart.Chart.replace_data` can preserve an author-set
+    ``c:formatCode`` on a ``c:val`` / ``c:xVal`` / ``c:yVal`` / ``c:bubbleSize``
+    / ``c:cat`` element, instead of silently resetting it to ``"General"`` when
+    the caller did not pass an explicit ``number_format`` on *chart_data*
+    (GitHub issue #666).
+    """
+    if child is None:
+        return None
+    results = child.xpath(".//c:numCache/c:formatCode")
+    if not results:
+        return None
+    return results[0].text
+
+
+def _restore_format_code(new_child, captured_format_code):
+    """Replace the `c:formatCode` text in *new_child* with *captured_format_code*.
+
+    No-op when *captured_format_code* is None (nothing to preserve) or when
+    the new child has no `c:numCache/c:formatCode` element (e.g. a category
+    element that became a `c:strRef` rather than a `c:numRef`).
+    """
+    if captured_format_code is None or new_child is None:
+        return
+    results = new_child.xpath(".//c:numCache/c:formatCode")
+    if not results:
+        return
+    results[0].text = captured_format_code
+
+
 def _apply_accent_color_to_ser(ser, series_idx):
     """Rewrite explicit color fills on *ser* to use the theme accent color for *series_idx*.
 
@@ -1830,6 +1863,13 @@ class _BubbleSeriesXmlRewriter(_BaseSeriesXmlRewriter):
         Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
         of *ser* based on the values in *series_data*.
         """
+        # -- capture existing c:formatCode on xVal/yVal/bubbleSize so an
+        # -- author-set number format survives the rewrite unless the caller
+        # -- passed an explicit override on *series_data* (issue #666) --
+        xVal_fmt = _captured_format_code(ser.xVal)
+        yVal_fmt = _captured_format_code(ser.yVal)
+        bubbleSize_fmt = _captured_format_code(ser.bubbleSize)
+
         ser._remove_tx()
         ser._remove_xVal()
         ser._remove_yVal()
@@ -1838,9 +1878,16 @@ class _BubbleSeriesXmlRewriter(_BaseSeriesXmlRewriter):
         xml_writer = _BubbleSeriesXmlWriter(series_data)
 
         ser._insert_tx(xml_writer.tx)
-        ser._insert_xVal(xml_writer.xVal)
-        ser._insert_yVal(xml_writer.yVal)
-        ser._insert_bubbleSize(xml_writer.bubbleSize)
+        new_xVal = xml_writer.xVal
+        new_yVal = xml_writer.yVal
+        new_bubbleSize = xml_writer.bubbleSize
+        if series_data.number_format == "General":
+            _restore_format_code(new_xVal, xVal_fmt)
+            _restore_format_code(new_yVal, yVal_fmt)
+            _restore_format_code(new_bubbleSize, bubbleSize_fmt)
+        ser._insert_xVal(new_xVal)
+        ser._insert_yVal(new_yVal)
+        ser._insert_bubbleSize(new_bubbleSize)
 
 
 class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
@@ -1853,15 +1900,29 @@ class _CategorySeriesXmlRewriter(_BaseSeriesXmlRewriter):
         Rewrite the ``<c:tx>``, ``<c:cat>`` and ``<c:val>`` child elements
         of *ser* based on the values in *series_data*.
         """
+        # -- capture existing c:formatCode on val (and numeric-cat, if any)
+        # -- so an author-set number format survives the rewrite unless the
+        # -- caller passed an explicit override on *series_data* /
+        # -- *categories* (issue #666) --
+        val_fmt = _captured_format_code(ser.val)
+        cat_fmt = _captured_format_code(ser.cat)
+
         ser._remove_tx()
         ser._remove_cat()
         ser._remove_val()
 
         xml_writer = _CategorySeriesXmlWriter(series_data, date_1904)
 
+        new_cat = xml_writer.cat
+        new_val = xml_writer.val
+        if series_data.number_format == "General":
+            _restore_format_code(new_val, val_fmt)
+        if series_data.categories.number_format == "General":
+            _restore_format_code(new_cat, cat_fmt)
+
         ser._insert_tx(xml_writer.tx)
-        ser._insert_cat(xml_writer.cat)
-        ser._insert_val(xml_writer.val)
+        ser._insert_cat(new_cat)
+        ser._insert_val(new_val)
 
 
 class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
@@ -1874,15 +1935,27 @@ class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
         Rewrite the ``<c:tx>``, ``<c:xVal>`` and ``<c:yVal>`` child elements
         of *ser* based on the values in *series_data*.
         """
+        # -- capture existing c:formatCode on xVal/yVal so an author-set
+        # -- number format survives the rewrite unless the caller passed an
+        # -- explicit override on *series_data* (issue #666) --
+        xVal_fmt = _captured_format_code(ser.xVal)
+        yVal_fmt = _captured_format_code(ser.yVal)
+
         ser._remove_tx()
         ser._remove_xVal()
         ser._remove_yVal()
 
         xml_writer = _XySeriesXmlWriter(series_data)
 
+        new_xVal = xml_writer.xVal
+        new_yVal = xml_writer.yVal
+        if series_data.number_format == "General":
+            _restore_format_code(new_xVal, xVal_fmt)
+            _restore_format_code(new_yVal, yVal_fmt)
+
         ser._insert_tx(xml_writer.tx)
-        ser._insert_xVal(xml_writer.xVal)
-        ser._insert_yVal(xml_writer.yVal)
+        ser._insert_xVal(new_xVal)
+        ser._insert_yVal(new_yVal)
 
 
 # =====================================================================

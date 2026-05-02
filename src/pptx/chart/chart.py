@@ -314,6 +314,14 @@ class Chart(PartElementProxy):
         theme's accent color rotation rather than all appearing in the source series's
         color (see GitHub issue #529).
 
+        Author-set number formats on existing ``c:val`` / ``c:xVal`` / ``c:yVal`` /
+        ``c:bubbleSize`` (and numeric ``c:cat``) elements are preserved across the
+        rewrite so callers don't lose their ``0.00%`` / ``#,##0`` / etc. formatting
+        on every ``replace_data`` round-trip (GitHub issue #666). Pass an explicit
+        ``number_format=`` on *chart_data* to override the preserved format — the
+        default ``"General"`` is treated as "no opinion" and the existing format is
+        kept.
+
         Raises |ValueError| when *chart_data* is incompatible with the chart-type of
         this chart (GitHub issue #396). XY (scatter) charts require an
         |XyChartData| instance and bubble charts require a |BubbleChartData|

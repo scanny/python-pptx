@@ -91,6 +91,20 @@ Unreleased
   it_can_preserve_a_solid_fill_color_on_negative_bars_issue_504``) that
   asserts the combined XML carries both ``c:invertIfNegative val="0"`` and
   the authored ``a:srgbClr``. No code change is required.
+- fix: #666 ``Chart.replace_data`` preserves author-set ``c:formatCode`` on
+  ``c:val`` / ``c:xVal`` / ``c:yVal`` / ``c:bubbleSize`` and numeric ``c:cat``
+  elements instead of silently resetting every series's number format back to
+  ``"General"``. An explicit ``number_format=`` on the replacement
+  ``CategoryChartData`` / ``XyChartData`` / ``BubbleChartData`` still wins —
+  the default ``"General"`` is now treated as "no opinion" so the existing
+  format survives. Implemented in
+  ``_BubbleSeriesXmlRewriter._rewrite_ser_data`` /
+  ``_CategorySeriesXmlRewriter._rewrite_ser_data`` /
+  ``_XySeriesXmlRewriter._rewrite_ser_data`` (see
+  ``src/pptx/chart/xmlwriter.py``) which capture the existing
+  ``c:numCache/c:formatCode`` before the element is removed and reapply it to
+  the freshly generated replacement. Regression coverage in
+  ``tests/test_issue_666_replace_data_preserve_format.py``.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
