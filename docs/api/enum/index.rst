@@ -17,6 +17,7 @@ can be found here:
    MsoLineDashStyle
    MsoPatternType
    MsoShapeType
+   MsoTextStrikeType
    MsoTextUnderlineType
    MsoThemeColorIndex
    MsoVerticalAnchor

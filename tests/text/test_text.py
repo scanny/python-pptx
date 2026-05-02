@@ -11,7 +11,7 @@ import pytest
 from pptx.dml.color import ColorFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_UNDERLINE, PP_ALIGN
+from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_STRIKE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.shapes.autoshape import Shape
@@ -507,6 +507,15 @@ class DescribeFont(object):
         font.underline = new_value
         assert font._element.xml == expected_xml
 
+    def it_knows_its_strikethrough_setting(self, strikethrough_get_fixture):
+        font, expected_value = strikethrough_get_fixture
+        assert font.strikethrough is expected_value, "got %s" % font.strikethrough
+
+    def it_can_change_its_strikethrough_setting(self, strikethrough_set_fixture):
+        font, new_value, expected_xml = strikethrough_set_fixture
+        font.strikethrough = new_value
+        assert font._element.xml == expected_xml
+
     def it_knows_its_size(self, size_get_fixture):
         font, expected_value = size_get_fixture
         assert font.size == expected_value
@@ -659,6 +668,38 @@ class DescribeFont(object):
         ]
     )
     def underline_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", None),
+            ("a:rPr{strike=noStrike}", False),
+            ("a:rPr{strike=sngStrike}", True),
+            ("a:rPr{strike=dblStrike}", MSO_STRIKE.DOUBLE_LINE),
+        ]
+    )
+    def strikethrough_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", True, "a:rPr{strike=sngStrike}"),
+            ("a:rPr{strike=sngStrike}", False, "a:rPr{strike=noStrike}"),
+            (
+                "a:rPr{strike=noStrike}",
+                MSO_STRIKE.DOUBLE_LINE,
+                "a:rPr{strike=dblStrike}",
+            ),
+            ("a:rPr{strike=dblStrike}", MSO_STRIKE.NONE, "a:rPr{strike=noStrike}"),
+            ("a:rPr{strike=dblStrike}", None, "a:rPr"),
+        ]
+    )
+    def strikethrough_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)

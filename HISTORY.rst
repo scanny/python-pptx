@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #574 Font.strikethrough property
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

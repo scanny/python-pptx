@@ -177,3 +177,18 @@ this will not change color when the theme is changed::
 A run can also be made into a hyperlink by providing a target URL::
 
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
+
+
+Strikethrough text
+~~~~~~~~~~~~~~~~~~
+
+The ``Font.strikethrough`` property mirrors ``Font.bold`` and ``Font.italic``:
+it accepts ``True``, ``False``, or ``None`` (inherit). For a double-line
+strikethrough, assign ``MSO_STRIKE.DOUBLE_LINE``::
+
+    from pptx.enum.text import MSO_STRIKE
+
+    run.font.strikethrough = True                    # single-line strikethrough
+    run.font.strikethrough = MSO_STRIKE.DOUBLE_LINE  # double-line strikethrough
+    run.font.strikethrough = False                   # explicitly no strikethrough
+    run.font.strikethrough = None                    # inherit from style hierarchy

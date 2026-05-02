@@ -7,7 +7,7 @@ from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.enum.lang import MSO_LANGUAGE_ID
-from pptx.enum.text import MSO_UNDERLINE
+from pptx.enum.text import MSO_STRIKE, MSO_UNDERLINE
 
 # given ===================================================
 
@@ -69,6 +69,14 @@ def given_run_with_underline_set_to_state(context, state):
     context.font = runs[run_idx].font
 
 
+@given("a font with strikethrough set {state}")
+def given_a_font_with_strikethrough_set_state(context, state):
+    shape_idx = ["on", "off", "to inherit", "to DOUBLE_LINE"].index(state)
+    prs = Presentation(test_pptx("txt-font-props"))
+    shape = prs.slides[5].shapes[shape_idx]
+    context.font = shape.text_frame.paragraphs[0].runs[0].font
+
+
 # when ===================================================
 
 
@@ -101,6 +109,19 @@ def when_I_assign_value_to_font_underline(context, value):
         "SINGLE_LINE": MSO_UNDERLINE.SINGLE_LINE,
     }[value]
     context.font.underline = new_value
+
+
+@when("I assign {value} to font.strikethrough")
+def when_I_assign_value_to_font_strikethrough(context, value):
+    new_value = {
+        "True": True,
+        "False": False,
+        "None": None,
+        "DOUBLE_LINE": MSO_STRIKE.DOUBLE_LINE,
+        "NONE": MSO_STRIKE.NONE,
+        "SINGLE_LINE": MSO_STRIKE.SINGLE_LINE,
+    }[value]
+    context.font.strikethrough = new_value
 
 
 # then ===================================================
@@ -148,3 +169,16 @@ def then_font_underline_is_value(context, value):
     font = context.font
     print(font._rPr.xml)
     assert font.underline is expected_value, "got %s" % font.underline
+
+
+@then("font.strikethrough is {value}")
+def then_font_strikethrough_is_value(context, value):
+    expected_value = {
+        "True": True,
+        "False": False,
+        "None": None,
+        "DOUBLE_LINE": MSO_STRIKE.DOUBLE_LINE,
+        "SINGLE_LINE": MSO_STRIKE.SINGLE_LINE,
+    }[value]
+    font = context.font
+    assert font.strikethrough is expected_value, "got %s" % font.strikethrough

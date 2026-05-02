@@ -144,6 +144,41 @@ class MSO_TEXT_UNDERLINE_TYPE(BaseXmlEnum):
 MSO_UNDERLINE = MSO_TEXT_UNDERLINE_TYPE
 
 
+class MSO_TEXT_STRIKE_TYPE(BaseXmlEnum):
+    """Indicates the type of strikethrough for text.
+
+    Used with :attr:`.Font.strikethrough` to specify the style of text
+    strikethrough.
+
+    Alias: ``MSO_STRIKE``
+
+    Example::
+
+        from pptx.enum.text import MSO_STRIKE
+
+        run.font.strikethrough = MSO_STRIKE.DOUBLE_LINE
+
+    MS API Name: `MsoTextStrikeType`
+
+    http://msdn.microsoft.com/en-us/library/aa432639.aspx
+    """
+
+    NONE = (0, "noStrike", "Specifies no strikethrough.")
+    """Specifies no strikethrough."""
+
+    SINGLE_LINE = (1, "sngStrike", "Specifies a single line strikethrough.")
+    """Specifies a single line strikethrough."""
+
+    DOUBLE_LINE = (2, "dblStrike", "Specifies a double line strikethrough.")
+    """Specifies a double line strikethrough."""
+
+    MIXED = (-2, "", "Specifies a mix of strikethrough types (read-only).")
+    """Specifies a mix of strikethrough types (read-only)."""
+
+
+MSO_STRIKE = MSO_TEXT_STRIKE_TYPE
+
+
 class MSO_VERTICAL_ANCHOR(BaseXmlEnum):
     """Specifies the vertical alignment of text in a text frame.
 
