@@ -337,6 +337,43 @@ class DescribeSlide(object):
         slide, expected_value = has_notes_slide_fixture
         assert slide.has_notes_slide is expected_value
 
+    @pytest.mark.parametrize(
+        ("sld_cxml", "expected_value"),
+        [
+            ("p:sld/p:cSld", False),
+            ('p:sld{show=1}/p:cSld', False),
+            ('p:sld{show=true}/p:cSld', False),
+            ('p:sld{show=0}/p:cSld', True),
+            ('p:sld{show=false}/p:cSld', True),
+        ],
+    )
+    def it_knows_whether_it_is_hidden(self, sld_cxml, expected_value):
+        slide = Slide(element(sld_cxml), None)
+        assert slide.is_hidden is expected_value
+
+    @pytest.mark.parametrize(
+        ("initial_cxml", "value", "expected_cxml"),
+        [
+            # -- setting True on a default slide writes show="0" --
+            ("p:sld/p:cSld", True, 'p:sld{show=0}/p:cSld'),
+            # -- setting False on a default slide is a no-op (attr stays absent) --
+            ("p:sld/p:cSld", False, "p:sld/p:cSld"),
+            # -- setting False on a hidden slide removes the attr --
+            ('p:sld{show=0}/p:cSld', False, "p:sld/p:cSld"),
+            # -- setting True on an already-hidden slide is idempotent --
+            ('p:sld{show=0}/p:cSld', True, 'p:sld{show=0}/p:cSld'),
+        ],
+    )
+    def it_can_set_is_hidden(self, initial_cxml, value, expected_cxml):
+        slide = Slide(element(initial_cxml), None)
+        slide.is_hidden = value
+        assert slide._element.xml == xml(expected_cxml)
+
+    def it_raises_TypeError_on_non_bool_is_hidden(self):
+        slide = Slide(element("p:sld/p:cSld"), None)
+        with pytest.raises(TypeError, match="is_hidden must be a bool"):
+            slide.is_hidden = 1  # type: ignore[assignment]
+
     def it_knows_its_slide_id(self, slide_id_fixture):
         slide, expected_value = slide_id_fixture
         assert slide.slide_id == expected_value

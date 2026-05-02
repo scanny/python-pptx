@@ -127,6 +127,14 @@ Unreleased
   ``tests/test_issue_937_table_cell_layout.py`` that pins both recipes
   plus the ``_Cell.margin_*`` knobs (the reporter's secondary complaint
   about slide overflow) through ``Presentation.save`` + reopen.
+- feat: #319 add ``Slide.is_hidden`` read/write ``bool`` property mapping
+  to the ``p:sld/@show`` attribute. Reading returns ``True`` for a slide
+  explicitly marked hidden (``show="0"``) and ``False`` otherwise (the
+  schema default for ``@show`` is ``true``). Assigning ``True`` writes
+  ``show="0"``; assigning ``False`` removes the attribute so the XML
+  round-trips to the default-visible state. Hidden slides are skipped by
+  PowerPoint during a normal slide-show run but remain in the package
+  and in :attr:`.Presentation.slides`.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

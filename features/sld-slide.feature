@@ -34,6 +34,26 @@ Feature: slide properties
       | no      | False |
 
 
+  Scenario: Slide.is_hidden defaults to False on a fresh slide
+    Given a slide
+     Then slide.is_hidden is False
+
+
+  Scenario: Slide.is_hidden can be set and round-trips
+    Given a slide
+     When I set slide.is_hidden to True
+     Then slide.is_hidden is True
+      And after a save/load round-trip slide.is_hidden is True
+
+
+  Scenario: Slide.is_hidden can be cleared and round-trips
+    Given a slide
+     When I set slide.is_hidden to True
+      And I set slide.is_hidden to False
+     Then slide.is_hidden is False
+      And after a save/load round-trip slide.is_hidden is False
+
+
   Scenario Outline: Slide.name
     Given a slide having name <name>
      Then slide.name is <value>
