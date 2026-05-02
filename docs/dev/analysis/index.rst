@@ -157,6 +157,7 @@ Package
    chartex-foundation
    chartex-funnel
    chartex-waterfall
+   chartex-treemap
 
 
 Major discovery sources
