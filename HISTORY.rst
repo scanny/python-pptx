@@ -3,6 +3,8 @@
 Release History
 ---------------
 
+- fix: #674 correct UP_DOWN_ARROW adjustment list
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

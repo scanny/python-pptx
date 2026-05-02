@@ -157,6 +157,27 @@ class DescribeAdjustmentCollection(object):
         adjs[0] = 0.999
         adjs._prstGeom.rewrite_guides.assert_called_once_with(guides)
 
+    def it_round_trips_UP_DOWN_ARROW_adjustments_without_duplicates(self):
+        """Regression test for #674.
+
+        `MSO_SHAPE.UP_DOWN_ARROW` previously had duplicate adj-entries in its
+        spec `avLst`, producing corrupt XML (two `adj1` and two `adj2` guides)
+        when adjustments were assigned.
+        """
+        prstGeom = a_prstGeom().with_nsdecls().with_prst("upDownArrow").element
+        adjustments = AdjustmentCollection(prstGeom)
+
+        assert len(adjustments) == 2
+
+        adjustments[0] = 0.25
+        adjustments[1] = 0.40
+
+        gd_lst = prstGeom.gd_lst
+        assert [(gd.name, gd.fmla) for gd in gd_lst] == [
+            ("adj1", "val 25000"),
+            ("adj2", "val 40000"),
+        ]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
