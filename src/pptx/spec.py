@@ -604,7 +604,7 @@ autoshape_types: dict[MSO_SHAPE, ShapeSpec] = {
     },
     MSO_SHAPE.UP_DOWN_ARROW: {
         "basename": "Up-Down Arrow",
-        "avLst": (("adj1", 50000), ("adj1", 50000), ("adj2", 50000), ("adj2", 50000)),
+        "avLst": (("adj1", 50000), ("adj2", 50000)),
     },
     MSO_SHAPE.UP_DOWN_ARROW_CALLOUT: {
         "basename": "Up-Down Arrow Callout",
