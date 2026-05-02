@@ -10,6 +10,7 @@ from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR, PP_AUTO_NUMBER_SCHEME
 from pptx.enum.text import MSO_AUTO_SIZE, MSO_STRIKE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_TextWrappingType
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
@@ -17,7 +18,7 @@ from pptx.text.layout import TextFitter
 from pptx.util import Centipoints, Emu, Length, Pt, lazyproperty
 
 if TYPE_CHECKING:
-    from pptx.dml.color import ColorFormat
+    from pptx.dml.color import ColorFormat, RGBColor
     from pptx.enum.text import (
         MSO_TEXT_STRIKE_TYPE,
         MSO_TEXT_UNDERLINE_TYPE,
@@ -343,9 +344,18 @@ class Font(object):
     `a:endParaRPr` in paragraph and `a:defRPr` in list style elements.
     """
 
-    def __init__(self, rPr: CT_TextCharacterProperties):
+    def __init__(
+        self,
+        rPr: CT_TextCharacterProperties,
+        parent: ProvidesPart | None = None,
+    ):
         super(Font, self).__init__()
         self._element = self._rPr = rPr
+        # -- retained only to support `effective_color`, which needs to walk
+        # -- from the run up to the enclosing slide/layout/master parts; other
+        # -- entry points (paragraph defRPr, chart text, etc.) can safely omit
+        # -- it and get a None result from `effective_color`.
+        self._parent = parent
 
     @property
     def bold(self) -> bool | None:
@@ -375,6 +385,67 @@ class Font(object):
         Provides access to fill properties such as fill color.
         """
         return FillFormat.from_fill_parent(self._rPr)
+
+    @property
+    def effective_color(self) -> RGBColor | None:
+        """Resolved |RGBColor| for this run, walking the inheritance chain.
+
+        Returns the RGB PowerPoint would render for this run's text color,
+        tracing the style hierarchy until an explicit color is found:
+
+        1. The run's own `a:rPr/a:solidFill`
+        2. The enclosing paragraph's `a:pPr/a:defRPr/a:solidFill`
+        3. The enclosing text body's `a:lstStyle/a:lvl{N}pPr/a:defRPr/a:solidFill`
+           (level-matched to the paragraph's `@lvl`)
+        4. The slide master's `p:txStyles` (``bodyStyle`` / ``titleStyle`` /
+           ``otherStyle``) for the matching paragraph level
+        5. `None` when no color can be resolved (e.g., missing theme context)
+
+        Any ``<a:lumMod>`` / ``<a:lumOff>`` siblings on the resolved color
+        element are applied via :meth:`ColorFormat.to_rgb`, and scheme colors
+        are resolved against :attr:`SlideMaster.theme_colors`.
+
+        Returns |None| when this |Font| was constructed without a part-aware
+        parent (e.g., obtained from a chart `a:defRPr`), when the inheritance
+        walk can't reach a slide-master, or when a scheme color is encountered
+        but the target theme entry is missing. Callers that need finer-grained
+        control can use :attr:`color` + :meth:`ColorFormat.to_rgb` directly.
+        """
+        theme_colors = self._theme_colors
+        # -- 1. direct run rPr --
+        rgb = _resolve_solid_fill_rgb(self._rPr, theme_colors)
+        if rgb is not None:
+            return rgb
+
+        # -- 2. paragraph pPr/defRPr; 3. txBody lstStyle/lvlNpPr/defRPr --
+        p = self._rPr.getparent()
+        # -- walk up until we find an a:p or run out of parents --
+        while p is not None and p.tag != qn("a:p"):
+            p = p.getparent()
+        if p is None:
+            return self._master_txStyle_rgb(0, theme_colors)
+
+        lvl = _paragraph_level(p)
+        pPr = p.find(qn("a:pPr"))
+        if pPr is not None:
+            defRPr = pPr.find(qn("a:defRPr"))
+            if defRPr is not None:
+                rgb = _resolve_solid_fill_rgb(defRPr, theme_colors)
+                if rgb is not None:
+                    return rgb
+
+        txBody = p.getparent()
+        if txBody is not None:
+            lstStyle = txBody.find(qn("a:lstStyle"))
+            if lstStyle is not None:
+                defRPr = _lvl_defRPr(lstStyle, lvl)
+                if defRPr is not None:
+                    rgb = _resolve_solid_fill_rgb(defRPr, theme_colors)
+                    if rgb is not None:
+                        return rgb
+
+        # -- 4. fall back to master's txStyles --
+        return self._master_txStyle_rgb(lvl, theme_colors)
 
     @property
     def italic(self) -> bool | None:
@@ -594,6 +665,131 @@ class Font(object):
             return
         # -- `None` and `True` both mean "no override marker" --
         hlinkClick.suppress_theme_color = value is False
+
+    @property
+    def _slide_master(self):
+        """The |SlideMaster| reachable from this Font's parent, or |None|.
+
+        Used by :attr:`effective_color` to resolve scheme colors and walk up
+        into `p:txStyles`. Returns |None| when no parent part is bound (e.g.
+        the Font wraps a chart ``a:defRPr``) or when the containing part is
+        not a slide / layout / master.
+        """
+        if self._parent is None:
+            return None
+        try:
+            part = self._parent.part
+        except AttributeError:
+            return None
+        # -- delayed to avoid circular import --
+        from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
+
+        if isinstance(part, SlideMasterPart):
+            return part.slide_master
+        if isinstance(part, SlideLayoutPart):
+            return part.slide_master
+        if isinstance(part, SlidePart):
+            return part.slide_layout.slide_master
+        return None
+
+    @property
+    def _theme_colors(self):
+        """Mapping of scheme-color name to |RGBColor|, or |None|."""
+        master = self._slide_master
+        if master is None:
+            return None
+        return master.theme_colors
+
+    def _master_txStyle_rgb(self, lvl, theme_colors):
+        """Return resolved RGB from master's `p:txStyles` for paragraph `lvl`.
+
+        Returns |None| when no color can be resolved. This consults only the
+        `bodyStyle` / `otherStyle` fall-backs (the most common sources for a
+        non-title placeholder or a non-placeholder shape); a more complete
+        walk (title-vs-body selection driven by the placeholder type, and
+        individual layout/master placeholder `a:rPr` overrides) is not
+        attempted in this first cut.
+        """
+        master = self._slide_master
+        if master is None:
+            return None
+        master_elm = master._element  # pyright: ignore[reportPrivateUsage]
+        txStyles = master_elm.find(qn("p:txStyles"))
+        if txStyles is None:
+            return None
+        # -- probe body, other, title styles in that order --
+        for style_tag in ("p:bodyStyle", "p:otherStyle", "p:titleStyle"):
+            style = txStyles.find(qn(style_tag))
+            if style is None:
+                continue
+            defRPr = _lvl_defRPr(style, lvl)
+            if defRPr is None:
+                continue
+            rgb = _resolve_solid_fill_rgb(defRPr, theme_colors)
+            if rgb is not None:
+                return rgb
+        return None
+
+
+def _resolve_solid_fill_rgb(rPr_like, theme_colors):
+    """Return resolved |RGBColor| for `rPr_like/a:solidFill`, or |None|.
+
+    `rPr_like` is any element that may carry an `a:solidFill` child (`a:rPr`,
+    `a:defRPr`, or similar). `theme_colors` is a scheme-color mapping as
+    returned by :attr:`SlideMaster.theme_colors`, or |None|; it is required
+    only when the fill references a scheme color. Returns |None| when the
+    element has no `a:solidFill`, or when a scheme color can't be resolved.
+    """
+    if rPr_like is None:
+        return None
+    solidFill = rPr_like.find(qn("a:solidFill"))
+    if solidFill is None:
+        return None
+    # -- solidFill has exactly one color-choice child --
+    color_elm = next(iter(solidFill), None)
+    if color_elm is None:
+        return None
+    # -- delayed to avoid circular import --
+    from pptx.dml.color import _Color
+
+    color = _Color(color_elm)
+    try:
+        return color.to_rgb(theme_colors)
+    except (ValueError, NotImplementedError):
+        return None
+
+
+def _paragraph_level(p_elm):
+    """Return the paragraph's `a:pPr/@lvl`, defaulting to 0."""
+    pPr = p_elm.find(qn("a:pPr"))
+    if pPr is None:
+        return 0
+    try:
+        return int(pPr.get("lvl", "0"))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _lvl_defRPr(style_elm, lvl):
+    """Return the `a:defRPr` for paragraph `lvl` from a list-style-like element.
+
+    `style_elm` is an `a:lstStyle` or one of the master `p:txStyles` children
+    (`p:titleStyle`, `p:bodyStyle`, `p:otherStyle`), each of which contains
+    `a:defPPr` and `a:lvl{1..9}pPr` children whose `a:defRPr` holds the
+    default run properties for that indent level. `lvl` is 0-based
+    (0 → `a:lvl1pPr`, 1 → `a:lvl2pPr`, ...). Returns |None| when the
+    requested level is absent.
+    """
+    lvl_tag = "a:lvl{}pPr".format(lvl + 1)
+    lvl_pPr = style_elm.find(qn(lvl_tag))
+    if lvl_pPr is None:
+        # -- lvl1pPr is sometimes written as a:defPPr on the master styles --
+        if lvl == 0:
+            defPPr = style_elm.find(qn("a:defPPr"))
+            if defPPr is not None:
+                return defPPr.find(qn("a:defRPr"))
+        return None
+    return lvl_pPr.find(qn("a:defRPr"))
 
 
 class _Hyperlink(Subshape):
@@ -1045,7 +1241,7 @@ class _Run(Subshape):
         overridden at the run level are contained in the font object.
         """
         rPr = self._r.get_or_add_rPr()
-        return Font(rPr)
+        return Font(rPr, parent=self)
 
     @lazyproperty
     def hyperlink(self) -> _Hyperlink:

@@ -94,6 +94,20 @@ def step_color_brightness_matches(context, value):
     assert font.color.brightness == float(value)
 
 
+# -- effective font color (issue #938) ------------------------------------
+
+
+@then("font.effective_color is {expected}")
+def step_then_effective_color_is(context, expected):
+    # -- evaluate the expected literal against the same symbols --
+    expected_rgb = eval(expected, {"RGBColor": RGBColor})
+    # -- re-resolve font from shape because `Given` step may have consumed it --
+    textbox = context.prs.slides[0].shapes[context.textbox_idx]
+    font = textbox.text_frame.paragraphs[0].runs[0].font
+    rgb = font.effective_color
+    assert rgb == expected_rgb, "expected %s, got %s" % (repr(expected_rgb), repr(rgb))
+
+
 # -- hyperlink color override (issue #940) --------------------------------
 
 
