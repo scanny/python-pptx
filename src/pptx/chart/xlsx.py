@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import io
+import re
+import zipfile
 from contextlib import contextmanager
 
+from lxml import etree
 from xlsxwriter import Workbook
 
 
@@ -270,3 +273,255 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
             # write bubble sizes
             worksheet.write(offset, 2, "Size")
             worksheet.write_column(offset + 1, 2, series.bubble_sizes, chart_num_format)
+
+
+# --- Excel range reference parsing --------------------------------------------------
+
+# e.g. "Sheet1!$A$2:$A$5", "Sheet1!$B$1", "'My Sheet'!$A$1:$B$3"
+_sheet_ref_re = re.compile(
+    r"""
+    ^\s*
+    (?:'(?P<qsheet>(?:[^']|'')*)'|(?P<sheet>[^!]+))
+    !
+    \$?(?P<col1>[A-Za-z]+)\$?(?P<row1>\d+)
+    (?:
+        :\$?(?P<col2>[A-Za-z]+)\$?(?P<row2>\d+)
+    )?
+    \s*$
+    """,
+    re.VERBOSE,
+)
+
+
+def _column_letters_to_index(letters):
+    """Return 1-based column index for Excel column letters like 'A', 'Z', 'AA'."""
+    n = 0
+    for ch in letters.upper():
+        n = n * 26 + (ord(ch) - ord("A") + 1)
+    return n
+
+
+def parse_sheet_range_ref(ref):
+    """Return `(sheet_name, [(row, col), ...])` for A1-style `ref`.
+
+    Rows and columns are 1-based. The returned list enumerates cells in
+    row-major order (top-to-bottom, then left-to-right within the range). For
+    a single-cell reference the list has exactly one element. Returns |None|
+    for `ref` values that don't match the expected pattern (e.g. multi-range
+    references joined with commas or broken inputs) so that callers can skip
+    rewriting caches they can't resolve.
+    """
+    if ref is None:
+        return None
+    m = _sheet_ref_re.match(ref)
+    if m is None:
+        return None
+    sheet = m.group("qsheet")
+    if sheet is not None:
+        sheet = sheet.replace("''", "'")
+    else:
+        sheet = m.group("sheet")
+    col1 = _column_letters_to_index(m.group("col1"))
+    row1 = int(m.group("row1"))
+    col2 = _column_letters_to_index(m.group("col2")) if m.group("col2") else col1
+    row2 = int(m.group("row2")) if m.group("row2") else row1
+    if row2 < row1:
+        row1, row2 = row2, row1
+    if col2 < col1:
+        col1, col2 = col2, col1
+    cells = [(r, c) for r in range(row1, row2 + 1) for c in range(col1, col2 + 1)]
+    return sheet, cells
+
+
+# --- Workbook reader ---------------------------------------------------------------
+
+_SML_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+_OPC_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+_OFC_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+
+class WorkbookReader(object):
+    """Minimal read-only view of an embedded chart workbook.
+
+    Parses an `.xlsx` blob using `zipfile` + `lxml` and exposes a
+    `cell_value(sheet_name, row, col)` lookup that returns the cell value as
+    a `str`, `float`, or |None| when the cell is empty. Only the first
+    worksheet of the workbook is required for the chart-cache refresh
+    use-case; additional worksheets are parsed lazily on access.
+
+    This is intentionally minimal: it supports inline strings, shared
+    strings, and raw numeric values — the forms that PowerPoint and
+    `XlsxWriter` actually emit for chart data. Formula results are read from
+    the cached `<c:v>` child when present (XlsxWriter does not emit
+    formulas).
+    """
+
+    def __init__(self, xlsx_blob):
+        self._xlsx_blob = xlsx_blob
+        self._shared_strings = None
+        self._sheet_names = None  # list[str] ordered by workbook.xml
+        self._sheet_targets = None  # dict[str, str] sheet_name -> internal path
+        self._sheet_cache = {}  # dict[str, dict[(row,col), value]]
+        self._zf = None
+
+    def __enter__(self):
+        self._open()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close()
+
+    def _open(self):
+        if self._zf is None:
+            self._zf = zipfile.ZipFile(io.BytesIO(self._xlsx_blob))
+
+    def close(self):
+        if self._zf is not None:
+            self._zf.close()
+            self._zf = None
+
+    # -- public API ---------------------------------------------------------
+
+    def cell_value(self, sheet_name, row, col):
+        """Return the value of cell (`row`, `col`) in `sheet_name`, or |None|.
+
+        Rows and columns are 1-based. Returns |None| when the sheet is not
+        present in the workbook, when the cell has no value, or when the
+        cell's stored value is an empty string. Numeric cells are returned
+        as `float`, string cells (inline or shared) as `str`.
+        """
+        self._open()
+        self._load_workbook_meta()
+        sheet_cells = self._load_sheet(sheet_name)
+        if sheet_cells is None:
+            return None
+        return sheet_cells.get((row, col))
+
+    # -- internal helpers --------------------------------------------------
+
+    def _load_workbook_meta(self):
+        if self._sheet_names is not None:
+            return
+        # --- read workbook.xml for sheet order + rIds ---
+        try:
+            wb_bytes = self._zf.read("xl/workbook.xml")
+        except KeyError:
+            self._sheet_names = []
+            self._sheet_targets = {}
+            return
+        wb = etree.fromstring(wb_bytes)
+        sheet_elms = wb.findall(f"{{{_SML_NS}}}sheets/{{{_SML_NS}}}sheet")
+        names = []
+        rid_by_name = {}
+        for s in sheet_elms:
+            name = s.get("name")
+            rid = s.get(f"{{{_OFC_REL_NS}}}id")
+            names.append(name)
+            rid_by_name[name] = rid
+        # --- resolve rIds via xl/_rels/workbook.xml.rels ---
+        try:
+            rels_bytes = self._zf.read("xl/_rels/workbook.xml.rels")
+        except KeyError:
+            rels_bytes = b""
+        target_by_rid = {}
+        if rels_bytes:
+            rels = etree.fromstring(rels_bytes)
+            for rel in rels.findall(f"{{{_OPC_REL_NS}}}Relationship"):
+                target_by_rid[rel.get("Id")] = rel.get("Target")
+        self._sheet_names = names
+        self._sheet_targets = {}
+        for name, rid in rid_by_name.items():
+            target = target_by_rid.get(rid)
+            if target is None:
+                continue
+            # Targets are relative to xl/ (e.g. 'worksheets/sheet1.xml').
+            if target.startswith("/"):
+                path = target.lstrip("/")
+            else:
+                path = "xl/" + target
+            self._sheet_targets[name] = path
+
+    def _load_shared_strings(self):
+        if self._shared_strings is not None:
+            return
+        try:
+            ss_bytes = self._zf.read("xl/sharedStrings.xml")
+        except KeyError:
+            self._shared_strings = []
+            return
+        sst = etree.fromstring(ss_bytes)
+        results = []
+        for si in sst.findall(f"{{{_SML_NS}}}si"):
+            # --- si may have a single <t> or a sequence of <r><t>… runs ---
+            parts = []
+            for t in si.iter(f"{{{_SML_NS}}}t"):
+                parts.append(t.text or "")
+            results.append("".join(parts))
+        self._shared_strings = results
+
+    def _load_sheet(self, sheet_name):
+        if sheet_name in self._sheet_cache:
+            return self._sheet_cache[sheet_name]
+        self._load_workbook_meta()
+        # --- fall back to first sheet if named sheet not present ---
+        # (PowerPoint/XlsxWriter always put chart data in Sheet1; real-world
+        # files sometimes keep the literal "Sheet1" reference even when the
+        # tab has been renamed.) ---
+        path = self._sheet_targets.get(sheet_name)
+        if path is None and self._sheet_names:
+            path = self._sheet_targets.get(self._sheet_names[0])
+        if path is None:
+            self._sheet_cache[sheet_name] = None
+            return None
+        try:
+            sheet_bytes = self._zf.read(path)
+        except KeyError:
+            self._sheet_cache[sheet_name] = None
+            return None
+        self._load_shared_strings()
+        cells = {}
+        ws = etree.fromstring(sheet_bytes)
+        for c in ws.iter(f"{{{_SML_NS}}}c"):
+            addr = c.get("r")
+            if not addr:
+                continue
+            m = re.match(r"([A-Za-z]+)(\d+)$", addr)
+            if m is None:
+                continue
+            col = _column_letters_to_index(m.group(1))
+            row = int(m.group(2))
+            t = c.get("t")
+            v = c.find(f"{{{_SML_NS}}}v")
+            if t == "inlineStr":
+                is_elm = c.find(f"{{{_SML_NS}}}is")
+                text = ""
+                if is_elm is not None:
+                    for t_elm in is_elm.iter(f"{{{_SML_NS}}}t"):
+                        text += t_elm.text or ""
+                cells[(row, col)] = text
+                continue
+            if v is None or v.text is None or v.text == "":
+                continue
+            raw = v.text
+            if t == "s":
+                try:
+                    idx = int(raw)
+                    cells[(row, col)] = self._shared_strings[idx]
+                except (ValueError, IndexError):
+                    cells[(row, col)] = raw
+            elif t == "str":
+                cells[(row, col)] = raw
+            elif t == "b":
+                cells[(row, col)] = raw != "0"
+            elif t == "e":
+                # --- error cells: return the error text so callers can
+                #     surface it verbatim. ---
+                cells[(row, col)] = raw
+            else:
+                # --- default numeric ---
+                try:
+                    cells[(row, col)] = float(raw)
+                except ValueError:
+                    cells[(row, col)] = raw
+        self._sheet_cache[sheet_name] = cells
+        return cells

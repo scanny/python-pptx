@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
+from pptx.oxml import parse_xml
 from pptx.chart.chart import Chart, ChartTitle, Legend, _Plots
 from pptx.chart.data import ChartData
 from pptx.chart.plot import _BasePlot
@@ -160,6 +161,30 @@ class DescribeChart(object):
         rewriter_.replace_series_data.assert_called_once_with(chartSpace)
         workbook_.update_from_xlsx_blob.assert_called_once_with(xlsx_blob)
 
+    def it_refreshes_cached_values_from_the_embedded_xlsx(
+        self, update_cached_fixture
+    ):
+        chart, expected_xml = update_cached_fixture
+
+        chart.update_cached_values()
+
+        assert chart._chartSpace.xml == expected_xml
+
+    def it_is_a_noop_when_the_chart_has_no_embedded_xlsx(
+        self, request, workbook_prop_, workbook_
+    ):
+        workbook_.xlsx_part = None
+        chartSpace = element("c:chartSpace/c:chart")
+        chart = Chart(chartSpace, None)
+        # -- make sure no WorkbookReader is constructed in the no-xlsx path --
+        WorkbookReader_ = class_mock(request, "pptx.chart.chart.WorkbookReader")
+        original_xml = chartSpace.xml
+
+        chart.update_cached_values()
+
+        assert WorkbookReader_.call_args_list == []
+        assert chartSpace.xml == original_xml
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(params=["c:catAx", "c:dateAx", "c:valAx"])
@@ -289,6 +314,54 @@ class DescribeChart(object):
             workbook_,
             xlsx_blob,
         )
+
+    @pytest.fixture
+    def update_cached_fixture(self, request, workbook_prop_, workbook_):
+        # -- chartSpace with one numRef and one strRef resolving to Sheet1 --
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            "<c:tx><c:strRef><c:f>Sheet1!$B$1</c:f><c:strCache>"
+            '<c:ptCount val="1"/>'
+            '<c:pt idx="0"><c:v>OldName</c:v></c:pt>'
+            "</c:strCache></c:strRef></c:tx>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$B$3</c:f><c:numCache>"
+            "<c:formatCode>0.00</c:formatCode>"
+            '<c:ptCount val="2"/>'
+            '<c:pt idx="0"><c:v>1</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>2</c:v></c:pt>'
+            "</c:numCache></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chartSpace = parse_xml(chartSpace_xml)
+        chart = Chart(chartSpace, None)
+        # -- fake xlsx part containing a workbook with the new cell values --
+        workbook_.xlsx_part = _XlsxPartStub(
+            _build_update_cached_xlsx_blob(
+                {("Sheet1", 1, 2): "NewName"},
+                {("Sheet1", 2, 2): 10.0, ("Sheet1", 3, 2): 20.5},
+            )
+        )
+        expected_xml = parse_xml(
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            "<c:tx><c:strRef><c:f>Sheet1!$B$1</c:f><c:strCache>"
+            '<c:ptCount val="1"/>'
+            '<c:pt idx="0"><c:v>NewName</c:v></c:pt>'
+            "</c:strCache></c:strRef></c:tx>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$B$3</c:f><c:numCache>"
+            "<c:formatCode>0.00</c:formatCode>"
+            '<c:ptCount val="2"/>'
+            '<c:pt idx="0"><c:v>10</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>20.5</c:v></c:pt>'
+            "</c:numCache></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        ).xml
+        return chart, expected_xml
 
     @pytest.fixture
     def series_fixture(self, SeriesCollection_, series_collection_):
@@ -648,3 +721,86 @@ class Describe_Plots(object):
     @pytest.fixture
     def plot_(self, request):
         return instance_mock(request, _BasePlot)
+
+
+class _XlsxPartStub(object):
+    """Fake `EmbeddedXlsxPart` exposing only the `blob` attribute used here."""
+
+    def __init__(self, blob):
+        self.blob = blob
+
+
+def _build_update_cached_xlsx_blob(string_cells, number_cells):
+    """Return a minimal xlsx blob containing the given cells.
+
+    `string_cells` maps (sheet, row, col) -> str; values go through
+    sharedStrings. `number_cells` maps (sheet, row, col) -> float.
+    """
+    import io as _io
+    import zipfile as _zipfile
+
+    # --- collect shared strings and build a cell-address map ---
+    shared = []
+    sst_idx = {}
+    for (_s, _r, _c), v in string_cells.items():
+        if v not in sst_idx:
+            sst_idx[v] = len(shared)
+            shared.append(v)
+
+    def _addr(row, col):
+        letters = ""
+        n = col
+        while n:
+            rem = (n - 1) % 26
+            letters = chr(ord("A") + rem) + letters
+            n = (n - 1) // 26
+        return "%s%d" % (letters, row)
+
+    # --- group by row for the sheet xml ---
+    rows = {}
+    for (_s, r, c), v in string_cells.items():
+        rows.setdefault(r, []).append(
+            '<c r="%s" t="s"><v>%d</v></c>' % (_addr(r, c), sst_idx[v])
+        )
+    for (_s, r, c), v in number_cells.items():
+        rows.setdefault(r, []).append('<c r="%s"><v>%r</v></c>' % (_addr(r, c), v))
+
+    row_xml = "".join(
+        '<row r="%d">%s</row>' % (r, "".join(cells)) for r, cells in sorted(rows.items())
+    )
+    sheet_xml = (
+        '<?xml version="1.0"?>'
+        '<worksheet xmlns='
+        '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        "<sheetData>" + row_xml + "</sheetData></worksheet>"
+    )
+    workbook_xml = (
+        '<?xml version="1.0"?>'
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>'
+        "</workbook>"
+    )
+    rels_xml = (
+        '<?xml version="1.0"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+        'relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        "</Relationships>"
+    )
+    buf = _io.BytesIO()
+    with _zipfile.ZipFile(buf, "w") as z:
+        z.writestr("xl/workbook.xml", workbook_xml)
+        z.writestr("xl/_rels/workbook.xml.rels", rels_xml)
+        z.writestr("xl/worksheets/sheet1.xml", sheet_xml)
+        if shared:
+            sst_xml = (
+                '<?xml version="1.0"?>'
+                '<sst xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                + "".join("<si><t>%s</t></si>" % s for s in shared)
+                + "</sst>"
+            )
+            z.writestr("xl/sharedStrings.xml", sst_xml)
+    return buf.getvalue()
