@@ -6,6 +6,26 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #808 (replaced chart data triggers PowerPoint "repair needed" on
+  open) resolved by ``fix/issue-396-replace-data-type-mismatch`` together
+  with ``fix/chart-replace-data-490`` (both Wave 3). The two root-causes
+  that put callers in the #808 state — passing a ``CategoryChartData`` to
+  an XY or bubble chart (or vice-versa), which wrote ``c:cat/c:val`` into
+  a plot expecting ``c:xVal/c:yVal`` / ``c:bubbleSize``, and a chart
+  whose embedded-workbook relationship was stripped so
+  ``ChartWorkbook.xlsx_part`` raised ``KeyError`` — are both handled up
+  front now (``ValueError`` with a name-the-expected-type message for
+  #396, transparent re-attach of a fresh ``EmbeddedXlsxPart`` for #490).
+  The reporter's exact scenario (2-series 100% stacked-bar chart,
+  replaced with 6 series and 5 categories via ``CategoryChartData``)
+  produces valid category-chart XML with unique ``c:idx`` / ``c:order``,
+  matched ``c:numRef`` / ``c:strRef`` caches, and a live
+  ``c:externalData`` pointing at a freshly-written embedded ``.xlsx``;
+  round-trips through save + reload with all 6 series intact. Adds a
+  regression suite ``DescribeIssue808ReplaceChartDataRepair`` under
+  ``tests/test_issue_808_replace_chart_data_repair.py`` that pins the
+  happy path, the #396 type-mismatch guard, and the #490 missing-rel
+  recovery so any future regression of either path would reproduce #808.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
