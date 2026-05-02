@@ -6,6 +6,23 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #243 add :meth:`Chart.apply_template` that applies a ``.crtx``
+  chart-template package to an existing chart. The template (a ZIP
+  package containing a ``c:chartSpace`` XML part) is opened and its
+  formatting elements are copied onto the target chart, leaving the
+  chart's own series data, embedded workbook, and axis ``axId``
+  references untouched. What crosses over: the chart-style index
+  (``c:style`` or ``mc:AlternateContent`` / ``c14:style``),
+  chart-space ``c:spPr`` / ``c:txPr``, the ``c:legend`` element, and
+  (per axis of matching type) ``c:majorGridlines`` /
+  ``c:minorGridlines`` / ``c:numFmt`` / ``c:majorTickMark`` /
+  ``c:minorTickMark`` / ``c:tickLblPos`` / ``c:spPr`` / ``c:txPr``.
+  ``c:ser`` data and ``c:externalData`` are preserved; ``c:title``
+  from the template is adopted only when the target has no title.
+  Accepts a path, bytes, or any file-like object
+  :class:`zipfile.ZipFile` can open. Does not change chart type;
+  pair with ``SlideShapes.add_chart`` when the template is for a
+  different plot family than the target.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

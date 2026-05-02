@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import io
+import os
+import zipfile
 from collections.abc import Sequence
+from copy import deepcopy
 
 from lxml import etree
 
@@ -20,6 +24,7 @@ from pptx.chart.xlsx import (
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory, _PlotFragmentBuilder
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE
+from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame
@@ -113,6 +118,79 @@ class Chart(PartElementProxy):
         last_xChart = xCharts[-1]
         last_xChart.addnext(new_xChart)
         return PlotFactory(new_xChart, self)
+
+    def apply_template(self, template):
+        """Apply the chart formatting from a ``.crtx`` chart template.
+
+        A ``.crtx`` chart-template file is a ZIP package containing a single
+        chart ``c:chartSpace`` XML part (typically at ``chart/chart1.xml``).
+        This method copies the *formatting* elements from that template onto
+        this chart while leaving the chart's own *data* (series values,
+        categories, embedded workbook) unchanged. It is the programmatic
+        counterpart to PowerPoint's "Change Chart Type > Templates" UI
+        command (GitHub issue #243).
+
+        Parameters
+        ----------
+        template : str | bytes | file-like
+            Path to a ``.crtx`` file, the bytes of one, or any file-like
+            object (opened in binary mode) the :class:`zipfile.ZipFile`
+            constructor accepts.
+
+        What is copied
+        --------------
+        The following formatting elements are copied from the template's
+        ``c:chartSpace`` onto this chart's ``c:chartSpace``:
+
+        * ``c:style`` and/or the ``mc:AlternateContent`` wrapper holding a
+          ``c14:style`` — the chart-style index (e.g. 118 for "Accent-N").
+        * ``c:spPr`` — the chart-space fill / line / effect formatting.
+        * ``c:txPr`` — the default text properties (font family, size,
+          color) applied chart-wide.
+        * On each axis in this chart's plot area, when the template has a
+          same-type axis (``c:catAx`` ↔ ``c:catAx``, ``c:valAx`` ↔
+          ``c:valAx``, ``c:dateAx`` ↔ ``c:dateAx``): the axis
+          ``c:majorGridlines``, ``c:minorGridlines``, ``c:numFmt``,
+          ``c:majorTickMark``, ``c:minorTickMark``, ``c:tickLblPos``,
+          ``c:spPr`` and ``c:txPr`` sub-elements are replaced.
+        * ``c:legend`` — when the template has a legend, its entire legend
+          element (position, layout, and formatting) replaces this
+          chart's legend. When the template has no legend, this chart's
+          legend is left alone.
+
+        What is preserved
+        -----------------
+        * All ``c:ser`` series elements (data, references, caches) — the
+          whole point of templating is to re-skin *these* data.
+        * The chart's embedded ``.xlsx`` workbook (``c:externalData``).
+        * The chart's own ``c:title`` text; a template title element is
+          copied only when this chart has no title. (A template's title
+          text is usually a placeholder such as "Chart Title" — see the
+          Notes section below.)
+        * Axis ``c:axId`` values and scaling / cross references (so the
+          target's plotted series remain connected to their axes).
+        * The underlying plot type (``c:barChart``, ``c:lineChart``,
+          etc.). This method does *not* change chart type; pair it with
+          :meth:`~pptx.chart.chart.Chart.add_plot` or a fresh
+          :meth:`~pptx.shapes.shapetree.SlideShapes.add_chart` when the
+          template is for a different chart type than the target.
+
+        Notes
+        -----
+        A ``.crtx`` is always a ZIP package even though PowerPoint shows it
+        as a single file. Its embedded chart XML may reference cells in an
+        embedded Excel workbook that is *not* included in the template
+        (the cells serve only as placeholders for the author when the
+        template was saved). This method ignores those references and any
+        ``c:externalData`` in the template — only the formatting elements
+        listed above cross over.
+
+        Raises :class:`ValueError` when the template is not a valid ZIP
+        package or does not contain a recognizable ``c:chartSpace`` XML
+        part.
+        """
+        template_chartSpace = _CrtxReader(template).chartSpace
+        _ChartTemplateApplier(self._chartSpace, template_chartSpace).apply()
 
     @property
     def category_axis(self):
@@ -1046,3 +1124,314 @@ class _Plots(Sequence):
 
     def __len__(self):
         return len(self._plotArea.xCharts)
+
+
+class _CrtxReader(object):
+    """Open a ``.crtx`` chart-template package and expose its ``c:chartSpace``.
+
+    A ``.crtx`` is a ZIP package; its chart XML typically lives at
+    ``chart/chart1.xml`` but we scan the archive for any entry whose root
+    element is ``c:chartSpace`` to be robust against future layouts.
+    """
+
+    def __init__(self, template):
+        self._template = template
+
+    @property
+    def chartSpace(self):
+        """Return the ``c:chartSpace`` element parsed from the template."""
+        raw = self._open_zip()
+        try:
+            with zipfile.ZipFile(raw) as zf:
+                for name in zf.namelist():
+                    # -- ignore rels, content-types, theme, etc. --
+                    if not name.lower().endswith(".xml"):
+                        continue
+                    if "_rels" in name.lower() or name.lower().endswith(".rels"):
+                        continue
+                    blob = zf.read(name)
+                    if b"chartSpace" not in blob:
+                        continue
+                    try:
+                        elm = parse_xml(blob)
+                    except etree.XMLSyntaxError:
+                        continue
+                    if elm.tag == qn("c:chartSpace"):
+                        return elm
+        except zipfile.BadZipFile as exc:
+            raise ValueError(
+                "apply_template: template is not a valid .crtx ZIP package: %s"
+                % exc
+            )
+        raise ValueError(
+            "apply_template: no c:chartSpace XML part found in template"
+        )
+
+    def _open_zip(self):
+        """Return a binary file-like opened on the template data."""
+        tmpl = self._template
+        if isinstance(tmpl, (bytes, bytearray)):
+            return io.BytesIO(bytes(tmpl))
+        if isinstance(tmpl, (str, os.PathLike)):
+            return open(tmpl, "rb")
+        # -- assume an already-open file-like object --
+        return tmpl
+
+
+class _ChartTemplateApplier(object):
+    """Copy formatting elements from a template ``c:chartSpace`` onto a target.
+
+    Data (c:ser, c:externalData) on the target is left untouched; axis IDs
+    and cross-references are preserved so the copy cannot break the chart's
+    own series-to-axis plumbing. See :meth:`Chart.apply_template` for the
+    full list of what is and isn't copied.
+    """
+
+    # -- chartSpace-level children that carry only formatting --
+    _CHARTSPACE_FMT_TAGS = ("c:style", "c:spPr", "c:txPr")
+
+    # -- axis-level children that carry only formatting (no axId / scaling / --
+    # -- cross references, so copying them cannot break axis plumbing) --
+    _AXIS_FMT_TAGS = (
+        "c:majorGridlines",
+        "c:minorGridlines",
+        "c:numFmt",
+        "c:majorTickMark",
+        "c:minorTickMark",
+        "c:tickLblPos",
+        "c:spPr",
+        "c:txPr",
+    )
+
+    _AXIS_TAGS = ("c:catAx", "c:dateAx", "c:valAx", "c:serAx")
+
+    def __init__(self, target_chartSpace, template_chartSpace):
+        self._target = target_chartSpace
+        self._template = template_chartSpace
+
+    def apply(self):
+        self._apply_style()
+        self._apply_chartSpace_formatting()
+        self._apply_axes_formatting()
+        self._apply_legend()
+        self._apply_title_if_absent()
+
+    # -- chart-style index (c:style or mc:AlternateContent/c14:style) --
+
+    def _apply_style(self):
+        """Copy the chart-style index from the template to the target.
+
+        Uses :meth:`CT_ChartSpace.set_chart_style_ex_val` which already
+        handles the plain-vs-extended split (plain ``c:style`` 1-48 vs.
+        ``mc:AlternateContent/c14:style`` 49-255).
+        """
+        # -- read template's effective style value (extended preferred) --
+        style_val = self._template.chart_style_ex_val
+        if style_val is None:
+            return
+        self._target.set_chart_style_ex_val(style_val)
+
+    # -- chartSpace-level c:spPr / c:txPr --
+
+    def _apply_chartSpace_formatting(self):
+        """Replace target's ``c:spPr`` / ``c:txPr`` with the template's copies."""
+        for tag in ("c:spPr", "c:txPr"):
+            template_elm = self._template.find(qn(tag))
+            # -- remove any existing child of this tag on the target --
+            for existing in self._target.findall(qn(tag)):
+                self._target.remove(existing)
+            if template_elm is None:
+                continue
+            self._insert_in_schema_order(
+                self._target, deepcopy(template_elm), tag
+            )
+
+    # -- axis formatting (per axis type) --
+
+    def _apply_axes_formatting(self):
+        """For each target axis with a matching template axis of the same type,
+        replace the target axis's formatting sub-elements with the template's.
+
+        "Matching" means same tag name and same ordinal position among
+        axes of that type (1st valAx ↔ 1st valAx, 2nd valAx ↔ 2nd valAx).
+        """
+        target_pa = self._target.find(qn("c:chart") + "/" + qn("c:plotArea"))
+        template_pa = self._template.find(
+            qn("c:chart") + "/" + qn("c:plotArea")
+        )
+        if target_pa is None or template_pa is None:
+            return
+        for axis_tag in self._AXIS_TAGS:
+            target_axes = target_pa.findall(qn(axis_tag))
+            template_axes = template_pa.findall(qn(axis_tag))
+            for target_axis, template_axis in zip(target_axes, template_axes):
+                self._apply_axis_formatting(target_axis, template_axis)
+
+    def _apply_axis_formatting(self, target_axis, template_axis):
+        """Copy each formatting child of `template_axis` onto `target_axis`.
+
+        The target's existing same-tag child is replaced. Non-formatting
+        children (axId, scaling, delete, axPos, crosses, crossesAt, etc.)
+        on the target are untouched.
+        """
+        for tag in self._AXIS_FMT_TAGS:
+            template_child = template_axis.find(qn(tag))
+            # -- remove any existing child on the target --
+            for existing in target_axis.findall(qn(tag)):
+                target_axis.remove(existing)
+            if template_child is None:
+                continue
+            # -- use ZeroOrOne accessor to respect schema order when possible --
+            attr = tag.split(":", 1)[1]
+            # -- some schema attribute names are python keywords (delete_) --
+            # -- but none of the _AXIS_FMT_TAGS are; direct name works. --
+            if hasattr(target_axis, attr):
+                # -- the ZeroOrOne descriptor's setter handles insertion --
+                # -- but to keep the copy deep we set via direct insert --
+                self._insert_axis_child(target_axis, deepcopy(template_child))
+            else:
+                # -- fall back to plain append; caller can re-serialize --
+                target_axis.append(deepcopy(template_child))
+
+    def _insert_axis_child(self, target_axis, new_elm):
+        """Insert `new_elm` into `target_axis` in schema-declared order.
+
+        Uses the axis element's declared ``_tag_seq`` when available; else
+        appends.
+        """
+        tag_seq = getattr(target_axis.__class__, "_tag_seq", None)
+        if tag_seq is None:
+            target_axis.append(new_elm)
+            return
+        try:
+            new_idx = tag_seq.index(new_elm.tag.replace(
+                "{http://schemas.openxmlformats.org/drawingml/2006/chart}",
+                "c:",
+            ))
+        except ValueError:
+            target_axis.append(new_elm)
+            return
+        # -- find first existing child whose schema index is > new_idx --
+        insert_before = None
+        for child in target_axis:
+            child_short = child.tag.replace(
+                "{http://schemas.openxmlformats.org/drawingml/2006/chart}",
+                "c:",
+            )
+            try:
+                child_idx = tag_seq.index(child_short)
+            except ValueError:
+                continue
+            if child_idx > new_idx:
+                insert_before = child
+                break
+        if insert_before is not None:
+            insert_before.addprevious(new_elm)
+        else:
+            target_axis.append(new_elm)
+
+    # -- legend --
+
+    def _apply_legend(self):
+        """Replace target's ``c:legend`` with a deep copy of the template's.
+
+        When the template has no legend, the target's legend is left alone
+        (callers who want to drop the legend can set ``chart.has_legend =
+        False`` separately).
+        """
+        template_legend = self._template.find(
+            qn("c:chart") + "/" + qn("c:legend")
+        )
+        if template_legend is None:
+            return
+        target_chart = self._target.find(qn("c:chart"))
+        if target_chart is None:
+            return
+        for existing in target_chart.findall(qn("c:legend")):
+            target_chart.remove(existing)
+        new_legend = deepcopy(template_legend)
+        # -- insert in schema order: before c:plotVisOnly, after c:plotArea --
+        plotArea = target_chart.find(qn("c:plotArea"))
+        if plotArea is not None:
+            plotArea.addnext(new_legend)
+        else:
+            target_chart.append(new_legend)
+
+    # -- title (only when target has no title) --
+
+    def _apply_title_if_absent(self):
+        """Copy the template's ``c:title`` to the target only when the target
+        does not already have one.
+
+        Template titles typically contain placeholder text ("Chart Title"),
+        so overwriting an authored title would be surprising. When the
+        target has no title, though, the template's title element carries
+        useful formatting (font / fill / layout) that is worth adopting.
+        """
+        target_chart = self._target.find(qn("c:chart"))
+        template_chart = self._template.find(qn("c:chart"))
+        if target_chart is None or template_chart is None:
+            return
+        if target_chart.find(qn("c:title")) is not None:
+            return
+        template_title = template_chart.find(qn("c:title"))
+        if template_title is None:
+            return
+        new_title = deepcopy(template_title)
+        # -- title is the first child of c:chart in schema order --
+        if len(target_chart) == 0:
+            target_chart.append(new_title)
+        else:
+            target_chart[0].addprevious(new_title)
+        # -- ensure autoTitleDeleted is not set to True (if present) --
+        autoTitleDeleted = target_chart.find(qn("c:autoTitleDeleted"))
+        if autoTitleDeleted is not None:
+            autoTitleDeleted.set("val", "0")
+
+    # -- helpers --
+
+    def _insert_in_schema_order(self, parent, new_elm, tag):
+        """Insert `new_elm` into `parent` respecting the chartSpace tag order.
+
+        The target is a ``c:chartSpace`` whose ``_tag_seq`` declares the
+        canonical child order. Falls back to append when the tag isn't in
+        the declared sequence.
+        """
+        tag_seq = (
+            "c:date1904",
+            "c:lang",
+            "c:roundedCorners",
+            "c:style",
+            "c:clrMapOvr",
+            "c:pivotSource",
+            "c:protection",
+            "c:chart",
+            "c:spPr",
+            "c:txPr",
+            "c:externalData",
+            "c:printSettings",
+            "c:userShapes",
+            "c:extLst",
+        )
+        try:
+            new_idx = tag_seq.index(tag)
+        except ValueError:
+            parent.append(new_elm)
+            return
+        insert_before = None
+        for child in parent:
+            child_short = child.tag.replace(
+                "{http://schemas.openxmlformats.org/drawingml/2006/chart}",
+                "c:",
+            )
+            try:
+                child_idx = tag_seq.index(child_short)
+            except ValueError:
+                continue
+            if child_idx > new_idx:
+                insert_before = child
+                break
+        if insert_before is not None:
+            insert_before.addprevious(new_elm)
+        else:
+            parent.append(new_elm)

@@ -8,6 +8,7 @@ import pytest
 
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.oxml import parse_xml
+from pptx.oxml.ns import qn
 from pptx.chart.chart import Chart, ChartTitle, Legend, _Plots
 from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyChartData
 from pptx.chart.plot import _BasePlot
@@ -377,6 +378,130 @@ class DescribeChart(object):
         chart.update_cached_values()
 
         assert chart._chartSpace.xml == expected_xml
+
+    # -- Chart.apply_template (issue #243) ---------------------------
+
+    def it_can_apply_a_chart_template_243(self):
+        """``Chart.apply_template`` copies chart-space formatting from a
+        ``.crtx`` package onto an existing chart, leaving data alone.
+        """
+        import io
+        import zipfile
+
+        target_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml'
+            '/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocu'
+            'ment/2006/relationships">'
+            '<c:style val="2"/>'
+            "<c:chart><c:plotArea>"
+            "<c:barChart>"
+            '<c:ser><c:idx val="0"/><c:order val="0"/>'
+            '<c:val><c:numRef><c:f>Sheet1!$A$1</c:f></c:numRef></c:val>'
+            "</c:ser>"
+            '<c:axId val="1"/><c:axId val="2"/>'
+            "</c:barChart>"
+            '<c:catAx><c:axId val="1"/></c:catAx>'
+            '<c:valAx><c:axId val="2"/></c:valAx>'
+            "</c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        template_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml'
+            '/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-co'
+            'mpatibility/2006">'
+            "<mc:AlternateContent>"
+            '<mc:Choice Requires="c14" xmlns:c14="http://schemas.microsoft.com'
+            '/office/drawing/2007/8/2/chart"><c14:style val="118"/></mc:Choice>'
+            '<mc:Fallback><c:style val="18"/></mc:Fallback>'
+            "</mc:AlternateContent>"
+            "<c:chart><c:plotArea>"
+            "<c:barChart>"
+            '<c:axId val="100"/><c:axId val="200"/>'
+            "</c:barChart>"
+            '<c:catAx><c:axId val="100"/><c:majorTickMark val="out"/></c:catAx>'
+            '<c:valAx><c:axId val="200"/><c:numFmt formatCode="0.00%" source'
+            'Linked="0"/></c:valAx>'
+            "</c:plotArea>"
+            '<c:legend><c:legendPos val="r"/></c:legend>'
+            "</c:chart>"
+            '<c:spPr><a:solidFill><a:srgbClr val="ABCDEF"/></a:solidFill></c:spPr>'
+            "<c:txPr><a:bodyPr/><a:lstStyle/>"
+            '<a:p><a:pPr><a:defRPr sz="1200"/></a:pPr></a:p>'
+            "</c:txPr>"
+            "</c:chartSpace>"
+        )
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("chart/chart1.xml", template_xml)
+
+        chartSpace = parse_xml(target_xml)
+        chart = Chart(chartSpace, None)
+
+        chart.apply_template(buf.getvalue())
+
+        # -- chart-style upgraded to 118 (extended) --
+        assert chartSpace.chart_style_ex_val == 118
+        # -- chartSpace-level spPr / txPr copied --
+        assert len(chartSpace.findall(qn("c:spPr"))) == 1
+        assert (
+            chartSpace.find(qn("c:spPr") + "/" + qn("a:solidFill")) is not None
+        )
+        assert len(chartSpace.findall(qn("c:txPr"))) == 1
+        # -- legend copied onto target (target had none) --
+        legend = chartSpace.find(qn("c:chart") + "/" + qn("c:legend"))
+        assert legend is not None
+        # -- catAx majorTickMark copied, axId preserved --
+        catAx = chartSpace.find(
+            qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:catAx")
+        )
+        assert catAx.find(qn("c:majorTickMark")).get("val") == "out"
+        assert catAx.find(qn("c:axId")).get("val") == "1"
+        # -- valAx numFmt copied --
+        valAx = chartSpace.find(
+            qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:valAx")
+        )
+        assert valAx.find(qn("c:numFmt")).get("formatCode") == "0.00%"
+        # -- series data preserved (not overwritten) --
+        ser = chartSpace.find(
+            qn("c:chart") + "/" + qn("c:plotArea")
+            + "/" + qn("c:barChart") + "/" + qn("c:ser")
+        )
+        val_f = ser.find(
+            qn("c:val") + "/" + qn("c:numRef") + "/" + qn("c:f")
+        )
+        assert val_f.text == "Sheet1!$A$1"
+
+    def it_raises_when_template_is_not_a_zip_243(self):
+        chartSpace = parse_xml(
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocu'
+            'ment/2006/relationships">'
+            "<c:chart><c:plotArea/></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(chartSpace, None)
+        with pytest.raises(ValueError, match="not a valid .crtx"):
+            chart.apply_template(b"not a zip file")
+
+    def it_raises_when_template_has_no_chartSpace_243(self):
+        import io
+        import zipfile
+
+        chartSpace = parse_xml(
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocu'
+            'ment/2006/relationships">'
+            "<c:chart><c:plotArea/></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(chartSpace, None)
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("not-a-chart.xml", "<root/>")
+        with pytest.raises(ValueError, match="no c:chartSpace"):
+            chart.apply_template(buf.getvalue())
 
     # -- Chart.add_plot (combo chart, issue #338) --------------------
 
