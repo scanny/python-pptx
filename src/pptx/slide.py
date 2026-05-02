@@ -272,6 +272,40 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def delete(self, slide: Slide) -> None:
+        """Remove `slide` from this presentation.
+
+        The corresponding `p:sldId` entry is removed from the `p:sldIdLst` and the
+        presentation-part's relationship to the slide-part is dropped. Parts that become
+        unreachable from the package root (the slide part itself, and any image, media,
+        or chart parts only referenced by that slide) are omitted on the next save, so
+        they are effectively garbage-collected.
+
+        Parts shared with other slides (for example a chart or image referenced from
+        another slide) are preserved because they remain reachable from the package.
+
+        Subsequent use of `slide` is undefined; most operations will raise an exception.
+
+        Raises |ValueError| if `slide` is not a member of this collection.
+        """
+        # -- locate the p:sldId entry for `slide` --
+        target_idx = self.index(slide)
+        target_sldId = self._sldIdLst.sldId_lst[target_idx]
+        rId = target_sldId.rId
+
+        # -- remove the p:sldId from p:sldIdLst so nothing in presentation.xml references
+        # -- the slide. This must happen *before* drop_rel so the reference-count check
+        # -- in drop_rel sees zero remaining references to rId.
+        self._sldIdLst.remove(target_sldId)
+
+        # -- drop the presentation-part -> slide-part relationship. XmlPart.drop_rel only
+        # -- removes the rel when its reference count in the part's XML is under 2, which
+        # -- it is now (we just removed the only reference). Dropping the rel makes the
+        # -- slide part, and everything transitively reachable only from it (notes slide,
+        # -- uniquely-referenced images, media, charts), unreachable from the package root
+        # -- and therefore omitted from the saved package.
+        self.part.drop_rel(rId)
+
     def get(self, slide_id: int, default: Slide | None = None) -> Slide | None:
         """Return the slide identified by int `slide_id` in this presentation.
 

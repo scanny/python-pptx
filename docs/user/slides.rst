@@ -90,11 +90,27 @@ A few things to note:
 Doing other things with slides
 ------------------------------
 
-Right now, adding a slide is the only operation on the slide collection. On the
-backlog at the time of writing is deleting a slide and moving a slide to
-a different position in the list. Copying a slide from one presentation to
-another turns out to be pretty hard to get right in the general case, so that
-probably won't come until more of the backlog is burned down.
+In addition to adding a slide, the slide collection supports deleting a slide
+with :meth:`~pptx.slide.Slides.delete`::
+
+    prs = Presentation("example.pptx")
+    prs.slides.delete(prs.slides[1])  # remove the second slide
+
+:meth:`~pptx.slide.Slides.delete` removes the slide's entry from the
+``p:sldIdLst`` and drops the presentation-part relationship to the slide part.
+On save, the slide part itself and any image, media, or chart parts that were
+only referenced from that slide are omitted from the saved package (they become
+unreachable from the package root). Parts that are also referenced by another
+surviving slide (for example a chart or image used on multiple slides) are
+preserved.
+
+After calling :meth:`~pptx.slide.Slides.delete`, the deleted |Slide| object
+should not be used; most operations on it will raise an exception.
+
+Moving a slide to a different position in the list and copying a slide from
+one presentation to another are not yet supported. Copying a slide across
+presentations turns out to be pretty hard to get right in the general case, so
+that probably won't come until more of the backlog is burned down.
 
 
 Up next ...

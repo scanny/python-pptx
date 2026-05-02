@@ -32,6 +32,14 @@ Feature: Access an individual slide
       And slides.get(666, default=slides[2]) is slides[2]
 
 
+  Scenario: Slides.delete() removes a slide from the presentation
+    Given a Slides object containing 3 slides
+     When I call slides.delete(slides[1])
+     Then len(slides) is 2
+      And the remaining slides are the originals at indices 0 and 2
+      And the presentation round-trips cleanly after delete
+
+
   Scenario: SlideLayouts.__getitem__()
     Given a SlideLayouts object containing 2 layouts as slide_layouts
      Then slide_layouts[1] is a SlideLayout object

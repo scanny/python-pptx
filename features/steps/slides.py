@@ -38,6 +38,14 @@ def when_I_call_slides_add_slide(context):
     context.slides.add_slide(context.slide_layout)
 
 
+@when("I call slides.delete(slides[1])")
+def when_I_call_slides_delete(context):
+    slides = context.slides
+    # -- capture identity of the slide that should survive at the ends --
+    context.surviving_slide_ids = (slides[0].slide_id, slides[2].slide_id)
+    slides.delete(slides[1])
+
+
 @when("I call slide_layouts.remove(slide_layouts[1])")
 def when_I_call_slide_layouts_remove(context):
     slide_layouts = context.slide_layouts
@@ -140,3 +148,35 @@ def then_slides_get_666_default_slides_2_is_slides_2(context):
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides
     assert type(slides[2]).__name__ == "Slide"
+
+
+@then("the remaining slides are the originals at indices 0 and 2")
+def then_remaining_slides_are_originals(context):
+    slides = context.slides
+    remaining_ids = tuple(s.slide_id for s in slides)
+    assert remaining_ids == context.surviving_slide_ids, (
+        "expected remaining slide_ids %r, got %r"
+        % (context.surviving_slide_ids, remaining_ids)
+    )
+
+
+@then("the presentation round-trips cleanly after delete")
+def then_presentation_round_trips_after_delete(context):
+    # -- save to an in-memory stream and reopen to validate the package is still
+    # -- internally consistent (no dangling refs, all referenced parts present) --
+    import io
+
+    from pptx import Presentation
+
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    prs2 = Presentation(buf)
+    assert len(prs2.slides) == 2, "expected 2 slides after round-trip, got %d" % len(
+        prs2.slides
+    )
+    reopened_ids = tuple(s.slide_id for s in prs2.slides)
+    assert reopened_ids == context.surviving_slide_ids, (
+        "expected slide_ids %r after round-trip, got %r"
+        % (context.surviving_slide_ids, reopened_ids)
+    )

@@ -494,6 +494,66 @@ class DescribeSlides(object):
         prs_part_.get_slide.assert_called_once_with(slide_id)
         assert slide is expected_value
 
+    @pytest.mark.parametrize(
+        ("target_idx", "expected_rId", "expected_cxml"),
+        [
+            # --- delete first slide ---
+            (
+                0,
+                "a",
+                "p:sldIdLst/(p:sldId{r:id=b,id=257},p:sldId{r:id=c,id=258})",
+            ),
+            # --- delete middle slide ---
+            (
+                1,
+                "b",
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=c,id=258})",
+            ),
+            # --- delete last slide ---
+            (
+                2,
+                "c",
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257})",
+            ),
+        ],
+    )
+    def it_can_delete_a_slide(self, target_idx, expected_rId, expected_cxml, part_prop_):
+        sldIdLst = element(
+            "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+            "p:sldId{r:id=c,id=258})"
+        )
+        slides = Slides(sldIdLst, None)
+        _slides = [Slide(element("p:sld"), None) for _ in range(3)]
+        # -- .index() iterates, driving related_slide() once per element until match --
+        part_prop_.return_value.related_slide.side_effect = _slides
+
+        slides.delete(_slides[target_idx])
+
+        assert sldIdLst.xml == xml(expected_cxml)
+        part_prop_.return_value.drop_rel.assert_called_once_with(expected_rId)
+
+    def it_can_delete_the_only_slide(self, part_prop_):
+        sldIdLst = element("p:sldIdLst/p:sldId{r:id=a,id=256}")
+        slides = Slides(sldIdLst, None)
+        only_slide = Slide(element("p:sld"), None)
+        part_prop_.return_value.related_slide.return_value = only_slide
+
+        slides.delete(only_slide)
+
+        assert len(sldIdLst.sldId_lst) == 0
+        part_prop_.return_value.drop_rel.assert_called_once_with("a")
+
+    def it_raises_on_delete_when_slide_not_in_collection(self, part_prop_):
+        sldIdLst = element("p:sldIdLst/p:sldId{r:id=a,id=256}")
+        slides = Slides(sldIdLst, None)
+        part_prop_.return_value.related_slide.return_value = Slide(element("p:sld"), None)
+        stranger = Slide(element("p:sld"), None)
+
+        with pytest.raises(ValueError):
+            slides.delete(stranger)
+
+        part_prop_.return_value.drop_rel.assert_not_called()
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
