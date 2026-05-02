@@ -60,6 +60,14 @@ Feature: Table properties and methods
       Then len(table.rows) == 3
        And the new row has two cells
        And the new row height equals the prior last row height
+
+
+  Scenario: _Row.delete()
+     Given a 2x2 Table object as table
+      When I call table.rows[0].delete()
+      Then len(table.rows) == 1
+
+
   Scenario: Table.style_id getter
      Given a 2x2 Table object as table
       Then table.style_id is "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"

@@ -560,6 +560,21 @@ class _Row(Subshape):
         """
         return _CellCollection(self._tr, self)
 
+    def delete(self) -> None:
+        """Remove this row from its containing table.
+
+        The row's `a:tr` element is removed from its parent `a:tbl`. The containing
+        graphic-frame height is reduced by this row's height. Subsequent use of this
+        row object is undefined; most operations will raise an exception.
+
+        Note that deleting a row whose cells participate in a vertical-merge range
+        (as either the merge-origin or a spanned cell) may leave the table in an
+        inconsistent merge state. Split any merged cells spanning the row first
+        (see :meth:`._Cell.split`) if merge integrity is required.
+        """
+        self._tr.getparent().remove(self._tr)
+        self._parent.notify_height_changed()
+
     @property
     def height(self) -> Length:
         """Height of row in EMU.
@@ -666,6 +681,22 @@ class _RowCollection(Subshape):
             tr.add_tc()
         self._parent.notify_height_changed()
         return _Row(tr, self)
+
+    def remove(self, row: _Row) -> None:
+        """Remove `row` from this table.
+
+        `row` must be a |_Row| object belonging to this table; a |ValueError| is raised
+        if it belongs to a different table. The row's `a:tr` element is detached from
+        the containing `a:tbl` and the graphic-frame height is reduced by the deleted
+        row's height.
+
+        This is the collection-level counterpart to :meth:`._Row.delete`. See that
+        method for notes on merged cells crossing the deleted row.
+        """
+        if row._tr.getparent() is not self._tbl:
+            raise ValueError("row is not a member of this table")
+        self._tbl.remove(row._tr)
+        self._parent.notify_height_changed()
 
     def notify_height_changed(self):
         """Called by a row when its height changes. Pass along to parent."""

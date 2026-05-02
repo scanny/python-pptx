@@ -164,6 +164,11 @@ def when_I_call_table_rows_add(context):
     context.added_row = context.table_.rows.add()
 
 
+@when("I call table.rows[0].delete()")
+def when_I_call_table_rows_0_delete(context):
+    context.table_.rows[0].delete()
+
+
 @when("I call cell.split()")
 def when_I_call_cell_split_other_cell(context):
     context.cell.split()

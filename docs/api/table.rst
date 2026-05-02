@@ -43,11 +43,13 @@ A |Table| object is added to a slide using the
 ------------------------
 
 A |_RowCollection| object is accessed using the :attr:`.Table.rows` property.
-Rows can be iterated, indexed, and added to the bottom of the table using its
-:meth:`~._RowCollection.add` method.
+Rows can be iterated, indexed, added to the bottom of the table using its
+:meth:`~._RowCollection.add` method, and individual rows can be removed with
+:meth:`~._RowCollection.remove` (or by calling :meth:`._Row.delete` on the row
+directly).
 
 .. autoclass:: _RowCollection()
-   :members: add
+   :members: add, remove
    :member-order: bysource
    :undoc-members:
 

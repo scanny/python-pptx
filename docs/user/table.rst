@@ -182,6 +182,32 @@ containing graphic-frame shape is automatically increased by the new row's
 height.
 
 
+Deleting a row from an existing table
+-------------------------------------
+
+A row can be removed from a table either by calling :meth:`._Row.delete` on
+the row itself, or by passing the row to :meth:`._RowCollection.remove` on
+the table's rows collection::
+
+    >>> # ---delete the first row---
+    >>> table.rows[0].delete()
+
+    >>> # ---or, equivalently, via the collection---
+    >>> table.rows.remove(table.rows[0])
+
+The row's underlying ``a:tr`` element is removed from the table and the height
+of the containing graphic-frame shape is reduced accordingly. Subsequent use
+of a deleted row object is undefined; most operations on it will raise an
+exception.
+
+.. note::
+
+   Deleting a row whose cells participate in a vertical-merge range (as either
+   the merge-origin or a spanned cell) may leave the table in an inconsistent
+   merge state. If merge integrity matters, split any merged cells that span
+   the row first using :meth:`._Cell.split` on the merge-origin cell.
+
+
 Accessing a cell
 ----------------
 
