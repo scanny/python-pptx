@@ -651,11 +651,25 @@ class Slides(ParentedElementProxy):
         """Support len() built-in function, e.g. `len(slides) == 4`."""
         return len(self._sldIdLst)
 
-    def add_slide(self, slide_layout: SlideLayout) -> Slide:
-        """Return a newly added slide that inherits layout from `slide_layout`."""
+    def add_slide(self, slide_layout: SlideLayout, index: int | None = None) -> Slide:
+        """Return a newly added slide that inherits layout from `slide_layout`.
+
+        `index` is the zero-based position at which the new slide should be
+        inserted in this slide sequence. When omitted (or ``None``), the slide
+        is appended to the end (the historical behavior). A negative `index`
+        counts from the end in the usual Python way; an `index` beyond the end
+        is clamped to the last position (matching :meth:`move_slide` and
+        :meth:`duplicate`).
+
+        The ``index`` keyword was added in 2026.05.0 (#194).
+        """
         rId, slide = self.part.add_slide(slide_layout)
         slide.shapes.clone_layout_placeholders(slide_layout)
-        self._sldIdLst.add_sldId(rId)
+        # -- Always append the new p:sldId first so a fresh slide-id is allocated
+        # -- against the full set of existing ids. Then reposition if needed. --
+        new_sldId = self._sldIdLst.add_sldId(rId)
+        if index is not None:
+            self._reposition_sldId(new_sldId, index)
         return slide
 
     def duplicate(self, slide: Slide, index: int | None = None) -> Slide:

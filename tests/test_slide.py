@@ -641,6 +641,75 @@ class DescribeSlides(object):
         assert slides._sldIdLst.xml == expected_xml
         assert slide is slide_
 
+    @pytest.mark.parametrize(
+        ("index", "expected_cxml"),
+        [
+            # --- insert at beginning ---
+            (
+                0,
+                "p:sldIdLst/(p:sldId{r:id=rIdNew,id=258},p:sldId{r:id=a,id=256},"
+                "p:sldId{r:id=b,id=257})",
+            ),
+            # --- insert in the middle ---
+            (
+                1,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=rIdNew,id=258},"
+                "p:sldId{r:id=b,id=257})",
+            ),
+            # --- positive index at end == append (no error) ---
+            (
+                2,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+                "p:sldId{r:id=rIdNew,id=258})",
+            ),
+            # --- positive index beyond end clamps to last position ---
+            (
+                99,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+                "p:sldId{r:id=rIdNew,id=258})",
+            ),
+            # --- negative index counts from the end (-1 == last position) ---
+            (
+                -1,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+                "p:sldId{r:id=rIdNew,id=258})",
+            ),
+            # --- sufficiently-negative index clamps to first position ---
+            (
+                -99,
+                "p:sldIdLst/(p:sldId{r:id=rIdNew,id=258},p:sldId{r:id=a,id=256},"
+                "p:sldId{r:id=b,id=257})",
+            ),
+        ],
+    )
+    def it_can_add_a_slide_at_a_specific_index(
+        self, index, expected_cxml, part_prop_, slide_, slide_layout_
+    ):
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257})")
+        slides = Slides(sldIdLst, None)
+        part_prop_.return_value.add_slide.return_value = ("rIdNew", slide_)
+
+        new_slide = slides.add_slide(slide_layout_, index=index)
+
+        part_prop_.return_value.add_slide.assert_called_once_with(slide_layout_)
+        slide_.shapes.clone_layout_placeholders.assert_called_once_with(slide_layout_)
+        assert sldIdLst.xml == xml(expected_cxml)
+        assert new_slide is slide_
+
+    def it_appends_when_index_is_None(self, part_prop_, slide_, slide_layout_):
+        """``add_slide`` appends when ``index`` is omitted (the historical behavior)."""
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257})")
+        slides = Slides(sldIdLst, None)
+        part_prop_.return_value.add_slide.return_value = ("rIdNew", slide_)
+
+        new_slide = slides.add_slide(slide_layout_)
+
+        assert sldIdLst.xml == xml(
+            "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+            "p:sldId{r:id=rIdNew,id=258})"
+        )
+        assert new_slide is slide_
+
     def it_can_add_a_slide_cloned_from_another_presentation(
         self, part_prop_, slide_, slide_layout_
     ):
