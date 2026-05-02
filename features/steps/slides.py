@@ -276,6 +276,8 @@ def then_moved_slide_id_is_unchanged(context):
     ), "slide_id changed from %d to %d" % (
         context.original_slide_id,
         context.original_slide.slide_id,
+    )
+
 
 @then("the remaining slides are the originals at indices 0 and 2")
 def then_remaining_slides_are_originals(context):
