@@ -220,6 +220,16 @@ Unreleased
   reference by id in one run continues to resolve the same layout in a
   later run regardless of position changes — a more robust alternative
   to ``slide_master.slide_layouts[index]``.
+- Add #663 :attr:`.BaseShape.text_frame_rect` — read-only property
+  returning a :class:`~pptx.text.text.TextFrameRect` namedtuple
+  ``(left, top, width, height)`` of |Length| values in EMU giving the
+  slide-relative rectangle PowerPoint allocates for rendering a shape's
+  text, i.e. the shape's bounding box shrunk by its four
+  :attr:`.TextFrame.margin_left` / ``margin_top`` / ``margin_right`` /
+  ``margin_bottom`` insets. Raises :class:`ValueError` on a shape that
+  has no text frame. Useful for picking a font-size that will not
+  overflow a shape at render time. See the user-guide section
+  "Inspecting the text-rendering rectangle" in ``docs/user/text.rst``.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use

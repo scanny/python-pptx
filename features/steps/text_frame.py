@@ -6,8 +6,9 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
+from pptx.enum.shapes import MSO_CONNECTOR
 from pptx.enum.text import MSO_AUTO_SIZE
-from pptx.util import Inches, Pt
+from pptx.util import Emu, Inches, Pt
 
 # given ===================================================
 
@@ -49,6 +50,24 @@ def given_a_placeholder_text_frame_as_text_frame(context):
     prs = Presentation(test_pptx("ph-populated-placeholders"))
     # slide 4 is the 'title' populated placeholder
     context.text_frame = prs.slides[4].shapes[0].text_frame
+
+
+@given('a text-box sized 4" x 1" positioned at (1", 2") with default insets')
+def given_a_text_box_with_default_insets(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    context.shape = slide.shapes.add_textbox(
+        Inches(1), Inches(2), Inches(4), Inches(1)
+    )
+
+
+@given("a connector shape")
+def given_a_connector_shape(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    context.shape = slide.shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, Emu(0), Emu(0), Emu(914400), Emu(914400)
+    )
 
 
 # when ====================================================
@@ -99,6 +118,11 @@ def when_I_assign_value_to_text_frame_font_scale(context, value):
 @when("I assign {value} to text_frame.line_space_reduction")
 def when_I_assign_value_to_text_frame_line_space_reduction(context, value):
     context.text_frame.line_space_reduction = float(value)
+
+
+@when("I read its text_frame_rect")
+def when_I_read_its_text_frame_rect(context):
+    context.text_frame_rect = context.shape.text_frame_rect
 
 
 @given("a shape too narrow to fit any word at any considered font size")
@@ -221,3 +245,24 @@ def then_text_frame_line_space_reduction_is_value(context, value):
     expected = float(value)
     actual = context.text_frame.line_space_reduction
     assert actual == expected, "expected %s, got %s" % (expected, actual)
+
+
+@then("text_frame_rect.{side}.inches == {inches}")
+def then_text_frame_rect_side_inches_eq_inches(context, side, inches):
+    attr = getattr(context.text_frame_rect, side)
+    actual = round(attr.inches, 3)
+    expected = round(float(inches), 3)
+    assert actual == expected, "text_frame_rect.%s.inches == %s (expected %s)" % (
+        side,
+        actual,
+        expected,
+    )
+
+
+@then("reading text_frame_rect raises ValueError")
+def then_reading_text_frame_rect_raises_ValueError(context):
+    try:
+        context.shape.text_frame_rect
+    except ValueError:
+        return
+    raise AssertionError("expected ValueError, nothing raised")

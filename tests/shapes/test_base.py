@@ -616,6 +616,51 @@ class DescribeBaseShape(object):
         shape = BaseShape(None, None)
         assert shape.has_text_frame is False
 
+    def it_computes_its_text_frame_rect_from_its_extents_and_margins(self):
+        # -- textbox at (1", 2") sized 4" x 1" — default insets are
+        # -- 0.1" l/r (91440 EMU each), 0.05" t/b (45720 EMU each) on a
+        # -- fresh a:bodyPr.
+        sp_cxml = (
+            "p:sp/(p:spPr/a:xfrm/(a:off{x=914400,y=1828800},a:ext{cx=3657600,"
+            "cy=914400}),p:txBody/(a:bodyPr,a:p))"
+        )
+        shape = Shape(cast("ShapeElement", element(sp_cxml)), None)
+
+        rect = shape.text_frame_rect
+
+        # -- TextFrameRect is a NamedTuple of 4 Length values
+        assert rect.left == 914400 + 91440  # 1" + 0.1"
+        assert rect.top == 1828800 + 45720  # 2" + 0.05"
+        assert rect.width == 3657600 - 2 * 91440  # 4" - 0.2"
+        assert rect.height == 914400 - 2 * 45720  # 1" - 0.1"
+        # -- tuple unpacking and EMU readback both work
+        left, top, width, height = rect
+        assert left.emu == 1005840
+        assert top.emu == 1874520
+        assert width.emu == 3474720
+        assert height.emu == 822960
+
+    def it_honors_explicit_margins_when_computing_text_frame_rect(self):
+        # -- 2" x 2" shape at origin with explicit 1/2" insets on every side
+        sp_cxml = (
+            "p:sp/(p:spPr/a:xfrm/(a:off{x=0,y=0},a:ext{cx=1828800,cy=1828800"
+            "}),p:txBody/(a:bodyPr{lIns=457200,tIns=457200,rIns=457200,bIns="
+            "457200},a:p))"
+        )
+        shape = Shape(cast("ShapeElement", element(sp_cxml)), None)
+
+        rect = shape.text_frame_rect
+
+        assert rect.left == Inches(0.5)
+        assert rect.top == Inches(0.5)
+        assert rect.width == Inches(1.0)
+        assert rect.height == Inches(1.0)
+
+    def it_raises_on_text_frame_rect_when_no_text_frame(self):
+        shape = BaseShape(None, None)
+        with pytest.raises(ValueError, match="shape has no text frame"):
+            shape.text_frame_rect
+
     def it_can_delete_itself_from_its_parent(self):
         spTree = cast("ShapeElement", element("p:spTree/(p:sp,p:sp,p:sp)"))
         sps = spTree.xpath("p:sp")

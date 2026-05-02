@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator, cast
+from typing import TYPE_CHECKING, Iterator, NamedTuple, cast
 
 from pptx.dml.color import ColorFormat as _ColorFormat
 from pptx.dml.color import _Color  # pyright: ignore[reportPrivateUsage]  # noqa: PLC2701
@@ -39,6 +39,24 @@ if TYPE_CHECKING:
         CT_TextParagraphProperties,
     )
     from pptx.types import ProvidesExtents, ProvidesPart
+
+
+class TextFrameRect(NamedTuple):
+    """Slide-relative rectangle PowerPoint allocates for rendering a shape's text.
+
+    A 4-tuple ``(left, top, width, height)`` in English Metric Units (EMU).
+    Each element is a |Length|, so ``.inches``, ``.pt``, ``.cm``, and ``.emu``
+    are available as on any other length value. See
+    :attr:`.BaseShape.text_frame_rect` for how the value is computed and how
+    it differs from the shape's bounding box.
+
+    .. versionadded:: 2026.05.0
+    """
+
+    left: Length
+    top: Length
+    width: Length
+    height: Length
 
 
 class TextFrame(Subshape):

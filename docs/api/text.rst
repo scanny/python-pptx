@@ -16,6 +16,20 @@ Text-related objects
    :undoc-members:
 
 
+|TextFrameRect| objects
+-----------------------
+
+A ``TextFrameRect`` is returned by
+:attr:`~pptx.shapes.base.BaseShape.text_frame_rect`. It is a 4-element
+namedtuple of |Length| values in EMU describing the slide-relative
+rectangle PowerPoint allocates for text within a shape (issue #663).
+
+.. autoclass:: TextFrameRect()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |Font| objects
 --------------
 
