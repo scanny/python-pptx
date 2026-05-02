@@ -29,6 +29,17 @@ def given_a_Slides_object_containing_3_slides(context):
     context.slides = prs.slides
 
 
+@given("a source slide with two pictures")
+def given_a_source_slide_with_two_pictures(context):
+    context.source_prs = Presentation(test_pptx("shp-picture"))
+    context.source_slide = context.source_prs.slides[0]
+
+
+@given("an empty target Presentation")
+def given_an_empty_target_presentation(context):
+    context.target_prs = Presentation()
+
+
 # when ====================================================
 
 
@@ -36,6 +47,14 @@ def given_a_Slides_object_containing_3_slides(context):
 def when_I_call_slides_add_slide(context):
     context.slide_layout = context.prs.slide_masters[0].slide_layouts[0]
     context.slides.add_slide(context.slide_layout)
+
+
+@when("I call slides.add_slide_from_external() on the target")
+def when_I_call_slides_add_slide_from_external_on_target(context):
+    context.target_layout = context.target_prs.slide_layouts[5]  # -- blank layout --
+    context.cloned_slide = context.target_prs.slides.add_slide_from_external(
+        context.source_slide, context.target_layout
+    )
 
 
 @when("I call slide_layouts.remove(slide_layouts[1])")
@@ -140,3 +159,20 @@ def then_slides_get_666_default_slides_2_is_slides_2(context):
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides
     assert type(slides[2]).__name__ == "Slide"
+
+
+@then("len(target.slides) is {count}")
+def then_len_target_slides_is_count(context, count):
+    assert len(context.target_prs.slides) == int(count)
+
+
+@then("the cloned slide's picture shape names match the source slide")
+def then_cloned_slide_picture_names_match(context):
+    cloned = [sh.name for sh in context.cloned_slide.shapes]
+    source = [sh.name for sh in context.source_slide.shapes]
+    assert cloned == source, "cloned=%r source=%r" % (cloned, source)
+
+
+@then("the cloned slide is bound to the target presentation's slide layout")
+def then_cloned_slide_layout_matches(context):
+    assert context.cloned_slide.slide_layout is context.target_layout

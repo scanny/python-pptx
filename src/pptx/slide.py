@@ -272,6 +272,25 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def add_slide_from_external(self, source_slide: Slide, slide_layout: SlideLayout) -> Slide:
+        """Return a new slide cloned from `source_slide` in another presentation.
+
+        The new slide is appended to this collection and bound to
+        `slide_layout`, which must belong to the target presentation (the one
+        owning this |Slides| object). `source_slide` may come from any
+        |Presentation| instance, including this one.
+
+        This method implements the *basic* cross-presentation slide copy path.
+        It handles slides whose only relationships are to the slide layout, to
+        image parts, to external hyperlinks, and (dropped) to notes slides.
+        Any other related part type -- such as charts, embedded OLE objects,
+        or media -- raises |NotImplementedError|. Full-fidelity cross-part
+        relationship cloning is tracked as Foundation F1.
+        """
+        rId, slide = self.part.add_slide_from_external(source_slide, slide_layout)
+        self._sldIdLst.add_sldId(rId)
+        return slide
+
     def get(self, slide_id: int, default: Slide | None = None) -> Slide | None:
         """Return the slide identified by int `slide_id` in this presentation.
 

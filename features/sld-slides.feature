@@ -26,6 +26,15 @@ Feature: Access an individual slide
       And slide.slide_layout is the one passed in the call
 
 
+  Scenario: Slides.add_slide_from_external()
+    Given a source slide with two pictures
+      And an empty target Presentation
+     When I call slides.add_slide_from_external() on the target
+     Then len(target.slides) is 1
+      And the cloned slide's picture shape names match the source slide
+      And the cloned slide is bound to the target presentation's slide layout
+
+
   Scenario: Slides.get()
     Given a Slides object containing 3 slides
      Then slides.get(256) is slides[0]

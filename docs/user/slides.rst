@@ -97,6 +97,31 @@ another turns out to be pretty hard to get right in the general case, so that
 probably won't come until more of the backlog is burned down.
 
 
+Copying a slide from one presentation to another (basic)
+--------------------------------------------------------
+
+:meth:`.Slides.add_slide_from_external` appends a clone of a slide from one
+presentation to another. The caller must supply a target slide-layout that
+belongs to the destination presentation, since cross-presentation layout
+binding is what keeps the cloned slide formatted consistently::
+
+    from pptx import Presentation
+
+    source = Presentation("quarterly-deck.pptx")
+    target = Presentation("all-hands.pptx")
+    cloned = target.slides.add_slide_from_external(
+        source.slides[3], target.slide_layouts[5]
+    )
+    target.save("all-hands.pptx")
+
+This is the *basic* copy path: it handles slides whose only package
+relationships are to the slide layout, to image parts, or to external
+hyperlinks, and it silently drops any notes-slide relationship on the
+source. Slides that reference charts, embedded OLE objects, or media will
+raise |NotImplementedError| -- full-fidelity cross-presentation slide
+copying (tracked as Foundation F1) is not yet available.
+
+
 Up next ...
 -----------
 

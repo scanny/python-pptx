@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #1036 move slide across presentations (basic)
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
