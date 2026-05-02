@@ -6,6 +6,15 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #434 ``Picture.image`` raised ``InvalidXmlError`` when the backing
+  ``p:pic`` element had no ``p:blipFill`` child (a malformed-but-observed
+  shape produced by tools that strip image data). ``CT_Picture.blipFill``
+  is now ``ZeroOrOne`` and every dependent accessor (``blip_rId``,
+  ``_srcRect_x``, ``Picture.image``) handles the missing child safely —
+  ``.image`` returns ``None``, crop accessors return ``0.0``, and shape-
+  factory construction succeeds unchanged. Adds a regression suite at
+  ``tests/test_issue_434_picture_missing_blipfill.py`` covering direct
+  element access and a save-then-reopen round-trip.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
