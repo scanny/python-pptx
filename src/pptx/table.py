@@ -124,6 +124,15 @@ class Table(object):
 
         Triggers the graphic frame to recalculate its total height (as the sum of the row
         heights).
+
+        .. note::
+           The resulting graphic-frame height is the sum of the authored row heights, which
+           PowerPoint treats as a *minimum* for each row. PowerPoint will grow a row as needed
+           to fit its text content when it opens and lays out the slide, but `python-pptx`
+           cannot perform that layout calculation. Consequently, the height reported by
+           :attr:`.GraphicFrame.height` (and computed here) may be less than the rendered
+           table height until the file is opened and saved by PowerPoint. See issue #296 and
+           the "Table height and row height" section of the user guide.
         """
         new_table_height = Emu(sum([row.height for row in self.rows]))
         self._graphic_frame.height = new_table_height
@@ -433,7 +442,14 @@ class _Row(Subshape):
 
     @property
     def height(self) -> Length:
-        """Height of row in EMU."""
+        """Height of row in EMU.
+
+        This is the *authored* (minimum) row height stored in the `.pptx` file. PowerPoint
+        treats it as a minimum and will silently grow the row at render time to fit its text
+        content; `python-pptx` has no access to PowerPoint's layout engine and cannot compute
+        that grown height. The rendered row height may therefore exceed this value. See
+        issue #296 and the "Table height and row height" section of the user guide.
+        """
         return self._tr.h
 
     @height.setter

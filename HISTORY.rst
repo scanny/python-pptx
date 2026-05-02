@@ -15,6 +15,13 @@ Unreleased
 - fix: #1042 Image.content_type and Image.ext incorrect for EMF files
 - #702 reproducible builds via fixed zip timestamps
 - build: #1103 update pyparsing usage for 3.x
+- docs: #296 document that ``Table.height`` and ``_Row.height`` are authored
+  (minimum) values. PowerPoint's layout engine grows rows at render time to
+  fit their text content; python-pptx cannot reproduce that calculation, so
+  the height reported by the library may be less than the rendered height
+  until the file is opened and saved by PowerPoint (known limitation /
+  wontfix). The user guide gains a new "Table height and row height" section
+  describing the limitation and suggested workarounds.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
