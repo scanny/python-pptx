@@ -159,7 +159,8 @@ class TextFrame(Subshape):
         the user edits it; emitting an explicit ``fontScale`` lets PowerPoint render
         the reduction on first display.
 
-        Acceptable values are in the range 1.0..100.0. See issue #715.
+        Acceptable values are in the range 1.0..100.0. See issues #715 and
+        #969.
         """
         return self._bodyPr.font_scale
 
@@ -182,7 +183,8 @@ class TextFrame(Subshape):
         not already present, replacing any other autofit-choice child (``a:noAutofit``
         or ``a:spAutoFit``).
 
-        Acceptable values are in the range 0.0..100.0. See issue #715.
+        Acceptable values are in the range 0.0..100.0. See issues #715 and
+        #969.
         """
         return self._bodyPr.line_space_reduction
 

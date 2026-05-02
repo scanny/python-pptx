@@ -2214,17 +2214,19 @@ Unreleased
   mapping so a naive revert per #611's proposal cannot land silently.
 - fix: #674 correct UP_DOWN_ARROW adjustment list
 - fix: #773 guard fit_text() when no fitting layout is found
-- #715 python-pptx fit text within text placeholder. ``TextFrame`` gains
-  read/write ``font_scale`` and ``line_space_reduction`` properties that
-  expose the ``fontScale`` and ``lnSpcReduction`` attributes of
+- #715 / #969 python-pptx fit text within text placeholder. ``TextFrame``
+  gains read/write ``font_scale`` and ``line_space_reduction`` properties
+  that expose the ``fontScale`` and ``lnSpcReduction`` attributes of
   ``a:normAutofit``. Assigning either attribute ensures an ``a:normAutofit``
   child is present on ``a:bodyPr``, replacing any existing ``a:noAutofit``
   or ``a:spAutoFit`` choice sibling. This lets callers pre-compute the
   autofit hints that PowerPoint reads on first render, so placeholder text
-  appears correctly scaled without requiring the user to edit the box. The
-  existing ``TextFrame.fit_text()`` convenience method already works on
-  placeholder text frames because placeholder width/height are inherited
-  through the layout/master chain.
+  appears correctly scaled without requiring the user to edit the box —
+  important for viewers such as LibreOffice, Google Slides, and headless
+  image renderers that honor the attributes literally rather than
+  recomputing the fit. The existing ``TextFrame.fit_text()`` convenience
+  method already works on placeholder text frames because placeholder
+  width/height are inherited through the layout/master chain.
 - #776 Point.invert_if_negative
 - perf: #644 Poor performance when creating a big presentation. Part-name
   allocation now caches per-template allocations instead of scanning the full
