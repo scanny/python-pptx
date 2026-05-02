@@ -6,6 +6,30 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #175 (add slide / slide layout from other presentation) resolved
+  by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
+  :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
+  promoted :meth:`Slides.add_slide_from_external` (originally the #1036
+  "basic" copy path) to the same full-fidelity cloning pipeline — so the
+  #175 reporter's first ask (adding a foreign slide to a presentation) is
+  fully served. The second ask (adding a foreign *layout* to a
+  presentation) is served by a documented workaround: open the
+  layout-source deck as the base, :meth:`Presentation.merge` the
+  content-carrying decks into it, then :meth:`Slides.delete` any unwanted
+  starter slides. The target keeps its full layout list (delete only
+  removes slides, not layouts) while gaining the content of every merged
+  deck. Adds a regression suite
+  ``DescribeIssue175CrossPresentationSlideLayoutCopy`` under
+  ``tests/test_issue_175_cross_presentation_slide_layout_copy.py`` that
+  pins per-slide copy, whole-deck merge, and the layout-import workaround
+  end-to-end (including save + reopen round-trip). Refreshes the
+  ``Copying a slide from one presentation to another`` section of
+  ``docs/user/slides.rst`` — the pre-Wave-7 claim that chart /
+  OLE-object / media slides raise ``NotImplementedError`` is no longer
+  accurate — and adds ``Merging every slide of another presentation``
+  and ``Importing slide layouts from another presentation`` sections
+  documenting :meth:`Presentation.merge` and the layout-import recipe.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,

@@ -102,12 +102,8 @@ pointing to the same slide::
 A ``new_idx`` beyond the end of the collection moves the slide to the last
 position, and negative values count from the end (``-1`` is the last slot).
 
-Deleting a slide is not yet a first-class operation on the collection, and
-copying a slide from one presentation to another turns out to be pretty hard to
-get right in the general case, so that probably won't come until more of the
-backlog is burned down.
-In addition to adding a slide, the slide collection supports deleting a slide
-with :meth:`~pptx.slide.Slides.delete`::
+The slide collection also supports deleting a slide with
+:meth:`~pptx.slide.Slides.delete`::
 
     prs = Presentation("example.pptx")
     prs.slides.delete(prs.slides[1])  # remove the second slide
@@ -122,11 +118,6 @@ preserved.
 
 After calling :meth:`~pptx.slide.Slides.delete`, the deleted |Slide| object
 should not be used; most operations on it will raise an exception.
-
-Moving a slide to a different position in the list and copying a slide from
-one presentation to another are not yet supported. Copying a slide across
-presentations turns out to be pretty hard to get right in the general case, so
-that probably won't come until more of the backlog is burned down.
 
 
 Duplicating a slide
@@ -157,8 +148,8 @@ can't be shared. Accessing ``duplicate.notes_slide`` creates a fresh empty
 notes slide on demand.
 
 
-Copying a slide from one presentation to another (basic)
---------------------------------------------------------
+Copying a slide from one presentation to another
+------------------------------------------------
 
 :meth:`.Slides.add_slide_from_external` appends a clone of a slide from one
 presentation to another. The caller must supply a target slide-layout that
@@ -174,12 +165,73 @@ binding is what keeps the cloned slide formatted consistently::
     )
     target.save("all-hands.pptx")
 
-This is the *basic* copy path: it handles slides whose only package
-relationships are to the slide layout, to image parts, or to external
-hyperlinks, and it silently drops any notes-slide relationship on the
-source. Slides that reference charts, embedded OLE objects, or media will
-raise |NotImplementedError| -- full-fidelity cross-presentation slide
-copying (tracked as Foundation F1) is not yet available.
+The clone is *full-fidelity*: the cloned slide's shape tree, image and media
+parts, charts (each receiving a distinct embedded workbook so PowerPoint's
+"Edit Data" keeps working on both the original and the copy), embedded OLE
+objects, and external hyperlinks are all materialised in the target
+presentation's package. The notes-slide relationship is dropped -- a notes
+slide carries a back-reference to its owning slide and cannot be shared.
+
+
+Merging every slide of another presentation
+-------------------------------------------
+
+To append *every* slide of another presentation in one call use
+:meth:`Presentation.merge`::
+
+    from pptx import Presentation
+
+    target = Presentation("all-hands.pptx")
+    source = Presentation("quarterly-deck.pptx")
+
+    appended = target.merge(source)          # returns the list of new slides
+    target.save("all-hands.pptx")
+
+Each cloned slide is bound to the layout at the *same index* in the target's
+primary slide master as its source's layout occupied in the source master
+(with the last layout used as a fallback when the target master has fewer
+layouts). Callers who need strict per-slide layout control can reassign
+``slide.slide_layout`` after the merge, or bypass :meth:`merge` entirely and
+drive :meth:`Slides.add_slide_from_external` per-slide.
+
+
+Importing slide layouts from another presentation
+-------------------------------------------------
+
+python-pptx does not offer a direct "copy this layout into my deck" API
+because importing a layout from deck A into deck B requires resolving its
+slide-master, theme, and color / font / format scheme relationships into
+B's package -- a deeper-reaching cross-package clone than the shipped
+slide-copy pipeline.
+
+The practical workaround is to open the presentation that *owns the
+desired layouts* as the base, merge content-carrying decks into it, and
+delete any unwanted starter slides::
+
+    from pptx import Presentation
+
+    # -- open the layout source as the base; the result inherits its
+    # -- slide_layouts verbatim.
+    base = Presentation("branded-template.pptx")
+
+    # -- starter-slide indices to prune after the merge --
+    starter_count = len(base.slides)
+
+    # -- merge content from other decks; merged slides bind to base's
+    # -- layouts by index (see Presentation.merge docstring).
+    base.merge(Presentation("quarterly-deck.pptx"))
+    base.merge(Presentation("all-hands.pptx"))
+
+    # -- drop the starter slides, keeping only the merged content --
+    for slide in list(base.slides)[:starter_count]:
+        base.slides.delete(slide)
+
+    base.save("combined.pptx")
+
+The layouts of ``branded-template.pptx`` survive the whole procedure --
+:meth:`Slides.delete` only removes slides, not the layouts they referenced,
+so the target keeps its layout list intact while gaining the content of
+every merged deck.
 
 
 Header, footer, slide number, and date placeholders
