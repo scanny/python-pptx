@@ -158,6 +158,17 @@ Both ``int`` and ``float`` values are accepted. Assigning the default
 (``0``) removes the explicit rotation; negative values are normalized to
 the equivalent positive rotation in ``[0, 360)``.
 
+An axis can also be hidden entirely via the :attr:`~_BaseAxis.visible`
+property::
+
+    chart.category_axis.visible = False
+    chart.value_axis.visible = True
+
+Assigning ``True`` or ``False`` is required; any other value raises
+``ValueError``. The underlying ``c:delete`` element is always written with
+an explicit ``val`` attribute so the resulting file opens correctly in
+PowerPoint (see issue #852).
+
 .. image:: /_static/img/chart-03.png
 
 Okay, that was probably going a bit too far. But it gives us an idea of the

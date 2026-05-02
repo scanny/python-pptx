@@ -255,12 +255,20 @@ class _BaseAxis(object):
 
     @property
     def visible(self):
-        """
-        Read/write. |True| if axis is visible, |False| otherwise.
+        """Read/write. |True| if axis is visible, |False| otherwise.
+
+        The backing `c:delete` element has an OOXML-specified default of `val="true"`
+        when the `val` attribute is omitted, so a `<c:delete/>` element without a
+        `val` attribute is interpreted as `visible=False`. In practice PowerPoint does
+        not follow the spec on this point (see `CT_Boolean_Explicit` for a similar
+        case with `c:overlay`); python-pptx always writes the `val` attribute
+        explicitly when assigning to `visible` so the result is interoperable. See
+        issue #852.
         """
         delete = self._element.delete_
         if delete is None:
             return False
+        # -- treat a missing `val` attribute as the OOXML default of `true` --
         return False if delete.val else True
 
     @visible.setter
@@ -268,7 +276,11 @@ class _BaseAxis(object):
         if value not in (True, False):
             raise ValueError("assigned value must be True or False, got: %s" % value)
         delete = self._element.get_or_add_delete_()
-        delete.val = not value
+        # -- Always write the `val` attribute explicitly. PowerPoint does not
+        # -- honor the OOXML default of `true` for `c:delete` (see issue #852),
+        # -- so relying on attribute omission would produce a file whose axis
+        # -- visibility does not match the value the caller assigned.
+        delete.set("val", "1" if value is False else "0")
 
 
 class AxisTitle(ElementProxy):
