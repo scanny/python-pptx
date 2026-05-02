@@ -230,6 +230,18 @@ Note this is distinct from :attr:`DataLabel.text_frame` on an individual
 (backed by ``c:dLbl/c:tx/c:rich``). The collection-level property is for
 formatting, not content.
 
+.. note::
+   A newly-added doughnut or exploded-doughnut chart emits its default
+   ``c:dLbls`` block with ``c:showVal val="1"``, so the numeric values appear
+   on each slice as soon as the chart is opened (see
+   `issue #347 <https://github.com/scanny/python-pptx/issues/347>`_).
+   Earlier releases emitted ``showVal val="0"``, which left the data-label
+   element wired up but every show-flag turned off — the labels existed in
+   the XML but PowerPoint drew nothing. If you need a doughnut chart without
+   data labels, assign ``plot.has_data_labels = False`` or toggle individual
+   ``plot.data_labels.show_value`` / ``show_percentage`` / ``show_category_name``
+   properties.
+
 
 Error Bars
 ----------

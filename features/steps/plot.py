@@ -133,3 +133,15 @@ def then_plot_vary_by_categories_is_value(context, value):
     expected_value = {"True": True, "False": False}[value]
     plot = context.plot
     assert plot.vary_by_categories is expected_value
+
+
+@then("the chart's first plot has data labels with show_value True")
+def then_the_charts_first_plot_has_data_labels_with_show_value_True(context):
+    # -- regression guard for issue #347: a freshly-added doughnut chart
+    # -- must emit `c:dLbls/c:showVal@val="1"` so PowerPoint renders the
+    # -- numeric labels by default.
+    plot = context.chart.plots[0]
+    assert plot.has_data_labels is True, "plot.has_data_labels is False"
+    assert plot.data_labels.show_value is True, (
+        "plot.data_labels.show_value is %s" % plot.data_labels.show_value
+    )

@@ -112,7 +112,7 @@
         </c:ser>
         <c:dLbls>
           <c:showLegendKey val="0"/>
-          <c:showVal val="0"/>
+          <c:showVal val="1"/>
           <c:showCatName val="0"/>
           <c:showSerName val="0"/>
           <c:showPercent val="0"/>

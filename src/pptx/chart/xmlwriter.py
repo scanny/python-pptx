@@ -707,7 +707,7 @@ class _DoughnutChartXmlWriter(_BaseChartXmlWriter):
             "{ser_xml}"
             "        <c:dLbls>\n"
             '          <c:showLegendKey val="0"/>\n'
-            '          <c:showVal val="0"/>\n'
+            '          <c:showVal val="1"/>\n'
             '          <c:showCatName val="0"/>\n'
             '          <c:showSerName val="0"/>\n'
             '          <c:showPercent val="0"/>\n'
