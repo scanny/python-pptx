@@ -111,6 +111,56 @@ class TextFrame(Subshape):
         self._apply_fit(font_family, font_size, bold, italic)
 
     @property
+    def font_scale(self) -> float:
+        """Font-scale percent applied to text in this text frame by autofit.
+
+        Corresponds to the ``fontScale`` attribute of the ``a:normAutofit`` child of the
+        ``a:bodyPr`` element. Returns a float percent in the range 1.0..100.0.
+
+        A value of ``100.0`` (the default) indicates that the text has not been scaled
+        down to fit. Lower values (e.g. ``85.0``) indicate PowerPoint has reduced the
+        rendered font-size to that percent of its authored size in order to fit the
+        text within the shape's bounds. Returns ``100.0`` when no ``a:normAutofit``
+        child is present.
+
+        Assigning a value adds an ``a:normAutofit`` child to ``a:bodyPr`` if one is
+        not already present, replacing any other autofit-choice child (``a:noAutofit``
+        or ``a:spAutoFit``). Useful for placeholder text that does not re-flow until
+        the user edits it; emitting an explicit ``fontScale`` lets PowerPoint render
+        the reduction on first display.
+
+        Acceptable values are in the range 1.0..100.0. See issue #715.
+        """
+        return self._bodyPr.font_scale
+
+    @font_scale.setter
+    def font_scale(self, value: float):
+        self._bodyPr.font_scale = value
+
+    @property
+    def line_space_reduction(self) -> float:
+        """Line-spacing reduction percent applied by autofit.
+
+        Corresponds to the ``lnSpcReduction`` attribute of the ``a:normAutofit`` child
+        of the ``a:bodyPr`` element. Returns a float percent in the range 0.0..100.0.
+
+        A value of ``0.0`` (the default) indicates no reduction. A value of ``20.0``
+        indicates PowerPoint is reducing line spacing by 20% of its authored value.
+        Returns ``0.0`` when no ``a:normAutofit`` child is present.
+
+        Assigning a value adds an ``a:normAutofit`` child to ``a:bodyPr`` if one is
+        not already present, replacing any other autofit-choice child (``a:noAutofit``
+        or ``a:spAutoFit``).
+
+        Acceptable values are in the range 0.0..100.0. See issue #715.
+        """
+        return self._bodyPr.line_space_reduction
+
+    @line_space_reduction.setter
+    def line_space_reduction(self, value: float):
+        self._bodyPr.line_space_reduction = value
+
+    @property
     def margin_bottom(self) -> Length:
         """|Length| value representing the inset of text from the bottom text frame border.
 

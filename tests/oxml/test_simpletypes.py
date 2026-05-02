@@ -23,6 +23,7 @@ from pptx.oxml.simpletypes import (
     ST_Coordinate,
     ST_HexColorRGB,
     ST_Percentage,
+    ST_TextFontScaleReductionPercent,
 )
 
 from ..unitutil.mock import instance_mock, method_mock
@@ -262,6 +263,52 @@ class DescribeST_Percentage(object):
     def percent_fixture(self, request):
         str_value, expected_value = request.param
         return str_value, expected_value
+
+
+class DescribeST_TextFontScaleReductionPercent(object):
+    """Unit-test suite for `ST_TextFontScaleReductionPercent`.
+
+    Exercises the `a:normAutofit/@lnSpcReduction` simple type introduced for
+    issue #715. XML serialization uses the "parts per hundred thousand" integer
+    form (e.g. `"20000"` == 20%).
+    """
+
+    @pytest.mark.parametrize(
+        ("str_value", "expected"),
+        [
+            ("0", 0.0),
+            ("20000", 20.0),
+            ("100000", 100.0),
+            ("20%", 20.0),
+            ("0%", 0.0),
+            ("55.5%", 55.5),
+        ],
+    )
+    def it_can_convert_from_xml(self, str_value: str, expected: float):
+        assert (
+            ST_TextFontScaleReductionPercent.convert_from_xml(str_value) == expected
+        )
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            (0.0, "0"),
+            (20.0, "20000"),
+            (100.0, "100000"),
+            (55.5, "55500"),
+        ],
+    )
+    def it_can_convert_to_xml(self, value: float, expected: str):
+        assert ST_TextFontScaleReductionPercent.convert_to_xml(value) == expected
+
+    @pytest.mark.parametrize("value", [0.0, 20.0, 50.0, 100.0])
+    def it_accepts_values_in_range(self, value: float):
+        ST_TextFontScaleReductionPercent.validate(value)
+
+    @pytest.mark.parametrize("value", [-1.0, -0.1, 100.1, 200.0])
+    def it_rejects_out_of_range_values(self, value: float):
+        with pytest.raises(ValueError):
+            ST_TextFontScaleReductionPercent.validate(value)
 
 
 # --------------------------------------------------------------------

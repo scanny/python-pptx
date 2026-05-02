@@ -19,3 +19,10 @@ Feature: Resize text to fit shape
     Given a shape whose first word overflows at max size but fits at a smaller size
      When I call TextFitter.best_fit_font_size() on that shape
      Then a smaller fitting point size is returned
+
+  Scenario: Set font_scale and line_space_reduction on a placeholder text frame
+    Given a placeholder text frame as text_frame
+     When I assign 85.0 to text_frame.font_scale
+      And I assign 20.0 to text_frame.line_space_reduction
+     Then text_frame.font_scale is 85.0
+      And text_frame.line_space_reduction is 20.0

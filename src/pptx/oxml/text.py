@@ -23,6 +23,7 @@ from pptx.oxml.simpletypes import (
     ST_TextBulletSizePercent,
     ST_TextBulletStartAtNum,
     ST_TextFontScalePercentOrPercentString,
+    ST_TextFontScaleReductionPercent,
     ST_TextFontSize,
     ST_TextIndentLevelType,
     ST_TextSpacingPercentOrPercentString,
@@ -264,6 +265,66 @@ class CT_TextBodyProperties(BaseOxmlElement):
         elif value == MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT:
             self._add_spAutoFit()
 
+    @property
+    def font_scale(self) -> float:
+        """Effective `fontScale` attribute of `a:normAutofit` as percent.
+
+        Returns the default 100.0 when no `a:normAutofit` child is present or when
+        `a:normAutofit` has no explicit `fontScale` attribute.
+        """
+        normAutofit = self.normAutofit
+        if normAutofit is None:
+            return 100.0
+        return normAutofit.fontScale
+
+    @font_scale.setter
+    def font_scale(self, value: float):
+        """Set the `fontScale` attribute of `a:normAutofit` to `value` percent.
+
+        Ensures the `a:normAutofit` child element exists, replacing any other
+        autofit-choice child (`a:noAutofit` or `a:spAutoFit`) that may be present.
+        Assigning the default value of ``100.0`` removes the `fontScale`
+        attribute from the element.
+        """
+        normAutofit = self._get_or_add_normAutofit()
+        # -- assign via descriptor; default (100.0) clears the attribute --
+        normAutofit.fontScale = value
+
+    @property
+    def line_space_reduction(self) -> float:
+        """Effective `lnSpcReduction` attribute of `a:normAutofit` as percent.
+
+        Returns the default 0.0 when no `a:normAutofit` child is present or when
+        `a:normAutofit` has no explicit `lnSpcReduction` attribute.
+        """
+        normAutofit = self.normAutofit
+        if normAutofit is None:
+            return 0.0
+        return normAutofit.lnSpcReduction
+
+    @line_space_reduction.setter
+    def line_space_reduction(self, value: float):
+        """Set the `lnSpcReduction` attribute of `a:normAutofit` to `value` percent.
+
+        Ensures the `a:normAutofit` child element exists, replacing any other
+        autofit-choice child (`a:noAutofit` or `a:spAutoFit`) that may be present.
+        Assigning the default value of ``0.0`` removes the `lnSpcReduction`
+        attribute from the element.
+        """
+        normAutofit = self._get_or_add_normAutofit()
+        normAutofit.lnSpcReduction = value
+
+    def _get_or_add_normAutofit(self):
+        """Return the `a:normAutofit` child, creating it if necessary.
+
+        Any existing `a:noAutofit` or `a:spAutoFit` choice sibling is removed
+        first because only one of the three autofit-choice elements may appear.
+        """
+        if self.normAutofit is None:
+            self._remove_eg_textAutoFit()
+            self._add_normAutofit()
+        return self.normAutofit
+
 
 class CT_TextCharacterProperties(BaseOxmlElement):
     """Custom element class for `a:rPr`, `a:defRPr`, and `a:endParaRPr`.
@@ -433,6 +494,9 @@ class CT_TextNormalAutofit(BaseOxmlElement):
 
     fontScale = OptionalAttribute(
         "fontScale", ST_TextFontScalePercentOrPercentString, default=100.0
+    )
+    lnSpcReduction = OptionalAttribute(
+        "lnSpcReduction", ST_TextFontScaleReductionPercent, default=0.0
     )
 
 
