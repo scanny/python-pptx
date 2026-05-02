@@ -88,3 +88,49 @@ In short: use python-pptx to *produce* the ``.pptx`` and then pick a renderer
 based on your platform, fidelity requirements, and licensing constraints.
 Pull requests that add a rendering backend to python-pptx itself are out of
 scope for the project.
+
+
+.. _animated-gif-rendering:
+
+Animated GIFs
+-------------
+
+A closely related rendering-dependency question is *"why does my animated
+GIF only show its first frame after I add it with*
+:meth:`~.SlideShapes.add_picture`\ *?"* (see `issue #501
+<https://github.com/scanny/python-pptx/issues/501>`_). The answer is the
+same: python-pptx writes the ``.pptx`` package but does not render it, and
+whether or not a GIF animates is entirely up to the application that later
+opens the deck.
+
+The ``<p:pic>`` XML python-pptx emits for a GIF is the same as the XML
+PowerPoint itself writes when you drop a ``.gif`` on a slide by hand — a
+plain ``<a:blip r:embed="…"/>`` inside a ``<p:blipFill>``. There is **no**
+``p:timing`` / ``p:seq`` / ``p:cTn`` entry required to make a GIF loop;
+GIF cycling is a *renderer* behaviour keyed off the embedded image's MIME
+type, not an OOXML authoring concern. Specifically:
+
+* **PowerPoint for Windows (slideshow mode).** Animates the GIF. The same
+  deck in *edit* view intentionally shows only the first frame so the
+  editor isn't distracting.
+* **PowerPoint for Mac / PowerPoint for the web.** Historically inconsistent;
+  some versions animate in slideshow, others do not. When it matters,
+  test on the specific target version.
+* **LibreOffice Impress.** Does not animate embedded GIFs in slideshow or
+  when exporting to PDF/PNG — every frame but the first is discarded by the
+  renderer. This is a LibreOffice limitation, not something python-pptx can
+  work around in the ``.pptx``.
+* **Headless ``libreoffice --convert-to pdf`` / ``--convert-to png``.**
+  Same as LibreOffice Impress: first frame only. If you need an animated
+  end result, export via PowerPoint's ``Create a Video`` (MP4) path, or
+  pre-render the animation yourself (for example via ``ffmpeg`` and then
+  insert the resulting MP4 using :meth:`~.SlideShapes.add_movie`).
+* **Aspose.Slides / python-pptx-interface / other third-party renderers.**
+  Varies by product and version — consult each tool's documentation.
+
+If you need the animation to play on a target renderer that does not
+support animated GIFs, the workaround is to convert the GIF to an MP4
+(``ffmpeg -i input.gif output.mp4``) and insert it with
+:meth:`~.SlideShapes.add_movie` instead. Video playback has proper
+``<p:video>`` timing plumbing and is rendered by every major PowerPoint
+client and LibreOffice.
