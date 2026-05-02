@@ -224,6 +224,17 @@ Unreleased
   ``show_keys`` booleans and a ``format`` |ChartFormat| for fill / line /
   effect styling of the data-table itself. Implemented against the
   ``CT_DTable`` grammar in ``dml-chart.xsd``.
+
+- feat: #532 add ``Slide.shape_tree_flat`` and ``SlideShapes.descendants()``
+  — a Selection-Pane-equivalent flat iterator that yields every shape on a
+  slide, including the children of any :class:`.GroupShape` at every
+  nesting depth, in document (z-order) sequence. Group shapes themselves
+  are yielded before their contents so callers see the container
+  alongside its members, matching PowerPoint's Selection Pane listing.
+  :meth:`SlideShapes.get_by_name` and :meth:`SlideShapes.find_all_by_name`
+  gained an ``include_descendants=False`` keyword that flips their lookup
+  to the same flat traversal for finding shapes named inside a group.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

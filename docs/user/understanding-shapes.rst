@@ -171,6 +171,50 @@ element that has been removed from the shape tree; do not use the
 instance further. See issue #730.
 
 
+Flat traversal (Selection Pane-equivalent)
+------------------------------------------
+
+``slide.shapes`` iterates only the *top-level* shapes on a slide — group
+shapes appear as a single entry and their members are hidden. PowerPoint's
+Selection Pane, in contrast, lists every shape on the slide including the
+children of every group, at every depth. When you need that same flat
+listing (for a selection dialog, an audit report, or simply a loop that
+touches every shape regardless of nesting) use
+:attr:`Slide.shape_tree_flat` — or the underlying
+:meth:`SlideShapes.descendants` iterator which also works on layouts,
+masters, notes slides, and individual groups::
+
+    for shape in slide.shape_tree_flat:
+        print(shape.name, shape.shape_type)
+
+Behaviour notes:
+
+* Shapes are yielded in document (z-order) sequence: a top-level sibling
+  preceding a group in the shape tree comes first; group members follow
+  in the order they were authored.
+* :class:`~.GroupShape` containers are yielded *before* their children,
+  matching PowerPoint's Selection Pane display where the group label
+  sits above its indented contents. This lets callers see the group
+  alongside its members in one pass.
+* The iterator walks into nested groups recursively, so a group-inside-
+  a-group still produces every leaf shape.
+
+The lookup helpers on :class:`~.SlideShapes` take an optional
+``include_descendants=True`` keyword that flips their search from
+top-level-only to the same flat traversal::
+
+    # find a shape authored inside a group by its PowerPoint @name
+    shape = slide.shapes.get_by_name("Logo", include_descendants=True)
+
+    # every shape named "TODO" anywhere on the slide, including groups
+    todos = slide.shapes.find_all_by_name("TODO", include_descendants=True)
+
+Both return the same ordering as :meth:`~.SlideShapes.descendants`
+(a matched group appears before any match inside it).
+
+See issue #532.
+
+
 Accessibility -- shape alt-text and title
 -----------------------------------------
 

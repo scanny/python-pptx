@@ -341,7 +341,8 @@ prs.save("out.pptx")
 - `SlideShapes.add_ole_object(object_file, prog_id, left, top, width=None, height=None, icon_file=None, icon_width=None, icon_height=None)` — Embed an OLE payload. Generic `prog_id` + `extension` support is `[Added in 2026.05.0]`.
 - `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table graphic frame. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
 - `SlideShapes.build_freeform(start_x, start_y, scale=EMU_PER_INCH)` — Freeform-geometry builder.
-- `SlideShapes.find_all_by_name(name)` / `SlideShapes.get_by_name(name)` — Look up shapes by `cNvPr/@name`. `[Added in 2026.05.0]`
+- `SlideShapes.find_all_by_name(name, include_descendants=False)` / `SlideShapes.get_by_name(name, include_descendants=False)` — Look up shapes by `cNvPr/@name`; pass `include_descendants=True` to walk into every group on the slide. `[Added in 2026.05.0]`
+- `SlideShapes.descendants()` / `Slide.shape_tree_flat` — Iterator over every shape on the slide including the children of any `GroupShape`, yielded in document (z-order) sequence with each group yielded before its contents. Selection-Pane-equivalent traversal. `[Added in 2026.05.0]`
 - `SlideShapes.title` — Title placeholder shape, if any.
 - `SlideShapes.placeholders` — `SlidePlaceholders` view.
 - `SlideShapes.turbo_add_enabled` — Bulk-add performance mode for programmatic authoring.
@@ -486,7 +487,7 @@ prs.save("out.pptx")
 ```
 
 - `SlideShapes.add_group_shape(shapes=())` — Wrap an iterable of shapes in a new `p:grpSp`. `[Added in 2026.05.0]`
-- `GroupShape.shapes` — `GroupShapes` collection of direct children.
+- `GroupShape.shapes` — `GroupShapes` collection of direct children. `GroupShapes.descendants()` recurses into nested groups. `[Added in 2026.05.0]`
 - `GroupShape.duplicate()` — Clone the entire group, including every descendant. `[Added in 2026.05.0]`
 - `GroupShape.delete()` — Remove the group and drop orphan part references. `[Added in 2026.05.0]`
 - `GroupShapes.add_shape(...)` / `.add_textbox(...)` / `.add_picture(...)` — Author new shapes inside a group.

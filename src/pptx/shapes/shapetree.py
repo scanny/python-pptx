@@ -110,6 +110,30 @@ class _BaseShapes(ParentedElementProxy):
         shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
+    def descendants(self) -> Iterator[BaseShape]:
+        """Generate each shape in this shape tree, including descendants of any group shape.
+
+        This is the Selection-Pane-equivalent traversal: every |BaseShape| that appears
+        in the slide's visual stacking — top-level shapes plus each shape nested inside
+        any |GroupShape|, to arbitrary depth — is yielded in document (z-order)
+        sequence. Group shapes themselves are yielded *before* their children so the
+        caller sees the container alongside its contents (matching PowerPoint's
+        Selection Pane list). For a slide that contains no groups this iterator yields
+        the same sequence as ``iter(shapes)``.
+
+        The iterator walks the XML tree lazily; side-effects on the returned proxies
+        (e.g. ``shape.delete()``) during iteration are unsupported and may skip or
+        revisit siblings. Materialize with ``list(shapes.descendants())`` when you
+        need a stable snapshot.
+
+        .. versionadded:: 2026.05.0
+        """
+        for shape_elm in self._iter_member_elms():
+            shape = self._shape_factory(shape_elm)
+            yield shape
+            if isinstance(shape, GroupShape):
+                yield from shape.shapes.descendants()
+
     def clone_placeholder(self, placeholder: LayoutPlaceholder) -> None:
         """Add a new placeholder shape based on `placeholder`.
 
@@ -723,20 +747,28 @@ class SlideShapes(_BaseGroupShapes):
         for placeholder in slide_layout.iter_cloneable_placeholders():
             self.clone_placeholder(placeholder)
 
-    def find_all_by_name(self, name: str) -> list[BaseShape]:
+    def find_all_by_name(self, name: str, include_descendants: bool = False) -> list[BaseShape]:
         """Return all shapes in this collection whose ``name`` equals `name`.
 
         Shape names in PowerPoint are not required to be unique, so this method
         returns every match in z-order (backmost first, topmost last). Returns
-        an empty list when no shape has the given name. The search is restricted
-        to direct members of this slide's shape tree; shapes nested inside a
-        group are not included.
+        an empty list when no shape has the given name. By default the search
+        is restricted to direct members of this slide's shape tree; shapes
+        nested inside a group are not included.
+
+        When `include_descendants` is |True| the search walks every group on
+        the slide recursively so names assigned to shapes inside a group are
+        also matched. Matches are returned in document (z-order) sequence,
+        with any matched |GroupShape| appearing before its own matched
+        children — the same order :meth:`descendants` yields.
 
         .. versionadded:: 2026.05.0
         """
+        if include_descendants:
+            return [shape for shape in self.descendants() if shape.name == name]
         return [shape for shape in self if shape.name == name]
 
-    def get_by_name(self, name: str) -> BaseShape | None:
+    def get_by_name(self, name: str, include_descendants: bool = False) -> BaseShape | None:
         """Return the first shape in this collection whose ``name`` equals `name`.
 
         Returns |None| if no shape has that name. When several shapes share the
@@ -745,9 +777,15 @@ class SlideShapes(_BaseGroupShapes):
         provided instead of overloading ``__getitem__`` because the subscript
         operator is already defined for integer indexing.
 
+        When `include_descendants` is |True| the search extends into every
+        group on the slide, matching shape names assigned inside groups as
+        well. A matched |GroupShape| is returned in preference to any match
+        that lives inside it (the container is walked before its contents).
+
         .. versionadded:: 2026.05.0
         """
-        for shape in self:
+        iterable = self.descendants() if include_descendants else iter(self)
+        for shape in iterable:
             if shape.name == name:
                 return shape
         return None

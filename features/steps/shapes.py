@@ -688,3 +688,56 @@ def then_the_video_entry_sits_inside_that_timing(context):
     sld = context.slide._element
     videos = sld.xpath("./mc:AlternateContent/mc:Choice/p:timing//p:video")
     assert len(videos) >= 1, "expected a p:video inside the wrapped p:timing"
+
+
+# --- issue #532: Selection-Pane-equivalent flat traversal -----------------
+
+
+@given("a slide with 1 top-level shape plus a group of 3 shapes")
+def given_a_slide_with_1_top_shape_plus_group_of_3(context):
+    # -- `shp-groupshape.pptx` ships with a slide whose shape tree is
+    # -- [Group 4 (children: Rounded Rectangle 1, Oval 2, Isosceles
+    # -- Triangle 3), Rectangle 5].
+    prs = Presentation(test_pptx("shp-groupshape"))
+    context.slide = prs.slides[0]
+    context.shapes = context.slide.shapes
+
+
+@then("len(list(slide.shape_tree_flat)) == 5")
+def then_len_shape_tree_flat_equals_5(context):
+    flat = list(context.slide.shape_tree_flat)
+    assert len(flat) == 5, "expected 5 shapes (1 top + 1 group + 3 nested), got %d" % len(
+        flat
+    )
+
+
+@then("slide.shape_tree_flat yields the group before its children")
+def then_flat_yields_group_before_children(context):
+    names = [s.name for s in context.slide.shape_tree_flat]
+    # -- group name precedes each nested child in the flat sequence --
+    group_idx = names.index("Group 4")
+    for child in ("Rounded Rectangle 1", "Oval 2", "Isosceles Triangle 3"):
+        assert names.index(child) > group_idx, (
+            "expected %r to appear after 'Group 4' in %r" % (child, names)
+        )
+
+
+@then("slide.shapes.descendants() matches slide.shape_tree_flat")
+def then_descendants_matches_shape_tree_flat(context):
+    a = [s.name for s in context.slide.shape_tree_flat]
+    b = [s.name for s in context.slide.shapes.descendants()]
+    assert a == b, "shape_tree_flat=%r != descendants=%r" % (a, b)
+
+
+@then("shapes.get_by_name of an inner-group shape is None by default")
+def then_get_by_name_default_miss(context):
+    assert context.shapes.get_by_name("Oval 2") is None
+
+
+@then(
+    "shapes.get_by_name of an inner-group shape with include_descendants finds it"
+)
+def then_get_by_name_with_include_descendants(context):
+    hit = context.shapes.get_by_name("Oval 2", include_descendants=True)
+    assert hit is not None
+    assert hit.name == "Oval 2"

@@ -458,6 +458,28 @@ class DescribeSlide(object):
         assert all(isinstance(s, BaseShape) for s in shapes)
         assert [s.name for s in shapes] == ["Title 1", "Body 2", "Title 1"]
 
+    def it_provides_selection_pane_equivalent_traversal(self):
+        # --- issue #532: shape_tree_flat yields every shape on the slide,
+        # --- including descendants of any group, in z-order.
+        sld = element(
+            "p:sld/p:cSld/p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Top},"
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=3,name=Group},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=InnerA},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=InnerB}"
+            "),"
+            "p:sp/p:nvSpPr/p:cNvPr{id=6,name=Last}"
+            ")"
+        )
+        slide = Slide(sld, None)
+
+        names = [shape.name for shape in slide.shape_tree_flat]
+
+        # --- groups are yielded before their children; top-level z-order preserved ---
+        assert names == ["Top", "Group", "InnerA", "InnerB", "Last"]
+
     def it_finds_shapes_by_xpath_using_child_match(self):
         """Non-shape matches are resolved to their nearest shape ancestor, deduplicated."""
         sld = element(
