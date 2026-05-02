@@ -491,23 +491,150 @@ class DescribeSlidePart(object):
         # -- No notes-slide relationship is established on the new part. --
         relate_to_.assert_called_once_with(new_part, slide_layout_part_, RT.SLIDE_LAYOUT)
 
-    def it_raises_when_cloning_a_slide_with_unsupported_rels(self):
+    def it_clones_a_chart_rel_via_ChartPart_clone_from(self, request):
+        """clone_from promotes charts to full fidelity via ChartPart.clone_from (F1+F5)."""
         from unittest.mock import MagicMock
 
+        # -- Source SlidePart with a layout rel and a chart rel. --
+        src_sld = element("p:sld/p:cSld/p:spTree")
         src_part = SlidePart(
-            PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, element("p:sld")
+            PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, src_sld
         )
-        src_part.rels._rels["rId2"] = MagicMock(  # type: ignore[attr-defined]
-            reltype=RT.CHART, is_external=False
+        layout_rel = MagicMock(reltype=RT.SLIDE_LAYOUT, is_external=False)
+        source_chart_part_ = instance_mock(request, ChartPart)
+        chart_rel = MagicMock(
+            reltype=RT.CHART, is_external=False, target_part=source_chart_part_
+        )
+        src_part.rels._rels.update(  # type: ignore[attr-defined]
+            {"rId1": layout_rel, "rId2": chart_rel}
         )
 
-        with pytest.raises(NotImplementedError, match="Foundation F1"):
-            SlidePart.clone_from(
-                src_part,
-                PackURI("/ppt/slides/slide2.xml"),
-                None,  # -- never reached (preflight raises first) --
-                None,  # -- never reached --
-            )
+        target_package_ = instance_mock(request, Package)
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+        cloned_chart_part_ = instance_mock(request, ChartPart)
+        ChartPart_ = class_mock(request, "pptx.parts.slide.ChartPart")
+        ChartPart_.clone_from.return_value = cloned_chart_part_
+
+        relate_to_ = method_mock(request, SlidePart, "relate_to", autospec=True)
+        relate_to_.side_effect = ["rIdL", "rIdC"]
+
+        new_part = SlidePart.clone_from(
+            src_part,
+            PackURI("/ppt/slides/slide2.xml"),
+            target_package_,
+            slide_layout_part_,
+        )
+
+        # -- ChartPart.clone_from was invoked (source chart, target package). --
+        ChartPart_.clone_from.assert_called_once_with(source_chart_part_, target_package_)
+        # -- The new slide part has a CHART rel to the cloned chart part. --
+        assert call(new_part, cloned_chart_part_, RT.CHART) in relate_to_.mock_calls
+
+    def it_clones_media_rels_sharing_a_single_target_MediaPart(self, request):
+        """VIDEO + MEDIA on the same source MediaPart must share one clone in the target."""
+        from unittest.mock import MagicMock
+
+        src_sld = element("p:sld/p:cSld/p:spTree")
+        src_part = SlidePart(
+            PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, src_sld
+        )
+        # -- One MediaPart, two rels (MEDIA + VIDEO), same source part target. --
+        src_pkg_sentinel = object()
+        src_media_part = MagicMock(spec=MediaPart)
+        src_media_part.blob = b"MP4DATA"
+        src_media_part.content_type = "video/mp4"
+        src_media_part.package = src_pkg_sentinel
+        src_media_part.partname = PackURI("/ppt/media/media1.mp4")
+        layout_rel = MagicMock(reltype=RT.SLIDE_LAYOUT, is_external=False)
+        media_rel = MagicMock(reltype=RT.MEDIA, is_external=False, target_part=src_media_part)
+        video_rel = MagicMock(reltype=RT.VIDEO, is_external=False, target_part=src_media_part)
+        src_part.rels._rels.update(  # type: ignore[attr-defined]
+            {"rId1": layout_rel, "rId9": media_rel, "rId10": video_rel}
+        )
+
+        target_package_ = instance_mock(request, Package)
+        target_package_.next_media_partname.return_value = PackURI("/ppt/media/media2.mp4")
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+
+        relate_to_ = method_mock(request, SlidePart, "relate_to", autospec=True)
+        relate_to_.side_effect = ["rIdL", "rIdM", "rIdV"]
+
+        SlidePart.clone_from(
+            src_part,
+            PackURI("/ppt/slides/slide2.xml"),
+            target_package_,
+            slide_layout_part_,
+        )
+
+        # -- next_media_partname is called exactly once (one new MediaPart
+        # -- materialised for both MEDIA and VIDEO rels). --
+        assert target_package_.next_media_partname.call_count == 1
+        # -- Two rels on the new part, both pointing at the same cloned MediaPart. --
+        media_calls = [
+            c for c in relate_to_.mock_calls
+            if len(c.args) >= 3 and c.args[2] in (RT.MEDIA, RT.VIDEO)
+        ]
+        assert len(media_calls) == 2
+        assert media_calls[0].args[1] is media_calls[1].args[1]
+
+    def it_shallow_clones_unknown_internal_rels_into_the_target_package(self, request):
+        """OLE / embedded-package rels get a fresh part with the same blob in the target."""
+        from unittest.mock import MagicMock
+
+        src_sld = element("p:sld/p:cSld/p:spTree")
+        src_part = SlidePart(
+            PackURI("/ppt/slides/slide1.xml"), CT.PML_SLIDE, None, src_sld
+        )
+        src_pkg = object()
+        target_package_ = instance_mock(request, Package)
+        target_package_.next_partname.return_value = PackURI(
+            "/ppt/embeddings/oleObject2.bin"
+        )
+        # -- Source OLE part (in *source* package, distinct from target). --
+        # -- Must be a real Part subclass so `type(src_ole_part)(...)` constructs
+        # -- a valid new instance in the target package. --
+        src_ole_part = EmbeddedPackagePart(
+            PackURI("/ppt/embeddings/oleObject1.bin"),
+            "application/x-ole",
+            src_pkg,  # type: ignore[arg-type]
+            b"OLEDATA",
+        )
+
+        layout_rel = MagicMock(reltype=RT.SLIDE_LAYOUT, is_external=False)
+        ole_rel = MagicMock(
+            reltype=RT.OLE_OBJECT, is_external=False, target_part=src_ole_part
+        )
+        src_part.rels._rels.update(  # type: ignore[attr-defined]
+            {"rId1": layout_rel, "rId7": ole_rel}
+        )
+
+        slide_layout_part_ = instance_mock(request, SlideLayoutPart)
+        relate_to_ = method_mock(request, SlidePart, "relate_to", autospec=True)
+        relate_to_.side_effect = ["rIdL", "rIdO"]
+
+        SlidePart.clone_from(
+            src_part,
+            PackURI("/ppt/slides/slide2.xml"),
+            target_package_,
+            slide_layout_part_,
+        )
+
+        # -- A fresh partname was allocated in the target package. --
+        target_package_.next_partname.assert_called_once_with(
+            "/ppt/embeddings/oleObject%d.bin"
+        )
+        # -- The OLE_OBJECT rel on the new part points at a newly-materialised
+        # -- EmbeddedPackagePart in the target package (same blob, new partname). --
+        ole_calls = [
+            c for c in relate_to_.mock_calls
+            if len(c.args) >= 3 and c.args[2] == RT.OLE_OBJECT
+        ]
+        assert len(ole_calls) == 1
+        new_ole_part = ole_calls[0].args[1]
+        assert new_ole_part is not src_ole_part
+        assert isinstance(new_ole_part, EmbeddedPackagePart)
+        assert new_ole_part.package is target_package_
+        assert new_ole_part.blob == b"OLEDATA"
 
     def it_provides_access_to_its_slide(self, slide_fixture):
         slide_part, Slide_, sld, slide_ = slide_fixture

@@ -55,13 +55,13 @@ class PresentationPart(XmlPart):
         The new slide is added to this presentation with appearance inherited
         from `slide_layout` (which must belong to this presentation). The
         returned |Slide| contains a deep copy of the shape tree of
-        `source_slide`; image parts are copied into this package (or reused
-        when a matching image is already present).
-
-        Raises |NotImplementedError| when the source slide references a part
-        type not handled by the basic (F1-independent) copy path -- currently
-        anything other than slide-layout, image, hyperlink, or notes-slide
-        relationships.
+        `source_slide`, and every related part (image, media, chart with its
+        embedded workbook, embedded OLE object, external hyperlink) is
+        materialised in this presentation's package. Image and media parts
+        are content-deduplicated against existing parts; each chart receives
+        a *distinct* :class:`EmbeddedXlsxPart`. The notes-slide relationship
+        is dropped (notes slides carry a back-reference to their owning
+        slide and so cannot be shared).
         """
         partname = self._next_slide_partname
         slide_part = SlidePart.clone_from(
