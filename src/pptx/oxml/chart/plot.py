@@ -309,6 +309,22 @@ class CT_PieChart(BaseChartElement):
     del _tag_seq
 
 
+class CT_Pie3DChart(BaseChartElement):
+    """
+    ``<c:pie3DChart>`` custom element class (issue #321).
+
+    Mirrors |CT_PieChart| but without `c:firstSliceAng`; the ECMA-376
+    `CT_Pie3DChart` schema uses only the `EG_PieChartShared` group (varyColors,
+    ser, dLbls) plus an optional `c:extLst`.
+    """
+
+    _tag_seq = ("c:varyColors", "c:ser", "c:dLbls", "c:extLst")
+    varyColors = ZeroOrOne("c:varyColors", successors=_tag_seq[1:])
+    ser = ZeroOrMore("c:ser", successors=_tag_seq[2:])
+    dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[3:])
+    del _tag_seq
+
+
 class CT_RadarChart(BaseChartElement):
     """
     ``<c:radarChart>`` custom element class

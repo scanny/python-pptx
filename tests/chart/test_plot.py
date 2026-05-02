@@ -16,6 +16,7 @@ from pptx.chart.plot import (
     DataLabels,
     DoughnutPlot,
     LinePlot,
+    Pie3DPlot,
     PiePlot,
     PlotFactory,
     PlotTypeInspector,
@@ -393,6 +394,27 @@ class DescribeBubblePlot(object):
         return bubble_plot, new_value, expected_xml
 
 
+class DescribePie3DPlot(object):
+    """Unit tests for the ``Pie3DPlot`` class (issue #321)."""
+
+    def it_is_a_BasePlot_subclass(self):
+        pie3DChart = element("c:pie3DChart")
+        plot = Pie3DPlot(pie3DChart, None)
+        assert isinstance(plot, _BasePlot)
+
+    def it_is_returned_by_PlotFactory_for_a_pie3DChart_element(self):
+        plot = PlotFactory(element("c:pie3DChart"), None)
+        assert isinstance(plot, Pie3DPlot)
+
+    def it_reports_THREE_D_PIE_when_not_exploded(self):
+        plot = PlotFactory(element("c:pie3DChart"), None)
+        assert PlotTypeInspector.chart_type(plot) is XL.THREE_D_PIE
+
+    def it_reports_THREE_D_PIE_EXPLODED_when_exploded(self):
+        plot = PlotFactory(element("c:pie3DChart/c:ser/c:explosion{val=25}"), None)
+        assert PlotTypeInspector.chart_type(plot) is XL.THREE_D_PIE_EXPLODED
+
+
 class DescribePlotFactory(object):
     def it_contructs_a_plot_object_from_a_plot_element(self, call_fixture):
         xChart, chart_, PlotClass_, plot_ = call_fixture
@@ -411,6 +433,7 @@ class DescribePlotFactory(object):
             ("c:doughnutChart", DoughnutPlot),
             ("c:lineChart", LinePlot),
             ("c:pieChart", PiePlot),
+            ("c:pie3DChart", Pie3DPlot),
             ("c:radarChart", RadarPlot),
             ("c:scatterChart", XyPlot),
         ]
@@ -497,6 +520,8 @@ class DescribePlotTypeInspector(object):
             ),
             ("c:pieChart", XL.PIE),
             ("c:pieChart/c:ser/c:explosion{val=25}", XL.PIE_EXPLODED),
+            ("c:pie3DChart", XL.THREE_D_PIE),
+            ("c:pie3DChart/c:ser/c:explosion{val=25}", XL.THREE_D_PIE_EXPLODED),
             ("c:scatterChart/c:scatterStyle", XL.XY_SCATTER),
             (
                 "c:scatterChart/(c:scatterStyle{val=lineMarker},c:ser/c:spPr/a:ln/a" ":noFill)",

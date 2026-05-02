@@ -186,3 +186,10 @@ def then_the_charts_first_plot_has_data_labels_with_show_value_True(context):
     assert plot.data_labels.show_value is True, (
         "plot.data_labels.show_value is %s" % plot.data_labels.show_value
     )
+
+
+@then("the chart's first plot is a {plot_cls_name}")
+def then_the_charts_first_plot_is_a(context, plot_cls_name):
+    plot = context.chart.plots[0]
+    actual = type(plot).__name__
+    assert actual == plot_cls_name, "expected %s, got %s" % (plot_cls_name, actual)
