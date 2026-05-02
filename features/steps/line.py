@@ -6,8 +6,32 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
-from pptx.enum.dml import MSO_LINE
+from pptx.enum.dml import (
+    MSO_LINE,
+    MSO_LINE_END_LENGTH,
+    MSO_LINE_END_TYPE,
+    MSO_LINE_END_WIDTH,
+)
 from pptx.util import Length, Pt
+
+_END_TYPE_MAP = {
+    "None": None,
+    "MSO_LINE_END_TYPE.TRIANGLE": MSO_LINE_END_TYPE.TRIANGLE,
+    "MSO_LINE_END_TYPE.OVAL": MSO_LINE_END_TYPE.OVAL,
+    "MSO_LINE_END_TYPE.STEALTH": MSO_LINE_END_TYPE.STEALTH,
+}
+
+_END_WIDTH_MAP = {
+    "None": None,
+    "MSO_LINE_END_WIDTH.LARGE": MSO_LINE_END_WIDTH.LARGE,
+    "MSO_LINE_END_WIDTH.MEDIUM": MSO_LINE_END_WIDTH.MEDIUM,
+}
+
+_END_LENGTH_MAP = {
+    "None": None,
+    "MSO_LINE_END_LENGTH.SMALL": MSO_LINE_END_LENGTH.SMALL,
+    "MSO_LINE_END_LENGTH.LARGE": MSO_LINE_END_LENGTH.LARGE,
+}
 
 # given ===================================================
 
@@ -97,3 +121,66 @@ def then_line_width_is_value(context, line_width):
     line_width = context.line.width
     assert line_width == expected_value
     assert isinstance(line_width, Length)
+
+
+# -- line-end arrow (begin_arrow / end_arrow) steps ------------------------------
+
+
+@when("I assign {value_key} to line.end_arrow.type")
+def when_I_assign_value_to_line_end_arrow_type(context, value_key):
+    context.line.end_arrow.type = _END_TYPE_MAP[value_key]
+
+
+@when("I assign {value_key} to line.end_arrow.width")
+def when_I_assign_value_to_line_end_arrow_width(context, value_key):
+    context.line.end_arrow.width = _END_WIDTH_MAP[value_key]
+
+
+@when("I assign {value_key} to line.end_arrow.length")
+def when_I_assign_value_to_line_end_arrow_length(context, value_key):
+    context.line.end_arrow.length = _END_LENGTH_MAP[value_key]
+
+
+@when("I assign {value_key} to line.begin_arrow.type")
+def when_I_assign_value_to_line_begin_arrow_type(context, value_key):
+    context.line.begin_arrow.type = _END_TYPE_MAP[value_key]
+
+
+@then("line.begin_arrow is a LineEndFormat object")
+def then_line_begin_arrow_is_a_LineEndFormat_object(context):
+    class_name = context.line.begin_arrow.__class__.__name__
+    assert class_name == "LineEndFormat", "expected 'LineEndFormat', got %r" % class_name
+
+
+@then("line.end_arrow is a LineEndFormat object")
+def then_line_end_arrow_is_a_LineEndFormat_object(context):
+    class_name = context.line.end_arrow.__class__.__name__
+    assert class_name == "LineEndFormat", "expected 'LineEndFormat', got %r" % class_name
+
+
+@then("line.end_arrow.type is {value_key}")
+def then_line_end_arrow_type_is(context, value_key):
+    expected = _END_TYPE_MAP[value_key]
+    actual = context.line.end_arrow.type
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("line.end_arrow.width is {value_key}")
+def then_line_end_arrow_width_is(context, value_key):
+    expected = _END_WIDTH_MAP[value_key]
+    actual = context.line.end_arrow.width
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("line.end_arrow.length is {value_key}")
+def then_line_end_arrow_length_is(context, value_key):
+    expected = _END_LENGTH_MAP[value_key]
+    actual = context.line.end_arrow.length
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("line.begin_arrow.type is {value_key}")
+def then_line_begin_arrow_type_is(context, value_key):
+    expected = _END_TYPE_MAP[value_key]
+    actual = context.line.begin_arrow.type
+    assert actual == expected, "expected %r, got %r" % (expected, actual)

@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #375 line end arrows via LineFormat
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

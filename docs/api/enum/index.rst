@@ -15,6 +15,9 @@ can be found here:
    MsoFillType
    MsoLanguageId
    MsoLineDashStyle
+   MsoLineEndLength
+   MsoLineEndType
+   MsoLineEndWidth
    MsoPatternType
    MsoShapeType
    MsoTextUnderlineType

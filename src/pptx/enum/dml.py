@@ -139,6 +139,81 @@ class MSO_LINE_DASH_STYLE(BaseXmlEnum):
 MSO_LINE = MSO_LINE_DASH_STYLE
 
 
+class MSO_LINE_END_TYPE(BaseXmlEnum):
+    """Specifies the shape of a line-end decoration (arrowhead).
+
+    Example::
+
+        from pptx.enum.dml import MSO_LINE_END_TYPE
+
+        shape.line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE
+
+    Corresponds to the `ST_LineEndType` simple type in DrawingML.
+    """
+
+    NONE = (1, "none", "No line-end decoration.")
+    """No line-end decoration."""
+
+    TRIANGLE = (2, "triangle", "Triangular line end.")
+    """Triangular line end."""
+
+    STEALTH = (3, "stealth", "Stealth line end (a filled arrow shape).")
+    """Stealth line end (a filled arrow shape)."""
+
+    DIAMOND = (4, "diamond", "Diamond line end.")
+    """Diamond line end."""
+
+    OVAL = (5, "oval", "Oval line end.")
+    """Oval line end."""
+
+    ARROW = (6, "arrow", "Open arrow (two line strokes) line end.")
+    """Open arrow (two line strokes) line end."""
+
+
+class MSO_LINE_END_WIDTH(BaseXmlEnum):
+    """Specifies the width of a line-end decoration (arrowhead).
+
+    Example::
+
+        from pptx.enum.dml import MSO_LINE_END_WIDTH
+
+        shape.line.end_arrow.width = MSO_LINE_END_WIDTH.MEDIUM
+
+    Corresponds to the `ST_LineEndWidth` simple type in DrawingML.
+    """
+
+    SMALL = (1, "sm", "Small arrowhead width.")
+    """Small arrowhead width."""
+
+    MEDIUM = (2, "med", "Medium arrowhead width.")
+    """Medium arrowhead width."""
+
+    LARGE = (3, "lg", "Large arrowhead width.")
+    """Large arrowhead width."""
+
+
+class MSO_LINE_END_LENGTH(BaseXmlEnum):
+    """Specifies the length of a line-end decoration (arrowhead).
+
+    Example::
+
+        from pptx.enum.dml import MSO_LINE_END_LENGTH
+
+        shape.line.end_arrow.length = MSO_LINE_END_LENGTH.LARGE
+
+    Corresponds to the `ST_LineEndLength` simple type in DrawingML.
+    """
+
+    SMALL = (1, "sm", "Small arrowhead length.")
+    """Small arrowhead length."""
+
+    MEDIUM = (2, "med", "Medium arrowhead length.")
+    """Medium arrowhead length."""
+
+    LARGE = (3, "lg", "Large arrowhead length.")
+    """Large arrowhead length."""
+
+
 class MSO_PATTERN_TYPE(BaseXmlEnum):
     """Specifies the fill pattern used in a shape.
 

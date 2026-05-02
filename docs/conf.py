@@ -230,6 +230,8 @@ rst_epilog = """
 
 .. |Length| replace:: :class:`.Length`
 
+.. |LineEndFormat| replace:: :class:`.LineEndFormat`
+
 .. |LineFormat| replace:: :class:`.LineFormat`
 
 .. |_LineSegment| replace:: :class:`._LineSegment`
