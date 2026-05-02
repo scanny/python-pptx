@@ -73,7 +73,33 @@ class DescribePackage(object):
         package.save(pkg_file)
 
         ext_props_prop_.assert_called_once_with()
-        base_save_.assert_called_once_with(package, pkg_file, None)
+        base_save_.assert_called_once_with(package, pkg_file, None, password=None)
+
+    def it_forwards_password_through_save(self, request):
+        """`Package.save(pkg_file, password=...)` reaches the base-class `save`."""
+        from pptx.opc.package import OpcPackage
+
+        package = Package(None)
+        property_mock(request, Package, "extended_properties")
+        base_save_ = method_mock(request, OpcPackage, "save")
+        pkg_file = "foobar.pptx"
+
+        package.save(pkg_file, password="s3cret")
+
+        base_save_.assert_called_once_with(package, pkg_file, None, password="s3cret")
+
+    def and_it_forwards_both_zip_date_time_and_password_through_save(self, request):
+        from pptx.opc.package import OpcPackage
+
+        package = Package(None)
+        property_mock(request, Package, "extended_properties")
+        base_save_ = method_mock(request, OpcPackage, "save")
+        pkg_file = "foobar.pptx"
+        zdt = (2024, 1, 1, 0, 0, 0)
+
+        package.save(pkg_file, zdt, password="s3cret")
+
+        base_save_.assert_called_once_with(package, pkg_file, zdt, password="s3cret")
 
     def it_can_get_or_add_an_image_part(self, image_part_fixture):
         package, image_file, image_parts_, image_part_ = image_part_fixture

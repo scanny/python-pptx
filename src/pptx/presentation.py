@@ -121,6 +121,7 @@ class Presentation(PartElementProxy):
         self,
         file: str | IO[bytes],
         zip_date_time: ZipDateTime | None = None,
+        password: str | None = None,
     ):
         """Writes this presentation to `file`.
 
@@ -132,8 +133,14 @@ class Presentation(PartElementProxy):
         which is convenient for reproducible builds and source-control diffs. The value
         may be a :class:`datetime.datetime` or a 6-tuple ``(year, month, day, hour,
         minute, second)``. The earliest representable Zip date is 1980-01-01.
+
+        When `password` is provided, the saved .pptx is password-protected using ECMA-376
+        Agile Encryption (the same scheme PowerPoint uses). Encryption requires the
+        optional ``msoffcrypto-tool`` dependency. `zip_date_time` and `password` are
+        orthogonal: `zip_date_time` stamps the inner (plaintext) zip members before the
+        encryption wrapper is applied.
         """
-        self.part.save(file, zip_date_time)
+        self.part.save(file, zip_date_time, password=password)
 
     @property
     def slide_height(self) -> Length | None:

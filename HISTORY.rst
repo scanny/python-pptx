@@ -274,6 +274,17 @@ Unreleased
   by-name API for selecting built-in PowerPoint table styles is deferred to
   a follow-up release; assignment of unknown GUIDs is not validated against
   the ``tableStyles.xml`` part.
+- feat: #668 read and write password-protected (ECMA-376 Agile Encryption)
+  ``.pptx`` files. ``Presentation(pptx, password=...)`` decrypts on open and
+  ``prs.save(pkg_file, password=...)`` encrypts on save. Unifies the
+  ``password`` keyword with the ``zip_date_time`` keyword added for #702;
+  both are accepted together and are orthogonal — ``zip_date_time`` applies
+  to the inner (plaintext) zip members, then the package is wrapped in an
+  OLE2 / Agile-Encryption CFBF container when ``password`` is given.
+  Requires the optional ``msoffcrypto-tool`` dependency at runtime (no new
+  dependency when the feature is not used); a clear
+  ``pptx.exc.EncryptedPackageError`` is raised when the dependency is
+  absent or the password is wrong.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

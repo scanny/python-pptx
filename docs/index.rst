@@ -40,6 +40,8 @@ Feature Support
   master or layout, and insert auto-refresh slide-number or date fields in a
   text frame
 * Read and write legacy PowerPoint review comments on slides
+* Open and save password-protected (ECMA-376 Agile Encryption) .pptx files
+  (requires optional ``msoffcrypto-tool``)
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

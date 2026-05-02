@@ -18,7 +18,13 @@ class DescribePresentation(object):
     def it_opens_default_template_on_no_path_provided(self, call_fixture):
         Package_, path, prs_ = call_fixture
         prs = Presentation()
-        Package_.open.assert_called_once_with(path)
+        Package_.open.assert_called_once_with(path, password=None)
+        assert prs is prs_
+
+    def it_can_open_a_password_protected_presentation(self, call_fixture):
+        Package_, path, prs_ = call_fixture
+        prs = Presentation(path, password="s3cret")
+        Package_.open.assert_called_once_with(path, password="s3cret")
         assert prs is prs_
 
     @pytest.mark.parametrize(
@@ -43,7 +49,7 @@ class DescribePresentation(object):
         expected_path = os.path.join(
             os.path.split(pptx.__file__)[0], "templates", template_filename
         )
-        Package_.open.assert_called_once_with(expected_path)
+        Package_.open.assert_called_once_with(expected_path, password=None)
         assert prs is prs_
 
     def it_raises_on_unknown_pptx_format(self):

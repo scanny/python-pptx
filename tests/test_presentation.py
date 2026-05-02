@@ -76,13 +76,24 @@ class DescribePresentation(object):
     def it_can_save_the_presentation_to_a_file(self, save_fixture):
         prs, file_, prs_part_ = save_fixture
         prs.save(file_)
-        prs_part_.save.assert_called_once_with(file_, None)
+        prs_part_.save.assert_called_once_with(file_, None, password=None)
 
     def and_it_forwards_zip_date_time_to_the_presentation_part(self, save_fixture):
         prs, file_, prs_part_ = save_fixture
         zdt = (2024, 6, 15, 9, 30, 0)
         prs.save(file_, zdt)
-        prs_part_.save.assert_called_once_with(file_, zdt)
+        prs_part_.save.assert_called_once_with(file_, zdt, password=None)
+
+    def it_can_save_a_password_protected_presentation_to_a_file(self, save_fixture):
+        prs, file_, prs_part_ = save_fixture
+        prs.save(file_, password="s3cret")
+        prs_part_.save.assert_called_once_with(file_, None, password="s3cret")
+
+    def and_it_forwards_both_zip_date_time_and_password(self, save_fixture):
+        prs, file_, prs_part_ = save_fixture
+        zdt = (2024, 6, 15, 9, 30, 0)
+        prs.save(file_, zdt, password="s3cret")
+        prs_part_.save.assert_called_once_with(file_, zdt, password="s3cret")
 
     def it_starts_with_no_embedded_fonts(self):
         prs = Presentation(element("p:presentation"), None)

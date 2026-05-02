@@ -49,3 +49,26 @@ Feature: Round-trip a presentation
       When I open a PowerPoint template file
       Then the presentation is loaded
        And I see the pptx file in the working directory after saving
+
+  Scenario: Round-trip a password-protected presentation
+     Given a clean working directory
+      When I save a password-protected presentation
+       And I open the password-protected presentation with the correct password
+      Then I see the pptx file in the working directory
+       And the saved .pptx starts with the OLE2 magic signature
+
+  Scenario: Opening a password-protected presentation without a password fails
+     Given a password-protected presentation on disk
+      Then opening it without a password raises EncryptedPackageError
+
+  Scenario: Opening a password-protected presentation with the wrong password fails
+     Given a password-protected presentation on disk
+      Then opening it with the wrong password raises EncryptedPackageError
+
+  Scenario: Round-trip a password-protected presentation with fixed zip_date_time
+     Given a clean working directory
+      When I save a password-protected presentation with a fixed zip date-time
+       And I open the password-protected presentation with the correct password
+      Then I see the pptx file in the working directory
+       And the saved .pptx starts with the OLE2 magic signature
+       And every decrypted zip member carries the 2020-01-01 00:00:00 last-modified stamp
