@@ -561,6 +561,36 @@ for missing values in a stacked bar chart (GitHub issue
 Assigning :attr:`~XL_DISPLAY_BLANKS_AS.ZERO` (the XSD default) removes any
 ``<c:dispBlanksAs>`` element so the XML stays minimal.
 
+Reading the "Switch Row/Column" state
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PowerPoint's *Chart Design > Switch Row/Column* command transposes the
+mapping between the embedded worksheet and the chart: in one orientation
+each worksheet column becomes a series, in the other each row does. The
+``.pptx`` format does not persist a dedicated flag for this state —
+instead the orientation is implicit in the shape of the cell references
+beneath each ``c:ser``. :attr:`Chart.series_in_rows` exposes the inferred
+state (GitHub issue
+`#828 <https://github.com/scanny/python-pptx/issues/828>`_)::
+
+    chart = graphic_frame.chart
+    if chart.series_in_rows:
+        print("Switch Row/Column has been applied")
+    elif chart.series_in_rows is False:
+        print("default orientation — series are in columns")
+    else:
+        # -- None: XY/scatter / bubble chart, inline-literal data, or the
+        # -- references can't be parsed. --
+        print("orientation cannot be determined from the XML")
+
+The property is read-only. OOXML does not expose a writer-side toggle for
+the switch; PowerPoint itself re-authors every ``c:ser`` sub-reference
+(``c:tx``, ``c:cat``, ``c:val``) in response to the UI command, and
+emulating that without a live workbook would silently mismatch what
+PowerPoint re-writes on its next save. Callers that need to change
+orientation programmatically should re-author the chart data with rows
+and columns transposed and pass it to :meth:`Chart.replace_data`.
+
 .. _supported-chart-types:
 
 Chart-type reference

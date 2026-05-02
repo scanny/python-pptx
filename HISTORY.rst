@@ -297,6 +297,21 @@ Unreleased
   element so the XML stays minimal; a value less than ``1`` raises
   :class:`ValueError` (ECMA-376 ``ST_Skip`` mandates a positive integer).
 
+- feat: #828 Add :attr:`.Chart.series_in_rows` read-only property that
+  reports whether the chart's source data is organised by rows or by
+  columns — the state PowerPoint's *Chart Design > Switch Row/Column*
+  toggles. OOXML does not persist a dedicated ``@switchRowCol``
+  attribute, so the property infers orientation from the shape of the
+  ``c:f`` cell references under the first ``c:ser``: categories running
+  vertically (single column, multiple rows) mean series-in-columns
+  (``False``); categories running horizontally (single row, multiple
+  columns) mean series-in-rows (``True``). Returns ``None`` when the
+  orientation cannot be determined — for instance when the chart has
+  no series, uses inline literals instead of workbook references, or is
+  an XY/scatter / bubble chart without a category axis. Read-only; the
+  supported way to flip orientation programmatically is to re-author
+  via :meth:`.Chart.replace_data` with the data transposed.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
