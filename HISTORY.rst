@@ -6,6 +6,15 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #640 (duplicate a chart) resolved by ``feat/issue-877-cross-slide-
+  chart-copy``. Same-slide duplication is a structural subset of the
+  cross-slide chart-copy primitive: calling
+  ``chart.clone_to(same_slide.shapes, x, y, cx, cy)`` produces a working
+  duplicate on the source slide with distinct ``ChartPart`` and
+  ``EmbeddedXlsxPart``, a fresh shape id / name (no collision with the
+  source graphic-frame), and survives a save + reload round-trip. Adds
+  a regression suite ``DescribeIssue640RegressionChartDuplicate`` under
+  ``tests/test_issue_640_chart_duplicate.py`` that pins this behaviour.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
