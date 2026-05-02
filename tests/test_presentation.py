@@ -6,6 +6,7 @@ import io
 
 import pytest
 
+from pptx import Presentation as open_presentation
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import NotesMasterPart
@@ -525,6 +526,139 @@ class DescribeSection(object):
         # -- re-access via indexing should yield an equal Section --
         assert section == prs.sections[0]
         assert section != "not a section"
+
+
+class DescribeIssue694RegressionSections(object):
+    """End-to-end regression suite covering issue #694.
+
+    Issue #694 asked for API to:
+
+    1. Get a list of all sections on a presentation, or look one up by name.
+    2. Iterate the slides that belong to each section.
+    3. Sort or otherwise operate on sections via objects with stable identity
+       (e.g. a GUID id plus a display name).
+
+    These tests exercise those three user-stories against the API landed by
+    foundation F7 (see ``feat/foundation-f7-sections``) using a real
+    round-tripped ``.pptx`` package — they are a *verification* of #694 being
+    resolved by F7 rather than a re-implementation of the same behaviour.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _isolate_part_factory(self):
+        """Repair ``PartFactory.part_type_for`` so sibling mocks don't poison us.
+
+        Some tests in this repo (e.g. ``DescribePartFactory``) register mocked
+        part classes into the module-level ``PartFactory.part_type_for`` dict
+        and do not clean up. Because these round-trip tests exercise real
+        ``.pptx`` loading, a leaked mock registration causes
+        ``Mock object has no attribute 'slide'`` on ``related_slide(...)``.
+
+        This fixture re-applies the canonical default mapping (the one
+        registered in ``pptx/__init__.py``) before each test in this class and
+        restores the as-observed state afterwards so the test is isolated in
+        both directions.
+        """
+        from pptx import content_type_to_part_class_map
+        from pptx.opc.package import PartFactory
+
+        saved = dict(PartFactory.part_type_for)
+        PartFactory.part_type_for.update(content_type_to_part_class_map)
+        try:
+            yield
+        finally:
+            PartFactory.part_type_for.clear()
+            PartFactory.part_type_for.update(saved)
+
+    def it_iterates_sections_and_their_slides_after_round_trip(self):
+        prs = open_presentation()
+        layout = prs.slide_layouts[6]  # -- blank layout --
+        for _ in range(4):
+            prs.slides.add_slide(layout)
+        slides = list(prs.slides)
+
+        intro = prs.sections.add_section("Intro", slides=slides[:2])
+        body = prs.sections.add_section("Body", slides=slides[2:3])
+        appendix = prs.sections.add_section("Appendix", slides=slides[3:])
+
+        assert [s.name for s in prs.sections] == ["Intro", "Body", "Appendix"]
+        assert intro.slides == (slides[0], slides[1])
+        assert body.slides == (slides[2],)
+        assert appendix.slides == (slides[3],)
+
+        # -- round-trip and verify sections + slide membership survive --
+        stream = io.BytesIO()
+        prs.save(stream)
+        prs2 = open_presentation(stream)
+
+        assert [s.name for s in prs2.sections] == ["Intro", "Body", "Appendix"]
+        # -- issue #694 core ask: iterate slides *per section* --
+        reloaded_slides = list(prs2.slides)
+        assert prs2.sections[0].slides == (reloaded_slides[0], reloaded_slides[1])
+        assert prs2.sections[1].slides == (reloaded_slides[2],)
+        assert prs2.sections[2].slides == (reloaded_slides[3],)
+
+    def it_looks_up_a_section_by_name_for_slide_extraction(self):
+        """User story 1: search presentation for a section by name, then iterate its slides."""
+        prs = open_presentation()
+        layout = prs.slide_layouts[6]
+        for _ in range(3):
+            prs.slides.add_slide(layout)
+        all_slides = list(prs.slides)
+
+        prs.sections.add_section("Appendix", slides=all_slides[2:])
+        prs.sections.add_section("Intro", slides=all_slides[:2])
+
+        found = prs.sections.get_by_name("Appendix")
+
+        assert found is not None
+        assert found.name == "Appendix"
+        # -- the slides for that section are what the user wants to "extract" --
+        assert [slide for slide in found.slides] == [all_slides[2]]
+
+    def it_supports_sorting_section_objects_by_name(self):
+        """User story 2: sort ``section`` objects by name and operate on them in order."""
+        prs = open_presentation()
+        prs.sections.add_section("Zeta")
+        prs.sections.add_section("Alpha")
+        prs.sections.add_section("Mu")
+
+        sorted_sections = sorted(prs.sections, key=lambda s: s.name)
+
+        assert [s.name for s in sorted_sections] == ["Alpha", "Mu", "Zeta"]
+        # -- renaming through the sorted handles round-trips via the live tree --
+        sorted_sections[0].name = "Alpha (renamed)"
+        assert prs.sections.get_by_name("Alpha (renamed)") is not None
+
+    def it_round_trips_an_author_supplied_section_guid(self):
+        """Author-supplied GUIDs must survive save/reload so downstream tools can key on them."""
+        author_id = "{ABCDEF01-2345-6789-ABCD-EF0123456789}"
+        prs = open_presentation()
+        layout = prs.slide_layouts[6]
+        prs.slides.add_slide(layout)
+
+        section = prs.sections.add_section(
+            "Preserved", slides=[prs.slides[0]], id=author_id
+        )
+        assert section.id == author_id
+
+        stream = io.BytesIO()
+        prs.save(stream)
+        prs2 = open_presentation(stream)
+
+        reloaded = prs2.sections.get_by_id(author_id)
+        assert reloaded is not None, "author-supplied section id did not survive round-trip"
+        assert reloaded.id == author_id
+        assert reloaded.name == "Preserved"
+
+    def it_rejects_adding_a_section_with_a_duplicate_author_guid(self):
+        """A second ``add_section(id=...)`` with the same GUID must raise so callers don't silently collide."""
+        prs = open_presentation()
+        author_id = "{11111111-2222-3333-4444-555555555555}"
+        prs.sections.add_section("A", id=author_id)
+
+        with pytest.raises(ValueError, match="already exists"):
+            prs.sections.add_section("B", id=author_id)
 
 
 class Describe_read_blob(object):

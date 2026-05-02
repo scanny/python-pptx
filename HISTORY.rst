@@ -6,6 +6,13 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #694 resolved by F7 foundation. The presentation-sections subsystem
+  covers the issue's user stories (iterate ``prs.sections`` and each
+  ``section.slides``, search by name via ``Sections.get_by_name``, sort
+  section objects, round-trip author-supplied section GUIDs). Adds an
+  end-to-end regression suite ``DescribeIssue694RegressionSections`` under
+  ``tests/test_presentation.py`` that exercises those scenarios against a
+  round-tripped real package.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under
