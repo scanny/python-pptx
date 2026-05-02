@@ -360,6 +360,61 @@ class DescribeSlide(object):
         slide, notes_slide_ = notes_slide_fixture
         assert slide.notes_slide is notes_slide_
 
+    def it_finds_shapes_by_xpath(self):
+        """Elements matched by the XPath are wrapped in shape proxies."""
+        sld = element(
+            "p:sld/p:cSld/p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Title 1},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Body 2},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Title 1}"
+            ")"
+        )
+        slide = Slide(sld, None)
+
+        # -- `./p:sp` matches the three direct `p:sp` children.
+        shapes = slide.find_shapes_by_xpath("./p:sp")
+
+        assert len(shapes) == 3
+        assert all(isinstance(s, BaseShape) for s in shapes)
+        assert [s.name for s in shapes] == ["Title 1", "Body 2", "Title 1"]
+
+    def it_finds_shapes_by_xpath_using_child_match(self):
+        """Non-shape matches are resolved to their nearest shape ancestor, deduplicated."""
+        sld = element(
+            "p:sld/p:cSld/p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Title 1},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Body 2}"
+            ")"
+        )
+        slide = Slide(sld, None)
+
+        # -- `.//p:cNvPr[@name='Title 1']` selects the cNvPr; the method
+        # -- resolves it back to the owning p:sp and returns a shape proxy.
+        shapes = slide.find_shapes_by_xpath(".//p:cNvPr[@name='Title 1']")
+
+        assert len(shapes) == 1
+        assert shapes[0].name == "Title 1"
+
+    def it_skips_non_element_xpath_results(self):
+        """String / numeric XPath results are silently skipped."""
+        sld = element(
+            "p:sld/p:cSld/p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Title 1}"
+        )
+        slide = Slide(sld, None)
+
+        # -- attribute-value expression returns strings, not elements --
+        shapes = slide.find_shapes_by_xpath(".//@name")
+
+        assert shapes == []
+
+    def it_returns_an_empty_list_when_xpath_matches_nothing(self):
+        sld = element(
+            "p:sld/p:cSld/p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Title 1}"
+        )
+        slide = Slide(sld, None)
+
+        assert slide.find_shapes_by_xpath(".//p:sp[@nosuch='x']") == []
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
