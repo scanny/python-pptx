@@ -2007,6 +2007,45 @@ class Describe_MoviePicElementCreator(object):
         assert shape_name == filename
 
     @pytest.mark.parametrize(
+        "video_filename, expected_shape_name",
+        [
+            # -- typical video extensions stripped (#767) --
+            ("intro.mp4", "intro"),
+            ("clip.mkv", "clip"),
+            ("movie.mp4", "movie"),
+            ("sound.mp3", "sound"),
+            ("ANIMATION.MOV", "ANIMATION"),
+            # -- multiple dots: only the final extension is stripped --
+            ("my.promo.clip.mp4", "my.promo.clip"),
+            # -- no extension: returned unchanged --
+            ("README", "README"),
+            # -- hidden-style filename with only a leading dot and an extension --
+            (".mp4", ".mp4"),
+        ],
+    )
+    def it_strips_file_extension_from_shape_name_for_issue_767(
+        self,
+        request: pytest.FixtureRequest,
+        video_filename: str,
+        expected_shape_name: str,
+        _video_prop_,
+        video_,
+    ):
+        """Regression test for #767.
+
+        PowerPoint names movie shapes with the filename stem (no extension) in the
+        selection pane. ``_MoviePicElementCreator._shape_name`` must match by
+        stripping the final file extension from ``Video.filename``.
+        """
+        _video_prop_.return_value = video_
+        video_.filename = video_filename
+        movie_pic_element_creator = _MoviePicElementCreator(
+            None, None, None, None, None, None, None, None, None  # type: ignore
+        )
+
+        assert movie_pic_element_creator._shape_name == expected_shape_name
+
+    @pytest.mark.parametrize(
         "mime_type, expected_is_audio",
         [
             (None, False),
@@ -2205,8 +2244,10 @@ class Describe_MoviePicElementCreator(object):
             None, None, None, None, None, None, None, None, None
         )
         _video_prop_.return_value = video_
-        video_.filename = filename = "movie.mp4"
-        return movie_pic_element_creator, filename
+        # -- the filename exposes a .mp4 extension, but _shape_name strips it
+        # -- to match PowerPoint's own selection-pane naming (#767) --
+        video_.filename = "movie.mp4"
+        return movie_pic_element_creator, "movie"
 
     @pytest.fixture
     def slide_part_fixture(self, shapes_, slide_part_):
