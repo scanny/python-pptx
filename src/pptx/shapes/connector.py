@@ -160,7 +160,11 @@ class Connector(BaseShape):
     @begin_x.setter
     def begin_x(self, value):
         cxnSp = self._element
-        x, cx, flipH, new_x = cxnSp.x, cxnSp.cx, cxnSp.flipH, int(value)
+        # -- coerce to int so float inputs don't end up as non-integer values in the
+        # -- int-typed `a:off`/`a:ext` XML attributes, which would produce a .pptx
+        # -- PowerPoint refuses to open (issue #1058). `int(round(...))` also handles
+        # -- `numpy.float64` and similar numeric scalars. --
+        x, cx, flipH, new_x = cxnSp.x, cxnSp.cx, cxnSp.flipH, int(round(value))
 
         if flipH:
             old_x = x + cx
@@ -200,7 +204,8 @@ class Connector(BaseShape):
     @begin_y.setter
     def begin_y(self, value):
         cxnSp = self._element
-        y, cy, flipV, new_y = cxnSp.y, cxnSp.cy, cxnSp.flipV, int(value)
+        # -- coerce to int for the same reason as ``begin_x`` (issue #1058). --
+        y, cy, flipV, new_y = cxnSp.y, cxnSp.cy, cxnSp.flipV, int(round(value))
 
         if flipV:
             old_y = y + cy
@@ -256,7 +261,8 @@ class Connector(BaseShape):
     @end_x.setter
     def end_x(self, value):
         cxnSp = self._element
-        x, cx, flipH, new_x = cxnSp.x, cxnSp.cx, cxnSp.flipH, int(value)
+        # -- coerce to int for the same reason as ``begin_x`` (issue #1058). --
+        x, cx, flipH, new_x = cxnSp.x, cxnSp.cx, cxnSp.flipH, int(round(value))
 
         if flipH:
             dx = abs(new_x - x)
@@ -296,7 +302,8 @@ class Connector(BaseShape):
     @end_y.setter
     def end_y(self, value):
         cxnSp = self._element
-        y, cy, flipV, new_y = cxnSp.y, cxnSp.cy, cxnSp.flipV, int(value)
+        # -- coerce to int for the same reason as ``begin_x`` (issue #1058). --
+        y, cy, flipV, new_y = cxnSp.y, cxnSp.cy, cxnSp.flipV, int(round(value))
 
         if flipV:
             dy = abs(new_y - y)

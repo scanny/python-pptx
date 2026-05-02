@@ -12,6 +12,15 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #1058 connector coordinates accepting ``float`` values no longer
+  produce a corrupt ``.pptx`` PowerPoint refuses to open. Floats passed
+  to ``slide.shapes.add_connector(...)`` and to the
+  ``Connector.begin_x`` / ``begin_y`` / ``end_x`` / ``end_y`` setters
+  are now coerced with ``int(round(...))`` before they reach the
+  int-typed ``a:off/@x``, ``a:off/@y``, ``a:ext/@cx`` and ``a:ext/@cy``
+  XML attributes, matching the treatment already applied by
+  ``CT_GraphicalObjectFrame.new_table_graphicFrame``.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
