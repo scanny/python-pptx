@@ -297,6 +297,123 @@ class DescribePresentation(object):
         with pytest.raises(TypeError, match="advance_on_click must be a bool"):
             prs.set_auto_advance(5, advance_on_click=1)  # type: ignore[arg-type]
 
+    # -- merge(other_presentation) ---------------------------------------
+
+    def it_can_merge_another_presentation_into_this_one(self):
+        from pptx import Presentation as open_prs
+        from pptx.util import Inches
+        from .unitutil.file import absjoin, test_file_dir
+
+        image_path = absjoin(test_file_dir, "python-icon.jpeg")
+
+        # -- Build a source presentation with two picture-bearing slides. --
+        source = open_prs()
+        blank_layout = source.slide_masters[0].slide_layouts[5]
+        for _ in range(2):
+            sl = source.slides.add_slide(blank_layout)
+            sl.shapes.add_picture(image_path, Inches(1), Inches(1), height=Inches(1))
+        source_slide_count = len(source.slides)
+        source_shape_names = [
+            [sh.name for sh in sl.shapes] for sl in source.slides
+        ]
+
+        target = open_prs()
+        target_layout_count = len(target.slide_masters[0].slide_layouts)
+        existing_target_slides = len(target.slides)
+
+        appended = target.merge(source)
+
+        # -- every source slide came across --
+        assert len(appended) == source_slide_count
+        assert len(target.slides) == existing_target_slides + source_slide_count
+        # -- appended slides are full-fidelity Slide objects with original shape names --
+        for slide, expected_names in zip(appended, source_shape_names):
+            assert [sh.name for sh in slide.shapes] == expected_names
+        # -- target gained nothing but slides; layout count is unchanged --
+        assert len(target.slide_masters[0].slide_layouts) == target_layout_count
+        # -- and the merged deck round-trips cleanly --
+        buf = io.BytesIO()
+        target.save(buf)
+        buf.seek(0)
+        reopened = open_prs(buf)
+        assert len(reopened.slides) == existing_target_slides + source_slide_count
+
+    def it_raises_TypeError_when_other_is_not_a_Presentation(self):
+        prs = Presentation(element("p:presentation"), None)
+        with pytest.raises(TypeError, match="must be a Presentation"):
+            prs.merge("not-a-presentation")  # type: ignore[arg-type]
+
+    def it_raises_ValueError_when_merging_into_itself(self):
+        from pptx import Presentation as open_prs
+
+        prs = open_prs()
+        with pytest.raises(ValueError, match="itself"):
+            prs.merge(prs)
+
+    def it_merges_a_presentation_with_a_chart_slide_producing_distinct_xlsx_parts(self):
+        from pptx import Presentation as open_prs
+        from pptx.chart.data import CategoryChartData
+        from pptx.enum.chart import XL_CHART_TYPE
+        from pptx.parts.embeddedpackage import EmbeddedXlsxPart
+        from pptx.util import Inches
+
+        # -- Source presentation with two chart slides. --
+        def _make_chart_prs():
+            prs = open_prs()
+            blank = prs.slide_masters[0].slide_layouts[5]
+            for label in ("A", "B"):
+                sl = prs.slides.add_slide(blank)
+                data = CategoryChartData()
+                data.categories = ["X", "Y"]
+                data.add_series(label, (1.0, 2.0))
+                sl.shapes.add_chart(
+                    XL_CHART_TYPE.COLUMN_CLUSTERED,
+                    Inches(1),
+                    Inches(1),
+                    Inches(5),
+                    Inches(3),
+                    data,
+                )
+            return prs
+
+        source = _make_chart_prs()
+        target = open_prs()
+        source_xlsx_part_ids = {
+            id(p) for p in source.part.package.iter_parts() if isinstance(p, EmbeddedXlsxPart)
+        }
+
+        appended = target.merge(source)
+
+        # -- cross-package isolation: no target xlsx part is a source xlsx. --
+        target_xlsx_parts = [
+            p for p in target.part.package.iter_parts() if isinstance(p, EmbeddedXlsxPart)
+        ]
+        target_xlsx_ids = {id(p) for p in target_xlsx_parts}
+        assert not target_xlsx_ids.intersection(source_xlsx_part_ids)
+        # -- each merged slide has chart shapes (charts preserved in-memory) --
+        for slide in appended:
+            assert any(sh.has_chart for sh in slide.shapes), (
+                "chart shape missing on cloned slide"
+            )
+        # -- each chart in the merged deck owns a *distinct* EmbeddedXlsxPart --
+        from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+
+        chart_xlsx_ids: list[int] = []
+        for slide in appended:
+            for shape in slide.shapes:
+                if not shape.has_chart:
+                    continue
+                chart_part = shape.chart.part
+                for rel in chart_part.rels.values():
+                    if rel.reltype == RT.PACKAGE:
+                        chart_xlsx_ids.append(id(rel.target_part))
+        # -- xlsx parts are distinct across charts (one xlsx per chart). --
+        assert len(chart_xlsx_ids) == len(set(chart_xlsx_ids))
+        # -- merged deck can be serialised without raising (write round-trip). --
+        buf = io.BytesIO()
+        target.save(buf)
+        assert len(buf.getvalue()) > 0
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

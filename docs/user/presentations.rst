@@ -266,6 +266,47 @@ A few things to note:
   extension block.
 
 
+Merging two presentations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:meth:`Presentation.merge` appends every slide of one presentation to another
+in a single call. The copied slides are full-fidelity duplicates — shape tree,
+image and media parts, charts (each with its own embedded workbook), embedded
+OLE objects, and external hyperlinks are all materialised in the target
+presentation's package. The source presentation is not modified::
+
+    from pptx import Presentation
+
+    target = Presentation("report-shell.pptx")
+    source = Presentation("quarterly-results.pptx")
+
+    # -- append every slide of `source` onto `target` --
+    appended = target.merge(source)
+
+    print(len(appended), "slides merged")
+    target.save("combined.pptx")
+
+Things to note:
+
+* Each cloned slide binds to the layout at the **same index** in the target
+  master's layout list as its source's layout occupied in the source master.
+  When the target master has fewer layouts, the last layout is used as a
+  fallback. Callers who need strict layout mapping should reassign
+  ``slide.slide_layout`` after the merge or use
+  :meth:`Slides.add_slide_from_external` for per-slide control.
+* Image and media parts are content-deduplicated against the target package;
+  an image already present is reused rather than duplicated.
+* Each chart carries across with its *own* embedded workbook so PowerPoint's
+  "Edit Data" dialog continues to work on both the original and the merged copy.
+* Notes slides are **dropped** on the copies: a notes slide in OOXML stores a
+  back-reference to its owning slide and so cannot be shared. Add fresh notes
+  on the appended slides as needed.
+
+:meth:`Presentation.merge` raises ``TypeError`` when passed a non-
+|Presentation| argument and ``ValueError`` if called with ``self`` as the
+argument (to prevent inadvertently doubling a deck's slide count).
+
+
 Extended document properties are synced on save
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

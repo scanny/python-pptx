@@ -17,6 +17,7 @@ from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.parts.chart import ChartPart
 from pptx.parts.comments import CommentsPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
+from pptx.parts.media import MediaPart
 from pptx.parts.tags import TagsPart
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from pptx.util import lazyproperty
@@ -183,18 +184,6 @@ class NotesSlidePart(BaseSlidePart):
 class SlidePart(BaseSlidePart):
     """Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml."""
 
-    # -- Relationship types this part knows how to clone across presentations
-    # -- in the *basic* (F1-independent) copy path. Slides that contain any
-    # -- other relationship type require cross-part rel cloning (Foundation F1)
-    # -- and will raise ``NotImplementedError`` from :meth:`clone_from`.
-    _BASIC_CLONEABLE_RELTYPES = frozenset(
-        {
-            RT.SLIDE_LAYOUT,
-            RT.IMAGE,
-            RT.HYPERLINK,
-        }
-    )
-
     @classmethod
     def new(cls, partname, package, slide_layout_part):
         """Return newly-created blank slide part.
@@ -217,31 +206,21 @@ class SlidePart(BaseSlidePart):
 
         The new slide part is bound to `slide_layout_part` (which must belong to
         `package`) and its shape tree is a deep copy of the source slide's shape
-        tree. Image parts referenced by the source slide are copied into
-        `package` (reusing existing image parts with identical content) and the
-        cloned shape-tree's `r:id` attributes are remapped accordingly. External
-        hyperlink relationships are preserved verbatim.
+        tree. Every relationship referenced by the source slide -- image, chart,
+        embedded OLE object, media, external hyperlink -- is re-established on
+        the new slide part with a fresh target part materialised in `package`
+        (or reused when a content-equivalent part already exists, e.g. an
+        identical image). The cloned shape-tree's `r:id` / `r:embed` / `r:link`
+        attributes are rewritten to match the freshly-allocated relationships.
 
-        This is the *basic* cross-presentation slide copy path. Slides that
-        reference any relationship type other than slide-layout, image, or
-        hyperlink (e.g. charts, embedded OLE objects, media, or notes slides)
-        cannot be fully cloned in this code path and will raise
-        |NotImplementedError|. Full-fidelity cross-part relationship cloning
-        is tracked under Foundation F1.
+        This is the full-fidelity cross-presentation slide copy path
+        (promoted from the #1036 "basic" variant now that Foundation F1 and F5
+        are in place). Charts bring their embedded workbook along as a
+        *distinct* :class:`EmbeddedXlsxPart` so PowerPoint's "Edit Data"
+        dialog continues to work; images and media are content-deduplicated
+        against `package`'s existing parts; and the notes-slide relationship
+        (which carries a back-reference to its owning slide) is dropped.
         """
-        # -- Validate every relationship on the source can be handled here --
-        for rel in source_slide_part.rels.values():
-            if rel.reltype in cls._BASIC_CLONEABLE_RELTYPES:
-                continue
-            if rel.reltype == RT.NOTES_SLIDE:
-                # -- Notes slides are dropped in the basic path (see docs). --
-                continue
-            raise NotImplementedError(
-                "cannot clone slide containing relationship of type '%s';"
-                " full cross-presentation slide cloning (charts, media,"
-                " embedded objects, notes) is tracked as Foundation F1" % rel.reltype
-            )
-
         # -- Start with a deep-copied `p:sld` element. --
         cloned_sld = copy.deepcopy(source_slide_part._element)
 
@@ -251,8 +230,24 @@ class SlidePart(BaseSlidePart):
         layout_rId = new_slide_part.relate_to(slide_layout_part, RT.SLIDE_LAYOUT)
 
         # -- Build an rId remap table and re-establish non-layout rels in the --
-        # -- target package (images get copied, external hyperlinks reused).  --
+        # -- target package. Each rel-type gets the handler appropriate for   --
+        # -- full-fidelity cross-package transport:                           --
+        # --   SLIDE_LAYOUT -> remapped to the supplied target layout         --
+        # --   NOTES_SLIDE  -> dropped (notes slides back-reference their     --
+        # --                   owning slide, so they can't be shared)         --
+        # --   IMAGE        -> deduplicated via package.get_or_add_image_part --
+        # --   MEDIA/VIDEO  -> deduplicated via package.get_or_add_media_part --
+        # --   /AUDIO          (shared MediaPart, two rel types per video)   --
+        # --   CHART        -> ChartPart.clone_from (deep; distinct xlsx)    --
+        # --   external     -> URI verbatim                                  --
+        # --   other (OLE,  -> F1 shallow clone (new part, same blob)        --
+        # --    PACKAGE,                                                     --
+        # --    comments…)                                                   --
         rId_map: dict[str, str] = {}
+        # -- Track already-cloned MediaParts (keyed by source rel target part
+        # -- identity) so that a video's MEDIA + VIDEO rel pair resolves to one
+        # -- MediaPart in the target package rather than two divergent clones. --
+        media_part_cache: dict[int, MediaPart] = {}
         for old_rId, rel in source_slide_part.rels.items():
             if rel.reltype == RT.SLIDE_LAYOUT:
                 rId_map[old_rId] = layout_rId
@@ -273,10 +268,32 @@ class SlidePart(BaseSlidePart):
                 new_rId = new_slide_part.relate_to(target_image_part, RT.IMAGE)
                 rId_map[old_rId] = new_rId
                 continue
-            # -- Unreachable: preflight above rejects anything else. --
-            raise NotImplementedError(  # pragma: no cover - defensive
-                "unexpected relationship type '%s' while cloning slide" % rel.reltype
-            )
+            if rel.reltype in (RT.MEDIA, RT.VIDEO, RT.AUDIO):
+                src_media_part = cast(MediaPart, rel.target_part)
+                tgt_media_part = cls._clone_media_part_into(
+                    src_media_part, package, media_part_cache
+                )
+                new_rId = new_slide_part.relate_to(tgt_media_part, rel.reltype)
+                rId_map[old_rId] = new_rId
+                continue
+            if rel.reltype == RT.CHART:
+                src_chart_part = cast(ChartPart, rel.target_part)
+                tgt_chart_part = ChartPart.clone_from(src_chart_part, package)
+                new_rId = new_slide_part.relate_to(tgt_chart_part, RT.CHART)
+                rId_map[old_rId] = new_rId
+                continue
+            # -- Any remaining internal rel (OLE object, embedded package,
+            # -- comments, etc.) gets the F1 shallow-clone treatment: a new
+            # -- part is materialised in the target package with the same
+            # -- content-type and blob, and a fresh rId is allocated. Parts
+            # -- that already belong to the target package are reused. --
+            src_target_part = rel.target_part
+            if src_target_part.package is package:
+                tgt_target_part = src_target_part
+            else:
+                tgt_target_part = cls._shallow_clone_part_into(src_target_part, package)
+            new_rId = new_slide_part.relate_to(tgt_target_part, rel.reltype)
+            rId_map[old_rId] = new_rId
 
         # -- Rewrite every `r:id` / `r:embed` / `r:link` on cloned element. --
         cls._remap_rel_ids(cloned_sld, rId_map)
@@ -337,6 +354,64 @@ class SlidePart(BaseSlidePart):
         part's blob.
         """
         return package.get_or_add_image_part(io.BytesIO(source_image_part.blob))
+
+    @staticmethod
+    def _clone_media_part_into(
+        source_media_part: MediaPart,
+        package: Package,
+        cache: dict[int, MediaPart],
+    ) -> MediaPart:
+        """Return a |MediaPart| in `package` mirroring `source_media_part`.
+
+        A single video yields two relationships on the owning slide -- MEDIA
+        and VIDEO -- both pointing at the same |MediaPart|. The `cache` keeps
+        both rels pointing at the one clone in the target package so the
+        duplicate media part isn't materialised twice.
+
+        Already-in-target-package parts are reused directly; otherwise a
+        new |MediaPart| is created with a non-colliding partname and the
+        source blob.
+        """
+        key = id(source_media_part)
+        hit = cache.get(key)
+        if hit is not None:
+            return hit
+        if source_media_part.package is package:
+            cache[key] = source_media_part
+            return source_media_part
+        # -- allocate a non-colliding partname in the target package using the
+        # -- source's extension (extracted from its partname). --
+        src_partname = str(source_media_part.partname)
+        dot = src_partname.rfind(".")
+        ext = src_partname[dot + 1 :] if dot != -1 else "bin"
+        partname = package.next_media_partname(ext)
+        cloned = MediaPart(
+            partname,
+            source_media_part.content_type,
+            package,
+            source_media_part.blob,
+        )
+        cache[key] = cloned
+        return cloned
+
+    @staticmethod
+    def _shallow_clone_part_into(source_part, package):
+        """Return a new part in `package` mirroring `source_part` (shallow duplicate).
+
+        Used for OLE objects, embedded packages, and any other slide-owned rel
+        targets that don't have a content-aware deep-clone helper. The new
+        partname is allocated via the source part's template so it doesn't
+        collide with existing parts in `package`. Relationships *within* the
+        source part are not recursed into -- the expected use-cases (OLE,
+        generic embedded-package) treat the target as an opaque blob.
+        """
+        from pptx.opc.package import _partname_template_for
+
+        partname_tmpl = _partname_template_for(source_part.partname)
+        new_partname = package.next_partname(partname_tmpl)
+        return type(source_part)(
+            new_partname, source_part.content_type, package, source_part.blob
+        )
 
     @staticmethod
     def _remap_rel_ids(element: BaseOxmlElement, rId_map: dict[str, str]) -> None:

@@ -209,6 +209,66 @@ class Presentation(PartElementProxy):
             transition.advance_after_time = advance_after_time_ms
             transition.advance_on_click = advance_on_click
 
+    def merge(self, other_presentation: Presentation) -> list[Slide]:
+        """Append every slide of `other_presentation` to this presentation.
+
+        Returns the list of newly-appended |Slide| objects in the same order
+        they appear in `other_presentation`. Each appended slide is a
+        full-fidelity deep copy: its shape tree, image and media parts, charts
+        (with distinct embedded workbooks), embedded OLE objects, and external
+        hyperlinks are all materialised in *this* presentation's package. The
+        source presentation is not modified.
+
+        Each cloned slide is bound to the layout at the *same index* in this
+        presentation's primary slide master (``slide_masters[0].slide_layouts``)
+        as its source's layout occupied in the source presentation's primary
+        master. When the target master has fewer layouts than the index
+        demanded by the source, the last layout is used as a fallback so the
+        merge does not fail on a mismatched template; callers who need strict
+        layout mapping should reassign ``slide.slide_layout`` after the merge
+        or use :meth:`Slides.add_slide_from_external` for per-slide control.
+
+        Notes-slide relationships on source slides are dropped (a notes slide
+        carries a back-reference to its owning slide and so cannot be shared);
+        other per-slide metadata (comments, OLE objects, linked-picture rels)
+        is carried along.
+
+        Raises |TypeError| if `other_presentation` is not a |Presentation| and
+        |ValueError| when called with ``self`` as the argument (to avoid
+        inadvertently doubling a presentation's slide count).
+        """
+        if not isinstance(other_presentation, Presentation):
+            raise TypeError(
+                "other_presentation must be a Presentation, got %s"
+                % type(other_presentation).__name__
+            )
+        if other_presentation is self:
+            raise ValueError("cannot merge a presentation into itself")
+
+        target_layouts = self.slide_masters[0].slide_layouts
+        if len(target_layouts) == 0:
+            raise ValueError("target presentation has no slide layouts on its primary master")
+
+        source_layouts = other_presentation.slide_masters[0].slide_layouts
+
+        appended: list[Slide] = []
+        for source_slide in other_presentation.slides:
+            # -- Pick the target layout whose index matches the source slide's
+            # -- layout index in the source presentation's primary master. Fall
+            # -- back to the last layout if the target master is shorter. --
+            source_layout = source_slide.slide_layout
+            try:
+                layout_idx = source_layouts.index(source_layout)
+            except (ValueError, KeyError):
+                layout_idx = 0
+            if layout_idx >= len(target_layouts):
+                layout_idx = len(target_layouts) - 1
+            target_layout = target_layouts[layout_idx]
+
+            appended.append(self.slides.add_slide_from_external(source_slide, target_layout))
+
+        return appended
+
     def save(
         self,
         file: str | IO[bytes],

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 from behave import given, then, when
 from behave.runner import Context
-from helpers import saved_pptx_path, test_file, test_potx, test_pptx
+from helpers import saved_pptx_path, test_file, test_image, test_potx, test_pptx
 
 from pptx import Presentation
 from pptx.exc import EncryptedPackageError
@@ -369,3 +369,49 @@ def then_every_decrypted_zip_member_has_fixed_date(context: Context):
             assert info.date_time == (2020, 1, 1, 0, 0, 0), (
                 "member %r has date_time %r" % (info.filename, info.date_time)
             )
+
+
+# -- #934 Presentation.merge scenarios -------------------------------
+
+
+@given("a source Presentation with {count:d} picture slides")
+def given_source_prs_with_picture_slides(context: Context, count: int):
+    source = Presentation()
+    blank = source.slide_masters[0].slide_layouts[5]
+    image_path = test_image("python-icon.jpeg")
+    for _ in range(count):
+        slide = source.slides.add_slide(blank)
+        slide.shapes.add_picture(image_path, Inches(1), Inches(1), height=Inches(1))
+    context.source_prs = source
+    context.source_shape_names = [
+        [sh.name for sh in sl.shapes] for sl in source.slides
+    ]
+
+
+@when("I call target.merge(source)")
+def when_I_call_target_merge_source(context: Context):
+    context.appended_slides = context.target_prs.merge(context.source_prs)
+
+
+@then("each appended slide's picture shape names match the source slide")
+def then_each_appended_slide_shape_names_match(context: Context):
+    for appended, expected_names in zip(
+        context.appended_slides, context.source_shape_names
+    ):
+        actual = [sh.name for sh in appended.shapes]
+        assert actual == expected_names, "appended=%r source=%r" % (
+            actual,
+            expected_names,
+        )
+
+
+@then("the merged presentation round-trips cleanly after merge")
+def then_merged_prs_round_trips(context: Context):
+    buf = io.BytesIO()
+    context.target_prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    assert len(reopened.slides) == len(context.appended_slides), (
+        "expected %d slides after round-trip, got %d"
+        % (len(context.appended_slides), len(reopened.slides))
+    )

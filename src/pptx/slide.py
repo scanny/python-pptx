@@ -660,12 +660,13 @@ class Slides(ParentedElementProxy):
         owning this |Slides| object). `source_slide` may come from any
         |Presentation| instance, including this one.
 
-        This method implements the *basic* cross-presentation slide copy path.
-        It handles slides whose only relationships are to the slide layout, to
-        image parts, to external hyperlinks, and (dropped) to notes slides.
-        Any other related part type -- such as charts, embedded OLE objects,
-        or media -- raises |NotImplementedError|. Full-fidelity cross-part
-        relationship cloning is tracked as Foundation F1.
+        Provides full-fidelity cross-presentation slide copy: image, media,
+        chart (with distinct embedded workbook), embedded OLE-object, and
+        external hyperlink relationships are all re-established on the cloned
+        slide against the target presentation's package. The notes-slide
+        relationship is dropped (a notes slide carries a back-reference to
+        its owning slide). See :meth:`Presentation.merge` for appending every
+        slide of another presentation in one call.
         """
         rId, slide = self.part.add_slide_from_external(source_slide, slide_layout)
         self._sldIdLst.add_sldId(rId)

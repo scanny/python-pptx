@@ -6,6 +6,25 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #934 add ``Presentation.merge(other_presentation)`` for
+  full-fidelity deck merging. Every slide in ``other_presentation`` is
+  appended to the receiver via
+  :meth:`Slides.add_slide_from_external`, now promoted from the
+  restricted (#1036 "basic") copy path to full-fidelity cloning via
+  Foundation F1 (``PartRelationshipCloner``) + F5
+  (``clone_embedded_xlsx``). Charts come across with a *distinct*
+  :class:`EmbeddedXlsxPart` so PowerPoint's "Edit Data" dialog keeps
+  working on both the original and the merged copy; image and media
+  parts are content-deduplicated against the target package;
+  OLE-object and embedded-package rels get a shallow-clone fallback;
+  external hyperlinks are preserved verbatim. Each cloned slide is
+  bound to the layout at the same index in the target master's layout
+  list as the source slide's layout occupied in the source master
+  (with "last layout" fallback when the target has fewer layouts).
+  Notes-slide relationships -- which carry a back-reference to their
+  owning slide -- are intentionally dropped on the copies. See
+  :meth:`Presentation.merge` for the convenience API and
+  :meth:`Slides.add_slide_from_external` for per-slide control.
 - docs: #398 Jinja2 / templating of text placeholders — close as out-of-scope
   (templating is the caller's concern; python-pptx provides the plumbing via
   :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text` shipped

@@ -36,3 +36,12 @@ Feature: Presentation properties
   Scenario: Presentation.slide_masters
     Given a presentation
      Then prs.slide_masters is a SlideMasters object
+
+
+  Scenario: Presentation.merge() appends every slide of another presentation
+    Given a source Presentation with 2 picture slides
+      And an empty target Presentation
+     When I call target.merge(source)
+     Then len(target.slides) is 2
+      And each appended slide's picture shape names match the source slide
+      And the merged presentation round-trips cleanly after merge
