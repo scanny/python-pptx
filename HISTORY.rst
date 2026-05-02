@@ -14,6 +14,7 @@ Unreleased
 - #849 expose `_Cell.row_idx` and `col_idx`
 - fix: #1042 Image.content_type and Image.ext incorrect for EMF files
 - #702 reproducible builds via fixed zip timestamps
+- build: #1103 update pyparsing usage for 3.x
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
