@@ -11,7 +11,7 @@ from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy
-from pptx.util import lazyproperty
+from pptx.util import Emu, lazyproperty
 
 if TYPE_CHECKING:
     from typing import Protocol
@@ -265,6 +265,57 @@ class BaseShape(object):
         self._element.cy = value
 
     @property
+    def effective_height(self) -> Length | None:
+        """Slide-relative height of this shape after group-transform compositing.
+
+        Equivalent to :attr:`height` for a top-level shape, but for a shape nested
+        inside one or more :class:`.GroupShape` ancestors, the height is scaled by
+        the cumulative ``a:chExt``/``a:ext`` ratio of each enclosing group so it
+        reflects the size the shape actually renders at on the slide.
+
+        Returns |None| when the shape has no ``a:ext`` of its own (i.e. its raw
+        :attr:`height` would also be |None|).
+
+        Related to issue #925: ``shape.height`` on a child of a group returns the
+        raw XML value which is expressed in the enclosing group's child coordinate
+        system and can differ from the rendered size when the group has been
+        resized in PowerPoint.
+        """
+        return self._effective_geometry[3]
+
+    @property
+    def effective_left(self) -> Length | None:
+        """Slide-relative left coordinate of this shape after group-transform compositing.
+
+        Equivalent to :attr:`left` for a top-level shape. For a shape nested inside
+        one or more :class:`.GroupShape` ancestors the value is recomputed by
+        walking each enclosing group and mapping the shape's local coordinate
+        through the group's ``a:chOff``/``a:chExt`` -> ``a:off``/``a:ext`` linear
+        transform so the returned value is the slide-relative position the shape
+        actually renders at.
+
+        Returns |None| when the shape has no ``a:off`` of its own (i.e. its raw
+        :attr:`left` would also be |None|).
+        """
+        return self._effective_geometry[0]
+
+    @property
+    def effective_top(self) -> Length | None:
+        """Slide-relative top coordinate of this shape after group-transform compositing.
+
+        See :attr:`effective_left` for the transform details.
+        """
+        return self._effective_geometry[1]
+
+    @property
+    def effective_width(self) -> Length | None:
+        """Slide-relative width of this shape after group-transform compositing.
+
+        See :attr:`effective_height` for the transform details.
+        """
+        return self._effective_geometry[2]
+
+    @property
     def is_placeholder(self) -> bool:
         """True if this shape is a placeholder.
 
@@ -427,6 +478,58 @@ class BaseShape(object):
         return self._zorder_siblings.index(self._element)
 
     @property
+    def _effective_geometry(
+        self,
+    ) -> tuple[Length | None, Length | None, Length | None, Length | None]:
+        """(left, top, width, height) tuple composited through enclosing groups.
+
+        See :attr:`effective_left` for the transform math. Returns whichever of
+        the four values are |None| on the raw element unchanged; only the values
+        that are present on the shape's own ``a:xfrm`` are composited.
+        """
+        # -- BaseShapeElement.x/y/cx/cy are declared Length but return None when --
+        # -- the element has no a:xfrm; widen to Optional[int] before compositing --
+        raw_x = cast("Length | None", self._element.x)
+        raw_y = cast("Length | None", self._element.y)
+        raw_cx = cast("Length | None", self._element.cx)
+        raw_cy = cast("Length | None", self._element.cy)
+        x: int | None = None if raw_x is None else int(raw_x)
+        y: int | None = None if raw_y is None else int(raw_y)
+        cx: int | None = None if raw_cx is None else int(raw_cx)
+        cy: int | None = None if raw_cy is None else int(raw_cy)
+
+        # -- walk enclosing p:grpSp ancestors; each contributes its own linear --
+        # -- transform on the child coord-system.                              --
+        parent = self._element.getparent()
+        grpSp_tag = qn("p:grpSp")
+        while parent is not None and parent.tag == grpSp_tag:
+            grpSp = cast("CT_GroupShape", parent)
+            step = _group_xfrm_params(grpSp)
+            parent = grpSp.getparent()
+            if step is None:
+                # -- group lacks a usable transform; treat as identity --
+                continue
+            off_x, off_y, ext_cx, ext_cy, chOff_x, chOff_y, chExt_cx, chExt_cy = step
+            # -- guard against zero-extent group; no meaningful scale available --
+            sx = (ext_cx / chExt_cx) if chExt_cx else 1.0
+            sy = (ext_cy / chExt_cy) if chExt_cy else 1.0
+            if x is not None:
+                x = int(round(off_x + (x - chOff_x) * sx))
+            if y is not None:
+                y = int(round(off_y + (y - chOff_y) * sy))
+            if cx is not None:
+                cx = int(round(cx * sx))
+            if cy is not None:
+                cy = int(round(cy * sy))
+
+        return (
+            None if x is None else Emu(x),
+            None if y is None else Emu(y),
+            None if cx is None else Emu(cx),
+            None if cy is None else Emu(cy),
+        )
+
+    @property
     def _zorder_siblings(self) -> list[ShapeElement]:
         """List of shape-element siblings (including this shape) in document order.
 
@@ -438,6 +541,49 @@ class BaseShape(object):
         if parent is None:
             raise ValueError("shape has no parent shape tree; z-order is undefined")
         return list(cast("CT_GroupShape", parent).iter_shape_elms())
+
+
+def _group_xfrm_params(
+    grpSp: CT_GroupShape,
+) -> tuple[int, int, int, int, int, int, int, int] | None:
+    """Return (off_x, off_y, ext_cx, ext_cy, chOff_x, chOff_y, chExt_cx, chExt_cy).
+
+    |None| if the group shape is missing any of the transform elements needed to
+    compute a mapping. Values are read via XPath so the helper does not depend on
+    typed accessors that are incomplete on ``CT_Transform2D``.
+    """
+    xfrm = grpSp.xfrm
+    if xfrm is None:
+        return None
+    off_x_lst = cast("list[str]", xfrm.xpath("./a:off/@x"))
+    off_y_lst = cast("list[str]", xfrm.xpath("./a:off/@y"))
+    ext_cx_lst = cast("list[str]", xfrm.xpath("./a:ext/@cx"))
+    ext_cy_lst = cast("list[str]", xfrm.xpath("./a:ext/@cy"))
+    chOff_x_lst = cast("list[str]", xfrm.xpath("./a:chOff/@x"))
+    chOff_y_lst = cast("list[str]", xfrm.xpath("./a:chOff/@y"))
+    chExt_cx_lst = cast("list[str]", xfrm.xpath("./a:chExt/@cx"))
+    chExt_cy_lst = cast("list[str]", xfrm.xpath("./a:chExt/@cy"))
+    if not (
+        off_x_lst
+        and off_y_lst
+        and ext_cx_lst
+        and ext_cy_lst
+        and chOff_x_lst
+        and chOff_y_lst
+        and chExt_cx_lst
+        and chExt_cy_lst
+    ):
+        return None
+    return (
+        int(off_x_lst[0]),
+        int(off_y_lst[0]),
+        int(ext_cx_lst[0]),
+        int(ext_cy_lst[0]),
+        int(chOff_x_lst[0]),
+        int(chOff_y_lst[0]),
+        int(chExt_cx_lst[0]),
+        int(chExt_cy_lst[0]),
+    )
 
 
 def _unique_shape_name(base_name: str, spTree: ShapeElement) -> str:

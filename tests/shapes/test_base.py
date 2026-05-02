@@ -130,6 +130,178 @@ class DescribeBaseShape(object):
         shape.height = height
         assert shape._element.xml == expected_xml
 
+    # -- #925: effective_* composited-transform geometry --------------------
+
+    def it_reports_effective_geometry_equal_to_raw_for_top_level_shape(self):
+        # -- shape directly under p:spTree: no enclosing group, so effective --
+        # -- values match the raw xfrm values exactly.                       --
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:sp/p:spPr/a:xfrm/(a:off{x=100,y=200},a:ext{cx=300,cy=400}))"
+            ),
+        )
+        sp = spTree.xpath("p:sp")[0]
+        shape = BaseShape(cast("ShapeElement", sp), None)
+
+        assert shape.effective_left == 100
+        assert shape.effective_top == 200
+        assert shape.effective_width == 300
+        assert shape.effective_height == 400
+
+    def it_applies_the_group_transform_to_an_enclosed_shape(self):
+        # -- group's child coordinate system is twice the size of its slide  --
+        # -- bounding box in x, so a child's position and width are halved.  --
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr/a:xfrm/("
+                "a:off{x=1000,y=2000},a:ext{cx=5000,cy=8000},"
+                "a:chOff{x=0,y=0},a:chExt{cx=10000,cy=8000}),"
+                "p:sp/p:spPr/a:xfrm/(a:off{x=2000,y=4000},"
+                "a:ext{cx=4000,cy=2000})))"
+            ),
+        )
+        sp = spTree.xpath(".//p:sp")[0]
+        shape = BaseShape(cast("ShapeElement", sp), None)
+
+        # -- raw values unchanged (backwards compatibility) --
+        assert shape.left == 2000
+        assert shape.top == 4000
+        assert shape.width == 4000
+        assert shape.height == 2000
+
+        # -- effective values apply the group's (chOff/chExt -> off/ext) map:   --
+        # --   sx = 5000/10000 = 0.5,  sy = 8000/8000 = 1.0                     --
+        # --   ex_left = 1000 + (2000 - 0) * 0.5 = 2000                         --
+        # --   ex_top  = 2000 + (4000 - 0) * 1.0 = 6000                         --
+        # --   ex_w    = 4000 * 0.5 = 2000                                      --
+        # --   ex_h    = 2000 * 1.0 = 2000                                      --
+        assert shape.effective_left == 2000
+        assert shape.effective_top == 6000
+        assert shape.effective_width == 2000
+        assert shape.effective_height == 2000
+
+    def it_cascades_transforms_through_nested_groups(self):
+        # -- outer group maps 10000 EMU child-space to 5000 EMU on slide (sx=0.5) --
+        # -- inner group (itself inside outer) maps 1000 -> 500 in its own coords  --
+        # --   => combined scale 0.25 for the innermost shape.                    --
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr/a:xfrm/("
+                "a:off{x=0,y=0},a:ext{cx=5000,cy=5000},"
+                "a:chOff{x=0,y=0},a:chExt{cx=10000,cy=10000}),"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr/a:xfrm/("
+                "a:off{x=0,y=0},a:ext{cx=1000,cy=1000},"
+                "a:chOff{x=0,y=0},a:chExt{cx=2000,cy=2000}),"
+                "p:sp/p:spPr/a:xfrm/(a:off{x=400,y=400},"
+                "a:ext{cx=800,cy=800}))))"
+            ),
+        )
+        sp = spTree.xpath(".//p:sp")[0]
+        shape = BaseShape(cast("ShapeElement", sp), None)
+
+        # -- raw --
+        assert shape.left == 400
+        assert shape.width == 800
+
+        # -- inner group: sx=sy=0.5 -> (200, 200) size 400x400 in outer space --
+        # -- outer group: sx=sy=0.5 -> (100, 100) size 200x200 on slide --
+        assert shape.effective_left == 100
+        assert shape.effective_top == 100
+        assert shape.effective_width == 200
+        assert shape.effective_height == 200
+
+    def it_translates_through_nonzero_group_offsets(self):
+        # -- chOff is nonzero: child local-x=1000 is at the "origin" of group's  --
+        # -- child space, so it should land at off.x on the slide.               --
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr/a:xfrm/("
+                "a:off{x=2000,y=3000},a:ext{cx=4000,cy=4000},"
+                "a:chOff{x=1000,y=1000},a:chExt{cx=4000,cy=4000}),"
+                "p:sp/p:spPr/a:xfrm/(a:off{x=1000,y=1000},"
+                "a:ext{cx=2000,cy=2000})))"
+            ),
+        )
+        sp = spTree.xpath(".//p:sp")[0]
+        shape = BaseShape(cast("ShapeElement", sp), None)
+
+        # -- scale 1.0 in both axes; translation is off - chOff = (1000, 2000) --
+        assert shape.effective_left == 2000
+        assert shape.effective_top == 3000
+        assert shape.effective_width == 2000
+        assert shape.effective_height == 2000
+
+    def it_returns_raw_values_when_enclosing_group_has_no_xfrm(self):
+        # -- missing a:xfrm on the group is unusual but possible; the walker    --
+        # -- treats it as identity and moves on.                               --
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:sp/p:spPr/a:xfrm/(a:off{x=500,y=600},"
+                "a:ext{cx=700,cy=800})))"
+            ),
+        )
+        sp = spTree.xpath(".//p:sp")[0]
+        shape = BaseShape(cast("ShapeElement", sp), None)
+
+        assert shape.effective_left == 500
+        assert shape.effective_top == 600
+        assert shape.effective_width == 700
+        assert shape.effective_height == 800
+
+    def it_returns_None_for_effective_values_when_raw_values_are_None(self):
+        # -- a:xfrm missing entirely on the shape: raw left/top/etc. are None, --
+        # -- and the effective_* variants preserve that.                      --
+        sp = cast("ShapeElement", element("p:sp/p:spPr"))
+        shape = BaseShape(sp, None)
+
+        assert shape.left is None
+        assert shape.effective_left is None
+        assert shape.effective_top is None
+        assert shape.effective_width is None
+        assert shape.effective_height is None
+
+    def it_composites_the_group_shape_own_position(self):
+        # -- a GroupShape nested inside another group also has its own off/ext --
+        # -- that must be transformed to be slide-relative.                    --
+        spTree = cast(
+            "ShapeElement",
+            element(
+                "p:spTree/(p:nvGrpSpPr,p:grpSpPr,"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr/a:xfrm/("
+                "a:off{x=0,y=0},a:ext{cx=2000,cy=2000},"
+                "a:chOff{x=0,y=0},a:chExt{cx=4000,cy=4000}),"
+                "p:grpSp/(p:nvGrpSpPr,p:grpSpPr/a:xfrm/("
+                "a:off{x=1000,y=1000},a:ext{cx=2000,cy=2000},"
+                "a:chOff{x=0,y=0},a:chExt{cx=2000,cy=2000}))))"
+            ),
+        )
+        # -- inner group (second p:grpSp, index 1 within outer) --
+        inner_grpSp = spTree.xpath(".//p:grpSp/p:grpSp")[0]
+        shape = BaseShape(cast("ShapeElement", inner_grpSp), None)
+
+        # -- raw inner off = (1000,1000), ext = (2000,2000) --
+        assert shape.left == 1000
+        assert shape.width == 2000
+
+        # -- outer sx = 2000/4000 = 0.5 applied to (1000, 2000)               --
+        # --   effective left = 0 + (1000 - 0) * 0.5 = 500                    --
+        # --   effective width = 2000 * 0.5 = 1000                            --
+        assert shape.effective_left == 500
+        assert shape.effective_top == 500
+        assert shape.effective_width == 1000
+        assert shape.effective_height == 1000
+
     def it_knows_its_rotation_angle(self, rotation_get_fixture):
         shape, expected_value = rotation_get_fixture
         assert shape.rotation == expected_value
