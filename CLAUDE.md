@@ -49,7 +49,6 @@ tests/              pytest unit tests (mirrors src/pptx/ layout)
 features/           behave acceptance tests (.feature + steps/)
 docs/               Sphinx documentation (user, api, dev, community)
 spec/               ad-hoc OOXML discovery notes (excluded from lint)
-lab/                experimental / throwaway scripts (excluded from lint)
 typings/            custom type stubs (mainly for lxml)
 HISTORY.rst         release-history changelog (user-visible)
 pyproject.toml      build + tool config
@@ -57,7 +56,7 @@ Makefile            convenience targets: accept, docs, coverage, build
 tox.ini             py38–py312 test envs
 ```
 
-The `lab/` and `spec/` directories are **intentionally undisciplined**. Ruff and pyright exclude them. Do not "clean them up" or reformat their contents; they're scratch space and that's a feature.
+The `spec/` directory is **intentionally undisciplined**. Ruff and pyright exclude it. Do not "clean it up" or reformat its contents; it's a reference archive and that's a feature.
 
 ---
 
@@ -78,7 +77,7 @@ All three tools are strict. Respect them — don't disable or silence lints/type
 | Tool | Config | Notes |
 |---|---|---|
 | **Black** | `pyproject.toml` → `[tool.black]` | line length 100 |
-| **Ruff** | `pyproject.toml` → `[tool.ruff]` | line length 100; lint rule set includes `C4`, `COM`, `E/F/W`, `I`, `PT`, `SIM`, `TCH001`, select `UP` rules; `isort` first-party is `pptx`; `lab/`, `spec/`, `docs/`, `ref/` excluded |
+| **Ruff** | `pyproject.toml` → `[tool.ruff]` | line length 100; lint rule set includes `C4`, `COM`, `E/F/W`, `I`, `PT`, `SIM`, `TCH001`, select `UP` rules; `isort` first-party is `pptx`; `spec/`, `docs/`, `ref/` excluded |
 | **Pyright** | `pyproject.toml` → `[tool.pyright]` | `typeCheckingMode = "strict"`, `pythonVersion = "3.9"`, `reportUnnecessaryTypeIgnoreComment = true`, `reportUnnecessaryCast = true`, custom stubs under `typings/` |
 
 **Style rules to follow when editing:**
@@ -220,7 +219,7 @@ Sphinx config is in `docs/conf.py`.
 
 **The XSDs do not cover everything.** Microsoft extension namespaces — `cx:` (Office 2016+ chart types: funnel, treemap, sunburst, waterfall, histogram, box-whisker), `p14:` / `a14:` / `p15:` (2010/2013/2015-era PowerPoint additions), and the "modern comments" format — are not in the Part 1 XSDs. For these, you must rely on the real-sample approach in step 1 and/or Microsoft's extension documentation (MS-PPTX, MS-OE376, MS-ODRAWXML). Note this in the PR when relevant.
 
-When you find a useful sample file or annotated fragment, drop it under `lab/` (scratch) rather than `spec/` (which is intentionally an immutable reference archive).
+When you find a useful sample file or annotated fragment during investigation, keep it local to your worktree rather than committing it — `spec/` is intentionally an immutable reference archive.
 
 ---
 
@@ -232,7 +231,7 @@ When you find a useful sample file or annotated fragment, drop it under `lab/` (
 - Don't introduce backwards-incompatible API changes without a HISTORY note and a transition plan (deprecation warning where possible).
 - Don't silence warnings with broad `filterwarnings` ignores — they exist to catch real problems.
 - Don't delete `py.typed`; removing it silently breaks downstream type-checking.
-- Don't "fix" code inside `lab/` or `spec/` just because lint would catch it elsewhere.
+- Don't "fix" code inside `spec/` just because lint would catch it elsewhere.
 
 ---
 
