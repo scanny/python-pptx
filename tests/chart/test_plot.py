@@ -100,6 +100,8 @@ class Describe_BasePlot(object):
             ("c:lineChart/c:dLbls", True),
             ("c:pieChart", False),
             ("c:pieChart/c:dLbls", True),
+            ("c:scatterChart", False),
+            ("c:scatterChart/c:dLbls", True),
         ]
     )
     def has_data_labels_get_fixture(self, request):
@@ -119,6 +121,8 @@ class Describe_BasePlot(object):
             ("c:lineChart/c:dLbls", False, "c:lineChart"),
             ("c:pieChart", True, "c:pieChart/c:dLbls/+"),
             ("c:pieChart/c:dLbls", False, "c:pieChart"),
+            ("c:scatterChart", True, "c:scatterChart/c:dLbls/+"),
+            ("c:scatterChart/c:dLbls", False, "c:scatterChart"),
         ]
     )
     def has_data_labels_set_fixture(self, request):

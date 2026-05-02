@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #619 add data labels to XY Scatter chart.
+  ``plot.has_data_labels = True`` previously raised ``AttributeError:
+  'CT_ScatterChart' object has no attribute 'dLbls'`` because the
+  oxml class was missing its ``dLbls`` ``ZeroOrOne`` descriptor — the
+  slot was reserved in ``_tag_seq`` but never wired up. Adds the
+  descriptor so scatter plots use the same ``c:dLbls`` subtree as the
+  other Cartesian plot types (same default-off show-flags emitted by
+  ``CT_DLbls.new_dLbls``; PowerPoint picks sensible per-plot-type
+  defaults from those). Adds ``tests/test_issue_619_xy_scatter_data_
+  labels.py`` covering all five ``XL_CHART_TYPE.XY_SCATTER_*`` variants
+  and a save/reload round-trip.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
