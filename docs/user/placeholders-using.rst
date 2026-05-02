@@ -62,6 +62,15 @@ placeholders will follow in sequence, top to bottom and left to right.
 A placeholder added to a slide layout by a user in PowerPoint will receive an
 :attr:`idx` value starting at 10.
 
+.. note::
+   When :meth:`Slides.add_slide` clones placeholders from a slide layout, the
+   name authored on each layout placeholder is preserved on the slide. This
+   means a customized placeholder name set on the layout (for example in
+   PowerPoint's Selection Pane) flows through to every slide created from that
+   layout. If the layout name would collide with an existing shape on the
+   slide, a unique name derived from the standard placeholder basename is used
+   instead.
+
 
 Identify and Characterize a placeholder
 ---------------------------------------

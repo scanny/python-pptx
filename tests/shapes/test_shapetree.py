@@ -160,6 +160,31 @@ class Describe_BaseShapes(object):
         shapes.clone_placeholder(placeholder_)
         assert shapes._element.xml == expected_xml
 
+    def it_falls_back_to_generated_name_on_clone_name_collision(self, placeholder_):
+        # --- Regression guard for #608: if the layout placeholder name collides with an ---
+        # --- existing shape in the slide, fall back to the generated "basename N" name. ---
+        shapes = SlideShapes(
+            element(
+                "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Chart Placeholder 9}"
+            ),
+            None,
+        )
+        placeholder_.element = element(
+            "p:sp/p:nvSpPr/(p:cNvPr{id=3,name=Chart Placeholder 9},p:nvPr/"
+            "p:ph{type=chart,idx=42,orient=horz,sz=half})"
+        )
+
+        shapes.clone_placeholder(placeholder_)
+
+        # --- second cNvPr comes from the cloned placeholder and gets a generated name ---
+        names = shapes._element.xpath("//p:cNvPr/@name")
+        assert "Chart Placeholder 9" in names  # the pre-existing one
+        # the cloned one must have been disambiguated to avoid collision
+        cloned_names = [n for n in names if n != "Chart Placeholder 9"]
+        assert len(cloned_names) == 1
+        assert cloned_names[0].startswith("Chart Placeholder ")
+        assert cloned_names[0] != "Chart Placeholder 9"
+
     def it_knows_if_turbo_add_is_enabled(self, turbo_fixture):
         shapes, expected_value = turbo_fixture
         turbo_add_enabled = shapes.turbo_add_enabled
@@ -183,13 +208,15 @@ class Describe_BaseShapes(object):
     @pytest.fixture
     def clone_ph_fixture(self, placeholder_):
         shapes = SlideShapes(element("p:spTree{a:b=c}"), None)
+        # --- layout name is preserved on clone (fixes #608) ---
         expected_xml = xml(
-            "p:spTree{a:b=c}/p:sp/(p:nvSpPr/(p:cNvPr{id=1,name=Vertical Char"
-            "t Placeholder 0},p:cNvSpPr/a:spLocks{noGrp=1},p:nvPr/p:ph{type="
+            "p:spTree{a:b=c}/p:sp/(p:nvSpPr/(p:cNvPr{id=1,name=My Custom Ph"
+            "},p:cNvSpPr/a:spLocks{noGrp=1},p:nvPr/p:ph{type="
             "chart,idx=42,orient=vert,sz=half}),p:spPr)"
         )
         placeholder_.element = element(
-            "p:sp/p:nvSpPr/p:nvPr/p:ph{type=chart,idx=42,orient=vert,sz=half" "}"
+            "p:sp/p:nvSpPr/(p:cNvPr{id=9,name=My Custom Ph},p:nvPr/"
+            "p:ph{type=chart,idx=42,orient=vert,sz=half})"
         )
         return shapes, placeholder_, expected_xml
 

@@ -96,6 +96,7 @@ Unreleased
 - #375 line end arrows via LineFormat
 - feat: #1070 read ``.potx`` (and ``.ppsx``) presentation packages
 - fix: #288 add_table accepts float dimensions
+- fix: #608 Name of placeholder in layout gets reset to placeholder basename when adding slide
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
