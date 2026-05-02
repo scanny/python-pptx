@@ -12,6 +12,33 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #470 combo charts shipped by ``feat: #338 combo charts``
+  (``Chart.add_plot(chart_type, chart_data)``) together with
+  ``feat: #141 secondary value axis read access``
+  (``Chart.has_secondary_value_axis`` / ``Chart.secondary_value_axis``).
+  The #470 reporter hit ``AttributeError: 'CategoryWorkbookWriter'
+  object has no attribute 'x_values_ref'`` while trying to follow a
+  pre-fork recipe for overlaying a line plot on a bar chart. On this
+  fork the supported path is ``chart.add_plot(XL_CHART_TYPE.LINE,
+  line_data)`` after creating the first (bar/column) plot — the
+  overlay plot reuses the existing plot's ``c:axId`` pair, and its
+  series data is emitted inline as ``c:numLit`` / ``c:strLit`` so the
+  embedded-workbook writer (the source of the reporter's crash) is
+  not in the call path. Adds a regression suite
+  ``DescribeIssue470ComboCharts`` under
+  ``tests/test_issue_470_combo_charts_verify.py`` pinning
+  (a) bar + line combo with round-trip save/reopen asserting both
+  ``BarPlot`` and ``LinePlot`` survive, (b) the optional secondary
+  value axis case via ``Chart.secondary_value_axis`` (authoring the
+  secondary ``c:valAx`` from scratch on a library-created chart
+  remains a follow-up — the round-trip and read/write path on a
+  chart that already carries one is what's covered), and
+  (c) custom line color + ``XL_MARKER_STYLE`` marker style on a
+  series created by ``add_plot`` surviving the round-trip.
+  Follow-up: convenience "add secondary value axis" /
+  ``add_plot(..., secondary=True)`` authoring shortcut remains
+  deferred; see ``docs/dev/analysis/combo-chart.rst``.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
