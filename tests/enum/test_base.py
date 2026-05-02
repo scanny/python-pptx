@@ -62,7 +62,7 @@ class DescribeBaseXmlEnum:
         assert MSO_LINE_DASH_STYLE.to_xml(MSO_LINE_DASH_STYLE.SOLID) == "solid"
 
     def and_it_looks_up_the_member_by_int_value_before_mapping_when_provided_that_way(self):
-        assert MSO_LINE_DASH_STYLE.to_xml(3) == "sysDot"
+        assert MSO_LINE_DASH_STYLE.to_xml(3) == "dot"
 
     def but_it_raises_when_no_member_has_the_provided_int_value(self):
         with pytest.raises(ValueError, match="42 is not a valid MSO_LINE_DASH_STYLE"):
@@ -71,3 +71,14 @@ class DescribeBaseXmlEnum:
     def and_it_raises_when_the_member_has_no_XML_value(self):
         with pytest.raises(ValueError, match="MSO_LINE_DASH_STYLE.DASH_STYLE_MIXED has no XML r"):
             MSO_LINE_DASH_STYLE.to_xml(-2)
+
+    def it_maps_ROUND_DOT_to_the_dot_preset_per_OOXML(self):
+        """Regression for #332 — `ROUND_DOT` must map to `dot`, not `sysDot`.
+
+        The OOXML `ST_PresetLineDashVal` enumeration distinguishes `dot` (round
+        dots) from `sysDot` (system dots), and PowerPoint's `msoLineRoundDot`
+        corresponds to the former. The previous mapping produced a visibly
+        denser dot pattern than PowerPoint's "Round Dot" style.
+        """
+        assert MSO_LINE_DASH_STYLE.to_xml(MSO_LINE_DASH_STYLE.ROUND_DOT) == "dot"
+        assert MSO_LINE_DASH_STYLE.from_xml("dot") == MSO_LINE_DASH_STYLE.ROUND_DOT

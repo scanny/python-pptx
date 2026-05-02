@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #332 MSO_LINE_DASH_STYLE.ROUND_DOT correct mapping
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

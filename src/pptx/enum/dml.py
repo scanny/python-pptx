@@ -123,7 +123,7 @@ class MSO_LINE_DASH_STYLE(BaseXmlEnum):
     LONG_DASH_DOT = (8, "lgDashDot", "Line is a long dash-dot pattern.")
     """Line is a long dash-dot pattern."""
 
-    ROUND_DOT = (3, "sysDot", "Line is made up of round dots.")
+    ROUND_DOT = (3, "dot", "Line is made up of round dots.")
     """Line is made up of round dots."""
 
     SOLID = (1, "solid", "Line is solid.")
