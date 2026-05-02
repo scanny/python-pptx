@@ -73,6 +73,20 @@ Unreleased
   ``effective_color``, and explicit theme-color resolution — all
   round-tripped through ``Presentation.save`` + reopen.
 
+- verify: #1106 entrance/exit animations re-verified end-to-end through the
+  #102 public ``BaseShape.set_animation`` API. Extends
+  ``tests/test_issue_1106_entrance_exit_verify.py`` with a
+  ``DescribeIssue1106ReporterNarrativeDemo`` suite that authors
+  ``MSO_ANIMATION_TYPE.FADE_IN`` on one shape and
+  ``MSO_ANIMATION_TYPE.FADE_OUT`` on a second shape, saves to a real
+  on-disk ``tmp_path`` file (and a ``tempfile.NamedTemporaryFile``
+  variant), reopens the deck, and asserts the entrance + exit effects
+  survive through every documented public-API surface a user would
+  reach for —
+  :attr:`pptx.shapes.base.BaseShape.animation`,
+  :attr:`pptx.slide.Slide.has_animations`, and
+  :attr:`pptx.slide.Slide.animation_sequence`.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

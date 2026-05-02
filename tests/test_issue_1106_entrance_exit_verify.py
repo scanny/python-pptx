@@ -26,6 +26,8 @@ entrance + exit authoring through the #102 API.
 from __future__ import annotations
 
 import io
+import os
+import tempfile
 
 import pytest
 
@@ -278,3 +280,124 @@ class DescribeIssue1106EntranceExitViaSetAnimation(object):
         _, _, shape = slide_with_shape
         with pytest.raises(ValueError, match="delay"):
             shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN, delay=-1)
+
+
+class DescribeIssue1106ReporterNarrativeDemo(object):
+    """End-to-end demonstration of the #1106 reporter's use case.
+
+    The #1106 reporter asked for a way to author an entrance effect on
+    one shape and an exit effect on a (different) shape, save the deck
+    to disk, and have PowerPoint replay both effects on reopen. The
+    granular behavior tests in
+    :class:`DescribeIssue1106EntranceExitViaSetAnimation` pin each
+    step of that path individually; this suite re-verifies the whole
+    thing as one narrative demonstration through every public-API
+    surface the reporter could reach for —
+
+    * :meth:`pptx.shapes.base.BaseShape.set_animation` (author)
+    * :attr:`pptx.shapes.base.BaseShape.animation` (read back)
+    * :attr:`pptx.slide.Slide.has_animations` (slide-level flag)
+    * :attr:`pptx.slide.Slide.animation_sequence` (ordered view)
+
+    and with a true on-disk save + reopen (a tempfile, not just an
+    in-memory ``io.BytesIO``) so the demo matches what the reporter
+    would write in their own script.
+    """
+
+    def it_demonstrates_entrance_and_exit_survive_disk_round_trip(self, tmp_path):
+        # -- author: FADE_IN entrance on shape_a, FADE_OUT exit on shape_b --
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape_a = slide.shapes.add_shape(1, Inches(1), Inches(1), Inches(2), Inches(1))
+        shape_b = slide.shapes.add_shape(1, Inches(4), Inches(1), Inches(2), Inches(1))
+
+        assert slide.has_animations is False
+        assert slide.animation_sequence == ()
+
+        effect_in = shape_a.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
+        effect_out = shape_b.set_animation(MSO_ANIMATION_TYPE.FADE_OUT)
+
+        # -- sanity-check the authoring return values before saving --
+        assert isinstance(effect_in, AnimationEffect)
+        assert isinstance(effect_out, AnimationEffect)
+        assert effect_in.type is MSO_ANIMATION_TYPE.FADE_IN
+        assert effect_out.type is MSO_ANIMATION_TYPE.FADE_OUT
+        assert slide.has_animations is True
+        # -- animation_sequence exposes both an entrance and an exit view --
+        # -- (the #102 MVP XML carries @presetClass on both the outer
+        # --  clickEffect cTn and its inner withEffect cTn, so each
+        # --  authored effect yields two AnimationEffectView entries —
+        # --  de-duplicate by (shape_id, preset_class) for the check). --
+        pre_save_sequence = slide.animation_sequence
+        pre_save_pairs = {(view.shape_id, view.preset_class) for view in pre_save_sequence}
+        assert (shape_a.shape_id, "entr") in pre_save_pairs
+        assert (shape_b.shape_id, "exit") in pre_save_pairs
+
+        # -- save to a real file on disk (not BytesIO) --
+        spid_a, spid_b = shape_a.shape_id, shape_b.shape_id
+        out_path = tmp_path / "issue_1106_demo.pptx"
+        prs.save(str(out_path))
+        assert os.path.getsize(str(out_path)) > 0
+
+        # -- reopen from disk --
+        prs2 = Presentation(str(out_path))
+        slide2 = prs2.slides[0]
+
+        # -- slide-level flag survives the round-trip --
+        assert slide2.has_animations is True
+
+        # -- shape-level read-back via the public .animation property --
+        shape_a2 = next(s for s in slide2.shapes if s.shape_id == spid_a)
+        shape_b2 = next(s for s in slide2.shapes if s.shape_id == spid_b)
+        assert shape_a2.animation is not None
+        assert shape_b2.animation is not None
+        assert shape_a2.animation.type is MSO_ANIMATION_TYPE.FADE_IN
+        assert shape_b2.animation.type is MSO_ANIMATION_TYPE.FADE_OUT
+        # -- default trigger is ON_CLICK and default delay is zero --
+        assert shape_a2.animation.trigger is MSO_ANIMATION_TRIGGER.ON_CLICK
+        assert shape_b2.animation.trigger is MSO_ANIMATION_TRIGGER.ON_CLICK
+        assert shape_a2.animation.delay == 0
+        assert shape_b2.animation.delay == 0
+
+        # -- slide-level animation_sequence carries the entrance + exit --
+        post_sequence = slide2.animation_sequence
+        post_pairs = {(view.shape_id, view.preset_class) for view in post_sequence}
+        assert (spid_a, "entr") in post_pairs
+        assert (spid_b, "exit") in post_pairs
+
+    def it_demonstrates_sharing_a_tempfile_with_an_external_consumer(self):
+        """Same FADE_IN + FADE_OUT narrative using a named tempfile.
+
+        Belt-and-suspenders demo that exercises the path a user who
+        needs to share the saved file with an external consumer (e.g.
+        a separate PowerPoint process) would take — ``NamedTemporaryFile``
+        with ``delete=False`` and an explicit filesystem path handed to
+        :meth:`Presentation.save`.
+        """
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape_in = slide.shapes.add_shape(1, Inches(1), Inches(1), Inches(2), Inches(1))
+        shape_out = slide.shapes.add_shape(1, Inches(4), Inches(1), Inches(2), Inches(1))
+        shape_in.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
+        shape_out.set_animation(MSO_ANIMATION_TYPE.FADE_OUT)
+        spid_in, spid_out = shape_in.shape_id, shape_out.shape_id
+
+        with tempfile.NamedTemporaryFile(suffix=".pptx", delete=False) as tmp:
+            tmp_name = tmp.name
+        try:
+            prs.save(tmp_name)
+            prs2 = Presentation(tmp_name)
+        finally:
+            os.unlink(tmp_name)
+
+        slide2 = prs2.slides[0]
+        assert slide2.has_animations is True
+        shape_in2 = next(s for s in slide2.shapes if s.shape_id == spid_in)
+        shape_out2 = next(s for s in slide2.shapes if s.shape_id == spid_out)
+        assert shape_in2.animation.type is MSO_ANIMATION_TYPE.FADE_IN
+        assert shape_out2.animation.type is MSO_ANIMATION_TYPE.FADE_OUT
+        # -- animEffects survive as two (one entrance, one exit) --
+        animEffects = slide2._element.timing.xpath(".//p:animEffect")
+        assert len(animEffects) == 2
+        transitions = sorted(e.get("transition") for e in animEffects)
+        assert transitions == ["in", "out"]
