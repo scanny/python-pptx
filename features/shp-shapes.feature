@@ -264,7 +264,7 @@ Feature: Access a shape on a slide
       | monty-truth.png  | png  |
       | 72-dpi.tiff      | tiff |
       | CVS_LOGO.WMF     | wmf  |
-      | pic.emf          | wmf  |
+      | pic.emf          | emf  |
       | python.bmp       | bmp  |
 
 
@@ -282,7 +282,7 @@ Feature: Access a shape on a slide
       | monty-truth.png  | png  |
       | 72-dpi.tiff      | tiff |
       | CVS_LOGO.WMF     | wmf  |
-      | pic.emf          | wmf  |
+      | pic.emf          | emf  |
       | python.bmp       | bmp  |
 
 

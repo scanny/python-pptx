@@ -10,6 +10,7 @@ from helpers import saved_pptx_path, test_image, test_pptx
 from pptx import Presentation
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
 from pptx.package import Package
+from pptx.parts.image import Image
 from pptx.util import Inches
 
 # given ===================================================
@@ -26,6 +27,11 @@ def given_a_picture_object_masked_by_shape_as_picture(context, shape):
 def given_a_picture_of_known_position_and_size(context):
     prs = Presentation(test_pptx("shp-pos-and-size"))
     context.picture = prs.slides[1].shapes[0]
+
+
+@given("an Image object loaded from {filename}")
+def given_an_Image_object_loaded_from_filename(context, filename):
+    context.image = Image.from_file(test_image(filename))
 
 
 # when ====================================================
@@ -75,3 +81,15 @@ def then_the_picture_appears_in_the_slide(context):
     shapes = slide.shapes
     cls_names = [sp.__class__.__name__ for sp in shapes]
     assert "Picture" in cls_names
+
+
+@then('image.ext == "{expected}"')
+def then_image_ext_eq(context, expected):
+    actual = context.image.ext
+    assert actual == expected, "image.ext == %r" % actual
+
+
+@then('image.content_type == "{expected}"')
+def then_image_content_type_eq(context, expected):
+    actual = context.image.content_type
+    assert actual == expected, "image.content_type == %r" % actual
