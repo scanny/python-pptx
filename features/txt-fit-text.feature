@@ -9,3 +9,8 @@ Feature: Resize text to fit shape
      Then text_frame.auto_size is MSO_AUTO_SIZE.NONE
       And text_frame.word_wrap is True
       And the size of the text is 10pt or 11pt
+
+  Scenario: Raise TextLayoutError when no font size fits the shape
+    Given a shape too narrow to fit any word at any considered font size
+     When I call TextFitter.best_fit_font_size() on that shape
+     Then a TextLayoutError is raised

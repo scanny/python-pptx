@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 from PIL import ImageFont
 
+from pptx.exc import TextLayoutError
+
 if TYPE_CHECKING:
     from pptx.util import Length
 
@@ -26,10 +28,20 @@ class TextFitter(tuple):
         The return value is the largest whole-number point size less than or equal to
         `max_size` that allows `text` to fit completely within `extents` when rendered
         using font defined in `font_file`.
+
+        Raises `TextLayoutError` when no point size in ``1..max_size`` allows the text
+        to fit. This happens for example when a single word is wider than the shape at
+        the smallest font size considered.
         """
         line_source = _LineSource(text)
         text_fitter = cls(line_source, extents, font_file)
-        return text_fitter._best_fit_font_size(max_size)
+        point_size = text_fitter._best_fit_font_size(max_size)
+        if point_size is None:
+            raise TextLayoutError(
+                "text cannot be fit into shape at any point size between 1 and %d; the shape "
+                "may be too small, or a single word may be too long to fit its width" % max_size
+            )
+        return point_size
 
     def _best_fit_font_size(self, max_size):
         """
@@ -82,6 +94,9 @@ class TextFitter(tuple):
             when rendered at `point_size` using the font defined in `font_file`.
             """
             text_lines = self._wrap_lines(self._line_source, point_size)
+            # ---when no single word fits the width at `point_size`, text cannot be wrapped---
+            if text_lines is None:
+                return False
             cy = _rendered_size("Ty", point_size, self._font_file)[1]
             return (cy * len(text_lines)) <= self._height
 
@@ -104,15 +119,22 @@ class TextFitter(tuple):
         return self[1]
 
     def _wrap_lines(self, line_source, point_size):
+        """Return a sequence of str values wrapping the text in *line_source*.
+
+        Return |None| when no single word in *line_source* fits within this fitter's
+        width at *point_size*, which means the text cannot be wrapped at that size.
         """
-        Return a sequence of str values representing the text in
-        *line_source* wrapped within this fitter when rendered at
-        *point_size*.
-        """
-        text, remainder = self._break_line(line_source, point_size)
+        broken = self._break_line(line_source, point_size)
+        # ---no line (not even the shortest candidate) fits the width---
+        if broken is None:
+            return None
+        text, remainder = broken
         lines = [text]
         if remainder:
-            lines.extend(self._wrap_lines(remainder, point_size))
+            remainder_lines = self._wrap_lines(remainder, point_size)
+            if remainder_lines is None:
+                return None
+            lines.extend(remainder_lines)
         return lines
 
 

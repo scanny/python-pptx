@@ -30,6 +30,7 @@ Unreleased
   corrected as part of the #332 fix above and a regression test now pins the
   mapping so a naive revert per #611's proposal cannot land silently.
 - fix: #674 correct UP_DOWN_ARROW adjustment list
+- fix: #773 guard fit_text() when no fitting layout is found
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

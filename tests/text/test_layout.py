@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import pytest
 
+from pptx.exc import TextLayoutError
 from pptx.text.layout import TextFitter, _BinarySearchTree, _Line, _LineSource
 
 from ..unitutil.mock import (
@@ -39,6 +40,19 @@ class DescribeTextFitter(object):
         _init_.assert_called_once_with(line_source_, extents, "foobar.ttf")
         _best_fit_font_size_.assert_called_once_with(ANY, max_size)
         assert font_size == 36
+
+    def it_raises_TextLayoutError_when_no_point_size_fits(self, request, line_source_):
+        """`best_fit_font_size()` raises `TextLayoutError` when nothing fits.
+
+        Regression test for #773 -- `fit_text()` previously crashed with an
+        unhelpful `TypeError` when no point size allowed the text to fit the shape.
+        """
+        class_mock(request, "pptx.text.layout._LineSource", return_value=line_source_)
+        initializer_mock(request, TextFitter)
+        method_mock(request, TextFitter, "_best_fit_font_size", return_value=None)
+
+        with pytest.raises(TextLayoutError, match="cannot be fit"):
+            TextFitter.best_fit_font_size("Foobar", (19, 20), 42, "foobar.ttf")
 
     def it_finds_best_fit_font_size_to_help_best_fit(self, _best_fit_fixture):
         text_fitter, max_size, _BinarySearchTree_ = _best_fit_fixture[:3]
@@ -79,6 +93,20 @@ class DescribeTextFitter(object):
         _rendered_size_.assert_called_once_with("Ty", point_size, text_fitter._font_file)
         assert result is expected_value
 
+    def it_reports_no_fit_when_wrap_lines_returns_None(self, request, line_source_):
+        """`_fits_inside_predicate` returns False when text cannot be wrapped.
+
+        Part of the #773 regression: previously the tuple-unpack in `_wrap_lines`
+        crashed instead of letting the predicate report that the point size doesn't
+        fit.
+        """
+        method_mock(request, TextFitter, "_wrap_lines", return_value=None)
+        text_fitter = TextFitter(line_source_, (66, 99), "foobar.ttf")
+
+        predicate = text_fitter._fits_inside_predicate
+
+        assert predicate(6) is False
+
     def it_provides_a_fits_in_width_predicate_fn(self, fits_cx_pred_fixture):
         text_fitter, point_size, line = fits_cx_pred_fixture[:3]
         _rendered_size_, expected_value = fits_cx_pred_fixture[3:]
@@ -105,6 +133,31 @@ class DescribeTextFitter(object):
             call(text_fitter, line_source, 21),
             call(text_fitter, remainder, 21),
         ]
+
+    def but_it_returns_None_when_no_line_break_fits_the_width(self, request):
+        """`_wrap_lines()` returns None when `_break_line()` returns None.
+
+        Guards the tuple-unpack that previously crashed in #773 when no candidate
+        line (not even a single word) fit the shape width at the given point size.
+        """
+        method_mock(request, TextFitter, "_break_line", return_value=None)
+        text_fitter = TextFitter(None, (None, None), None)
+
+        assert text_fitter._wrap_lines(_LineSource("foo bar"), 21) is None
+
+    def and_it_returns_None_when_remainder_cannot_be_wrapped(self, request):
+        """Recursive `_wrap_lines()` propagates `None` from the remainder."""
+        line_source = _LineSource("foo bar")
+        remainder = _LineSource("bar")
+        method_mock(
+            request,
+            TextFitter,
+            "_break_line",
+            side_effect=[("foo", remainder), None],
+        )
+        text_fitter = TextFitter(None, (None, None), None)
+
+        assert text_fitter._wrap_lines(line_source, 21) is None
 
     def it_breaks_off_a_line_to_help_wrap(self, request, line_source_, _BinarySearchTree_):
         bst_ = instance_mock(request, _BinarySearchTree)

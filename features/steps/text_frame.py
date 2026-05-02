@@ -84,6 +84,43 @@ def when_I_call_TextFrame_fit_text(context):
     # context.text_frame.fit_text(font_family='Arial', bold=True, italic=True)
 
 
+@given("a shape too narrow to fit any word at any considered font size")
+def given_a_shape_too_narrow_to_fit_any_word(context):
+    from helpers import test_file
+
+    # ---single EMU wide: no glyph can possibly render at any point size---
+    context.fit_extents = (1, 1)
+    context.fit_text_str = "Supercalifragilisticexpialidocious"
+    context.fit_font_file = test_file("calibriz.ttf")
+    context.fit_max_size = 18
+
+
+@when("I call TextFitter.best_fit_font_size() on that shape")
+def when_I_call_TextFitter_best_fit_font_size(context):
+    from pptx.exc import TextLayoutError
+    from pptx.text.layout import TextFitter
+
+    try:
+        TextFitter.best_fit_font_size(
+            context.fit_text_str,
+            context.fit_extents,
+            context.fit_max_size,
+            context.fit_font_file,
+        )
+        context.raised_exc = None
+    except TextLayoutError as exc:
+        context.raised_exc = exc
+
+
+@then("a TextLayoutError is raised")
+def then_a_TextLayoutError_is_raised(context):
+    from pptx.exc import TextLayoutError
+
+    assert isinstance(context.raised_exc, TextLayoutError), (
+        "expected TextLayoutError, got %r" % context.raised_exc
+    )
+
+
 # then ====================================================
 
 
