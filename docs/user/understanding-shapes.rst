@@ -82,6 +82,34 @@ it like so::
 We'll see a lot more of the shape tree in the next few sections.
 
 
+Shape z-order
+-------------
+
+The order shapes appear in a slide's shape tree is also the order they are
+drawn; the first shape in the tree is drawn first (and is therefore the
+*backmost* shape) and the last shape is drawn last (and is therefore the
+*frontmost* shape). This front-to-back stacking is known as the *z-order*.
+
+Newly-added shapes are always appended to the end of the shape tree, so they
+appear in front of every previously-added shape. Four methods on every shape
+rearrange the z-order within the owning shape tree (the slide's shape tree
+for a top-level shape, or the enclosing group shape's tree for a shape inside
+a group)::
+
+    shape.bring_to_front()   # -- becomes the frontmost shape --
+    shape.send_to_back()     # -- becomes the backmost shape --
+    shape.bring_forward()    # -- moves one position forward --
+    shape.send_backward()    # -- moves one position backward --
+
+Each method is a no-op when the shape is already at the corresponding
+extreme, and none of them moves a shape in or out of a group shape.
+
+A read-only :attr:`~.BaseShape.zorder_index` property reports a shape's
+zero-based position within its parent shape-tree (0 is backmost)::
+
+    shape.zorder_index   # -> 2, for example
+
+
 Up next ...
 -----------
 
