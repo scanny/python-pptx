@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- docs: #504 negative bars render white when a point fill is set. This is
+  expected PowerPoint behavior: the point-level ``c:invertIfNegative``
+  element defaults to |True|, so an authored solid fill on a negative bar
+  is *inverted* to white on render. The workaround already landed as the
+  #776 setter (``Point.invert_if_negative = False``); this change expands
+  the ``Point.invert_if_negative`` docstring with the recipe (set the
+  fill, then assign ``invert_if_negative = False`` on the same point) and
+  adds a regression test (``tests/chart/test_point.py::DescribePoint::
+  it_can_preserve_a_solid_fill_color_on_negative_bars_issue_504``) that
+  asserts the combined XML carries both ``c:invertIfNegative val="0"`` and
+  the authored ``a:srgbClr``. No code change is required.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
