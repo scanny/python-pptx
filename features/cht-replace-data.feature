@@ -44,3 +44,10 @@ Feature: Replace chart data
     Given a chart with an explicitly-colored series
      When I replace its data with 6 series that require 5 new cloned series
      Then each cloned series uses a distinct theme-accent schemeClr
+
+
+  Scenario: replace_data recovers from a stale externalData rId (issue #490)
+    Given a chart whose embedded workbook relationship is missing
+     When I replace its data with 3 categories and 2 series
+     Then len(chart.series) is 2
+      And the chart has an Excel data worksheet

@@ -9,6 +9,12 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- fix: #490 ``Chart.replace_data`` raised ``KeyError: 'rId3'`` when the chart's
+  ``c:externalData`` element referenced a relationship that wasn't present in
+  the chart-part's rels (charts pasted from pre-2007 ``.xls`` workbooks, or
+  charts whose embedded-workbook relationship was stripped by another client).
+  ``ChartWorkbook.xlsx_part`` now returns |None| for an unresolved rId so
+  ``replace_data`` transparently synthesizes a fresh embedded workbook.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and
