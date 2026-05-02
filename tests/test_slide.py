@@ -24,7 +24,12 @@ from pptx.shapes.shapetree import (
     SlidePlaceholders,
     SlideShapes,
 )
-from pptx.enum.transition import PP_TRANSITION_TYPE
+from pptx.enum.transition import (
+    PP_TRANSITION_SIDE_DIRECTION,
+    PP_TRANSITION_SPEED,
+    PP_TRANSITION_TYPE,
+)
+from pptx.oxml.ns import qn
 from pptx.slide import (
     NotesMaster,
     NotesSlide,
@@ -1714,3 +1719,117 @@ class DescribeTransition(object):
         transition = Transition(sld)
         with pytest.raises(ValueError, match="non-negative"):
             transition.advance_after_time = -1
+
+    # -- .speed -----------------------------------------------------------
+
+    def it_reports_FAST_speed_when_no_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.speed is PP_TRANSITION_SPEED.FAST
+
+    def it_reports_FAST_speed_when_spd_absent(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition)")
+        transition = Transition(sld)
+        assert transition.speed is PP_TRANSITION_SPEED.FAST
+
+    @pytest.mark.parametrize(
+        ("spd", "expected"),
+        [
+            ("slow", PP_TRANSITION_SPEED.SLOW),
+            ("med", PP_TRANSITION_SPEED.MEDIUM),
+            ("fast", PP_TRANSITION_SPEED.FAST),
+        ],
+    )
+    def it_reads_an_explicit_spd(
+        self, spd: str, expected: PP_TRANSITION_SPEED
+    ):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition{spd=%s})" % spd)
+        transition = Transition(sld)
+        assert transition.speed is expected
+
+    @pytest.mark.parametrize(
+        ("value", "xml_value"),
+        [
+            (PP_TRANSITION_SPEED.SLOW, "slow"),
+            (PP_TRANSITION_SPEED.MEDIUM, "med"),
+            (PP_TRANSITION_SPEED.FAST, "fast"),
+        ],
+    )
+    def it_writes_speed(
+        self, value: PP_TRANSITION_SPEED, xml_value: str
+    ):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.speed = value
+        assert sld.transition is not None
+        assert sld.transition.spd == xml_value
+
+    def it_rejects_non_enum_speed_assignments(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        with pytest.raises(ValueError):
+            transition.speed = "slow"  # type: ignore[assignment]
+
+    # -- .wipe_direction --------------------------------------------------
+
+    def it_returns_None_wipe_direction_when_no_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.wipe_direction is None
+
+    def it_returns_None_wipe_direction_when_variant_is_not_wipe(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        transition = Transition(sld)
+        assert transition.wipe_direction is None
+
+    def it_defaults_wipe_direction_to_LEFT_when_dir_absent(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:wipe)")
+        transition = Transition(sld)
+        assert transition.wipe_direction is PP_TRANSITION_SIDE_DIRECTION.LEFT
+
+    @pytest.mark.parametrize(
+        ("dir_val", "expected"),
+        [
+            ("l", PP_TRANSITION_SIDE_DIRECTION.LEFT),
+            ("u", PP_TRANSITION_SIDE_DIRECTION.UP),
+            ("r", PP_TRANSITION_SIDE_DIRECTION.RIGHT),
+            ("d", PP_TRANSITION_SIDE_DIRECTION.DOWN),
+        ],
+    )
+    def it_reads_an_explicit_wipe_direction(
+        self, dir_val: str, expected: PP_TRANSITION_SIDE_DIRECTION
+    ):
+        sld = element(
+            "p:sld/(p:cSld/p:spTree,p:transition/p:wipe{dir=%s})" % dir_val
+        )
+        transition = Transition(sld)
+        assert transition.wipe_direction is expected
+
+    def it_writes_wipe_direction_on_existing_wipe(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:wipe)")
+        transition = Transition(sld)
+        transition.wipe_direction = PP_TRANSITION_SIDE_DIRECTION.UP
+        assert transition.wipe_direction is PP_TRANSITION_SIDE_DIRECTION.UP
+        wipe = sld.transition.find(qn("p:wipe"))
+        assert wipe is not None
+        assert wipe.get("dir") == "u"
+
+    def it_creates_wipe_variant_when_setting_direction_with_no_transition(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.wipe_direction = PP_TRANSITION_SIDE_DIRECTION.RIGHT
+        assert transition.type is PP_TRANSITION_TYPE.WIPE
+        assert transition.wipe_direction is PP_TRANSITION_SIDE_DIRECTION.RIGHT
+
+    def it_replaces_existing_variant_when_setting_wipe_direction(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition/p:fade)")
+        transition = Transition(sld)
+        transition.wipe_direction = PP_TRANSITION_SIDE_DIRECTION.DOWN
+        assert transition.type is PP_TRANSITION_TYPE.WIPE
+        assert transition.wipe_direction is PP_TRANSITION_SIDE_DIRECTION.DOWN
+
+    def it_rejects_non_enum_wipe_direction(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        with pytest.raises(ValueError):
+            transition.wipe_direction = "left"  # type: ignore[assignment]

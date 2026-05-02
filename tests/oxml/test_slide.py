@@ -9,6 +9,7 @@ from pptx.oxml.slide import (
     CT_HeaderFooter,
     CT_NotesMaster,
     CT_NotesSlide,
+    CT_SideDirectionTransition,
     CT_Slide,
     CT_SlideTransition,
     CT_TransitionMorph,
@@ -281,3 +282,25 @@ class DescribeCT_TransitionMorph(object):
 
         morph = parse_xml("<p14:morph %s/>" % nsdecls("p14"))
         assert morph.option == "byObject"
+
+
+class DescribeCT_SideDirectionTransition(object):
+    """Unit-test suite for `pptx.oxml.slide.CT_SideDirectionTransition`."""
+
+    @pytest.mark.parametrize("cxml", ["p:wipe", "p:push"])
+    def it_is_the_class_used_for_wipe_and_push(self, cxml: str):
+        variant = element(cxml)
+        assert isinstance(variant, CT_SideDirectionTransition)
+
+    def it_defaults_dir_to_l(self):
+        wipe = element("p:wipe")
+        assert wipe.dir == "l"
+
+    def it_reads_an_explicit_dir(self):
+        wipe = element("p:wipe{dir=r}")
+        assert wipe.dir == "r"
+
+    def it_can_write_dir(self):
+        wipe = element("p:wipe")
+        wipe.dir = "u"
+        assert wipe.xml == xml("p:wipe{dir=u}")

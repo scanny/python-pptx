@@ -13,6 +13,16 @@ Unreleased
   end-to-end regression suite ``DescribeIssue694RegressionSections`` under
   ``tests/test_presentation.py`` that exercises those scenarios against a
   round-tripped real package.
+- feat: #1004 expose ``Transition.speed`` using the ``PP_TRANSITION_SPEED``
+  enum (``SLOW`` / ``MEDIUM`` / ``FAST`` → ``p:transition/@spd``) and add
+  the per-variant ``Transition.wipe_direction`` accessor
+  (``PP_TRANSITION_SIDE_DIRECTION``) for reading / writing the ``@dir``
+  attribute on ``p:wipe``. Setting ``wipe_direction`` also switches the
+  transition variant to wipe. Introduces ``CT_SideDirectionTransition``
+  (typed round-trip of the schema's ``CT_SideDirectionTransition``),
+  registered for ``p:wipe`` and ``p:push``. Remaining per-variant flags
+  (``Cover.direction``, ``Split.orientation``, ``Fade.through_black``,
+  ``Wheel.spokes``, etc.) can follow the same pattern incrementally.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under

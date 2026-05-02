@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING, Iterator, cast
 from pptx.dml.color import RGBColor
 from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
-from pptx.enum.transition import PP_TRANSITION_TYPE
+from pptx.enum.transition import (
+    PP_TRANSITION_SIDE_DIRECTION,
+    PP_TRANSITION_SPEED,
+    PP_TRANSITION_TYPE,
+)
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.shapes.shapetree import (
@@ -823,16 +827,23 @@ class Transition(ElementProxy):
       Reading returns :attr:`PP_TRANSITION_TYPE.NONE` when there is
       no transition variant present.
     * :attr:`duration` — int milliseconds or `None`. Read/write of
-      the ``p14:dur`` extension attribute. ``@spd`` (slow/med/fast)
-      is left at its default when setting; downstream items can
-      expose a separate speed accessor.
+      the ``p14:dur`` extension attribute. Use :attr:`speed` for
+      the coarse ``@spd`` selector.
+    * :attr:`speed` — :class:`.PP_TRANSITION_SPEED` (``slow`` /
+      ``med`` / ``fast``). Read/write of ``p:transition/@spd``.
     * :attr:`advance_on_click` — bool, ``p:transition/@advClick``.
     * :attr:`advance_after_time` — int ms or `None`, ``p:transition/@advTm``.
+    * :attr:`wipe_direction` — :class:`.PP_TRANSITION_SIDE_DIRECTION`
+      or ``None``. Reads/writes the ``@dir`` attribute on ``p:wipe``.
+      ``None`` is returned when the current variant is not ``p:wipe``.
 
     Out-of-scope (see ``docs/dev/analysis/f8-animations-transitions.rst``):
 
-    * Per-variant attributes such as ``@dir`` on ``p:fade`` or
-      ``p:cover`` (downstream #1004).
+    * Other per-variant attributes such as ``@dir`` on ``p:cover`` /
+      ``p:strips`` / ``p:zoom``, ``@orient`` on ``p:split`` /
+      ``p:blinds``, ``@thruBlk`` on ``p:fade`` / ``p:cut``, and
+      ``@spokes`` on ``p:wheel`` — these follow the same pattern as
+      :attr:`wipe_direction` and can be added incrementally.
     * ``mc:AlternateContent`` wrapping for MORPH (downstream #942).
     * Sound-action ``p:sndAc`` (not tracked as a separate item).
     """
@@ -915,6 +926,31 @@ class Transition(ElementProxy):
         transition = self._sld.get_or_add_transition()
         transition.dur = value
 
+    # -- speed (slow / med / fast) -----------------------------------
+
+    @property
+    def speed(self) -> PP_TRANSITION_SPEED:
+        """Coarse slow / med / fast selector for this transition.
+
+        Reflects ``p:transition/@spd``. Defaults to
+        :attr:`PP_TRANSITION_SPEED.FAST` (the schema default) when no
+        ``p:transition`` element is present or ``@spd`` is absent.
+
+        This is the ISO-29500-defined selector; for millisecond
+        precision use :attr:`duration` (which writes the 2010-extension
+        ``p14:dur`` attribute).
+        """
+        transition = self._sld.transition
+        if transition is None:
+            return PP_TRANSITION_SPEED.FAST
+        return PP_TRANSITION_SPEED.from_xml(transition.spd)
+
+    @speed.setter
+    def speed(self, value: PP_TRANSITION_SPEED) -> None:
+        PP_TRANSITION_SPEED.validate(value)
+        transition = self._sld.get_or_add_transition()
+        transition.spd = PP_TRANSITION_SPEED.to_xml(value)
+
     # -- advance_on_click --------------------------------------------
 
     @property
@@ -972,6 +1008,39 @@ class Transition(ElementProxy):
             )
         transition = self._sld.get_or_add_transition()
         transition.advTm = value
+
+    # -- wipe_direction (per-variant flag on p:wipe) -----------------
+
+    @property
+    def wipe_direction(self) -> PP_TRANSITION_SIDE_DIRECTION | None:
+        """Direction of a wipe transition.
+
+        Returns the :class:`.PP_TRANSITION_SIDE_DIRECTION` member
+        corresponding to ``p:transition/p:wipe/@dir`` (schema default
+        ``"l"``) when the current variant is ``p:wipe``. Returns
+        ``None`` when the transition is a different variant (or
+        absent) — ``@dir`` has no meaning outside the directional
+        variants.
+        """
+        transition = self._sld.transition
+        if transition is None:
+            return None
+        wipe = transition.find(qn("p:wipe"))
+        if wipe is None:
+            return None
+        return PP_TRANSITION_SIDE_DIRECTION.from_xml(wipe.get("dir", "l"))
+
+    @wipe_direction.setter
+    def wipe_direction(self, value: PP_TRANSITION_SIDE_DIRECTION) -> None:
+        PP_TRANSITION_SIDE_DIRECTION.validate(value)
+        transition = self._sld.get_or_add_transition()
+        wipe = transition.find(qn("p:wipe"))
+        if wipe is None:
+            # -- ensure the variant is p:wipe; replace any current variant --
+            wipe = transition.set_variant("p:wipe")
+            if wipe is None:  # pragma: no cover - set_variant returns element
+                return
+        wipe.set("dir", PP_TRANSITION_SIDE_DIRECTION.to_xml(value))
 
 
 class _Background(ElementProxy):
