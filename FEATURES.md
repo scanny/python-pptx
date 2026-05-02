@@ -734,7 +734,8 @@ chart_data)`. The fork extends chart support with 3D types, combo charts
 `Chart.apply_template()` to apply a `.crtx` package, `Chart.clone_to()` for
 cross-slide / cross-deck duplication, `Chart.replace_data()` preserving
 author-set `formatCode`, `Chart.replace_data_preserve_formulas()`,
-`Chart.update_cached_values()`, `ChartTitle.position`, `Axis.major_unit` /
+`Chart.update_cached_values()`, `ChartTitle.position`, `Chart.plot_area.format`
+(plot-area fill / line / shadow), `Axis.major_unit` /
 `.minor_unit` for date axes, `DataLabel.format` and `DataLabels.format`
 `ChartFormat` wrappers (border, fill, shadow on data labels), error bars,
 theme accent-color cycling on cloned series, the `UNSUPPORTED_CHARTEX`
@@ -809,6 +810,7 @@ prs.save("out.pptx")
 - `Chart.chart_title` — `ChartTitle` proxy.
 - `Chart.chart_style` — Integer style index. Plain 1..48 via `c:style`; extended 49..255 via `c14:style` wrapped in `mc:AlternateContent` `[Added in 1.0.2.dev0]`.
 - `Chart.plots` / `Chart.series` / `Chart.category_axis` / `Chart.value_axis` — Chart anatomy.
+- `Chart.plot_area` — `PlotArea` proxy for `c:plotArea`; `.format` exposes `ChartFormat` (`.fill`, `.line`, `.shadow`) so the plot-area rectangle can be filled, outlined, or shadowed without dropping into XML. `[Added in 1.0.2.dev0]`
 - `Chart.has_secondary_value_axis` / `Chart.secondary_value_axis` — Secondary Y axis. `[Added in 1.0.2.dev0]`
 - `Chart.add_plot(chart_type, chart_data)` — Add a second plot to an existing chart (combo charts). `[Added in 1.0.2.dev0]`
 - `Chart.apply_template(template)` — Apply a `.crtx` chart template (path, bytes, or file-like) onto an existing chart. `[Added in 1.0.2.dev0]`

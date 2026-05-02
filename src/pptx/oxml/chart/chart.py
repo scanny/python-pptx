@@ -298,6 +298,11 @@ class CT_PlotArea(BaseOxmlElement):
 
     catAx = ZeroOrMore("c:catAx")
     valAx = ZeroOrMore("c:valAx")
+    # -- `c:spPr` is the optional shape-properties child that carries the --
+    # -- plot-area's fill / line / effect formatting. In the CT_PlotArea --
+    # -- sequence it follows `c:dTable` and is followed only by `c:extLst`. --
+    # -- See ISO/IEC 29500-1 `spec/…/dml-chart.xsd`. (Issue #298). --
+    spPr = ZeroOrOne("c:spPr", successors=("c:extLst",))
 
     @property
     def dateAx_lst(self):

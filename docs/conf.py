@@ -316,6 +316,8 @@ rst_epilog = """
 
 .. |PlaceholderPicture| replace:: :class:`.PlaceholderPicture`
 
+.. |PlotArea| replace:: :class:`.PlotArea`
+
 .. |Plots| replace:: :class:`.Plots`
 
 .. |Point| replace:: :class:`.Point`

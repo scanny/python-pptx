@@ -26,6 +26,10 @@ to specify and format a chart.
    :members:
    :member-order: bysource
 
+.. autoclass:: pptx.chart.chart.PlotArea()
+   :members:
+   :member-order: bysource
+
 
 |Legend| objects
 ----------------

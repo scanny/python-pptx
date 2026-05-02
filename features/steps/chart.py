@@ -583,6 +583,30 @@ def then_chart_font_is_a_Font_object(context):
     assert actual == expected, "chart.font is a %s object" % actual
 
 
+@then("chart.plot_area is a PlotArea object")
+def then_chart_plot_area_is_a_PlotArea_object(context):
+    actual = type(context.chart.plot_area).__name__
+    assert actual == "PlotArea", "got %s" % actual
+
+
+@then("chart.plot_area.format is a ChartFormat object")
+def then_chart_plot_area_format_is_a_ChartFormat_object(context):
+    actual = type(context.chart.plot_area.format).__name__
+    assert actual == "ChartFormat", "got %s" % actual
+
+
+@then("chart.plot_area.format.fill is a FillFormat object")
+def then_chart_plot_area_format_fill_is_a_FillFormat_object(context):
+    actual = type(context.chart.plot_area.format.fill).__name__
+    assert actual == "FillFormat", "got %s" % actual
+
+
+@then("chart.plot_area.format.line is a LineFormat object")
+def then_chart_plot_area_format_line_is_a_LineFormat_object(context):
+    actual = type(context.chart.plot_area.format.line).__name__
+    assert actual == "LineFormat", "got %s" % actual
+
+
 @then("chart.has_legend is {value}")
 def then_chart_has_legend_is_value(context, value):
     expected_value = {"True": True, "False": False}[value]
