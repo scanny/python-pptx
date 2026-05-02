@@ -17,6 +17,7 @@ from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.parts.chart import ChartPart
 from pptx.parts.comments import CommentsPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
+from pptx.parts.tags import TagsPart
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from pptx.util import lazyproperty
 
@@ -441,6 +442,44 @@ class SlidePart(BaseSlidePart):
         partname = self.package.next_partname("/ppt/comments/comment%d.xml")
         part = CommentsPart.new(self.package, partname)
         self.relate_to(part, RT.COMMENTS)
+        return part
+
+    @property
+    def tags_part(self) -> TagsPart | None:
+        """|TagsPart| for this slide, or ``None`` if no tags are attached.
+
+        Resolves the ``p:cSld/p:custDataLst/p:tags/@r:id`` reference. When the
+        reference element is absent (the common case for a freshly authored
+        slide) this returns ``None`` without side effects.
+        """
+        cSld = self._element.cSld
+        custDataLst = cSld.custDataLst
+        if custDataLst is None:
+            return None
+        tags_ref = custDataLst.tags
+        if tags_ref is None:
+            return None
+        try:
+            return cast(TagsPart, self.related_part(tags_ref.rId))
+        except KeyError:
+            return None
+
+    def get_or_add_tags_part(self) -> TagsPart:
+        """Return this slide's |TagsPart|, creating and wiring one if needed.
+
+        When this slide does not yet have a tags part a new, empty part is
+        created, related to this slide via the ``TAGS`` relationship type,
+        and referenced from ``p:cSld/p:custDataLst/p:tags/@r:id``.
+        """
+        existing = self.tags_part
+        if existing is not None:
+            return existing
+        partname = self.package.next_partname("/ppt/tags/tag%d.xml")
+        part = TagsPart.new(self.package, partname)
+        rId = self.relate_to(part, RT.TAGS)
+        custDataLst = self._element.cSld.get_or_add_custDataLst()
+        tags_ref = custDataLst.get_or_add_tags()
+        tags_ref.rId = rId
         return part
 
     @property

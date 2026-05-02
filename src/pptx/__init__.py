@@ -25,6 +25,7 @@ from pptx.parts.slide import (
     SlidePart,
     ThemePart,
 )
+from pptx.parts.tags import TagsPart
 
 if TYPE_CHECKING:
     from pptx.opc.package import Part
@@ -50,6 +51,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_SLIDE: SlidePart,
     CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
     CT.PML_SLIDE_MASTER: SlideMasterPart,
+    CT.PML_TAGS: TagsPart,
     CT.OFC_THEME: ThemePart,
     CT.DML_CHART: ChartPart,
     CT.X_FONTDATA: FontPart,
@@ -101,6 +103,7 @@ del (
     SlidePart,
     SlideLayoutPart,
     SlideMasterPart,
+    TagsPart,
     ThemePart,
     PresentationPart,
     CT,
