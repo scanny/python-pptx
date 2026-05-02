@@ -3,8 +3,10 @@
 Release History
 ---------------
 
-2026.05.0 (unreleased) — CalVer alignment across the loadfix series
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2026.05.0 — CalVer alignment across the loadfix series
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Released: 2026-05-02
 
 This release switches to CalVer (YYYY.MM.patch) versioning, matching
 loadfix/python-docx and loadfix/python-xlsx.
