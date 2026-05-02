@@ -6,6 +6,43 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #1013 ("color is empty when set via placeholder") resolved by
+  Wave 6 #938. Issue #1013
+  (https://github.com/scanny/python-pptx/issues/1013) reported that
+  reading ``run.font.color`` on a placeholder whose colour was set
+  indirectly — e.g. at the paragraph level via ``paragraph.font.color.rgb
+  = …``, or inherited unchanged from the slide-master's ``p:bodyStyle`` —
+  came back "empty" (``color.type is None`` and ``color.rgb`` raising),
+  even though PowerPoint rendered the placeholder in a visible colour.
+  The symptom is the legacy ``font.color`` contract: it inspects only the
+  run's own ``a:rPr/a:solidFill`` and reports ``None`` for any run that
+  inherits its colour from the paragraph, the text-body ``a:lstStyle``,
+  or the slide-master ``p:txStyles`` fallback. Wave 6 #938 (commit
+  ``cec3edc1``, "feat(text): #938 add Font.effective_color with
+  inheritance walk") shipped the read-side fix by adding
+  :attr:`.Font.effective_color`, a read-only property that returns the
+  |RGBColor| PowerPoint would actually render — walking the full
+  inheritance chain (run ``a:rPr`` → paragraph ``a:pPr/a:defRPr`` → text
+  body ``a:lstStyle/a:lvl{N}pPr/a:defRPr`` → master
+  ``p:txStyles``/``bodyStyle``-``otherStyle``-``titleStyle``), resolving
+  ``a:schemeClr`` against the slide-master's theme, and applying any
+  ``a:lumMod``/``a:lumOff`` tint/shade siblings via the Wave-1 #420 +
+  Wave-3 #308 :meth:`.ColorFormat.to_rgb` code path. The legacy
+  ``font.color`` contract is intentionally unchanged, so callers that
+  rely on it to distinguish "explicit" from "inherited" still can; #1013
+  adds a new read path, it does not mutate the old one. Adds a regression
+  suite ``DescribeIssue1013PlaceholderColorVerify`` under
+  ``tests/test_issue_1013_placeholder_color_verify.py`` that pins the
+  placeholder-flavoured scenarios the #1013 framing emphasises — an
+  untouched title or body placeholder inheriting the master's default
+  colour (explicit-RGB and scheme-colour variants), a placeholder whose
+  colour was set at the paragraph-``defRPr`` level, a ``tx1`` body-style
+  luminance-tinted with ``a:lumMod``/``a:lumOff``, the
+  explicit-run-colour-wins precedence, a save-and-reopen round-trip for
+  both the paragraph-level and master-inherited cases, and pins the
+  unchanged legacy ``font.color`` contract so a silent behavioural drift
+  is caught.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
