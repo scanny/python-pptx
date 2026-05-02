@@ -200,6 +200,28 @@ def when_I_assign_XL_CROSS_BETWEEN_member_to_value_axis_cross_between(context, m
     context.value_axis.cross_between = getattr(XL_CROSS_BETWEEN, member)
 
 
+@when("I assign {value} to category_axis.tick_label_skip")
+def when_I_assign_value_to_category_axis_tick_label_skip(context, value):
+    new_value = int(value)
+    try:
+        context.axis.tick_label_skip = new_value
+    except ValueError as exc:
+        context.raised_exception = exc
+    else:
+        context.raised_exception = None
+
+
+@when("I assign {value} to category_axis.tick_mark_skip")
+def when_I_assign_value_to_category_axis_tick_mark_skip(context, value):
+    new_value = int(value)
+    try:
+        context.axis.tick_mark_skip = new_value
+    except ValueError as exc:
+        context.raised_exception = exc
+    else:
+        context.raised_exception = None
+
+
 @when("I assign bool {value} to axis.visible")
 def when_I_assign_bool_value_to_axis_visible(context, value):
     context.axis.visible = {"True": True, "False": False}[value]
@@ -380,6 +402,20 @@ def then_value_axis_cross_between_is_XL_CROSS_BETWEEN_member(context, member):
     expected_value = getattr(XL_CROSS_BETWEEN, member)
     actual_value = context.value_axis.cross_between
     assert actual_value is expected_value, "got %s" % actual_value
+
+
+@then("category_axis.tick_label_skip is {value}")
+def then_category_axis_tick_label_skip_is_value(context, value):
+    expected_value = int(value)
+    actual_value = context.axis.tick_label_skip
+    assert actual_value == expected_value, "got %s" % actual_value
+
+
+@then("category_axis.tick_mark_skip is {value}")
+def then_category_axis_tick_mark_skip_is_value(context, value):
+    expected_value = int(value)
+    actual_value = context.axis.tick_mark_skip
+    assert actual_value == expected_value, "got %s" % actual_value
 
 
 @then("axis.visible is {value}")

@@ -851,6 +851,92 @@ class DescribeCategoryAxis(object):
         category_axis, expected_value = cat_type_get_fixture
         assert category_axis.category_type is expected_value
 
+    @pytest.mark.parametrize(
+        ("catAx_cxml", "expected_value"),
+        [
+            ("c:catAx", 1),
+            ("c:catAx/c:tickLblSkip{val=1}", 1),
+            ("c:catAx/c:tickLblSkip{val=2}", 2),
+            ("c:catAx/c:tickLblSkip{val=7}", 7),
+        ],
+    )
+    def it_knows_its_tick_label_skip(self, catAx_cxml, expected_value):
+        category_axis = CategoryAxis(element(catAx_cxml))
+        assert category_axis.tick_label_skip == expected_value
+
+    @pytest.mark.parametrize(
+        ("catAx_cxml", "new_value", "expected_cxml"),
+        [
+            ("c:catAx", 3, "c:catAx/c:tickLblSkip{val=3}"),
+            ("c:catAx", 1, "c:catAx"),
+            (
+                "c:catAx/c:tickLblSkip{val=3}",
+                5,
+                "c:catAx/c:tickLblSkip{val=5}",
+            ),
+            ("c:catAx/c:tickLblSkip{val=3}", 1, "c:catAx"),
+            # -- inserted before tickMarkSkip, noMultiLvlLbl (sequence-aware) --
+            (
+                "c:catAx/(c:tickMarkSkip{val=2},c:noMultiLvlLbl{val=0})",
+                4,
+                "c:catAx/(c:tickLblSkip{val=4},c:tickMarkSkip{val=2},c:noMultiLvlLbl{val=0})",
+            ),
+        ],
+    )
+    def it_can_change_its_tick_label_skip(self, catAx_cxml, new_value, expected_cxml):
+        category_axis = CategoryAxis(element(catAx_cxml))
+        category_axis.tick_label_skip = new_value
+        assert category_axis._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize("bad_value", [0, -1, 1.5, "2", None, True])
+    def but_it_raises_on_assign_bad_tick_label_skip(self, bad_value):
+        category_axis = CategoryAxis(element("c:catAx"))
+        with pytest.raises(ValueError):
+            category_axis.tick_label_skip = bad_value
+
+    @pytest.mark.parametrize(
+        ("catAx_cxml", "expected_value"),
+        [
+            ("c:catAx", 1),
+            ("c:catAx/c:tickMarkSkip{val=1}", 1),
+            ("c:catAx/c:tickMarkSkip{val=3}", 3),
+            ("c:catAx/c:tickMarkSkip{val=12}", 12),
+        ],
+    )
+    def it_knows_its_tick_mark_skip(self, catAx_cxml, expected_value):
+        category_axis = CategoryAxis(element(catAx_cxml))
+        assert category_axis.tick_mark_skip == expected_value
+
+    @pytest.mark.parametrize(
+        ("catAx_cxml", "new_value", "expected_cxml"),
+        [
+            ("c:catAx", 2, "c:catAx/c:tickMarkSkip{val=2}"),
+            ("c:catAx", 1, "c:catAx"),
+            (
+                "c:catAx/c:tickMarkSkip{val=2}",
+                5,
+                "c:catAx/c:tickMarkSkip{val=5}",
+            ),
+            ("c:catAx/c:tickMarkSkip{val=2}", 1, "c:catAx"),
+            # -- preserves tickLblSkip predecessor and noMultiLvlLbl successor --
+            (
+                "c:catAx/(c:tickLblSkip{val=3},c:noMultiLvlLbl{val=0})",
+                4,
+                "c:catAx/(c:tickLblSkip{val=3},c:tickMarkSkip{val=4},c:noMultiLvlLbl{val=0})",
+            ),
+        ],
+    )
+    def it_can_change_its_tick_mark_skip(self, catAx_cxml, new_value, expected_cxml):
+        category_axis = CategoryAxis(element(catAx_cxml))
+        category_axis.tick_mark_skip = new_value
+        assert category_axis._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize("bad_value", [0, -3, 2.5, "4", None, False])
+    def but_it_raises_on_assign_bad_tick_mark_skip(self, bad_value):
+        category_axis = CategoryAxis(element("c:catAx"))
+        with pytest.raises(ValueError):
+            category_axis.tick_mark_skip = bad_value
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

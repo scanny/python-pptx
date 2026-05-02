@@ -452,6 +452,21 @@ class ST_LblOffset(XsdUnsignedShort):
         cls.validate_int_in_range(value, 0, 1000)
 
 
+class ST_Skip(BaseIntType):
+    """Positive integer ≥ 1 for `c:tickLblSkip` / `c:tickMarkSkip` `@val`.
+
+    ECMA-376 Part 1 §21.2.10.50: restriction of `xsd:unsignedInt` with
+    `minInclusive=1`, so an axis skip of zero (or a negative value) is
+    invalid. Used as the attribute type for `CT_Skip`.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int(value)
+        if value < 1:
+            raise ValueError("value must be an integer >= 1, got %d" % value)
+
+
 class ST_LineWidth(XsdInt):
     @classmethod
     def convert_from_xml(cls, str_value):

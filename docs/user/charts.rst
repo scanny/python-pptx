@@ -169,6 +169,20 @@ Assigning ``True`` or ``False`` is required; any other value raises
 an explicit ``val`` attribute so the resulting file opens correctly in
 PowerPoint (see issue #852).
 
+When a category axis has many categories, drawing every label and tick mark
+produces clutter. :attr:`CategoryAxis.tick_label_skip` and
+:attr:`CategoryAxis.tick_mark_skip` thin the axis out by only labelling /
+marking every Nth category::
+
+    category_axis = chart.category_axis
+    category_axis.tick_label_skip = 2   # draw every 2nd category label
+    category_axis.tick_mark_skip = 5    # draw a major tick every 5 categories
+
+Both properties are read/write ``int`` values with a minimum of ``1`` (the
+default — label / tick every category). Assigning ``1`` removes the
+backing ``c:tickLblSkip`` / ``c:tickMarkSkip`` element so the XML stays
+minimal. A value less than ``1`` raises ``ValueError``.
+
 .. image:: /_static/img/chart-03.png
 
 Okay, that was probably going a bit too far. But it gives us an idea of the

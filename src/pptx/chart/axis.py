@@ -343,6 +343,54 @@ class CategoryAxis(_BaseAxis):
         """
         return XL_CATEGORY_TYPE.CATEGORY_SCALE
 
+    @property
+    def tick_label_skip(self) -> int:
+        """Integer count of categories between drawn tick-labels.
+
+        Read/write. Corresponds to ``c:tickLblSkip/@val`` on this category
+        axis. ``1`` (the default) draws a label for every category, ``2``
+        draws every other category label, and so on. Returns ``1`` when no
+        ``c:tickLblSkip`` element is present. Must be ``>= 1`` (ECMA-376
+        ``ST_Skip``); a lesser value raises ``ValueError``.
+        """
+        tickLblSkip = self._element.tickLblSkip
+        if tickLblSkip is None:
+            return 1
+        return tickLblSkip.val
+
+    @tick_label_skip.setter
+    def tick_label_skip(self, value: int):
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise ValueError("tick_label_skip must be an int >= 1, got %r" % (value,))
+        self._element._remove_tickLblSkip()
+        if value == 1:
+            return
+        self._element._add_tickLblSkip(val=value)
+
+    @property
+    def tick_mark_skip(self) -> int:
+        """Integer count of categories between drawn major tick marks.
+
+        Read/write. Corresponds to ``c:tickMarkSkip/@val`` on this category
+        axis. ``1`` (the default) draws a tick at every category, ``2`` draws
+        a tick every other category, and so on. Returns ``1`` when no
+        ``c:tickMarkSkip`` element is present. Must be ``>= 1`` (ECMA-376
+        ``ST_Skip``); a lesser value raises ``ValueError``.
+        """
+        tickMarkSkip = self._element.tickMarkSkip
+        if tickMarkSkip is None:
+            return 1
+        return tickMarkSkip.val
+
+    @tick_mark_skip.setter
+    def tick_mark_skip(self, value: int):
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise ValueError("tick_mark_skip must be an int >= 1, got %r" % (value,))
+        self._element._remove_tickMarkSkip()
+        if value == 1:
+            return
+        self._element._add_tickMarkSkip(val=value)
+
 
 class DateAxis(_BaseAxis):
     """A category axis with dates as its category labels.

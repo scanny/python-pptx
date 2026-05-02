@@ -839,6 +839,7 @@ prs.save("out.pptx")
 - `Axis.position` — Read/write `XL_AXIS_POSITION`. `[Added in 1.0.2.dev0]`
 - `Axis.visible` — Read/write `bool` toggling axis visibility via the `c:delete` element. Writes `val="1"` / `val="0"` explicitly so PowerPoint honors the setting (see issue #852). `[Fixed in 1.0.2.dev0]`
 - `TickLabels.rotation` — Read/write clockwise rotation (degrees) of axis tick labels, mapping to `c:txPr/a:bodyPr/@rot`. Accepts `int` or `float`; default `0.0`. `[Added in 1.0.2.dev0]`
+- `CategoryAxis.tick_label_skip` / `CategoryAxis.tick_mark_skip` — Read/write `int` (>=1) thinning out how often a category-axis label or major tick is drawn (`c:tickLblSkip/@val` and `c:tickMarkSkip/@val`). `1` (default) draws every category; `2` draws every other; and so on. Assigning `1` removes the backing element; values `<1` raise `ValueError`. `[Added in 1.0.2.dev0]`
 - `ValueAxis.crosses` / `.crosses_at` / `.major_unit` / `.minor_unit`.
 - `DateAxis.major_unit` / `.minor_unit` — Time-axis spacing. `[Added in 1.0.2.dev0]`
 - `Series.values` / `Series.categories` / `Series.name` / `Series.format` / `Series.marker` / `Series.points`.
