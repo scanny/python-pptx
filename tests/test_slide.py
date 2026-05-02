@@ -1171,6 +1171,48 @@ class DescribeSlideLayout(object):
         slide_layout = SlideLayout(element(sldLayout_cxml), None)
         assert slide_layout.slide_layout_type == expected_value
 
+    def it_knows_its_slide_layout_id(
+        self, part_prop_, slide_layout_part_, slide_master_part_
+    ):
+        """Issue #269: layout reads its id from the master's p:sldLayoutIdLst."""
+        sldLayout = element("p:sldLayout/p:cSld")
+        slide_layout = SlideLayout(sldLayout, None)
+        # -- master's sldLayoutIdLst has two entries; rId2 is `slide_layout`'s --
+        sldMaster = element(
+            "p:sldMaster/p:sldLayoutIdLst/("
+            "p:sldLayoutId{id=2147483648,r:id=rId1},"
+            "p:sldLayoutId{id=2147483649,r:id=rId2})"
+        )
+        slide_master = SlideMaster(sldMaster, slide_master_part_)
+        part_prop_.return_value = slide_layout_part_
+        slide_layout_part_.slide_master = slide_master
+        # -- `related_slide_layout(rId1)` returns a different layout element,
+        # -- `related_slide_layout(rId2)` returns a layout whose `_element`
+        # -- is the one we're probing (matches by identity).
+        other_layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        slide_master_part_.related_slide_layout.side_effect = (
+            lambda rId: other_layout if rId == "rId1" else slide_layout
+        )
+
+        assert slide_layout.slide_layout_id == 2147483649
+
+    def but_slide_layout_id_is_None_when_detached_from_a_master(self):
+        slide_layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        assert slide_layout.slide_layout_id is None
+
+    def and_slide_layout_id_is_None_when_master_has_no_sldLayoutIdLst(
+        self, part_prop_, slide_layout_part_, slide_master_part_
+    ):
+        """Return None when the master has no `p:sldLayoutIdLst` at all."""
+        sldLayout = element("p:sldLayout/p:cSld")
+        slide_layout = SlideLayout(sldLayout, None)
+        # -- master without a p:sldLayoutIdLst child --
+        slide_master = SlideMaster(element("p:sldMaster/p:cSld"), slide_master_part_)
+        part_prop_.return_value = slide_layout_part_
+        slide_layout_part_.slide_master = slide_master
+
+        assert slide_layout.slide_layout_id is None
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -1264,6 +1306,10 @@ class DescribeSlideLayout(object):
     def slide_master_(self, request):
         return instance_mock(request, SlideMaster)
 
+    @pytest.fixture
+    def slide_master_part_(self, request):
+        return instance_mock(request, SlideMasterPart)
+
 
 class DescribeSlideLayouts(object):
     """Unit-test suite for `pptx.slide.SlideLayouts` objects."""
@@ -1350,6 +1396,40 @@ class DescribeSlideLayouts(object):
         assert slide_layouts.get_by_type("title") is None
         # -- default can be specified --
         assert slide_layouts.get_by_type("title", "fallback") == "fallback"
+
+    def it_can_find_a_slide_layout_by_id(
+        self, slide_layout_, part_prop_, slide_master_part_
+    ):
+        """Issue #269: layout lookup by presentation-stable ``p:sldLayoutId/@id``."""
+        sldLayoutIdLst = element(
+            "p:sldLayoutIdLst/(p:sldLayoutId{id=2147483648,r:id=rId1},"
+            "p:sldLayoutId{id=2147483649,r:id=rId2})"
+        )
+        part_prop_.return_value = slide_master_part_
+        slide_master_part_.related_slide_layout.return_value = slide_layout_
+        slide_layouts = SlideLayouts(sldLayoutIdLst, None)
+
+        slide_layout = slide_layouts.get_by_id(2147483649)
+
+        slide_master_part_.related_slide_layout.assert_called_once_with("rId2")
+        assert slide_layout is slide_layout_
+
+    def but_get_by_id_returns_default_when_no_layout_matches(
+        self, part_prop_, slide_master_part_
+    ):
+        sldLayoutIdLst = element(
+            "p:sldLayoutIdLst/(p:sldLayoutId{id=2147483648,r:id=rId1},"
+            "p:sldLayoutId{id=2147483649,r:id=rId2})"
+        )
+        part_prop_.return_value = slide_master_part_
+        slide_layouts = SlideLayouts(sldLayoutIdLst, None)
+
+        # -- default-default is None --
+        assert slide_layouts.get_by_id(9999999999) is None
+        # -- default can be specified --
+        assert slide_layouts.get_by_id(9999999999, "fallback") == "fallback"
+        # -- no layout part was fetched --
+        slide_master_part_.related_slide_layout.assert_not_called()
 
     def it_knows_the_index_of_each_of_its_slide_layouts(
         self, _iter_, slide_layout_, slide_layout_2_
@@ -1457,6 +1537,38 @@ class DescribeSlideMaster(object):
         SlideLayouts_.assert_called_once_with(sldLayoutIdLst, slide_master)
         assert slide_layouts is slide_layouts_
 
+    def it_can_look_up_a_layout_by_id(self, request, slide_layouts_, slide_layout_):
+        """Issue #269: `SlideMaster.get_layout` delegates to `slide_layouts.get_by_id`."""
+        property_mock(
+            request, SlideMaster, "slide_layouts", return_value=slide_layouts_
+        )
+        slide_layouts_.get_by_id.return_value = slide_layout_
+        slide_master = SlideMaster(None, None)
+
+        result = slide_master.get_layout(2147483649)
+
+        slide_layouts_.get_by_id.assert_called_once_with(2147483649, None)
+        assert result is slide_layout_
+
+    def but_get_layout_returns_default_when_id_is_not_found(
+        self, request, slide_layouts_
+    ):
+        property_mock(
+            request, SlideMaster, "slide_layouts", return_value=slide_layouts_
+        )
+        # -- the real .get_by_id would return the default on miss;
+        # -- verify `SlideMaster.get_layout` forwards the default through.
+        sentinel = object()
+        slide_layouts_.get_by_id.side_effect = (
+            lambda layout_id, default=None: default
+        )
+        slide_master = SlideMaster(None, None)
+
+        # -- default-default is None --
+        assert slide_master.get_layout(9999999999) is None
+        # -- default can be specified --
+        assert slide_master.get_layout(9999999999, sentinel) is sentinel
+
     def it_exposes_a_theme_colors_mapping(self, request):
         from pptx.dml.color import RGBColor
 
@@ -1563,6 +1675,10 @@ class DescribeSlideMaster(object):
     @pytest.fixture
     def SlideLayouts_(self, request, slide_layouts_):
         return class_mock(request, "pptx.slide.SlideLayouts", return_value=slide_layouts_)
+
+    @pytest.fixture
+    def slide_layout_(self, request):
+        return instance_mock(request, SlideLayout)
 
     @pytest.fixture
     def slide_layouts_(self, request):

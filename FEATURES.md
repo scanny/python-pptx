@@ -222,6 +222,10 @@ for layout in master.slide_layouts:
 # look up a layout by user-visible name
 blank = master.slide_layouts.get_by_name("Blank")
 
+# or by presentation-stable id (robust against layout reordering)
+layout_id = master.slide_layouts[1].slide_layout_id
+same_layout = master.get_layout(layout_id)
+
 # theme colors available to this master
 for key, rgb in master.theme_colors.items():
     print(key, rgb)
@@ -230,12 +234,15 @@ for key, rgb in master.theme_colors.items():
 - `Presentation.slide_master` / `Presentation.slide_masters` — Default master plus every master in the deck.
 - `SlideMaster.name` / `SlideMaster.slide_layouts` / `SlideMaster.placeholders` / `SlideMaster.shapes`.
 - `SlideMaster.theme_colors` — Mapping of theme-color role names to resolved `RGBColor`. `[Added in 2026.05.0]`
+- `SlideMaster.get_layout(layout_id, default=None)` — Layout lookup by presentation-stable `p:sldLayoutId/@id` (robust against reordering). `[Added in 2026.05.0]`
 - `SlideMaster.header_footer` — `_HeaderFooter` proxy.
 - `SlideLayouts.__getitem__` / `__iter__` / `__len__` — Index, iterate, count layouts.
 - `SlideLayouts.get_by_name(name, default=None)` — Layout lookup by name. `[Added in 2026.05.0]`
+- `SlideLayouts.get_by_id(layout_id, default=None)` — Layout lookup by presentation-stable id. `[Added in 2026.05.0]`
 - `SlideLayouts.index(slide_layout)` — Position of a layout within the master. `[Added in 2026.05.0]`
 - `SlideLayouts.remove(slide_layout)` — Delete an unused slide layout. `[Added in 2026.05.0]`
 - `SlideLayout.name` / `.placeholders` / `.shapes` / `.slide_master` / `.header_footer`.
+- `SlideLayout.slide_layout_id` — Presentation-stable integer id from `p:sldLayoutId/@id`. `[Added in 2026.05.0]`
 - `SlideLayout.iter_cloneable_placeholders()` — Iterator over placeholders that will be cloned onto new slides.
 - `SlideLayout.used_by_slides` — Tuple of slides currently using this layout. `[Added in 2026.05.0]`
 - `NotesMaster.placeholders` / `NotesMaster.shapes` / `NotesMaster.header_footer` — Notes-master access.

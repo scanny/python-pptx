@@ -626,6 +626,14 @@ class CT_SlideLayoutIdListEntry(BaseOxmlElement):
     Contains a reference to a slide layout.
     """
 
+    # -- `@id` is the presentation-stable layout identifier (ECMA-376 Part 1
+    # -- §19.3.1.41 / ST_SlideLayoutId). Optional per the schema; PowerPoint
+    # -- always writes it, but Google-Slides exports occasionally omit it.
+    # -- Values start at 2147483648, which fits inside XsdUnsignedInt's 32-bit
+    # -- unsigned range (0-4294967295).
+    id: int | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "id", XsdUnsignedInt
+    )
     rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
 
 

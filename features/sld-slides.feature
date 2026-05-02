@@ -89,6 +89,20 @@ Feature: Access an individual slide
      Then slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]
 
 
+  Scenario: SlideLayouts.get_by_id() looks up by stable layout id (#269)
+    Given a SlideLayouts object from the default template as slide_layouts
+     Then slide_layouts.get_by_id(slide_layouts[3].slide_layout_id) is slide_layouts[3]
+      And slide_layouts.get_by_id(0) is None
+      And slide_layouts.get_by_id(0, default="fallback") is "fallback"
+
+
+  Scenario: SlideMaster.get_layout() looks up a layout by stable id (#269)
+    Given a Presentation with a default slide-master
+     Then slide_master.get_layout(slide_master.slide_layouts[2].slide_layout_id) is slide_master.slide_layouts[2]
+      And slide_master.get_layout(0) is None
+      And slide_master.get_layout(0, default="fallback") is "fallback"
+
+
   Scenario: SlideLayouts.get_by_type() finds a layout by @type (#864)
     Given a SlideLayouts object from the default template as slide_layouts
      Then slide_layouts.get_by_type("blank").slide_layout_type is "blank"
