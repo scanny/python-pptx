@@ -294,6 +294,28 @@ class Presentation(PartElementProxy):
         """
         self.part.save(file, zip_date_time, password=password)
 
+    def save_ppsx(
+        self,
+        file: str | IO[bytes],
+        zip_date_time: ZipDateTime | None = None,
+        password: str | None = None,
+    ) -> None:
+        """Write this presentation to `file` as a PowerPoint Show (``.ppsx``).
+
+        Identical to :meth:`save` except the presentation part's content-type
+        override is written as
+        ``application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml``
+        rather than the regular ``…presentation.main+xml``. Named with a
+        ``.ppsx`` extension, the resulting file opens in PowerPoint straight
+        into slide-show playback (no authoring UI).
+
+        `file` is either a filesystem path (``str``) or a file-like object open
+        for writing bytes. `zip_date_time` and `password` behave exactly as
+        they do for :meth:`save` (reproducible timestamps and ECMA-376 Agile
+        Encryption, respectively). See issue #438.
+        """
+        self.part.save_ppsx(file, zip_date_time, password=password)
+
     def save_flat_xml(self, file: str | IO[bytes]) -> None:
         """Write this presentation to `file` as a Flat OPC single-file XML document.
 

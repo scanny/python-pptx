@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import IO, TYPE_CHECKING, Iterable
 
+from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
 from pptx.opc.packuri import PackURI
@@ -193,6 +194,38 @@ class PresentationPart(XmlPart):
         for details.
         """
         self.package.save_flat_xml(path_or_stream)
+
+    def save_ppsx(
+        self,
+        path_or_stream: str | IO[bytes],
+        zip_date_time: ZipDateTime | None = None,
+        password: str | None = None,
+    ) -> None:
+        """Save this presentation package to `path_or_stream` as a PowerPoint Show (.ppsx).
+
+        The only difference from :meth:`save` is that the content-type override for
+        the presentation part is written as
+        ``application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml``
+        (``CT.PML_SLIDESHOW_MAIN``) rather than the regular
+        ``…presentationml.presentation.main+xml``. Files saved this way and named
+        with a ``.ppsx`` extension open in PowerPoint directly into slide-show
+        playback.
+        """
+        original_ct = self._content_type
+        # -- lazyproperty caches `content_type` in the instance __dict__; clear
+        # -- it so the swapped value is visible to the content-types serializer.
+        cached = self.__dict__.pop("content_type", None)
+        self._content_type = CT.PML_SLIDESHOW_MAIN
+        try:
+            self.package.save(path_or_stream, zip_date_time, password=password)
+        finally:
+            self._content_type = original_ct
+            # -- drop any cache re-populated during save, then restore the
+            # -- original cached value (if any) so subsequent reads match
+            # -- pre-call semantics exactly.
+            self.__dict__.pop("content_type", None)
+            if cached is not None:
+                self.__dict__["content_type"] = cached
 
     def slide_id(self, slide_part):
         """Return the slide-id associated with `slide_part`."""
