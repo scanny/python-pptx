@@ -9,7 +9,9 @@ import pytest
 import pptx
 from pptx.api import Presentation, _default_pptx_path, _is_pptx_package
 from pptx.opc.constants import CONTENT_TYPE as CT
+from pptx.oxml.presentation import CT_Presentation, CT_SlideSize
 from pptx.parts.presentation import PresentationPart
+from pptx.presentation import Presentation as PresentationClass
 
 from .unitutil.mock import class_mock, instance_mock
 
@@ -103,6 +105,47 @@ class DescribePresentation(object):
         assert prs.slide_width == 9144000
         assert prs.slide_height == 6858000
 
+    def it_opens_a_letter_paper_default_template(self):
+        """`pptx_format='letter'` yields a 10in x 7.5in slide tagged `letter`."""
+        from pptx import Presentation as PresentationFn
+
+        prs = PresentationFn(pptx_format="letter")
+        assert prs.slide_width == 9144000
+        assert prs.slide_height == 6858000
+        assert prs._element.sldSz.type == "letter"  # pyright: ignore[reportPrivateUsage]
+
+    def it_opens_an_a4_landscape_default_template(self):
+        """`pptx_format='a4'` yields a 297mm x 210mm slide tagged `A4`."""
+        from pptx import Presentation as PresentationFn
+
+        prs = PresentationFn(pptx_format="a4")
+        # 297mm x 210mm (landscape) at 36000 EMU/mm
+        assert prs.slide_width == 10692000
+        assert prs.slide_height == 7560000
+        assert prs._element.sldSz.type == "A4"  # pyright: ignore[reportPrivateUsage]
+
+    def it_accepts_a_custom_cx_cy_tuple_for_slide_size(self):
+        """A `(cx, cy)` tuple sets arbitrary slide dimensions (`type=custom`)."""
+        from pptx import Presentation as PresentationFn
+
+        # -- 11in x 8.5in (US Letter in landscape) in EMU --
+        prs = PresentationFn(pptx_format=(10058400, 7772400))
+        assert prs.slide_width == 10058400
+        assert prs.slide_height == 7772400
+        assert prs._element.sldSz.type == "custom"  # pyright: ignore[reportPrivateUsage]
+
+    def it_raises_on_malformed_pptx_format_tuple(self):
+        with pytest.raises(ValueError, match="must be \\(cx, cy\\) in EMU"):
+            Presentation(pptx_format=(1, 2, 3))  # type: ignore[arg-type]
+
+    def it_raises_on_non_integer_pptx_format_tuple(self):
+        with pytest.raises(ValueError, match="must contain integers in EMU"):
+            Presentation(pptx_format=(1.5, 2.0))  # type: ignore[arg-type]
+
+    def it_raises_on_non_string_non_tuple_pptx_format(self):
+        with pytest.raises(TypeError, match="preset name or \\(cx, cy\\) tuple"):
+            Presentation(pptx_format=42)  # type: ignore[arg-type]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -123,11 +166,23 @@ class DescribePresentation(object):
 
     @pytest.fixture
     def prs_(self, request):
-        return instance_mock(request, Presentation)
+        return instance_mock(request, PresentationClass)
 
     @pytest.fixture
-    def prs_part_(self, request):
-        return instance_mock(request, PresentationPart)
+    def prs_part_(self, request, prs_elm_):
+        prs_part_ = instance_mock(request, PresentationPart, spec_set=False)
+        prs_part_._element = prs_elm_
+        return prs_part_
+
+    @pytest.fixture
+    def prs_elm_(self, request, sldSz_):
+        prs_elm_ = instance_mock(request, CT_Presentation)
+        prs_elm_.get_or_add_sldSz.return_value = sldSz_
+        return prs_elm_
+
+    @pytest.fixture
+    def sldSz_(self, request):
+        return instance_mock(request, CT_SlideSize)
 
 
 class Describe_default_pptx_path(object):
@@ -146,6 +201,12 @@ class Describe_default_pptx_path(object):
         path = _default_pptx_path(preset)
         assert os.path.basename(path) == "default-16x9.pptx"
         assert os.path.isfile(path)
+
+    @pytest.mark.parametrize("preset", ["letter", "LETTER", "a4", "A4"])
+    def it_returns_4x3_template_for_letter_and_a4_presets(self, preset):
+        """Letter / A4 presets reuse the 4:3 template; size is overridden at load."""
+        path = _default_pptx_path(preset)
+        assert os.path.basename(path) == "default.pptx"
 
     def it_raises_on_unknown_preset(self):
         with pytest.raises(ValueError, match="unknown pptx_format 'foo'"):

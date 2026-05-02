@@ -22,3 +22,5 @@ Feature: Default presentation template is provided
       | "standard"   | 9144000  | 6858000 |
       | "16x9"       | 12192000 | 6858000 |
       | "widescreen" | 12192000 | 6858000 |
+      | "letter"     | 9144000  | 6858000 |
+      | "a4"         | 10692000 | 7560000 |

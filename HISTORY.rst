@@ -6,6 +6,13 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #883 ``Presentation(pptx_format=...)`` accepts paper-size presets
+  ``"letter"`` (US Letter, 10 x 7.5 in tagged ``letter``) and ``"a4"``
+  (A4 landscape, 297 x 210 mm tagged ``A4``), in addition to the previous
+  ``"4x3"`` / ``"16x9"`` aspect-ratio presets. A ``(cx, cy)`` tuple in EMU
+  is also accepted for arbitrary slide sizes (written as ``p:sldSz/@type
+  = "custom"``). The ECMA-376 ``p:sldSz/@type`` enumeration is now
+  exposed on ``CT_SlideSize`` as an optional ``type`` attribute.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
