@@ -175,6 +175,19 @@ Unreleased
   ``[0.0, 0.25, 0.5, 0.75, 1.0]`` through ``Presentation.save`` + reopen
   on both an explicit RGB color and a theme color, and confirms
   coexistence with a brightness adjustment.
+- feat: #438 add ``Presentation.save_ppsx(file)`` for saving a
+  presentation as a PowerPoint Show. The serialized package is identical
+  to a regular ``.pptx`` except for the content-type override on the
+  presentation part, which is written as
+  ``application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml``
+  rather than ``…presentation.main+xml``. Named with a ``.ppsx``
+  extension, the resulting file opens in PowerPoint directly into
+  slide-show playback (no authoring UI). Complements #1070 (Wave 3),
+  which added ``.ppsx`` read support by whitelisting
+  ``CT.PML_SLIDESHOW_MAIN`` on load. Accepts the same ``zip_date_time``
+  and ``password`` keywords as :meth:`Presentation.save`; the
+  in-memory presentation's content-type is not mutated, so a follow-up
+  ``save()`` writes a plain ``.pptx``.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via

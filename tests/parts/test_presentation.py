@@ -152,6 +152,58 @@ class DescribePresentationPart(object):
         PresentationPart(None, None, package_, None).save_flat_xml("prs.xml")
         package_.save_flat_xml.assert_called_once_with("prs.xml")
 
+    def it_can_save_the_package_as_ppsx(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(
+            None, CT.PML_PRESENTATION_MAIN, package_, None
+        )
+
+        # -- stub `package.save` to capture the content-type that was in effect
+        # -- at the moment of the save call (the whole point of `save_ppsx`).
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save_ppsx("prs.ppsx")
+
+        # -- during the save, the content type is the slideshow variant --
+        assert observed_cts == [CT.PML_SLIDESHOW_MAIN]
+        # -- after the save, it is restored to the original --
+        assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
+        package_.save.assert_called_once_with("prs.ppsx", None, password=None)
+
+    def and_save_ppsx_forwards_zip_date_time_and_password(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        zdt = (2024, 6, 15, 9, 30, 0)
+        prs_part = PresentationPart(
+            None, CT.PML_PRESENTATION_MAIN, package_, None
+        )
+
+        prs_part.save_ppsx("prs.ppsx", zdt, password="s3cret")
+
+        package_.save.assert_called_once_with("prs.ppsx", zdt, password="s3cret")
+        # -- original content type is restored even when encryption is used --
+        assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
+
+    def and_save_ppsx_restores_content_type_when_package_save_raises(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(
+            None, CT.PML_PRESENTATION_MAIN, package_, None
+        )
+        package_.save.side_effect = RuntimeError("boom")
+
+        with pytest.raises(RuntimeError, match="boom"):
+            prs_part.save_ppsx("prs.ppsx")
+
+        # -- original content type is restored via `finally:` even on error --
+        assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
+
     def it_can_add_a_font_part_and_relate_it(self, request, package_, relate_to_):
         font_blob = b"fake-ttf"
         font_part_ = instance_mock(request, FontPart)
