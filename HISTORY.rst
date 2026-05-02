@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #515 Expose preset-shape path geometry
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

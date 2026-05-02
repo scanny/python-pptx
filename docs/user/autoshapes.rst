@@ -245,3 +245,43 @@ The following code formats a callout shape using its adjustments::
 
     # rotate 45 degrees counter-clockwise
     callout_sp.rotation = -45.0
+
+
+Reading path geometry from a shape
+----------------------------------
+
+The ``Shape.path_geometry`` property returns a ``PathGeometry`` — an ordered sequence of
+``Path`` objects, one per ``<a:path>`` contour in the shape's rendered outline. Each
+``Path`` is an ordered sequence of drawing-operation value objects (``MoveTo``, ``LineTo``,
+``CubicBezierTo``, ``QuadBezierTo``, ``ArcTo``, ``Close``) whose ``(x, y)`` coordinates
+are ``Length`` instances expressed in shape-local EMU. The shape's bounding box runs from
+``(0, 0)`` in the top-left to ``(shape.width, shape.height)`` in the bottom-right::
+
+    from pptx.enum.shapes import MSO_SHAPE
+    from pptx.util import Inches
+
+    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, Inches(2), Inches(1))
+    geom = shape.path_geometry
+    assert len(geom) == 1           # one <a:path> contour
+    path = geom[0]
+    for op in path:
+        print(op)                    # MoveTo, LineTo, LineTo, LineTo, Close
+
+Two geometry kinds are supported:
+
+* **Custom (freeform) geometry.** Shapes created with
+  :meth:`~pptx.shapes.shapetree.BaseGroupShapes.build_freeform` have the coordinates of each
+  drawing op reported verbatim from the stored ``a:custGeom/a:pathLst`` subtree.
+* **Static preset geometry.** A subset of the ECMA-376 preset shapes have path definitions
+  that do not depend on any adjustment values. For these, the path is resolved against the
+  shape's current width and height and returned as a ``PathGeometry``. The supported preset
+  ``prst`` identifiers are ``actionButtonBlank``, ``chartPlus``, ``chartStar``, ``chartX``,
+  ``flowChartInternalStorage``, ``flowChartManualInput``, ``flowChartProcess``,
+  ``flowChartPunchedCard``, ``lineInv``, and ``rect``. In ``MSO_SHAPE`` enumeration terms
+  these correspond to members such as ``RECTANGLE``, ``FLOWCHART_PROCESS``,
+  ``FLOWCHART_CARD``, ``CHART_PLUS``, ``CHART_STAR``, ``CHART_X`` and the various
+  ``ACTION_BUTTON_*`` types.
+
+For dynamic presets — any preset whose path depends on one or more adjustment values (e.g.
+``ROUNDED_RECTANGLE``, ``CHEVRON``) — ``Shape.path_geometry`` returns ``None``. The
+DrawingML formula evaluator needed to resolve these is not yet implemented.

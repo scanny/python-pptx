@@ -10,7 +10,8 @@ from helpers import cls_qname, test_file, test_pptx
 from pptx import Presentation
 from pptx.action import ActionSetting
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
-from pptx.util import Emu
+from pptx.shapes.geometry import Close, LineTo, MoveTo, PathGeometry
+from pptx.util import Emu, Inches
 
 # given ===================================================
 
@@ -37,6 +38,24 @@ def given_builder_x_scale_builder_y_scale_is_p_q(context, p_str, q_str):
 def given_a_chevron_shape(context):
     prs = Presentation(test_pptx("shp-autoshape-adjustments"))
     context.shape = prs.slides[0].shapes[0]
+
+
+@given("a 1-inch rectangle shape")
+def given_a_1_inch_rectangle_shape(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    context.shape = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
+
+
+@given("a rounded rectangle shape")
+def given_a_rounded_rectangle_shape(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    context.shape = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
 
 
 @given("a Connector object as shape")
@@ -669,3 +688,34 @@ def then_shape_width_eq_value(context, value):
     expected_width = int(value)
     actual_width = context.shape.width
     assert actual_width == expected_width, "shape.width == %s" % actual_width
+
+
+@then("shape.path_geometry is a PathGeometry object")
+def then_shape_path_geometry_is_a_PathGeometry_object(context):
+    pg = context.shape.path_geometry
+    assert isinstance(pg, PathGeometry), "got %s" % type(pg).__name__
+    context.path_geometry = pg
+
+
+@then("shape.path_geometry is None")
+def then_shape_path_geometry_is_None(context):
+    assert context.shape.path_geometry is None, "got %r" % context.shape.path_geometry
+
+
+@then("shape.path_geometry has {count:d} path")
+@then("shape.path_geometry has {count:d} paths")
+def then_shape_path_geometry_has_N_paths(context, count):
+    pg = context.shape.path_geometry
+    assert len(pg) == count, "len(path_geometry) == %d" % len(pg)
+
+
+@then("the first path traces the shape's bounding-box rectangle")
+def then_first_path_traces_bounding_box_rectangle(context):
+    shape = context.shape
+    path = context.shape.path_geometry[0]
+    ops = list(path)
+    assert ops[0] == MoveTo(Emu(0), Emu(0)), "first op %r" % (ops[0],)
+    assert ops[1] == LineTo(Emu(shape.width), Emu(0))
+    assert ops[2] == LineTo(Emu(shape.width), Emu(shape.height))
+    assert ops[3] == LineTo(Emu(0), Emu(shape.height))
+    assert ops[-1] == Close()

@@ -108,6 +108,56 @@ A freeform builder is used to create a shape with custom geometry:
    :undoc-members:
 
 
+PathGeometry objects
+--------------------
+
+A ``PathGeometry`` is an ordered sequence of ``Path`` objects returned by
+``Shape.path_geometry``. Each ``Path`` is an ordered sequence of
+drawing-operation value objects (``MoveTo``, ``LineTo``, ``CubicBezierTo``,
+``QuadBezierTo``, ``ArcTo``, ``Close``) whose coordinates are |Length|
+instances expressed in shape-local EMU.
+
+.. autoclass:: pptx.shapes.geometry.PathGeometry()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.Path()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.MoveTo()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.LineTo()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.CubicBezierTo()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.QuadBezierTo()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.ArcTo()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+.. autoclass:: pptx.shapes.geometry.Close()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 ``Picture`` objects
 -------------------
 
