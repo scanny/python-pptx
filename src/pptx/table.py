@@ -533,6 +533,31 @@ class _Column(Subshape):
         self._parent = parent
         self._gridCol = gridCol
 
+    def delete(self) -> None:
+        """Remove this column from its containing table.
+
+        The column's `a:gridCol` element is removed from the table's `a:tblGrid`
+        and the `a:tc` cell at the same column offset is removed from every
+        `a:tr` row in the table. The containing graphic-frame width is reduced
+        by this column's width. Subsequent use of this column object is
+        undefined; most operations will raise an exception.
+
+        Note that deleting a column whose cells participate in a horizontal-merge
+        range (as either the merge-origin or a spanned cell) may leave the table
+        in an inconsistent merge state. Split any merged cells spanning the
+        column first (see :meth:`._Cell.split`) if merge integrity is required.
+        """
+        tblGrid = self._gridCol.getparent()
+        col_idx = list(tblGrid).index(self._gridCol)
+        tbl = tblGrid.getparent()
+        # ---remove the cell at `col_idx` in every row---
+        for tr in tbl.tr_lst:
+            tc = tr.tc_lst[col_idx]
+            tr.remove(tc)
+        # ---remove the gridCol itself---
+        tblGrid.remove(self._gridCol)
+        self._parent.notify_width_changed()
+
     @property
     def width(self) -> Length:
         """Width of column in EMU."""
@@ -635,6 +660,53 @@ class _ColumnCollection(Subshape):
     def __len__(self):
         """Supports len() function (e.g. 'len(columns) == 1')."""
         return len(self._tbl.tblGrid.gridCol_lst)
+
+    def add(self, width: Length | None = None) -> _Column:
+        """Return a newly added |_Column| appended to the right of this table.
+
+        The new column is represented by a new `a:gridCol` child of the table's
+        `a:tblGrid` element and a new `a:tc` cell appended to every existing
+        `a:tr` row in the table, each containing a single empty paragraph.
+        `width` is the column width in EMU. When `width` is |None| (the
+        default), the new column inherits its width from the last existing
+        column in the table, or defaults to 914,400 EMU (exactly 1 inch) when
+        the table has no existing columns.
+
+        Adding a column increases the width of the containing graphic-frame
+        shape by the width of the new column.
+        """
+        if width is None:
+            gridCol_lst = self._tbl.tblGrid.gridCol_lst
+            width = Emu(gridCol_lst[-1].w) if gridCol_lst else Emu(914400)
+        self._tbl.tblGrid.add_gridCol(width=width)
+        # ---append one cell per row---
+        for tr in self._tbl.tr_lst:
+            tr.add_tc()
+        self._parent.notify_width_changed()
+        return _Column(self._tbl.tblGrid.gridCol_lst[-1], self)
+
+    def remove(self, column: _Column) -> None:
+        """Remove `column` from this table.
+
+        `column` must be a |_Column| object belonging to this table; a
+        |ValueError| is raised if it belongs to a different table. The
+        column's `a:gridCol` element is detached from the table's `a:tblGrid`,
+        the `a:tc` cell at the same column offset is removed from every row,
+        and the graphic-frame width is reduced by the deleted column's width.
+
+        This is the collection-level counterpart to :meth:`._Column.delete`.
+        See that method for notes on merged cells crossing the deleted column.
+        """
+        if column._gridCol.getparent() is not self._tbl.tblGrid:
+            raise ValueError("column is not a member of this table")
+        col_idx = self._tbl.tblGrid.gridCol_lst.index(column._gridCol)
+        # ---remove the cell at `col_idx` in every row---
+        for tr in self._tbl.tr_lst:
+            tc = tr.tc_lst[col_idx]
+            tr.remove(tc)
+        # ---remove the gridCol itself---
+        self._tbl.tblGrid.remove(column._gridCol)
+        self._parent.notify_width_changed()
 
     def notify_width_changed(self):
         """Called by a column when its width changes. Pass along to parent."""

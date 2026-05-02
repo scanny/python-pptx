@@ -68,6 +68,21 @@ Feature: Table properties and methods
       Then len(table.rows) == 1
 
 
+  Scenario: _ColumnCollection.add()
+     Given a 2x2 Table object as table
+      When I call table.columns.add()
+      Then len(table.columns) == 3
+       And every row has three cells
+       And the new column width equals the prior last column width
+
+
+  Scenario: _Column.delete()
+     Given a 2x2 Table object as table
+      When I call table.columns[0].delete()
+      Then len(table.columns) == 1
+       And every row has one cell
+
+
   Scenario: Table.style_id getter
      Given a 2x2 Table object as table
       Then table.style_id is "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"
