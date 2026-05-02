@@ -14,6 +14,30 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #765 resolved by #938 + #378 (effective_* chain). Issue #765
+  (https://github.com/scanny/python-pptx/issues/765) collected the
+  long-running "effective font" discussion: a request for read-side
+  API that returns the size / color / bold / italic / typeface
+  PowerPoint would actually render for a run, walking the full OOXML
+  inheritance chain (run ``a:rPr`` → paragraph ``a:pPr/a:defRPr`` →
+  text-body ``a:lstStyle`` → slide-master ``p:txStyles`` →
+  presentation ``p:defaultTextStyle``) and resolving theme/scheme
+  colors against the master's theme. The fork closed that ask in two
+  shipments: Wave 6 #938 added :attr:`.Font.effective_color`, and
+  Wave 12 #378 added its size / bold / italic / name siblings
+  (:attr:`.Font.effective_size`, :attr:`.Font.effective_bold`,
+  :attr:`.Font.effective_italic`, :attr:`.Font.effective_name`).
+  Together the five properties cover the complete "effective font"
+  surface the #765 thread asked for. Adds a verify-close suite
+  ``DescribeIssue765EffectiveFont`` under
+  ``tests/test_issue_765_effective_font_verify.py`` that pins the
+  placeholder → master size walk, the theme-scheme color resolution,
+  paragraph-level bold/italic inheritance, the minor-Latin typeface
+  fall-through, explicit-run-overrides-inherited semantics, the
+  all-|None| "nothing declared" case, a save + reopen round-trip of
+  every effective_* on an inherited-formatting placeholder, and a
+  bare-textbox chain walk to the master's ``bodyStyle``.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
