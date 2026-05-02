@@ -97,6 +97,7 @@ Shape
    shp-hyperlink
    shp-mc-alternate-content
    shp-math-equation
+   omml-parsing
    placeholders/index
    shp-preset-geom
 

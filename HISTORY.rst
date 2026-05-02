@@ -129,6 +129,12 @@ Unreleased
 - Add #126 read-only access to OMML equations via
   ``Shape.has_math_equation`` and ``Shape.math_equation_xml``. Writing
   equations and LaTeX/MathML conversion remain deferred.
+- docs: #892 the "parse equations on a slide" use case is resolved by
+  #126's read-only API; add a regression test pinning the
+  find-equation-in-slide workflow and a design analysis at
+  ``docs/dev/analysis/omml-parsing.rst`` that sketches the remaining
+  structured-parsing work (typed ``Equation`` proxy, OMML→MathML / LaTeX
+  conversion) kept deferred until a concrete use case surfaces.
 - feat: #27 apply table styles. Adds ``Table.style_id`` read/write property
   exposing the GUID stored in ``a:tblPr/a:tableStyleId``. The typed,
   by-name API for selecting built-in PowerPoint table styles is deferred to
