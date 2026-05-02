@@ -63,6 +63,7 @@ __all__ = [
 
 if TYPE_CHECKING:
     from pptx.oxml.shapes.groupshape import CT_GroupShape
+    from pptx.oxml.tags import CT_CustomerDataList
 
 
 class _BaseSlideElement(BaseOxmlElement):
@@ -158,12 +159,17 @@ class CT_CommonSlideData(BaseOxmlElement):
 
     _remove_bg: Callable[[], None]
     get_or_add_bg: Callable[[], CT_Background]
+    get_or_add_custDataLst: Callable[[], "CT_CustomerDataList"]
+    _remove_custDataLst: Callable[[], None]
 
     _tag_seq = ("p:bg", "p:spTree", "p:custDataLst", "p:controls", "p:extLst")
     bg: CT_Background | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "p:bg", successors=_tag_seq[1:]
     )
     spTree: CT_GroupShape = OneAndOnlyOne("p:spTree")  # pyright: ignore[reportAssignmentType]
+    custDataLst: "CT_CustomerDataList | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:custDataLst", successors=_tag_seq[3:]
+    )
     del _tag_seq
     name: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "name", XsdString, default=""
