@@ -14,12 +14,7 @@ Unreleased
   ``shape.delete()`` on a movie left a dangling ``p:video`` targeting a
   now-missing shape id plus three orphan rels, producing "file is corrupt"
   errors when the saved deck was reopened in PowerPoint. The fix follows
-  the Wave 1 ``Picture.delete()`` override pattern. *(pending verification:
-  unit tests for the new ``Movie.delete()`` behavior currently fail — the
-  ``part`` property mock is not taking effect and the ``p:video`` timing
-  entry is not being removed in the test harness; the implementation
-  itself looks correct by inspection but requires follow-up to reconcile
-  the test fixtures with the actual method behavior.)*
+  the Wave 1 ``Picture.delete()`` override pattern.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
