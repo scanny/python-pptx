@@ -222,14 +222,28 @@ The twelve items that depend on F8 (``Blocked by foundation: F8`` in
 ``lab/gaps-plan.md``). Each row lists the extension points F8 leaves
 in place for the downstream work.
 
-``#942`` — MORPH transition
-    *Wave 3. Effort XL.*
-    Add ``Transition.morph_option`` (``byObject`` / ``byWord`` /
-    ``byChar``) that reads/writes ``CT_TransitionMorph.option``.
-    Wrap the MORPH element in ``mc:AlternateContent`` for pre-2010
-    viewer fallback — that lift uses Foundation F3. F8 already
-    registers ``CT_TransitionMorph`` as the class for ``p14:morph``
-    and already round-trips the element.
+``#942`` — MORPH transition *(delivered)*
+    *Wave 5.*
+    Delivered on top of F8 (branch
+    ``feat/issue-942-morph-transition``).
+    ``Transition.morph_option`` reads/writes ``CT_TransitionMorph.option``
+    (``byObject`` / ``byWord`` / ``byChar``, validated by the new
+    :class:`ST_TransitionMorphOption` simple type).
+    ``Slide.transition.type = PP_TRANSITION_TYPE.MORPH`` writes the
+    ``p14:morph`` variant wrapped in an ``mc:AlternateContent`` with
+    an ``mc:Choice Requires="p14"`` (holding the real
+    ``p:transition/p14:morph``) and an ``mc:Fallback`` (holding a
+    plain ``p:transition/p:fade`` that mirrors ``@spd`` / ``@advClick``
+    / ``@advTm`` so older viewers apply the same advance controls).
+    Switching the type away from MORPH unwraps the
+    ``mc:AlternateContent`` automatically. The implementation lives on
+    ``CT_Slide`` as ``transition_effective`` /
+    ``get_or_add_transition_effective`` /
+    ``wrap_transition_in_alt_content`` /
+    ``unwrap_transition_from_alt_content`` /
+    ``remove_transition_effective``; #954 (``add_movie`` vs mc-wrapped
+    timing) will likely want to mirror this pattern for the
+    ``p:timing`` slot.
 
 ``#1004`` — transition duration / speed
     *Wave 8. Effort XL.*

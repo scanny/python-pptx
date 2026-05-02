@@ -28,3 +28,24 @@ Feature: slide-transition round-trip (Foundation F8 MVP)
      Then slide.transition.type is PP_TRANSITION_TYPE.NONE
       And slide.transition.advance_on_click is True
       And slide.transition.advance_after_time is None
+
+
+  Scenario: Slide.transition.type round-trips a MORPH transition (#942)
+    Given a blank slide
+     When I set slide.transition.type to MORPH
+      And I set slide.transition.morph_option to byWord
+      And I set slide.transition.duration to 2000
+      And I save and reopen the presentation
+     Then slide.transition.type is PP_TRANSITION_TYPE.MORPH
+      And slide.transition.morph_option is byWord
+      And slide.transition.duration is 2000
+      And slide.transition is wrapped in mc:AlternateContent
+
+
+  Scenario: Switching from MORPH back to a plain variant unwraps (#942)
+    Given a blank slide
+     When I set slide.transition.type to MORPH
+      And I set slide.transition.type to FADE
+      And I save and reopen the presentation
+     Then slide.transition.type is PP_TRANSITION_TYPE.FADE
+      And slide.transition is not wrapped in mc:AlternateContent

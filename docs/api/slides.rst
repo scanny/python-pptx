@@ -34,9 +34,15 @@ return value of :meth:`add_slide`.
 
 The |Transition| object is accessed as the :attr:`~pptx.slide.Slide.transition`
 property of |Slide|. It provides read/write access to the slide-transition
-XML element. This is the Foundation F8 MVP surface; structured animation
-effects (entrance/exit/emphasis/motion-path) and the MORPH
-``mc:AlternateContent`` wrapper are tracked as downstream items — see
+XML element, including the Office 2010 **MORPH** transition (assigned via
+``slide.transition.type = PP_TRANSITION_TYPE.MORPH``) which python-pptx
+writes wrapped in an ``mc:AlternateContent`` with a ``p:fade`` fallback,
+mirroring the form PowerPoint itself emits. The matching granularity of
+a MORPH transition is selected via :attr:`~pptx.slide.Transition.morph_option`
+(one of ``"byObject"`` / ``"byWord"`` / ``"byChar"``).
+
+Structured animation effects (entrance / exit / emphasis / motion-path)
+are tracked as downstream items — see
 ``docs/dev/analysis/f8-animations-transitions.rst``.
 
 .. autoclass:: pptx.slide.Transition()
