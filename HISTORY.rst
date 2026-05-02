@@ -6,6 +6,29 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #805 (replace audio / video in existing slide) resolved by
+  Wave 6 #784. The #805 reporter asked for a way to swap the audio or
+  video binary behind an already-authored media shape without dropping
+  and re-adding it — the media analogue of ``Picture.replace_image``
+  (#116). Wave 6 #784 (``feat/issue-784-replace-audio``) shipped
+  :meth:`Movie.replace_media` ``(new_path_or_file, mime_type=None)``
+  which loads the replacement bytes into a fresh |MediaPart|, rewires
+  the shape's ``a:videoFile`` / ``a:audioFile`` ``@r:link`` and
+  ``p14:media`` ``@r:embed`` rIds, and drops the old relationships so
+  the previous media part is eligible for garbage-collection on save.
+  Position, size, cropping, poster frame, hyperlink, and ``p:timing``
+  entries are preserved; the shape's media-element tag
+  (``a:videoFile`` vs ``a:audioFile``) is also preserved — modality
+  switching (audio ↔ video) remains a documented follow-up requiring
+  :meth:`SlideShapes.add_movie` + :meth:`Shape.delete`. Adds a
+  verify-and-close regression suite
+  ``DescribeIssue805ReplaceMediaVerify`` under
+  ``tests/test_issue_805_replace_media_verify.py`` that pins audio and
+  video in-place swaps, geometry preservation, the a:audioFile /
+  a:videoFile modality guard, the not-a-media-pic error path, and a
+  full ``Presentation.save`` + reopen round-trip confirming the
+  rewired relationships survive packaging.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
