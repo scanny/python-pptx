@@ -200,6 +200,21 @@ def when_I_assign_XL_CROSS_BETWEEN_member_to_value_axis_cross_between(context, m
     context.value_axis.cross_between = getattr(XL_CROSS_BETWEEN, member)
 
 
+@when("I assign bool {value} to axis.visible")
+def when_I_assign_bool_value_to_axis_visible(context, value):
+    context.axis.visible = {"True": True, "False": False}[value]
+
+
+@when("I assign non-bool value to axis.visible")
+def when_I_assign_non_bool_value_to_axis_visible(context):
+    try:
+        context.axis.visible = "foobar"
+    except ValueError as exc:
+        context.raised_exception = exc
+    else:
+        context.raised_exception = None
+
+
 # then ====================================================
 
 
@@ -365,3 +380,34 @@ def then_value_axis_cross_between_is_XL_CROSS_BETWEEN_member(context, member):
     expected_value = getattr(XL_CROSS_BETWEEN, member)
     actual_value = context.value_axis.cross_between
     assert actual_value is expected_value, "got %s" % actual_value
+
+
+@then("axis.visible is {value}")
+def then_axis_visible_is_value(context, value):
+    axis = context.axis
+    actual_value = axis.visible
+    expected_value = {"True": True, "False": False}[value]
+    assert actual_value is expected_value, "got %s" % actual_value
+
+
+@then('the c:delete element has val="{expected_val}" (issue #852)')
+def then_the_c_delete_element_has_val(context, expected_val):
+    # -- inspect the raw XML attribute directly (not via the descriptor) so we
+    # -- verify the serialized form; a missing `val` attribute is not
+    # -- interoperable with PowerPoint (see issue #852).
+    from pptx.oxml.ns import qn
+
+    delete_el = context.axis._element.find(qn("c:delete"))
+    assert delete_el is not None, "no c:delete element present on axis"
+    actual_val = delete_el.get("val")
+    assert actual_val == expected_val, "expected c:delete val=%r, got %r" % (
+        expected_val,
+        actual_val,
+    )
+
+
+@then("ValueError is raised")
+def then_ValueError_is_raised(context):
+    assert isinstance(context.raised_exception, ValueError), (
+        "expected ValueError, got %r" % context.raised_exception
+    )

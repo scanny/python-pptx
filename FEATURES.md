@@ -823,6 +823,7 @@ prs.save("out.pptx")
 - `ChartTitle.position` — `(x, y)` tuple in factor-space `[0, 1]`, or `None` for auto layout. `[Added in 1.0.2.dev0]`
 - `Axis.format` / `Axis.tick_labels` / `Axis.major_gridlines` / `Axis.minor_gridlines` / `Axis.axis_title`.
 - `Axis.position` — Read/write `XL_AXIS_POSITION`. `[Added in 1.0.2.dev0]`
+- `Axis.visible` — Read/write `bool` toggling axis visibility via the `c:delete` element. Writes `val="1"` / `val="0"` explicitly so PowerPoint honors the setting (see issue #852). `[Fixed in 1.0.2.dev0]`
 - `TickLabels.rotation` — Read/write clockwise rotation (degrees) of axis tick labels, mapping to `c:txPr/a:bodyPr/@rot`. Accepts `int` or `float`; default `0.0`. `[Added in 1.0.2.dev0]`
 - `ValueAxis.crosses` / `.crosses_at` / `.major_unit` / `.minor_unit`.
 - `DateAxis.major_unit` / `.minor_unit` — Time-axis spacing. `[Added in 1.0.2.dev0]`

@@ -6,6 +6,16 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #852 ``chart.category_axis.visible = False`` (and the same property on
+  any value or date axis) no longer produces a ``<c:delete/>`` element with a
+  missing ``val`` attribute. Although the OOXML schema specifies the default
+  as ``true`` for ``CT_Boolean``, PowerPoint does not honor that default on
+  ``c:delete`` (analogous to the existing ``c:overlay`` workaround via
+  ``CT_Boolean_Explicit``), so python-pptx now always writes ``val="1"`` or
+  ``val="0"`` explicitly when assigning to :attr:`_BaseAxis.visible`. Hidden
+  axes authored by python-pptx are now correctly rendered as hidden by
+  PowerPoint.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and

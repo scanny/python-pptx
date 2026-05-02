@@ -694,17 +694,20 @@ class Describe_BaseAxis(object):
 
     @pytest.fixture(
         params=[
-            ("c:catAx", False, "c:catAx/c:delete"),
+            # -- visible=False always writes `val="1"` explicitly (issue #852)
+            # -- rather than relying on the OOXML default, which PowerPoint
+            # -- does not honor for `c:delete`.
+            ("c:catAx", False, "c:catAx/c:delete{val=1}"),
             ("c:catAx/c:delete", True, "c:catAx/c:delete{val=0}"),
             ("c:catAx/c:delete{val=1}", True, "c:catAx/c:delete{val=0}"),
-            ("c:catAx/c:delete{val=0}", False, "c:catAx/c:delete"),
+            ("c:catAx/c:delete{val=0}", False, "c:catAx/c:delete{val=1}"),
             ("c:catAx", True, "c:catAx/c:delete{val=0}"),
-            ("c:dateAx", False, "c:dateAx/c:delete"),
+            ("c:dateAx", False, "c:dateAx/c:delete{val=1}"),
             ("c:dateAx/c:delete", True, "c:dateAx/c:delete{val=0}"),
-            ("c:dateAx/c:delete{val=0}", False, "c:dateAx/c:delete"),
+            ("c:dateAx/c:delete{val=0}", False, "c:dateAx/c:delete{val=1}"),
             ("c:dateAx", True, "c:dateAx/c:delete{val=0}"),
             ("c:valAx/c:delete", True, "c:valAx/c:delete{val=0}"),
-            ("c:valAx/c:delete{val=1}", False, "c:valAx/c:delete"),
+            ("c:valAx/c:delete{val=1}", False, "c:valAx/c:delete{val=1}"),
             ("c:valAx/c:delete{val=0}", True, "c:valAx/c:delete{val=0}"),
         ]
     )

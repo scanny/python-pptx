@@ -231,3 +231,33 @@ Feature: Axis properties
       | between | MIDPOINT |
       | midCat  | BETWEEN  |
       | midCat  | MIDPOINT |
+
+
+  Scenario Outline: Get Axis.visible
+    Given a <axis-type> axis
+     Then axis.visible is True
+
+    Examples: axis visibility read cases
+      | axis-type |
+      | category  |
+      | value     |
+
+
+  Scenario Outline: Set Axis.visible
+    Given a <axis-type> axis
+     When I assign bool <value> to axis.visible
+     Then axis.visible is <value>
+      And the c:delete element has val="<val>" (issue #852)
+
+    Examples: axis visibility write cases
+      | axis-type | value | val |
+      | category  | False | 1   |
+      | category  | True  | 0   |
+      | value     | False | 1   |
+      | value     | True  | 0   |
+
+
+  Scenario: Axis.visible raises on non-bool assignment
+    Given a category axis
+     When I assign non-bool value to axis.visible
+     Then ValueError is raised
