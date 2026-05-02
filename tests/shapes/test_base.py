@@ -49,6 +49,55 @@ if TYPE_CHECKING:
     from pptx.types import ProvidesPart
 
 
+@pytest.fixture
+def _restore_part_factory():
+    """Guard against pollution from other tests that mutate `PartFactory.part_type_for`.
+
+    In particular, `tests/opc/test_package.py::DescribePartFactory` overwrites
+    `PartFactory.part_type_for[CT.PML_SLIDE]` with a Mock and does not restore it.
+    Tests that load a real .pptx file (which walks the relationship graph and
+    therefore the part-type registry) need to restore the default mapping.
+    """
+    from pptx.opc.constants import CONTENT_TYPE as CT
+    from pptx.opc.package import PartFactory
+    from pptx.parts.chart import ChartPart
+    from pptx.parts.coreprops import CorePropertiesPart
+    from pptx.parts.image import ImagePart
+    from pptx.parts.media import MediaPart
+    from pptx.parts.presentation import PresentationPart
+    from pptx.parts.slide import (
+        NotesMasterPart,
+        NotesSlidePart,
+        SlideLayoutPart,
+        SlideMasterPart,
+        SlidePart,
+    )
+
+    saved = dict(PartFactory.part_type_for)
+    expected = {
+        CT.PML_PRESENTATION_MAIN: PresentationPart,
+        CT.PML_PRES_MACRO_MAIN: PresentationPart,
+        CT.PML_TEMPLATE_MAIN: PresentationPart,
+        CT.PML_SLIDESHOW_MAIN: PresentationPart,
+        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
+        CT.PML_NOTES_MASTER: NotesMasterPart,
+        CT.PML_NOTES_SLIDE: NotesSlidePart,
+        CT.PML_SLIDE: SlidePart,
+        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
+        CT.PML_SLIDE_MASTER: SlideMasterPart,
+        CT.DML_CHART: ChartPart,
+        CT.JPEG: ImagePart,
+        CT.PNG: ImagePart,
+        CT.MP4: MediaPart,
+    }
+    PartFactory.part_type_for.update(expected)
+    try:
+        yield
+    finally:
+        PartFactory.part_type_for.clear()
+        PartFactory.part_type_for.update(saved)
+
+
 class DescribeBaseShape(object):
     """Unit-test suite for `pptx.shapes.base.BaseShape` objects."""
 
@@ -560,6 +609,67 @@ class DescribeBaseShape(object):
         assert oMath_xml is not None
         # -- exactly one `<m:oMath` open-tag (the first), not two --
         assert oMath_xml.count("<m:oMath") == 1
+
+    def it_surfaces_an_OMML_equation_on_a_real_slide_regression_892(
+        self, _restore_part_factory
+    ):
+        """Regression test for issue #892 ("Support for parsing Equations").
+
+        The user-visible request in #892 was "given a .pptx, discover and
+        access the math equations a slide contains." Issue #126 delivered
+        the MVP API that resolves that use case:
+
+        - iterate ``slide.shapes`` (Foundation F3 surfaces equation-bearing
+          shapes wrapped in ``mc:AlternateContent`` transparently);
+        - use ``shape.has_math_equation`` to detect equations;
+        - use ``shape.math_equation_xml`` to read the raw OMML subtree.
+
+        Structured parsing of OMML (typed ``Equation`` proxy, LaTeX / MathML
+        conversion, programmatic authoring) remains **explicitly deferred**
+        -- see ``docs/dev/analysis/omml-parsing.rst``.
+        """
+        from os.path import abspath, dirname, join
+
+        pptx_path = abspath(
+            join(
+                dirname(__file__),
+                "..",
+                "..",
+                "features",
+                "steps",
+                "test_files",
+                "shp-math-equation.pptx",
+            )
+        )
+        prs = Presentation(pptx_path)
+        slide = prs.slides[0]
+
+        # -- the #892 "find-equation-in-slide" use case: iterate shapes and
+        # -- pull out those that carry an equation --
+        equations = [
+            shape.math_equation_xml
+            for shape in slide.shapes
+            if shape.has_math_equation
+        ]
+
+        # -- exactly one equation is present in the fixture --
+        assert len(equations) == 1
+        oMath_xml = equations[0]
+        assert oMath_xml is not None
+        # -- the caller receives a well-formed OMML fragment they can hand to
+        # -- an external converter (pandoc, omml.xsl, etc.) --
+        assert oMath_xml.startswith("<m:oMath")
+        assert (
+            'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'
+            in oMath_xml
+        )
+        # -- non-equation shapes on the same slide cleanly report None --
+        non_eq = [
+            shape for shape in slide.shapes if not shape.has_math_equation
+        ]
+        assert len(non_eq) >= 1
+        for shape in non_eq:
+            assert shape.math_equation_xml is None
 
     # fixtures -------------------------------------------------------
 
