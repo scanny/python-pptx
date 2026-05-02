@@ -71,6 +71,24 @@ Unreleased
   independence between hyperlinked and plain sibling runs in the same
   paragraph.
 
+- verify: #756 legacy comments regression test added. Issue #756
+  (https://github.com/scanny/python-pptx/issues/756) asked for read/write
+  access to PowerPoint's review-comment feature — the
+  *Insert > Comment* yellow-sticky-note annotations attached to a slide.
+  The feature is resolved by the #487 legacy-comments work which shipped
+  ``Slide.comments`` / ``Slide.has_comments`` over the ECMA-376 Part 1
+  ``p:cmLst`` + ``p:cmAuthorLst`` schema with part topology per §13.3.3
+  (author registry on the presentation part, per-slide comments parts).
+  ``tests/test_issue_756_comments_verify.py`` adds a
+  ``DescribeIssue756Comments`` suite pinning the reporter-facing
+  scenarios: authoring a new comment with text / author / position /
+  timestamp, reading back through the ``Comments`` iterator, ordering
+  across multiple comments, author-registry deduplication across
+  ``get_or_add`` calls, removing a comment via the underlying
+  ``p:cmLst`` helper, EMU round-trip on ``Comment.position``, full
+  ``Presentation.save`` + reopen round-trip of every comment attribute
+  and the package-level author registry, and the
+  ``presentation.slides[0].comments`` public API navigation path.
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
