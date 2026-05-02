@@ -6,6 +6,14 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #547 expose ``BaseShape.flip_horizontal`` / ``BaseShape.flip_vertical``
+  as read/write bool properties mapping to ``a:xfrm/@flipH`` / ``@flipV``, and
+  add ``BaseShape.flip_horizontally()`` / ``BaseShape.flip_vertically()``
+  convenience methods that toggle the corresponding attribute for parity with
+  the PowerPoint ``Flip Horizontal`` / ``Flip Vertical`` UI commands. Setting
+  a flip on a shape that has no ``a:xfrm`` creates one as needed; clearing a
+  flip attribute reverts the element to schema-default (i.e. ``flipH=False``
+  is represented by omitting the attribute).
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a

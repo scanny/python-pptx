@@ -360,6 +360,92 @@ class DescribeBaseShape(object):
         shape.rotation = new_value
         assert shape._element.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        ("sp_cxml", "expected_value"),
+        [
+            ("p:sp/p:spPr", False),
+            ("p:sp/p:spPr/a:xfrm", False),
+            ("p:sp/p:spPr/a:xfrm{flipH=1}", True),
+            ("p:sp/p:spPr/a:xfrm{flipH=0}", False),
+            ("p:pic/p:spPr/a:xfrm{flipH=1}", True),
+        ],
+    )
+    def it_knows_whether_it_is_flipped_horizontally(self, sp_cxml, expected_value):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        assert shape.flip_horizontal is expected_value
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "new_value", "expected_cxml"),
+        [
+            ("p:sp/p:spPr/a:xfrm", True, "p:sp/p:spPr/a:xfrm{flipH=1}"),
+            ("p:sp/p:spPr/a:xfrm{flipH=1}", False, "p:sp/p:spPr/a:xfrm"),
+            ("p:sp/p:spPr/a:xfrm{flipV=1}", True, "p:sp/p:spPr/a:xfrm{flipV=1,flipH=1}"),
+        ],
+    )
+    def it_can_change_its_horizontal_flip(self, sp_cxml, new_value, expected_cxml):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        shape.flip_horizontal = new_value
+        assert shape._element.xml == xml(expected_cxml)
+
+    def it_creates_an_xfrm_when_setting_horizontal_flip_on_bare_spPr(self):
+        """Setting flip_horizontal on a shape without an `a:xfrm` creates one."""
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shape.flip_horizontal = True
+        assert shape.flip_horizontal is True
+        assert shape._element.find(qn("p:spPr")).find(qn("a:xfrm")) is not None
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "expected_value"),
+        [
+            ("p:sp/p:spPr", False),
+            ("p:sp/p:spPr/a:xfrm", False),
+            ("p:sp/p:spPr/a:xfrm{flipV=1}", True),
+            ("p:sp/p:spPr/a:xfrm{flipV=0}", False),
+            ("p:pic/p:spPr/a:xfrm{flipV=1}", True),
+        ],
+    )
+    def it_knows_whether_it_is_flipped_vertically(self, sp_cxml, expected_value):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        assert shape.flip_vertical is expected_value
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "new_value", "expected_cxml"),
+        [
+            ("p:sp/p:spPr/a:xfrm", True, "p:sp/p:spPr/a:xfrm{flipV=1}"),
+            ("p:sp/p:spPr/a:xfrm{flipV=1}", False, "p:sp/p:spPr/a:xfrm"),
+            ("p:sp/p:spPr/a:xfrm{flipH=1}", True, "p:sp/p:spPr/a:xfrm{flipH=1,flipV=1}"),
+        ],
+    )
+    def it_can_change_its_vertical_flip(self, sp_cxml, new_value, expected_cxml):
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        shape.flip_vertical = new_value
+        assert shape._element.xml == xml(expected_cxml)
+
+    def it_creates_an_xfrm_when_setting_vertical_flip_on_bare_spPr(self):
+        """Setting flip_vertical on a shape without an `a:xfrm` creates one."""
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shape.flip_vertical = True
+        assert shape.flip_vertical is True
+        assert shape._element.find(qn("p:spPr")).find(qn("a:xfrm")) is not None
+
+    def it_can_toggle_its_horizontal_flip(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+
+        shape.flip_horizontally()
+        assert shape.flip_horizontal is True
+
+        shape.flip_horizontally()
+        assert shape.flip_horizontal is False
+
+    def it_can_toggle_its_vertical_flip(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+
+        shape.flip_vertically()
+        assert shape.flip_vertical is True
+
+        shape.flip_vertically()
+        assert shape.flip_vertical is False
+
     def it_provides_access_to_its_shadow(self, shadow_fixture):
         shape, ShadowFormat_, spPr, shadow_ = shadow_fixture
 
