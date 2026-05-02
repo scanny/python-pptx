@@ -87,6 +87,41 @@ Unreleased
   :attr:`pptx.slide.Slide.has_animations`, and
   :attr:`pptx.slide.Slide.animation_sequence`.
 
+- verify: #1112 (``SlideShapes.add_picture`` + SVG input) resolved by
+  Wave 2 #652. Issue #1112
+  (https://github.com/scanny/python-pptx/issues/1112) reported that
+  calling ``slide.shapes.add_picture(<some.svg>, ...)`` surfaced an
+  opaque ``PIL.UnidentifiedImageError`` — the caller got no actionable
+  signal that python-pptx cannot embed SVG natively and no hint that a
+  pre-rasterize workaround exists. Wave 2 #652
+  (``feat/issue-652-svg-placeholder-handling``, commit ``66f53a9b``)
+  addressed the root cause at the package-level image-part factory by
+  sniffing the incoming image bytes for an ``<svg`` root element and
+  raising the new :class:`pptx.exc.UnsupportedImageTypeError` with a
+  message that names the SVG format as the cause, recommends
+  pre-rasterizing to PNG (``cairosvg``, ``svglib`` + ``reportlab``,
+  Pillow + librsvg, etc.), and cross-refs the
+  "Inserting SVG images" section of
+  ``docs/user/placeholders-using.rst``. Because
+  :meth:`SlideShapes.add_picture` funnels through
+  ``slide.part.get_or_add_image_part`` →
+  ``package.get_or_add_image_part`` →
+  ``_ImageParts.get_or_add_image_part``, the #652 sniff automatically
+  covers the :meth:`~.SlideShapes.add_picture` entry-point the #1112
+  reporter used on top of the :meth:`~.PicturePlaceholder.insert_picture`
+  path #652's own behave scenario exercised. #1112 is therefore a
+  duplicate of #652. Adds a regression suite
+  ``DescribeIssue1112SvgAddPictureVerify`` under
+  ``tests/test_issue_1112_svg_picture_verify.py`` that pins the
+  reporter's exact workflow end-to-end: path and ``BytesIO`` SVG inputs
+  both raise ``UnsupportedImageTypeError`` (not ``PIL.UnidentifiedImageError``),
+  the message carries the pre-rasterize workaround hint documented at
+  ``docs/user/placeholders-using.rst``, the failed call is atomic (no
+  ``p:pic`` is appended to the slide's ``p:spTree``), and the
+  pre-rasterized-PNG happy path still round-trips through
+  :meth:`Presentation.save` + reopen so the documented workaround is
+  exercised through the same public API.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
