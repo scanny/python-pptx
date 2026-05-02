@@ -23,6 +23,7 @@ Slides
    sld-slide
    sld-master
    sld-layout
+   f6-slide-id-manager
 
 
 Chart
