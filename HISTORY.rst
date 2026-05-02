@@ -47,6 +47,25 @@ Unreleased
 
 - verify: #1020 resolved by #62 alpha + #234 blip_fill + #515 preset geometry
 
+- verify: #791 resolved by #837. The #791 reporter asked for a way to delete
+  a specific row from a table ("I want to delete last 7th row from table")
+  and sketched the workaround ``table._tbl.remove(row._tr)`` inherited from
+  the #192 thread. That workaround bypassed the graphic-frame height
+  invariant (cy = sum of authored row heights). #837
+  (``feat/issue-837-table-row-delete``, Wave 3) shipped the supported API
+  in its place: :meth:`._Row.delete` detaches the row's ``a:tr`` from its
+  parent ``a:tbl`` and triggers the parent ``Table`` to recompute the
+  containing graphic-frame height, and :meth:`._RowCollection.remove` is
+  the collection-level form that raises :class:`ValueError` when handed a
+  row from a different table. #791 is therefore a duplicate of #837. Adds
+  a regression suite ``DescribeIssue791DeleteTableRow`` under
+  ``tests/test_issue_791_table_row_delete.py`` that pins the reporter's
+  exact "delete the 7th row of a 7-row table" scenario, the interior-row
+  and collection-level variants, the foreign-row ``ValueError``, the
+  graphic-frame height shrinkage, the ``a:tr`` detachment from ``a:tbl``,
+  and a save + reopen round-trip (including the multi-delete case a real
+  caller typically needs).
+
 - docs: #963 "save slide as image" — close as out-of-scope (python-pptx
   does not render slides). Extend the LibreOffice headless example in the
   ``Rendering to video, PDF, or image formats`` section of
