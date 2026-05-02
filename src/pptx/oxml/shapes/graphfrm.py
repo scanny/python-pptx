@@ -302,6 +302,9 @@ class CT_GraphicalObjectFrame(BaseShapeElement):
         cls, id_: int, name: str, rows: int, cols: int, x: int, y: int, cx: int, cy: int
     ) -> CT_GraphicalObjectFrame:
         """Return a `p:graphicFrame` element tree populated with a table element."""
+        # -- coerce position/size to int so float inputs (e.g. `0.1 * slide_width`) don't
+        # -- end up as non-integer values in the int-typed `a:off`/`a:ext` attributes.
+        x, y, cx, cy = int(round(x)), int(round(y)), int(round(cx)), int(round(cy))
         graphicFrame = cls.new_graphicFrame(id_, name, x, y, cx, cy)
         graphicFrame.graphic.graphicData.uri = GRAPHIC_DATA_URI_TABLE
         graphicFrame.graphic.graphicData.append(CT_Table.new_tbl(rows, cols, cx, cy))

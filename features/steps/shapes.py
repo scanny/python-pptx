@@ -148,6 +148,18 @@ def when_I_call_shapes_add_table(context):
     shapes.add_table(2, 2, x, y, cx, cy)
 
 
+@when("I add a table to the slide's shape collection using float dimensions")
+def when_I_call_shapes_add_table_with_floats(context):
+    # -- regression for #288: `add_table()` must accept float position/size arguments produced
+    # -- by arithmetic like `0.1 * slide_width`.
+    shapes = context.slide.shapes
+    x, y = (Inches(1.00) * 0.5, Inches(2.00) * 0.5)
+    cx, cy = (Inches(3.00) * 0.5, Inches(1.00) * 0.5)
+    assert isinstance(x, float)
+    assert isinstance(cx, float)
+    shapes.add_table(2, 3, x, y, cx, cy)
+
+
 @when("I assign shape.ole_format to ole_format")
 def when_I_assign_shape_ole_format_to_ole_format(context):
     context.ole_format = context.shape.ole_format
@@ -407,3 +419,17 @@ def then_saving_the_presentation_preserves_the_mc_Fallback_subtree(context):
     assert "AlternateContent" in slide_xml, "mc:AlternateContent wrapper not preserved"
     assert "Fallback" in slide_xml, "mc:Fallback subtree not preserved"
     assert "Fallback-Shape" in slide_xml, "mc:Fallback content was stripped on save"
+@then("the saved table has integer-valued position and size")
+def then_the_saved_table_has_integer_position_and_size(context):
+    prs = Presentation(saved_pptx_path)
+    graphic_frame = prs.slides[0].shapes[0]
+    # -- each position/size value is a Length (int subclass) with no fractional component
+    for value in (graphic_frame.left, graphic_frame.top, graphic_frame.width, graphic_frame.height):
+        assert isinstance(value, int), value
+        assert not isinstance(value, float), value
+    # -- every grid-col width and row height in the stored a:tbl XML is also a pure integer str
+    tbl = graphic_frame.table._tbl
+    for gc in tbl.tblGrid.iterchildren():
+        assert gc.get("w").lstrip("-").isdigit(), gc.get("w")
+    for tr in tbl.tr_lst:
+        assert tr.get("h").lstrip("-").isdigit(), tr.get("h")

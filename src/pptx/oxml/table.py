@@ -112,6 +112,11 @@ class CT_Table(BaseOxmlElement):
         xml = cls._tbl_tmpl() % (tableStyleId)
         tbl = cast(CT_Table, parse_xml(xml))
 
+        # -- coerce width/height to int up front so float inputs (e.g. `0.3 * slide_width`) don't
+        # -- propagate through the arithmetic as floats and end up in integer-typed XML attrs.
+        width = int(round(width))
+        height = int(round(height))
+
         # add specified number of rows and columns
         rowheight = height // rows
         colwidth = width // cols

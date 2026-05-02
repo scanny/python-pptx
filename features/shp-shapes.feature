@@ -323,6 +323,14 @@ Feature: Access a shape on a slide
      Then the table appears in the slide
 
 
+  Scenario: SlideShapes.add_table() with float dimensions
+    Given a blank slide
+     When I add a table to the slide's shape collection using float dimensions
+      And I save the presentation
+     Then the table appears in the slide
+      And the saved table has integer-valued position and size
+
+
   Scenario: SlideShapes.add_textbox()
     Given a SlideShapes object as shapes
      When I assign shapes.add_textbox() to shape

@@ -42,6 +42,23 @@ class DescribeCT_GraphicalObjectFrame(object):
         )
         assert graphicFrame.xml == expected_xml
 
+    def it_accepts_float_position_and_size_in_new_table_graphicFrame(self):
+        """Regression for #288: float x/y/cx/cy must produce valid integer XML."""
+        graphicFrame = CT_GraphicalObjectFrame.new_table_graphicFrame(
+            42, "foobar", 1, 1, 1.2, 2.3, 3.7, 4.4
+        )
+
+        off = graphicFrame.xpath("./p:xfrm/a:off")[0]
+        ext = graphicFrame.xpath("./p:xfrm/a:ext")[0]
+        # -- xfrm attributes are rounded to int and serialized without a decimal point.
+        assert off.get("x") == "1"
+        assert off.get("y") == "2"
+        assert ext.get("cx") == "4"
+        assert ext.get("cy") == "4"
+        # -- the nested grid-col width (cx is distributed across columns) is also integer.
+        grid_col = graphicFrame.xpath(".//a:tblGrid/a:gridCol")[0]
+        assert grid_col.get("w") == "4"
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

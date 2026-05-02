@@ -95,6 +95,7 @@ Unreleased
 - #337 support East-Asian and complex-script font slots
 - #375 line end arrows via LineFormat
 - feat: #1070 read ``.potx`` (and ``.ppsx``) presentation packages
+- fix: #288 add_table accepts float dimensions
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
