@@ -12,6 +12,7 @@ from pptx.util import lazyproperty
 if TYPE_CHECKING:
     from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
     from pptx.oxml.shapes import ShapeElement
+    from pptx.oxml.shapes.groupshape import CT_GroupShape
     from pptx.oxml.shapes.shared import CT_Placeholder
     from pptx.parts.slide import BaseSlidePart
     from pptx.types import ProvidesPart
@@ -43,6 +44,40 @@ class BaseShape(object):
         if not isinstance(other, BaseShape):
             return True
         return self._element is not other._element
+
+    def bring_forward(self) -> None:
+        """Move this shape one position toward the front in its sibling z-order.
+
+        Z-order on a slide is the document order of shape children within the owning
+        `p:spTree` (or `p:grpSp` when the shape belongs to a group). The first shape
+        in document order is the backmost and the last is the frontmost. If the shape
+        is already the frontmost of its siblings this call is a no-op.
+        """
+        siblings = self._zorder_siblings
+        idx = siblings.index(self._element)
+        if idx == len(siblings) - 1:
+            return
+        parent = self._element.getparent()
+        assert parent is not None
+        # -- move this element to the position immediately after the next sibling --
+        parent.remove(self._element)
+        parent.insert(parent.index(siblings[idx + 1]) + 1, self._element)
+
+    def bring_to_front(self) -> None:
+        """Move this shape to the frontmost position in its sibling z-order.
+
+        The shape becomes the last shape child under its owning `p:spTree` or
+        `p:grpSp` (but before any trailing `p:extLst`). If the shape is already
+        frontmost this call is a no-op.
+        """
+        siblings = self._zorder_siblings
+        if siblings[-1] is self._element:
+            return
+        parent = self._element.getparent()
+        assert parent is not None
+        parent.remove(self._element)
+        # -- insert before a trailing p:extLst if present, otherwise append --
+        parent.insert_element_before(self._element, "p:extLst")
 
     @lazyproperty
     def click_action(self) -> ActionSetting:
@@ -151,6 +186,40 @@ class BaseShape(object):
             raise ValueError("shape is not a placeholder")
         return _PlaceholderFormat(ph)
 
+    def send_backward(self) -> None:
+        """Move this shape one position toward the back in its sibling z-order.
+
+        The shape moves one slot earlier in the document order of its parent
+        `p:spTree` or `p:grpSp`. If the shape is already the backmost of its
+        siblings this call is a no-op.
+        """
+        siblings = self._zorder_siblings
+        idx = siblings.index(self._element)
+        if idx == 0:
+            return
+        parent = self._element.getparent()
+        assert parent is not None
+        parent.remove(self._element)
+        # -- place immediately before the current previous-sibling shape --
+        parent.insert(parent.index(siblings[idx - 1]), self._element)
+
+    def send_to_back(self) -> None:
+        """Move this shape to the backmost position in its sibling z-order.
+
+        The shape becomes the first shape child under its owning `p:spTree` or
+        `p:grpSp` (but after any leading non-shape elements such as `p:nvGrpSpPr`
+        and `p:grpSpPr`). If the shape is already backmost this call is a no-op.
+        """
+        siblings = self._zorder_siblings
+        if siblings[0] is self._element:
+            return
+        parent = self._element.getparent()
+        assert parent is not None
+        # -- capture target index before removing self; siblings[0] is not self here --
+        target_idx = parent.index(siblings[0])
+        parent.remove(self._element)
+        parent.insert(target_idx, self._element)
+
     @property
     def rotation(self) -> float:
         """Degrees of clockwise rotation.
@@ -213,6 +282,35 @@ class BaseShape(object):
     @width.setter
     def width(self, value: Length):
         self._element.cx = value
+
+    @property
+    def zorder_index(self) -> int:
+        """Zero-based position of this shape within its parent shape-tree in z-order.
+
+        Index 0 is the backmost shape; the highest index is the frontmost shape. The
+        value reflects the document order of shape elements under the owning
+        `p:spTree` (for slide-level shapes) or `p:grpSp` (for shapes contained in a
+        group). Non-shape siblings such as `p:nvGrpSpPr`, `p:grpSpPr`, and `p:extLst`
+        are skipped, so the returned value matches what is observed by iterating
+        ``slide.shapes`` (or ``group_shape.shapes``).
+
+        To change a shape's z-order use :meth:`bring_to_front`,
+        :meth:`send_to_back`, :meth:`bring_forward`, or :meth:`send_backward`.
+        """
+        return self._zorder_siblings.index(self._element)
+
+    @property
+    def _zorder_siblings(self) -> list[ShapeElement]:
+        """List of shape-element siblings (including this shape) in document order.
+
+        Siblings are the shape children of this shape's parent (`p:spTree` or
+        `p:grpSp`). Non-shape children are excluded. Used to compute z-order and
+        implement the z-order mutators.
+        """
+        parent = self._element.getparent()
+        if parent is None:
+            raise ValueError("shape has no parent shape tree; z-order is undefined")
+        return list(cast("CT_GroupShape", parent).iter_shape_elms())
 
 
 class _PlaceholderFormat(ElementProxy):

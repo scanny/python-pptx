@@ -209,3 +209,36 @@ Feature: Common shape properties
       | GraphicFrame | 2978696 | 4082752 |
       | GroupShape   | 4121696 | 5454352 |
       | Connector    | 5264696 | 6825952 |
+
+
+  Scenario: Shape z-order - initial zorder_index matches shape_tree order
+    Given a slide with three autoshapes A, B, C in z-order
+     Then the zorder_index of each shape matches its shape-tree position
+
+  Scenario: Shape z-order - bring_to_front moves shape to frontmost position
+    Given a slide with three autoshapes A, B, C in z-order
+     When I call B.bring_to_front()
+     Then the shape-tree order is [A, C, B]
+
+  Scenario: Shape z-order - send_to_back moves shape to backmost position
+    Given a slide with three autoshapes A, B, C in z-order
+     When I call C.send_to_back()
+     Then the shape-tree order is [C, A, B]
+
+  Scenario: Shape z-order - bring_forward moves shape forward one step
+    Given a slide with three autoshapes A, B, C in z-order
+     When I call A.bring_forward()
+     Then the shape-tree order is [B, A, C]
+
+  Scenario: Shape z-order - send_backward moves shape backward one step
+    Given a slide with three autoshapes A, B, C in z-order
+     When I call C.send_backward()
+     Then the shape-tree order is [A, C, B]
+
+  Scenario: Shape z-order - mutators at boundary are no-ops
+    Given a slide with three autoshapes A, B, C in z-order
+     When I call A.send_to_back()
+      And I call C.bring_to_front()
+      And I call A.send_backward()
+      And I call C.bring_forward()
+     Then the shape-tree order is [A, B, C]

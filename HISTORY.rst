@@ -38,6 +38,11 @@ Unreleased
   amortized O(N) to O(1) and overall presentation build-up from O(N**2) to O(N).
 - feat: #832 add ``_RowCollection.add()`` to append a row to a table
 - #769 lookup placeholder by idx
+- feat: #49 shape: set z-order of shape in slide. ``BaseShape`` gains
+  ``bring_to_front()``, ``send_to_back()``, ``bring_forward()`` and
+  ``send_backward()`` mutators plus a read-only ``zorder_index`` property that
+  reports the shape's zero-based position within its parent shape-tree
+  (``p:spTree`` or ``p:grpSp``).
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

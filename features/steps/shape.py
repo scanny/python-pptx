@@ -213,6 +213,27 @@ def given_a_shape_of_known_position_and_size(context):
     context.shape = prs.slides[0].shapes[0]
 
 
+@given("a slide with three autoshapes A, B, C in z-order")
+def given_a_slide_with_three_autoshapes_in_zorder(context):
+    from pptx.util import Inches
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # -- blank layout --
+    context.shape_A = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
+    context.shape_A.name = "A"
+    context.shape_B = slide.shapes.add_shape(
+        MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
+    )
+    context.shape_B.name = "B"
+    context.shape_C = slide.shapes.add_shape(
+        MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
+    )
+    context.shape_C.name = "C"
+    context.slide = slide
+
+
 # when ====================================================
 
 
@@ -316,6 +337,26 @@ def when_I_call_connector_begin_connect_picture_3(context):
 def when_I_call_connector_end_connect_picture_3(context):
     connector, picture = context.connector, context.picture
     connector.end_connect(picture, 3)
+
+
+@when("I call {name}.bring_to_front()")
+def when_I_call_name_bring_to_front(context, name):
+    getattr(context, "shape_%s" % name).bring_to_front()
+
+
+@when("I call {name}.send_to_back()")
+def when_I_call_name_send_to_back(context, name):
+    getattr(context, "shape_%s" % name).send_to_back()
+
+
+@when("I call {name}.bring_forward()")
+def when_I_call_name_bring_forward(context, name):
+    getattr(context, "shape_%s" % name).bring_forward()
+
+
+@when("I call {name}.send_backward()")
+def when_I_call_name_send_backward(context, name):
+    getattr(context, "shape_%s" % name).send_backward()
 
 
 # then ====================================================
@@ -669,3 +710,28 @@ def then_shape_width_eq_value(context, value):
     expected_width = int(value)
     actual_width = context.shape.width
     assert actual_width == expected_width, "shape.width == %s" % actual_width
+
+
+@then("the zorder_index of each shape matches its shape-tree position")
+def then_zorder_index_matches_shape_tree_position(context):
+    slide = context.slide
+    shapes = [context.shape_A, context.shape_B, context.shape_C]
+    for shape in shapes:
+        expected = slide.shapes.index(shape)
+        actual = shape.zorder_index
+        assert actual == expected, (
+            "zorder_index of %s is %s, expected %s" % (shape.name, actual, expected)
+        )
+
+
+@then("the shape-tree order is [{name_A}, {name_B}, {name_C}]")
+def then_shape_tree_order_is(context, name_A, name_B, name_C):
+    expected_names = [name_A, name_B, name_C]
+    # -- slide.shapes yields non-placeholder shapes (among others) in document order;
+    # -- we only care about the three we added, all of which were named A, B, C.
+    actual_names = [
+        s.name for s in context.slide.shapes if s.name in {"A", "B", "C"}
+    ]
+    assert actual_names == expected_names, (
+        "shape-tree order is %s, expected %s" % (actual_names, expected_names)
+    )

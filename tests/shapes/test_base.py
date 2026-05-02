@@ -11,6 +11,7 @@ import pytest
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.oxml.ns import qn
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
@@ -173,6 +174,222 @@ class DescribeBaseShape(object):
     def it_knows_it_doesnt_contain_a_table(self):
         shape = BaseShape(None, None)
         assert shape.has_table is False
+
+    def it_reports_its_zorder_index(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B},p:sp/p:nvSpPr/p:cNvPr{id=4,name=C})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shapes = [BaseShape(cast("ShapeElement", sp), None) for sp in sp_elms]
+
+        assert [s.zorder_index for s in shapes] == [0, 1, 2]
+
+    def it_reports_zorder_index_ignoring_non_shape_siblings(self):
+        # -- p:extLst is a valid trailing sibling but must not count as a shape --
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:pic/p:nvPicPr/p:cNvPr{id=3,name=B},p:extLst)"
+        )
+        sp_elm = spTree.find(qn("p:sp"))
+        pic_elm = spTree.find(qn("p:pic"))
+
+        assert BaseShape(cast("ShapeElement", sp_elm), None).zorder_index == 0
+        assert BaseShape(cast("ShapeElement", pic_elm), None).zorder_index == 1
+
+    def it_raises_on_zorder_index_when_shape_has_no_parent(self):
+        sp = cast("ShapeElement", element("p:sp/p:nvSpPr/p:cNvPr{id=2,name=A}"))
+        shape = BaseShape(sp, None)
+        with pytest.raises(ValueError, match="no parent"):
+            shape.zorder_index
+
+    def it_can_bring_a_shape_to_the_front(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B},p:sp/p:nvSpPr/p:cNvPr{id=4,name=C})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_B = BaseShape(cast("ShapeElement", sp_elms[1]), None)
+
+        shape_B.bring_to_front()
+
+        names = [sp.xpath("./p:nvSpPr/p:cNvPr/@name")[0] for sp in spTree.findall(qn("p:sp"))]
+        assert names == ["A", "C", "B"]
+        assert shape_B.zorder_index == 2
+
+    def it_preserves_trailing_extLst_on_bring_to_front(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B},p:extLst)"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_A = BaseShape(cast("ShapeElement", sp_elms[0]), None)
+
+        shape_A.bring_to_front()
+
+        # -- A is now last shape, but p:extLst remains the final child --
+        assert spTree[-1].tag == qn("p:extLst")
+        names = [sp.xpath("./p:nvSpPr/p:cNvPr/@name")[0] for sp in spTree.findall(qn("p:sp"))]
+        assert names == ["B", "A"]
+
+    def it_is_a_noop_when_bring_to_front_on_frontmost_shape(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_B = BaseShape(cast("ShapeElement", sp_elms[1]), None)
+        before_xml = spTree.xml
+
+        shape_B.bring_to_front()
+
+        assert spTree.xml == before_xml
+
+    def it_can_send_a_shape_to_the_back(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B},p:sp/p:nvSpPr/p:cNvPr{id=4,name=C})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_C = BaseShape(cast("ShapeElement", sp_elms[2]), None)
+
+        shape_C.send_to_back()
+
+        names = [sp.xpath("./p:nvSpPr/p:cNvPr/@name")[0] for sp in spTree.findall(qn("p:sp"))]
+        assert names == ["C", "A", "B"]
+        assert shape_C.zorder_index == 0
+
+    def it_is_a_noop_when_send_to_back_on_backmost_shape(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_A = BaseShape(cast("ShapeElement", sp_elms[0]), None)
+        before_xml = spTree.xml
+
+        shape_A.send_to_back()
+
+        assert spTree.xml == before_xml
+
+    def it_can_bring_a_shape_forward_one_step(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B},p:sp/p:nvSpPr/p:cNvPr{id=4,name=C},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=D})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_B = BaseShape(cast("ShapeElement", sp_elms[1]), None)
+
+        shape_B.bring_forward()
+
+        names = [sp.xpath("./p:nvSpPr/p:cNvPr/@name")[0] for sp in spTree.findall(qn("p:sp"))]
+        assert names == ["A", "C", "B", "D"]
+        assert shape_B.zorder_index == 2
+
+    def it_is_a_noop_when_bring_forward_on_frontmost_shape(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_B = BaseShape(cast("ShapeElement", sp_elms[1]), None)
+        before_xml = spTree.xml
+
+        shape_B.bring_forward()
+
+        assert spTree.xml == before_xml
+
+    def it_can_send_a_shape_backward_one_step(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B},p:sp/p:nvSpPr/p:cNvPr{id=4,name=C},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=D})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_C = BaseShape(cast("ShapeElement", sp_elms[2]), None)
+
+        shape_C.send_backward()
+
+        names = [sp.xpath("./p:nvSpPr/p:cNvPr/@name")[0] for sp in spTree.findall(qn("p:sp"))]
+        assert names == ["A", "C", "B", "D"]
+        assert shape_C.zorder_index == 1
+
+    def it_is_a_noop_when_send_backward_on_backmost_shape(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B})"
+        )
+        sp_elms = spTree.findall(qn("p:sp"))
+        shape_A = BaseShape(cast("ShapeElement", sp_elms[0]), None)
+        before_xml = spTree.xml
+
+        shape_A.send_backward()
+
+        assert spTree.xml == before_xml
+
+    def it_supports_zorder_on_shapes_in_a_group(self):
+        # -- z-order operates on siblings within the same parent (grpSp or spTree),
+        # -- so shapes inside a group reorder only within that group.
+        from pptx import Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        group = slide.shapes.add_group_shape()
+        s1 = group.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        s2 = group.shapes.add_shape(
+            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
+        )
+        s3 = group.shapes.add_shape(
+            MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
+        )
+
+        assert [s1.zorder_index, s2.zorder_index, s3.zorder_index] == [0, 1, 2]
+
+        s1.bring_to_front()
+        assert [s.shape_id for s in group.shapes] == [s2.shape_id, s3.shape_id, s1.shape_id]
+        assert s1.zorder_index == 2
+
+        s1.send_to_back()
+        assert [s.shape_id for s in group.shapes] == [s1.shape_id, s2.shape_id, s3.shape_id]
+        assert s1.zorder_index == 0
+
+        s1.bring_forward()
+        assert [s.shape_id for s in group.shapes] == [s2.shape_id, s1.shape_id, s3.shape_id]
+
+        s1.send_backward()
+        assert [s.shape_id for s in group.shapes] == [s1.shape_id, s2.shape_id, s3.shape_id]
+
+    def it_round_trips_zorder_via_slide_shapes_index(self):
+        from pptx import Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        s1 = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        s2 = slide.shapes.add_shape(
+            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
+        )
+        s3 = slide.shapes.add_shape(
+            MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
+        )
+        base = slide.shapes.index(s1)
+        assert [s1.zorder_index, s2.zorder_index, s3.zorder_index] == [
+            base,
+            base + 1,
+            base + 2,
+        ]
+
+        s3.send_to_back()
+        assert s3.zorder_index == 0
+        assert slide.shapes.index(s3) == 0
 
     # fixtures -------------------------------------------------------
 
