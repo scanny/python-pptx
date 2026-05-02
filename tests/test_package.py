@@ -73,7 +73,7 @@ class DescribePackage(object):
         package.save(pkg_file)
 
         ext_props_prop_.assert_called_once_with()
-        base_save_.assert_called_once_with(package, pkg_file)
+        base_save_.assert_called_once_with(package, pkg_file, None)
 
     def it_can_get_or_add_an_image_part(self, image_part_fixture):
         package, image_file, image_parts_, image_part_ = image_part_fixture
