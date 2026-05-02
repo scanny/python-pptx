@@ -45,6 +45,7 @@ __all__ = [
     "CT_TLMediaNodeVideo",
     "CT_TLTimeNodeParallel",
     "CT_TLTimeNodeSequence",
+    "CT_SideDirectionTransition",
     "CT_TransitionMorph",
     "CT_TransitionVariant",
 ]
@@ -577,4 +578,22 @@ class CT_TransitionMorph(CT_TransitionVariant):
 
     option: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "option", XsdString, default="byObject"
+    )
+
+
+class CT_SideDirectionTransition(CT_TransitionVariant):
+    """Typed variant for side-direction transitions (``p:wipe``, ``p:push``).
+
+    Reproduces ``CT_SideDirectionTransition`` from ``pml.xsd``. Carries
+    a single ``@dir`` attribute drawn from ``ST_TransitionSideDirectionType``
+    (``l`` / ``u`` / ``r`` / ``d``). The schema default is ``"l"``.
+
+    Added for #1004 to surface the ``@dir`` attribute on wipe/push
+    transitions. Additional direction-variant sub-types (eight-direction,
+    corner-direction, orientation, in-out) can follow the same pattern
+    incrementally.
+    """
+
+    dir: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "dir", XsdString, default="l"
     )

@@ -512,6 +512,7 @@ from pptx.oxml.slide import (  # noqa: E402
     CT_HeaderFooter,
     CT_NotesMaster,
     CT_NotesSlide,
+    CT_SideDirectionTransition,
     CT_Slide,
     CT_SlideLayout,
     CT_SlideLayoutIdList,
@@ -548,6 +549,10 @@ register_element_cls("p:tnLst", CT_TimeNodeList)
 register_element_cls("p:transition", CT_SlideTransition)
 register_element_cls("p:video", CT_TLMediaNodeVideo)
 # -- transition-variant elements from `p:transition`'s inner <xsd:choice> --
+# -- `p:wipe` and `p:push` use CT_SideDirectionTransition (typed @dir
+# -- attribute for #1004). Remaining variants use the generic round-trip
+# -- CT_TransitionVariant; they can be promoted to typed subclasses as
+# -- downstream work needs their attributes.
 for _variant_tag in (
     "p:blinds",
     "p:checker",
@@ -561,18 +566,18 @@ for _variant_tag in (
     "p:newsflash",
     "p:plus",
     "p:pull",
-    "p:push",
     "p:random",
     "p:randomBar",
     "p:split",
     "p:strips",
     "p:wedge",
     "p:wheel",
-    "p:wipe",
     "p:zoom",
 ):
     register_element_cls(_variant_tag, CT_TransitionVariant)
 del _variant_tag
+register_element_cls("p:push", CT_SideDirectionTransition)
+register_element_cls("p:wipe", CT_SideDirectionTransition)
 # -- Office 2010 MORPH transition extension (different namespace) --
 register_element_cls("p14:morph", CT_TransitionMorph)
 

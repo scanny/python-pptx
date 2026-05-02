@@ -138,3 +138,25 @@ class PP_TRANSITION_SPEED(BaseXmlEnum):
 
     FAST = (3, "fast", "Fast — approximately 0.5 seconds (default).")
     """Fast — approximately 0.5 seconds (default)."""
+
+
+class PP_TRANSITION_SIDE_DIRECTION(BaseXmlEnum):
+    """Left / up / right / down selector for transition-variant ``@dir``.
+
+    This reproduces ``ST_TransitionSideDirectionType`` from ``pml.xsd``.
+    It is the value-space for the ``@dir`` attribute on the
+    ``p:wipe`` and ``p:push`` transition variants (i.e. the direction
+    the content slides *from*). The schema default is ``"l"`` (left).
+    """
+
+    LEFT = (1, "l", "Left — content enters from / moves toward the left.")
+    """Left."""
+
+    UP = (2, "u", "Up — content enters from / moves toward the top.")
+    """Up."""
+
+    RIGHT = (3, "r", "Right — content enters from / moves toward the right.")
+    """Right."""
+
+    DOWN = (4, "d", "Down — content enters from / moves toward the bottom.")
+    """Down."""
