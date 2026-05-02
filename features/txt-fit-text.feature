@@ -26,3 +26,8 @@ Feature: Resize text to fit shape
       And I assign 20.0 to text_frame.line_space_reduction
      Then text_frame.font_scale is 85.0
       And text_frame.line_space_reduction is 20.0
+
+  Scenario: Default font_scale and line_space_reduction on an unset text frame
+    Given a placeholder text frame as text_frame
+     Then text_frame.font_scale is 100.0
+      And text_frame.line_space_reduction is 0.0
