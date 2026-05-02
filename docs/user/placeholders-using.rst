@@ -247,6 +247,25 @@ placeholder is the return value of the :meth:`insert_chart` call and may also
 be obtained from the placeholders collection using the original `idx` key, 10
 in this case.
 
+.. note:: :meth:`insert_chart` is also available on generic
+   :class:`.SlidePlaceholder` instances, not only on
+   :class:`.ChartPlaceholder`. This is convenient when a layout does not
+   provide a specialized chart placeholder — for example a generic "content",
+   "body", or "object" placeholder can have a chart inserted into it directly::
+
+       >>> prs = Presentation()
+       >>> slide = prs.slides.add_slide(prs.slide_layouts[5])  # "Title Only"
+       >>> slide.shapes.add_textbox(...)  # or use any generic placeholder
+       >>> placeholder = slide.placeholders[1]  # e.g. a body/object placeholder
+       >>> type(placeholder).__name__
+       'SlidePlaceholder'
+       >>> graphic_frame = placeholder.insert_chart(XL_CHART_TYPE.PIE, chart_data)
+       >>> graphic_frame.chart.chart_type
+       PIE (5)
+
+   The resulting graphic frame takes the position and size of the
+   placeholder, exactly as with :meth:`.ChartPlaceholder.insert_chart`.
+
 
 Setting the slide title
 -----------------------

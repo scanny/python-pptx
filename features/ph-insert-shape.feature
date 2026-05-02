@@ -45,3 +45,11 @@ Feature: Insert a shape into a placeholder
       Then the return value is a PlaceholderGraphicFrame object
        And the placeholder contains the chart
        And the chart is a pie chart
+
+
+  Scenario: Insert a chart into a generic slide placeholder
+     Given an unpopulated content placeholder shape
+      When I call placeholder.insert_chart(XL_CHART_TYPE.PIE, chart_data)
+      Then the return value is a PlaceholderGraphicFrame object
+       And the placeholder contains the chart
+       And the chart is a pie chart

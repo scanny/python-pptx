@@ -19,6 +19,7 @@ from pptx.shapes.placeholder import (
     PicturePlaceholder,
     PlaceholderGraphicFrame,
     PlaceholderPicture,
+    SlidePlaceholder,
     TablePlaceholder,
     _BaseSlidePlaceholder,
     _InheritsDimensions,
@@ -565,6 +566,62 @@ class DescribePicturePlaceholder(object):
     @pytest.fixture
     def part_prop_(self, request, slide_):
         return property_mock(request, PicturePlaceholder, "part", return_value=slide_)
+
+    @pytest.fixture
+    def slide_(self, request):
+        return instance_mock(request, SlidePart)
+
+
+class DescribeSlidePlaceholder(object):
+    """Unit-test suite for `pptx.shapes.placeholder.SlidePlaceholder` object."""
+
+    def it_can_insert_a_chart_into_itself(self, request, part_prop_):
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.add_chart_part.return_value = "rId7"
+        part_prop_.return_value = slide_part_
+        graphicFrame = element("p:graphicFrame")
+        _new_chart_graphicFrame_ = method_mock(
+            request,
+            SlidePlaceholder,
+            "_new_chart_graphicFrame",
+            return_value=graphicFrame,
+        )
+        _replace_placeholder_with_ = method_mock(
+            request, SlidePlaceholder, "_replace_placeholder_with"
+        )
+        placeholder_graphic_frame_ = instance_mock(request, PlaceholderGraphicFrame)
+        PlaceholderGraphicFrame_ = class_mock(
+            request,
+            "pptx.shapes.placeholder.PlaceholderGraphicFrame",
+            return_value=placeholder_graphic_frame_,
+        )
+        chart_data_ = instance_mock(request, ChartData)
+        slide_ph = SlidePlaceholder(
+            element("p:sp/p:spPr/a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4})"), "parent"
+        )
+
+        ph_graphic_frame = slide_ph.insert_chart(XCT.PIE, chart_data_)
+
+        slide_part_.add_chart_part.assert_called_once_with(XCT.PIE, chart_data_)
+        _new_chart_graphicFrame_.assert_called_once_with(slide_ph, "rId7", 1, 2, 3, 4)
+        _replace_placeholder_with_.assert_called_once_with(slide_ph, graphicFrame)
+        PlaceholderGraphicFrame_.assert_called_once_with(graphicFrame, slide_ph._parent)
+        assert ph_graphic_frame is placeholder_graphic_frame_
+
+    def it_creates_a_graphicFrame_element_to_help(self):
+        sp_cxml = "p:sp/p:nvSpPr/p:cNvPr{id=4,name=bar}"
+        slide_ph = SlidePlaceholder(element(sp_cxml), None)
+        rId, x, y, cx, cy = "rId42", 1, 2, 3, 4
+
+        graphicFrame = slide_ph._new_chart_graphicFrame(rId, x, y, cx, cy)
+
+        assert graphicFrame.xml == snippet_seq("placeholders")[1]
+
+    # fixture components ---------------------------------------------
+
+    @pytest.fixture
+    def part_prop_(self, request, slide_):
+        return property_mock(request, SlidePlaceholder, "part", return_value=slide_)
 
     @pytest.fixture
     def slide_(self, request):
