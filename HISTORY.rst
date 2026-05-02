@@ -34,6 +34,20 @@ Unreleased
   documented for MP4 / PNG rendering, and add a
   ``rendering-to-pdf-video-or-image-formats`` cross-reference label so other
   sections can link here.
+- verify: #539 (bar chart color duplicated when extending series count)
+  resolved by ``feat/issue-529-chart-theme-colors``. The #529 fix
+  (``_apply_accent_color_to_ser`` called from
+  ``_BaseSeriesXmlRewriter._add_cloned_sers``) rewrites any
+  ``a:srgbClr`` / ``a:schemeClr`` fill on a cloned ``c:ser`` to
+  ``a:schemeClr val="accent{n}"`` cycling 1..6 on the new series's
+  index, so growing a coloured chart from 1 to 6+ series via
+  ``Chart.replace_data()`` no longer repeats the source colour on every
+  new series — the #539 scenario exactly. Adds a regression suite
+  ``DescribeIssue539BarChartColorCycle`` under
+  ``tests/test_issue_539_chart_color_cycle.py`` that replays the
+  reporter's code (paint the source series red, grow to six series)
+  and pins the accent-cycling behaviour across an 8-series wrap case
+  and a save-and-reopen round-trip.
 - verify: #777 resolved by ``feat/issue-752-ole-embed-generic``. Embedding
   an HTML file as an OLE object now works via the generic
   ``add_ole_object(html_path, prog_id="MSHtml.MHT", ..., extension="html")``
