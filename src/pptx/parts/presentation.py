@@ -15,6 +15,7 @@ from pptx.util import lazyproperty
 if TYPE_CHECKING:
     from pptx.opc.serialized import ZipDateTime
     from pptx.parts.coreprops import CorePropertiesPart
+    from pptx.parts.extprops import ExtendedPropertiesPart
     from pptx.slide import NotesMaster, Slide, SlideLayout, SlideMaster
 
 
@@ -95,6 +96,16 @@ class PresentationPart(XmlPart):
         Provides read/write access to the Dublin Core properties of this presentation.
         """
         return self.package.core_properties
+
+    @property
+    def extended_properties(self) -> ExtendedPropertiesPart:
+        """|ExtendedPropertiesPart| for the presentation (``/docProps/app.xml``).
+
+        Provides read/write access to application-level document properties such as
+        ``Application``, ``Company``, ``Manager``, and ``HyperlinkBase``. The part is
+        created lazily if not already present in the package.
+        """
+        return self.package.extended_properties
 
     def get_slide(self, slide_id: int) -> Slide | None:
         """Return optional related |Slide| object identified by `slide_id`.

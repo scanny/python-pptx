@@ -8,6 +8,7 @@ import pytest
 
 from pptx import Presentation as open_presentation
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import NotesMasterPart
 from pptx.presentation import Presentation, Section, _read_blob
@@ -43,6 +44,14 @@ class DescribePresentation(object):
     def it_provides_access_to_its_core_properties(self, core_props_fixture):
         prs, core_properties_ = core_props_fixture
         assert prs.core_properties is core_properties_
+
+    def it_provides_access_to_its_extended_properties(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        extended_properties_ = instance_mock(request, ExtendedPropertiesPart)
+        prs_part_.extended_properties = extended_properties_
+        prs = Presentation(None, prs_part_)
+
+        assert prs.extended_properties is extended_properties_
 
     def it_provides_access_to_its_notes_master(self, notes_master_fixture):
         prs, notes_master_ = notes_master_fixture
