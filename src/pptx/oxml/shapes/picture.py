@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 from xml.sax.saxutils import escape
 
 from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne
 
@@ -35,6 +35,46 @@ class CT_Picture(BaseShapeElement):
         if blip is not None and blip.rEmbed is not None:
             return blip.rEmbed
         return None
+
+    @property
+    def media_video_rId(self) -> str | None:
+        """Value of ``@r:link`` on ``p:nvPicPr/p:nvPr/a:videoFile`` or ``a:audioFile``.
+
+        This is the ``RT.VIDEO``-typed rId written by :meth:`SlideShapes.add_movie`.
+        Returns |None| when neither a ``a:videoFile`` nor ``a:audioFile`` child
+        element is present — i.e. the pic is not a media shape.
+        """
+        mediaFiles = self.xpath("./p:nvPicPr/p:nvPr/a:videoFile | ./p:nvPicPr/p:nvPr/a:audioFile")
+        if not mediaFiles:
+            return None
+        return mediaFiles[0].get(qn("r:link"))
+
+    @media_video_rId.setter
+    def media_video_rId(self, rId: str) -> None:
+        mediaFiles = self.xpath("./p:nvPicPr/p:nvPr/a:videoFile | ./p:nvPicPr/p:nvPr/a:audioFile")
+        if not mediaFiles:
+            raise ValueError("this p:pic has no a:videoFile or a:audioFile child")
+        mediaFiles[0].set(qn("r:link"), rId)
+
+    @property
+    def media_embed_rId(self) -> str | None:
+        """Value of ``@r:embed`` on ``p:nvPicPr/p:nvPr/p:extLst/p:ext/p14:media``.
+
+        This is the ``RT.MEDIA``-typed rId written by
+        :meth:`SlideShapes.add_movie`. Returns |None| when no matching
+        ``p14:media`` descriptor is present.
+        """
+        p14_medias = self.xpath("./p:nvPicPr/p:nvPr/p:extLst/p:ext/p14:media")
+        if not p14_medias:
+            return None
+        return p14_medias[0].get(qn("r:embed"))
+
+    @media_embed_rId.setter
+    def media_embed_rId(self, rId: str) -> None:
+        p14_medias = self.xpath("./p:nvPicPr/p:nvPr/p:extLst/p:ext/p14:media")
+        if not p14_medias:
+            raise ValueError("this p:pic has no p14:media descriptor")
+        p14_medias[0].set(qn("r:embed"), rId)
 
     def crop_to_fit(self, image_size, view_size):
         """
