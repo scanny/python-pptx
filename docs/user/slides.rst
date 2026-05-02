@@ -216,6 +216,103 @@ footer field. The ``text`` argument is the placeholder string PowerPoint shows
 until the field is refreshed.
 
 
+Reading slide properties
+------------------------
+
+Once you have a |Slide| object — whether freshly added with
+:meth:`Slides.add_slide` or pulled from ``prs.slides[n]`` when opening an
+existing deck — a handful of properties let you inspect the slide without
+walking its XML.
+
+**Slide identity**::
+
+    >>> prs = Presentation("quarterly-deck.pptx")
+    >>> slide = prs.slides[0]
+    >>> slide.slide_id             # stable across slide reordering
+    256
+    >>> slide.name                 # the internal <p:cSld> @name (often empty)
+    ''
+    >>> slide.is_hidden
+    False
+
+``slide.slide_id`` is the stable, presentation-wide id PowerPoint assigns
+when the slide is created; unlike the list index it does not shift when
+slides are added, moved, or deleted. ``slide.name`` is the optional
+internal name on ``<p:cSld>`` — PowerPoint leaves it empty for most
+slides, so for human-readable identification you usually have to fall
+back to the slide layout or the title text (see below).
+
+**The slide layout**::
+
+    >>> layout = slide.slide_layout
+    >>> layout.name
+    'Title and Content'
+    >>> layout.slide_master.name
+    'Office Theme'
+
+``slide.slide_layout`` returns the |SlideLayout| the slide was created
+from. Its ``name`` is the display name PowerPoint shows in *Slide Master*
+view ("Title Slide", "Title and Content", "Two Content", …) and is
+typically the most reliable way to classify a slide by kind.
+
+**The title placeholder**::
+
+    >>> title_shape = slide.shapes.title
+    >>> title_shape is None
+    False
+    >>> title_shape.text_frame.text
+    'Q3 Highlights'
+    >>> # equivalent short form for read/write access to the title string
+    >>> title_shape.text
+    'Q3 Highlights'
+
+:attr:`.SlideShapes.title` returns the title placeholder, or |None| if
+the slide's layout doesn't have one (for example, a *Blank* layout).
+Under the hood this is just the placeholder with ``idx == 0``, which by
+convention is always the title slot.
+
+**Iterating placeholders by idx**::
+
+    >>> for ph in slide.placeholders:
+    ...     print(ph.placeholder_format.idx, ph.placeholder_format.type, ph.name)
+    0 TITLE (1) Title 1
+    1 SUBTITLE (4) Subtitle 2
+
+:attr:`.Slide.placeholders` yields placeholders in ``idx`` order. Each
+placeholder exposes a :attr:`~._InheritsPlaceholderFormat.placeholder_format`
+descriptor whose ``idx`` is the numeric slot and whose ``type`` is a
+:ref:`PpPlaceholderType` enum member (``TITLE``, ``SUBTITLE``, ``BODY``,
+``PICTURE``, …). A direct ``idx`` lookup works too::
+
+    >>> subtitle = slide.placeholders[1]
+    >>> subtitle.text_frame.text
+    'Fiscal year review'
+
+Note that ``slide.placeholders[idx]`` is keyed by placeholder ``idx``,
+**not** by list position — so ``slide.placeholders[1]`` returns the
+placeholder whose ``ph/@idx`` is ``1`` (the subtitle on a Title layout),
+which may or may not be the second placeholder in iteration order.
+
+**A convenience for non-title slide "names"**
+
+Because ``slide.name`` is nearly always empty, code that needs to present
+a human-readable label for a slide typically falls back to the title text,
+or to the layout name::
+
+    def slide_label(slide):
+        """Best-effort human-readable identifier for *slide*."""
+        if slide.name:
+            return slide.name
+        title = slide.shapes.title
+        if title is not None and title.has_text_frame and title.text_frame.text:
+            return title.text_frame.text
+        return slide.slide_layout.name
+
+This is enough to build a table-of-contents, navigate to a slide by
+title, or filter slides by layout kind without leaving the
+python-pptx public API.
+
+
 Up next ...
 -----------
 
