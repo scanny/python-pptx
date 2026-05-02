@@ -144,6 +144,7 @@ Package
 
    pkg-coreprops
    enumerations
+   opc-rel-cloner
 
 
 Major discovery sources

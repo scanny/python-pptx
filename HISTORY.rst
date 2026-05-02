@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- Foundation: cross-part rel cloning helper
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
