@@ -51,6 +51,13 @@ Unreleased
 - #100 paragraph bullet API
 - #114 paragraph bullet font, color, and size
 - #141 secondary value axis support
+- feat: #544 Add confidence-interval / error-bar support for chart series.
+  New ``Series.error_bars`` and ``Series.has_error_bars`` read-properties
+  expose a new ``ErrorBars`` wrapper, and ``Series.set_error_bars(...)``
+  attaches a fresh set of error bars configured from the ``XL_ERROR_BAR_TYPE``,
+  ``XL_ERROR_BAR_INCLUDE``, and ``XL_ERROR_BAR_DIRECTION`` enums. Supports
+  the fixed-value, percentage, standard-deviation, and standard-error modes;
+  custom per-point magnitudes are recognized but not populated in this MVP.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

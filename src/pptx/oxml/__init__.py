@@ -152,6 +152,10 @@ register_element_cls("c:scatterChart", CT_ScatterChart)
 from pptx.oxml.chart.series import (  # noqa: E402
     CT_AxDataSource,
     CT_DPt,
+    CT_ErrBars,
+    CT_ErrBarType,
+    CT_ErrDir,
+    CT_ErrValType,
     CT_Lvl,
     CT_NumDataSource,
     CT_SeriesComposite,
@@ -161,7 +165,13 @@ from pptx.oxml.chart.series import (  # noqa: E402
 register_element_cls("c:bubbleSize", CT_NumDataSource)
 register_element_cls("c:cat", CT_AxDataSource)
 register_element_cls("c:dPt", CT_DPt)
+register_element_cls("c:errBars", CT_ErrBars)
+register_element_cls("c:errBarType", CT_ErrBarType)
+register_element_cls("c:errDir", CT_ErrDir)
+register_element_cls("c:errValType", CT_ErrValType)
 register_element_cls("c:lvl", CT_Lvl)
+register_element_cls("c:minus", CT_NumDataSource)
+register_element_cls("c:plus", CT_NumDataSource)
 register_element_cls("c:pt", CT_StrVal_NumVal_Composite)
 register_element_cls("c:ser", CT_SeriesComposite)
 register_element_cls("c:val", CT_NumDataSource)
@@ -192,6 +202,7 @@ register_element_cls("c:delete", CT_Boolean)
 register_element_cls("c:idx", CT_UnsignedInt)
 register_element_cls("c:invertIfNegative", CT_Boolean_Explicit)
 register_element_cls("c:layout", CT_Layout)
+register_element_cls("c:noEndCap", CT_Boolean)
 register_element_cls("c:manualLayout", CT_ManualLayout)
 register_element_cls("c:max", CT_Double)
 register_element_cls("c:min", CT_Double)

@@ -217,6 +217,35 @@ that term confusing for a long time while I was learning about MS Office
 charts so I chose the name Plot for that object in |pp|.
 
 
+Error Bars
+----------
+
+Each series on a bar, column, line, area, XY, or bubble chart can be annotated
+with *error bars* (confidence-interval whiskers). |pp| 1.x adds a minimum-viable
+API for attaching a set of error bars to a series::
+
+    from pptx.enum.chart import XL_ERROR_BAR_TYPE, XL_ERROR_BAR_INCLUDE
+
+    series = chart.plots[0].series[0]
+    series.set_error_bars(
+        type_=XL_ERROR_BAR_TYPE.PERCENT,
+        value=10.0,
+        include=XL_ERROR_BAR_INCLUDE.BOTH,
+    )
+
+    # subsequently, read and adjust:
+    assert series.has_error_bars is True
+    series.error_bars.value = 5.0          # change magnitude
+    series.error_bars.end_cap = False      # drop the "T" caps
+
+The error-bar type (``XL_ERROR_BAR_TYPE``) can be ``FIXED_VALUE``, ``PERCENT``,
+``STDEV`` (a multiplier on the series' standard deviation), or ``STERROR``.
+``XL_ERROR_BAR_TYPE.CUSTOM`` is writable but in the 1.x series |pp| does not
+populate the ``plus``/``minus`` references that hold per-point magnitudes — use
+the underlying ``series._element`` to edit those directly if needed. Removing
+error bars is as easy as ``series.error_bars = None``.
+
+
 Legend
 ------
 

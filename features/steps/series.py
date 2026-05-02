@@ -9,7 +9,11 @@ from helpers import test_pptx
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
-from pptx.enum.chart import XL_MARKER_STYLE
+from pptx.enum.chart import (
+    XL_ERROR_BAR_INCLUDE,
+    XL_ERROR_BAR_TYPE,
+    XL_MARKER_STYLE,
+)
 from pptx.enum.dml import MSO_FILL_TYPE, MSO_THEME_COLOR
 
 # given ===================================================
@@ -356,3 +360,61 @@ def then_series_values_is_values(context, values):
     series = context.series
     expected_values = literal_eval(values)
     assert series.values == expected_values, "got %s" % (series.values,)
+
+
+# error-bar steps -----------------------------------------
+
+
+@given("series has fixed-value error bars attached")
+def given_series_has_fixed_value_error_bars_attached(context):
+    context.series.set_error_bars(
+        type_=XL_ERROR_BAR_TYPE.FIXED_VALUE,
+        value=1.5,
+        include=XL_ERROR_BAR_INCLUDE.BOTH,
+    )
+
+
+@when("I call series.set_error_bars with type {type_name} and value {value}")
+def when_I_call_series_set_error_bars(context, type_name, value):
+    context.series.set_error_bars(
+        type_=getattr(XL_ERROR_BAR_TYPE, type_name),
+        value=float(value),
+    )
+
+
+@when("I assign None to series.error_bars")
+def when_I_assign_None_to_series_error_bars(context):
+    context.series.error_bars = None
+
+
+@then("series.has_error_bars is {value}")
+def then_series_has_error_bars_is_value(context, value):
+    expected = {"True": True, "False": False}[value]
+    actual = context.series.has_error_bars
+    assert actual is expected, "got %s" % actual
+
+
+@then("series.error_bars is None")
+def then_series_error_bars_is_None(context):
+    assert context.series.error_bars is None, "got %s" % context.series.error_bars
+
+
+@then("series.error_bars.type is {type_name}")
+def then_series_error_bars_type_is(context, type_name):
+    expected = getattr(XL_ERROR_BAR_TYPE, type_name)
+    actual = context.series.error_bars.type
+    assert actual == expected, "got %s" % actual
+
+
+@then("series.error_bars.value is {value}")
+def then_series_error_bars_value_is(context, value):
+    expected = float(value)
+    actual = context.series.error_bars.value
+    assert actual == expected, "got %s" % actual
+
+
+@then("series.error_bars.include is {include_name}")
+def then_series_error_bars_include_is(context, include_name):
+    expected = getattr(XL_ERROR_BAR_INCLUDE, include_name)
+    actual = context.series.error_bars.include
+    assert actual == expected, "got %s" % actual

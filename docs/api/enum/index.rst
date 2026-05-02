@@ -31,6 +31,9 @@ can be found here:
    XlCategoryType
    XlChartType
    XlDataLabelPosition
+   XlErrorBarDirection
+   XlErrorBarInclude
+   XlErrorBarType
    XlLegendPosition
    XlMarkerStyle
    XlTickLabelPosition

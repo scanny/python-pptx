@@ -200,6 +200,42 @@ Category plots provide access to a |category.Categories| object with their
    :undoc-members:
 
 
+|ErrorBars| objects
+-------------------
+
+*Error bars* overlay each data point on a chart with a whisker showing its
+uncertainty. The magnitude may be a fixed value, a percentage of the point's
+value, a multiple of the series standard deviation, or the series standard
+error. A series has no error bars by default; they are added via
+:meth:`~pptx.chart.series._BaseSeries.set_error_bars` and subsequently accessed
+via the :attr:`error_bars` property.
+
+Example::
+
+    from pptx.enum.chart import XL_ERROR_BAR_TYPE, XL_ERROR_BAR_INCLUDE
+
+    series = chart.plots[0].series[0]
+    series.set_error_bars(
+        type_=XL_ERROR_BAR_TYPE.PERCENT,
+        value=10.0,
+        include=XL_ERROR_BAR_INCLUDE.BOTH,
+    )
+    assert series.has_error_bars is True
+    series.error_bars.end_cap = False  # remove the 'T' caps
+
+The MVP in python-pptx supports the four non-custom error-bar types
+(``FIXED_VALUE``, ``PERCENT``, ``STDEV``, ``STERROR``). Assigning
+``XL_ERROR_BAR_TYPE.CUSTOM`` sets the type tag, but this release does not
+populate the ``c:plus`` / ``c:minus`` references required to point at per-point
+values in the embedded worksheet — client code needing custom per-point error
+bars must edit the underlying XML directly for the 1.x series.
+
+.. autoclass:: pptx.chart.series.ErrorBars()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |DataLabels| objects
 --------------------
 

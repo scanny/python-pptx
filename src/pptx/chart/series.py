@@ -8,8 +8,156 @@ from pptx.chart.datalabel import DataLabels
 from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.dml.chtfmt import ChartFormat
+from pptx.enum.chart import (
+    XL_ERROR_BAR_DIRECTION,
+    XL_ERROR_BAR_INCLUDE,
+    XL_ERROR_BAR_TYPE,
+)
+from pptx.oxml.chart.series import CT_ErrBars
 from pptx.oxml.ns import qn
 from pptx.util import lazyproperty
+
+
+class ErrorBars(object):
+    """Provides access to the properties of a set of error bars on a chart series.
+
+    Error bars annotate each data point with a vertical (or horizontal) whisker that
+    communicates variability — confidence interval, standard deviation, standard error,
+    or a fixed or percentage magnitude.
+
+    An |ErrorBars| instance wraps a single ``c:errBars`` element.
+    """
+
+    def __init__(self, errBars):
+        super(ErrorBars, self).__init__()
+        self._element = errBars
+        self._errBars = errBars
+
+    @property
+    def direction(self):
+        """Read/write |XL_ERROR_BAR_DIRECTION| member or |None|.
+
+        Specifies the axis along which the error bars extend. |None| when the
+        ``c:errDir`` child is absent — in which case PowerPoint infers Y for
+        category-axis charts (bar, column, line, area) and X/Y per errBars element
+        for XY/bubble charts.
+        """
+        errDir = self._errBars.errDir
+        if errDir is None:
+            return None
+        return errDir.val
+
+    @direction.setter
+    def direction(self, value):
+        if value is None:
+            self._errBars._remove_errDir()
+            return
+        errDir = self._errBars.get_or_add_errDir()
+        errDir.val = value
+
+    @property
+    def end_cap(self):
+        """Read/write boolean.
+
+        |True| if each error bar ends with a small perpendicular "T" cap (the
+        PowerPoint default). |False| when the bar is drawn as a plain line.
+        Reflects the *logical* meaning rather than the raw ``c:noEndCap`` boolean,
+        which is inverted.
+        """
+        noEndCap = self._errBars.noEndCap
+        if noEndCap is None:
+            return True
+        # -- noEndCap val=1 means "no end cap", so end_cap is False --
+        return not bool(noEndCap.val)
+
+    @end_cap.setter
+    def end_cap(self, value):
+        noEndCap = self._errBars.get_or_add_noEndCap()
+        noEndCap.val = not bool(value)
+
+    @lazyproperty
+    def format(self):
+        """The |ChartFormat| object providing line/fill properties for the bars."""
+        return ChartFormat(self._errBars)
+
+    @property
+    def include(self):
+        """Read/write |XL_ERROR_BAR_INCLUDE| member.
+
+        Specifies whether bars are drawn on the plus side, the minus side, or both
+        sides of the data point. Defaults to :attr:`XL_ERROR_BAR_INCLUDE.BOTH` when
+        the ``c:errBarType`` attribute is omitted (per the schema default).
+        """
+        errBarType = self._errBars.errBarType
+        if errBarType is None:
+            return XL_ERROR_BAR_INCLUDE.BOTH
+        return errBarType.val
+
+    @include.setter
+    def include(self, value):
+        errBarType = self._errBars.get_or_add_errBarType()
+        errBarType.val = value
+
+    @property
+    def type(self):
+        """Read/write |XL_ERROR_BAR_TYPE| member specifying how magnitudes are computed.
+
+        One of FIXED_VALUE, PERCENT, STDEV, STERROR, or CUSTOM. Defaults to
+        :attr:`XL_ERROR_BAR_TYPE.FIXED_VALUE` when ``c:errValType`` is absent.
+        """
+        errValType = self._errBars.errValType
+        if errValType is None:
+            return XL_ERROR_BAR_TYPE.FIXED_VALUE
+        return errValType.val
+
+    @type.setter
+    def type(self, value):
+        errValType = self._errBars.get_or_add_errValType()
+        errValType.val = value
+
+    @property
+    def value(self):
+        """Read/write float specifying the fixed magnitude or percentage for the bars.
+
+        Meaningful only when :attr:`type` is :attr:`XL_ERROR_BAR_TYPE.FIXED_VALUE`
+        (an absolute value), :attr:`PERCENT` (a percentage expressed as e.g. ``5.0``
+        for 5%), or :attr:`STDEV` (a multiplier for the series' standard deviation).
+        PowerPoint ignores the stored value for STERROR but a harmless value is
+        still written. Returns |None| when no ``c:val`` child is present.
+        """
+        val = self._errBars.val
+        if val is None:
+            return None
+        raw = val.get("val")
+        if raw is None:
+            return None
+        return float(raw)
+
+    @value.setter
+    def value(self, number):
+        val = self._errBars.get_or_add_val()
+        # -- c:val is registered to CT_NumDataSource (which has no `val` attribute --
+        # -- accessor); write the attribute directly. --
+        val.set("val", str(float(number)))
+
+
+def _new_errBars(direction, include, type_, value):
+    """Return a loose ``c:errBars`` element configured from Python-API values.
+
+    `direction` is an |XL_ERROR_BAR_DIRECTION| member or |None| (omit `c:errDir`).
+    `include` is an |XL_ERROR_BAR_INCLUDE| member.
+    `type_` is an |XL_ERROR_BAR_TYPE| member.
+    `value` is a float magnitude (fixed value, percentage, or stddev multiplier).
+    """
+    direction_str = None if direction is None else direction.xml_value
+    include_str = include.xml_value
+    type_str = type_.xml_value
+    return CT_ErrBars.new_errBars(
+        err_val_type=type_str,
+        val=float(value),
+        include=include_str,
+        direction=direction_str,
+    )
 
 
 class _BaseSeries(object):
@@ -22,6 +170,69 @@ class _BaseSeries(object):
         self._element = ser
         self._ser = ser
 
+    @property
+    def error_bars(self):
+        """The |ErrorBars| object describing this series' error bars, or |None|.
+
+        Returns |None| when the series has no ``c:errBars`` child. Assigning a
+        freshly-constructed |ErrorBars| (e.g. one returned by
+        :meth:`set_error_bars`) replaces any existing error bars. Assigning |None|
+        removes the ``c:errBars`` element.
+
+        Note this covers the most common single-``c:errBars`` case; XY/bubble
+        series may legally have both an X and a Y ``c:errBars`` child, in which
+        case only the first is surfaced here (setting Y-direction error bars is
+        supported explicitly via :meth:`set_error_bars`).
+        """
+        errBars = self._ser.errBars
+        if errBars is None:
+            return None
+        return ErrorBars(errBars)
+
+    @error_bars.setter
+    def error_bars(self, value):
+        if value is None:
+            self._ser._remove_errBars()
+            return
+        if not isinstance(value, ErrorBars):
+            raise TypeError(
+                "series.error_bars must be an ErrorBars instance or None, got %r" % type(value)
+            )
+        # -- replace any existing c:errBars with the new one --
+        self._ser._remove_errBars()
+        self._ser._insert_errBars(value._errBars)
+
+    def set_error_bars(
+        self,
+        type_=XL_ERROR_BAR_TYPE.FIXED_VALUE,
+        value=1.0,
+        include=XL_ERROR_BAR_INCLUDE.BOTH,
+        direction=None,
+    ):
+        """Attach a freshly configured |ErrorBars| block to this series and return it.
+
+        `type_` is an |XL_ERROR_BAR_TYPE| member selecting how magnitude is computed —
+        FIXED_VALUE, PERCENT, STDEV, STERROR, or CUSTOM (custom per-point values are
+        not configured by this convenience method and would require client code to
+        populate ``plus`` and ``minus`` children directly via the returned object's
+        underlying element).
+
+        `value` is the fixed magnitude (a number in the series' value units for
+        FIXED_VALUE, a percentage such as ``5.0`` for PERCENT, or a standard-deviation
+        multiplier for STDEV). Ignored by PowerPoint for STERROR.
+
+        `include` is an |XL_ERROR_BAR_INCLUDE| member selecting which side of each
+        data point is drawn (BOTH, PLUS_VALUES, or MINUS_VALUES).
+
+        `direction` is an |XL_ERROR_BAR_DIRECTION| member or |None|. Category-axis
+        charts (bar, column, line, area) accept |None| and PowerPoint infers Y.
+        """
+        errBars = _new_errBars(direction, include, type_, value)
+        # -- replace any existing c:errBars --
+        self._ser._remove_errBars()
+        self._ser._insert_errBars(errBars)
+        return ErrorBars(errBars)
+
     @lazyproperty
     def format(self):
         """
@@ -29,6 +240,15 @@ class _BaseSeries(object):
         properties such as fill and line.
         """
         return ChartFormat(self._ser)
+
+    @property
+    def has_error_bars(self):
+        """|True| if this series has a ``c:errBars`` child element, |False| otherwise.
+
+        Equivalent to ``series.error_bars is not None`` but more idiomatic when the
+        caller only needs a boolean.
+        """
+        return self._ser.errBars is not None
 
     @property
     def index(self):
