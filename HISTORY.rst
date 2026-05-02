@@ -45,6 +45,7 @@ Unreleased
   (``p:spTree`` or ``p:grpSp``).
 - #946 Connector.adjustments for elbow/curved connectors
 - #420 universal ``to_rgb()`` across color classes
+- #716 DataLabel border and fill via ChartFormat
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

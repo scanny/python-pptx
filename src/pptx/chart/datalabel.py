@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pptx.dml.chtfmt import ChartFormat
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
 
@@ -164,6 +165,16 @@ class DataLabel(object):
         text_frame = TextFrame(txPr, self)
         paragraph = text_frame.paragraphs[0]
         return paragraph.font
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to line and fill formatting.
+
+        Return the |ChartFormat| object providing shape formatting properties
+        for this data label, such as its line color and fill.
+        """
+        dLbl = self._get_or_add_dLbl()
+        return ChartFormat(dLbl)
 
     @property
     def has_text_frame(self):

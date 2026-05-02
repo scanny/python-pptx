@@ -153,6 +153,13 @@ Feature: Access and modify data labels properties
       | having no     |
 
 
+  Scenario: DataLabel.format
+    Given a data label
+     Then data_label.format is a ChartFormat object
+      And data_label.format.fill is a FillFormat object
+      And data_label.format.line is a LineFormat object
+
+
   Scenario Outline: DataLabel.has_text_frame getter
     Given a data label <having-or-not> custom text as data_label
      Then data_label.has_text_frame is <value>

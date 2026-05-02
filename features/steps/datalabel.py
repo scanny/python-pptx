@@ -59,6 +59,13 @@ def given_a_DataLabels_object_with_pos_position(context, pos):
     context.data_labels = chart.plots[0].data_labels
 
 
+@given("a data label")
+def given_a_data_label(context):
+    prs = Presentation(test_pptx("cht-point-props"))
+    points = prs.slides[0].shapes[0].chart.plots[0].series[0].points
+    context.data_label = points[0].data_label
+
+
 @given("a data label {having_or_not} custom font as data_label")
 def given_a_data_label_having_or_not_custom_font(context, having_or_not):
     point_idx = {"having a": 0, "having no": 1}[having_or_not]
@@ -136,6 +143,24 @@ def when_I_assign_value_to_data_labels_show_value(context, value):
 def then_data_label_font_is_a_Font_object(context):
     font = context.data_label.font
     assert type(font).__name__ == "Font"
+
+
+@then("data_label.format is a ChartFormat object")
+def then_data_label_format_is_a_ChartFormat_object(context):
+    data_label = context.data_label
+    assert type(data_label.format).__name__ == "ChartFormat"
+
+
+@then("data_label.format.fill is a FillFormat object")
+def then_data_label_format_fill_is_a_FillFormat_object(context):
+    data_label = context.data_label
+    assert type(data_label.format.fill).__name__ == "FillFormat"
+
+
+@then("data_label.format.line is a LineFormat object")
+def then_data_label_format_line_is_a_LineFormat_object(context):
+    data_label = context.data_label
+    assert type(data_label.format.line).__name__ == "LineFormat"
 
 
 @then("data_label.has_text_frame is {value}")
