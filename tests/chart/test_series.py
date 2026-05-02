@@ -18,6 +18,7 @@ from pptx.chart.series import (
     PieSeries,
     RadarSeries,
     SeriesCollection,
+    Trendline,
     XySeries,
     _BaseCategorySeries,
     _BaseSeries,
@@ -29,6 +30,7 @@ from pptx.enum.chart import (
     XL_ERROR_BAR_DIRECTION,
     XL_ERROR_BAR_INCLUDE,
     XL_ERROR_BAR_TYPE,
+    XL_TRENDLINE_TYPE,
 )
 
 from ..unitutil.cxml import element, xml
@@ -125,15 +127,80 @@ class Describe_BaseSeries(object):
     def it_allows_assigning_a_new_ErrorBars_object_to_error_bars(self):
         series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
         # -- build a detached errBars element via the existing setter path --
-        new_error_bars = series.set_error_bars(
-            type_=XL_ERROR_BAR_TYPE.STDEV, value=2.0
-        )
+        new_error_bars = series.set_error_bars(type_=XL_ERROR_BAR_TYPE.STDEV, value=2.0)
         # -- drop it, then reassign --
         series.error_bars = None
         series.error_bars = new_error_bars
 
         assert series.has_error_bars is True
         assert series.error_bars.type == XL_ERROR_BAR_TYPE.STDEV
+
+    # trendlines -----------------------------------------------------
+
+    def it_returns_an_empty_list_of_trendlines_when_none_present(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        assert series.trendlines == []
+
+    def it_provides_access_to_its_trendlines(self):
+        ser_cxml = (
+            "c:ser/(c:idx{val=0},c:order{val=0},c:trendline/c:trendlineType{val=linear}"
+            ",c:trendline/(c:trendlineType{val=poly},c:order{val=3}))"
+        )
+        series = _BaseSeries(element(ser_cxml))
+        tls = series.trendlines
+        assert len(tls) == 2
+        assert all(isinstance(tl, Trendline) for tl in tls)
+        assert tls[0].trendline_type == XL_TRENDLINE_TYPE.LINEAR
+        assert tls[1].trendline_type == XL_TRENDLINE_TYPE.POLYNOMIAL
+        assert tls[1].order == 3
+
+    def it_can_attach_a_trendline_via_add_trendline(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+
+        tl = series.add_trendline(XL_TRENDLINE_TYPE.LINEAR, display_equation=True)
+
+        assert isinstance(tl, Trendline)
+        assert len(series.trendlines) == 1
+        assert series.trendlines[0].trendline_type == XL_TRENDLINE_TYPE.LINEAR
+        assert series.trendlines[0].display_equation is True
+
+    def it_can_attach_multiple_trendlines(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+
+        series.add_trendline(XL_TRENDLINE_TYPE.LINEAR)
+        series.add_trendline(XL_TRENDLINE_TYPE.POLYNOMIAL, order=3)
+        series.add_trendline(XL_TRENDLINE_TYPE.MOVING_AVG, period=5)
+
+        tls = series.trendlines
+        assert len(tls) == 3
+        assert tls[0].trendline_type == XL_TRENDLINE_TYPE.LINEAR
+        assert tls[1].trendline_type == XL_TRENDLINE_TYPE.POLYNOMIAL
+        assert tls[1].order == 3
+        assert tls[2].trendline_type == XL_TRENDLINE_TYPE.MOVING_AVG
+        assert tls[2].period == 5
+
+    def it_can_delete_a_trendline_via_trendline_delete(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        series.add_trendline(XL_TRENDLINE_TYPE.LINEAR)
+        series.add_trendline(XL_TRENDLINE_TYPE.POWER)
+
+        series.trendlines[0].delete()
+
+        tls = series.trendlines
+        assert len(tls) == 1
+        assert tls[0].trendline_type == XL_TRENDLINE_TYPE.POWER
+
+    def it_raises_on_add_trendline_with_polynomial_order_out_of_range(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        with pytest.raises(ValueError):
+            series.add_trendline(XL_TRENDLINE_TYPE.POLYNOMIAL, order=1)
+        with pytest.raises(ValueError):
+            series.add_trendline(XL_TRENDLINE_TYPE.POLYNOMIAL, order=7)
+
+    def it_raises_on_add_trendline_with_moving_avg_period_too_small(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        with pytest.raises(ValueError):
+            series.add_trendline(XL_TRENDLINE_TYPE.MOVING_AVG, period=1)
 
     # fixtures -------------------------------------------------------
 
@@ -698,9 +765,7 @@ class DescribeErrorBars(object):
 
     def it_knows_its_value(self):
         error_bars = ErrorBars(
-            element(
-                "c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=2.5})"
-            )
+            element("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=2.5})")
         )
         assert error_bars.value == 2.5
 
@@ -721,9 +786,7 @@ class DescribeErrorBars(object):
 
     def it_can_overwrite_its_value(self):
         error_bars = ErrorBars(
-            element(
-                "c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=1})"
-            )
+            element("c:errBars/(c:errBarType{val=both},c:errValType{val=fixedVal},c:val{val=1})")
         )
 
         error_bars.value = 7.5
@@ -784,3 +847,170 @@ class DescribeErrorBars(object):
         assert type(fmt).__name__ == "ChartFormat"
         # -- same object returned twice (lazyproperty) --
         assert error_bars.format is fmt
+
+
+class DescribeTrendline(object):
+    @pytest.mark.parametrize(
+        ("trendline_cxml", "expected_type"),
+        [
+            ("c:trendline/c:trendlineType{val=linear}", XL_TRENDLINE_TYPE.LINEAR),
+            ("c:trendline/c:trendlineType{val=poly}", XL_TRENDLINE_TYPE.POLYNOMIAL),
+            ("c:trendline/c:trendlineType{val=log}", XL_TRENDLINE_TYPE.LOGARITHMIC),
+            ("c:trendline/c:trendlineType{val=power}", XL_TRENDLINE_TYPE.POWER),
+            ("c:trendline/c:trendlineType{val=exp}", XL_TRENDLINE_TYPE.EXPONENTIAL),
+            ("c:trendline/c:trendlineType{val=movingAvg}", XL_TRENDLINE_TYPE.MOVING_AVG),
+        ],
+    )
+    def it_knows_its_trendline_type(self, trendline_cxml, expected_type):
+        trendline = Trendline(element(trendline_cxml))
+        assert trendline.trendline_type == expected_type
+
+    def it_defaults_to_linear_when_trendline_type_attribute_is_missing(self):
+        # -- schema default for @val on c:trendlineType is "linear" --
+        trendline = Trendline(element("c:trendline/c:trendlineType"))
+        assert trendline.trendline_type == XL_TRENDLINE_TYPE.LINEAR
+
+    def it_can_change_its_trendline_type(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        trendline.trendline_type = XL_TRENDLINE_TYPE.POLYNOMIAL
+        assert trendline.trendline_type == XL_TRENDLINE_TYPE.POLYNOMIAL
+
+    def it_reads_order_with_schema_default_when_absent(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=poly}"))
+        assert trendline.order == 2
+
+    def it_reads_its_polynomial_order(self):
+        trendline = Trendline(element("c:trendline/(c:trendlineType{val=poly},c:order{val=4})"))
+        assert trendline.order == 4
+
+    def it_writes_its_polynomial_order(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=poly}"))
+        trendline.order = 5
+        assert trendline.order == 5
+
+    def it_raises_on_order_out_of_range(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=poly}"))
+        with pytest.raises(ValueError):
+            trendline.order = 1
+        with pytest.raises(ValueError):
+            trendline.order = 7
+
+    def it_reads_period_with_schema_default_when_absent(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=movingAvg}"))
+        assert trendline.period == 2
+
+    def it_reads_its_moving_average_period(self):
+        trendline = Trendline(
+            element("c:trendline/(c:trendlineType{val=movingAvg},c:period{val=7})")
+        )
+        assert trendline.period == 7
+
+    def it_writes_its_moving_average_period(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=movingAvg}"))
+        trendline.period = 4
+        assert trendline.period == 4
+
+    def it_raises_on_period_less_than_two(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=movingAvg}"))
+        with pytest.raises(ValueError):
+            trendline.period = 1
+
+    @pytest.mark.parametrize("prop", ["forward", "backward", "intercept"])
+    def it_returns_None_for_extrapolation_props_when_absent(self, prop):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        assert getattr(trendline, prop) is None
+
+    @pytest.mark.parametrize(
+        ("prop", "child_cxml", "expected"),
+        [
+            ("forward", "c:forward{val=2.5}", 2.5),
+            ("backward", "c:backward{val=1.0}", 1.0),
+            ("intercept", "c:intercept{val=0.75}", 0.75),
+        ],
+    )
+    def it_reads_forward_backward_and_intercept(self, prop, child_cxml, expected):
+        cxml = "c:trendline/(c:trendlineType{val=linear}," + child_cxml + ")"
+        trendline = Trendline(element(cxml))
+        assert getattr(trendline, prop) == expected
+
+    @pytest.mark.parametrize("prop", ["forward", "backward", "intercept"])
+    def it_writes_and_clears_forward_backward_and_intercept(self, prop):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        setattr(trendline, prop, 3.25)
+        assert getattr(trendline, prop) == 3.25
+        setattr(trendline, prop, None)
+        assert getattr(trendline, prop) is None
+
+    @pytest.mark.parametrize(
+        ("cxml", "expected"),
+        [
+            ("c:trendline/c:trendlineType{val=linear}", False),
+            ("c:trendline/(c:trendlineType{val=linear},c:dispEq{val=1})", True),
+            ("c:trendline/(c:trendlineType{val=linear},c:dispEq{val=0})", False),
+        ],
+    )
+    def it_reads_its_display_equation_flag(self, cxml, expected):
+        trendline = Trendline(element(cxml))
+        assert trendline.display_equation is expected
+
+    def it_writes_and_clears_display_equation(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        trendline.display_equation = True
+        assert trendline.display_equation is True
+        trendline.display_equation = False
+        assert trendline.display_equation is False
+
+    @pytest.mark.parametrize(
+        ("cxml", "expected"),
+        [
+            ("c:trendline/c:trendlineType{val=linear}", False),
+            ("c:trendline/(c:trendlineType{val=linear},c:dispRSqr{val=1})", True),
+            ("c:trendline/(c:trendlineType{val=linear},c:dispRSqr{val=0})", False),
+        ],
+    )
+    def it_reads_its_display_r_squared_flag(self, cxml, expected):
+        trendline = Trendline(element(cxml))
+        assert trendline.display_r_squared is expected
+
+    def it_writes_and_clears_display_r_squared(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        trendline.display_r_squared = True
+        assert trendline.display_r_squared is True
+        trendline.display_r_squared = False
+        assert trendline.display_r_squared is False
+
+    def it_returns_empty_string_for_name_when_absent(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        assert trendline.name == ""
+
+    def it_reads_its_name(self):
+        cxml = 'c:trendline/(c:name"My fit",c:trendlineType{val=linear})'
+        trendline = Trendline(element(cxml))
+        assert trendline.name == "My fit"
+
+    def it_writes_and_clears_its_name(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        trendline.name = "Linear fit"
+        assert trendline.name == "Linear fit"
+        trendline.name = None
+        assert trendline.name == ""
+
+    def it_provides_access_to_its_format(self):
+        trendline = Trendline(element("c:trendline/c:trendlineType{val=linear}"))
+        fmt = trendline.format
+        assert type(fmt).__name__ == "ChartFormat"
+        # -- same object returned twice (lazyproperty) --
+        assert trendline.format is fmt
+
+    def it_can_be_deleted_from_its_parent(self):
+        ser_cxml = (
+            "c:ser/(c:idx{val=0},c:order{val=0}"
+            ",c:trendline/c:trendlineType{val=linear}"
+            ",c:trendline/c:trendlineType{val=poly})"
+        )
+        ser = element(ser_cxml)
+        series = _BaseSeries(ser)
+        series.trendlines[0].delete()
+        remaining = series.trendlines
+        assert len(remaining) == 1
+        assert remaining[0].trendline_type == XL_TRENDLINE_TYPE.POLYNOMIAL

@@ -404,6 +404,8 @@ rst_epilog = """
 
 .. |Transition| replace:: :class:`.Transition`
 
+.. |Trendline| replace:: :class:`.Trendline`
+
 .. |True| replace:: :class:`True`
 
 .. |TypeError| replace:: :exc:`TypeError`
@@ -425,6 +427,8 @@ rst_epilog = """
 .. |XL_ERROR_BAR_INCLUDE| replace:: :class:`.XL_ERROR_BAR_INCLUDE`
 
 .. |XL_ERROR_BAR_TYPE| replace:: :class:`.XL_ERROR_BAR_TYPE`
+
+.. |XL_TRENDLINE_TYPE| replace:: :class:`.XL_TRENDLINE_TYPE`
 
 .. |XyChartData| replace:: :class:`.XyChartData`
 

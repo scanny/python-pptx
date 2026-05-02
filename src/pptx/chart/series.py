@@ -12,9 +12,11 @@ from pptx.enum.chart import (
     XL_ERROR_BAR_DIRECTION,
     XL_ERROR_BAR_INCLUDE,
     XL_ERROR_BAR_TYPE,
+    XL_TRENDLINE_TYPE,
 )
-from pptx.oxml.chart.series import CT_ErrBars
+from pptx.oxml.chart.series import CT_ErrBars, CT_Trendline
 from pptx.oxml.ns import qn
+from pptx.oxml.simpletypes import ST_TrendlineOrder, ST_TrendlinePeriod
 from pptx.util import lazyproperty
 
 
@@ -160,6 +162,236 @@ def _new_errBars(direction, include, type_, value):
     )
 
 
+class Trendline(object):
+    """Proxy wrapping a ``c:trendline`` element on a chart series.
+
+    A trendline overlays a fitted curve — linear regression, logarithmic,
+    polynomial, power, exponential, or a moving-average — on the data points
+    of a chart series. A series may carry any number of trendlines, each
+    drawn as its own line on the plot.
+
+    Instances are constructed by :meth:`_BaseSeries.add_trendline` and
+    enumerated via :attr:`_BaseSeries.trendlines`. Assigning properties on
+    this object updates the underlying XML in place; to delete the
+    trendline, call :meth:`delete`.
+    """
+
+    def __init__(self, trendline):
+        super(Trendline, self).__init__()
+        self._element = trendline
+        self._trendline = trendline
+
+    @property
+    def trendline_type(self):
+        """Read/write |XL_TRENDLINE_TYPE| member.
+
+        Specifies the regression type — one of :attr:`LINEAR`, :attr:`LOGARITHMIC`,
+        :attr:`POLYNOMIAL`, :attr:`POWER`, :attr:`EXPONENTIAL`, or :attr:`MOVING_AVG`.
+        Defaults to :attr:`XL_TRENDLINE_TYPE.LINEAR` when the underlying
+        ``c:trendlineType`` attribute is omitted (per the schema default).
+        """
+        trendlineType = self._trendline.trendlineType
+        return trendlineType.val
+
+    @trendline_type.setter
+    def trendline_type(self, value):
+        self._trendline.trendlineType.val = value
+
+    @property
+    def order(self):
+        """Read/write int in range 2..6 specifying the polynomial order.
+
+        Only meaningful when :attr:`trendline_type` is
+        :attr:`XL_TRENDLINE_TYPE.POLYNOMIAL`. Returns the schema default (2)
+        when the ``c:order`` child is absent.
+        """
+        order = self._trendline.order
+        if order is None:
+            return 2
+        return order.val
+
+    @order.setter
+    def order(self, value):
+        ST_TrendlineOrder.validate(value)
+        self._trendline.get_or_add_order().val = value
+
+    @property
+    def period(self):
+        """Read/write int >= 2 specifying the moving-average window size.
+
+        Only meaningful when :attr:`trendline_type` is
+        :attr:`XL_TRENDLINE_TYPE.MOVING_AVG`. Returns the schema default (2)
+        when the ``c:period`` child is absent.
+        """
+        period = self._trendline.period
+        if period is None:
+            return 2
+        return period.val
+
+    @period.setter
+    def period(self, value):
+        ST_TrendlinePeriod.validate(value)
+        self._trendline.get_or_add_period().val = value
+
+    @property
+    def forward(self):
+        """Read/write float specifying categories to extend past the data.
+
+        How many category units the fitted curve extends *beyond* the last
+        data point (extrapolation). |None| when no ``c:forward`` child is
+        present (PowerPoint treats this as zero).
+        """
+        forward = self._trendline.forward
+        if forward is None:
+            return None
+        return forward.val
+
+    @forward.setter
+    def forward(self, value):
+        if value is None:
+            self._trendline._remove_forward()
+            return
+        self._trendline.get_or_add_forward().val = float(value)
+
+    @property
+    def backward(self):
+        """Read/write float specifying categories to extend before the data.
+
+        How many category units the fitted curve extends *before* the first
+        data point (back-extrapolation). |None| when no ``c:backward`` child
+        is present.
+        """
+        backward = self._trendline.backward
+        if backward is None:
+            return None
+        return backward.val
+
+    @backward.setter
+    def backward(self, value):
+        if value is None:
+            self._trendline._remove_backward()
+            return
+        self._trendline.get_or_add_backward().val = float(value)
+
+    @property
+    def intercept(self):
+        """Read/write float forcing the curve through a specific y-intercept.
+
+        |None| when no ``c:intercept`` child is present — PowerPoint then
+        lets the regression solve for its own intercept.
+        """
+        intercept = self._trendline.intercept
+        if intercept is None:
+            return None
+        return intercept.val
+
+    @intercept.setter
+    def intercept(self, value):
+        if value is None:
+            self._trendline._remove_intercept()
+            return
+        self._trendline.get_or_add_intercept().val = float(value)
+
+    @property
+    def display_equation(self):
+        """Read/write bool: draw the fitted equation on the chart.
+
+        Maps ``c:dispEq``. Defaults to |False| when the element is absent.
+        """
+        dispEq = self._trendline.dispEq
+        if dispEq is None:
+            return False
+        return bool(dispEq.val)
+
+    @display_equation.setter
+    def display_equation(self, value):
+        if not value:
+            self._trendline._remove_dispEq()
+            return
+        self._trendline.get_or_add_dispEq().val = True
+
+    @property
+    def display_r_squared(self):
+        """Read/write bool: draw the fit's R-squared value on the chart.
+
+        Maps ``c:dispRSqr``. Defaults to |False| when the element is absent.
+        """
+        dispRSqr = self._trendline.dispRSqr
+        if dispRSqr is None:
+            return False
+        return bool(dispRSqr.val)
+
+    @display_r_squared.setter
+    def display_r_squared(self, value):
+        if not value:
+            self._trendline._remove_dispRSqr()
+            return
+        self._trendline.get_or_add_dispRSqr().val = True
+
+    @property
+    def name(self):
+        """Read/write string: the user-visible label for this trendline.
+
+        Maps ``c:name``. Returns an empty string when the element is absent —
+        PowerPoint then synthesizes a default label (e.g. "Linear (Series1)").
+        """
+        name = self._trendline.name
+        if name is None:
+            return ""
+        return name.text or ""
+
+    @name.setter
+    def name(self, value):
+        if value is None or value == "":
+            self._trendline._remove_name()
+            return
+        name = self._trendline.get_or_add_name()
+        name.text = str(value)
+
+    @lazyproperty
+    def format(self):
+        """The |ChartFormat| object providing line/fill properties for this trendline."""
+        return ChartFormat(self._trendline)
+
+    def delete(self):
+        """Remove this ``c:trendline`` from its parent series."""
+        parent = self._trendline.getparent()
+        if parent is not None:
+            parent.remove(self._trendline)
+
+
+def _new_trendline(
+    trendline_type,
+    order,
+    period,
+    forward,
+    backward,
+    intercept,
+    display_equation,
+    display_r_squared,
+):
+    """Return a freshly-constructed ``c:trendline`` element from Python-API values.
+
+    `trendline_type` is an |XL_TRENDLINE_TYPE| member.
+    The other parameters mirror the keyword arguments of
+    :meth:`_BaseSeries.add_trendline`.
+    """
+    if order is not None:
+        ST_TrendlineOrder.validate(order)
+    if period is not None:
+        ST_TrendlinePeriod.validate(period)
+    return CT_Trendline.new_trendline(
+        trendline_type=trendline_type.xml_value,
+        order=order,
+        period=period,
+        forward=forward,
+        backward=backward,
+        intercept=intercept,
+        display_equation=bool(display_equation),
+        display_r_squared=bool(display_r_squared),
+    )
+
+
 class _BaseSeries(object):
     """
     Base class for |BarSeries| and other series classes.
@@ -268,6 +500,64 @@ class _BaseSeries(object):
         names = self._element.xpath("./c:tx//c:pt/c:v/text()")
         name = names[0] if names else ""
         return name
+
+    @property
+    def trendlines(self):
+        """List of |Trendline| objects currently attached to this series.
+
+        Returns a fresh list on each access (mutations to the list itself are
+        harmless — to remove a trendline use :meth:`Trendline.delete`). The
+        list is empty when the series has no ``c:trendline`` children.
+        """
+        return [Trendline(tl) for tl in self._ser.trendline_lst]
+
+    def add_trendline(
+        self,
+        trendline_type=XL_TRENDLINE_TYPE.LINEAR,
+        order=None,
+        period=None,
+        forward=None,
+        backward=None,
+        intercept=None,
+        display_equation=False,
+        display_r_squared=False,
+    ):
+        """Attach a freshly-configured |Trendline| to this series and return it.
+
+        `trendline_type` is an |XL_TRENDLINE_TYPE| member selecting the curve
+        shape — LINEAR, LOGARITHMIC, POLYNOMIAL, POWER, EXPONENTIAL, or
+        MOVING_AVG.
+
+        `order` is the polynomial order (2..6). Required-for-effect when
+        `trendline_type` is :attr:`POLYNOMIAL`; ignored (but accepted) by
+        other types.
+
+        `period` is the moving-average window size (>= 2). Required-for-effect
+        when `trendline_type` is :attr:`MOVING_AVG`; ignored otherwise.
+
+        `forward` / `backward` are category units to extend the fitted curve
+        past / before the data points (extrapolation). Pass |None| (default)
+        to omit the corresponding XML child, which PowerPoint treats as zero.
+
+        `intercept` is a float forcing the curve through a specific y-value;
+        |None| lets the regression solve for its own intercept.
+
+        `display_equation` / `display_r_squared` control whether the fitted
+        equation / R-squared are drawn on the chart as a label next to the
+        trendline.
+        """
+        trendline = _new_trendline(
+            trendline_type,
+            order,
+            period,
+            forward,
+            backward,
+            intercept,
+            display_equation,
+            display_r_squared,
+        )
+        self._ser._insert_trendline(trendline)
+        return Trendline(trendline)
 
 
 class _BaseCategorySeries(_BaseSeries):

@@ -57,6 +57,8 @@ Feature Support
 * Inspect chart user-shape annotations (``c:userShapes`` — arrows, call-outs, text boxes
   drawn on top of a chart) via :attr:`~pptx.chart.chart.Chart.user_shapes`; read-only MVP,
   authoring deferred
+* Attach trendlines to chart series (linear / logarithmic / polynomial /
+  power / exponential / moving-average) with on-chart equation and R² display
 * Access and change core document properties such as title and subject
 * Toggle header / footer / slide-number / date placeholder visibility on a slide
   master or layout, and insert auto-refresh slide-number or date fields in a

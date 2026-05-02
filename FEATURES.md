@@ -737,6 +737,8 @@ author-set `formatCode`, `Chart.replace_data_preserve_formulas()`,
 `Chart.update_cached_values()`, `ChartTitle.position`, `Axis.major_unit` /
 `.minor_unit` for date axes, `DataLabel.format` and `DataLabels.format`
 `ChartFormat` wrappers (border, fill, shadow on data labels), error bars,
+trendlines (linear / log / polynomial / power / exponential / moving-average
+with optional on-chart equation & R^2 display),
 theme accent-color cycling on cloned series, the `UNSUPPORTED_CHARTEX`
 sentinel that preserves unknown `cx:` charts on round-trip, and
 extended-chart-style IDs (1–48 plain plus 49–255 via `c14:style`).
@@ -828,6 +830,7 @@ prs.save("out.pptx")
 - `DateAxis.major_unit` / `.minor_unit` — Time-axis spacing. `[Added in 1.0.2.dev0]`
 - `Series.values` / `Series.categories` / `Series.name` / `Series.format` / `Series.marker` / `Series.points`.
 - `Series.has_error_bars` / `Series.error_bars` / `Series.set_error_bars(type, amount, include, direction)` — Error bars (fixed value / percentage / std deviation / std error). `[Added in 1.0.2.dev0]`
+- `Series.trendlines` / `Series.add_trendline(trendline_type, order, period, forward, backward, intercept, display_equation, display_r_squared)` / `Trendline.delete()` — Fitted-curve overlays on a series: linear / logarithmic / polynomial (order 2..6) / power / exponential / moving-average. Each trendline exposes `.trendline_type`, `.order`, `.period`, `.forward`, `.backward`, `.intercept`, `.display_equation`, `.display_r_squared`, `.name`, and `.format` (a `ChartFormat` for fill / line / shadow). `[Added in 1.0.2.dev0]`
 - `Point.format` / `Point.marker` / `Point.data_label` / `Point.invert_if_negative` — Per-point formatting.
 - `DataLabel.text_frame` / `DataLabel.font` / `DataLabel.position` / `DataLabel.show_*`.
 - `DataLabel.format` — `ChartFormat` wrapping this single `c:dLbl` with `.fill` / `.line` / `.shadow`. `[Added in 1.0.2.dev0]`
@@ -836,6 +839,7 @@ prs.save("out.pptx")
 - `ChartFormat.fill` / `ChartFormat.line` / `ChartFormat.shadow` — Format block for a chart element. `shadow` is `[Added in 1.0.2.dev0]`.
 - `pptx.enum.chart.XL_CHART_TYPE` — Full chart-type enum including 2D, 3D, XY, bubble, radar, doughnut, area, and a chartex passthrough sentinel (`UNSUPPORTED_CHARTEX`) for unknown `cx:` types `[Added in 1.0.2.dev0]`.
 - `pptx.enum.chart.XL_ERROR_BAR_TYPE` / `XL_ERROR_BAR_INCLUDE` / `XL_ERROR_BAR_DIRECTION` — Error-bar configuration. `[Added in 1.0.2.dev0]`
+- `pptx.enum.chart.XL_TRENDLINE_TYPE` — Trendline regression type (LINEAR, LOGARITHMIC, POLYNOMIAL, POWER, EXPONENTIAL, MOVING_AVG). `[Added in 1.0.2.dev0]`
 - `pptx.chart.data.CategoryChartData` / `XyChartData` / `BubbleChartData` — Chart-data builders.
 
 ---

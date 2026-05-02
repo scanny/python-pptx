@@ -49,5 +49,6 @@ can be found here:
    XlMarkerStyle
    XlTickLabelPosition
    XlTickMark
+   XlTrendlineType
 
    ExcelNumFormat

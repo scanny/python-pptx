@@ -6,6 +6,20 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #299 Add chart-series trendlines. ``Series.add_trendline(type,
+  ...)`` attaches a fitted-curve overlay (linear, logarithmic, polynomial
+  of order 2–6, power, exponential, or moving-average) to a chart series
+  and returns a :class:`~pptx.chart.series.Trendline` proxy;
+  ``Series.trendlines`` enumerates any existing trendlines and
+  ``Trendline.delete()`` removes one. Each trendline exposes
+  ``trendline_type``, ``order`` (polynomial), ``period``
+  (moving-average), ``forward`` / ``backward`` extrapolation, custom
+  ``intercept``, ``display_equation`` / ``display_r_squared`` on-chart
+  annotation flags, a user-visible ``name``, and a
+  :class:`~pptx.dml.chtfmt.ChartFormat` ``format`` handle. New enum
+  :class:`pptx.enum.chart.XL_TRENDLINE_TYPE` carries the six regression
+  types and round-trips ``c:trendlineType/@val``.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and

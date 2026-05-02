@@ -6,6 +6,7 @@ from pptx.enum.chart import (
     XL_ERROR_BAR_DIRECTION,
     XL_ERROR_BAR_INCLUDE,
     XL_ERROR_BAR_TYPE,
+    XL_TRENDLINE_TYPE,
 )
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.datalabel import CT_DLbls
@@ -196,6 +197,100 @@ class CT_ErrBars(BaseOxmlElement):
         return parse_xml("\n".join(parts))
 
 
+class CT_TrendlineType(BaseOxmlElement):
+    """`c:trendlineType` element specifying a trendline's regression type.
+
+    Child of `c:trendline`. Attribute `val` is one of "exp", "linear", "log",
+    "movingAvg", "poly", "power" (default "linear").
+    """
+
+    val = OptionalAttribute(
+        "val", XL_TRENDLINE_TYPE, default=XL_TRENDLINE_TYPE.LINEAR
+    )  # pyright: ignore[reportAssignmentType]
+
+
+class CT_Trendline(BaseOxmlElement):
+    """`c:trendline` element describing a regression/moving-average overlay for a series.
+
+    A series may have zero or more `c:trendline` children (one per fitted curve
+    the user wants drawn on the chart). The element carries a required
+    `c:trendlineType` child plus several optional children that customize the
+    fit (`c:order`, `c:period`, `c:forward`, `c:backward`, `c:intercept`) and
+    its on-chart annotation (`c:dispEq`, `c:dispRSqr`).
+    """
+
+    _tag_seq = (
+        "c:name",
+        "c:spPr",
+        "c:trendlineType",
+        "c:order",
+        "c:period",
+        "c:forward",
+        "c:backward",
+        "c:intercept",
+        "c:dispRSqr",
+        "c:dispEq",
+        "c:trendlineLbl",
+        "c:extLst",
+    )
+    name = ZeroOrOne("c:name", successors=_tag_seq[1:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[2:])
+    trendlineType = OneAndOnlyOne("c:trendlineType")
+    order = ZeroOrOne("c:order", successors=_tag_seq[4:])
+    period = ZeroOrOne("c:period", successors=_tag_seq[5:])
+    forward = ZeroOrOne("c:forward", successors=_tag_seq[6:])
+    backward = ZeroOrOne("c:backward", successors=_tag_seq[7:])
+    intercept = ZeroOrOne("c:intercept", successors=_tag_seq[8:])
+    dispRSqr = ZeroOrOne("c:dispRSqr", successors=_tag_seq[9:])
+    dispEq = ZeroOrOne("c:dispEq", successors=_tag_seq[10:])
+    del _tag_seq
+
+    @classmethod
+    def new_trendline(
+        cls,
+        trendline_type="linear",
+        order=None,
+        period=None,
+        forward=None,
+        backward=None,
+        intercept=None,
+        display_equation=False,
+        display_r_squared=False,
+    ):
+        """Return a newly-created `c:trendline` element with common defaults filled in.
+
+        `trendline_type` is the OOXML string for `c:trendlineType/@val`
+        ("linear", "log", "poly", "power", "movingAvg", or "exp").
+        `order` sets `c:order/@val` for polynomial trendlines (2..6).
+        `period` sets `c:period/@val` for moving-average trendlines (>= 2).
+        `forward` / `backward` extend the fitted curve that many category units
+        beyond the last / before the first data point; floats, emitted only when
+        not |None|.
+        `intercept` forces the curve through a specific y-intercept; float,
+        emitted only when not |None|.
+        `display_equation` / `display_r_squared` control whether the fitted
+        equation / R-squared value is drawn on the chart as a label.
+        """
+        parts = ["<c:trendline %s>" % nsdecls("c")]
+        parts.append('  <c:trendlineType val="%s"/>' % trendline_type)
+        if order is not None:
+            parts.append('  <c:order val="%d"/>' % int(order))
+        if period is not None:
+            parts.append('  <c:period val="%d"/>' % int(period))
+        if forward is not None:
+            parts.append('  <c:forward val="%s"/>' % float(forward))
+        if backward is not None:
+            parts.append('  <c:backward val="%s"/>' % float(backward))
+        if intercept is not None:
+            parts.append('  <c:intercept val="%s"/>' % float(intercept))
+        if display_r_squared:
+            parts.append('  <c:dispRSqr val="1"/>')
+        if display_equation:
+            parts.append('  <c:dispEq val="1"/>')
+        parts.append("</c:trendline>")
+        return parse_xml("\n".join(parts))
+
+
 class CT_SeriesComposite(BaseOxmlElement):
     """
     ``<c:ser>`` custom element class. Note there are several different series
@@ -236,6 +331,7 @@ class CT_SeriesComposite(BaseOxmlElement):
     marker = ZeroOrOne("c:marker", successors=_tag_seq[7:])
     dPt = ZeroOrMore("c:dPt", successors=_tag_seq[9:])
     dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[10:])
+    trendline = ZeroOrMore("c:trendline", successors=_tag_seq[11:])
     errBars = ZeroOrOne("c:errBars", successors=_tag_seq[12:])
     cat = ZeroOrOne("c:cat", successors=_tag_seq[13:])
     val = ZeroOrOne("c:val", successors=_tag_seq[14:])

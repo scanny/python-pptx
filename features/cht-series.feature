@@ -171,3 +171,45 @@ Feature: Chart series
       And series has fixed-value error bars attached
      When I assign None to series.error_bars
      Then series.has_error_bars is False
+
+
+  Scenario: series.trendlines starts empty on a vanilla series
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     Then series.trendlines is an empty list
+
+
+  Scenario: series.add_trendline attaches a linear trendline with display flags
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I call series.add_trendline with type LINEAR and display equation on
+     Then series.trendlines has length 1
+      And series.trendlines[0].trendline_type is LINEAR
+      And series.trendlines[0].display_equation is True
+      And series.trendlines[0].display_r_squared is False
+
+
+  Scenario: series.add_trendline attaches a polynomial trendline with order 3
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I call series.add_trendline with type POLYNOMIAL and order 3
+     Then series.trendlines[0].trendline_type is POLYNOMIAL
+      And series.trendlines[0].order is 3
+
+
+  Scenario: series.add_trendline attaches a moving-average trendline
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I call series.add_trendline with type MOVING_AVG and period 4
+     Then series.trendlines[0].trendline_type is MOVING_AVG
+      And series.trendlines[0].period is 4
+
+
+  Scenario: series accepts multiple trendlines
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I call series.add_trendline with type LINEAR and display equation on
+      And I call series.add_trendline with type POLYNOMIAL and order 3
+     Then series.trendlines has length 2
+
+
+  Scenario: Trendline.delete() removes a trendline from its series
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+      And series has a linear trendline attached
+     When I call delete() on series.trendlines[0]
+     Then series.trendlines is an empty list
