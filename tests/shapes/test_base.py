@@ -147,6 +147,38 @@ class DescribeBaseShape(object):
         ShadowFormat_.assert_called_once_with(spPr)
         assert shadow is shadow_
 
+    def it_exposes_the_full_ShadowFormat_api_through_shape_shadow(self):
+        """Issue #130: Shape.shadow exposes full blur/distance/direction/color API.
+
+        This regression test exercises the real |ShadowFormat| (no mock) so a regression
+        that removes, renames, or gates any of the four outer-shadow properties behind the
+        skeletal `.inherit` bool is caught immediately.
+        """
+        from pptx.dml.color import ColorFormat
+        from pptx.util import Emu
+
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shadow = shape.shadow
+
+        # -- baseline: nothing configured, all four properties are None / inherit=True --
+        assert shadow.inherit is True
+        assert shadow.blur_radius is None
+        assert shadow.distance is None
+        assert shadow.direction is None
+
+        # -- each property round-trips independently --
+        shadow.blur_radius = Emu(50800)
+        shadow.distance = Emu(38100)
+        shadow.direction = 270.0
+
+        assert shadow.blur_radius == Emu(50800)
+        assert shadow.distance == Emu(38100)
+        assert shadow.direction == 270.0
+        # -- inherit now reports False, since an explicit a:effectLst exists --
+        assert shadow.inherit is False
+        # -- first access to `.color` materializes a default color-choice child --
+        assert isinstance(shadow.color, ColorFormat)
+
     def it_knows_the_part_it_belongs_to(self, part_fixture):
         shape, parent_ = part_fixture
         part = shape.part

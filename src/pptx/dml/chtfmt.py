@@ -6,6 +6,7 @@ line and fill for chart elements.
 
 from __future__ import annotations
 
+from pptx.dml.effect import ShadowFormat
 from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
 from pptx.shared import ElementProxy
@@ -38,3 +39,16 @@ class ChartFormat(ElementProxy):
         """
         spPr = self._element.get_or_add_spPr()
         return LineFormat(spPr)
+
+    @lazyproperty
+    def shadow(self) -> ShadowFormat:
+        """|ShadowFormat| instance providing access to outer-shadow settings.
+
+        The returned object exposes the full :class:`~pptx.dml.effect.ShadowFormat` API
+        (``inherit``, ``blur_radius``, ``distance``, ``direction``, ``color``) on this
+        chart element's ``c:spPr/a:effectLst/a:outerShdw``. A |ShadowFormat| object is
+        always returned, even when no shadow is explicitly defined on this chart element
+        (i.e. it inherits its shadow behavior from the theme/style hierarchy).
+        """
+        spPr = self._element.get_or_add_spPr()
+        return ShadowFormat(spPr)

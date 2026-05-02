@@ -32,6 +32,16 @@ def when_I_assign_value_to_shadow_blur_radius(context, value):
     context.shadow.blur_radius = int(value)
 
 
+@when("I assign {value} to shadow.distance")
+def when_I_assign_value_to_shadow_distance(context, value):
+    context.shadow.distance = int(value)
+
+
+@when("I assign {value} to shadow.direction")
+def when_I_assign_value_to_shadow_direction(context, value):
+    context.shadow.direction = float(value)
+
+
 # then =====================================================
 
 
@@ -47,6 +57,28 @@ def then_shadow_blur_radius_is(context, value):
     expected_value = int(value)
     actual_value = context.shadow.blur_radius
     assert actual_value == expected_value, "shadow.blur_radius is %s" % actual_value
+
+
+@then("shadow.distance is {value}")
+def then_shadow_distance_is(context, value):
+    expected_value = int(value)
+    actual_value = context.shadow.distance
+    assert actual_value == expected_value, "shadow.distance is %s" % actual_value
+
+
+@then("shadow.direction is {value}")
+def then_shadow_direction_is(context, value):
+    expected_value = float(value)
+    actual_value = context.shadow.direction
+    assert actual_value == expected_value, "shadow.direction is %s" % actual_value
+
+
+@then("shadow.color is a ColorFormat object")
+def then_shadow_color_is_a_ColorFormat_object(context):
+    from pptx.dml.color import ColorFormat
+
+    color = context.shadow.color
+    assert isinstance(color, ColorFormat), "shadow.color is %s" % type(color).__name__
 
 
 @then("the {effect} effect on that shape inherits")

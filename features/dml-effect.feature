@@ -50,3 +50,14 @@ Feature: ShadowFormat
     Given a ShadowFormat object that inherits as shadow
      When I assign False to shadow.inherit
      Then the sibling a:effectRef has idx "0"
+
+
+  Scenario: Shape.shadow exposes the full outer-shadow property set (#130)
+    Given a ShadowFormat object that inherits as shadow
+     When I assign 50800 to shadow.blur_radius
+      And I assign 38100 to shadow.distance
+      And I assign 270.0 to shadow.direction
+     Then shadow.blur_radius is 50800
+      And shadow.distance is 38100
+      And shadow.direction is 270.0
+      And shadow.color is a ColorFormat object
