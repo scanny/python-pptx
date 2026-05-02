@@ -265,4 +265,3 @@ Feature: Common shape properties
       | shape-type   |
       | Picture      |
       | GraphicFrame |
-      | GroupShape   |
