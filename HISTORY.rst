@@ -44,6 +44,23 @@ Unreleased
   elements (one per slice, ``c:idx`` matching position, ``c:spPr``
   carrying the fill), round-trips through save + reopen, and also
   covers per-slice line color via ``points[i].format.line``.
+- verify: #571 (number_format for category axis tick labels) resolved by
+  pre-existing infrastructure. ``CategoryAxis.tick_labels.number_format``
+  already writes ``c:catAx/c:numFmt/@formatCode`` (and sets
+  ``@sourceLinked="0"``) via the shared ``_BaseAxis.tick_labels`` /
+  ``TickLabels`` plumbing, because ``CT_CatAx._tag_seq`` has always
+  included ``c:numFmt`` as a valid child. The #571 reporter's confusion
+  was over PowerPoint's rendering: category-axis tick labels are plain
+  strings (the category names), so a numeric ``formatCode`` has no
+  visible effect unless the categories are themselves numeric (in which
+  case PowerPoint treats the axis as a date / numeric scale). Adds a
+  regression suite ``DescribeIssue571CategoryAxisNumberFormat`` under
+  ``tests/test_issue_571_catax_number_format.py`` that pins the get /
+  set / ``sourceLinked`` semantics and round-trips the assignment
+  through ``Presentation.save`` + reopen so any future change that
+  drops ``c:numFmt`` from ``CT_CatAx`` or decouples
+  ``CategoryAxis.tick_labels`` from the shared ``TickLabels`` plumbing
+  will be caught here.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
