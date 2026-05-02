@@ -131,6 +131,35 @@ Feature: Change appearance of font used to render text
      Then the font name matches the typeface I set
 
 
+  Scenario: Set Font.name_ea for East-Asian text
+    Given a font
+     When I assign an East-Asian typeface name to the font
+     Then the East-Asian font name matches the typeface I set
+      And the Latin font name is unchanged
+
+
+  Scenario: Set Font.name_cs for complex-script text
+    Given a font
+     When I assign a complex-script typeface name to the font
+     Then the complex-script font name matches the typeface I set
+      And the Latin font name is unchanged
+
+
+  Scenario: Set all three font slots independently
+    Given a font
+     When I assign Latin, East-Asian, and complex-script typeface names to the font
+     Then font.name, font.name_ea, and font.name_cs each match the value I set
+
+
+  Scenario: Clear Font.name_ea and Font.name_cs by assigning None
+    Given a font with Latin, East-Asian, and complex-script typefaces set
+     When I assign None to font.name_ea
+      And I assign None to font.name_cs
+     Then font.name_ea is None
+      And font.name_cs is None
+      And the Latin font name is unchanged
+
+
   Scenario: Add hyperlink
     Given a text run
      When I set the hyperlink address

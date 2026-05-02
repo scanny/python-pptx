@@ -355,11 +355,15 @@ class Font(object):
 
     @property
     def name(self) -> str | None:
-        """Get or set the typeface name for this |Font| instance.
+        """Get or set the Latin-script typeface name for this |Font| instance.
 
-        Causes the text it controls to appear in the named font, if a matching font is found.
-        Returns |None| if the typeface is currently inherited from the theme. Setting it to |None|
-        removes any override of the theme typeface.
+        Causes Latin-script text it controls to appear in the named font, if a matching font is
+        found. Corresponds to the ``a:latin`` child of the run-properties element. Returns |None|
+        if the typeface is currently inherited from the theme. Setting it to |None| removes any
+        override of the theme typeface.
+
+        To set the typeface used for East-Asian (CJK) text, use :attr:`name_ea`. To set the
+        typeface used for complex-script text (e.g. Arabic, Hebrew, Thai), use :attr:`name_cs`.
         """
         latin = self._rPr.latin
         if latin is None:
@@ -373,6 +377,51 @@ class Font(object):
         else:
             latin = self._rPr.get_or_add_latin()
             latin.typeface = value
+
+    @property
+    def name_ea(self) -> str | None:
+        """Get or set the East-Asian typeface name for this |Font| instance.
+
+        Corresponds to the ``a:ea`` child of the run-properties element and controls how
+        East-Asian (CJK -- Chinese, Japanese, Korean) characters in the run are rendered.
+        Returns |None| when no explicit setting is present; in that case the effective typeface
+        is inherited from the theme or style hierarchy. Assigning |None| removes any override.
+        """
+        ea = self._rPr.ea
+        if ea is None:
+            return None
+        return ea.typeface
+
+    @name_ea.setter
+    def name_ea(self, value: str | None):
+        if value is None:
+            self._rPr._remove_ea()  # pyright: ignore[reportPrivateUsage]
+        else:
+            ea = self._rPr.get_or_add_ea()
+            ea.typeface = value
+
+    @property
+    def name_cs(self) -> str | None:
+        """Get or set the complex-script typeface name for this |Font| instance.
+
+        Corresponds to the ``a:cs`` child of the run-properties element and controls how
+        complex-script characters (e.g. Arabic, Hebrew, Thai, Devanagari) in the run are
+        rendered. Returns |None| when no explicit setting is present; in that case the effective
+        typeface is inherited from the theme or style hierarchy. Assigning |None| removes any
+        override.
+        """
+        cs = self._rPr.cs
+        if cs is None:
+            return None
+        return cs.typeface
+
+    @name_cs.setter
+    def name_cs(self, value: str | None):
+        if value is None:
+            self._rPr._remove_cs()  # pyright: ignore[reportPrivateUsage]
+        else:
+            cs = self._rPr.get_or_add_cs()
+            cs.typeface = value
 
     @property
     def size(self) -> Length | None:

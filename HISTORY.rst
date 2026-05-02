@@ -92,6 +92,7 @@ Unreleased
   at the pre-rasterize workaround. Previously, an opaque
   ``PIL.UnidentifiedImageError`` bubbled up from Pillow. See the new
   "Inserting SVG images" section of the user guide.
+- #337 support East-Asian and complex-script font slots
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

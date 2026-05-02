@@ -532,6 +532,48 @@ class DescribeFont(object):
         font.name = new_value
         assert font._element.xml == expected_xml
 
+    def it_knows_its_east_asian_typeface(self, name_ea_get_fixture):
+        font, expected_value = name_ea_get_fixture
+        assert font.name_ea == expected_value
+
+    def it_can_change_its_east_asian_typeface(self, name_ea_set_fixture):
+        font, new_value, expected_xml = name_ea_set_fixture
+        font.name_ea = new_value
+        assert font._element.xml == expected_xml
+
+    def it_knows_its_complex_script_typeface(self, name_cs_get_fixture):
+        font, expected_value = name_cs_get_fixture
+        assert font.name_cs == expected_value
+
+    def it_can_change_its_complex_script_typeface(self, name_cs_set_fixture):
+        font, new_value, expected_xml = name_cs_set_fixture
+        font.name_cs = new_value
+        assert font._element.xml == expected_xml
+
+    def it_preserves_other_font_slots_when_assigning_name(self):
+        cxml = "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic},a:cs{typeface=Arial})"
+        font = Font(element(cxml))
+        font.name = "Times New Roman"
+        assert font.name == "Times New Roman"
+        assert font.name_ea == "MS Gothic"
+        assert font.name_cs == "Arial"
+
+    def it_preserves_other_font_slots_when_assigning_name_ea(self):
+        cxml = "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic},a:cs{typeface=Arial})"
+        font = Font(element(cxml))
+        font.name_ea = "SimSun"
+        assert font.name == "Calibri"
+        assert font.name_ea == "SimSun"
+        assert font.name_cs == "Arial"
+
+    def it_preserves_other_font_slots_when_assigning_name_cs(self):
+        cxml = "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic},a:cs{typeface=Arial})"
+        font = Font(element(cxml))
+        font.name_cs = "Mangal"
+        assert font.name == "Calibri"
+        assert font.name_ea == "MS Gothic"
+        assert font.name_cs == "Mangal"
+
     def it_provides_access_to_its_color(self, font):
         assert isinstance(font.color, ColorFormat)
 
@@ -625,6 +667,76 @@ class DescribeFont(object):
         ]
     )
     def name_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", None),
+            ("a:rPr/a:ea{typeface=MS Gothic}", "MS Gothic"),
+            ("a:rPr/a:ea{typeface=SimSun}", "SimSun"),
+        ]
+    )
+    def name_ea_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", "MS Gothic", "a:rPr/a:ea{typeface=MS Gothic}"),
+            (
+                "a:rPr/a:ea{typeface=MS Gothic}",
+                "SimSun",
+                "a:rPr/a:ea{typeface=SimSun}",
+            ),
+            ("a:rPr/a:ea{typeface=SimSun}", None, "a:rPr"),
+            # -- ea slot is inserted after latin in document order --
+            (
+                "a:rPr/a:latin{typeface=Calibri}",
+                "MS Gothic",
+                "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic})",
+            ),
+        ]
+    )
+    def name_ea_set_fixture(self, request):
+        rPr_cxml, new_value, expected_rPr_cxml = request.param
+        font = Font(element(rPr_cxml))
+        expected_xml = xml(expected_rPr_cxml)
+        return font, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", None),
+            ("a:rPr/a:cs{typeface=Arial}", "Arial"),
+            ("a:rPr/a:cs{typeface=Mangal}", "Mangal"),
+        ]
+    )
+    def name_cs_get_fixture(self, request):
+        rPr_cxml, expected_value = request.param
+        font = Font(element(rPr_cxml))
+        return font, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("a:rPr", "Arial", "a:rPr/a:cs{typeface=Arial}"),
+            (
+                "a:rPr/a:cs{typeface=Arial}",
+                "Mangal",
+                "a:rPr/a:cs{typeface=Mangal}",
+            ),
+            ("a:rPr/a:cs{typeface=Mangal}", None, "a:rPr"),
+            # -- cs slot is inserted after latin and ea in document order --
+            (
+                "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic})",
+                "Arial",
+                "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic},a:cs{typeface=Arial})",
+            ),
+        ]
+    )
+    def name_cs_set_fixture(self, request):
         rPr_cxml, new_value, expected_rPr_cxml = request.param
         font = Font(element(rPr_cxml))
         expected_xml = xml(expected_rPr_cxml)
