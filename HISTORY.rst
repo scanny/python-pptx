@@ -6,6 +6,16 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #836 add ``TextFrame.replace_text(find, replace)`` and
+  ``Paragraph.replace_text(find, replace)`` that match ``find`` against
+  the flattened paragraph text so a keyword split across multiple
+  ``a:r`` runs (e.g., PowerPoint broke ``"{NAME}"`` into two runs after
+  an edit) is still replaced. The run containing the start of the match
+  keeps its formatting and absorbs the replacement; runs fully inside
+  the match are dropped, and when a match ends partway through a run,
+  that run's surviving suffix keeps its own formatting. Matches do not
+  cross ``a:br`` (line break) or ``a:fld`` (auto-refresh field)
+  boundaries. Returns the number of replacements performed.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
