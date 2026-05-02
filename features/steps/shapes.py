@@ -99,6 +99,12 @@ def given_a_SlideShapes_obj_having_type_shape_at_off_idx(context, type, idx):
     context.shapes = prs.slides[1].shapes
 
 
+@given("a slide with an mc:AlternateContent-wrapped shape")
+def given_a_slide_with_an_mc_AlternateContent_wrapped_shape(context):
+    context.prs = Presentation(test_pptx("shp-mc-alternate-content"))
+    context.slide = context.prs.slides[0]
+
+
 # when ====================================================
 
 
@@ -340,3 +346,28 @@ def then_the_table_appears_in_the_slide(context):
     prs = Presentation(saved_pptx_path)
     expected_table_graphic_frame = prs.slides[0].shapes[0]
     assert expected_table_graphic_frame.has_table
+
+
+@then("len(slide.shapes) counts the choice-wrapped shape")
+def then_len_slide_shapes_counts_the_choice_wrapped_shape(context):
+    assert len(context.slide.shapes) == 3, "expected 3 shapes, got %d" % len(
+        context.slide.shapes
+    )
+
+
+@then("slide.shapes surfaces the choice-wrapped shape by name")
+def then_slide_shapes_surfaces_the_choice_wrapped_shape_by_name(context):
+    names = [shape.name for shape in context.slide.shapes]
+    assert "Modern-Choice" in names, "expected 'Modern-Choice' in %r" % names
+
+
+@then("saving the presentation preserves the mc:Fallback subtree")
+def then_saving_the_presentation_preserves_the_mc_Fallback_subtree(context):
+    import zipfile
+
+    context.prs.save(saved_pptx_path)
+    with zipfile.ZipFile(saved_pptx_path) as z:
+        slide_xml = z.read("ppt/slides/slide1.xml").decode("utf-8")
+    assert "AlternateContent" in slide_xml, "mc:AlternateContent wrapper not preserved"
+    assert "Fallback" in slide_xml, "mc:Fallback subtree not preserved"
+    assert "Fallback-Shape" in slide_xml, "mc:Fallback content was stripped on save"

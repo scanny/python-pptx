@@ -88,6 +88,46 @@ class DescribeCT_GroupShape(object):
         x, y, cx, cy = xSp._child_extents
         assert (x, y, cx, cy) == expected_values
 
+    def it_walks_into_mc_AlternateContent_Choice_for_iter_shape_elms(self):
+        mc_choice_tag = "{http://schemas.openxmlformats.org/markup-compatibility/2006}Choice"
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,p:sp,mc:AlternateContent/(mc:Choic"
+            "e{Requires=a14}/p:sp,mc:Fallback/p:sp),p:sp)"
+        )
+        shape_elms = list(spTree.iter_shape_elms())
+        # -- three shape elements surfaced: direct, choice-wrapped, direct --
+        assert len(shape_elms) == 3
+        # -- second shape came from the mc:Choice subtree --
+        assert shape_elms[1].getparent().tag == mc_choice_tag
+
+    def it_preserves_Fallback_subtree_under_AlternateContent(self):
+        p_sp_tag = "{http://schemas.openxmlformats.org/presentationml/2006/main}sp"
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,mc:AlternateContent/(mc:Choice{Req"
+            "uires=a14}/p:sp,mc:Fallback/p:sp))"
+        )
+        # -- iterate (side-effect free) --
+        list(spTree.iter_shape_elms())
+        # -- fallback still present on the tree --
+        fallbacks = spTree.xpath(".//mc:Fallback")
+        assert len(fallbacks) == 1
+        assert len(fallbacks[0].findall(p_sp_tag)) == 1
+
+    def it_yields_nothing_from_AlternateContent_without_Choice(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,mc:AlternateContent/mc:Fallback/p:sp)"
+        )
+        assert list(spTree.iter_shape_elms()) == []
+
+    def it_surfaces_different_shape_tags_inside_AlternateContent(self):
+        spTree = element(
+            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,mc:AlternateContent/mc:Choice/(p:s"
+            "p,p:pic,p:graphicFrame,p:cxnSp,p:grpSp/(p:nvGrpSpPr,p:grpSpPr)))"
+        )
+        shape_elms = list(spTree.iter_shape_elms())
+        tags = [e.tag.split("}")[-1] for e in shape_elms]
+        assert tags == ["sp", "pic", "graphicFrame", "cxnSp", "grpSp"]
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture

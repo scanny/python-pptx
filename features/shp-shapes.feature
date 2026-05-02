@@ -382,3 +382,10 @@ Feature: Access a shape on a slide
       | picture   |  1  | Picture    |
       | rectangle |  2  | Shape      |
       | group     |  3  | GroupShape |
+
+
+  Scenario: SlideShapes walks into mc:AlternateContent/mc:Choice
+    Given a slide with an mc:AlternateContent-wrapped shape
+     Then len(slide.shapes) counts the choice-wrapped shape
+      And slide.shapes surfaces the choice-wrapped shape by name
+      And saving the presentation preserves the mc:Fallback subtree

@@ -95,6 +95,7 @@ Shape
    shp-ole-object
    shp-movie
    shp-hyperlink
+   shp-mc-alternate-content
    placeholders/index
    shp-preset-geom
 

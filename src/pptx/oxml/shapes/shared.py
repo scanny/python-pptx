@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Iterator, cast
 
 from pptx.dml.fill import CT_GradientFillProperties
 from pptx.enum.shapes import PP_PLACEHOLDER
@@ -521,3 +521,69 @@ class CT_Transform2D(BaseOxmlElement):
         off.x = 0
         off.y = 0
         return off
+
+
+class CT_AlternateContent(BaseOxmlElement):
+    """`mc:AlternateContent` element.
+
+    Markup-Compatibility wrapper defined in ISO/IEC 29500-3. Contains one or more `mc:Choice`
+    children (each targeting a specific extension namespace via its `Requires` attribute) and an
+    optional `mc:Fallback` child providing a pre-existing-schema rendering.
+
+    Instances are encountered as direct children of a shape-tree (`p:spTree`/`p:grpSp`) when a
+    shape requires a newer-namespace representation (e.g. an equation shape, a chartex chart, or
+    a modern comment). The library walks the first `mc:Choice` transparently so wrapped shapes
+    appear in `slide.shapes` iteration; the `mc:Fallback` subtree is retained as-is so that the
+    wrapper round-trips losslessly.
+    """
+
+    @property
+    def choices(self) -> list[BaseOxmlElement]:
+        """List of `mc:Choice` child elements, in document order.
+
+        Empty list if no `mc:Choice` children are present (unusual, but the schema permits
+        `mc:AlternateContent` to contain only an `mc:Fallback`).
+        """
+        return cast("list[BaseOxmlElement]", list(self.iterchildren(qn("mc:Choice"))))
+
+    @property
+    def fallback(self) -> BaseOxmlElement | None:
+        """The `mc:Fallback` child element, or `None` if not present."""
+        return cast("BaseOxmlElement | None", self.find(qn("mc:Fallback")))
+
+    def iter_choice_shape_elms(self, shape_tags: tuple[str, ...]) -> Iterator[BaseOxmlElement]:
+        """Generate shape elements from the first `mc:Choice` child.
+
+        `shape_tags` is the set of Clark-notation shape tag names considered "shapes" by the
+        caller (e.g. `p:sp`, `p:grpSp`, `p:graphicFrame`, ...). Shapes are yielded in document
+        order from within the first `mc:Choice` subtree, which represents the preferred (most
+        capable) rendering.
+
+        Yields nothing when no `mc:Choice` child is present. Fallback content is never yielded;
+        it is preserved as-is on the element tree so that it round-trips on save.
+        """
+        choices = self.choices
+        if not choices:
+            return
+        yield from _iter_alt_content_shape_elms(choices[0], shape_tags)
+
+
+def _iter_alt_content_shape_elms(
+    container: BaseOxmlElement, shape_tags: tuple[str, ...]
+) -> Iterator[BaseOxmlElement]:
+    """Yield shape elements in `container`, descending through nested `mc:AlternateContent`.
+
+    This is a helper used to flatten one `mc:Choice` subtree into a stream of shape elements.
+    Plain shape children (matching `shape_tags`) are yielded directly. Nested `mc:AlternateContent`
+    children are recursively flattened via their first `mc:Choice`. Other elements are ignored.
+    """
+    ac_tag = qn("mc:AlternateContent")
+    for elm in container.iterchildren():
+        if elm.tag in shape_tags:
+            yield cast("BaseOxmlElement", elm)
+        elif elm.tag == ac_tag:
+            nested_choices = list(elm.iterchildren(qn("mc:Choice")))
+            if nested_choices:
+                yield from _iter_alt_content_shape_elms(
+                    cast("BaseOxmlElement", nested_choices[0]), shape_tags
+                )

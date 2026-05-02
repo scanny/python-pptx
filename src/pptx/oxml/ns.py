@@ -15,6 +15,7 @@ _nsmap = {
     "ep": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
     "i": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
     "m": "http://schemas.openxmlformats.org/officeDocument/2006/math",
+    "mc": "http://schemas.openxmlformats.org/markup-compatibility/2006",
     "mo": "http://schemas.microsoft.com/office/mac/office/2008/main",
     "mv": "urn:schemas-microsoft-com:mac:vml",
     "o": "urn:schemas-microsoft-com:office:office",

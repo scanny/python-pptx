@@ -125,6 +125,25 @@ class Describe_BaseShapes(object):
         shapes, expected_elms = iter_elms_fixture
         assert [e for e in shapes._iter_member_elms()] == expected_elms
 
+    def it_walks_into_mc_AlternateContent_during_iteration(self):
+        """Shapes wrapped in `mc:AlternateContent/mc:Choice` surface in iteration."""
+        spTree = element(
+            "p:spTree/(p:sp,mc:AlternateContent/(mc:Choice{Requires=a14}/p:sp,m"
+            "c:Fallback/p:sp),p:sp)"
+        )
+        shapes = _BaseShapes(spTree, None)
+        assert len(shapes) == 3
+
+    def it_preserves_mc_Fallback_content_after_iteration(self):
+        """Iterating doesn't strip `mc:Fallback` from the underlying tree."""
+        spTree = element(
+            "p:spTree/(p:sp,mc:AlternateContent/(mc:Choice/p:sp,mc:Fallback/p:s"
+            "p))"
+        )
+        shapes = _BaseShapes(spTree, None)
+        list(shapes._iter_member_elms())
+        assert len(spTree.xpath(".//mc:Fallback")) == 1
+
     def it_supports_indexed_access(self, getitem_fixture):
         shapes, idx, BaseShapeFactory_, sp, shape_ = getitem_fixture
         shape = shapes[idx]

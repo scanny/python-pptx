@@ -8,6 +8,7 @@ Unreleased
 
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
+- Foundation: mc:AlternateContent traversal
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
