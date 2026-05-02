@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
+  by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
+  + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
+  .strip_slides()`` yields a deck carrying only the template's masters,
+  layouts, theme, and embedded fonts; ``merge(content_deck)`` then grafts
+  the content slides onto it at full fidelity. Adds an
+  ``Applying a POTX/PPTX template to existing content`` section to
+  ``docs/user/presentations.rst`` documenting the recipe, the layout-
+  binding behaviour, and the caveat that :meth:`Presentation.save` always
+  writes a regular ``.pptx`` content type.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
