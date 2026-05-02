@@ -416,6 +416,69 @@ class DescribeSlide(object):
         with pytest.raises(TypeError, match="show_master_shapes must be a bool"):
             slide.show_master_shapes = 1  # type: ignore[assignment]
 
+    @pytest.mark.parametrize(
+        ("dst_cxml", "src_cxml", "expect_bg"),
+        [
+            # -- explicit bg on source replaces inherited on dst --
+            ("p:sld/p:cSld", "p:sld/p:cSld/p:bg/p:bgPr/a:solidFill", True),
+            # -- explicit bg on source replaces explicit bg on dst --
+            (
+                "p:sld/p:cSld/p:bg/p:bgRef",
+                "p:sld/p:cSld/p:bg/p:bgPr/a:solidFill",
+                True,
+            ),
+            # -- inherited source drops any explicit bg on dst --
+            ("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill", "p:sld/p:cSld", False),
+            # -- inherited on both is a no-op --
+            ("p:sld/p:cSld", "p:sld/p:cSld", False),
+        ],
+    )
+    def it_can_copy_its_background_from_another_slide(
+        self, dst_cxml, src_cxml, expect_bg
+    ):
+        dst = Slide(element(dst_cxml), None)
+        src = _BaseSlide(element(src_cxml), None)
+
+        dst.copy_background_from(src)
+
+        dst_bg = dst._element.cSld.bg
+        src_bg = src._element.cSld.bg
+        if expect_bg:
+            assert dst_bg is not None
+            assert src_bg is not None
+            # -- subtree structure matches (byte-identical modulo xmlns decls) --
+            from lxml import etree
+
+            assert etree.tostring(dst_bg, method="c14n") == etree.tostring(
+                src_bg, method="c14n"
+            )
+        else:
+            assert dst_bg is None
+
+    def and_copy_background_from_performs_a_deep_copy(self):
+        src = _BaseSlide(element("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill"), None)
+        dst = Slide(element("p:sld/p:cSld"), None)
+
+        dst.copy_background_from(src)
+
+        dst_bg = dst._element.cSld.bg
+        src_bg = src._element.cSld.bg
+        assert dst_bg is not None
+        assert src_bg is not None
+        assert dst_bg is not src_bg
+
+    def and_copy_background_from_positions_bg_before_spTree(self):
+        # -- CT_CommonSlideData schema requires p:bg to precede p:spTree. --
+        src = _BaseSlide(element("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill"), None)
+        dst = Slide(element("p:sld/p:cSld/p:spTree"), None)
+
+        dst.copy_background_from(src)
+
+        cSld = dst._element.cSld
+        children = list(cSld)
+        tags = [child.tag for child in children]
+        assert tags == [qn("p:bg"), qn("p:spTree")]
+
     def it_knows_its_slide_id(self, slide_id_fixture):
         slide, expected_value = slide_id_fixture
         assert slide.slide_id == expected_value
@@ -1904,6 +1967,31 @@ class Describe_Background(object):
         assert cSld.xml == xml(expected_cxml)
         from_fill_parent_.assert_called_once_with(cSld.xpath("p:bg/p:bgPr")[0], None)
         assert fill is fill_
+
+    def it_returns_None_for_bg_element_when_bg_is_absent(self):
+        cSld = element("p:cSld")
+        background = _Background(cSld)
+
+        assert background.bg_element is None
+
+    def it_returns_the_p_bg_element_when_present(self):
+        cSld = element("p:cSld/p:bg/p:bgPr/a:solidFill")
+        background = _Background(cSld)
+
+        bg = background.bg_element
+
+        assert bg is not None
+        assert bg.tag == qn("p:bg")
+        assert bg is cSld.xpath("p:bg")[0]
+
+    def but_bg_element_does_not_materialize_bg_on_read(self):
+        cSld = element("p:cSld")
+        background = _Background(cSld)
+
+        _ = background.bg_element
+
+        # -- reading bg_element must not add a p:bg child --
+        assert cSld.xml == xml("p:cSld")
 
 
 class Describe_resolve_theme_colors(object):

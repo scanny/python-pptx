@@ -14,6 +14,16 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #1126 add ``Slide.background.bg_element`` — a side-effect-free
+  read-only property that returns the underlying ``p:bg`` element, or
+  |None| when the slide's background is inherited from its master or
+  layout. The existing ``_Background._element`` still returns ``p:cSld``
+  for backwards compatibility. Also adds
+  ``Slide.copy_background_from(source_slide)``, which deep-copies the
+  source slide's ``p:bg`` subtree onto this slide (or strips the explicit
+  background and restores inheritance when the source inherits). Makes
+  raw-XML background copy workflows a one-liner.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

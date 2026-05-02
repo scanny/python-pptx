@@ -157,6 +157,7 @@ class CT_HeaderFooter(BaseOxmlElement):
 class CT_CommonSlideData(BaseOxmlElement):
     """`p:cSld` element."""
 
+    _insert_bg: Callable[[CT_Background], CT_Background]
     _remove_bg: Callable[[], None]
     get_or_add_bg: Callable[[], CT_Background]
     get_or_add_custDataLst: Callable[[], "CT_CustomerDataList"]
