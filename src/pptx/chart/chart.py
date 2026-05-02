@@ -367,6 +367,23 @@ class Chart(PartElementProxy):
         return Legend(legend_elm)
 
     @lazyproperty
+    def plot_area(self):
+        """|PlotArea| instance providing access to plot-area formatting.
+
+        The plot area is the rectangular region of a chart that contains the
+        plotted data — bars, columns, lines, points, etc. — bounded by the
+        chart's axes. This property returns a |PlotArea| proxy whose
+        :attr:`~pptx.chart.chart.PlotArea.format` provides the
+        :class:`~pptx.dml.chtfmt.ChartFormat` object that carries the plot
+        area's fill, line, and effect formatting (``c:plotArea/c:spPr``).
+
+        Implements issue #298. Mirrors the ``format`` pattern already in
+        place on :class:`ChartTitle`, :class:`~pptx.chart.datalabel.DataLabel`,
+        and :class:`~pptx.chart.datalabel.DataLabels`.
+        """
+        return PlotArea(self._chartSpace.chart.plotArea)
+
+    @lazyproperty
     def plots(self):
         """
         The sequence of plots in this chart. A plot, called a *chart group*
@@ -839,6 +856,34 @@ class ChartTitle(ElementProxy):
         layout = self._title.get_or_add_layout()
         manualLayout = layout.get_or_add_manualLayout()
         manualLayout.position = (x, y)
+
+
+class PlotArea(ElementProxy):
+    """Proxy for a chart's ``c:plotArea`` element.
+
+    Provides access to the plot-area's shape-formatting block (fill, line,
+    and shadow) via its :attr:`format` property. The plot area is the
+    rectangular region of a chart that contains the plotted data, bounded
+    by the chart's axes.
+
+    Access via :attr:`Chart.plot_area` (issue #298).
+    """
+
+    def __init__(self, plotArea):
+        super(PlotArea, self).__init__(plotArea)
+        self._plotArea = plotArea
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to line and fill formatting.
+
+        Returns the |ChartFormat| proxy for this plot area's ``c:spPr``
+        shape-properties element, giving read/write access to its
+        :attr:`~pptx.dml.chtfmt.ChartFormat.fill`,
+        :attr:`~pptx.dml.chtfmt.ChartFormat.line`, and
+        :attr:`~pptx.dml.chtfmt.ChartFormat.shadow`.
+        """
+        return ChartFormat(self._plotArea)
 
 
 def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):

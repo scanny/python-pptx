@@ -126,6 +126,14 @@ Feature: Chart properties
   Scenario: Chart.secondary_value_axis raises when not present
     Given a single-value-axes chart
      Then accessing chart.secondary_value_axis raises ValueError
+  Scenario: Chart.plot_area (issue #298)
+    Given a Chart object as chart
+     Then chart.plot_area is a PlotArea object
+      And chart.plot_area.format is a ChartFormat object
+      And chart.plot_area.format.fill is a FillFormat object
+      And chart.plot_area.format.line is a LineFormat object
+
+
   Scenario: Chart.chart_style reads extended c14:style value (issue #516)
     Given a chart with an extended c14:style wrapped in mc:AlternateContent
      Then chart.chart_style is 118

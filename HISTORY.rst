@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #298 ``Chart.plot_area`` returning a ``PlotArea`` proxy with a
+  ``format`` property that yields a ``ChartFormat`` object. This exposes
+  ``.fill``, ``.line``, and ``.shadow`` on the chart's ``c:plotArea`` /
+  ``c:spPr`` shape-properties block, mirroring the ``format`` pattern
+  already in place on ``ChartTitle`` and ``DataLabel`` / ``DataLabels``.
+  Callers can now colour or outline the plot-area rectangle directly —
+  e.g. ``chart.plot_area.format.line.color.rgb = RGBColor(0xFF, 0, 0)`` —
+  without dropping into XML. Adds a ``ZeroOrOne("c:spPr")`` descriptor on
+  ``CT_PlotArea`` so the ``c:spPr`` child is inserted in schema-declared
+  order (before any ``c:extLst``).
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and

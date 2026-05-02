@@ -9,7 +9,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
-from pptx.chart.chart import Chart, ChartTitle, Legend, _Plots
+from pptx.chart.chart import Chart, ChartTitle, Legend, PlotArea, _Plots
 from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyChartData
 from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
@@ -109,6 +109,23 @@ class DescribeChart(object):
         plots = chart.plots
         _Plots_.assert_called_once_with(plotArea, chart)
         assert plots is plots_
+
+    def it_provides_access_to_its_plot_area(self, request):
+        """`Chart.plot_area` returns a `PlotArea` on the `c:plotArea` element.
+
+        Addresses issue #298 so callers can reach `chart.plot_area.format.fill`
+        and `chart.plot_area.format.line` without dropping into XML.
+        """
+        chartSpace = element("c:chartSpace/c:chart/c:plotArea")
+        plotArea = chartSpace.xpath("./c:chart/c:plotArea")[0]
+        plot_area_ = instance_mock(request, PlotArea)
+        PlotArea_ = class_mock(request, "pptx.chart.chart.PlotArea", return_value=plot_area_)
+        chart = Chart(chartSpace, None)
+
+        plot_area = chart.plot_area
+
+        PlotArea_.assert_called_once_with(plotArea)
+        assert plot_area is plot_area_
 
     def it_knows_whether_it_has_a_legend(self, has_legend_get_fixture):
         chart, expected_value = has_legend_get_fixture
@@ -1546,6 +1563,40 @@ class DescribeChartTitle(object):
     @pytest.fixture
     def TextFrame_(self, request):
         return class_mock(request, "pptx.chart.chart.TextFrame")
+
+
+class DescribePlotArea(object):
+    """Unit-test suite for `pptx.chart.chart.PlotArea` objects (issue #298)."""
+
+    def it_provides_access_to_its_format(self, request):
+        """`PlotArea.format` returns a `ChartFormat` on the `c:plotArea` element."""
+        chart_format_ = instance_mock(request, ChartFormat)
+        ChartFormat_ = class_mock(
+            request, "pptx.chart.chart.ChartFormat", return_value=chart_format_
+        )
+        plotArea = element("c:plotArea")
+        plot_area = PlotArea(plotArea)
+
+        chart_format = plot_area.format
+
+        ChartFormat_.assert_called_once_with(plotArea)
+        assert chart_format is chart_format_
+
+    def it_inserts_spPr_in_correct_schema_order_for_fill(self):
+        """Regression for #298.
+
+        The CT_PlotArea sequence places ``c:spPr`` between ``c:dTable`` and
+        ``c:extLst``. Adding a ``c:spPr`` via ``PlotArea.format`` must not
+        corrupt the tree when an ``c:extLst`` is already present.
+        """
+        plot_area = PlotArea(element("c:plotArea/(c:barChart,c:catAx,c:valAx,c:extLst)"))
+
+        spPr = plot_area.format._element.get_or_add_spPr()
+
+        assert plot_area._element.xml == xml(
+            "c:plotArea/(c:barChart,c:catAx,c:valAx,c:spPr,c:extLst)"
+        )
+        assert spPr is plot_area._element.xpath("c:spPr")[0]
 
 
 class Describe_Plots(object):
