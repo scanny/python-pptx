@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from pptx.oxml.shapes.connector import CT_Connector
     from pptx.oxml.shapes.groupshape import CT_GroupShape
     from pptx.parts.image import ImagePart
-    from pptx.parts.slide import SlidePart
+    from pptx.parts.slide import BaseSlidePart, SlidePart
     from pptx.slide import Slide, SlideLayout
     from pptx.types import ProvidesPart
     from pptx.util import Length
@@ -58,10 +58,10 @@ if TYPE_CHECKING:
 # |   |   +-- GroupShapes
 # |   |   |
 # |   |   +-- SlideShapes
-# |   |
-# |   +-- LayoutShapes
-# |   |
-# |   +-- MasterShapes
+# |   |   |
+# |   |   +-- LayoutShapes
+# |   |   |
+# |   |   +-- MasterShapes
 # |   |
 # |   +-- NotesSlideShapes
 # |   |
@@ -242,7 +242,7 @@ class _BaseShapes(ParentedElementProxy):
 class _BaseGroupShapes(_BaseShapes):
     """Base class for shape-trees that can add shapes."""
 
-    part: SlidePart  # pyright: ignore[reportIncompatibleMethodOverride]
+    part: BaseSlidePart  # pyright: ignore[reportIncompatibleMethodOverride]
     _element: CT_GroupShape
 
     def __init__(self, grpSp: CT_GroupShape, parent: ProvidesPart):
@@ -776,11 +776,18 @@ class SlideShapes(_BaseGroupShapes):
         return SlideShapeFactory(shape_elm, self)
 
 
-class LayoutShapes(_BaseShapes):
+class LayoutShapes(_BaseGroupShapes):
     """Sequence of shapes appearing on a slide layout.
 
     The first shape in the sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), index(), and iteration.
+
+    Like |SlideShapes|, this collection supports adding non-placeholder shapes
+    (e.g. pictures, text boxes, auto-shapes, connectors, and group shapes) via
+    :meth:`add_picture`, :meth:`add_textbox`, :meth:`add_shape`,
+    :meth:`add_connector`, and :meth:`add_group_shape`. This lets callers
+    customize a slide layout with branding elements such as logos or
+    background images that should appear on every slide using that layout.
     """
 
     def _shape_factory(self, shape_elm: ShapeElement) -> BaseShape:
@@ -788,11 +795,19 @@ class LayoutShapes(_BaseShapes):
         return _LayoutShapeFactory(shape_elm, self)
 
 
-class MasterShapes(_BaseShapes):
+class MasterShapes(_BaseGroupShapes):
     """Sequence of shapes appearing on a slide master.
 
     The first shape in the sequence is the backmost in z-order and the last shape is topmost.
     Supports indexed access, len(), and iteration.
+
+    Like |SlideShapes|, this collection supports adding non-placeholder shapes
+    (e.g. pictures, text boxes, auto-shapes, connectors, and group shapes) via
+    :meth:`add_picture`, :meth:`add_textbox`, :meth:`add_shape`,
+    :meth:`add_connector`, and :meth:`add_group_shape`. This lets callers
+    customize the slide master with branding elements such as a client logo
+    or background image that should appear on every slide in the
+    presentation (see issue #575).
     """
 
     def _shape_factory(self, shape_elm: ShapeElement) -> BaseShape:

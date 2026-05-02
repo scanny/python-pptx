@@ -1726,6 +1726,61 @@ class DescribeLayoutShapes(object):
         _LayoutShapeFactory_.assert_called_once_with(sp, shapes)
         assert placeholder is placeholder_
 
+    def it_inherits_add_methods_from_BaseGroupShapes(self):
+        # Issue #575 - LayoutShapes must expose add_shape/add_picture/add_textbox.
+        assert issubclass(LayoutShapes, _BaseGroupShapes)
+
+    def it_can_add_an_autoshape_to_a_slide_layout(self):
+        # Integration-style check against a real Presentation (issue #575).
+        from pptx import Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+
+        prs = Presentation()
+        layout = prs.slide_layouts[0]
+
+        original_count = len(layout.shapes)
+        shape = layout.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+
+        assert isinstance(shape, Shape)
+        assert len(layout.shapes) == original_count + 1
+
+    def it_can_add_a_textbox_to_a_slide_layout(self):
+        from pptx import Presentation
+
+        prs = Presentation()
+        layout = prs.slide_layouts[0]
+
+        original_count = len(layout.shapes)
+        shape = layout.shapes.add_textbox(
+            Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+
+        assert isinstance(shape, Shape)
+        assert len(layout.shapes) == original_count + 1
+
+    def it_can_add_a_picture_to_a_slide_layout(self):
+        import os
+
+        from pptx import Presentation
+
+        prs = Presentation()
+        layout = prs.slide_layouts[0]
+        test_image = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "test_files",
+            "python-powered.png",
+        )
+
+        original_count = len(layout.shapes)
+        pic = layout.shapes.add_picture(
+            test_image, Inches(1), Inches(1), Inches(2), Inches(2)
+        )
+
+        assert isinstance(pic, Picture)
+        assert len(layout.shapes) == original_count + 1
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1944,6 +1999,61 @@ class DescribeMasterShapes(object):
         placeholder = shapes._shape_factory(sp)
         _MasterShapeFactory_.assert_called_once_with(sp, shapes)
         assert placeholder is placeholder_
+
+    def it_inherits_add_methods_from_BaseGroupShapes(self):
+        # Issue #575 - MasterShapes must expose add_shape/add_picture/add_textbox.
+        assert issubclass(MasterShapes, _BaseGroupShapes)
+
+    def it_can_add_an_autoshape_to_a_slide_master(self):
+        # Integration-style check against a real Presentation (issue #575).
+        from pptx import Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+
+        prs = Presentation()
+        master = prs.slide_master
+
+        original_count = len(master.shapes)
+        shape = master.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+
+        assert isinstance(shape, Shape)
+        assert len(master.shapes) == original_count + 1
+
+    def it_can_add_a_textbox_to_a_slide_master(self):
+        from pptx import Presentation
+
+        prs = Presentation()
+        master = prs.slide_master
+
+        original_count = len(master.shapes)
+        shape = master.shapes.add_textbox(
+            Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+
+        assert isinstance(shape, Shape)
+        assert len(master.shapes) == original_count + 1
+
+    def it_can_add_a_picture_to_a_slide_master(self):
+        import os
+
+        from pptx import Presentation
+
+        prs = Presentation()
+        master = prs.slide_master
+        test_image = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "test_files",
+            "python-powered.png",
+        )
+
+        original_count = len(master.shapes)
+        pic = master.shapes.add_picture(
+            test_image, Inches(1), Inches(1), Inches(2), Inches(2)
+        )
+
+        assert isinstance(pic, Picture)
+        assert len(master.shapes) == original_count + 1
 
     # fixtures -------------------------------------------------------
 

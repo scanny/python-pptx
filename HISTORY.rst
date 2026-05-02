@@ -205,6 +205,18 @@ Unreleased
   :class:`zipfile.ZipFile` can open. Does not change chart type;
   pair with ``SlideShapes.add_chart`` when the template is for a
   different plot family than the target.
+- feat: #575 add non-placeholder shapes to slide master / slide layout.
+  :class:`MasterShapes` and :class:`LayoutShapes` now subclass
+  ``_BaseGroupShapes`` and therefore expose the same shape-creation API as
+  :class:`SlideShapes` — ``add_shape``, ``add_picture``, ``add_textbox``,
+  ``add_connector``, ``add_group_shape``, and ``build_freeform``. This
+  lets callers bake branding elements (client logo, background image,
+  company watermark, fixed text) into a master or layout so they appear
+  on every slide that inherits from it, without having to edit each
+  slide individually. Shape-creation APIs that require chart / OLE
+  part-creation helpers that currently live only on ``SlidePart``
+  (``add_chart``, ``add_ole_object``, ``add_movie``) remain
+  slide-only for now.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
