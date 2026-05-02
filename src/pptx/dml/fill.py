@@ -20,8 +20,11 @@ from pptx.shared import ElementProxy
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
+    from typing import IO
+
     from pptx.enum.dml import MSO_FILL_TYPE
     from pptx.oxml.xmlchemy import BaseOxmlElement
+    from pptx.types import ProvidesPart
 
 
 class FillFormat(object):
@@ -30,21 +33,34 @@ class FillFormat(object):
     Also provides methods to change the fill type.
     """
 
-    def __init__(self, eg_fill_properties_parent: BaseOxmlElement, fill_obj: _Fill):
+    def __init__(
+        self,
+        eg_fill_properties_parent: BaseOxmlElement,
+        fill_obj: _Fill,
+        part: ProvidesPart | None = None,
+    ):
         super(FillFormat, self).__init__()
         self._xPr = eg_fill_properties_parent
         self._fill = fill_obj
+        self._part = part
 
     @classmethod
-    def from_fill_parent(cls, eg_fillProperties_parent: BaseOxmlElement) -> FillFormat:
+    def from_fill_parent(
+        cls,
+        eg_fillProperties_parent: BaseOxmlElement,
+        part: ProvidesPart | None = None,
+    ) -> FillFormat:
         """
         Return a |FillFormat| instance initialized to the settings contained
         in *eg_fillProperties_parent*, which must be an element having
         EG_FillProperties in its child element sequence in the XML schema.
+
+        If *part* is provided, it enables fill types that require adding a
+        part relationship (e.g. :meth:`blip_fill` to embed a picture fill).
         """
         fill_elm = eg_fillProperties_parent.eg_fillProperties
         fill = _Fill(fill_elm)
-        fill_format = cls(eg_fillProperties_parent, fill)
+        fill_format = cls(eg_fillProperties_parent, fill, part)
         return fill_format
 
     @property
@@ -61,6 +77,31 @@ class FillFormat(object):
         """
         noFill = self._xPr.get_or_change_to_noFill()
         self._fill = _NoFill(noFill)
+
+    def blip_fill(self, image_file: str | IO[bytes]) -> None:
+        """Set the fill type to picture fill, embedding *image_file*.
+
+        The image referenced by *image_file* (a path string or file-like
+        object containing image bytes) is added to the package as an
+        |ImagePart| (reusing an existing image part when its bytes match),
+        and the containing part is related to it via a new relationship.
+        The resulting ``<a:blipFill>`` element references that relationship
+        via ``a:blip/@r:embed`` and contains an ``<a:stretch>/<a:fillRect/>``
+        child so the picture stretches to fill the shape.
+
+        Raises |ValueError| when this |FillFormat| was created without a part
+        reference (only shape, cell, font, line, chart element, and slide
+        background fills support :meth:`blip_fill`).
+        """
+        if self._part is None:
+            raise ValueError(
+                "blip_fill requires a part reference; this FillFormat was created"
+                " without one"
+            )
+        image_part, rId = self._part.part.get_or_add_image_part(image_file)
+        blipFill = self._xPr.get_or_change_to_blipFill()
+        blipFill.set_blip_rId_with_stretch(rId)
+        self._fill = _BlipFill(blipFill)
 
     @property
     def fore_color(self):

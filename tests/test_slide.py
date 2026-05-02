@@ -78,7 +78,7 @@ class Describe_BaseSlide(object):
 
         background = slide.background
 
-        _Background_.assert_called_once_with(cSld)
+        _Background_.assert_called_once_with(cSld, slide)
         assert background is background_
 
     # fixtures -------------------------------------------------------
@@ -1491,7 +1491,7 @@ class Describe_Background(object):
         fill = background.fill
 
         assert cSld.xml == xml(expected_cxml)
-        from_fill_parent_.assert_called_once_with(cSld.xpath("p:bg/p:bgPr")[0])
+        from_fill_parent_.assert_called_once_with(cSld.xpath("p:bg/p:bgPr")[0], None)
         assert fill is fill_
 
 

@@ -73,7 +73,7 @@ class DescribeLineFormat(object):
     def it_has_a_fill(self, fill_fixture):
         line, FillFormat_, ln_, fill_ = fill_fixture
         fill = line.fill
-        FillFormat_.from_fill_parent.assert_called_once_with(ln_)
+        FillFormat_.from_fill_parent.assert_called_once_with(ln_, line._parent)
         assert fill is fill_
 
     def it_has_a_color(self, color_fixture):
