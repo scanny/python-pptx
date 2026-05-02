@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- build: #1103 update pyparsing usage for 3.x
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
