@@ -6,6 +6,35 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #1016 ``table.columns.add()`` / ``table.rows.add()`` resolved by
+  #832 + #895 (with #837 bracketing the delete path). The #1016 reporter,
+  migrating an Excel-to-PowerPoint table generator from python-pptx 0.6.23
+  to v1.0.0, asked why ``table.columns.add()`` / ``table.rows.add()`` now
+  raised ``AttributeError: '_ColumnCollection' object has no attribute
+  'add'`` and whether the feature had been removed, citing PowerPoint's
+  ``Rows.Add`` / ``Columns.Add`` methods as the expected API shape. The
+  API had never actually shipped in 0.6.x; the fork landed it across
+  three independent PRs:
+  :meth:`._RowCollection.add` (#832, Wave 2,
+  ``feat/issue-832-table-row-add``) appends a row at the bottom of the
+  table (one empty cell per column, height inherited from the last
+  existing row or defaulting to 370,840 EMU) and recomputes the
+  graphic-frame height; :meth:`._ColumnCollection.add` (#895, Wave 6,
+  ``feat/issue-895-table-column-mutation``) appends an ``a:gridCol`` and
+  an empty ``a:tc`` in every row (width inherited from the last existing
+  column or defaulting to 914,400 EMU = 1 inch) and recomputes the
+  graphic-frame width; and the delete counterparts land via #837 (Wave
+  3, :meth:`._Row.delete` / :meth:`._RowCollection.remove`) and #895
+  (:meth:`._Column.delete` / :meth:`._ColumnCollection.remove`). #1016
+  is therefore a duplicate of the #832 + #895 feature PRs. Adds a
+  regression suite ``DescribeIssue1016TableAddRowsColumns`` under
+  ``tests/test_issue_1016_table_add_rows_columns.py`` that pins the
+  reporter's Excel-driven "grow procedurally" workflow in both directions
+  (``rows.add`` and ``columns.add``), the default and explicit
+  height/width overloads, the graphic-frame invariant, a mixed
+  grow-then-shrink sequence that exercises the #837 / #895 delete
+  counterparts, and save + reopen round-trips for both directions.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
