@@ -24,3 +24,28 @@ Feature: Get and set tick label properties
       | no explicit setting | 100       |
       | no explicit setting | 420       |
       | 420                 | 100       |
+
+
+  Scenario Outline: Access tick label rotation for an axis
+    Given tick labels having a rotation of <xml-value>
+     Then tick_labels.rotation is <expected-value>
+
+    Examples: expected values of TickLabels.rotation
+      | xml-value           | expected-value |
+      | no explicit setting | 0.0            |
+      | 45                  | 45.0           |
+      | -90                 | 270.0          |
+
+
+  Scenario Outline: Change tick label rotation
+    Given tick labels having a rotation of <xml-value>
+     When I assign <new-value> to tick_labels.rotation
+     Then tick_labels.rotation is <expected-value>
+
+    Examples: expected values of TickLabels.rotation
+      | xml-value           | new-value | expected-value |
+      | no explicit setting | 45        | 45.0           |
+      | no explicit setting | 45.5      | 45.5           |
+      | no explicit setting | -90       | 270.0          |
+      | 45                  | 0         | 0.0            |
+      | 45                  | 90        | 90.0           |

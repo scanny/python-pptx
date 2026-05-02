@@ -148,6 +148,16 @@ Let's change up the category and value axes a bit::
     tick_labels.font.bold = True
     tick_labels.font.size = Pt(14)
 
+Tick labels can also be rotated, for example to prevent long category-axis
+labels from overlapping. :attr:`TickLabels.rotation` is a read/write
+clockwise rotation in degrees::
+
+    category_axis.tick_labels.rotation = 45
+
+Both ``int`` and ``float`` values are accepted. Assigning the default
+(``0``) removes the explicit rotation; negative values are normalized to
+the equivalent positive rotation in ``[0, 360)``.
+
 .. image:: /_static/img/chart-03.png
 
 Okay, that was probably going a bit too far. But it gives us an idea of the

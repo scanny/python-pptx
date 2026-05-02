@@ -118,6 +118,20 @@ def given_tick_labels_having_an_offset_of_setting(context, setting):
     context.tick_labels = chart.category_axis.tick_labels
 
 
+@given("tick labels having a rotation of {setting}")
+def given_tick_labels_having_a_rotation_of_setting(context, setting):
+    # -- use slide 0 (no explicit setting) as the base and seed an explicit
+    # -- rot value via the tick_labels.rotation setter when the scenario
+    # -- calls for a pre-existing rotation; the 0.0 setter path removes the
+    # -- attribute so "no explicit setting" starts clean.
+    prs = Presentation(test_pptx("cht-ticklabels-props"))
+    chart = prs.slides[0].shapes[0].chart
+    tick_labels = chart.category_axis.tick_labels
+    if setting != "no explicit setting":
+        tick_labels.rotation = float(setting)
+    context.tick_labels = tick_labels
+
+
 # when ====================================================
 
 
@@ -156,6 +170,12 @@ def when_I_assign_value_to_axis_title_has_text_frame(context, value):
 def when_I_assign_value_to_tick_labels_offset(context, value):
     new_value = int(value)
     context.tick_labels.offset = new_value
+
+
+@when("I assign {value} to tick_labels.rotation")
+def when_I_assign_value_to_tick_labels_rotation(context, value):
+    new_value = float(value) if "." in value else int(value)
+    context.tick_labels.rotation = new_value
 
 
 @when("I assign {member} to value_axis.crosses")
@@ -310,6 +330,13 @@ def then_tick_labels_offset_is_expected_value(context, value):
     expected_value = int(value)
     tick_labels = context.tick_labels
     assert tick_labels.offset == expected_value, "got %s" % tick_labels.offset
+
+
+@then("tick_labels.rotation is {value}")
+def then_tick_labels_rotation_is_expected_value(context, value):
+    expected_value = float(value)
+    tick_labels = context.tick_labels
+    assert tick_labels.rotation == expected_value, "got %s" % tick_labels.rotation
 
 
 @then("value_axis.crosses is {member}")

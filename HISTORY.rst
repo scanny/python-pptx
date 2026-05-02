@@ -6,6 +6,14 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #329 add read/write ``TickLabels.rotation`` exposing the
+  clockwise rotation (degrees) applied to axis tick labels. Maps to
+  ``c:txPr/a:bodyPr/@rot`` on each axis type (``c:catAx`` / ``c:valAx``
+  / ``c:dateAx``). Accepts ``int`` or ``float``; stored as 60000ths of
+  a degree per OOXML. Reads ``0.0`` when no rotation is set; assigning
+  ``0`` removes the attribute; negative values are normalized into
+  ``[0, 360)``.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,
