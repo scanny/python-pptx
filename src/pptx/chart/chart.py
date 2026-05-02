@@ -49,25 +49,28 @@ class Chart(PartElementProxy):
 
     @property
     def chart_style(self):
+        """Read/write integer index of chart style used to format this chart.
+
+        Plain chart styles are in the range 1 to 48. Starting with Office 2010, an *extended*
+        style index in the range 101 to 148 is also supported; this index is serialised in a
+        `c14:style` element wrapped in `mc:AlternateContent` and is what PowerPoint writes
+        when you pick one of the "Accent-N" chart-style variants that keep each series in a
+        pure accent colour (instead of shaded alternates) for charts with six or more series
+        (issue #516).
+
+        Returns the extended (`c14:style`) value when present, otherwise the plain
+        (`c:style`) value, otherwise `None` (the default style is used).
+
+        Assigning `None` removes any explicit setting (plain and extended). Assigning a value
+        in 1..48 writes a plain `c:style`; assigning 49..255 writes an `mc:AlternateContent`
+        wrapper carrying the extended `c14:style` value and a `c:style` fallback set to
+        `value % 100` (so Office 2007-era readers still render the chart).
         """
-        Read/write integer index of chart style used to format this chart.
-        Range is from 1 to 48. Value is |None| if no explicit style has been
-        assigned, in which case the default chart style is used. Assigning
-        |None| causes any explicit setting to be removed. The integer index
-        corresponds to the style's position in the chart style gallery in the
-        PowerPoint UI.
-        """
-        style = self._chartSpace.style
-        if style is None:
-            return None
-        return style.val
+        return self._chartSpace.chart_style_ex_val
 
     @chart_style.setter
     def chart_style(self, value):
-        self._chartSpace._remove_style()
-        if value is None:
-            return
-        self._chartSpace._add_style(val=value)
+        self._chartSpace.set_chart_style_ex_val(value)
 
     @property
     def chart_title(self):

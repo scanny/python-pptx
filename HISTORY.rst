@@ -117,6 +117,7 @@ Unreleased
   (add ``Font.use_theme_hyperlink_color`` flag and
   ``ThemePart.theme.hlink_color`` / ``folHlink_color`` accessors)
 - #201 slide numbers / date / footer via p:hf and a:fld
+- #516 Chart Colors Sometimes Using Extended Alternates
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

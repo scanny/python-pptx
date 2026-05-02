@@ -126,3 +126,14 @@ Feature: Chart properties
   Scenario: Chart.secondary_value_axis raises when not present
     Given a single-value-axes chart
      Then accessing chart.secondary_value_axis raises ValueError
+  Scenario: Chart.chart_style reads extended c14:style value (issue #516)
+    Given a chart with an extended c14:style wrapped in mc:AlternateContent
+     Then chart.chart_style is 118
+
+
+  Scenario: Chart.chart_style writes an mc:AlternateContent wrapper for extended values
+    Given a chart with no explicit chart style
+     When I assign 118 to chart.chart_style
+     Then chart.chart_style is 118
+      And chartSpace has an mc:AlternateContent/mc:Choice/c14:style val=118
+      And chartSpace has an mc:AlternateContent/mc:Fallback/c:style val=18

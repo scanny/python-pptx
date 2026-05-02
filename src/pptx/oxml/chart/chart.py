@@ -7,7 +7,7 @@ from typing import cast
 from pptx.oxml import parse_xml
 from pptx.oxml.chart.shared import CT_Title
 from pptx.oxml.ns import nsdecls, qn
-from pptx.oxml.simpletypes import ST_Style, XsdString
+from pptx.oxml.simpletypes import ST_Style, ST_StyleEx, XsdString
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -99,11 +99,129 @@ class CT_ChartSpace(BaseOxmlElement):
     chart = OneAndOnlyOne("c:chart")
     txPr = ZeroOrOne("c:txPr", successors=_tag_seq[10:])
     externalData = ZeroOrOne("c:externalData", successors=_tag_seq[11:])
+
+    # NOTE: `mc:AlternateContent` may wrap a `c14:style` (Office 2010+ extended chart-style
+    # index used to enable pure-accent series colours past the 6th series) together with a
+    # `c:style` fallback for Office 2007-era readers. The wrapper, when present, appears in
+    # the same slot as `c:style`; the `style` accessor defined above still resolves the
+    # plain-schema child (the `mc:Fallback` contents are not in `style`'s scope), while
+    # `chart_style_ex_val` / `set_chart_style_ex_val` below expose the extended value and
+    # manage both the wrapper and the bare `c:style` element.
+    _chart_style_ex_successors = (
+        qn("c:clrMapOvr"),
+        qn("c:pivotSource"),
+        qn("c:protection"),
+        qn("c:chart"),
+        qn("c:spPr"),
+        qn("c:txPr"),
+        qn("c:externalData"),
+        qn("c:printSettings"),
+        qn("c:userShapes"),
+        qn("c:extLst"),
+    )
     del _tag_seq
 
     @property
     def catAx_lst(self):
         return self.chart.plotArea.catAx_lst
+
+    @property
+    def chart_style_ex_val(self) -> int | None:
+        """The effective chart-style index, preferring the `c14:style` extended value.
+
+        Returns the integer from the `c14:style` child of the first `mc:Choice` (inside the
+        `mc:AlternateContent` wrapper) when present, otherwise the `c:style` value, otherwise
+        `None`. This lets callers transparently observe the extended-style index that MS
+        PowerPoint uses to pick pure-accent series colors past the 6th series.
+        """
+        style_ex = self._c14_style_elm
+        if style_ex is not None:
+            return style_ex.val
+        if self.style is not None:
+            return self.style.val
+        return None
+
+    def set_chart_style_ex_val(self, value: int | None) -> None:
+        """Set the chart-style index, writing an `mc:AlternateContent` wrapper when `value > 48`.
+
+        When `value` is in the plain 1-48 range a bare `c:style` child is written (removing any
+        existing `mc:AlternateContent` style wrapper). When `value` is in the extended 49-255
+        range an `mc:AlternateContent` wrapper is written containing a `c14:style val="value"`
+        in an `mc:Choice Requires="c14"` and an `mc:Fallback/c:style` set to the base style
+        (`value - 100` when `value > 100`, else `value`; clamped to 1..48) so the chart still
+        renders in readers that do not know about `c14`. When `value` is `None`, both the plain
+        `c:style` and any `mc:AlternateContent` wrapper are removed.
+        """
+        self._remove_style()
+        self._remove_alt_content_style()
+        if value is None:
+            return
+        if 1 <= value <= 48:
+            self._add_style(val=value)
+            return
+        # -- extended range: wrap in mc:AlternateContent with a `c:style` fallback. The
+        # -- extended-index convention PowerPoint uses is `base + 100` (e.g. 118 = accent
+        # -- variant of plain style 18), so the best plain-reader fallback is usually
+        # -- `value - 100`. Clamp anything outside 1..48 to 1 so the fallback always
+        # -- satisfies `ST_Style`.
+        fallback_val = value - 100 if value > 100 else value
+        if fallback_val < 1 or fallback_val > 48:
+            fallback_val = 1
+        ac_xml = (
+            '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-co'
+            'mpatibility/2006">\n'
+            '  <mc:Choice xmlns:c14="http://schemas.microsoft.com/office/drawing/2007/8'
+            '/2/chart" Requires="c14">\n'
+            '    <c14:style val="%d"/>\n'
+            "  </mc:Choice>\n"
+            "  <mc:Fallback>\n"
+            '    <c:style xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/cha'
+            'rt" val="%d"/>\n'
+            "  </mc:Fallback>\n"
+            "</mc:AlternateContent>"
+        ) % (value, fallback_val)
+        ac_elm = parse_xml(ac_xml)
+        # -- insert in the same slot as a bare c:style would occupy --
+        insert_before = None
+        for child in self.iterchildren():
+            if child.tag in self._chart_style_ex_successors:
+                insert_before = child
+                break
+        if insert_before is not None:
+            insert_before.addprevious(ac_elm)
+        else:
+            self.append(ac_elm)
+
+    @property
+    def _c14_style_elm(self) -> CT_StyleEx | None:
+        """The `c14:style` element from the first `mc:Choice` of the style `mc:AlternateContent`.
+
+        Returns `None` if no such wrapper is present, or if its first `mc:Choice` contains no
+        `c14:style` child.
+        """
+        # -- only consider mc:AlternateContent children that sit in the `c:style` slot and
+        # -- contain a c14:style child in their first mc:Choice; this avoids mis-resolving
+        # -- other mc:AlternateContent wrappers that may appear elsewhere in the chartSpace.
+        for ac in self.iterchildren(qn("mc:AlternateContent")):
+            choices = list(ac.iterchildren(qn("mc:Choice")))
+            if not choices:
+                continue
+            style_ex = choices[0].find(qn("c14:style"))
+            if style_ex is not None:
+                return cast("CT_StyleEx", style_ex)
+        return None
+
+    def _remove_alt_content_style(self) -> None:
+        """Remove any `mc:AlternateContent` wrapper whose first `mc:Choice` contains `c14:style`.
+
+        A no-op when no such wrapper is present.
+        """
+        for ac in list(self.iterchildren(qn("mc:AlternateContent"))):
+            choices = list(ac.iterchildren(qn("mc:Choice")))
+            if not choices:
+                continue
+            if choices[0].find(qn("c14:style")) is not None:
+                self.remove(ac)
 
     @property
     def date_1904(self):
@@ -334,3 +452,16 @@ class CT_Style(BaseOxmlElement):
     """
 
     val = RequiredAttribute("val", ST_Style)
+
+
+class CT_StyleEx(BaseOxmlElement):
+    """`c14:style` element; the Office 2010+ extended chart-style index.
+
+    Appears inside an `mc:Choice Requires="c14"` child of an `mc:AlternateContent` wrapper that
+    sits in the `c:style` slot of `c:chartSpace`. The `val` attribute carries an extended
+    chart-style index (typically the plain 1-48 index plus 100, e.g. `118 = AccentN-coloured
+    variant of style 18`) that lets MS PowerPoint render pure-accent series colours for charts
+    with six or more series instead of shaded alternates of the first six accents.
+    """
+
+    val = RequiredAttribute("val", ST_StyleEx)

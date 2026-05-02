@@ -190,6 +190,30 @@ def _add_secondary_value_axis(chart):
 
     plotArea.append(parse_xml(sec_catAx_xml))
     plotArea.append(parse_xml(sec_valAx_xml))
+@given("a chart with an extended c14:style wrapped in mc:AlternateContent")
+def given_a_chart_with_an_extended_c14_style(context):
+    # -- `cht-chart-props.pptx` charts are authored by PowerPoint with the extended
+    # -- `c14:style val="118"` wrapped inside `mc:AlternateContent` and a `c:style val="18"`
+    # -- fallback. Before issue #516, `Chart.chart_style` returned `None` for this layout
+    # -- because it only looked at the plain `c:style` child.
+    prs = Presentation(test_pptx("cht-chart-props"))
+    context.chart = prs.slides[0].shapes[0].chart
+
+
+@given("a chart with no explicit chart style")
+def given_a_chart_with_no_explicit_chart_style(context):
+    # -- an `add_chart`-constructed column chart has no style child at all --
+    from pptx.util import Inches as _In
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["A", "B", "C"]
+    chart_data.add_series("S1", (1, 2, 3))
+    gf = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED, _In(1), _In(1), _In(4), _In(3), chart_data
+    )
+    context.chart = gf.chart
 
 
 # when ====================================================
@@ -295,6 +319,11 @@ def when_I_assign_value_to_chart_title_has_text_frame(context, value):
     context.chart_title.has_text_frame = {"True": True, "False": False}[value]
 
 
+@when("I assign {value:d} to chart.chart_style")
+def when_I_assign_value_to_chart_chart_style(context, value):
+    context.chart.chart_style = value
+
+
 @when("I replace its data with {cats} categories and {sers} series")
 def when_I_replace_its_data_with_categories_and_series(context, cats, sers):
     category_count, series_count = int(cats), int(sers)
@@ -364,6 +393,44 @@ def then_chart_category_axis_is_a_cls_name_object(context, cls_name):
 def then_chart_chart_title_is_a_ChartTitle_object(context):
     class_name = type(context.chart.chart_title).__name__
     assert class_name == "ChartTitle", "got %s" % class_name
+
+
+@then("chart.chart_style is {value:d}")
+def then_chart_chart_style_is_value(context, value):
+    actual = context.chart.chart_style
+    assert actual == value, "got %r" % actual
+
+
+@then("chartSpace has an mc:AlternateContent/mc:Choice/c14:style val={val:d}")
+def then_chartSpace_has_c14_style(context, val):
+    cs = context.chart._chartSpace
+    mc_ns = "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
+    c14_ns = "{http://schemas.microsoft.com/office/drawing/2007/8/2/chart}"
+    for ac in cs.iterchildren(mc_ns + "AlternateContent"):
+        for choice in ac.iterchildren(mc_ns + "Choice"):
+            c14_style = choice.find(c14_ns + "style")
+            if c14_style is not None and int(c14_style.get("val")) == val:
+                return
+    raise AssertionError(
+        "mc:AlternateContent/mc:Choice/c14:style val=%d not found" % val
+    )
+
+
+@then("chartSpace has an mc:AlternateContent/mc:Fallback/c:style val={val:d}")
+def then_chartSpace_has_fallback_cstyle(context, val):
+    cs = context.chart._chartSpace
+    mc_ns = "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
+    c_ns = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
+    for ac in cs.iterchildren(mc_ns + "AlternateContent"):
+        fallback = ac.find(mc_ns + "Fallback")
+        if fallback is None:
+            continue
+        style = fallback.find(c_ns + "style")
+        if style is not None and int(style.get("val")) == val:
+            return
+    raise AssertionError(
+        "mc:AlternateContent/mc:Fallback/c:style val=%d not found" % val
+    )
 
 
 @then("chart.chart_type is {enum_member}")
