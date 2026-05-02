@@ -248,6 +248,15 @@ Unreleased
   (which apply the #925 group-transform cascade). The clone's
   ``a:chOff``/``a:chExt`` child coord system is preserved from the source
   so inner shapes retain their local positions.
+- fix: #974 ``Movie.delete()`` now drops the three media-related slide-part
+  rels (``a:videoFile``/``a:audioFile``'s ``@r:link``, the ``p14:media``
+  ``@r:embed``, and the poster-frame ``a:blip``'s ``@r:embed``) and removes
+  the matching ``p:timing/...//p:video[p:cMediaNode/p:tgtEl/p:spTgt/@spid]``
+  timing-tree entry that ``SlideShapes.add_movie`` adds. Previously
+  ``shape.delete()`` on a movie left a dangling ``p:video`` targeting a
+  now-missing shape id plus three orphan rels, producing "file is corrupt"
+  errors when the saved deck was reopened in PowerPoint. The fix follows
+  the Wave 1 ``Picture.delete()`` override pattern.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

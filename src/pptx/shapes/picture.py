@@ -108,6 +108,71 @@ class Movie(_BasePicture):
     and a *poster frame*, the placeholder image that represents the video before it is played.
     """
 
+    def delete(self) -> None:
+        """Remove this movie from the slide and clean up its associated parts and timing node.
+
+        A movie shape is backed by up to three slide-part relationships: the video / audio part
+        (``a:videoFile/@r:link`` or ``a:audioFile/@r:link``), the ``p14:media`` part
+        (``@r:embed``), and the poster-frame image part (``a:blip/@r:embed``). The matching
+        relationships are dropped so unreferenced parts are garbage-collected on save (see
+        :meth:`Picture.delete` for the rId-reference-count semantics).
+
+        A movie also owns a ``p:video`` entry in the slide's ``p:timing`` sub-tree (added by
+        :meth:`SlideShapes.add_movie`) — leaving it in place after the ``p:pic`` is removed
+        produces a dangling ``p:spTgt/@spid`` reference that causes PowerPoint to flag the file
+        as corrupt on open (issue #974). The matching ``p:video`` element is located by the
+        shape's id and removed.
+        """
+        # -- capture shape_id BEFORE removing the p:pic from the tree --
+        shape_id = self.shape_id
+        # -- drop the three media-related slide-part rels (video, media, poster-frame) --
+        for rId in self._media_rIds:
+            self.part.drop_rel(rId)
+        # -- drop the p:video timing-tree entry that targets this shape --
+        self._remove_video_timing(shape_id)
+        super().delete()
+
+    @property
+    def _media_rIds(self) -> list[str]:
+        """The rIds referenced by this movie's media sub-elements.
+
+        Returns a list containing the ``a:videoFile``/``a:audioFile`` ``@r:link``, the
+        ``p14:media`` ``@r:embed``, and the poster-frame ``a:blip`` ``@r:embed`` — in
+        whatever subset is actually present on this particular movie. Duplicates are
+        preserved so :meth:`pptx.opc.package.XmlPart.drop_rel` sees the correct total
+        reference count when the same rId appears in more than one of these slots.
+        """
+        rIds: list[str] = []
+        rIds.extend(
+            self._pic.xpath(
+                "./p:nvPicPr/p:nvPr/a:videoFile/@r:link"
+                " | ./p:nvPicPr/p:nvPr/a:audioFile/@r:link"
+            )
+        )
+        rIds.extend(self._pic.xpath("./p:nvPicPr/p:nvPr/p:extLst/p:ext/p14:media/@r:embed"))
+        blip_rId = self._pic.blip_rId
+        if blip_rId is not None:
+            rIds.append(blip_rId)
+        return rIds
+
+    def _remove_video_timing(self, shape_id: int) -> None:
+        """Remove the `p:video` timing-tree entry targeting *shape_id*, if present.
+
+        Searches the entire `p:sld` document for any ``p:video`` whose
+        ``p:cMediaNode/p:tgtEl/p:spTgt/@spid`` matches *shape_id*. Using ``//p:video``
+        (rather than the schema-canonical
+        ``/p:sld/p:timing/p:tnLst/p:par/p:cTn/p:childTnLst/p:video``) tolerates the
+        ``mc:AlternateContent``-wrapped timing layout emitted by PowerPoint 2010+
+        (issue #954) without duplicating the wrapper-aware traversal logic that
+        already lives on ``CT_Slide``. When no matching ``p:video`` is found (e.g. the
+        movie pre-existed in a file without a timing entry) this is a no-op.
+        """
+        videos = self._pic.xpath(
+            "/p:sld//p:video[p:cMediaNode/p:tgtEl/p:spTgt/@spid='%d']" % shape_id
+        )
+        for video in videos:
+            video.getparent().remove(video)
+
     @lazyproperty
     def media_format(self) -> _MediaFormat:
         """The |_MediaFormat| object for this movie.
