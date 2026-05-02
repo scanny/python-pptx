@@ -208,8 +208,9 @@ prs.save("out.pptx")
 
 Every slide inherits text styles, placeholders, color theme, and background
 from its layout, which in turn inherits from its master. The fork adds
-`SlideLayouts.remove()`, `.index()`, `.get_by_name()`, and the ability to
-add non-placeholder shapes onto masters and layouts.
+`SlideLayouts.remove()`, `.index()`, `.get_by_name()`,
+`SlideMaster.add_layout_from()`, and the ability to add non-placeholder
+shapes onto masters and layouts.
 
 ```python
 from pptx import Presentation
@@ -225,12 +226,17 @@ blank = master.slide_layouts.get_by_name("Blank")
 # theme colors available to this master
 for key, rgb in master.theme_colors.items():
     print(key, rgb)
+
+# import a layout from another presentation's master
+brand = Presentation("branded.pptx").slide_masters[0]
+imported = master.add_layout_from(brand.slide_layouts.get_by_name("Callout"))
 ```
 
 - `Presentation.slide_master` / `Presentation.slide_masters` — Default master plus every master in the deck.
 - `SlideMaster.name` / `SlideMaster.slide_layouts` / `SlideMaster.placeholders` / `SlideMaster.shapes`.
 - `SlideMaster.theme_colors` — Mapping of theme-color role names to resolved `RGBColor`. `[Added in 2026.05.0]`
 - `SlideMaster.header_footer` — `_HeaderFooter` proxy.
+- `SlideMaster.add_layout_from(source_layout)` — Clone a slide layout from any other master (same or different presentation) into this master. Returns the new `SlideLayout`; raises `ValueError` on a name collision. `[Added in 2026.05.0]`
 - `SlideLayouts.__getitem__` / `__iter__` / `__len__` — Index, iterate, count layouts.
 - `SlideLayouts.get_by_name(name, default=None)` — Layout lookup by name. `[Added in 2026.05.0]`
 - `SlideLayouts.index(slide_layout)` — Position of a layout within the master. `[Added in 2026.05.0]`

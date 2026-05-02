@@ -82,6 +82,12 @@ Feature Support
 * Read and write the text-highlight (text-background) color on a run via
   :attr:`Font.highlight_color` (RGB or theme color) — the swatch PowerPoint
   exposes as the text background-color marker on the Home ribbon
+
+* Import a slide layout from another master (in the same or a different
+  presentation) via :meth:`.SlideMaster.add_layout_from`; the clone is
+  appended to the destination master's layout list, its images and
+  external hyperlinks are materialised in the target package, and its
+  theme (colors, fonts, effects) is inherited from the destination master
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

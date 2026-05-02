@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from pptx.chart.data import ChartData
     from pptx.enum.chart import XL_CHART_TYPE
     from pptx.media import Video
+    from pptx.opc.package import Part
     from pptx.oxml.xmlchemy import BaseOxmlElement
     from pptx.package import Package
     from pptx.media import Audio, Video
@@ -395,7 +396,7 @@ class SlidePart(BaseSlidePart):
         return cloned
 
     @staticmethod
-    def _shallow_clone_part_into(source_part, package):
+    def _shallow_clone_part_into(source_part: Part, package: Package) -> Part:
         """Return a new part in `package` mirroring `source_part` (shallow duplicate).
 
         Used for OLE objects, embedded packages, and any other slide-owned rel
@@ -409,9 +410,7 @@ class SlidePart(BaseSlidePart):
 
         partname_tmpl = _partname_template_for(source_part.partname)
         new_partname = package.next_partname(partname_tmpl)
-        return type(source_part)(
-            new_partname, source_part.content_type, package, source_part.blob
-        )
+        return type(source_part)(new_partname, source_part.content_type, package, source_part.blob)
 
     @staticmethod
     def _remap_rel_ids(element: BaseOxmlElement, rId_map: dict[str, str]) -> None:
@@ -461,9 +460,7 @@ class SlidePart(BaseSlidePart):
         # -- MS-Office "package" file-types (DOCX/PPTX/XLSX members of PROG_ID) get
         # -- the RT.PACKAGE relationship-type; every other case -- including non-Office
         # -- PROG_ID members and arbitrary str progIds -- gets RT.OLE_OBJECT.
-        is_office_package = (
-            isinstance(prog_id, PROG_ID) and prog_id.is_office_package
-        )
+        is_office_package = isinstance(prog_id, PROG_ID) and prog_id.is_office_package
         relationship_type = RT.PACKAGE if is_office_package else RT.OLE_OBJECT
         return self.relate_to(
             EmbeddedPackagePart.factory(
@@ -620,6 +617,87 @@ class SlideLayoutPart(BaseSlidePart):
     Corresponds to package files ``ppt/slideLayouts/slideLayout[1-9][0-9]*.xml``.
     """
 
+    @classmethod
+    def clone_from(
+        cls,
+        source_layout_part: SlideLayoutPart,
+        partname: PackURI,
+        package: Package,
+        slide_master_part: SlideMasterPart,
+    ) -> SlideLayoutPart:
+        """Return new |SlideLayoutPart| cloned from `source_layout_part` in `package`.
+
+        The new layout part is bound to `slide_master_part` (the destination
+        master, which must belong to `package`) via a fresh
+        ``RT.SLIDE_MASTER`` relationship; this master's theme and color /
+        font / format scheme provide the visual context for placeholders on
+        the cloned layout. Every other relationship referenced by the
+        source layout -- image, external hyperlink, ... -- is re-established
+        in `package` using :class:`PartRelationshipCloner` (which reuses
+        an existing part if the source already belongs to the target
+        package and materialises a shallow duplicate otherwise).
+
+        Image rels are content-deduplicated against existing parts in
+        `package` so repeated imports of layouts that share artwork do
+        not bloat the package. The cloned shape-tree's ``r:id`` /
+        ``r:embed`` / ``r:link`` attributes are rewritten to point at the
+        freshly allocated relationships on the new layout part. The
+        source layout part is not modified.
+        """
+        from pptx.oxml.slide import CT_SlideLayout
+
+        # -- Seed the new part with a deep-copied p:sldLayout root so the
+        # -- caller's source element is never mutated. The rId remap below
+        # -- rewrites attribute values in place on this clone. --
+        cloned_sldLayout = cast("CT_SlideLayout", copy.deepcopy(source_layout_part._element))
+        new_layout_part = cls(partname, CT.PML_SLIDE_LAYOUT, package, cloned_sldLayout)
+
+        # -- Always relate the new layout to the destination master; the
+        # -- source layout's SLIDE_MASTER rel points at its own master and
+        # -- is intentionally remapped here rather than cloned. --
+        master_rId = new_layout_part.relate_to(slide_master_part, RT.SLIDE_MASTER)
+
+        # -- Build an rId remap covering every rel on the source layout.
+        # -- SLIDE_MASTER -> always the destination master.
+        # -- IMAGE        -> content-deduplicated in `package`.
+        # -- external     -> target URI copied verbatim (e.g. hyperlinks).
+        # -- other        -> shallow clone (new part, same blob) if not
+        # --                 already in `package`; re-used otherwise. --
+        rId_map: dict[str, str] = {}
+        for old_rId, rel in source_layout_part.rels.items():
+            if rel.reltype == RT.SLIDE_MASTER:
+                rId_map[old_rId] = master_rId
+                continue
+            if rel.is_external:
+                new_rId = new_layout_part.relate_to(rel.target_ref, rel.reltype, is_external=True)
+                rId_map[old_rId] = new_rId
+                continue
+            if rel.reltype == RT.IMAGE:
+                target_image_part = (
+                    SlidePart._clone_image_part_into(  # pyright: ignore[reportPrivateUsage]
+                        cast("ImagePart", rel.target_part), package
+                    )
+                )
+                new_rId = new_layout_part.relate_to(target_image_part, RT.IMAGE)
+                rId_map[old_rId] = new_rId
+                continue
+            src_target_part = rel.target_part
+            if src_target_part.package is package:
+                tgt_target_part = src_target_part
+            else:
+                tgt_target_part = (
+                    SlidePart._shallow_clone_part_into(  # pyright: ignore[reportPrivateUsage]
+                        src_target_part, package
+                    )
+                )
+            new_rId = new_layout_part.relate_to(tgt_target_part, rel.reltype)
+            rId_map[old_rId] = new_rId
+
+        # -- Rewrite every `r:id` / `r:embed` / `r:link` on the clone. --
+        SlidePart._remap_rel_ids(cloned_sldLayout, rId_map)  # pyright: ignore[reportPrivateUsage]
+
+        return new_layout_part
+
     @lazyproperty
     def slide_layout(self):
         """
@@ -638,6 +716,25 @@ class SlideMasterPart(BaseSlidePart):
 
     Corresponds to package files ppt/slideMasters/slideMaster[1-9][0-9]*.xml.
     """
+
+    def add_layout_from(self, source_layout: SlideLayout) -> tuple[str, SlideLayout]:
+        """Return ``(rId, slide_layout)`` for a new layout cloned from `source_layout`.
+
+        `source_layout` may belong to this presentation or to a different
+        one. A new |SlideLayoutPart| is materialised in this package,
+        related to this master via a freshly allocated ``SLIDE_LAYOUT``
+        relationship whose id is returned alongside the new layout. The
+        caller is responsible for registering a matching ``p:sldLayoutId``
+        on this master's ``p:sldLayoutIdLst`` (the high-level
+        :meth:`SlideMaster.add_layout_from` method does this).
+        """
+        source_layout_part = source_layout.part
+        partname = self._package.next_partname("/ppt/slideLayouts/slideLayout%d.xml")
+        new_layout_part = SlideLayoutPart.clone_from(
+            source_layout_part, partname, self._package, self
+        )
+        rId = self.relate_to(new_layout_part, RT.SLIDE_LAYOUT)
+        return rId, new_layout_part.slide_layout
 
     def related_slide_layout(self, rId: str) -> SlideLayout:
         """Return |SlideLayout| related to this slide-master by key `rId`."""

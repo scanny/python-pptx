@@ -73,6 +73,18 @@ def given_an_empty_target_presentation(context):
     context.target_prs = Presentation()
 
 
+@given("two presentations with different slide masters")
+def given_two_presentations_with_different_slide_masters(context):
+    context.source_prs = Presentation()
+    context.target_prs = Presentation()
+    # -- rename one layout in the source so add_layout_from() doesn't
+    # -- collide with identically-named layouts already on the target
+    # -- master. The destination still holds a "Blank" layout etc.; we
+    # -- carry over a layout whose name is unique to the source.
+    context.source_layout = context.source_prs.slide_layouts[5]
+    context.source_layout.name = "Imported Title-Only"
+
+
 # when ====================================================
 
 
@@ -446,3 +458,82 @@ def then_cloned_slide_picture_names_match(context):
 @then("the cloned slide is bound to the target presentation's slide layout")
 def then_cloned_slide_layout_matches(context):
     assert context.cloned_slide.slide_layout is context.target_layout
+
+
+# --- #1028 cross-master layout import ---------------------
+
+
+@when("I call master.add_layout_from() with a layout from the other master")
+def when_I_call_master_add_layout_from_other_master(context):
+    target_master = context.target_prs.slide_masters[0]
+    context.before_count = len(target_master.slide_layouts)
+    context.new_layout = target_master.add_layout_from(context.source_layout)
+    context.target_master = target_master
+
+
+@when("I call master.add_layout_from() with a layout whose name already exists")
+def when_I_call_master_add_layout_from_colliding_name(context):
+    target_master = context.target_prs.slide_masters[0]
+    # -- "Blank" exists on both the source and target default masters --
+    context.source_layout = context.source_prs.slide_layouts.get_by_name("Blank")
+    context.before_count = len(target_master.slide_layouts)
+    context.target_master = target_master
+    try:
+        target_master.add_layout_from(context.source_layout)
+    except ValueError as exc:
+        context.raised_value_error = exc
+    else:
+        context.raised_value_error = None
+
+
+@then("the destination master has one more layout")
+def then_destination_master_has_one_more_layout(context):
+    after = len(context.target_master.slide_layouts)
+    assert after == context.before_count + 1, (
+        "before=%d after=%d" % (context.before_count, after)
+    )
+
+
+@then("the new layout's name matches the source layout's name")
+def then_new_layout_name_matches(context):
+    assert context.new_layout.name == context.source_layout.name, (
+        "new=%r source=%r" % (context.new_layout.name, context.source_layout.name)
+    )
+
+
+@then("the new layout's slide_master is the destination master")
+def then_new_layout_slide_master_is_destination(context):
+    assert context.new_layout.slide_master is context.target_master
+
+
+@then("the presentation round-trips cleanly after add_layout_from")
+def then_presentation_round_trips_after_add_layout_from(context):
+    from io import BytesIO
+
+    buf = BytesIO()
+    context.target_prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    # -- the imported layout survives the round-trip
+    master = reopened.slide_masters[0]
+    layout = master.slide_layouts.get_by_name(context.source_layout.name)
+    assert layout is not None, "cloned layout not found after reopen"
+    # -- the reopened layout can bind a new slide without raising
+    reopened.slides.add_slide(layout)
+
+
+@then("a ValueError is raised with a clear message")
+def then_value_error_raised_with_clear_message(context):
+    err = context.raised_value_error
+    assert err is not None, "expected add_layout_from() to raise ValueError"
+    assert "already has a layout named" in str(err), (
+        "unexpected error message: %r" % str(err)
+    )
+
+
+@then("the destination master layout count is unchanged")
+def then_destination_master_layout_count_unchanged(context):
+    after = len(context.target_master.slide_layouts)
+    assert after == context.before_count, (
+        "before=%d after=%d" % (context.before_count, after)
+    )

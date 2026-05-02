@@ -313,9 +313,7 @@ class Slide(_BaseSlide):
     @is_hidden.setter
     def is_hidden(self, value: bool) -> None:
         if not isinstance(value, bool):
-            raise TypeError(
-                "is_hidden must be a bool, got %s" % type(value).__name__
-            )
+            raise TypeError("is_hidden must be a bool, got %s" % type(value).__name__)
         # -- CT_Slide.show is an OptionalAttribute(default=True); assigning
         # -- True (the default) removes the attribute, assigning False
         # -- writes show="0".
@@ -345,9 +343,7 @@ class Slide(_BaseSlide):
     @show_master_shapes.setter
     def show_master_shapes(self, value: bool) -> None:
         if not isinstance(value, bool):
-            raise TypeError(
-                "show_master_shapes must be a bool, got %s" % type(value).__name__
-            )
+            raise TypeError("show_master_shapes must be a bool, got %s" % type(value).__name__)
         # -- CT_Slide.showMasterSp is an OptionalAttribute(default=True);
         # -- assigning True (the default) removes the attribute, assigning
         # -- False writes showMasterSp="0".
@@ -1055,6 +1051,56 @@ class SlideMaster(_BaseMaster):
 
     _element: CT_SlideMaster  # pyright: ignore[reportIncompatibleVariableOverride]
 
+    part: SlideMasterPart  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    def add_layout_from(self, source_layout: SlideLayout) -> SlideLayout:
+        """Return a new |SlideLayout| on this master cloned from `source_layout`.
+
+        `source_layout` may come from any |Presentation| instance,
+        including the one this master belongs to. Provides the
+        cross-master layout-import use-case of issue #1028: the layout
+        is needed on a deck whose master does not contain it (or on a
+        different master within the same deck).
+
+        A new slide-layout part is materialised in this presentation's
+        package and related to this master via a fresh
+        ``SLIDE_LAYOUT`` relationship; a new ``p:sldLayoutId`` entry is
+        appended to this master's ``p:sldLayoutIdLst`` with a
+        freshly-allocated layout id. Images and external hyperlinks
+        referenced by the source layout are cloned into this package
+        (images are content-deduplicated against existing parts).
+
+        The cloned layout inherits its *theme* (color, font, and format
+        scheme) from *this* master, not from `source_layout`'s original
+        master. The layout's shape tree, placeholder geometry, and
+        text content are preserved verbatim; colors, fonts, and any
+        other theme-resolved formatting are re-rendered by this
+        master's theme. This is the same inheritance model PowerPoint
+        applies when a user drags a layout between masters.
+
+        Raises |ValueError| when this master already contains a layout
+        with the same name, to prevent the user from accidentally
+        creating two same-named layouts that can no longer be
+        distinguished via :meth:`SlideLayouts.get_by_name`.
+
+        .. versionadded:: 2026.05.0
+        """
+        # -- Guard against a name collision on this master --------------
+        source_name = source_layout.name
+        if source_name:
+            for existing in self.slide_layouts:
+                if existing.name == source_name:
+                    raise ValueError(
+                        "destination master already has a layout named %r; "
+                        "rename the source or destination layout before "
+                        "calling add_layout_from()" % source_name
+                    )
+
+        rId, new_layout = self.part.add_layout_from(source_layout)
+        sldLayoutIdLst = self._element.get_or_add_sldLayoutIdLst()
+        sldLayoutIdLst.add_sldLayoutId(rId)
+        return new_layout
+
     @property
     def name(self) -> str:
         """String representing the internal name of this slide master.
@@ -1372,8 +1418,7 @@ class Transition(ElementProxy):
     def morph_option(self, value: str) -> None:
         if value not in self._MORPH_OPTIONS:
             raise ValueError(
-                "morph_option must be one of %r, got %r"
-                % (self._MORPH_OPTIONS, value)
+                "morph_option must be one of %r, got %r" % (self._MORPH_OPTIONS, value)
             )
         transition = self._sld.transition_effective
         if transition is None or transition.variant_tag != "p14:morph":
@@ -1461,9 +1506,7 @@ class Transition(ElementProxy):
     @advance_on_click.setter
     def advance_on_click(self, value: bool) -> None:
         if not isinstance(value, bool):
-            raise TypeError(
-                "advance_on_click must be a bool, got %s" % type(value).__name__
-            )
+            raise TypeError("advance_on_click must be a bool, got %s" % type(value).__name__)
         transition = self._sld.get_or_add_transition_effective()
         transition.advClick = value
 
@@ -1499,8 +1542,7 @@ class Transition(ElementProxy):
             return
         if not isinstance(value, int) or value < 0:
             raise ValueError(
-                "advance_after_time must be a non-negative int (milliseconds), got %r"
-                % (value,)
+                "advance_after_time must be a non-negative int (milliseconds), got %r" % (value,)
             )
         transition = self._sld.get_or_add_transition_effective()
         transition.advTm = value
