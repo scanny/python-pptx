@@ -81,6 +81,13 @@ Unreleased
   misplaced ``c:tx/c:rich`` path. ``data_labels.text_frame.word_wrap = False``
   now round-trips through PowerPoint as intended.
 - #502 support audio MIME types / docs clarification
+- fix: #323 Cannot add a video slide when another slide-layout in the master
+  template contains an ``audio/mpeg`` (mp3) part. Resolved by #502 and #734 —
+  audio MIME-types now load as ``MediaPart`` (gaining the ``.sha1`` attribute
+  ``_MediaParts._find_by_sha1`` relies on), and that lookup now defensively
+  skips any non-``MediaPart`` entry so a future unmapped media MIME-type
+  cannot regress the original ``AttributeError``. Regression tests pin both
+  layers.
 - feat: #752 accept arbitrary `prog_id` + `extension` in
   `SlideShapes.add_ole_object()` to embed zip/pdf/html/custom files
 - #446 shape.shadow.inherit attribute not working
