@@ -101,6 +101,13 @@ Unreleased
   without touching the package internals. All three properties return
   |None| when the shape has no associated media part.
 
+- docs: #391 add a "Reading slide properties" section to
+  ``docs/user/slides.rst`` covering ``slide.slide_id``, ``slide.name``,
+  ``slide.slide_layout``, ``slide.shapes.title``, and iterating
+  placeholders by ``placeholder_format.idx`` / ``type``. No API change —
+  all of the referenced accessors already exist; the gap was
+  documentation.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,
