@@ -29,6 +29,7 @@ if TYPE_CHECKING:
         CT_RegularTextRun,
         CT_TextBody,
         CT_TextCharacterProperties,
+        CT_TextField,
         CT_TextParagraph,
         CT_TextParagraphProperties,
     )
@@ -792,6 +793,19 @@ class _Paragraph(Subshape):
         super(_Paragraph, self).__init__(parent)
         self._element = self._p = p
 
+    def add_field(self, field_type: str, text: str = "") -> _Field:
+        """Append an auto-refresh field (`a:fld`) to the end of this paragraph.
+
+        `field_type` is the `a:fld/@type` string PowerPoint uses to classify the field. Common
+        values are `"slidenum"` (current slide number), `"datetime"`, `"datetimeFigureOut"`, or
+        one of the formatted date variants `"datetime1"` … `"datetime13"`, and `"footer"`.
+        `text` is the literal string stored alongside the field; PowerPoint uses this as the
+        displayed value until the field is first refreshed on open — for a slide-number field,
+        a short placeholder such as `"#"` is customary.
+        """
+        fld = self._p.add_fld(field_type, text)
+        return _Field(fld, self)
+
     def add_line_break(self):
         """Add line break at end of this paragraph."""
         self._p.add_br()
@@ -1012,3 +1026,46 @@ class _Run(Subshape):
     @text.setter
     def text(self, text: str):
         self._r.text = text
+
+
+class _Field(Subshape):
+    """Auto-refresh text field. Corresponds to an `a:fld` child element in a paragraph.
+
+    The most common fields are a slide-number field (`type="slidenum"`) and a date field
+    (`type="datetime"` / `"datetimeFigureOut"` / `"datetime1"` … `"datetime13"`). A `_Field`
+    object is returned by :meth:`._Paragraph.add_field` and can also be iterated over via the
+    runs-and-fields content of a paragraph in future APIs.
+    """
+
+    def __init__(self, fld: CT_TextField, parent: ProvidesPart):
+        super(_Field, self).__init__(parent)
+        self._fld = fld
+
+    @property
+    def field_type(self) -> str | None:
+        """The `a:fld/@type` string, e.g. `"slidenum"`, `"datetime"`, or `"footer"`."""
+        return self._fld.type
+
+    @field_type.setter
+    def field_type(self, value: str):
+        self._fld.type = value
+
+    @property
+    def font(self) -> Font:
+        """|Font| instance for the `a:rPr` run-properties child of this field."""
+        rPr = self._fld.get_or_add_rPr()
+        return Font(rPr)
+
+    @property
+    def text(self) -> str:
+        """The placeholder-display text for this field (contents of `a:fld/a:t`).
+
+        PowerPoint overwrites this text when it first renders the field — for a slide-number
+        field, the number; for a date field, the rendered date. The value written here is what
+        the viewer sees if it does not refresh the field itself.
+        """
+        return self._fld.text
+
+    @text.setter
+    def text(self, value: str):
+        self._fld.text = value

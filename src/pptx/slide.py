@@ -27,8 +27,10 @@ if TYPE_CHECKING:
     from pptx.oxml.presentation import CT_SlideIdList, CT_SlideMasterIdList
     from pptx.oxml.slide import (
         CT_CommonSlideData,
+        CT_NotesMaster,
         CT_NotesSlide,
         CT_Slide,
+        CT_SlideLayout,
         CT_SlideLayoutIdList,
         CT_SlideMaster,
     )
@@ -78,6 +80,17 @@ class _BaseMaster(_BaseSlide):
 
     Provides access to placeholders and regular shapes.
     """
+
+    _element: CT_SlideMaster | CT_NotesMaster  # pyright: ignore[reportIncompatibleVariableOverride]
+
+    @lazyproperty
+    def header_footer(self) -> _HeaderFooter:
+        """|_HeaderFooter| object controlling header/footer/slide-number/date visibility.
+
+        A header/footer setting on a master applies as an inherited default to all layouts /
+        slides that descend from it. See |_HeaderFooter| for the individual toggles.
+        """
+        return _HeaderFooter(self._element)
 
     @lazyproperty
     def placeholders(self) -> MasterPlaceholders:
@@ -385,7 +398,17 @@ class SlideLayout(_BaseSlide):
     Provides access to placeholders, regular shapes, and slide layout-level properties.
     """
 
+    _element: CT_SlideLayout  # pyright: ignore[reportIncompatibleVariableOverride]
     part: SlideLayoutPart  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    @lazyproperty
+    def header_footer(self) -> _HeaderFooter:
+        """|_HeaderFooter| object controlling header/footer/slide-number/date visibility.
+
+        When absent, the layout inherits its master's header/footer settings; accessing this
+        property does not itself add a `p:hf` element to the layout XML. See |_HeaderFooter|.
+        """
+        return _HeaderFooter(self._element)
 
     def iter_cloneable_placeholders(self) -> Iterator[LayoutPlaceholder]:
         """Generate layout-placeholders on this slide-layout that should be cloned to a new slide.
@@ -553,6 +576,80 @@ class SlideMasters(ParentedElementProxy):
     def __len__(self):
         """Support len() built-in function, e.g. `len(slide_masters) == 4`."""
         return len(self._sldMasterIdLst)
+
+
+class _HeaderFooter(ElementProxy):
+    """Provides access to header/footer/slide-number/date placeholder visibility.
+
+    This object is returned by :attr:`~.SlideMaster.header_footer` on |SlideMaster|,
+    |SlideLayout| and |NotesMaster|. It reads and writes the `p:hf` child element of its parent.
+    Each toggle is an independent boolean that defaults to `True` when no explicit value is
+    set (matching the `p:hf` XSD defaults).
+
+    Setting a property to ``False`` hides that placeholder kind; setting back to ``True``
+    restores inherited (visible) behavior. When every attribute is ``True``, no underlying
+    `p:hf` element is kept in the XML — absence is identical to "all visible".
+    """
+
+    def __init__(self, element: CT_SlideMaster | CT_SlideLayout | CT_NotesMaster):
+        super(_HeaderFooter, self).__init__(element)
+        self._slide_element = element
+
+    @property
+    def slide_number_visible(self) -> bool:
+        """`True` when the slide-number placeholder is shown on this master or layout.
+
+        Defaults to `True` (the `p:hf/@sldNum` XSD default) when no `p:hf` is present.
+        """
+        hf = self._slide_element.hf
+        return True if hf is None else hf.sldNum
+
+    @slide_number_visible.setter
+    def slide_number_visible(self, value: bool):
+        self._apply_flag("sldNum", value)
+
+    @property
+    def header_visible(self) -> bool:
+        """`True` when the header placeholder is shown on this master or layout."""
+        hf = self._slide_element.hf
+        return True if hf is None else hf.hdr
+
+    @header_visible.setter
+    def header_visible(self, value: bool):
+        self._apply_flag("hdr", value)
+
+    @property
+    def footer_visible(self) -> bool:
+        """`True` when the footer placeholder is shown on this master or layout."""
+        hf = self._slide_element.hf
+        return True if hf is None else hf.ftr
+
+    @footer_visible.setter
+    def footer_visible(self, value: bool):
+        self._apply_flag("ftr", value)
+
+    @property
+    def date_visible(self) -> bool:
+        """`True` when the date placeholder is shown on this master or layout."""
+        hf = self._slide_element.hf
+        return True if hf is None else hf.dt
+
+    @date_visible.setter
+    def date_visible(self, value: bool):
+        self._apply_flag("dt", value)
+
+    def _apply_flag(self, attr_name: str, value: bool):
+        """Set `attr_name` on the `p:hf` element; remove `p:hf` when every flag is `True`.
+
+        Adds `p:hf` when needed. The removal when every flag is back to True keeps the XML
+        minimal and round-trips cleanly to an element-absent state.
+        """
+        if not isinstance(value, bool):
+            raise TypeError(f"header_footer flag must be a bool, got {type(value).__name__}")
+        hf = self._slide_element.get_or_add_hf()
+        setattr(hf, attr_name, value)
+        if hf.sldNum and hf.hdr and hf.ftr and hf.dt:
+            self._slide_element.remove(hf)
 
 
 class _Background(ElementProxy):

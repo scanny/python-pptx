@@ -33,6 +33,9 @@ Feature Support
 * Toggle bullet formatting on paragraphs (character, auto-number, none, inherit)
 * Add and manipulate column, bar, line, and pie charts
 * Access and change core document properties such as title and subject
+* Toggle header / footer / slide-number / date placeholder visibility on a slide
+  master or layout, and insert auto-refresh slide-number or date fields in a
+  text frame
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still

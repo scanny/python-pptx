@@ -373,12 +373,17 @@ class CT_TextField(BaseOxmlElement):
     """`a:fld` field element, for either a slide number or date field."""
 
     get_or_add_rPr: Callable[[], CT_TextCharacterProperties]
+    get_or_add_t: Callable[[], BaseOxmlElement]
 
     rPr: CT_TextCharacterProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "a:rPr", successors=("a:pPr", "a:t")
     )
     t: BaseOxmlElement | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "a:t", successors=()
+    )
+    id: str = RequiredAttribute("id", XsdString)  # pyright: ignore[reportAssignmentType]
+    type: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "type", XsdString
     )
 
     @property
@@ -388,6 +393,11 @@ class CT_TextField(BaseOxmlElement):
         if t is None:
             return ""
         return t.text or ""
+
+    @text.setter
+    def text(self, value: str):
+        t = self.get_or_add_t()
+        t.text = value
 
 
 class CT_TextFont(BaseOxmlElement):
@@ -433,6 +443,7 @@ class CT_TextParagraph(BaseOxmlElement):
     get_or_add_pPr: Callable[[], CT_TextParagraphProperties]
     r_lst: list[CT_RegularTextRun]
     _add_br: Callable[[], CT_TextLineBreak]
+    _add_fld: Callable[[], CT_TextField]
     _add_r: Callable[[], CT_RegularTextRun]
 
     pPr: CT_TextParagraphProperties | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
@@ -440,6 +451,7 @@ class CT_TextParagraph(BaseOxmlElement):
     )
     r = ZeroOrMore("a:r", successors=("a:endParaRPr",))
     br = ZeroOrMore("a:br", successors=("a:endParaRPr",))
+    fld = ZeroOrMore("a:fld", successors=("a:endParaRPr",))
     endParaRPr: CT_TextCharacterProperties | None = ZeroOrOne(
         "a:endParaRPr", successors=()
     )  # pyright: ignore[reportAssignmentType]
@@ -447,6 +459,30 @@ class CT_TextParagraph(BaseOxmlElement):
     def add_br(self) -> CT_TextLineBreak:
         """Return a newly appended `a:br` element."""
         return self._add_br()
+
+    def add_fld(
+        self,
+        fld_type: str,
+        text: str = "",
+        fld_id: str | None = None,
+    ) -> CT_TextField:
+        """Return a newly appended `a:fld` (auto-refresh field) element.
+
+        `fld_type` becomes the `a:fld/@type` value, e.g. `'slidenum'`, `'datetime'`,
+        `'datetimeFigureOut'`, `'datetime1'` … `'datetime13'`, or `'footer'`. `text` is the
+        placeholder-display string PowerPoint shows until the field is first rendered (a
+        slide-number field typically uses `'#'` or `'‹#›'`). `fld_id` is the optional
+        field-GUID — one is generated when omitted.
+        """
+        from uuid import uuid4
+
+        guid = fld_id if fld_id is not None else "{%s}" % str(uuid4()).upper()
+        fld = self._add_fld()
+        fld.id = guid
+        fld.type = fld_type
+        if text:
+            fld.text = text
+        return fld
 
     def add_r(self, text: str | None = None) -> CT_RegularTextRun:
         """Return a newly appended `a:r` element."""

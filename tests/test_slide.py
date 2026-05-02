@@ -36,6 +36,7 @@ from pptx.slide import (
     _Background,
     _BaseMaster,
     _BaseSlide,
+    _HeaderFooter,
 )
 from pptx.text.text import TextFrame
 
@@ -788,6 +789,14 @@ class DescribeSlideLayout(object):
 
         assert slide_master is slide_master_
 
+    def it_provides_access_to_its_header_footer(self):
+        slide_layout = SlideLayout(element("p:sldLayout/p:cSld/p:spTree"), None)
+
+        header_footer = slide_layout.header_footer
+
+        assert isinstance(header_footer, _HeaderFooter)
+        assert slide_layout.header_footer is header_footer
+
     def it_knows_which_slides_are_based_on_it(
         self,
         used_by_fixture,
@@ -1085,6 +1094,15 @@ class DescribeSlideMaster(object):
         _resolve_.assert_called_once_with(slide_master_part_)
         assert mapping == {"accent1": RGBColor(0x4F, 0x81, 0xBD)}
 
+    def it_provides_access_to_its_header_footer(self):
+        slide_master = SlideMaster(element("p:sldMaster/p:cSld/p:spTree"), None)
+
+        header_footer = slide_master.header_footer
+
+        assert isinstance(header_footer, _HeaderFooter)
+        # ---same instance returned on each access---
+        assert slide_master.header_footer is header_footer
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -1271,3 +1289,77 @@ class Describe_resolve_theme_colors(object):
         assert colors["tx1"] == colors["dk1"]
         assert colors["bg2"] == colors["lt2"]
         assert colors["tx2"] == colors["dk2"]
+
+
+class Describe_HeaderFooter(object):
+    """Unit-test suite for `pptx.slide._HeaderFooter` objects."""
+
+    @pytest.mark.parametrize(
+        ("sldMaster_cxml", "flag_name", "expected"),
+        [
+            ("p:sldMaster/p:cSld/p:spTree", "slide_number_visible", True),
+            ("p:sldMaster/p:cSld/p:spTree", "header_visible", True),
+            ("p:sldMaster/p:cSld/p:spTree", "footer_visible", True),
+            ("p:sldMaster/p:cSld/p:spTree", "date_visible", True),
+            (
+                "p:sldMaster/(p:cSld/p:spTree,p:hf{sldNum=0})",
+                "slide_number_visible",
+                False,
+            ),
+            (
+                "p:sldMaster/(p:cSld/p:spTree,p:hf{hdr=0})",
+                "header_visible",
+                False,
+            ),
+            (
+                "p:sldMaster/(p:cSld/p:spTree,p:hf{ftr=0})",
+                "footer_visible",
+                False,
+            ),
+            (
+                "p:sldMaster/(p:cSld/p:spTree,p:hf{dt=0})",
+                "date_visible",
+                False,
+            ),
+        ],
+    )
+    def it_reads_the_visibility_flags(
+        self, sldMaster_cxml: str, flag_name: str, expected: bool
+    ):
+        sldMaster = element(sldMaster_cxml)
+        hf_proxy = _HeaderFooter(sldMaster)
+        assert getattr(hf_proxy, flag_name) is expected
+
+    @pytest.mark.parametrize(
+        "flag_name,attr_name",
+        [
+            ("slide_number_visible", "sldNum"),
+            ("header_visible", "hdr"),
+            ("footer_visible", "ftr"),
+            ("date_visible", "dt"),
+        ],
+    )
+    def it_sets_the_flag_to_false_by_adding_a_hf_element(self, flag_name, attr_name):
+        sldMaster = element("p:sldMaster/p:cSld/p:spTree")
+        hf_proxy = _HeaderFooter(sldMaster)
+
+        setattr(hf_proxy, flag_name, False)
+
+        assert sldMaster.hf is not None
+        assert getattr(sldMaster.hf, attr_name) is False
+
+    def it_removes_the_hf_element_when_every_flag_is_True_again(self):
+        sldMaster = element("p:sldMaster/(p:cSld/p:spTree,p:hf{sldNum=0})")
+        hf_proxy = _HeaderFooter(sldMaster)
+
+        hf_proxy.slide_number_visible = True
+
+        assert sldMaster.hf is None
+        assert hf_proxy.slide_number_visible is True
+
+    def it_raises_TypeError_on_non_bool_assignment(self):
+        sldMaster = element("p:sldMaster/p:cSld/p:spTree")
+        hf_proxy = _HeaderFooter(sldMaster)
+
+        with pytest.raises(TypeError, match="must be a bool"):
+            hf_proxy.slide_number_visible = "no"  # pyright: ignore[reportAttributeAccessIssue]

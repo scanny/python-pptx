@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Callable, cast
 from pptx.oxml import parse_from_template, parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.simpletypes import XsdBoolean, XsdString
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     Choice,
@@ -88,6 +88,29 @@ class CT_BackgroundProperties(BaseOxmlElement):
         return CT_GradientFillProperties.new_gradFill()
 
 
+class CT_HeaderFooter(BaseOxmlElement):
+    """`p:hf` element, specifying slide-number / header / footer / date placeholder visibility.
+
+    Appears as a direct child of `p:sldLayout`, `p:sldMaster`, `p:notesMaster`, and
+    `p:handoutMaster`. Each attribute is an optional boolean with a default of `True`; when the
+    attribute is absent the corresponding placeholder is considered visible. Assigning `False`
+    hides the placeholder on this layout or master.
+    """
+
+    sldNum: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "sldNum", XsdBoolean, default=True
+    )
+    hdr: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "hdr", XsdBoolean, default=True
+    )
+    ftr: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "ftr", XsdBoolean, default=True
+    )
+    dt: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "dt", XsdBoolean, default=True
+    )
+
+
 class CT_CommonSlideData(BaseOxmlElement):
     """`p:cSld` element."""
 
@@ -129,8 +152,13 @@ class CT_CommonSlideData(BaseOxmlElement):
 class CT_NotesMaster(_BaseSlideElement):
     """`p:notesMaster` element, root of a notes master part."""
 
+    get_or_add_hf: Callable[[], CT_HeaderFooter]
+
     _tag_seq = ("p:cSld", "p:clrMap", "p:hf", "p:notesStyle", "p:extLst")
     cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
+    hf: CT_HeaderFooter | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:hf", successors=_tag_seq[3:]
+    )
     del _tag_seq
 
     @classmethod
@@ -254,8 +282,13 @@ class CT_Slide(_BaseSlideElement):
 class CT_SlideLayout(_BaseSlideElement):
     """`p:sldLayout` element, root of a slide layout part."""
 
+    get_or_add_hf: Callable[[], CT_HeaderFooter]
+
     _tag_seq = ("p:cSld", "p:clrMapOvr", "p:transition", "p:timing", "p:hf", "p:extLst")
     cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
+    hf: CT_HeaderFooter | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:hf", successors=_tag_seq[5:]
+    )
     del _tag_seq
 
 
@@ -282,6 +315,7 @@ class CT_SlideLayoutIdListEntry(BaseOxmlElement):
 class CT_SlideMaster(_BaseSlideElement):
     """`p:sldMaster` element, root of a slide master part."""
 
+    get_or_add_hf: Callable[[], CT_HeaderFooter]
     get_or_add_sldLayoutIdLst: Callable[[], CT_SlideLayoutIdList]
 
     _tag_seq = (
@@ -297,6 +331,9 @@ class CT_SlideMaster(_BaseSlideElement):
     cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     sldLayoutIdLst: CT_SlideLayoutIdList = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "p:sldLayoutIdLst", successors=_tag_seq[3:]
+    )
+    hf: CT_HeaderFooter | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:hf", successors=_tag_seq[6:]
     )
     del _tag_seq
 

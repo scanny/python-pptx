@@ -65,3 +65,17 @@ a paragraph's ``a:pPr`` element. It is obtained as the
    :members:
    :member-order: bysource
    :undoc-members:
+
+
+|_Field| objects
+----------------
+
+A ``_Field`` object is returned by :meth:`._Paragraph.add_field`. It corresponds to an
+``<a:fld>`` element — an auto-refresh text field for the current slide number, the
+current date/time, or the current footer — and exposes the field type plus the
+placeholder-display text.
+
+.. autoclass:: _Field()
+   :members:
+   :member-order: bysource
+   :undoc-members:
