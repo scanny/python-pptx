@@ -1,0 +1,14 @@
+{
+  "src/pptx/*.py": {
+    "alternate": [
+      "tests/{dirname}/test_{basename}.py"
+    ],
+    "type": "source"
+  },
+  "tests/**/test_*.py": {
+    "alternate": [
+      "src/pptx/{dirname}/{basename}.py"
+    ],
+    "type": "test"
+  }
+}

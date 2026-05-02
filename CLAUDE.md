@@ -25,7 +25,25 @@ Patterns and idioms found in this repo often have direct analogues in the siblin
 
 ---
 
-## 2. Repository layout
+## 2. Architecture
+
+Three-layer pattern:
+
+```
+Presentation API  (src/pptx/api.py, src/pptx/presentation.py, src/pptx/slide.py, …)
+    │  Proxy objects wrapping oxml elements (Shape, Slide, Chart, Table, …)
+Parts Layer       (src/pptx/parts/*.py)
+    │  XmlPart subclasses owning XML trees, managing relationships
+oxml Layer        (src/pptx/oxml/*.py)
+    │  CT_* element classes extending lxml.etree.ElementBase via `xmlchemy`
+lxml              (XML parsing/serialization)
+```
+
+Cross-cutting concerns:
+- `src/pptx/opc/` — Open Packaging Conventions (zip/rel/content-type machinery under the parts layer)
+- `src/pptx/enum/` — public enumerations consumed from all layers
+
+## 3. Repository layout
 
 ```
 src/pptx/           # library source (src-layout)
@@ -60,7 +78,7 @@ The `spec/` directory is **intentionally undisciplined**. Ruff and pyright exclu
 
 ---
 
-## 3. Remotes and branching
+## 4. Remotes and branching
 
 - `upstream` → `https://github.com/scanny/python-pptx.git` — do **not** push here.
 - `origin` → the developer's fork — push all work here.
@@ -70,7 +88,7 @@ When contributing a PR upstream, branch from `master`, push to `origin`, and ope
 
 ---
 
-## 4. Tooling and style
+## 5. Tooling and style
 
 All three tools are strict. Respect them — don't disable or silence lints/types to make a patch land.
 
@@ -90,7 +108,7 @@ All three tools are strict. Respect them — don't disable or silence lints/type
 
 ---
 
-## 5. Testing
+## 6. Testing
 
 There are **two** test suites and both must pass for any feature/fix:
 
@@ -133,9 +151,9 @@ tox              # py38..py312 in parallel; runs pytest + behave per env
 
 ---
 
-## 6. The strict feature-work rule
+## 7. The strict feature-work rule
 
-**Every user-visible feature change requires updates in lockstep across four places:**
+**Every user-visible feature change requires updates in lockstep across these places:**
 
 1. **Implementation** under `src/pptx/`.
 2. **Unit tests** under `tests/` — new tests exercising the new code paths, covering both the happy path and failure modes. The test file path should mirror the source file path.
@@ -145,14 +163,15 @@ tox              # py38..py312 in parallel; runs pytest + behave per env
    - **API reference** (`docs/api/…`) for every new class, method, or property — at minimum a `.. autoclass::` or `.. automethod::` directive in the right page.
    - **Feature Support** bullet in `docs/index.rst` for a capability-level addition (new shape kind, new chart type, new round-trip area, etc.).
 5. **`HISTORY.rst`** — add a one-line entry for any user-visible change (new feature, fix of a user-reported bug, API change) under the pending release heading. Use the existing style (`- fix: #NNN …` for bugs, `- Add #NNN …` for features, or a short description for other items).
+6. **`FEATURES.md`** — the single-page catalogue of every public capability this fork offers. For each public-API addition, modification, or removal: add/update the entry under the relevant section, refresh the snippet if the API surface shifted, and verify the snippet runs against a fresh `Presentation()`. Fork-era additions are marked `[Added in <version>.dev0]`.
 
-"N/A" is acceptable for items genuinely not applicable — e.g., a pure internal refactor with no public-surface change may legitimately skip docs and HISTORY — but the default assumption is **all five apply**. If you skip an item, state why in the PR description.
+"N/A" is acceptable for items genuinely not applicable — e.g., a pure internal refactor with no public-surface change may legitimately skip docs, HISTORY, and FEATURES.md — but the default assumption is **all six apply**. If you skip an item, state why in the PR description.
 
 For pure bug fixes, items 3 (acceptance) and the user-guide portion of 4 may be skipped if the bug is purely internal; a unit test and a HISTORY line are still required.
 
 ---
 
-## 7. Documentation build
+## 8. Documentation build
 
 ```bash
 make docs        # Sphinx HTML under docs/.build/html/
@@ -171,7 +190,7 @@ Sphinx config is in `docs/conf.py`.
 
 ---
 
-## 8. Common workflows
+## 9. Common workflows
 
 ### Adding a new public method on an existing class
 1. Implement in the appropriate `src/pptx/…` module.
@@ -195,10 +214,19 @@ Sphinx config is in `docs/conf.py`.
 
 ---
 
-## 9. OOXML / XML tips
+## 10. OOXML / XML tips
 
 - `oxml/` uses a home-grown descriptor layer (`xmlchemy`) on top of `lxml.etree`. Don't bypass it with raw `etree` access in production code — the descriptors carry namespace/type/default semantics.
 - The `ns` helpers (`qn("a:solidFill")`, `nsmap`, `nsdecls`) are how namespaces are handled throughout — use them consistently.
+
+### OOXML spec vs Microsoft PowerPoint reality
+
+Microsoft PowerPoint does NOT strictly implement ISO/IEC 29500 / ECMA-376. Treat the spec as a starting point, not ground truth.
+
+- PowerPoint writes the **Transitional** flavor, not **Strict**. The 4th/5th/6th editions of ISO 29500-1 tightened the spec toward Strict; PowerPoint still emits Transitional namespaces that trace back to the original 1st edition / ECMA-376 2006.
+- PowerPoint emits Microsoft extensions in the `p14:`, `p15:`, `a14:`, `c14:`, `cx:`, and related namespaces (PowerPoint 2010/2013/2016+), gated by `mc:AlternateContent` / `mc:Ignorable`. These are documented in the `[MS-PPTX]` / `[MS-OE376]` / `[MS-ODRAWXML]` extension series, not in the ISO PDFs under `spec/`.
+- PowerPoint's reader tolerates out-of-order, extra, and missing elements that the spec forbids. PowerPoint's writer emits shapes the spec doesn't mandate. A spec-valid file is not automatically a file PowerPoint will open cleanly.
+- **When the spec and PowerPoint disagree, match PowerPoint.** The canonical way to resolve ambiguity is: save a minimal `.pptx` from PowerPoint, unzip it, and inspect the XML. `spec/…/xsd/*.xsd` tells you what is *allowed*; PowerPoint tells you what is *interoperable*.
 
 ### Consulting `spec/` before implementing a new OOXML element
 
@@ -223,7 +251,7 @@ When you find a useful sample file or annotated fragment during investigation, k
 
 ---
 
-## 10. What NOT to do
+## 11. What NOT to do
 
 - Don't amend or force-push to `master`, and never force-push to `upstream` under any circumstance.
 - Don't commit secrets, API tokens, local `_scratch/` output, or generated docs (`.build/`).
@@ -235,7 +263,7 @@ When you find a useful sample file or annotated fragment during investigation, k
 
 ---
 
-## 11. Quick command reference
+## 12. Quick command reference
 
 | Task | Command |
 |---|---|
