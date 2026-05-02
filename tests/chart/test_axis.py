@@ -18,7 +18,9 @@ from pptx.chart.axis import (
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
     XL_AXIS_CROSSES,
+    XL_AXIS_POSITION,
     XL_CATEGORY_TYPE,
+    XL_CROSS_BETWEEN,
     XL_TICK_MARK,
 )
 from pptx.enum.chart import (
@@ -115,6 +117,20 @@ class Describe_BaseAxis(object):
         axis, new_value, expected_xml = minor_tick_set_fixture
         axis.minor_tick_mark = new_value
         assert axis._element.xml == expected_xml
+
+    def it_knows_its_position(self, position_get_fixture):
+        axis, expected_value = position_get_fixture
+        assert axis.position == expected_value
+
+    def it_can_change_its_position(self, position_set_fixture):
+        axis, new_value, expected_xml = position_set_fixture
+        axis.position = new_value
+        assert axis._element.xml == expected_xml
+
+    def but_it_raises_on_assign_non_member_to_position(self):
+        axis = _BaseAxis(element("c:catAx"))
+        with pytest.raises(ValueError):
+            axis.position = "foobar"
 
     def it_knows_whether_it_renders_in_reverse_order(self, reverse_order_get_fixture):
         xAx, expected_value = reverse_order_get_fixture
@@ -486,6 +502,51 @@ class Describe_BaseAxis(object):
         ]
     )
     def minor_tick_set_fixture(self, request):
+        xAx_cxml, new_value, expected_xAx_cxml = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        expected_xml = xml(expected_xAx_cxml)
+        return axis, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("c:catAx", None),
+            ("c:dateAx", None),
+            ("c:valAx", None),
+            ("c:catAx/c:axPos{val=b}", XL_AXIS_POSITION.BOTTOM),
+            ("c:dateAx/c:axPos{val=t}", XL_AXIS_POSITION.TOP),
+            ("c:valAx/c:axPos{val=l}", XL_AXIS_POSITION.LEFT),
+            ("c:valAx/c:axPos{val=r}", XL_AXIS_POSITION.RIGHT),
+        ]
+    )
+    def position_get_fixture(self, request):
+        xAx_cxml, expected_value = request.param
+        axis = _BaseAxis(element(xAx_cxml))
+        return axis, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:catAx", XL_AXIS_POSITION.BOTTOM, "c:catAx/c:axPos{val=b}"),
+            (
+                "c:catAx/c:axPos{val=b}",
+                XL_AXIS_POSITION.TOP,
+                "c:catAx/c:axPos{val=t}",
+            ),
+            ("c:catAx/c:axPos{val=t}", None, "c:catAx"),
+            ("c:valAx", XL_AXIS_POSITION.LEFT, "c:valAx/c:axPos{val=l}"),
+            (
+                "c:valAx/c:axPos{val=l}",
+                XL_AXIS_POSITION.RIGHT,
+                "c:valAx/c:axPos{val=r}",
+            ),
+            ("c:dateAx", None, "c:dateAx"),
+            (
+                "c:valAx/(c:scaling,c:delete)",
+                XL_AXIS_POSITION.BOTTOM,
+                "c:valAx/(c:scaling,c:delete,c:axPos{val=b})",
+            ),
+        ]
+    )
+    def position_set_fixture(self, request):
         xAx_cxml, new_value, expected_xAx_cxml = request.param
         axis = _BaseAxis(element(xAx_cxml))
         expected_xml = xml(expected_xAx_cxml)
@@ -1035,6 +1096,20 @@ class DescribeValueAxis(object):
         value_axis.crosses_at = new_value
         assert plotArea.xml == expected_xml
 
+    def it_knows_its_cross_between(self, cross_between_get_fixture):
+        value_axis, expected_value = cross_between_get_fixture
+        assert value_axis.cross_between == expected_value
+
+    def it_can_change_its_cross_between(self, cross_between_set_fixture):
+        value_axis, new_value, expected_xml = cross_between_set_fixture
+        value_axis.cross_between = new_value
+        assert value_axis._element.xml == expected_xml
+
+    def but_it_raises_on_assign_non_member_to_cross_between(self):
+        value_axis = ValueAxis(element("c:valAx"))
+        with pytest.raises(ValueError):
+            value_axis.cross_between = "foobar"
+
     def it_knows_its_major_unit(self, major_unit_get_fixture):
         value_axis, expected_value = major_unit_get_fixture
         assert value_axis.major_unit == expected_value
@@ -1177,6 +1252,36 @@ class DescribeValueAxis(object):
         new_value = getattr(XL_AXIS_CROSSES, member)
         expected_xml = xml(expected_cxml)
         return value_axis, new_value, plotArea, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("c:valAx", None),
+            ("c:valAx/c:crossBetween{val=between}", XL_CROSS_BETWEEN.BETWEEN),
+            ("c:valAx/c:crossBetween{val=midCat}", XL_CROSS_BETWEEN.MIDPOINT),
+        ]
+    )
+    def cross_between_get_fixture(self, request):
+        valAx_cxml, expected_value = request.param
+        value_axis = ValueAxis(element(valAx_cxml))
+        return value_axis, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:valAx", XL_CROSS_BETWEEN.BETWEEN, "c:valAx/c:crossBetween{val=between}"),
+            (
+                "c:valAx/c:crossBetween{val=between}",
+                XL_CROSS_BETWEEN.MIDPOINT,
+                "c:valAx/c:crossBetween{val=midCat}",
+            ),
+            ("c:valAx/c:crossBetween{val=midCat}", None, "c:valAx"),
+            ("c:valAx", None, "c:valAx"),
+        ]
+    )
+    def cross_between_set_fixture(self, request):
+        valAx_cxml, new_value, expected_valAx_cxml = request.param
+        value_axis = ValueAxis(element(valAx_cxml))
+        expected_xml = xml(expected_valAx_cxml)
+        return value_axis, new_value, expected_xml
 
     @pytest.fixture(params=[("c:valAx", None), ("c:valAx/c:majorUnit{val=4.2}", 4.2)])
     def major_unit_get_fixture(self, request):

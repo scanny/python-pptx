@@ -5,7 +5,9 @@ from __future__ import annotations
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
     XL_AXIS_CROSSES,
+    XL_AXIS_POSITION,
     XL_CATEGORY_TYPE,
+    XL_CROSS_BETWEEN,
     XL_TICK_LABEL_POSITION,
     XL_TICK_MARK,
 )
@@ -175,6 +177,33 @@ class _BaseAxis(object):
         if value is XL_TICK_MARK.CROSS:
             return
         self._element._add_minorTickMark(val=value)
+
+    @property
+    def position(self):
+        """Read/write :ref:`XlAxisPosition` value specifying axis position on plot area.
+
+        The value identifies on which side of the plot area the axis is drawn: `BOTTOM`,
+        `LEFT`, `RIGHT`, or `TOP`. Returns |None| when no `c:axPos` element is present
+        on the axis, which generally happens only on freshly-authored charts that have
+        not yet been rendered by PowerPoint; PowerPoint inserts a `c:axPos` element on
+        its first save, so in practice the value is rarely |None| on existing charts.
+
+        Assigning |None| removes the `c:axPos` element. Assigning a member of
+        |XL_AXIS_POSITION| sets the corresponding XML attribute value.
+        """
+        axPos = self._element.axPos
+        if axPos is None:
+            return None
+        return axPos.val
+
+    @position.setter
+    def position(self, value):
+        if value is None:
+            self._element._remove_axPos()
+            return
+        XL_AXIS_POSITION.validate(value)
+        axPos = self._element.get_or_add_axPos()
+        axPos.val = value
 
     @property
     def reverse_order(self):
@@ -470,6 +499,32 @@ class ValueAxis(_BaseAxis):
         if value is None:
             return
         cross_xAx._add_crossesAt(val=value)
+
+    @property
+    def cross_between(self):
+        """Read/write :ref:`XlCrossBetween` value specifying value-axis crossing mode.
+
+        Indicates whether this value axis crosses the category axis `BETWEEN`
+        category tick marks (the default for most chart types) or at the `MIDPOINT`
+        of each category (mapped to the OOXML `midCat` enum value). Returns |None|
+        when no `c:crossBetween` element is present on the axis.
+
+        Assigning |None| removes the `c:crossBetween` element. Assigning a member
+        of |XL_CROSS_BETWEEN| sets the corresponding XML attribute value.
+        """
+        crossBetween = self._element.crossBetween
+        if crossBetween is None:
+            return None
+        return crossBetween.val
+
+    @cross_between.setter
+    def cross_between(self, value):
+        if value is None:
+            self._element._remove_crossBetween()
+            return
+        XL_CROSS_BETWEEN.validate(value)
+        crossBetween = self._element.get_or_add_crossBetween()
+        crossBetween.val = value
 
     @property
     def major_unit(self):

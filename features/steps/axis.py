@@ -6,7 +6,12 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
-from pptx.enum.chart import XL_AXIS_CROSSES, XL_CATEGORY_TYPE
+from pptx.enum.chart import (
+    XL_AXIS_CROSSES,
+    XL_AXIS_POSITION,
+    XL_CATEGORY_TYPE,
+    XL_CROSS_BETWEEN,
+)
 
 # given ===================================================
 
@@ -28,6 +33,14 @@ def given_a_major_gridlines(context):
 @given("a value axis having category axis crossing of {crossing}")
 def given_a_value_axis_having_cat_ax_crossing_of(context, crossing):
     slide_idx = {"automatic": 0, "maximum": 2, "minimum": 3, "2.75": 4, "-1.5": 5}[crossing]
+    prs = Presentation(test_pptx("cht-axis-props"))
+    context.value_axis = prs.slides[slide_idx].shapes[0].chart.value_axis
+
+
+@given("a value axis having cross-between setting of {setting}")
+def given_a_value_axis_having_cross_between_setting_of(context, setting):
+    # -- slide 0 has crossBetween=between; slide 2 has crossBetween=midCat --
+    slide_idx = {"between": 0, "midCat": 2}[setting]
     prs = Presentation(test_pptx("cht-axis-props"))
     context.value_axis = prs.slides[slide_idx].shapes[0].chart.value_axis
 
@@ -155,6 +168,16 @@ def when_I_assign_member_to_value_axis_crosses(context, member):
 def when_I_assign_value_to_value_axis_crosses_at(context, value):
     new_value = None if value == "None" else float(value)
     context.value_axis.crosses_at = new_value
+
+
+@when("I assign XL_AXIS_POSITION.{member} to axis.position")
+def when_I_assign_XL_AXIS_POSITION_member_to_axis_position(context, member):
+    context.axis.position = getattr(XL_AXIS_POSITION, member)
+
+
+@when("I assign XL_CROSS_BETWEEN.{member} to value_axis.cross_between")
+def when_I_assign_XL_CROSS_BETWEEN_member_to_value_axis_cross_between(context, member):
+    context.value_axis.cross_between = getattr(XL_CROSS_BETWEEN, member)
 
 
 # then ====================================================
@@ -301,3 +324,17 @@ def then_value_axis_crosses_at_is_value(context, value):
     value_axis = context.value_axis
     expected_value = None if value == "None" else float(value)
     assert value_axis.crosses_at == expected_value, "got %s" % value_axis.crosses_at
+
+
+@then("axis.position is XL_AXIS_POSITION.{member}")
+def then_axis_position_is_XL_AXIS_POSITION_member(context, member):
+    expected_value = getattr(XL_AXIS_POSITION, member)
+    actual_value = context.axis.position
+    assert actual_value is expected_value, "got %s" % actual_value
+
+
+@then("value_axis.cross_between is XL_CROSS_BETWEEN.{member}")
+def then_value_axis_cross_between_is_XL_CROSS_BETWEEN_member(context, member):
+    expected_value = getattr(XL_CROSS_BETWEEN, member)
+    actual_value = context.value_axis.cross_between
+    assert actual_value is expected_value, "got %s" % actual_value

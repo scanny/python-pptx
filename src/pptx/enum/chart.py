@@ -579,3 +579,60 @@ class XL_TICK_LABEL_POSITION(BaseXmlEnum):
 
     NONE = (-4142, "none", "No tick labels.")
     """No tick labels."""
+
+
+class XL_AXIS_POSITION(BaseXmlEnum):
+    """Specifies the position of an axis on a chart.
+
+    Maps the `ST_AxPos` simple type defined in `dml-chart.xsd`, which takes one of
+    `b` (bottom), `l` (left), `r` (right), or `t` (top). The position reflects
+    where the axis is drawn on the plot area.
+
+    Example::
+
+        from pptx.enum.chart import XL_AXIS_POSITION
+
+        category_axis = chart.category_axis
+        category_axis.position = XL_AXIS_POSITION.BOTTOM
+
+    MS API Name: `XlAxisPosition`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xlaxisposition
+    """
+
+    BOTTOM = (-4107, "b", "Axis is drawn at the bottom of the plot area.")
+    """Axis is drawn at the bottom of the plot area."""
+
+    LEFT = (-4131, "l", "Axis is drawn at the left of the plot area.")
+    """Axis is drawn at the left of the plot area."""
+
+    RIGHT = (-4152, "r", "Axis is drawn at the right of the plot area.")
+    """Axis is drawn at the right of the plot area."""
+
+    TOP = (-4160, "t", "Axis is drawn at the top of the plot area.")
+    """Axis is drawn at the top of the plot area."""
+
+
+class XL_CROSS_BETWEEN(BaseXmlEnum):
+    """Specifies how the value axis crosses the category axis.
+
+    Maps the `ST_CrossBetween` simple type defined in `dml-chart.xsd`, which takes
+    either `between` or `midCat`. Controls whether the value axis crosses between
+    category tick marks or directly at them.
+
+    Example::
+
+        from pptx.enum.chart import XL_CROSS_BETWEEN
+
+        value_axis = chart.value_axis
+        value_axis.cross_between = XL_CROSS_BETWEEN.BETWEEN
+
+    MS API Name: `XlCategoryType` (no exact MS API enum exists; modeled on
+    the Excel chart UI "between tick marks" / "on tick marks" radio control).
+    """
+
+    BETWEEN = (2, "between", "Value axis crosses the category axis between categories.")
+    """Value axis crosses the category axis between categories."""
+
+    MIDPOINT = (1, "midCat", "Value axis crosses the category axis at the midpoint of each category.")
+    """Value axis crosses the category axis at the midpoint of each category."""

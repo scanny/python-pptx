@@ -32,8 +32,10 @@ can be found here:
    PpPlaceholderType
 
    XlAxisCrosses
+   XlAxisPosition
    XlCategoryType
    XlChartType
+   XlCrossBetween
    XlDataLabelPosition
    XlErrorBarDirection
    XlErrorBarInclude

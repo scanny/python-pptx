@@ -6,6 +6,7 @@ Release History
 Unreleased
 ++++++++++
 
+- #349 feature: Axis.position
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal

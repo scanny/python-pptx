@@ -185,3 +185,49 @@ Feature: Axis properties
       | off    | True  | True           |
       | on     | False | False          |
       | on     | True  | True           |
+
+
+  Scenario Outline: Get Axis.position
+    Given a <axis-type> axis
+     Then axis.position is XL_AXIS_POSITION.<member>
+
+    Examples: axis position cases
+      | axis-type | member |
+      | category  | TOP    |
+      | value     | LEFT   |
+
+
+  Scenario Outline: Set Axis.position
+    Given a <axis-type> axis
+     When I assign XL_AXIS_POSITION.<member> to axis.position
+     Then axis.position is XL_AXIS_POSITION.<member>
+
+    Examples: axis position assignment cases
+      | axis-type | member |
+      | category  | BOTTOM |
+      | category  | TOP    |
+      | value     | LEFT   |
+      | value     | RIGHT  |
+
+
+  Scenario Outline: Get ValueAxis.cross_between
+    Given a value axis having cross-between setting of <setting>
+     Then value_axis.cross_between is XL_CROSS_BETWEEN.<member>
+
+    Examples: cross_between cases
+      | setting | member   |
+      | between | BETWEEN  |
+      | midCat  | MIDPOINT |
+
+
+  Scenario Outline: Set ValueAxis.cross_between
+    Given a value axis having cross-between setting of <setting>
+     When I assign XL_CROSS_BETWEEN.<member> to value_axis.cross_between
+     Then value_axis.cross_between is XL_CROSS_BETWEEN.<member>
+
+    Examples: cross_between assignment cases
+      | setting | member   |
+      | between | BETWEEN  |
+      | between | MIDPOINT |
+      | midCat  | BETWEEN  |
+      | midCat  | MIDPOINT |
