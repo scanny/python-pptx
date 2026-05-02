@@ -615,6 +615,50 @@ class ST_SlideSizeCoordinate(BaseIntType):
             )
 
 
+class ST_SlideSizeType(XsdStringEnumeration):
+    """Enumerated value of `p:sldSz/@type` (ECMA-376 ST_SlideSizeType).
+
+    Identifies a named slide-size preset (e.g. ``screen4x3``, ``letter``,
+    ``A4``, ``screen16x9``) or ``custom``.
+    """
+
+    SCREEN_4X3 = "screen4x3"
+    LETTER = "letter"
+    A4 = "A4"
+    MM_35 = "35mm"
+    OVERHEAD = "overhead"
+    BANNER = "banner"
+    CUSTOM = "custom"
+    LEDGER = "ledger"
+    A3 = "A3"
+    B4_ISO = "B4ISO"
+    B5_ISO = "B5ISO"
+    B4_JIS = "B4JIS"
+    B5_JIS = "B5JIS"
+    HAGAKI_CARD = "hagakiCard"
+    SCREEN_16X9 = "screen16x9"
+    SCREEN_16X10 = "screen16x10"
+
+    _members = (
+        SCREEN_4X3,
+        LETTER,
+        A4,
+        MM_35,
+        OVERHEAD,
+        BANNER,
+        CUSTOM,
+        LEDGER,
+        A3,
+        B4_ISO,
+        B5_ISO,
+        B4_JIS,
+        B5_JIS,
+        HAGAKI_CARD,
+        SCREEN_16X9,
+        SCREEN_16X10,
+    )
+
+
 class ST_Style(XsdUnsignedByte):
     @classmethod
     def validate(cls, value):
