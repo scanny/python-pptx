@@ -54,6 +54,14 @@ Feature: Table properties and methods
       Then table.rows is a _RowCollection object
 
 
+  Scenario: _RowCollection.add()
+     Given a 2x2 Table object as table
+      When I call table.rows.add()
+      Then len(table.rows) == 3
+       And the new row has two cells
+       And the new row height equals the prior last row height
+
+
   Scenario: Table.vert_banding setter
      Given a 2x2 Table object as table
       When I assign table.vert_banding = True

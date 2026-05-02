@@ -491,6 +491,28 @@ class _RowCollection(Subshape):
         """Supports len() function (e.g. 'len(rows) == 1')."""
         return len(self._tbl.tr_lst)
 
+    def add(self, height: Length | None = None) -> _Row:
+        """Return a newly added |_Row| appended to the bottom of this table.
+
+        The new row has the same number of cells as the existing rows in the table,
+        each containing a single empty paragraph. `height` is the row height in EMU.
+        When `height` is |None| (the default), the new row inherits its height from
+        the last existing row in the table, or defaults to 370,840 EMU (approximately
+        0.4 inches) when the table has no existing rows.
+
+        Adding a row increases the height of the containing graphic-frame shape by
+        the height of the new row.
+        """
+        if height is None:
+            tr_lst = self._tbl.tr_lst
+            height = Emu(tr_lst[-1].h) if tr_lst else Emu(370840)
+        tr = self._tbl.add_tr(height=height)
+        # ---populate the new row with one cell per column---
+        for _ in range(len(self._tbl.tblGrid.gridCol_lst)):
+            tr.add_tc()
+        self._parent.notify_height_changed()
+        return _Row(tr, self)
+
     def notify_height_changed(self):
         """Called by a row when its height changes. Pass along to parent."""
         self._parent.notify_height_changed()

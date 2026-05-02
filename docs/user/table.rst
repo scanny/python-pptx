@@ -163,6 +163,25 @@ The containing shape controls the position and size. Everything else, like
 accessing cells and their contents, is done from the table object.
 
 
+Adding a row to an existing table
+---------------------------------
+
+A row can be appended to the bottom of an existing table using the
+:meth:`~._RowCollection.add` method on the table's rows collection::
+
+    >>> from pptx.util import Inches
+    >>> # ---append a row using the last existing row's height as default---
+    >>> new_row = table.rows.add()
+
+    >>> # ---or specify an explicit height---
+    >>> taller_row = table.rows.add(height=Inches(1))
+
+The new row is initialized with the same number of cells as the other rows in
+the table, each containing a single empty paragraph. The height of the
+containing graphic-frame shape is automatically increased by the new row's
+height.
+
+
 Accessing a cell
 ----------------
 

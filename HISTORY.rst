@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- feat: #832 add ``_RowCollection.add()`` to append a row to a table
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
