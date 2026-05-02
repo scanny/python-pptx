@@ -73,6 +73,14 @@ from ..unitutil.mock import (
 )
 
 
+class _FakeShape(object):
+    """Lightweight shape stand-in for unit tests that only care about name/id."""
+
+    def __init__(self, name, shape_id=None):
+        self.name = name
+        self.shape_id = shape_id
+
+
 class DescribeBaseShapeFactory(object):
     def it_constructs_the_right_shape_for_an_element(self, factory_fixture):
         shape_elm, parent_, ShapeClass_, shape_ = factory_fixture
@@ -1428,6 +1436,78 @@ class DescribeSlideShapes(object):
         shapes, pic, sld, expected_xml = add_timing_fixture
         shapes._add_video_timing(pic)
         assert sld.xml == expected_xml
+
+    def it_can_get_a_shape_by_name(self, _shape_factory_):
+        # --- #309: look up a shape by its @name attribute ---
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Rectangle 2},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Rectangle 3}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
+
+        result = shapes.get_by_name("Rectangle 2")
+
+        assert result is not None
+        assert result.name == "Rectangle 2"
+
+    def it_returns_None_when_no_shape_matches_get_by_name(self, _shape_factory_):
+        spTree = element(
+            "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
+
+        assert shapes.get_by_name("Missing") is None
+
+    def it_returns_first_match_when_names_collide(self, _shape_factory_):
+        # --- z-order: backmost (earliest) match wins ---
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Duplicate},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Other},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Duplicate}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(
+            sp.shape_name, sp.shape_id
+        )
+
+        result = shapes.get_by_name("Duplicate")
+
+        assert result is not None
+        assert result.name == "Duplicate"
+        assert result.shape_id == 2
+
+    def it_can_find_all_shapes_by_name(self, _shape_factory_):
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Duplicate},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Other},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Duplicate}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(
+            sp.shape_name, sp.shape_id
+        )
+
+        matches = shapes.find_all_by_name("Duplicate")
+
+        assert [m.shape_id for m in matches] == [2, 4]
+
+    def it_returns_empty_list_when_no_shape_matches_find_all_by_name(self, _shape_factory_):
+        spTree = element(
+            "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}"
+        )
+        shapes = SlideShapes(spTree, None)
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
+
+        assert shapes.find_all_by_name("Missing") == []
 
     # fixtures -------------------------------------------------------
 

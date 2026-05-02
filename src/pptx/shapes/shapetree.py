@@ -711,6 +711,31 @@ class SlideShapes(_BaseGroupShapes):
         for placeholder in slide_layout.iter_cloneable_placeholders():
             self.clone_placeholder(placeholder)
 
+    def find_all_by_name(self, name: str) -> list[BaseShape]:
+        """Return all shapes in this collection whose ``name`` equals `name`.
+
+        Shape names in PowerPoint are not required to be unique, so this method
+        returns every match in z-order (backmost first, topmost last). Returns
+        an empty list when no shape has the given name. The search is restricted
+        to direct members of this slide's shape tree; shapes nested inside a
+        group are not included.
+        """
+        return [shape for shape in self if shape.name == name]
+
+    def get_by_name(self, name: str) -> BaseShape | None:
+        """Return the first shape in this collection whose ``name`` equals `name`.
+
+        Returns |None| if no shape has that name. When several shapes share the
+        same name, the one earliest in z-order (backmost) is returned; use
+        :meth:`find_all_by_name` to retrieve every match. An explicit method is
+        provided instead of overloading ``__getitem__`` because the subscript
+        operator is already defined for integer indexing.
+        """
+        for shape in self:
+            if shape.name == name:
+                return shape
+        return None
+
     @property
     def placeholders(self) -> SlidePlaceholders:
         """Sequence of placeholder shapes in this slide."""
