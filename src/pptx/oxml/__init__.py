@@ -114,6 +114,7 @@ register_element_cls("c:minorTickMark", CT_TickMark)
 register_element_cls("c:minorUnit", CT_AxisUnit)
 register_element_cls("c:orientation", CT_Orientation)
 register_element_cls("c:scaling", CT_Scaling)
+register_element_cls("c:serLines", CT_ChartLines)
 register_element_cls("c:tickLblPos", CT_TickLblPos)
 register_element_cls("c:valAx", CT_ValAx)
 

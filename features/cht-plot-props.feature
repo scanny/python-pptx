@@ -130,3 +130,33 @@ Feature: Plot properties
       | no explicit setting | False | False          |
       | True                | False | False          |
       | False               | True  | True           |
+
+
+  Scenario Outline: Get bar_plot.has_series_lines
+    Given a bar plot <having-or-not> series lines
+     Then plot.has_series_lines is <expected-value>
+
+    Examples: series-lines presence detection
+      | having-or-not | expected-value |
+      | having        | True           |
+      | not having    | False          |
+
+
+  Scenario Outline: Set bar_plot.has_series_lines
+    Given a bar plot <having-or-not> series lines
+     When I assign <value> to plot.has_series_lines
+     Then plot.has_series_lines is <expected-value>
+
+    Examples: toggling has_series_lines
+      | having-or-not | value | expected-value |
+      | not having    | True  | True           |
+      | having        | False | False          |
+      | not having    | False | False          |
+      | having        | True  | True           |
+
+
+  Scenario: Access bar_plot.series_lines.format
+    Given a bar plot having series lines
+     Then plot.series_lines is a SeriesLines object
+      And plot.series_lines.format is a ChartFormat object
+      And plot.series_lines.format.line is a LineFormat object

@@ -38,6 +38,17 @@ def given_a_bar_plot_having_vary_color_by_category_setting(context, setting):
     context.plot = prs.slides[slide_idx].shapes[0].chart.plots[0]
 
 
+@given("a bar plot {having_or_not} series lines")
+def given_a_bar_plot_having_or_not_series_lines(context, having_or_not):
+    prs = Presentation(test_pptx("cht-plot-props"))
+    plot = prs.slides[0].shapes[0].chart.plots[0]
+    if having_or_not == "having":
+        plot._element.get_or_add_serLines()
+    else:
+        plot._element._remove_serLines()
+    context.plot = plot
+
+
 @given("a bubble plot having bubble scale of {percent}")
 def given_a_bubble_plot_having_bubble_scale_of_percent(context, percent):
     slide_idx = {"no explicit value": 3, "70%": 4}[percent]
@@ -70,6 +81,12 @@ def when_I_assign_value_to_plot_gap_width(context, value):
 def when_I_assign_value_to_plot_has_data_labels(context, value):
     new_value = {"True": True, "False": False}[value]
     context.plot.has_data_labels = new_value
+
+
+@when("I assign {value} to plot.has_series_lines")
+def when_I_assign_value_to_plot_has_series_lines(context, value):
+    new_value = {"True": True, "False": False}[value]
+    context.plot.has_series_lines = new_value
 
 
 @when("I assign {value} to plot.overlap")
@@ -119,6 +136,30 @@ def then_plot_gap_width_is_value(context, value):
 def then_plot_has_data_labels_is_value(context, value):
     expected_value = {"True": True, "False": False}[value]
     assert context.plot.has_data_labels is expected_value
+
+
+@then("plot.has_series_lines is {value}")
+def then_plot_has_series_lines_is_value(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    assert context.plot.has_series_lines is expected_value
+
+
+@then("plot.series_lines is a SeriesLines object")
+def then_plot_series_lines_is_a_SeriesLines_object(context):
+    type_name = type(context.plot.series_lines).__name__
+    assert type_name == "SeriesLines", "got %s" % type_name
+
+
+@then("plot.series_lines.format is a ChartFormat object")
+def then_plot_series_lines_format_is_a_ChartFormat_object(context):
+    type_name = type(context.plot.series_lines.format).__name__
+    assert type_name == "ChartFormat", "got %s" % type_name
+
+
+@then("plot.series_lines.format.line is a LineFormat object")
+def then_plot_series_lines_format_line_is_a_LineFormat_object(context):
+    type_name = type(context.plot.series_lines.format.line).__name__
+    assert type_name == "LineFormat", "got %s" % type_name
 
 
 @then("plot.overlap is {value}")

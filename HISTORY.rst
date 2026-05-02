@@ -235,6 +235,21 @@ Unreleased
   workflow (set a shadow, round-trip through
   :meth:`Presentation.save` + reopen, assert every knob survived).
 
+- feat: #846 Add :attr:`.BarPlot.has_series_lines` read/write boolean
+  and :attr:`.BarPlot.series_lines` accessor returning a new
+  :class:`~pptx.chart.plot.SeriesLines` proxy. Series lines
+  (``c:serLines``) connect segment tops across adjacent series in a
+  stacked bar or stacked column chart, helping readers compare
+  segment-to-segment change. ``BarPlot.series_lines.format`` returns a
+  :class:`~pptx.dml.chtfmt.ChartFormat` so the line color, width, and
+  dash style can be customised via the familiar
+  ``.format.line`` / ``.format.fill`` / ``.format.shadow`` handles.
+  Toggling off removes the element entirely, keeping the XML minimal.
+  The new element is wired into ``CT_BarChart`` at the XSD-mandated
+  position (after ``c:overlap`` and before ``c:axId``), and ``c:serLines``
+  is registered as :class:`~pptx.oxml.chart.axis.CT_ChartLines` so the
+  existing ``spPr`` descriptor carries the format parent-chain.
+
 - feat: #859 Add :attr:`.Chart.display_blanks_as` read/write property
   exposing PowerPoint's "Hidden and Empty Cells" / "Show empty cells as"
   setting (``c:dispBlanksAs``) as a member of the new

@@ -59,6 +59,8 @@ Feature Support
   authoring deferred
 * Attach trendlines to chart series (linear / logarithmic / polynomial /
   power / exponential / moving-average) with on-chart equation and R² display
+* Toggle and format series lines on stacked bar / stacked column plots
+  (``BarPlot.has_series_lines`` / ``BarPlot.series_lines.format``)
 * Access and change core document properties such as title and subject
 * Toggle header / footer / slide-number / date placeholder visibility on a slide
   master or layout, and insert auto-refresh slide-number or date fields in a
