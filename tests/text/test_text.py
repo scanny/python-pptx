@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
-from pptx.dml.color import ColorFormat
+from pptx.dml.color import ColorFormat, RGBColor
 from pptx.dml.fill import FillFormat
 from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import (
@@ -1344,6 +1344,184 @@ class Describe_BulletFormat(object):
         return_value = bullet.clear()
 
         assert pPr.xml == xml(expected_cxml)
+        assert return_value is bullet
+
+    # -- font getter/setter ------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_font"),
+        [
+            ("a:pPr", None),
+            ("a:pPr/a:buNone", None),
+            ("a:pPr/a:buFont{typeface=Wingdings}", "Wingdings"),
+            ("a:pPr/(a:buFont{typeface=Arial},a:buChar{char=-})", "Arial"),
+        ],
+    )
+    def it_knows_its_bullet_font(self, pPr_cxml: str, expected_font: str | None):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.font == expected_font
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "value", "expected_cxml"),
+        [
+            ("a:pPr", "Wingdings", "a:pPr/a:buFont{typeface=Wingdings}"),
+            (
+                "a:pPr/a:buFont{typeface=Arial}",
+                "Wingdings",
+                "a:pPr/a:buFont{typeface=Wingdings}",
+            ),
+            ("a:pPr/a:buFont{typeface=Wingdings}", None, "a:pPr"),
+            # -- setting font preserves bullet choice element ordering --
+            (
+                "a:pPr/a:buChar{char=-}",
+                "Wingdings",
+                "a:pPr/(a:buFont{typeface=Wingdings},a:buChar{char=-})",
+            ),
+        ],
+    )
+    def it_can_change_its_bullet_font(
+        self, pPr_cxml: str, value: str | None, expected_cxml: str
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        bullet.font = value
+
+        assert pPr.xml == xml(expected_cxml)
+
+    # -- size_pct getter/setter --------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_value"),
+        [
+            ("a:pPr", None),
+            ("a:pPr/a:buSzPct{val=75%}", 0.75),
+            ("a:pPr/a:buSzPts{val=1400}", None),
+        ],
+    )
+    def it_knows_its_bullet_size_pct(self, pPr_cxml: str, expected_value: float | None):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.size_pct == expected_value
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "value", "expected_cxml"),
+        [
+            ("a:pPr", 0.75, "a:pPr/a:buSzPct{val=75%}"),
+            # -- assigning pct replaces any buSzPts --
+            (
+                "a:pPr/a:buSzPts{val=1400}",
+                0.5,
+                "a:pPr/a:buSzPct{val=50%}",
+            ),
+            ("a:pPr/a:buSzPct{val=75%}", None, "a:pPr"),
+        ],
+    )
+    def it_can_change_its_bullet_size_pct(
+        self, pPr_cxml: str, value: float | None, expected_cxml: str
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        bullet.size_pct = value
+
+        assert pPr.xml == xml(expected_cxml)
+
+    def it_raises_on_out_of_range_bullet_size_pct(self):
+        pPr = element("a:pPr")
+        bullet = _BulletFormat(pPr)
+        with pytest.raises(ValueError):
+            bullet.size_pct = 5.0  # 500%, above max 400%
+        with pytest.raises(ValueError):
+            bullet.size_pct = 0.1  # 10%, below min 25%
+
+    # -- size_points getter/setter -----------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_value"),
+        [
+            ("a:pPr", None),
+            ("a:pPr/a:buSzPts{val=1400}", 177800),
+            ("a:pPr/a:buSzPct{val=75%}", None),
+        ],
+    )
+    def it_knows_its_bullet_size_points(
+        self, pPr_cxml: str, expected_value: int | None
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+        assert bullet.size_points == expected_value
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "value", "expected_cxml"),
+        [
+            ("a:pPr", Pt(14), "a:pPr/a:buSzPts{val=1400}"),
+            # -- assigning points replaces any buSzPct --
+            (
+                "a:pPr/a:buSzPct{val=75%}",
+                Pt(18),
+                "a:pPr/a:buSzPts{val=1800}",
+            ),
+            ("a:pPr/a:buSzPts{val=1400}", None, "a:pPr"),
+        ],
+    )
+    def it_can_change_its_bullet_size_points(
+        self, pPr_cxml: str, value, expected_cxml: str
+    ):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        bullet.size_points = value
+
+        assert pPr.xml == xml(expected_cxml)
+
+    # -- clear_size() ------------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("pPr_cxml", "expected_cxml"),
+        [
+            ("a:pPr", "a:pPr"),
+            ("a:pPr/a:buSzPct{val=75%}", "a:pPr"),
+            ("a:pPr/a:buSzPts{val=1400}", "a:pPr"),
+        ],
+    )
+    def it_can_clear_its_bullet_size(self, pPr_cxml: str, expected_cxml: str):
+        pPr = element(pPr_cxml)
+        bullet = _BulletFormat(pPr)
+
+        return_value = bullet.clear_size()
+
+        assert pPr.xml == xml(expected_cxml)
+        assert return_value is bullet
+
+    # -- color ------------------------------------------------------
+
+    def it_provides_a_ColorFormat_for_the_bullet_color(self):
+        pPr = element("a:pPr")
+        bullet = _BulletFormat(pPr)
+
+        color = bullet.color
+
+        assert isinstance(color, ColorFormat)
+        # -- the accessor is a lazyproperty; same instance is returned --
+        assert bullet.color is color
+
+    def it_creates_buClr_on_access_and_allows_setting_rgb(self):
+        pPr = element("a:pPr")
+        bullet = _BulletFormat(pPr)
+
+        bullet.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+
+        assert pPr.xml == xml("a:pPr/a:buClr/a:srgbClr{val=FF0000}")
+
+    def it_can_clear_its_bullet_color(self):
+        pPr = element("a:pPr/a:buClr/a:srgbClr{val=FF0000}")
+        bullet = _BulletFormat(pPr)
+
+        return_value = bullet.clear_color()
+
+        assert pPr.xml == xml("a:pPr")
         assert return_value is bullet
 
 

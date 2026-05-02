@@ -669,6 +669,37 @@ class ST_TextBulletStartAtNum(BaseIntType):
         cls.validate_int_in_range(value, 1, 32767)
 
 
+class ST_TextBulletSizePercent(BaseFloatType):
+    """Valid values for the `val` attribute of ``<a:buSzPct>``.
+
+    Stored in XML as a percent-literal string like ``"75%"`` (per ECMA-376) or,
+    in some PowerPoint-produced content, as an integer in thousandths of a
+    percent (e.g. ``"75000"`` for 75%).
+
+    Accepts Python float values in the range 0.25..4.0 representing the
+    fractional proportion (e.g. 0.75 for 75%).
+    """
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith("%"):
+            return float(str_value[:-1]) / 100.0
+        return int(str_value) / 100000.0
+
+    @classmethod
+    def convert_to_xml(cls, value):
+        # -- write as percent-literal (spec-mandated form) --
+        return "%d%%" % int(round(value * 100))
+
+    @classmethod
+    def validate(cls, value):
+        BaseFloatType.validate(value)
+        if value < 0.25 or value > 4.0:
+            raise ValueError(
+                "value must be in range 0.25..4.0 (25%% to 400%%), got %s" % value
+            )
+
+
 class ST_TextIndentLevelType(BaseIntType):
     @classmethod
     def validate(cls, value):

@@ -49,6 +49,7 @@ Unreleased
 - fix: #936 text_frame.fit_text crashes if no wrapped representation fits
         in the width of the shape
 - #100 paragraph bullet API
+- #114 paragraph bullet font, color, and size
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
