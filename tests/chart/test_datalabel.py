@@ -68,11 +68,9 @@ class DescribeDataLabel(object):
             (
                 "c:ser{a:b=c}",
                 "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr"
-                ",a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{v"
-                "al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val="
-                "0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0"
-                "},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c"
-                ":showBubbleSize{val=0},c:showLeaderLines{val=1})",
+                ",a:lstStyle,a:p/a:pPr/a:defRPr)),c:showLegendKey{val=0},c:showVal{"
+                "val=0},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val"
+                "=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1})",
             ),
             (
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p))",
@@ -92,11 +90,9 @@ class DescribeDataLabel(object):
             (
                 "c:ser{a:b=c}",
                 "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=9},c:spPr,c:txPr/(a:bodyPr"
-                ",a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{v"
-                "al=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val="
-                "0},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0"
-                "},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c"
-                ":showBubbleSize{val=0},c:showLeaderLines{val=1})",
+                ",a:lstStyle,a:p/a:pPr/a:defRPr)),c:showLegendKey{val=0},c:showVal{"
+                "val=0},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val"
+                "=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1})",
             ),
             (
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr)",
@@ -153,19 +149,15 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}",
                 True,
                 "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,"
-                "a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va"
-                "l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0"
-                "},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}"
-                ",c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:"
-                "showBubbleSize{val=0},c:showLeaderLines{val=1})",
+                "a:lstStyle,a:p/a:pPr/a:defRPr)),c:showLegendKey{val=0},c:showVal{v"
+                "al=0},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val="
+                "0},c:showBubbleSize{val=0},c:showLeaderLines{val=1})",
             ),
             (
                 "c:ser{a:b=c}/c:dLbls",
                 True,
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
-                ":lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{val"
-                "=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0}"
-                ",c:showBubbleSize{val=0})",
+                ":lstStyle,a:p/a:pPr/a:defRPr))",
             ),
             (
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}",
@@ -183,9 +175,8 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)",
                 True,
                 "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=24},c:tx/c:rich),c:dLbl/(c"
-                ":idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),"
-                "c:showLegendKey{val=0},c:showVal{val=1},c:showCatName{val=0},c:sho"
-                "wSerName{val=0},c:showPercent{val=0},c:showBubbleSize{val=0}))",
+                ":idx{val=42},c:tx/c:rich/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr))"
+                ")",
             ),
             (
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/c:idx{val=42}",
@@ -220,12 +211,10 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}",
                 "CENTER",
                 "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:spPr,c:txPr/(a:bodyP"
-                "r,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr},c:showLegendKe"
-                "y{val=0},c:showVal{val=1},c:showCatName{val=0},c:showSerName{val=0"
-                "},c:showPercent{val=0},c:showBubbleSize{val=0}),c:showLegendKey{va"
-                "l=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val=0},c:"
-                "showPercent{val=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1"
-                "})",
+                "r,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLblPos{val=ctr}),c:showLegendK"
+                "ey{val=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val="
+                "0},c:showPercent{val=0},c:showBubbleSize{val=0},c:showLeaderLines{"
+                "val=1})",
             ),
             (
                 "c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=ctr})",
@@ -252,11 +241,9 @@ class DescribeDataLabel(object):
             (
                 "c:ser{a:b=c}",
                 "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,"
-                "a:lstStyle,a:p/a:pPr/a:defRPr),c:showLegendKey{val=0},c:showVal{va"
-                "l=1},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0"
-                "},c:showBubbleSize{val=0}),c:showLegendKey{val=0},c:showVal{val=0}"
-                ",c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val=0},c:"
-                "showBubbleSize{val=0},c:showLeaderLines{val=1})",
+                "a:lstStyle,a:p/a:pPr/a:defRPr)),c:showLegendKey{val=0},c:showVal{v"
+                "al=0},c:showCatName{val=0},c:showSerName{val=0},c:showPercent{val="
+                "0},c:showBubbleSize{val=0},c:showLeaderLines{val=1})",
             ),
             (
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)",
