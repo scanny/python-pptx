@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- Foundation: DrawingML effectLst descriptor family
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

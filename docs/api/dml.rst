@@ -47,9 +47,41 @@ various aspects of shapes.
    :undoc-members:
 
 
+|EffectFormat| objects
+----------------------
+
+.. autoclass:: pptx.dml.effect.EffectFormat
+   :members:
+   :undoc-members:
+
+
 |ShadowFormat| objects
 ----------------------
 
 .. autoclass:: pptx.dml.effect.ShadowFormat
+   :members:
+   :undoc-members:
+
+
+|GlowFormat| objects
+--------------------
+
+.. autoclass:: pptx.dml.effect.GlowFormat
+   :members:
+   :undoc-members:
+
+
+|ReflectionFormat| objects
+--------------------------
+
+.. autoclass:: pptx.dml.effect.ReflectionFormat
+   :members:
+   :undoc-members:
+
+
+|SoftEdgeFormat| objects
+------------------------
+
+.. autoclass:: pptx.dml.effect.SoftEdgeFormat
    :members:
    :undoc-members:

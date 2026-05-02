@@ -571,6 +571,12 @@ class ST_PositiveFixedAngle(ST_Angle):
         return str(int(round(degrees * cls.DEGREE_INCREMENTS)))
 
 
+class ST_PresetShadowVal(XsdTokenEnumeration):
+    """Token enumeration of `a:prstShdw@prst` values, `shdw1` through `shdw20`."""
+
+    _members = tuple("shdw%d" % n for n in range(1, 21))
+
+
 class ST_PositiveFixedPercentage(ST_Percentage):
     """Percentage value between 0 and 100% like 42000 or '42.0%'
 

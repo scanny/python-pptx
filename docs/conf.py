@@ -314,6 +314,14 @@ rst_epilog = """
 
 .. |SeriesCollection| replace:: :class:`.SeriesCollection`
 
+.. |EffectFormat| replace:: :class:`.EffectFormat`
+
+.. |GlowFormat| replace:: :class:`.GlowFormat`
+
+.. |ReflectionFormat| replace:: :class:`.ReflectionFormat`
+
+.. |SoftEdgeFormat| replace:: :class:`.SoftEdgeFormat`
+
 .. |ShadowFormat| replace:: :class:`.ShadowFormat`
 
 .. |Shape| replace:: :class:`.Shape`
