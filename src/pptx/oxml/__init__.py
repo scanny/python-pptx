@@ -126,6 +126,7 @@ from pptx.oxml.chart.chart import (  # noqa: E402
     CT_Chart,
     CT_ChartSpace,
     CT_DispBlanksAs,
+    CT_DTable,
     CT_ExternalData,
     CT_PlotArea,
     CT_Style,
@@ -135,6 +136,7 @@ from pptx.oxml.chart.chart import (  # noqa: E402
 register_element_cls("c:chart", CT_Chart)
 register_element_cls("c:chartSpace", CT_ChartSpace)
 register_element_cls("c:dispBlanksAs", CT_DispBlanksAs)
+register_element_cls("c:dTable", CT_DTable)
 register_element_cls("c:externalData", CT_ExternalData)
 register_element_cls("c:plotArea", CT_PlotArea)
 register_element_cls("c:style", CT_Style)
@@ -266,10 +268,17 @@ register_element_cls("c:overlay", CT_Boolean_Explicit)
 register_element_cls("c:period", CT_UnsignedInt)
 register_element_cls("c:ptCount", CT_UnsignedInt)
 register_element_cls("c:showCatName", CT_Boolean_Explicit)
+# -- `c:dTable` show-* children use the plain CT_Boolean (implicit-default --
+# -- @val) rather than CT_Boolean_Explicit; PowerPoint emits them with an --
+# -- explicit `val=` and treats the default as the schema-defined True. (#373) --
+register_element_cls("c:showHorzBorder", CT_Boolean)
+register_element_cls("c:showKeys", CT_Boolean)
 register_element_cls("c:showLegendKey", CT_Boolean_Explicit)
+register_element_cls("c:showOutline", CT_Boolean)
 register_element_cls("c:showPercent", CT_Boolean_Explicit)
 register_element_cls("c:showSerName", CT_Boolean_Explicit)
 register_element_cls("c:showVal", CT_Boolean_Explicit)
+register_element_cls("c:showVertBorder", CT_Boolean)
 register_element_cls("c:smooth", CT_Boolean)
 register_element_cls("c:title", CT_Title)
 register_element_cls("c:tx", CT_Tx)

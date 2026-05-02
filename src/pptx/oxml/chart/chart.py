@@ -20,6 +20,57 @@ from pptx.oxml.xmlchemy import (
 )
 
 
+class CT_DTable(BaseOxmlElement):
+    """`c:dTable` element; the data-table displayed beneath a chart's plot area.
+
+    When present, PowerPoint renders a tabular grid of category and series
+    values below the chart's plot area. The four ``c:show*`` children are
+    independent booleans controlling border lines, the surrounding outline,
+    and the inclusion of a legend-key column (GitHub issue #373).
+
+    See ``CT_DTable`` in ``spec/ISO-IEC-29500-1/schemas/xsd/dml-chart.xsd``.
+    """
+
+    _tag_seq = (
+        "c:showHorzBorder",
+        "c:showVertBorder",
+        "c:showOutline",
+        "c:showKeys",
+        "c:spPr",
+        "c:txPr",
+        "c:extLst",
+    )
+    showHorzBorder = ZeroOrOne("c:showHorzBorder", successors=_tag_seq[1:])
+    showVertBorder = ZeroOrOne("c:showVertBorder", successors=_tag_seq[2:])
+    showOutline = ZeroOrOne("c:showOutline", successors=_tag_seq[3:])
+    showKeys = ZeroOrOne("c:showKeys", successors=_tag_seq[4:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[5:])
+    txPr = ZeroOrOne("c:txPr", successors=_tag_seq[6:])
+    del _tag_seq
+
+    @classmethod
+    def new_dTable(cls):
+        """Return a newly-created default ``c:dTable`` element.
+
+        PowerPoint writes all four ``c:show*`` children set to ``1`` by
+        default (horizontal and vertical borders, outline, and legend keys
+        all visible). Matching that default keeps round-trip output aligned
+        with what the user sees when they toggle the data-table on via
+        PowerPoint's "Data Table" menu.
+        """
+        return parse_xml(
+            "<c:dTable %s>\n"
+            '  <c:showHorzBorder val="1"/>\n'
+            '  <c:showVertBorder val="1"/>\n'
+            '  <c:showOutline val="1"/>\n'
+            '  <c:showKeys val="1"/>\n'
+            "</c:dTable>" % nsdecls("c")
+        )
+
+    def _new_txPr(self):
+        return CT_TextBody.new_txPr()
+
+
 class CT_Chart(BaseOxmlElement):
     """`c:chart` custom element class."""
 
@@ -302,6 +353,11 @@ class CT_PlotArea(BaseOxmlElement):
 
     catAx = ZeroOrMore("c:catAx")
     valAx = ZeroOrMore("c:valAx")
+    # -- `c:dTable` is the optional "data-table" grandchild that PowerPoint --
+    # -- renders beneath the plot area; in the CT_PlotArea sequence it --
+    # -- follows the axis choice and precedes `c:spPr` / `c:extLst`. (Issue --
+    # -- #373). --
+    dTable = ZeroOrOne("c:dTable", successors=("c:spPr", "c:extLst"))
     # -- `c:spPr` is the optional shape-properties child that carries the --
     # -- plot-area's fill / line / effect formatting. In the CT_PlotArea --
     # -- sequence it follows `c:dTable` and is followed only by `c:extLst`. --
