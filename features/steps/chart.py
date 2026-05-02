@@ -320,6 +320,72 @@ def given_a_chart_with_no_explicit_chart_style(context):
     context.chart = gf.chart
 
 
+@given("a chart authored by add_chart (default orientation)")
+def given_a_chart_authored_by_add_chart(context):
+    # -- `add_chart` writes series-in-columns (default orientation) — the ---
+    # -- state python-pptx produces when building a chart from            ---
+    # -- CategoryChartData. Used to pin series_in_rows == False (#828).   ---
+    from pptx.util import Inches as _In
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["East", "West", "Mid"]
+    chart_data.add_series("Q1", (1, 2, 3))
+    chart_data.add_series("Q2", (4, 5, 6))
+    gf = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED, _In(1), _In(1), _In(4), _In(3), chart_data
+    )
+    context.chart = gf.chart
+
+
+@given("a chart whose XML has been flipped to row-series orientation")
+def given_a_chart_flipped_to_row_series(context):
+    # -- Simulates the XML PowerPoint writes after a user applies          ---
+    # -- "Chart Design > Switch Row/Column". Each c:ser references a       ---
+    # -- single-cell series name in column A (row >1), a c:cat range that  ---
+    # -- runs horizontally across row 1, and a c:val range in the same     ---
+    # -- row as its series name. Built on top of an add_chart-authored     ---
+    # -- chart so everything else (part/rel plumbing) is real.             ---
+    from pptx.oxml.ns import qn as _qn
+    from pptx.util import Inches as _In
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["East", "West", "Mid"]
+    chart_data.add_series("Q1", (1, 2, 3))
+    chart_data.add_series("Q2", (4, 5, 6))
+    gf = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED, _In(1), _In(1), _In(4), _In(3), chart_data
+    )
+    chart = gf.chart
+
+    # --- rewrite c:f references to simulate the switch-row/col layout ---
+    sers = chart._chartSpace.plotArea.findall(".//" + _qn("c:ser"))
+    # -- after switching, series live in row 2.., categories span across cols B.. --
+    # -- Q1 -> row 2 (name in A2, values in B2:D2); Q2 -> row 3. --
+    for ser_idx, ser in enumerate(sers):
+        tx = ser.find(_qn("c:tx"))
+        if tx is not None:
+            strRef = tx.find(_qn("c:strRef"))
+            if strRef is not None:
+                strRef.find(_qn("c:f")).text = "Sheet1!$A$%d" % (ser_idx + 2)
+        cat = ser.find(_qn("c:cat"))
+        if cat is not None:
+            strRef = cat.find(_qn("c:strRef"))
+            if strRef is not None:
+                strRef.find(_qn("c:f")).text = "Sheet1!$B$1:$D$1"
+        val = ser.find(_qn("c:val"))
+        if val is not None:
+            numRef = val.find(_qn("c:numRef"))
+            if numRef is not None:
+                numRef.find(_qn("c:f")).text = "Sheet1!$B$%d:$D$%d" % (
+                    ser_idx + 2, ser_idx + 2
+                )
+    context.chart = chart
+
+
 # when ====================================================
 
 
@@ -547,6 +613,13 @@ def then_chart_display_blanks_as_is(context, member):
     expected = getattr(XL_DISPLAY_BLANKS_AS, member)
     actual = context.chart.display_blanks_as
     assert actual == expected, "got %r" % actual
+
+
+@then("chart.series_in_rows is {value}")
+def then_chart_series_in_rows_is(context, value):
+    expected = {"True": True, "False": False, "None": None}[value]
+    actual = context.chart.series_in_rows
+    assert actual is expected, "got %r" % actual
 
 
 @then("chartSpace has an mc:AlternateContent/mc:Choice/c14:style val={val:d}")

@@ -162,3 +162,13 @@ Feature: Chart properties
       | GAPS         |
       | ZERO         |
       | INTERPOLATED |
+
+
+  Scenario: Chart.series_in_rows reads a default-orientation chart (issue #828)
+    Given a chart authored by add_chart (default orientation)
+     Then chart.series_in_rows is False
+
+
+  Scenario: Chart.series_in_rows reads a switched-orientation chart (issue #828)
+    Given a chart whose XML has been flipped to row-series orientation
+     Then chart.series_in_rows is True

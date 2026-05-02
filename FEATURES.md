@@ -821,6 +821,7 @@ prs.save("out.pptx")
 - `Chart.chart_title` — `ChartTitle` proxy.
 - `Chart.chart_style` — Integer style index. Plain 1..48 via `c:style`; extended 49..255 via `c14:style` wrapped in `mc:AlternateContent` `[Added in 1.0.2.dev0]`.
 - `Chart.display_blanks_as` — Read/write member of `XL_DISPLAY_BLANKS_AS` (`GAPS` / `ZERO` / `INTERPOLATED`) controlling PowerPoint's "Hidden and Empty Cells" / "Show empty cells as" setting (`c:dispBlanksAs`). Suppress zero-valued bars in a stacked bar chart (issue #859) by assigning `XL_DISPLAY_BLANKS_AS.GAPS`; assigning the XSD default `ZERO` removes the element. `[Added in 1.0.2.dev0]`
+- `Chart.series_in_rows` — Read-only `bool | None` reporting whether the chart's source data is laid out with series in rows (Switch Row/Column applied) or in columns (default). Inferred from the shape of the first `c:ser`'s `c:cat` / `c:tx` cell references (issue #828). Returns `None` when the orientation cannot be determined — e.g. XY/scatter / bubble charts (no `c:cat`), inline-literal series, or empty plots. `[Added in 1.0.2.dev0]`
 - `Chart.plots` / `Chart.series` / `Chart.category_axis` / `Chart.value_axis` — Chart anatomy.
 - `Chart.plot_area` — `PlotArea` proxy for `c:plotArea`; `.format` exposes `ChartFormat` (`.fill`, `.line`, `.shadow`) so the plot-area rectangle can be filled, outlined, or shadowed without dropping into XML. `[Added in 1.0.2.dev0]`
 - `Chart.has_secondary_value_axis` / `Chart.secondary_value_axis` — Secondary Y axis. `[Added in 1.0.2.dev0]`

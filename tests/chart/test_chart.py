@@ -345,6 +345,107 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.display_blanks_as = "nonsense"  # pyright: ignore[reportAttributeAccessIssue]
 
+    # -- series_in_rows (issue #828) -----------------------------------
+
+    def it_reports_series_in_rows_False_for_default_orientation_828(self):
+        """Categories running vertically (col A, rows 2..N) == series-in-columns."""
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            '<c:idx val="0"/><c:order val="0"/>'
+            "<c:tx><c:strRef><c:f>Sheet1!$B$1</c:f></c:strRef></c:tx>"
+            "<c:cat><c:strRef><c:f>Sheet1!$A$2:$A$4</c:f></c:strRef></c:cat>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$B$4</c:f></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        assert chart.series_in_rows is False
+
+    def it_reports_series_in_rows_True_for_switched_orientation_828(self):
+        """Categories running horizontally (row 1, cols B..N) == series-in-rows."""
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            '<c:idx val="0"/><c:order val="0"/>'
+            "<c:tx><c:strRef><c:f>Sheet1!$A$2</c:f></c:strRef></c:tx>"
+            "<c:cat><c:strRef><c:f>Sheet1!$B$1:$D$1</c:f></c:strRef></c:cat>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2:$D$2</c:f></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        assert chart.series_in_rows is True
+
+    def it_reports_series_in_rows_None_when_chart_has_no_series(self):
+        chart = Chart(element("c:chartSpace/c:chart/(c:plotArea/c:barChart)"), None)
+        assert chart.series_in_rows is None
+
+    def it_falls_back_to_tx_ref_when_cat_is_a_single_cell_828(self):
+        """Single-category chart: c:cat range has one cell, tx ref decides."""
+        # -- default orientation: series name in B1 (row 1), single category A2 --
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            '<c:idx val="0"/><c:order val="0"/>'
+            "<c:tx><c:strRef><c:f>Sheet1!$B$1</c:f></c:strRef></c:tx>"
+            "<c:cat><c:strRef><c:f>Sheet1!$A$2</c:f></c:strRef></c:cat>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2</c:f></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        assert chart.series_in_rows is False
+
+        # -- switched orientation: series name in A2 (not row 1), single cat in B1 --
+        chartSpace_xml2 = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            '<c:idx val="0"/><c:order val="0"/>'
+            "<c:tx><c:strRef><c:f>Sheet1!$A$2</c:f></c:strRef></c:tx>"
+            "<c:cat><c:strRef><c:f>Sheet1!$B$1</c:f></c:strRef></c:cat>"
+            "<c:val><c:numRef><c:f>Sheet1!$B$2</c:f></c:numRef></c:val>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml2), None)
+        assert chart.series_in_rows is True
+
+    def it_reports_series_in_rows_None_when_no_cat_and_no_tx_ref(self):
+        """XY/scatter or bubble chart: c:cat absent, c:tx inline-literal only."""
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:scatterChart><c:ser>"
+            '<c:idx val="0"/><c:order val="0"/>'
+            "</c:ser></c:scatterChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        assert chart.series_in_rows is None
+
+    def it_reports_series_in_rows_None_when_cat_ref_unparseable(self):
+        """A c:cat present but with no c:f (e.g. inline c:strLit) and no c:tx/c:strRef."""
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea><c:barChart><c:ser>"
+            '<c:idx val="0"/><c:order val="0"/>'
+            "<c:cat><c:strLit>"
+            '<c:ptCount val="2"/>'
+            '<c:pt idx="0"><c:v>A</c:v></c:pt>'
+            '<c:pt idx="1"><c:v>B</c:v></c:pt>'
+            "</c:strLit></c:cat>"
+            "</c:ser></c:barChart></c:plotArea></c:chart>"
+            "</c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        assert chart.series_in_rows is None
+
     def it_can_replace_the_chart_data(self, replace_fixture):
         (
             chart,

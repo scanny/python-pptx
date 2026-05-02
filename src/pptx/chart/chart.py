@@ -617,6 +617,87 @@ class Chart(PartElementProxy):
         return SeriesCollection(self._chartSpace.plotArea)
 
     @property
+    def series_in_rows(self):
+        """Read-only |bool| indicating whether series data are in rows.
+
+        Corresponds to the "Switch Row/Column" state of the chart's source
+        data in PowerPoint's Edit Data dialog (GitHub issue #828). OOXML does
+        not persist the Switch Row/Column flag directly — the orientation is
+        implicit in the shape of the cell references under each ``c:ser``.
+        This property inspects those references and reports:
+
+        * ``False`` — series are laid out in **columns** of the embedded
+          worksheet. This is PowerPoint's default (and the layout
+          python-pptx writes when authoring a chart from
+          :class:`CategoryChartData`): each series name lives in row 1 of
+          its own column and the category labels share a single column to
+          its left.
+        * ``True`` — series are laid out in **rows**. Each series name is
+          one cell of a single column (typically column A, rows 2..N) and
+          the category labels span row 1 across multiple columns. This is
+          the state a user who applied *Chart Design > Switch Row/Column*
+          in PowerPoint would produce.
+        * ``None`` — the orientation cannot be determined from the chart
+          XML. Common causes: the chart has no series, the first series
+          has no ``c:cat`` reference (e.g. an XY/scatter or bubble chart,
+          which have no category axis), or the references are inline
+          literals / unparseable. Callers should treat ``None`` as
+          "unknown" rather than "default".
+
+        Detection uses the first series's ``c:cat//c:f`` range — a
+        single-column range means series-in-columns (``False``); a
+        single-row range means series-in-rows (``True``). A single-cell
+        ``c:cat`` (one category) falls back to the series-name ref:
+        ``c:tx/c:strRef/c:f`` at row 1 ⇒ ``False``; elsewhere ⇒ ``True``.
+        Read-only: python-pptx does not offer a writer for the switch
+        because PowerPoint rewrites every ``c:ser`` sub-reference in
+        response to the UI toggle, and emulating that without a live
+        workbook would silently mismatch what PowerPoint re-authors on
+        next save. Users who need to flip orientation programmatically
+        should re-author the chart via :meth:`replace_data` with the
+        desired data transposed.
+        """
+        plotArea = self._chartSpace.plotArea
+        # -- `c:ser` is a descendant (e.g. `c:barChart/c:ser`), not a direct
+        # -- child of `c:plotArea`; use `.//` to reach any chart-type. --
+        first_ser = plotArea.find(".//" + qn("c:ser"))
+        if first_ser is None:
+            return None
+        # --- examine the c:cat/c:strRef (or numRef) first — its range ---
+        # --- shape is the strongest signal for series orientation. --
+        cat = first_ser.find(qn("c:cat"))
+        if cat is not None:
+            parsed = _parse_first_ref(cat)
+            if parsed is not None:
+                cells = parsed
+                rows = {r for r, _ in cells}
+                cols = {c for _, c in cells}
+                # -- a multi-row, single-column range means categories run
+                # -- vertically — series are in columns (default). --
+                if len(rows) > 1 and len(cols) == 1:
+                    return False
+                # -- a single-row, multi-column range means categories run
+                # -- horizontally — series are in rows (switched). --
+                if len(cols) > 1 and len(rows) == 1:
+                    return True
+                # -- single-cell c:cat range: inconclusive from c:cat alone;
+                # -- fall through to examine the series-name ref. --
+        # --- fall back to c:tx/c:strRef/c:f; row 1 => default, else switched ---
+        tx = first_ser.find(qn("c:tx"))
+        if tx is not None:
+            parsed = _parse_first_ref(tx)
+            if parsed is not None:
+                rows = {r for r, _ in parsed}
+                cols = {c for _, c in parsed}
+                if len(rows) == 1 and len(cols) == 1:
+                    row, _col = next(iter(parsed))
+                    # -- series name in row 1 ⇒ default (series in cols);
+                    # -- series name elsewhere on a later row ⇒ switched
+                    # -- (series in rows). --
+                    return row != 1
+        return None
+
+    @property
     def value_axis(self):
         """
         The |ValueAxis| object providing access to properties of the value
@@ -1271,6 +1352,26 @@ def _format_numeric(value):
     if float(value).is_integer():
         return str(int(value))
     return repr(float(value))
+
+
+def _parse_first_ref(parent):
+    """Return the parsed cell list for the first ``c:f`` under *parent*.
+
+    *parent* is expected to be a ``c:cat``, ``c:val``, ``c:tx``,
+    ``c:strRef``, or ``c:numRef`` element. Returns the list of
+    ``(row, col)`` tuples parsed by :func:`parse_sheet_range_ref`, or
+    ``None`` when no parseable reference is found. The sheet name is
+    discarded — callers of this helper only care about the range
+    geometry for orientation detection (issue #828).
+    """
+    f_elm = parent.find(".//" + qn("c:f"))
+    if f_elm is None or not f_elm.text:
+        return None
+    parsed = parse_sheet_range_ref(f_elm.text)
+    if parsed is None:
+        return None
+    _sheet, cells = parsed
+    return cells
 
 
 class _Plots(Sequence):
