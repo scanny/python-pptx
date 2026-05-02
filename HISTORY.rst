@@ -70,6 +70,11 @@ Unreleased
   carried over from the source is now replaced with a cycling
   ``a:schemeClr val="accent1..6"`` reference so newly-added series follow
   PowerPoint's theme-accent rotation.
+- fix: #1072 add ``DataLabels.text_frame`` so collection-level data-label
+  text-body properties (word-wrap, auto-size, vertical anchor, margins) are
+  written to ``c:dLbls/c:txPr`` per spec rather than being unreachable via a
+  misplaced ``c:tx/c:rich`` path. ``data_labels.text_frame.word_wrap = False``
+  now round-trips through PowerPoint as intended.
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

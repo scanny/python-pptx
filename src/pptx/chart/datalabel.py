@@ -140,6 +140,24 @@ class DataLabels(object):
     def show_value(self, value):
         self._element.get_or_add_showVal().val = bool(value)
 
+    @property
+    def text_frame(self):
+        """|TextFrame| providing access to text-body properties of this data-label collection.
+
+        The returned |TextFrame| wraps the ``c:txPr`` (text-properties) element that holds
+        collection-level text-frame settings such as word-wrap, auto-size, vertical anchor,
+        and internal margins. These settings apply to every data label in the collection
+        unless overridden on an individual |DataLabel|.
+
+        The ``c:txPr`` element is created on the ``c:dLbls`` parent if not already present.
+
+        Note this is *not* a text container for custom data-label text; the spec requires
+        collection-level text properties to live at ``c:dLbls/c:txPr`` (a ``CT_TextBody``),
+        not at ``c:dLbls/c:tx/c:rich``. Addresses issue #1072.
+        """
+        txPr = self._element.get_or_add_txPr()
+        return TextFrame(txPr, self)
+
 
 class DataLabel(object):
     """

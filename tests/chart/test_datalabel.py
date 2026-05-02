@@ -418,6 +418,33 @@ class DescribeDataLabels(object):
 
         assert data_labels._element.xml == expected_xml
 
+    def it_provides_access_to_its_text_frame(self, text_frame_fixture):
+        data_labels, expected_xml = text_frame_fixture
+
+        text_frame = data_labels.text_frame
+
+        # ---verifies the returned object is a TextFrame on c:dLbls/c:txPr---
+        from pptx.text.text import TextFrame as _TextFrame
+
+        assert isinstance(text_frame, _TextFrame)
+        # ---verifies that c:txPr (not c:tx/c:rich) is created under c:dLbls---
+        assert data_labels._element.xml == expected_xml
+        # ---verifies the TextFrame wraps the c:txPr element---
+        assert text_frame._txBody is data_labels._element.xpath("c:txPr")[0]
+
+    def it_text_frame_word_wrap_round_trips_through_bodyPr(self):
+        """Regression for #1072: word_wrap must reach c:dLbls/c:txPr/a:bodyPr."""
+        data_labels = DataLabels(element("c:dLbls{a:b=c}"))
+
+        data_labels.text_frame.word_wrap = False
+
+        # ---must write wrap="none" on c:txPr/a:bodyPr, NOT on c:tx/c:rich---
+        bodyPrs = data_labels._element.xpath("c:txPr/a:bodyPr")
+        assert len(bodyPrs) == 1
+        assert bodyPrs[0].get("wrap") == "none"
+        # ---no rogue c:tx/c:rich subtree should be created---
+        assert data_labels._element.xpath("c:tx/c:rich") == []
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -658,6 +685,32 @@ class DescribeDataLabels(object):
         ]
     )
     def txPr_fixture(self, request):
+        dLbls_cxml, expected_cxml = request.param
+        data_labels = DataLabels(element(dLbls_cxml))
+        expected_xml = xml(expected_cxml)
+        return data_labels, expected_xml
+
+    @pytest.fixture(
+        params=[
+            # ---no c:txPr present -- it gets added under c:dLbls (not c:tx/c:rich)---
+            (
+                "c:dLbls{a:b=c}",
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)",
+            ),
+            # ---c:txPr already present -- it is reused unchanged---
+            (
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)",
+                "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)",
+            ),
+            # ---order-sensitive: c:txPr is inserted before c:dLblPos per schema---
+            (
+                "c:dLbls{a:b=c}/c:dLblPos{val=ctr}",
+                "c:dLbls{a:b=c}/(c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLb"
+                "lPos{val=ctr})",
+            ),
+        ]
+    )
+    def text_frame_fixture(self, request):
         dLbls_cxml, expected_cxml = request.param
         data_labels = DataLabels(element(dLbls_cxml))
         expected_xml = xml(expected_cxml)

@@ -216,6 +216,20 @@ In the Microsoft API, the name *ChartGroup* is used for this object. I found
 that term confusing for a long time while I was learning about MS Office
 charts so I chose the name Plot for that object in |pp|.
 
+Collection-level text-frame properties (such as whether label text should
+word-wrap, the autofit strategy, vertical anchor, and internal margins) are
+available on :attr:`DataLabels.text_frame`. This |TextFrame| wraps the
+``c:dLbls/c:txPr`` element that holds these settings for every data label in
+the collection::
+
+    data_labels = plot.data_labels
+    data_labels.text_frame.word_wrap = False
+
+Note this is distinct from :attr:`DataLabel.text_frame` on an individual
+|DataLabel|, which exposes the *custom text content* for a single data label
+(backed by ``c:dLbl/c:tx/c:rich``). The collection-level property is for
+formatting, not content.
+
 
 Error Bars
 ----------

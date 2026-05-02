@@ -141,6 +141,20 @@ Feature: Access and modify data labels properties
       | inside-base | OUTSIDE_END | OUTSIDE_END    |
       | inside-base | None        | None           |
 
+  Scenario: DataLabels.text_frame returns a TextFrame wrapping c:dLbls/c:txPr
+    Given a DataLabels object with inherited position as data_labels
+     Then data_labels.text_frame is a TextFrame object
+      And data_labels.text_frame wraps the c:dLbls/c:txPr element
+
+
+  Scenario: Assigning DataLabels.text_frame.word_wrap writes c:txPr/a:bodyPr/@wrap
+    Given a DataLabels object with inherited position as data_labels
+     When I assign False to data_labels.text_frame.word_wrap
+     Then data_labels.text_frame.word_wrap is False
+      And the c:dLbls XML has c:txPr/a:bodyPr with wrap="none"
+      And the c:dLbls XML has no c:tx/c:rich subtree
+
+
 # ---DataLabel---
 
   Scenario Outline: DataLabel.font

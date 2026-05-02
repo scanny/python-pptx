@@ -136,6 +136,12 @@ def when_I_assign_value_to_data_labels_show_value(context, value):
     context.data_labels.show_value = eval(value)
 
 
+@when("I assign {value} to data_labels.text_frame.word_wrap")
+def when_I_assign_value_to_data_labels_text_frame_word_wrap(context, value):
+    new_value = {"True": True, "False": False, "None": None}[value]
+    context.data_labels.text_frame.word_wrap = new_value
+
+
 # then ====================================================
 
 
@@ -218,3 +224,40 @@ def then_data_labels_show_series_name_is_value(context, value):
 def then_data_labels_show_value_is_value(context, value):
     actual, expected = context.data_labels.show_value, eval(value)
     assert actual is expected, "data_labels.show_value is %s" % actual
+
+
+@then("data_labels.text_frame is a TextFrame object")
+def then_data_labels_text_frame_is_a_TextFrame_object(context):
+    text_frame = context.data_labels.text_frame
+    assert type(text_frame).__name__ == "TextFrame"
+
+
+@then("data_labels.text_frame wraps the c:dLbls/c:txPr element")
+def then_data_labels_text_frame_wraps_the_c_dLbls_c_txPr_element(context):
+    text_frame = context.data_labels.text_frame
+    dLbls = context.data_labels._element
+    txPrs = dLbls.xpath("c:txPr")
+    assert len(txPrs) == 1, "expected a single c:txPr child, got %d" % len(txPrs)
+    assert text_frame._txBody is txPrs[0], "TextFrame is not wrapping c:dLbls/c:txPr"
+
+
+@then("data_labels.text_frame.word_wrap is {value}")
+def then_data_labels_text_frame_word_wrap_is_value(context, value):
+    expected = {"True": True, "False": False, "None": None}[value]
+    actual = context.data_labels.text_frame.word_wrap
+    assert actual is expected, "data_labels.text_frame.word_wrap is %s" % actual
+
+
+@then('the c:dLbls XML has c:txPr/a:bodyPr with wrap="none"')
+def then_the_c_dLbls_XML_has_c_txPr_a_bodyPr_with_wrap_none(context):
+    dLbls = context.data_labels._element
+    bodyPrs = dLbls.xpath("c:txPr/a:bodyPr")
+    assert len(bodyPrs) == 1, "expected a single c:txPr/a:bodyPr, got %d" % len(bodyPrs)
+    wrap = bodyPrs[0].get("wrap")
+    assert wrap == "none", 'expected wrap="none", got wrap=%r' % wrap
+
+
+@then("the c:dLbls XML has no c:tx/c:rich subtree")
+def then_the_c_dLbls_XML_has_no_c_tx_c_rich_subtree(context):
+    dLbls = context.data_labels._element
+    assert dLbls.xpath("c:tx/c:rich") == [], "c:dLbls unexpectedly has c:tx/c:rich subtree"
