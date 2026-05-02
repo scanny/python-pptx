@@ -196,6 +196,12 @@ Unreleased
   skips any non-``MediaPart`` entry so a future unmapped media MIME-type
   cannot regress the original ``AttributeError``. Regression tests pin both
   layers.
+- fix: #926 ``SlideShapes.add_movie()`` raised ``AttributeError: 'Part' object
+  has no attribute 'sha1'`` when the slide part already contained an audio
+  clip. Now resolved via the audio content-type registrations added for #502
+  (pre-existing audio parts load as ``MediaPart`` with a ``sha1`` attribute)
+  together with a defensive skip in ``_MediaParts._find_by_sha1()`` for any
+  media rel whose target is a generic ``Part`` — regression tests added.
 - feat: #752 accept arbitrary `prog_id` + `extension` in
   `SlideShapes.add_ole_object()` to embed zip/pdf/html/custom files
 - #446 shape.shadow.inherit attribute not working

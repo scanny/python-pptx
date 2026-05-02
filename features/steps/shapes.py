@@ -99,6 +99,35 @@ def given_a_SlideShapes_object_containing_a_or_no_movies(context, a_or_no):
     context.shapes = prs.slides[0].shapes
 
 
+@given("a SlideShapes object from a saved deck already containing a wav audio")
+def given_a_SlideShapes_object_from_a_saved_deck_with_wav_audio(context):
+    # -- author a fresh deck that contains a wav audio movie shape, save it to
+    # -- an in-memory buffer, then reopen it so existing audio parts are loaded
+    # -- from-file (this matches the issue #926 reproduction) and expose the
+    # -- first slide's shapes for the subsequent add_movie(...) call --
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    x, y, cx, cy = Emu(914400), Emu(914400), Emu(914400), Emu(914400)
+    slide.shapes.add_movie(
+        test_file("silence.wav"), x, y, cx, cy, mime_type="audio/x-wav"
+    )
+    buf = io.BytesIO()
+    prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    context.prs = reopened
+    context.shapes = reopened.slides[0].shapes
+
+
+@when("I call shapes.add_movie(audio_file, mime_type='audio/x-wav')")
+def when_I_call_shapes_add_movie_x_wav(context):
+    shapes = context.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(914400), Emu(914400)
+    context.movie = shapes.add_movie(
+        test_file("silence.wav"), x, y, cx, cy, mime_type="audio/x-wav"
+    )
+
+
 @given("a SlideShapes object of length 6 shapes as shapes")
 def given_a_SlideShapes_object_of_length_6_as_shapes(context):
     prs = Presentation(test_pptx("shp-shapes"))

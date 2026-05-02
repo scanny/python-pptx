@@ -477,6 +477,21 @@ class Describe_MediaParts(object):
 
         assert result is real_media_part
 
+    def it_skips_non_MediaPart_instances_when_finding_by_sha1(self, request, _iter_):
+        """Regression guard for issue #926.
+
+        A pre-existing audio part whose content-type was not mapped to |MediaPart|
+        (historically the case for `audio/x-wav` before #502) loads as a generic
+        ``Part`` that lacks a ``sha1`` attribute. The lookup must skip such parts
+        rather than raise ``AttributeError`` when a caller invokes
+        :meth:`SlideShapes.add_movie` on a deck that already contains audio.
+        """
+        generic_part_ = instance_mock(request, Part)
+        _iter_.return_value = iter((generic_part_,))
+        media_parts = _MediaParts(None)
+
+        assert media_parts._find_by_sha1("any-sha1") is None
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[True, False])

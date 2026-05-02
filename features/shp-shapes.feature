@@ -250,6 +250,13 @@ Feature: Access a shape on a slide
       And the saved presentation reloads without error
 
 
+  Scenario: SlideShapes.add_movie() on a reopened deck already containing a wav audio
+    Given a SlideShapes object from a saved deck already containing a wav audio
+     When I call shapes.add_movie(audio_file, mime_type='audio/x-wav')
+     Then movie is a Movie object
+      And the a:audioFile element is present on the movie shape
+
+
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file
