@@ -60,6 +60,14 @@ Unreleased
   / ``a:lnBlToTr`` child of ``a:tcPr`` so explicit per-cell edge and diagonal
   borders can be set in color, width, and dash style. Borders inherited from
   the applied table style are not reported by these properties.
+- fix: #925 shape of group type has incorrect size. ``BaseShape`` gains
+  read-only ``effective_left``, ``effective_top``, ``effective_width`` and
+  ``effective_height`` properties that return the shape's slide-relative
+  geometry after the enclosing ``p:grpSp`` ancestors' ``a:chOff``/``a:chExt``
+  → ``a:off``/``a:ext`` transforms have been composited. The pre-existing
+  ``left``/``top``/``width``/``height`` properties continue to expose the raw
+  XML values (in the enclosing group's child coordinate system for a nested
+  shape) for backwards compatibility.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and

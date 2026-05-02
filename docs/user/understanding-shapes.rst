@@ -110,6 +110,33 @@ zero-based position within its parent shape-tree (0 is backmost)::
     shape.zorder_index   # -> 2, for example
 
 
+Effective geometry of shapes inside groups
+------------------------------------------
+
+``shape.left``, ``shape.top``, ``shape.width`` and ``shape.height`` always
+return the raw values stored in the shape's own ``a:xfrm`` element. For a
+top-level shape those are already slide-relative, but for a shape nested
+inside a :class:`.GroupShape` the raw values are expressed in the enclosing
+group's *child* coordinate system (``a:chOff`` / ``a:chExt``). When the
+group has been resized in PowerPoint the group's ``a:ext`` is smaller (or
+larger) than its ``a:chExt`` and the child's raw numbers no longer match
+the position and size it actually renders at on the slide.
+
+Four read-only companion properties on every shape return the composited,
+slide-relative geometry with the enclosing group transform(s) applied::
+
+    shape.effective_left     # -> Length, slide-relative x in EMU
+    shape.effective_top      # -> Length, slide-relative y in EMU
+    shape.effective_width    # -> Length, rendered width in EMU
+    shape.effective_height   # -> Length, rendered height in EMU
+
+For a top-level shape these return the same values as the raw properties.
+For a shape inside one or more groups, each group's
+``a:chOff``/``a:chExt`` → ``a:off``/``a:ext`` linear transform is applied
+in turn up to the slide root. The raw ``left``/``top``/``width``/``height``
+properties are unchanged and remain read/write for backwards compatibility.
+
+
 Up next ...
 -----------
 

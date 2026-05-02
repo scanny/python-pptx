@@ -971,3 +971,74 @@ def then_shape_auto_shape_type_is_MSO_SHAPE_member(context, member_name):
 def then_shape_auto_shape_type_is_None(context):
     actual = context.shape.auto_shape_type
     assert actual is None, "shape.auto_shape_type == %r" % (actual,)
+
+
+# ---- #925: effective_* group-transform steps -----------------------------
+
+
+@given("a group shape whose child space is scaled 2:1 onto the slide")
+def given_a_group_with_2_1_scaled_child_space(context):
+    # -- Build a group whose slide-frame ext is half the child-space chExt, so  --
+    # -- children render at half their local size. Child is placed at the       --
+    # -- local origin for straightforward assertions.                           --
+    from pptx.oxml import parse_xml
+
+    spTree_xml = (
+        '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+        ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+        "  <p:nvGrpSpPr><p:cNvPr id='1' name='root'/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
+        "  <p:grpSpPr/>"
+        "  <p:grpSp>"
+        "    <p:nvGrpSpPr><p:cNvPr id='2' name='G'/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
+        "    <p:grpSpPr>"
+        "      <a:xfrm>"
+        '        <a:off x="1000000" y="2000000"/>'
+        '        <a:ext cx="2000000" cy="2000000"/>'
+        '        <a:chOff x="0" y="0"/>'
+        '        <a:chExt cx="4000000" cy="4000000"/>'
+        "      </a:xfrm>"
+        "    </p:grpSpPr>"
+        "    <p:sp>"
+        "      <p:nvSpPr><p:cNvPr id='3' name='C'/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>"
+        "      <p:spPr>"
+        "        <a:xfrm>"
+        '          <a:off x="0" y="0"/>'
+        '          <a:ext cx="800000" cy="600000"/>'
+        "        </a:xfrm>"
+        '        <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+        "      </p:spPr>"
+        "    </p:sp>"
+        "  </p:grpSp>"
+        "</p:spTree>"
+    )
+    from pptx.shapes.autoshape import Shape
+
+    spTree = parse_xml(spTree_xml)
+    sp = spTree.xpath(".//p:sp")[0]
+    context.child_shape = Shape(sp, None)
+
+
+@then("the child shape's raw shape.left matches its group-local xfrm")
+def then_child_raw_left_matches_local_xfrm(context):
+    shape = context.child_shape
+    # -- raw left is the local a:off/@x, unmodified --
+    assert shape.left == 0, "expected 0, got %r" % (shape.left,)
+
+
+@then("the child shape's effective_left is the slide-relative coordinate")
+def then_child_effective_left_is_slide_relative(context):
+    shape = context.child_shape
+    # -- scale = 2_000_000 / 4_000_000 = 0.5; translate = 1_000_000;          --
+    # -- child local 0 -> slide 1_000_000                                     --
+    assert shape.effective_left == 1000000, (
+        "expected 1000000, got %r" % (shape.effective_left,)
+    )
+
+
+@then("the child shape's effective_width is half its raw width")
+def then_child_effective_width_is_half_raw_width(context):
+    shape = context.child_shape
+    assert shape.width == 800000, "raw width %r" % (shape.width,)
+    assert shape.effective_width == 400000, (
+        "expected 400000 (half of 800000), got %r" % (shape.effective_width,)
+    )

@@ -44,3 +44,10 @@ Feature: GroupShape properties and methods
       And shape.top == 400
       And shape.width == 300
       And shape.height == 500
+
+
+  Scenario: Child shape of a resized group reports effective slide geometry
+    Given a group shape whose child space is scaled 2:1 onto the slide
+     Then the child shape's raw shape.left matches its group-local xfrm
+      And the child shape's effective_left is the slide-relative coordinate
+      And the child shape's effective_width is half its raw width
