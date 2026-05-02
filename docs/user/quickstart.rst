@@ -150,6 +150,16 @@ before setting the text it contains.
 
     prs.save('test.pptx')
 
+.. note::
+
+    SVG images are not supported directly by ``add_picture()``. Passing an
+    ``.svg`` file raises :class:`.UnsupportedImageTypeError`. Pre-rasterize
+    the SVG to PNG (for example with `cairosvg`_) and insert the resulting
+    PNG instead. See :ref:`inserting-svg-images` for details and alternate
+    rasterizer options.
+
+.. _cairosvg: https://cairosvg.org/
+
 
 ----
 

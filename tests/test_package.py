@@ -8,12 +8,21 @@ import os
 
 import pytest
 
+import io
+
 import pptx
+from pptx.exc import UnsupportedImageTypeError
 from pptx.media import Video
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import Part, _Relationship
 from pptx.opc.packuri import PackURI
-from pptx.package import Package, _ImageParts, _MediaParts
+from pptx.package import (
+    Package,
+    _ImageParts,
+    _looks_like_svg,
+    _MediaParts,
+    _raise_if_svg,
+)
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
@@ -203,6 +212,30 @@ class Describe_ImageParts(object):
 
         assert result == png_part_
 
+    def it_raises_UnsupportedImageTypeError_on_svg_path(self, tmp_path):
+        svg_path = tmp_path / "logo.svg"
+        svg_path.write_bytes(
+            b'<?xml version="1.0"?>\n'
+            b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>'
+        )
+        image_parts = _ImageParts(None)
+
+        with pytest.raises(UnsupportedImageTypeError) as exc_info:
+            image_parts.get_or_add_image_part(str(svg_path))
+
+        assert "SVG images are not supported" in str(exc_info.value)
+        assert "logo.svg" in str(exc_info.value)
+        assert "pre-rasterize" in str(exc_info.value).lower()
+
+    def it_raises_UnsupportedImageTypeError_on_svg_stream(self):
+        svg_stream = io.BytesIO(
+            b'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'
+        )
+        image_parts = _ImageParts(None)
+
+        with pytest.raises(UnsupportedImageTypeError):
+            image_parts.get_or_add_image_part(svg_stream)
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[True, False])
@@ -267,6 +300,100 @@ class Describe_ImageParts(object):
     @pytest.fixture
     def package_(self, request):
         return instance_mock(request, Package)
+
+
+class Describe_raise_if_svg(object):
+    """Unit-test suite for `pptx.package._raise_if_svg`."""
+
+    def it_raises_on_a_minimal_svg_blob(self):
+        stream = io.BytesIO(b'<svg xmlns="http://www.w3.org/2000/svg"/>')
+        with pytest.raises(UnsupportedImageTypeError):
+            _raise_if_svg(stream)
+
+    def it_raises_on_svg_with_xml_prologue_and_doctype(self):
+        blob = (
+            b'<?xml version="1.0" encoding="UTF-8"?>\n'
+            b"<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' "
+            b"'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>\n"
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
+        )
+        stream = io.BytesIO(blob)
+        with pytest.raises(UnsupportedImageTypeError):
+            _raise_if_svg(stream)
+
+    def it_raises_on_uppercase_svg_tag(self):
+        stream = io.BytesIO(b'<?xml version="1.0"?><SVG xmlns="x"/>')
+        with pytest.raises(UnsupportedImageTypeError):
+            _raise_if_svg(stream)
+
+    def it_does_not_raise_on_png_blob(self):
+        # ---8-byte PNG signature is enough to prove the regex is not fooled---
+        stream = io.BytesIO(b"\x89PNG\r\n\x1a\n" + b"\x00" * 32)
+        _raise_if_svg(stream)
+        # ---and the stream position is restored so downstream reads still work---
+        assert stream.tell() == 0
+
+    def it_preserves_stream_position_on_non_svg(self):
+        stream = io.BytesIO(b"\x89PNG\r\n\x1a\n" + b"\x00" * 4000)
+        stream.seek(5)
+        _raise_if_svg(stream)
+        assert stream.tell() == 5
+
+    def it_does_not_raise_on_unreadable_path(self):
+        # ---missing path returns empty head, no raise---
+        _raise_if_svg("/nonexistent/path/to/image.png")
+
+    def it_includes_filename_in_error_for_path(self, tmp_path):
+        svg_path = tmp_path / "icon.svg"
+        svg_path.write_bytes(b'<svg xmlns="x"/>')
+        with pytest.raises(UnsupportedImageTypeError) as exc_info:
+            _raise_if_svg(str(svg_path))
+        assert "icon.svg" in str(exc_info.value)
+
+    def it_uses_stream_name_attribute_when_available(self):
+        stream = io.BytesIO(b'<svg xmlns="x"/>')
+        stream.name = "/tmp/named.svg"
+        with pytest.raises(UnsupportedImageTypeError) as exc_info:
+            _raise_if_svg(stream)
+        assert "named.svg" in str(exc_info.value)
+
+
+class Describe_looks_like_svg(object):
+    """Unit-test suite for `pptx.package._looks_like_svg`."""
+
+    @pytest.mark.parametrize(
+        "head",
+        [
+            b'<svg xmlns="x"/>',
+            b'<?xml version="1.0"?><svg/>',
+            b"   <SVG xmlns='x'/>",
+            b"<svg\n",
+        ],
+    )
+    def it_detects_svg_root_in_head(self, head):
+        assert _looks_like_svg(head, None) is True
+
+    @pytest.mark.parametrize(
+        "head",
+        [
+            b"\x89PNG\r\n\x1a\n",
+            b"\xff\xd8\xff\xe0",  # JPEG
+            b"GIF89a",
+            b"<html><body>Not an SVG</body></html>",
+            b"",
+        ],
+    )
+    def it_rejects_non_svg_head(self, head):
+        assert _looks_like_svg(head, None) is False
+
+    def it_trusts_svg_extension_for_xml_like_content(self):
+        # ---no <svg tag in head but starts with XML prologue and name ends .svg---
+        head = b'<?xml version="1.0"?>\n' + b"<!-- comment -->\n" * 100
+        assert _looks_like_svg(head, "logo.svg") is True
+
+    def it_ignores_svg_extension_for_binary_content(self):
+        head = b"\x89PNG\r\n\x1a\n"
+        assert _looks_like_svg(head, "oops.svg") is False
 
 
 class Describe_MediaParts(object):

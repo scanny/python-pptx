@@ -144,6 +144,7 @@ Package
    :maxdepth: 1
 
    pkg-coreprops
+   pkg-svg-picture
    enumerations
    opc-rel-cloner
 

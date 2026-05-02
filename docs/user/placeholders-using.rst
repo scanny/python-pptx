@@ -156,6 +156,53 @@ content. When `crop=False` is used, the resulting picture's position and
 size on the slide will not inherit from the layout placeholder; instead an
 explicit position and size are written into the slide XML so the aspect
 ratio is preserved regardless of the placeholder's aspect ratio.
+.. _inserting-svg-images:
+
+Inserting SVG images
+~~~~~~~~~~~~~~~~~~~~
+
+|pp| does *not* support inserting SVG images directly, neither via
+:meth:`~.PicturePlaceholder.insert_picture` nor via
+:meth:`.SlideShapes.add_picture`. Passing an SVG file to either method raises
+:class:`.UnsupportedImageTypeError`.
+
+Why not? PowerPoint (Office 2016 and later) *does* display SVG on a slide, but
+it always stores **two** images together: a PNG raster "fallback" blip (used
+by legacy viewers and for preview thumbnails) paired with the SVG itself via
+an ``asvg:svgBlip`` drawingML extension. PowerPoint generates the PNG at paste
+time using its own rasterizer. |pp| does not include (or depend on) an SVG
+rasterizer — adding one would require a significant native dependency such as
+librsvg, Cairo, or a headless browser — so the library cannot construct the
+required PNG fallback on its own.
+
+**Workaround — pre-rasterize to PNG**
+
+Use any SVG rasterizer of your choice to convert the SVG to PNG, then insert
+the PNG::
+
+    # using cairosvg (pure-Python-ish; requires Cairo)
+    import cairosvg
+
+    cairosvg.svg2png(
+        url="diagram.svg", write_to="diagram.png", output_width=1600
+    )
+    slide.shapes.add_picture("diagram.png", left, top)
+
+Other rasterizer options:
+
+* ``svglib`` + ``reportlab`` — pure-Python, no native deps, but slower and
+  supports a smaller SVG subset.
+* Pillow with a librsvg backend — fast and widely available on Linux.
+* Inkscape's command-line interface — good fidelity for complex SVGs.
+
+If full round-trip SVG fidelity is important for your deck (so a viewer can
+zoom in without aliasing), you will need to post-process the resulting
+``.pptx`` file to rewrite the picture's ``a:blip`` to include an
+``asvg:svgBlip`` extension pointing at a companion SVG image part. That
+customization is outside |pp|'s public API today; track issue `#652`_ if you
+need it supported natively.
+
+.. _#652: https://github.com/scanny/python-pptx/issues/652
 
 :meth:`.TablePlaceholder.insert_table`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

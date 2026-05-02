@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import os
+import re
 from typing import IO, Iterator
 
+from pptx.exc import UnsupportedImageTypeError
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
@@ -11,6 +14,15 @@ from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
 from pptx.util import lazyproperty
+
+# -- Used to detect SVG content in an image byte-stream. Looks at roughly the
+# -- first 2 KiB (enough to skip common XML prologues / comments / DOCTYPE) for
+# -- an `<svg` root-element opener. This is a lightweight sniff — the caller is
+# -- expected to hand over an image blob, not an arbitrary text file.
+_SVG_HEAD_BYTES = 2048
+# -- matches the opening of an ``<svg`` root element in any of its common
+# -- forms: ``<svg>``, ``<svg ...>``, ``<svg\n...``, ``<svg/>``.
+_SVG_SNIFF_RE = re.compile(rb"<svg[\s>/]", re.IGNORECASE)
 
 
 class Package(OpcPackage):
@@ -149,7 +161,15 @@ class _ImageParts(object):
         `image_file` can be either a path to an image file or a file-like object
         containing an image. If an image part containing this same image already exists,
         that instance is returned, otherwise a new image part is created.
+
+        Raises |UnsupportedImageTypeError| when `image_file` contains SVG content.
+        PowerPoint's SVG support (Office 2016+) requires a companion PNG raster
+        fallback paired with the SVG via an ``asvg:svgBlip`` extension, and
+        python-pptx does not bundle an SVG rasterizer. Callers must pre-rasterize
+        SVG content to PNG (or another supported raster format) before inserting
+        it. See the "Inserting SVG images" section of the user guide.
         """
+        _raise_if_svg(image_file)
         image = Image.from_file(image_file)
         image_part = self._find_by_sha1(image.sha1)
         return image_part if image_part else ImagePart.new(self._package, image)
@@ -161,12 +181,101 @@ class _ImageParts(object):
         SHA1 hash digest of the image binary it contains.
         """
         for image_part in self:
-            # ---skip unknown/unsupported image types, like SVG---
+            # ---defensively skip unsupported image types that may already be
+            # ---present in the package (e.g., an SVG part loaded from an
+            # ---existing .pptx). See ``_raise_if_svg`` for the write path.
             if not hasattr(image_part, "sha1"):
                 continue
             if image_part.sha1 == sha1:
                 return image_part
         return None
+
+
+def _raise_if_svg(image_file: str | IO[bytes]) -> None:
+    """Raise |UnsupportedImageTypeError| when `image_file` contains SVG content.
+
+    Sniffs the first few kilobytes of the image byte-stream for an ``<svg ...>``
+    root element. Falls back to a filename-extension check (gated on the stream
+    at least looking like XML) to catch heavily-commented SVGs whose root tag
+    sits beyond the first 2 KiB.
+
+    The check preserves the caller's original stream position so that
+    downstream consumers (PIL, etc.) see the full original blob when this
+    function returns without raising.
+    """
+    head, restore = _read_image_head(image_file)
+    name = _image_file_name(image_file)
+
+    if _looks_like_svg(head, name):
+        hint = f" (file '{name}')" if name else ""
+        raise UnsupportedImageTypeError(
+            "SVG images are not supported by python-pptx" + hint + ". "
+            "PowerPoint's SVG support requires a companion PNG raster fallback; "
+            "python-pptx does not include an SVG rasterizer. "
+            "Pre-rasterize the SVG to PNG (e.g. with `cairosvg`, `svglib` + "
+            "`reportlab`, or `Pillow` via `librsvg`) and insert the resulting "
+            "PNG instead. See the 'Inserting SVG images' section of the user "
+            "guide for details."
+        )
+
+    if restore is not None:
+        restore()
+
+
+def _read_image_head(image_file: str | IO[bytes]):
+    """Return `(head_bytes, restore_fn_or_None)` for SVG sniffing.
+
+    When `image_file` is a file-like object, reads up to `_SVG_HEAD_BYTES` from
+    its current position and returns a callable that rewinds the stream back to
+    that position so downstream readers see the full blob.
+    """
+    if isinstance(image_file, str):
+        try:
+            with open(image_file, "rb") as f:
+                return f.read(_SVG_HEAD_BYTES), None
+        except OSError:
+            return b"", None
+
+    # -- assume file-like object --
+    if callable(getattr(image_file, "tell", None)) and callable(
+        getattr(image_file, "seek", None)
+    ):
+        pos = image_file.tell()
+        head = image_file.read(_SVG_HEAD_BYTES)
+
+        def restore():
+            image_file.seek(pos)
+
+        return head, restore
+
+    # -- non-seekable stream: best-effort peek (consumes bytes) --
+    head = image_file.read(_SVG_HEAD_BYTES)
+    return head, None
+
+
+def _image_file_name(image_file: str | IO[bytes]) -> str | None:
+    """Return a filename for `image_file` if one is knowable, else |None|."""
+    if isinstance(image_file, str):
+        return os.path.basename(image_file)
+    name = getattr(image_file, "name", None)
+    if isinstance(name, str):
+        return os.path.basename(name)
+    return None
+
+
+def _looks_like_svg(head: bytes, name: str | None) -> bool:
+    """Return True if `head` and/or `name` indicate an SVG document."""
+    if _SVG_SNIFF_RE.search(head):
+        return True
+    # -- the SVG root may live beyond the first 2 KiB in a heavily-commented
+    # -- file; fall back to the filename extension in that case (only when the
+    # -- content at least looks like XML, to avoid false positives on unrelated
+    # -- `.svg`-named binary files).
+    if name and name.lower().endswith(".svg"):
+        stripped = head.lstrip()
+        if stripped.startswith(b"<?xml") or stripped.startswith(b"<!"):
+            return True
+    return False
 
 
 class _MediaParts(object):
