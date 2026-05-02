@@ -177,3 +177,55 @@ this will not change color when the theme is changed::
 A run can also be made into a hyperlink by providing a target URL::
 
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
+
+
+.. _text-hyperlink-color-guide:
+
+Coloring a hyperlinked run
+--------------------------
+
+By default, PowerPoint ignores the explicit color of a run that carries a
+hyperlink and renders the run in the theme's hyperlink color (the color scheme
+entry stored as ``a:hlink`` in the theme part). This is the behavior reported
+in `issue #940`_.
+
+Starting with python-pptx 1.1, there are two API paths that help you work
+around this:
+
+* ``Font.use_theme_hyperlink_color`` -- a tri-state flag on each run's font.
+  Setting it to ``False`` records the intent that the run's explicit
+  ``font.color`` be preferred over the theme color. python-pptx stores that
+  intent as a marker extension under the run's ``a:hlinkClick`` element; the
+  marker round-trips cleanly through save/reload and is ignored by PowerPoint,
+  so it will not confuse the file. Setting the flag to ``True`` (or ``None``)
+  clears the marker.
+
+* ``ThemePart.theme.hlink_color`` / ``folHlink_color`` -- read and write the
+  ``srgbClr`` entry of the theme's ``a:hlink`` and ``a:folHlink`` color
+  scheme members. Reassigning these is what actually changes the color
+  PowerPoint uses when rendering hyperlinked runs. Reach the theme via the
+  relationship on a slide master::
+
+      from pptx.dml.color import RGBColor
+      from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+
+      theme_part = prs.slide_masters[0].part.part_related_by(RT.THEME)
+      theme = theme_part.theme
+      theme.hlink_color = RGBColor(0xFF, 0x00, 0x00)
+
+  The unvisited-hyperlink color is stored on each theme part. A presentation
+  typically has one theme per slide master, so multi-master decks need to
+  update each theme separately.
+
+The recommended pattern for fully overriding a hyperlink's color is to
+combine both: annotate the run (so the intent is visible and survives
+round-trips) and update the theme so PowerPoint honors it::
+
+    run.font.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    run.hyperlink.address = 'https://example.com'
+    run.font.use_theme_hyperlink_color = False  # record the intent
+
+    theme_part = prs.slide_masters[0].part.part_related_by(RT.THEME)
+    theme_part.theme.hlink_color = RGBColor(0xFF, 0x00, 0x00)
+
+.. _`issue #940`: https://github.com/scanny/python-pptx/issues/940

@@ -20,6 +20,7 @@ from pptx.parts.slide import (
     SlideLayoutPart,
     SlideMasterPart,
     SlidePart,
+    ThemePart,
 )
 
 if TYPE_CHECKING:
@@ -43,6 +44,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_SLIDE: SlidePart,
     CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
     CT.PML_SLIDE_MASTER: SlideMasterPart,
+    CT.OFC_THEME: ThemePart,
     CT.DML_CHART: ChartPart,
     CT.BMP: ImagePart,
     CT.GIF: ImagePart,
@@ -76,6 +78,7 @@ del (
     SlidePart,
     SlideLayoutPart,
     SlideMasterPart,
+    ThemePart,
     PresentationPart,
     CT,
     PartFactory,

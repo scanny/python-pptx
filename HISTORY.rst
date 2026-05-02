@@ -3,6 +3,14 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #940 Set/change font color when working with Hyperlinks is impossible
+  (add ``Font.use_theme_hyperlink_color`` flag and
+  ``ThemePart.theme.hlink_color`` / ``folHlink_color`` accessors)
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
