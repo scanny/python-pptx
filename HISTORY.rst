@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- Foundation: mc:AlternateContent traversal
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

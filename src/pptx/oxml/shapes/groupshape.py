@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Iterator
+from typing import TYPE_CHECKING, Callable, Iterator, cast
 
 from pptx.enum.shapes import MSO_CONNECTOR_TYPE
 from pptx.oxml import parse_xml
@@ -11,7 +11,7 @@ from pptx.oxml.shapes.autoshape import CT_Shape
 from pptx.oxml.shapes.connector import CT_Connector
 from pptx.oxml.shapes.graphfrm import CT_GraphicalObjectFrame
 from pptx.oxml.shapes.picture import CT_Picture
-from pptx.oxml.shapes.shared import BaseShapeElement
+from pptx.oxml.shapes.shared import BaseShapeElement, CT_AlternateContent
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 from pptx.util import Emu
 
@@ -141,11 +141,19 @@ class CT_GroupShape(BaseShapeElement):
     def iter_shape_elms(self) -> Iterator[ShapeElement]:
         """Generate each child of this `p:spTree` element that corresponds to a shape.
 
-        Items appear in XML document order.
+        Items appear in XML document order. Shapes wrapped in `mc:AlternateContent` are
+        surfaced transparently by walking into the first `mc:Choice` child; the `mc:Fallback`
+        subtree is preserved on the parent element for round-trip fidelity on save.
         """
+        ac_tag = qn("mc:AlternateContent")
         for elm in self.iterchildren():
             if elm.tag in self._shape_tags:
-                yield elm
+                yield cast("ShapeElement", elm)
+            elif elm.tag == ac_tag:
+                ac = cast(CT_AlternateContent, elm)
+                yield from cast(
+                    "Iterator[ShapeElement]", ac.iter_choice_shape_elms(self._shape_tags)
+                )
 
     @property
     def max_shape_id(self) -> int:
