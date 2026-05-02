@@ -7,10 +7,99 @@ elbows, or can be curved.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.shapes.autoshape import Adjustment
 from pptx.shapes.base import BaseShape
 from pptx.util import Emu, lazyproperty
+
+if TYPE_CHECKING:
+    from pptx.oxml.shapes.autoshape import CT_PresetGeometry2D
+
+
+# -- Default `a:avLst` adjustment values for connector preset geometries. --
+# -- Keys are the `prst` attribute value; values are a tuple of ``(name, default)`` pairs as --
+# -- they appear in the connector's ``a:avLst``. Connector presets with no adjustments --
+# -- (``line``, ``straightConnector1``, ``bentConnector2``, ``curvedConnector2``) are not listed; --
+# -- any unknown `prst` is treated as having no adjustments. Values mirror the ISO/IEC 29500 --
+# -- preset-shape definitions (`spec/ISO-IEC-29500-1/schemas/dml-geometries/...`). --
+_CONNECTOR_DEFAULT_ADJUSTMENT_VALUES: dict[str, tuple[tuple[str, int], ...]] = {
+    "bentConnector3": (("adj1", 50000),),
+    "bentConnector4": (("adj1", 50000), ("adj2", 50000)),
+    "bentConnector5": (("adj1", 50000), ("adj2", 50000), ("adj3", 50000)),
+    "curvedConnector3": (("adj1", 50000),),
+    "curvedConnector4": (("adj1", 50000), ("adj2", 50000)),
+    "curvedConnector5": (("adj1", 50000), ("adj2", 50000), ("adj3", 50000)),
+}
+
+
+class ConnectorAdjustmentCollection:
+    """Sequence of |Adjustment| instances for a connector shape.
+
+    Each represents an available adjustment for a connector of its preset type. Supports
+    ``len()`` and indexed access, e.g. ``connector.adjustments[0] = 0.25``. Indexing into the
+    collection retrieves or assigns the *effective value* of the corresponding adjustment, a
+    |float| nominally in the range 0.0 to 1.0.
+
+    Straight connectors and two-segment connectors have no adjustments, so the collection will
+    be empty (``len(adjustments) == 0``) for those preset types.
+    """
+
+    def __init__(self, prstGeom: CT_PresetGeometry2D | None):
+        super(ConnectorAdjustmentCollection, self).__init__()
+        self._prstGeom = prstGeom
+        self._adjustments_ = self._initialized_adjustments(prstGeom)
+
+    def __getitem__(self, idx: int) -> float:
+        """Provides indexed access, (e.g. ``adjustments[0]``)."""
+        return self._adjustments_[idx].effective_value
+
+    def __setitem__(self, idx: int, value: float):
+        """Provides item assignment via an indexed expression, e.g. ``adjustments[0] = 0.25``.
+
+        Causes all adjustment values in collection to be written to the XML.
+        """
+        self._adjustments_[idx].effective_value = value
+        self._rewrite_guides()
+
+    def __len__(self):
+        """Implement built-in function ``len()``."""
+        return len(self._adjustments_)
+
+    @property
+    def _adjustments(self) -> tuple[Adjustment, ...]:
+        """Sequence of |Adjustment| objects contained in collection."""
+        return tuple(self._adjustments_)
+
+    @staticmethod
+    def _initialized_adjustments(prstGeom: CT_PresetGeometry2D | None) -> list[Adjustment]:
+        """Return a list of |Adjustment| objects reflecting the current state of `prstGeom`."""
+        if prstGeom is None:
+            return []
+        # -- connector prst values are not in MSO_AUTO_SHAPE_TYPE so avoid the descriptor --
+        prst = prstGeom.get("prst")
+        if prst is None:
+            return []
+        davs = _CONNECTOR_DEFAULT_ADJUSTMENT_VALUES.get(prst, ())
+        adjustments = [Adjustment(name, def_val) for name, def_val in davs]
+        adjustments_by_name = {adj.name: adj for adj in adjustments}
+        for gd in prstGeom.gd_lst:
+            adjustment = adjustments_by_name.get(gd.name)
+            if adjustment is None:
+                continue
+            adjustment.actual = int(gd.fmla[4:])
+        return adjustments
+
+    def _rewrite_guides(self):
+        """Write `a:gd` elements to the XML, one for each adjustment value in collection.
+
+        Any existing `a:gd` children of `a:avLst` are overwritten.
+        """
+        assert self._prstGeom is not None  # -- non-empty collection has a prstGeom --
+        guides = [(adj.name, adj.val) for adj in self._adjustments_]
+        self._prstGeom.rewrite_guides(guides)
 
 
 class Connector(BaseShape):
@@ -20,6 +109,17 @@ class Connector(BaseShape):
     other objects (but not to other connectors). A connector can be straight,
     have elbows, or can be curved.
     """
+
+    @lazyproperty
+    def adjustments(self) -> ConnectorAdjustmentCollection:
+        """|ConnectorAdjustmentCollection| instance for this connector.
+
+        Connector adjustments are the normalized values (nominally 0.0 to 1.0) stored in the
+        connector's `a:avLst` that control the position of bend points on elbow (bent) and
+        curved connectors. Straight connectors and two-segment connectors have no adjustments;
+        the collection is empty (``len == 0``) for those preset types.
+        """
+        return ConnectorAdjustmentCollection(self._element.spPr.prstGeom)
 
     def begin_connect(self, shape, cxn_pt_idx):
         """

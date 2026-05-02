@@ -43,6 +43,7 @@ Unreleased
   ``send_backward()`` mutators plus a read-only ``zorder_index`` property that
   reports the shape's zero-based position within its parent shape-tree
   (``p:spTree`` or ``p:grpSp``).
+- #946 Connector.adjustments for elbow/curved connectors
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

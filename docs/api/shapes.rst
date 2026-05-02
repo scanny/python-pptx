@@ -95,6 +95,29 @@ The following properties and methods are defined for Connector shapes:
    :exclude-members: get_or_add_ln, ln
 
 
+|ConnectorAdjustmentCollection| objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An elbow (bent) or curved connector has one or more *adjustments*, represented
+in the PowerPoint user interface as small yellow diamonds that each allow the
+position of a bend point to be moved. The |ConnectorAdjustmentCollection|
+object holds these adjustment values for a connector and is accessed via the
+``Connector.adjustments`` property (read-only reference; the individual values
+are read/write).
+
+Each value is a |float| nominally in the range 0.0 to 1.0, interpreted as a
+proportion of the connector's width or height. A value of 0.5 places the bend
+at the midpoint; values outside ``[0.0, 1.0]`` are valid and correspond to
+bend points outside the connector's bounding box. Straight connectors (e.g.
+``MSO_CONNECTOR.STRAIGHT``) and two-segment connectors have no adjustments, so
+``len(connector.adjustments) == 0`` for those preset types.
+
+.. autoclass:: pptx.shapes.connector.ConnectorAdjustmentCollection
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |FreeformBuilder| objects
 -------------------------
 
