@@ -145,6 +145,32 @@ Unreleased
   compositing through nested groups, and round-trips the geometry through
   ``Presentation.save`` + reopen.
 
+- verify: #534 (shape position/size report relative to parent GroupShape)
+  resolved by #925's ``effective_*`` properties on :class:`.BaseShape`. #534
+  is the sibling group-local ask to #838 — the reporter wanted a way to
+  read a shape's position and size in slide-relative coordinates (composed
+  through the enclosing group's transform) rather than in the enclosing
+  group's local ``a:chOff``/``a:chExt`` frame that :attr:`.BaseShape.left` /
+  :attr:`~.BaseShape.top` / :attr:`~.BaseShape.width` /
+  :attr:`~.BaseShape.height` return. #925
+  (``fix/issue-925-group-shape-transform``, Wave 3) added
+  :attr:`.BaseShape.effective_left` / :attr:`~.BaseShape.effective_top` /
+  :attr:`~.BaseShape.effective_width` / :attr:`~.BaseShape.effective_height`
+  which walk every enclosing ``p:grpSp`` ancestor and apply its
+  ``a:chOff``/``a:chExt`` → ``a:off``/``a:ext`` linear transform so the
+  returned values are slide-relative — exactly the API #534 asked for. Raw
+  and effective values coexist on the same shape object, so callers can
+  read both the parent-relative and slide-relative rectangles. Adds a
+  regression suite ``DescribeIssue534GroupRelativePositionSize`` under
+  ``tests/test_issue_534_group_relative_verify.py`` that pins the
+  complementary scenarios the #534 framing emphasized — an asymmetric 2D
+  corner-handle resize (distinct x and y scale factors), a group whose
+  ``a:chOff`` has been translated away from the slide origin, a
+  picture-shape group child (to verify the transform is shape-kind
+  agnostic), and the dual-report contract where raw and effective readings
+  are simultaneously correct — and round-trips the composited values
+  through ``Presentation.save`` + reopen.
+
 - verify: #1106 entrance/exit animations resolved by #102 set_animation API
 
 - verify: #1020 resolved by #62 alpha + #234 blip_fill + #515 preset geometry
