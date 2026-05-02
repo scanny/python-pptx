@@ -6,6 +6,27 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #954 resolved by Wave 5. Issue #954
+  (https://github.com/scanny/python-pptx/issues/954) reported that
+  ``SlideShapes.add_movie()`` corrupted a ``.pptx`` whenever the
+  slide already carried a pre-existing ``p:timing`` wrapped inside an
+  ``mc:AlternateContent``/``mc:Choice`` block — the form PowerPoint
+  emits when timing content references a 2010+ extension such as a
+  ``p14:morph`` trigger. Wave 5 (commit ``95030bb7``, "fix(movie):
+  merge p:video into wrapped p:timing (#954)") addressed this by
+  teaching ``CT_Slide.get_or_add_childTnLst`` to locate the existing
+  ``p:timing`` whether plain or ``mc:AlternateContent``-wrapped, and
+  to merge the new ``p:video`` into its ``p:childTnLst`` in place
+  rather than appending a duplicate sibling. Adds an end-to-end
+  verify suite ``DescribeIssue954MovieCorruptionVerify`` under
+  ``tests/test_issue_954_movie_corruption_verify.py`` that pins the
+  scenario from the user's perspective — authoring a slide whose
+  timing carries a ``p14:morph`` trigger, calling
+  :meth:`SlideShapes.add_movie`, and round-tripping the saved pptx
+  to confirm the file reopens cleanly with exactly one wrapped
+  ``p:timing`` containing both the original extension trigger and
+  the newly merged ``p:video``.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
