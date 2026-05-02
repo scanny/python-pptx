@@ -39,6 +39,19 @@ class DescribeCT_Table(object):
         tbl = CT_Table.new_tbl(2, 3, 334, 445)
         assert tbl.xml == expected_xml
 
+    def it_accepts_float_width_and_height_when_creating_a_new_tbl(self):
+        """Regression for #288: `new_tbl()` must accept non-integer dimensions."""
+        tbl = CT_Table.new_tbl(2, 3, 334.5, 445.5)
+
+        grid_widths = [int(gc.get("w")) for gc in tbl.tblGrid.iterchildren()]
+        row_heights = [int(tr.get("h")) for tr in tbl.tr_lst]
+        # -- every grid-col width and row-height is an integer string (no trailing ".0"), and the
+        # -- pieces sum to the rounded total.
+        assert all(gc.get("w").isdigit() for gc in tbl.tblGrid.iterchildren())
+        assert all(tr.get("h").isdigit() for tr in tbl.tr_lst)
+        assert sum(grid_widths) == round(334.5)
+        assert sum(row_heights) == round(445.5)
+
     def it_provides_access_to_its_tc_elements(self):
         tbl_cxml = "a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))"
         tbl = element(tbl_cxml)

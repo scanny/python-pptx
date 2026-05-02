@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #288 add_table accepts float dimensions
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
