@@ -77,6 +77,25 @@ A few things to note:
   Presentation instance is purely conventional, but I like it and use it
   consistently.
 
+  When the layout ordering in the template you're working from may change
+  across revisions, a position-based index like ``slide_layouts[1]`` is
+  brittle. Each layout carries a presentation-stable integer identifier
+  (``p:sldLayoutId/@id``) that PowerPoint preserves when layouts are
+  reordered, and :meth:`.SlideMaster.get_layout` looks a layout up by that
+  id::
+
+      # -- capture the id of the layout once, when the deck is authored --
+      TITLE_AND_CONTENT_ID = prs.slide_master.slide_layouts[1].slide_layout_id
+
+      # -- later, the deck may have been reorganised but the id is stable --
+      layout = prs.slide_master.get_layout(TITLE_AND_CONTENT_ID)
+
+  :meth:`.SlideLayouts.get_by_id` is the equivalent lookup on the
+  :class:`~pptx.slide.SlideLayouts` collection
+  (``prs.slide_master.slide_layouts.get_by_id(id)``). Both accept a
+  ``default=`` keyword that is returned when no layout has the requested
+  id — ``None`` by default, matching ``dict.get`` semantics.
+
 * ``prs.slides`` is the collection of slides in the presentation, also has
   list semantics for item access, and len() works on it. Note that the method
   to add the slide is on the slide collection, not the presentation. The

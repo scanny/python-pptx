@@ -900,6 +900,41 @@ class SlideLayout(_BaseSlide):
         return LayoutShapes(self._element.spTree, self)
 
     @property
+    def slide_layout_id(self) -> int | None:
+        """Presentation-stable integer id of this layout, or ``None`` when absent.
+
+        The id is drawn from the ``p:sldLayoutId/@id`` attribute on the matching
+        entry in the parent master's ``p:sldLayoutIdLst``. PowerPoint assigns
+        this id when the layout is first created and preserves it across
+        reordering, so it is the stable handle for referencing a specific
+        layout by id rather than by position. Returns ``None`` when the layout
+        is detached from a master, when no matching entry can be located, or
+        when the entry omits the ``@id`` attribute (optional per
+        ECMA-376 Part 1 §19.3.1.41).
+
+        Paired with :meth:`SlideMaster.get_layout` and
+        :meth:`SlideLayouts.get_by_id` for id-based lookup.
+
+        .. versionadded:: 2026.05.0
+        """
+        part = self.part
+        if part is None:
+            return None
+        try:
+            master = part.slide_master
+        except (AttributeError, KeyError):  # pragma: no cover - defensive
+            return None
+        sldLayoutIdLst = master._element.sldLayoutIdLst  # pyright: ignore[reportPrivateUsage]
+        if sldLayoutIdLst is None:
+            return None
+        master_part = cast("SlideMasterPart", master.part)
+        for entry in sldLayoutIdLst.sldLayoutId_lst:
+            resolved = master_part.related_slide_layout(entry.rId)
+            if resolved._element is self._element:
+                return entry.id
+        return None
+
+    @property
     def slide_layout_type(self) -> str:
         """Layout-kind token recorded in ``p:sldLayout/@type``.
 
@@ -981,6 +1016,28 @@ class SlideLayouts(ParentedElementProxy):
     def __len__(self) -> int:
         """Support len() built-in function, e.g. `len(slides) == 4`."""
         return len(self._sldLayoutIdLst)
+
+    def get_by_id(
+        self, layout_id: int, default: SlideLayout | None = None
+    ) -> SlideLayout | None:
+        """Return |SlideLayout| having presentation-stable id `layout_id`.
+
+        `layout_id` is matched against ``p:sldLayoutId/@id`` on each entry in
+        the parent master's ``p:sldLayoutIdLst``. This id is stable across
+        layout reordering and is the preferred handle for referencing a
+        specific layout by identity rather than position (which changes when
+        layouts are added, removed, or moved). Returns `default` (``None`` by
+        default) when no entry has a matching id.
+
+        See also :attr:`SlideLayout.slide_layout_id` and
+        :meth:`SlideMaster.get_layout`.
+
+        .. versionadded:: 2026.05.0
+        """
+        for entry in self._sldLayoutIdLst.sldLayoutId_lst:
+            if entry.id == layout_id:
+                return self.part.related_slide_layout(entry.rId)
+        return default
 
     def get_by_name(self, name: str, default: SlideLayout | None = None) -> SlideLayout | None:
         """Return SlideLayout object having `name`, or `default` if not found."""
@@ -1081,6 +1138,23 @@ class SlideMaster(_BaseMaster):
     def slide_layouts(self) -> SlideLayouts:
         """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
+
+    def get_layout(
+        self, layout_id: int, default: SlideLayout | None = None
+    ) -> SlideLayout | None:
+        """Return |SlideLayout| having presentation-stable id `layout_id`.
+
+        `layout_id` is matched against ``p:sldLayoutId/@id`` on each entry in
+        this master's ``p:sldLayoutIdLst``. The id is stable across layout
+        reordering, so this lookup is the robust alternative to
+        ``slide_master.slide_layouts[index]`` when a caller needs to reference
+        a specific layout that may have been moved within the master.
+        Returns `default` (``None`` by default) when no entry has a matching
+        id. Equivalent to ``slide_master.slide_layouts.get_by_id(layout_id, default)``.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self.slide_layouts.get_by_id(layout_id, default)
 
     @lazyproperty
     def theme_colors(self) -> dict[str, RGBColor]:

@@ -74,6 +74,23 @@ class DescribeCT_SlideLayout(object):
         assert hf is sldLayout.hf
 
 
+class DescribeCT_SlideLayoutIdListEntry(object):
+    """Unit-test suite for `pptx.oxml.slide.CT_SlideLayoutIdListEntry`."""
+
+    def it_reads_the_id_attribute(self):
+        entry = element("p:sldLayoutId{id=2147483648,r:id=rId1}")
+        assert entry.id == 2147483648
+
+    def it_returns_None_when_id_attribute_is_absent(self):
+        """Schema makes `@id` optional; absent is tolerated (round-trips as None)."""
+        entry = element("p:sldLayoutId{r:id=rId1}")
+        assert entry.id is None
+
+    def it_reads_the_rId_attribute(self):
+        entry = element("p:sldLayoutId{id=2147483649,r:id=rId42}")
+        assert entry.rId == "rId42"
+
+
 class DescribeCT_NotesMaster(object):
     """Unit-test suite for `pptx.oxml.slide.CT_NotesMaster` objects."""
 

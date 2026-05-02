@@ -212,6 +212,14 @@ Unreleased
   ``_ColumnCollection.add`` (same defaults, same semantics). Saves a hop
   through the collection property for the common "append a row/column"
   case.
+- feat: #269 Add :meth:`.SlideMaster.get_layout` and
+  :meth:`.SlideLayouts.get_by_id` for layout lookup by the
+  presentation-stable ``p:sldLayoutId/@id``, together with the read-only
+  :attr:`.SlideLayout.slide_layout_id` property that exposes it. The id is
+  preserved across layout reordering, so code that captures a layout
+  reference by id in one run continues to resolve the same layout in a
+  later run regardless of position changes — a more robust alternative
+  to ``slide_master.slide_layouts[index]``.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use

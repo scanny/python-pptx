@@ -189,6 +189,56 @@ def then_slide_layouts_get_by_name_is_slide_layout(context):
     assert slide_layouts.get_by_name(slide_layouts[1].name) is slide_layouts[1]
 
 
+@then(
+    "slide_layouts.get_by_id(slide_layouts[3].slide_layout_id) is slide_layouts[3]"
+)
+def then_slide_layouts_get_by_id_matches(context):
+    slide_layouts = context.slide_layouts
+    expected = slide_layouts[3]
+    layout_id = expected.slide_layout_id
+    assert layout_id is not None, "expected a real layout id from default template"
+    assert slide_layouts.get_by_id(layout_id) is expected
+
+
+@then("slide_layouts.get_by_id(0) is None")
+def then_slide_layouts_get_by_id_0_is_None(context):
+    assert context.slide_layouts.get_by_id(0) is None
+
+
+@then('slide_layouts.get_by_id(0, default="fallback") is "fallback"')
+def then_slide_layouts_get_by_id_0_default_is_fallback(context):
+    assert context.slide_layouts.get_by_id(0, default="fallback") == "fallback"
+
+
+@given("a Presentation with a default slide-master")
+def given_a_presentation_with_a_default_slide_master(context):
+    prs = Presentation()
+    context.prs = prs  # -- hold ref so the master doesn't get GC'd --
+    context.slide_master = prs.slide_master
+
+
+@then(
+    "slide_master.get_layout(slide_master.slide_layouts[2].slide_layout_id) is"
+    " slide_master.slide_layouts[2]"
+)
+def then_slide_master_get_layout_matches(context):
+    slide_master = context.slide_master
+    expected = slide_master.slide_layouts[2]
+    layout_id = expected.slide_layout_id
+    assert layout_id is not None, "expected a real layout id from default template"
+    assert slide_master.get_layout(layout_id) is expected
+
+
+@then("slide_master.get_layout(0) is None")
+def then_slide_master_get_layout_0_is_None(context):
+    assert context.slide_master.get_layout(0) is None
+
+
+@then('slide_master.get_layout(0, default="fallback") is "fallback"')
+def then_slide_master_get_layout_0_default_is_fallback(context):
+    assert context.slide_master.get_layout(0, default="fallback") == "fallback"
+
+
 @then('slide_layouts.get_by_type("blank").slide_layout_type is "blank"')
 def then_slide_layouts_get_by_type_blank(context):
     slide_layouts = context.slide_layouts
