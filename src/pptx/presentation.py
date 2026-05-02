@@ -16,6 +16,25 @@ if TYPE_CHECKING:
     from pptx.util import Length
 
 
+_VALID_FONT_STYLES = ("regular", "bold", "italic", "boldItalic")
+
+
+def _read_blob(file: str | IO[bytes]) -> bytes:
+    """Return the contents of `file` as bytes.
+
+    `file` may be either a filesystem path (str) or a file-like object open for
+    binary reading. File-like objects that support `.seek(0)` are rewound before
+    reading so repeated calls read from the start.
+    """
+    if isinstance(file, str):
+        with open(file, "rb") as f:
+            return f.read()
+    seek = getattr(file, "seek", None)
+    if callable(seek):
+        seek(0)
+    return file.read()
+
+
 class Presentation(PartElementProxy):
     """PresentationML (PML) presentation.
 
@@ -33,6 +52,61 @@ class Presentation(PartElementProxy):
         Provides read/write access to the Dublin Core document properties for the presentation.
         """
         return self.part.core_properties
+
+    def embed_font(
+        self,
+        font_file: str | IO[bytes],
+        typeface: str,
+        style: str = "regular",
+    ) -> None:
+        """Embed the font in `font_file` under typeface name `typeface`.
+
+        `font_file` is either a path to a TrueType / OpenType font file or a file-like
+        object opened in binary-read mode. `typeface` is the font-family name that
+        PowerPoint should match against typefaces referenced in run properties
+        (e.g. ``"Pacifico"``). `style` selects which of the four style slots of an
+        embedded-font entry this file occupies and must be one of ``"regular"``,
+        ``"bold"``, ``"italic"``, or ``"boldItalic"``; it defaults to ``"regular"``.
+
+        Calling :meth:`embed_font` a second time with the same `typeface` adds the
+        new file under an additional style slot on the existing entry (e.g. a
+        regular + bold pair); calling it again for the same `typeface`/`style`
+        pair replaces the previously-embedded file.
+
+        Does not automatically set ``embedTrueTypeFonts``/``saveSubsetFonts`` on
+        the presentation element; PowerPoint treats presence of an
+        ``embeddedFontLst`` entry as authoritative.
+        """
+        if style not in _VALID_FONT_STYLES:
+            raise ValueError("style must be one of %r, got %r" % (list(_VALID_FONT_STYLES), style))
+
+        font_blob = _read_blob(font_file)
+
+        embeddedFontLst = self._element.get_or_add_embeddedFontLst()
+        entry = embeddedFontLst.entry_for_typeface(typeface)
+        if entry is None:
+            entry = embeddedFontLst.add_embeddedFont(typeface)
+
+        # -- drop the relationship for any prior font-data in this slot so the
+        # -- replaced FontPart does not remain orphaned in the package.
+        prior_rId = entry.rId_for_style(style)
+
+        rId = self.part.add_embedded_font(font_blob)
+        entry.set_rId_for_style(style, rId)
+
+        if prior_rId is not None and prior_rId != rId:
+            self.part.drop_rel(prior_rId)
+
+    @property
+    def embedded_fonts(self) -> tuple[str, ...]:
+        """Tuple of typeface names embedded in this presentation, or empty tuple.
+
+        The typeface names are returned in document order.
+        """
+        embeddedFontLst = self._element.embeddedFontLst
+        if embeddedFontLst is None:
+            return ()
+        return tuple(entry.typeface for entry in embeddedFontLst.embeddedFont_lst)
 
     @property
     def notes_master(self) -> NotesMaster:

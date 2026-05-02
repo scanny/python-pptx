@@ -332,6 +332,9 @@ register_element_cls("a:tailEnd", CT_LineEndProperties)
 
 
 from pptx.oxml.presentation import (  # noqa: E402
+    CT_EmbeddedFontDataId,
+    CT_EmbeddedFontList,
+    CT_EmbeddedFontListEntry,
     CT_Presentation,
     CT_SlideId,
     CT_SlideIdList,
@@ -340,7 +343,13 @@ from pptx.oxml.presentation import (  # noqa: E402
     CT_SlideSize,
 )
 
+register_element_cls("p:bold", CT_EmbeddedFontDataId)
+register_element_cls("p:boldItalic", CT_EmbeddedFontDataId)
+register_element_cls("p:embeddedFont", CT_EmbeddedFontListEntry)
+register_element_cls("p:embeddedFontLst", CT_EmbeddedFontList)
+register_element_cls("p:italic", CT_EmbeddedFontDataId)
 register_element_cls("p:presentation", CT_Presentation)
+register_element_cls("p:regular", CT_EmbeddedFontDataId)
 register_element_cls("p:sldId", CT_SlideId)
 register_element_cls("p:sldIdLst", CT_SlideIdList)
 register_element_cls("p:sldMasterId", CT_SlideMasterIdListEntry)
@@ -534,6 +543,7 @@ register_element_cls("a:buAutoNum", CT_TextAutonumberBullet)
 register_element_cls("a:buChar", CT_TextCharBullet)
 register_element_cls("a:buClr", CT_TextBulletColor)
 register_element_cls("a:buFont", CT_TextFont)
+register_element_cls("p:font", CT_TextFont)
 register_element_cls("a:buNone", CT_TextNoBullet)
 register_element_cls("a:buSzPct", CT_TextBulletSizePercent)
 register_element_cls("a:buSzPts", CT_TextBulletSizePoint)

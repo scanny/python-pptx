@@ -5,9 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable, cast
 
 from pptx.oxml.simpletypes import ST_SlideId, ST_SlideSizeCoordinate, XsdString
-from pptx.oxml.xmlchemy import BaseOxmlElement, RequiredAttribute, ZeroOrMore, ZeroOrOne
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement,
+    OneAndOnlyOne,
+    OxmlElement,
+    RequiredAttribute,
+    ZeroOrMore,
+    ZeroOrOne,
+)
 
 if TYPE_CHECKING:
+    from pptx.oxml.text import CT_TextFont
     from pptx.util import Length
 
 
@@ -17,6 +25,7 @@ class CT_Presentation(BaseOxmlElement):
     get_or_add_sldSz: Callable[[], CT_SlideSize]
     get_or_add_sldIdLst: Callable[[], CT_SlideIdList]
     get_or_add_sldMasterIdLst: Callable[[], CT_SlideMasterIdList]
+    get_or_add_embeddedFontLst: Callable[[], CT_EmbeddedFontList]
 
     sldMasterIdLst: CT_SlideMasterIdList | None = (
         ZeroOrOne(  # pyright: ignore[reportAssignmentType]
@@ -35,6 +44,20 @@ class CT_Presentation(BaseOxmlElement):
     )
     sldSz: CT_SlideSize | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "p:sldSz", successors=("p:notesSz",)
+    )
+    embeddedFontLst: CT_EmbeddedFontList | None = (
+        ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+            "p:embeddedFontLst",
+            successors=(
+                "p:custShowLst",
+                "p:photoAlbum",
+                "p:custDataLst",
+                "p:kinsoku",
+                "p:defaultTextStyle",
+                "p:modifyVerifier",
+                "p:extLst",
+            ),
+        )
     )
 
 
@@ -128,3 +151,102 @@ class CT_SlideSize(BaseOxmlElement):
     cy: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
         "cy", ST_SlideSizeCoordinate
     )
+
+
+class CT_EmbeddedFontDataId(BaseOxmlElement):
+    """`p:regular`, `p:bold`, `p:italic`, or `p:boldItalic` element.
+
+    Child of `p:embeddedFont` carrying an `r:id` relationship reference to an embedded
+    `.fntdata` part for a specific typeface style.
+    """
+
+    rId: str = RequiredAttribute("r:id", XsdString)  # pyright: ignore[reportAssignmentType]
+
+
+class CT_EmbeddedFontListEntry(BaseOxmlElement):
+    """`p:embeddedFont` element.
+
+    One entry in `p:embeddedFontLst`. Identifies a typeface (via the required child
+    `p:font` element, type `a:CT_TextFont`) and carries up to four style-specific
+    font-data relationship children (`p:regular`, `p:bold`, `p:italic`,
+    `p:boldItalic`).
+    """
+
+    get_or_add_regular: Callable[[], CT_EmbeddedFontDataId]
+    get_or_add_bold: Callable[[], CT_EmbeddedFontDataId]
+    get_or_add_italic: Callable[[], CT_EmbeddedFontDataId]
+    get_or_add_boldItalic: Callable[[], CT_EmbeddedFontDataId]
+
+    font: CT_TextFont = OneAndOnlyOne("p:font")  # pyright: ignore[reportAssignmentType]
+    regular: CT_EmbeddedFontDataId | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:regular", successors=("p:bold", "p:italic", "p:boldItalic")
+    )
+    bold: CT_EmbeddedFontDataId | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:bold", successors=("p:italic", "p:boldItalic")
+    )
+    italic: CT_EmbeddedFontDataId | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:italic", successors=("p:boldItalic",)
+    )
+    boldItalic: CT_EmbeddedFontDataId | None = ZeroOrOne(
+        "p:boldItalic"
+    )  # pyright: ignore[reportAssignmentType]
+
+    @property
+    def typeface(self) -> str:
+        """The typeface name of this embedded-font entry."""
+        return self.font.typeface
+
+    @typeface.setter
+    def typeface(self, value: str) -> None:
+        self.font.typeface = value
+
+    def rId_for_style(self, style: str) -> str | None:
+        """Return the `rId` of the font-data part for `style`, or None if absent.
+
+        `style` must be one of `"regular"`, `"bold"`, `"italic"`, or `"boldItalic"`.
+        """
+        child = getattr(self, style)
+        return None if child is None else child.rId
+
+    def set_rId_for_style(self, style: str, rId: str) -> None:
+        """Set the `rId` of the font-data child-element for `style`.
+
+        Creates the child element if it does not already exist. `style` must be one of
+        `"regular"`, `"bold"`, `"italic"`, or `"boldItalic"`.
+        """
+        add_method = getattr(self, "get_or_add_%s" % style)
+        child = add_method()
+        child.rId = rId
+
+
+class CT_EmbeddedFontList(BaseOxmlElement):
+    """`p:embeddedFontLst` element.
+
+    Child of `p:presentation` that contains the list of embedded-font entries.
+    """
+
+    embeddedFont_lst: list[CT_EmbeddedFontListEntry]
+
+    _add_embeddedFont: Callable[..., CT_EmbeddedFontListEntry]
+    _insert_embeddedFont: Callable[[CT_EmbeddedFontListEntry], CT_EmbeddedFontListEntry]
+    embeddedFont = ZeroOrMore("p:embeddedFont")
+
+    def add_embeddedFont(self, typeface: str) -> CT_EmbeddedFontListEntry:
+        """Return a newly-added `p:embeddedFont` entry whose typeface is `typeface`.
+
+        The new `p:embeddedFont` is created with its required `p:font` child already
+        populated with `typeface` so the element is schema-valid immediately.
+        """
+        embeddedFont = cast("CT_EmbeddedFontListEntry", OxmlElement("p:embeddedFont"))
+        font = cast("CT_TextFont", OxmlElement("p:font"))
+        font.typeface = typeface
+        embeddedFont.append(font)
+        self._insert_embeddedFont(embeddedFont)
+        return embeddedFont
+
+    def entry_for_typeface(self, typeface: str) -> CT_EmbeddedFontListEntry | None:
+        """Return existing `p:embeddedFont` child whose typeface matches `typeface`, else None."""
+        for entry in self.embeddedFont_lst:
+            if entry.typeface == typeface:
+                return entry
+        return None

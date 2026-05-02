@@ -8,7 +8,11 @@ from typing import cast
 
 import pytest
 
-from pptx.oxml.presentation import CT_SlideIdList
+from pptx.oxml.presentation import (
+    CT_EmbeddedFontList,
+    CT_EmbeddedFontListEntry,
+    CT_SlideIdList,
+)
 
 from ..unitutil.cxml import element, xml
 
@@ -61,3 +65,90 @@ class DescribeCT_SlideIdList(object):
 
         assert 256 <= slide_id <= 2147483647
         assert slide_id == expected_value
+
+
+class DescribeCT_EmbeddedFontList(object):
+    """Unit-test suite for `pptx.oxml.presentation.CT_EmbeddedFontList`."""
+
+    def it_can_add_an_embeddedFont_child_with_typeface(self):
+        embeddedFontLst = cast(CT_EmbeddedFontList, element("p:embeddedFontLst"))
+
+        embeddedFontLst.add_embeddedFont("Pacifico")
+
+        assert embeddedFontLst.xml == xml(
+            "p:embeddedFontLst/p:embeddedFont/p:font{typeface=Pacifico}"
+        )
+
+    def it_can_find_an_existing_entry_by_typeface(self):
+        cxml = (
+            "p:embeddedFontLst/(p:embeddedFont/p:font{typeface=A},"
+            "p:embeddedFont/p:font{typeface=B})"
+        )
+        embeddedFontLst = cast(CT_EmbeddedFontList, element(cxml))
+
+        entry = embeddedFontLst.entry_for_typeface("B")
+
+        assert entry is not None
+        assert entry.typeface == "B"
+
+    def but_it_returns_None_when_no_entry_matches(self):
+        cxml = "p:embeddedFontLst/p:embeddedFont/p:font{typeface=A}"
+        embeddedFontLst = cast(CT_EmbeddedFontList, element(cxml))
+
+        assert embeddedFontLst.entry_for_typeface("Missing") is None
+
+
+class DescribeCT_EmbeddedFontListEntry(object):
+    """Unit-test suite for `pptx.oxml.presentation.CT_EmbeddedFontListEntry`."""
+
+    def it_knows_its_typeface(self):
+        entry = cast(
+            CT_EmbeddedFontListEntry,
+            element("p:embeddedFont/p:font{typeface=Pacifico}"),
+        )
+        assert entry.typeface == "Pacifico"
+
+    def it_can_change_its_typeface(self):
+        entry = cast(
+            CT_EmbeddedFontListEntry,
+            element("p:embeddedFont/p:font{typeface=Pacifico}"),
+        )
+
+        entry.typeface = "Roboto"
+
+        assert entry.typeface == "Roboto"
+
+    def it_returns_the_rId_for_a_populated_style_slot(self):
+        entry = cast(
+            CT_EmbeddedFontListEntry,
+            element("p:embeddedFont/(p:font{typeface=Pacifico},p:regular{r:id=rId7})"),
+        )
+        assert entry.rId_for_style("regular") == "rId7"
+
+    def but_it_returns_None_for_an_empty_style_slot(self):
+        entry = cast(
+            CT_EmbeddedFontListEntry,
+            element("p:embeddedFont/p:font{typeface=Pacifico}"),
+        )
+        assert entry.rId_for_style("bold") is None
+
+    @pytest.mark.parametrize("style", ["regular", "bold", "italic", "boldItalic"])
+    def it_can_set_the_rId_for_any_style(self, style: str):
+        entry = cast(
+            CT_EmbeddedFontListEntry,
+            element("p:embeddedFont/p:font{typeface=Pacifico}"),
+        )
+
+        entry.set_rId_for_style(style, "rId3")
+
+        assert entry.rId_for_style(style) == "rId3"
+
+    def and_it_overwrites_an_existing_rId_on_the_same_style(self):
+        entry = cast(
+            CT_EmbeddedFontListEntry,
+            element("p:embeddedFont/(p:font{typeface=Pacifico},p:regular{r:id=rId1})"),
+        )
+
+        entry.set_rId_for_style("regular", "rId9")
+
+        assert entry.rId_for_style("regular") == "rId9"

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import io
+
 import pytest
 
 from pptx.parts.coreprops import CorePropertiesPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import NotesMasterPart
-from pptx.presentation import Presentation
+from pptx.presentation import Presentation, _read_blob
 from pptx.slide import SlideLayouts, SlideMaster, SlideMasters, Slides
 
 from .unitutil.cxml import element, xml
@@ -81,6 +83,76 @@ class DescribePresentation(object):
         zdt = (2024, 6, 15, 9, 30, 0)
         prs.save(file_, zdt)
         prs_part_.save.assert_called_once_with(file_, zdt)
+
+    def it_starts_with_no_embedded_fonts(self):
+        prs = Presentation(element("p:presentation"), None)
+        assert prs.embedded_fonts == ()
+
+    def it_lists_already_embedded_fonts_in_document_order(self):
+        cxml = (
+            "p:presentation/p:embeddedFontLst/(p:embeddedFont/p:font{typeface=A},"
+            "p:embeddedFont/p:font{typeface=B})"
+        )
+        prs = Presentation(element(cxml), None)
+        assert prs.embedded_fonts == ("A", "B")
+
+    def it_can_embed_a_font_from_a_file_like_object(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.add_embedded_font.return_value = "rId7"
+        prs = Presentation(element("p:presentation"), prs_part_)
+        font_stream = io.BytesIO(b"fake-ttf-bytes")
+
+        prs.embed_font(font_stream, "Pacifico")
+
+        prs_part_.add_embedded_font.assert_called_once_with(b"fake-ttf-bytes")
+        assert prs.embedded_fonts == ("Pacifico",)
+        assert prs._element.embeddedFontLst is not None
+        entry = prs._element.embeddedFontLst.embeddedFont_lst[0]
+        assert entry.rId_for_style("regular") == "rId7"
+
+    def it_can_embed_additional_styles_under_an_existing_typeface(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.add_embedded_font.side_effect = iter(("rId7", "rId8"))
+        prs = Presentation(element("p:presentation"), prs_part_)
+
+        prs.embed_font(io.BytesIO(b"a"), "Pacifico", style="regular")
+        prs.embed_font(io.BytesIO(b"b"), "Pacifico", style="bold")
+
+        assert prs.embedded_fonts == ("Pacifico",)
+        entry = prs._element.embeddedFontLst.embeddedFont_lst[0]
+        assert entry.rId_for_style("regular") == "rId7"
+        assert entry.rId_for_style("bold") == "rId8"
+
+    def it_drops_the_prior_relationship_when_replacing_a_style_slot(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.add_embedded_font.side_effect = iter(("rId7", "rId8"))
+        prs = Presentation(element("p:presentation"), prs_part_)
+
+        prs.embed_font(io.BytesIO(b"a"), "Pacifico")
+        prs.embed_font(io.BytesIO(b"b"), "Pacifico")  # same style → replace
+
+        prs_part_.drop_rel.assert_called_once_with("rId7")
+        entry = prs._element.embeddedFontLst.embeddedFont_lst[0]
+        assert entry.rId_for_style("regular") == "rId8"
+
+    def it_raises_on_invalid_style(self, request):
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs = Presentation(element("p:presentation"), prs_part_)
+
+        with pytest.raises(ValueError, match="style must be one of"):
+            prs.embed_font(io.BytesIO(b"x"), "Pacifico", style="extrabold")
+
+    def it_can_embed_a_font_from_a_filesystem_path(self, request, tmp_path):
+        ttf = tmp_path / "fake.ttf"
+        ttf.write_bytes(b"fake-ttf-bytes")
+        prs_part_ = instance_mock(request, PresentationPart)
+        prs_part_.add_embedded_font.return_value = "rId9"
+        prs = Presentation(element("p:presentation"), prs_part_)
+
+        prs.embed_font(str(ttf), "Roboto")
+
+        prs_part_.add_embedded_font.assert_called_once_with(b"fake-ttf-bytes")
+        assert prs.embedded_fonts == ("Roboto",)
 
     # fixtures -------------------------------------------------------
 
@@ -235,3 +307,31 @@ class DescribePresentation(object):
     @pytest.fixture
     def slides_(self, request):
         return instance_mock(request, Slides)
+
+
+class Describe_read_blob(object):
+    """Unit-test suite for `pptx.presentation._read_blob` helper."""
+
+    def it_reads_a_filesystem_path(self, tmp_path):
+        p = tmp_path / "x.bin"
+        p.write_bytes(b"hello")
+        assert _read_blob(str(p)) == b"hello"
+
+    def it_reads_a_file_like_object_and_rewinds_it(self):
+        stream = io.BytesIO(b"hello")
+        stream.read()  # advance past the end
+        assert _read_blob(stream) == b"hello"
+
+    def it_reads_a_non_seekable_file_like_object(self):
+        class _NonSeekable:
+            def __init__(self, data: bytes):
+                self._data = data
+                self._consumed = False
+
+            def read(self) -> bytes:
+                if self._consumed:
+                    return b""
+                self._consumed = True
+                return self._data
+
+        assert _read_blob(_NonSeekable(b"hello")) == b"hello"

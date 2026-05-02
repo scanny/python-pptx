@@ -48,6 +48,32 @@ of their containing object.
    :undoc-members:
 
 
+Embedding custom fonts
+----------------------
+
+The :meth:`Presentation.embed_font` method embeds a TrueType or OpenType font
+file in the presentation so that text using that typeface renders correctly
+on machines where the font is not installed. PowerPoint supports up to four
+style "slots" per typeface — *regular*, *bold*, *italic*, and *boldItalic* —
+and :meth:`embed_font` can be called repeatedly to populate additional
+slots for the same typeface.
+
+Example::
+
+    from pptx import Presentation
+
+    prs = Presentation()
+    prs.embed_font("fonts/Pacifico-Regular.ttf", "Pacifico")
+    prs.embed_font("fonts/Pacifico-Bold.ttf", "Pacifico", style="bold")
+    print(prs.embedded_fonts)   # -> ('Pacifico',)
+    prs.save("branded.pptx")
+
+``embed_font()`` accepts either a filesystem path or any file-like object
+opened for binary reading, so an in-memory ``BytesIO`` also works. Licensing
+for font embedding is the caller's responsibility; see your font's
+end-user license agreement.
+
+
 |CoreProperties| objects
 -------------------------
 

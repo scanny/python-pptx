@@ -6,6 +6,13 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #355 Font embedding. ``Presentation.embed_font(font_file, typeface,
+  style="regular")`` adds a TrueType / OpenType font file to the presentation
+  as a ``ppt/fonts/font{n}.fntdata`` part and registers it under an
+  ``p:embeddedFontLst/p:embeddedFont`` entry for `typeface`. Supports the four
+  PowerPoint style slots (``regular``, ``bold``, ``italic``, ``boldItalic``).
+  ``Presentation.embedded_fonts`` returns the tuple of embedded typeface
+  names.
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
