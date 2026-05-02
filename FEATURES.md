@@ -558,6 +558,7 @@ prs.save("out.pptx")
 - `Slide.find_shapes_by_xpath(xpath_expr)` — XPath lookup (Open-XML namespace map pre-bound). `[Added in 1.0.2.dev0]`
 - `GroupShape.shapes` — Child shapes.
 - `GroupShape.duplicate()` — Override placing the clone at the source's slide-relative rectangle, with fresh unique IDs. `[Added in 1.0.2.dev0]`
+- `GroupShape.ungroup()` — Dissolve the group, hoisting each direct child onto the slide's top-level shape tree at its slide-relative effective rectangle (Wave 3 #925 cascade); returns the freed shapes in original z-order. Handles nested groups; a freed child-group keeps its internal `chOff`/`chExt` intact so its descendants still render at their original slide positions. `[Added in 1.0.2.dev0]`
 
 ---
 

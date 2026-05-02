@@ -137,6 +137,40 @@ in turn up to the slide root. The raw ``left``/``top``/``width``/``height``
 properties are unchanged and remain read/write for backwards compatibility.
 
 
+Ungrouping a group shape
+------------------------
+
+A :class:`.GroupShape` can be dissolved in place with its
+:meth:`~.GroupShape.ungroup` method. Each direct child is hoisted out of
+the enclosing ``p:grpSp`` and onto the slide's top-level shape tree at its
+slide-relative effective rectangle, then the now-empty group is removed::
+
+    grp = slide.shapes[2]   # -- a GroupShape containing two autoshapes --
+    freed = grp.ungroup()   # -- list of BaseShape freed from the group --
+
+The returned list contains each freed shape in the same z-order it had
+inside the group (first returned is backmost within the group). Every
+freed shape becomes a top-level sibling on the slide and preserves the
+exact slide rectangle at which it rendered before the ungroup.
+
+Nested groups are handled transparently -- when the group being
+dissolved is itself nested inside one or more enclosing groups, the
+cumulative group-transform cascade (see
+:attr:`~.BaseShape.effective_left`) is composited into each child's
+coordinates so the children still land at their slide-relative
+rectangles. If a freed child is itself a :class:`.GroupShape` (i.e. the
+group you ungrouped had a nested sub-group), that sub-group is hoisted
+whole: its own ``a:off``/``a:ext`` are rewritten to its slide rectangle
+while its internal ``a:chOff``/``a:chExt`` are preserved so its
+descendants continue to render in their original slide positions. Call
+:meth:`~.GroupShape.ungroup` on the returned sub-group to flatten
+further.
+
+After the call returns the dissolved :class:`.GroupShape` refers to an
+element that has been removed from the shape tree; do not use the
+instance further. See issue #730.
+
+
 Accessibility -- shape alt-text and title
 -----------------------------------------
 

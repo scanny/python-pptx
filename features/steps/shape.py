@@ -1165,3 +1165,142 @@ def then_child_effective_width_is_half_raw_width(context):
     assert shape.effective_width == 400000, (
         "expected 400000 (half of 800000), got %r" % (shape.effective_width,)
     )
+
+
+# ---- #730: GroupShape.ungroup() steps ------------------------------------
+
+
+@given("a top-level group of two autoshapes at known slide positions")
+def given_a_top_level_group_of_two_autoshapes(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank layout
+    s1 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(2))
+    s2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(4), Inches(3), Inches(1), Inches(1))
+    context.slide = slide
+    context.group = slide.shapes.add_group_shape([s1, s2])
+    context.before_effective = [
+        (c.effective_left, c.effective_top, c.effective_width, c.effective_height)
+        for c in context.group.shapes
+    ]
+    context.group_elm = context.group._element
+
+
+@given("a nested group whose outer maps child space 2:1 onto the slide")
+def given_a_nested_group_with_2_1_outer(context):
+    from pptx.oxml import parse_xml
+    from pptx.oxml.ns import nsdecls
+    from pptx.shapes.group import GroupShape
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    spTree = slide.shapes._spTree
+    outer_xml = (
+        f"<p:grpSp {nsdecls('p', 'a', 'r')}>"
+        "  <p:nvGrpSpPr>"
+        '    <p:cNvPr id="400" name="Outer"/>'
+        "    <p:cNvGrpSpPr/>"
+        "    <p:nvPr/>"
+        "  </p:nvGrpSpPr>"
+        "  <p:grpSpPr>"
+        "    <a:xfrm>"
+        '      <a:off x="1000" y="2000"/>'
+        '      <a:ext cx="5000" cy="8000"/>'
+        '      <a:chOff x="0" y="0"/>'
+        '      <a:chExt cx="10000" cy="8000"/>'
+        "    </a:xfrm>"
+        "  </p:grpSpPr>"
+        "  <p:grpSp>"
+        "    <p:nvGrpSpPr>"
+        '      <p:cNvPr id="401" name="Inner"/>'
+        "      <p:cNvGrpSpPr/>"
+        "      <p:nvPr/>"
+        "    </p:nvGrpSpPr>"
+        "    <p:grpSpPr>"
+        "      <a:xfrm>"
+        '        <a:off x="2000" y="4000"/>'
+        '        <a:ext cx="4000" cy="2000"/>'
+        '        <a:chOff x="0" y="0"/>'
+        '        <a:chExt cx="4000" cy="2000"/>'
+        "      </a:xfrm>"
+        "    </p:grpSpPr>"
+        "    <p:sp>"
+        "      <p:nvSpPr>"
+        '        <p:cNvPr id="402" name="Leaf"/>'
+        "        <p:cNvSpPr/>"
+        "        <p:nvPr/>"
+        "      </p:nvSpPr>"
+        "      <p:spPr>"
+        "        <a:xfrm>"
+        '          <a:off x="0" y="0"/>'
+        '          <a:ext cx="4000" cy="2000"/>'
+        "        </a:xfrm>"
+        '        <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+        "      </p:spPr>"
+        "      <p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody>"
+        "    </p:sp>"
+        "  </p:grpSp>"
+        "</p:grpSp>"
+    )
+    outer_grpSp = parse_xml(outer_xml)
+    spTree.insert_element_before(outer_grpSp, "p:extLst")
+    inner_grpSp = outer_grpSp.xpath("./p:grpSp")[0]
+
+    context.slide = slide
+    context.outer_grpSp = outer_grpSp
+    context.inner_group = GroupShape(inner_grpSp, slide.shapes)
+    # -- expected slide rectangle of the single leaf child, per #925 math --
+    context.expected_rect = (2000, 6000, 2000, 2000)
+
+
+@when("I call group.ungroup()")
+def when_i_call_group_ungroup(context):
+    context.freed = context.group.ungroup()
+
+
+@when("I call ungroup() on the inner group")
+def when_i_call_ungroup_on_the_inner_group(context):
+    context.freed = context.inner_group.ungroup()
+
+
+@then("the group is removed from the shape tree")
+def then_the_group_is_removed_from_the_shape_tree(context):
+    spTree = context.slide.shapes._spTree
+    # -- the grpSp element is no longer a child of spTree --
+    assert context.group_elm.getparent() is None
+    grp_ids = spTree.xpath(".//p:cNvPr[ancestor::p:grpSp]")
+    assert grp_ids == []
+
+
+@then("each freed shape is a top-level sibling on the slide")
+def then_each_freed_shape_is_top_level(context):
+    spTree = context.slide.shapes._spTree
+    assert len(context.freed) == 2
+    for shape in context.freed:
+        assert shape._element.getparent() is spTree, (
+            "expected top-level parent spTree, got %r" % shape._element.getparent()
+        )
+
+
+@then("each freed shape's effective slide rectangle is unchanged")
+def then_each_freed_shape_effective_rect_unchanged(context):
+    after = [
+        (s.effective_left, s.effective_top, s.effective_width, s.effective_height)
+        for s in context.freed
+    ]
+    assert after == context.before_effective, "before=%r, after=%r" % (
+        context.before_effective,
+        after,
+    )
+
+
+@then("the freed child renders at the same slide rectangle as before")
+def then_freed_child_renders_at_same_slide_rectangle(context):
+    assert len(context.freed) == 1
+    shape = context.freed[0]
+    got = (
+        shape.effective_left,
+        shape.effective_top,
+        shape.effective_width,
+        shape.effective_height,
+    )
+    assert got == context.expected_rect, "expected %r, got %r" % (context.expected_rect, got)

@@ -51,3 +51,17 @@ Feature: GroupShape properties and methods
      Then the child shape's raw shape.left matches its group-local xfrm
       And the child shape's effective_left is the slide-relative coordinate
       And the child shape's effective_width is half its raw width
+
+
+  Scenario: GroupShape.ungroup() hoists children to the slide at slide coords
+    Given a top-level group of two autoshapes at known slide positions
+     When I call group.ungroup()
+     Then the group is removed from the shape tree
+      And each freed shape is a top-level sibling on the slide
+      And each freed shape's effective slide rectangle is unchanged
+
+
+  Scenario: GroupShape.ungroup() resolves nested-group cascade correctly
+    Given a nested group whose outer maps child space 2:1 onto the slide
+     When I call ungroup() on the inner group
+     Then the freed child renders at the same slide rectangle as before
