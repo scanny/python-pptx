@@ -8,6 +8,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import OpcPackage
 from pptx.opc.packuri import PackURI
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
 from pptx.util import lazyproperty
@@ -28,6 +29,21 @@ class Package(OpcPackage):
             core_props = CorePropertiesPart.default(self)
             self.relate_to(core_props, RT.CORE_PROPERTIES)
             return core_props
+
+    @lazyproperty
+    def extended_properties(self) -> ExtendedPropertiesPart:
+        """Instance of |ExtendedPropertiesPart| (``/docProps/app.xml``).
+
+        Creates a default extended-properties part if one is not present. This part holds
+        application-level properties such as the slide count (which python-pptx updates at
+        save-time so downstream consumers like Gmail's attachment preview render correctly).
+        """
+        try:
+            return self.part_related_by(RT.EXTENDED_PROPERTIES)
+        except KeyError:
+            ext_props = ExtendedPropertiesPart.default(self)
+            self.relate_to(ext_props, RT.EXTENDED_PROPERTIES)
+            return ext_props
 
     def get_or_add_image_part(self, image_file: str | IO[bytes]):
         """
@@ -103,6 +119,18 @@ class Package(OpcPackage):
         Reference to the |Presentation| instance contained in this package.
         """
         return self.main_document_part
+
+    def save(self, pkg_file):
+        """Save this package to `pkg_file`.
+
+        Ensures the extended-properties part (``/docProps/app.xml``) exists and its
+        ``<Slides>`` count is refreshed before serialization. See issue #131 — without this,
+        Gmail's attachment preview (among others) fails to render.
+        """
+        # -- trigger lazy creation of the part (no-op if already present) so that it is
+        # -- included in the package walk performed by the base-class save.
+        _ = self.extended_properties
+        super().save(pkg_file)
 
     @lazyproperty
     def _image_parts(self):

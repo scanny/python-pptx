@@ -97,3 +97,23 @@ to open or save a presentation like so::
 
 Okay, so you've got a presentation open and are pretty sure you can save it
 somewhere later. Next step is to get a slide in there ...
+
+
+Extended document properties are synced on save
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every ``.pptx`` package carries an *extended properties* XML part at
+``docProps/app.xml`` that records (among other things) the total slide count
+in a ``<Slides>`` element. Gmail's attachment-preview feature and a number of
+third-party thumbnail / HTML renderers look at that value and will silently
+fail to render a preview when it disagrees with the actual number of slides.
+
+|pp| takes care of this for you: each time you call :meth:`Presentation.save`,
+the ``<Slides>`` count is recomputed from the presentation's live slide list
+and written back before serialization. If the source package does not have an
+extended-properties part (uncommon; the built-in template ships with one),
+a minimal one is added automatically.
+
+You do not need to do anything for this behaviour — there is no API to opt
+out, and the other application-level fields (``<Application>``, ``<Company>``,
+``<TitlesOfParts>``, …) are not modified.

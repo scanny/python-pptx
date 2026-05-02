@@ -15,6 +15,7 @@ from pptx.opc.package import Part, _Relationship
 from pptx.opc.packuri import PackURI
 from pptx.package import Package, _ImageParts, _MediaParts
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
 
@@ -30,6 +31,40 @@ class DescribePackage(object):
         )
         pkg = Package.open(default_pptx)
         assert isinstance(pkg.core_properties, CorePropertiesPart)
+
+    def it_provides_access_to_its_extended_properties_part(self):
+        """The default template already has an extended-properties part."""
+        default_pptx = os.path.abspath(
+            os.path.join(os.path.split(pptx.__file__)[0], "templates", "default.pptx")
+        )
+        pkg = Package.open(default_pptx)
+        assert isinstance(pkg.extended_properties, ExtendedPropertiesPart)
+
+    def it_creates_a_default_extended_properties_part_when_missing(self, request):
+        """If the package has no extended-properties rel, one is created on demand."""
+        package = Package(None)
+        # -- short-circuit the lookup so it raises KeyError (no rel present) --
+        method_mock(request, Package, "part_related_by", side_effect=KeyError)
+        relate_to_ = method_mock(request, Package, "relate_to")
+
+        ext_props = package.extended_properties
+
+        assert isinstance(ext_props, ExtendedPropertiesPart)
+        relate_to_.assert_called_once_with(package, ext_props, RT.EXTENDED_PROPERTIES)
+
+    def it_triggers_lazy_ext_props_creation_before_save(self, request):
+        """`Package.save()` triggers `extended_properties` so the part is included."""
+        from pptx.opc.package import OpcPackage
+
+        package = Package(None)
+        ext_props_prop_ = property_mock(request, Package, "extended_properties")
+        base_save_ = method_mock(request, OpcPackage, "save")
+        pkg_file = "foobar.pptx"
+
+        package.save(pkg_file)
+
+        ext_props_prop_.assert_called_once_with()
+        base_save_.assert_called_once_with(package, pkg_file)
 
     def it_can_get_or_add_an_image_part(self, image_part_fixture):
         package, image_file, image_parts_, image_part_ = image_part_fixture

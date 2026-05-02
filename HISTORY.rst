@@ -3,6 +3,14 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #131 Can't preview presentation in gmail — ``docProps/app.xml`` now has
+  its ``<Slides>`` count recomputed from the live ``sldIdLst`` at save-time,
+  restoring Gmail attachment preview and other downstream tools that key on
+  that count.
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

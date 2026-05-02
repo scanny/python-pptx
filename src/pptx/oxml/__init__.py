@@ -217,6 +217,11 @@ from pptx.oxml.coreprops import CT_CoreProperties  # noqa: E402
 register_element_cls("cp:coreProperties", CT_CoreProperties)
 
 
+from pptx.oxml.extprops import CT_ExtendedProperties  # noqa: E402
+
+register_element_cls("ep:Properties", CT_ExtendedProperties)
+
+
 from pptx.oxml.dml.color import (  # noqa: E402
     CT_Color,
     CT_HslColor,
