@@ -35,6 +35,21 @@ def given_a_3x3_table_with_cells_a_to_i_as_table(context):
     context.table_ = prs.slides[2].shapes[0].table
 
 
+@given("a freshly-added {rows:d}x{cols:d} Table object as table")
+def given_a_freshly_added_RxC_Table_object_as_table(context, rows: int, cols: int):
+    """Create a fresh presentation + slide + table of the requested size.
+
+    Used by the #636 scenarios where the table has to be a specific shape
+    (e.g. 5x1 or 1x5) and the pre-canned fixture decks don't have a match.
+    """
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    graphic_frame = slide.shapes.add_table(
+        rows, cols, Inches(1), Inches(1), Inches(6), Inches(2)
+    )
+    context.table_ = graphic_frame.table
+
+
 @given("a _Cell object as cell")
 def given_a_Cell_object_as_cell(context):
     prs = Presentation(test_pptx("shp-shapes"))
@@ -117,9 +132,19 @@ def when_I_assign_origin_cell_eq_table_cell_0_0(context):
     context.origin_cell = context.table_.cell(0, 0)
 
 
+@when("I assign origin_cell = table.cell({row:d}, {col:d})")
+def when_I_assign_origin_cell_eq_table_cell_r_c(context, row: int, col: int):
+    context.origin_cell = context.table_.cell(row, col)
+
+
 @when("I assign other_cell = table.cell(1, 1)")
 def when_I_assign_other_cell_eq_table_cell_1_1(context):
     context.other_cell = context.table_.cell(1, 1)
+
+
+@when("I assign other_cell = table.cell({row:d}, {col:d})")
+def when_I_assign_other_cell_eq_table_cell_r_c(context, row: int, col: int):
+    context.other_cell = context.table_.cell(row, col)
 
 
 @when("I assign table.first_col = True")
@@ -276,6 +301,20 @@ def then_cell_span_width_eq(context, int_lit):
     expected = int(int_lit)
     actual = context.cell.span_width
     assert actual is expected, "cell.span_width == %s" % actual
+
+
+@then("origin_cell.span_height == {int_lit}")
+def then_origin_cell_span_height_eq(context, int_lit):
+    expected = int(int_lit)
+    actual = context.origin_cell.span_height
+    assert actual == expected, "origin_cell.span_height == %s" % actual
+
+
+@then("origin_cell.span_width == {int_lit}")
+def then_origin_cell_span_width_eq(context, int_lit):
+    expected = int(int_lit)
+    actual = context.origin_cell.span_width
+    assert actual == expected, "origin_cell.span_width == %s" % actual
 
 
 @then("cell.vertical_anchor == {value}")

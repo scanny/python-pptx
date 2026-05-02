@@ -97,6 +97,26 @@ Feature: Table cell proxy objects
       And other_cell.text == ""
 
 
+  Scenario: _Cell.merge() in single-column table deletes merged rows (#636)
+    Given a freshly-added 5x1 Table object as table
+     When I assign origin_cell = table.cell(2, 0)
+      And I assign other_cell = table.cell(3, 0)
+      And I call origin_cell.merge(other_cell)
+     Then len(table.rows) == 4
+      And origin_cell.is_merge_origin is False
+      And origin_cell.span_height == 1
+
+
+  Scenario: _Cell.merge() in single-row table deletes merged columns (#636)
+    Given a freshly-added 1x5 Table object as table
+     When I assign origin_cell = table.cell(0, 2)
+      And I assign other_cell = table.cell(0, 3)
+      And I call origin_cell.merge(other_cell)
+     Then len(table.columns) == 4
+      And origin_cell.is_merge_origin is False
+      And origin_cell.span_width == 1
+
+
   Scenario: Merged cell size
     Given a 2x3 _MergeOriginCell object as cell
      Then cell.span_height == 2

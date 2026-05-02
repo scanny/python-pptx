@@ -239,6 +239,113 @@ class DescribeTcRange(object):
         assert tc.text == expected_text
         assert other_tc.text == ""
 
+    @pytest.mark.parametrize(
+        ("tbl_cxml", "tc_idxs", "expected_value"),
+        [
+            # -- 1-col table with multi-row range spans all columns --
+            (
+                "a:tbl/(a:tblGrid/a:gridCol{w=100},a:tr{h=50}/a:tc,a:tr{h=50}/a:tc)",
+                (0, 1),
+                True,
+            ),
+            # -- 2-col table, range 1 col wide in 2-row range is not full-width --
+            (
+                "a:tbl/(a:tblGrid/(a:gridCol{w=100},a:gridCol{w=100}),a:tr{h=50}/(a:tc"
+                ",a:tc),a:tr{h=50}/(a:tc,a:tc))",
+                (0, 2),
+                False,
+            ),
+            # -- 2-col table with 2-col x 2-row range spans all columns --
+            (
+                "a:tbl/(a:tblGrid/(a:gridCol{w=100},a:gridCol{w=100}),a:tr{h=50}/(a:tc"
+                ",a:tc),a:tr{h=50}/(a:tc,a:tc))",
+                (0, 3),
+                True,
+            ),
+            # -- single-row range is never a full-column-span (no rows to remove) --
+            (
+                "a:tbl/(a:tblGrid/a:gridCol{w=100},a:tr{h=50}/a:tc)",
+                (0, 0),
+                False,
+            ),
+        ],
+    )
+    def it_knows_when_range_spans_every_column(
+        self, tbl_cxml: str, tc_idxs: tuple[int, int], expected_value: bool
+    ):
+        tcs = element(tbl_cxml).xpath("//a:tc")
+        tc_range = TcRange(tcs[tc_idxs[0]], tcs[tc_idxs[1]])
+        assert tc_range.spans_all_columns is expected_value
+
+    @pytest.mark.parametrize(
+        ("tbl_cxml", "tc_idxs", "expected_value"),
+        [
+            # -- 1-row table with multi-col range spans all rows --
+            (
+                "a:tbl/(a:tblGrid/(a:gridCol{w=100},a:gridCol{w=100}),a:tr{h=50}/(a:tc"
+                ",a:tc))",
+                (0, 1),
+                True,
+            ),
+            # -- 2-row table, range 1 row tall in 2-col range is not full-height --
+            (
+                "a:tbl/(a:tblGrid/(a:gridCol{w=100},a:gridCol{w=100}),a:tr{h=50}/(a:tc"
+                ",a:tc),a:tr{h=50}/(a:tc,a:tc))",
+                (0, 1),
+                False,
+            ),
+            # -- 2-row table with 2-col x 2-row range spans all rows --
+            (
+                "a:tbl/(a:tblGrid/(a:gridCol{w=100},a:gridCol{w=100}),a:tr{h=50}/(a:tc"
+                ",a:tc),a:tr{h=50}/(a:tc,a:tc))",
+                (0, 3),
+                True,
+            ),
+            # -- single-column range is never a full-row-span (no cols to remove) --
+            (
+                "a:tbl/(a:tblGrid/a:gridCol{w=100},a:tr{h=50}/a:tc)",
+                (0, 0),
+                False,
+            ),
+        ],
+    )
+    def it_knows_when_range_spans_every_row(
+        self, tbl_cxml: str, tc_idxs: tuple[int, int], expected_value: bool
+    ):
+        tcs = element(tbl_cxml).xpath("//a:tc")
+        tc_range = TcRange(tcs[tc_idxs[0]], tcs[tc_idxs[1]])
+        assert tc_range.spans_all_rows is expected_value
+
+    def it_can_collapse_a_full_column_span_range(self):
+        """Merged rows are removed and their heights absorbed by the top row."""
+        tbl = element(
+            "a:tbl/(a:tblGrid/a:gridCol{w=100},a:tr{h=10}/a:tc,a:tr{h=20}/a:tc"
+            ",a:tr{h=30}/a:tc,a:tr{h=40}/a:tc)"
+        )
+        tcs = tbl.xpath("//a:tc")
+        tc_range = TcRange(tcs[1], tcs[2])  # rows 1 and 2
+
+        tc_range.collapse_full_column_span()
+
+        # -- original row 2 was removed; row 1 absorbed its height --
+        assert [tr.h for tr in tbl.tr_lst] == [10, 50, 40]
+        assert len(tbl.tr_lst) == 3
+
+    def it_can_collapse_a_full_row_span_range(self):
+        """Merged columns are removed and their widths absorbed by the leftmost column."""
+        tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=10},a:gridCol{w=20},a:gridCol{w=30}"
+            ",a:gridCol{w=40}),a:tr{h=50}/(a:tc,a:tc,a:tc,a:tc))"
+        )
+        tcs = tbl.xpath("//a:tc")
+        tc_range = TcRange(tcs[1], tcs[2])  # cols 1 and 2
+
+        tc_range.collapse_full_row_span()
+
+        # -- col 1 absorbed col 2's width; col 2 was removed --
+        assert [gc.w for gc in tbl.tblGrid.gridCol_lst] == [10, 50, 40]
+        assert len(tbl.tr_lst[0].tc_lst) == 3
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

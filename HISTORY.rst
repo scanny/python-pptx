@@ -6,6 +6,23 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #636 ``_Cell.merge()`` now collapses a full table-span merge
+  instead of emitting a merged-cell range PowerPoint silently drops.
+  When the selected range covers every column of the table, the rows
+  beneath the origin row are removed and their heights absorbed by the
+  origin row; symmetrically, a range covering every row collapses into
+  the leftmost column of the range, with the removed columns' widths
+  absorbed. The surviving row (or column) retains any residual
+  horizontal (or vertical) merge within it, matching PowerPoint's own
+  rendering of such merges. The graphic-frame dimensions are preserved
+  because the absorbed rows / columns contribute their original size to
+  the surviving axis. Regression covered by the new ``_Cell.merge() in
+  single-column table deletes merged rows (#636)`` and ``_Cell.merge()
+  in single-row table deletes merged columns (#636)`` scenarios in
+  ``features/tbl-cell.feature`` plus
+  ``Describe_Cell.and_it_collapses_a_full_column_span_merge`` and
+  ``and_it_collapses_a_full_row_span_merge`` unit tests.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")

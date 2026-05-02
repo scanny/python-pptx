@@ -643,7 +643,7 @@ prs.save("out.pptx")
 - `_Cell.fill` — `FillFormat` proxy.
 - `_Cell.border_left` / `.border_right` / `.border_top` / `.border_bottom` / `.border_diagonal_down` / `.border_diagonal_up` — Per-cell edge and diagonal borders. `[Added in 1.0.2.dev0]`
 - `_Cell.margin_left` / `.margin_right` / `.margin_top` / `.margin_bottom` — Cell padding.
-- `_Cell.merge(other_cell)` / `_Cell.split()` / `_Cell.is_merge_origin` / `_Cell.is_spanned` / `_Cell.span_height` / `_Cell.span_width` — Merge handling.
+- `_Cell.merge(other_cell)` / `_Cell.split()` / `_Cell.is_merge_origin` / `_Cell.is_spanned` / `_Cell.span_height` / `_Cell.span_width` — Merge handling. `_Cell.merge()` now collapses a full-table-span range (every column or every row) by deleting the redundant rows / columns rather than emitting a merge PowerPoint would silently drop; the surviving row / column absorbs their height / width, and any residual in-axis merge is preserved. `[#636 fix Added in 1.0.2.dev0]`
 - `_Cell.vertical_anchor` — `MSO_VERTICAL_ANCHOR`.
 
 ---

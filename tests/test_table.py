@@ -371,6 +371,8 @@ class Describe_Cell(object):
         TcRange_.return_value = tc_range_
         tc_range_.contains_merged_cell = False
         tc_range_.dimensions = 2, 2
+        tc_range_.spans_all_columns = False
+        tc_range_.spans_all_rows = False
 
         def tcs(*rowcols):
             return (tbl.tc(*rowcol) for rowcol in rowcols)
@@ -389,7 +391,85 @@ class Describe_Cell(object):
 
         TcRange_.assert_called_once_with(tc, other_tc)
         tc_range_.move_content_to_origin.assert_called_once_with()
+        tc_range_.collapse_full_column_span.assert_not_called()
+        tc_range_.collapse_full_row_span.assert_not_called()
         assert tbl.xml == expected_xml
+
+    def and_it_collapses_a_full_column_span_merge(self, TcRange_, tc_range_):
+        """When the range spans every column, the merged rows are deleted
+        and their heights absorbed by the origin row (see issue #636)."""
+        tbl = element("a:tbl/(a:tr/a:tc,a:tr/a:tc)")
+        tc, other_tc = tbl.tc(0, 0), tbl.tc(1, 0)
+        TcRange_.return_value = tc_range_
+        tc_range_.contains_merged_cell = False
+        tc_range_.dimensions = 2, 1
+        tc_range_.spans_all_columns = True
+        tc_range_.spans_all_rows = False
+
+        def tcs(*rowcols):
+            return (tbl.tc(*rowcol) for rowcol in rowcols)
+
+        tc_range_.iter_top_row_tcs.return_value = tcs((0, 0))
+        tc_range_.iter_left_col_tcs.return_value = tcs((0, 0), (1, 0))
+        tc_range_.iter_except_left_col_tcs.return_value = tcs()
+        tc_range_.iter_except_top_row_tcs.return_value = tcs((1, 0))
+        cell, other_cell = _Cell(tc, None), _Cell(other_tc, None)
+
+        cell.merge(other_cell)
+
+        tc_range_.move_content_to_origin.assert_called_once_with()
+        tc_range_.collapse_full_column_span.assert_called_once_with()
+        tc_range_.collapse_full_row_span.assert_not_called()
+
+    def and_it_collapses_a_full_row_span_merge(self, TcRange_, tc_range_):
+        """When the range spans every row, the merged columns are deleted
+        and their widths absorbed by the origin column (see issue #636)."""
+        tbl = element("a:tbl/a:tr/(a:tc,a:tc)")
+        tc, other_tc = tbl.tc(0, 0), tbl.tc(0, 1)
+        TcRange_.return_value = tc_range_
+        tc_range_.contains_merged_cell = False
+        tc_range_.dimensions = 1, 2
+        tc_range_.spans_all_columns = False
+        tc_range_.spans_all_rows = True
+
+        def tcs(*rowcols):
+            return (tbl.tc(*rowcol) for rowcol in rowcols)
+
+        tc_range_.iter_top_row_tcs.return_value = tcs((0, 0), (0, 1))
+        tc_range_.iter_left_col_tcs.return_value = tcs((0, 0))
+        tc_range_.iter_except_left_col_tcs.return_value = tcs((0, 1))
+        tc_range_.iter_except_top_row_tcs.return_value = tcs()
+        cell, other_cell = _Cell(tc, None), _Cell(other_tc, None)
+
+        cell.merge(other_cell)
+
+        tc_range_.move_content_to_origin.assert_called_once_with()
+        tc_range_.collapse_full_column_span.assert_not_called()
+        tc_range_.collapse_full_row_span.assert_called_once_with()
+
+    def and_it_collapses_both_axes_when_range_covers_whole_table(self, TcRange_, tc_range_):
+        """A merge covering every row and every column collapses both axes."""
+        tbl = element("a:tbl/(a:tr/(a:tc,a:tc),a:tr/(a:tc,a:tc))")
+        tc, other_tc = tbl.tc(0, 0), tbl.tc(1, 1)
+        TcRange_.return_value = tc_range_
+        tc_range_.contains_merged_cell = False
+        tc_range_.dimensions = 2, 2
+        tc_range_.spans_all_columns = True
+        tc_range_.spans_all_rows = True
+
+        def tcs(*rowcols):
+            return (tbl.tc(*rowcol) for rowcol in rowcols)
+
+        tc_range_.iter_top_row_tcs.return_value = tcs((0, 0), (0, 1))
+        tc_range_.iter_left_col_tcs.return_value = tcs((0, 0), (1, 0))
+        tc_range_.iter_except_left_col_tcs.return_value = tcs((0, 1), (1, 1))
+        tc_range_.iter_except_top_row_tcs.return_value = tcs((1, 0), (1, 1))
+        cell, other_cell = _Cell(tc, None), _Cell(other_tc, None)
+
+        cell.merge(other_cell)
+
+        tc_range_.collapse_full_column_span.assert_called_once_with()
+        tc_range_.collapse_full_row_span.assert_called_once_with()
 
     def but_it_raises_when_cells_are_from_different_tables(self, TcRange_, tc_range_):
         TcRange_.return_value = tc_range_
