@@ -11,6 +11,7 @@ Unreleased
   does not render slides and pointing at ``libreoffice --headless
   --convert-to``, PowerPoint COM automation, Aspose.Slides, and
   python-pptx-interface as integration points for downstream rendering.
+- #151 xmlchemy - ZeroOrMoreChoice
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal

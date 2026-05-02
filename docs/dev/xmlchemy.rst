@@ -182,3 +182,77 @@ Generated API
 ``_remove_childElement()`` element remover method
     Removes all instances of the child element. Does not raise an error if no
     matching child elements are present.
+
+
+``ZeroOrMoreChoice`` element-group declaration
+----------------------------------------------
+
+``ZeroOrMoreChoice`` is the repeating analog of ``ZeroOrOneChoice``. It models
+an Open XML element-group (``EG_*``) where any member may appear zero or more
+times in any order. The ``a:path`` segment children
+(``a:moveTo | a:lnTo | a:cubicBezTo | a:arcTo | a:quadBezTo | a:close``) used
+in custGeom paths are the canonical example.
+
+::
+
+    eg_pathSeg = ZeroOrMoreChoice(
+        (
+            Choice('a:close'), Choice('a:moveTo'), Choice('a:lnTo'),
+            Choice('a:arcTo'), Choice('a:quadBezTo'), Choice('a:cubicBezTo'),
+        ),
+        successors=(),
+    )
+
+
+Generated API
+~~~~~~~~~~~~~
+
+``eg_pathSeg_lst`` property (read-only)
+    Returns a list containing every child element that is a member of the
+    choice group, in document order. Returns an empty list when no member is
+    present. The group property name declared on the class body is removed,
+    so only the ``_lst`` form is addressable.
+
+``_remove_eg_pathSeg()`` group-remover method
+    Removes every child element belonging to the choice group. Does not
+    raise when no members are present.
+
+For each ``Choice`` member declared in the group:
+
+``_new_member()`` empty element creator method
+    Returns a new "loose" child element of the declared tag name.
+
+``_insert_member(member)`` element inserter method
+    Inserts ``member`` in the correct position, before any successor elements
+    listed in the declaration.
+
+``_add_member()`` empty element adder method
+    Creates a new child element of the declared tag name and inserts it in
+    the correct position. Adding is always unconditional; repeated calls
+    append additional members.
+
+Unlike ``ZeroOrOneChoice``, no per-member getter and no
+``get_or_change_to_member()`` method are generated, because the repeating-choice
+model has no mutually-exclusive or "current member" semantics.
+
+
+Protocol
+~~~~~~~~
+
+::
+
+    >>> path.eg_pathSeg_lst
+    []
+    >>> path._add_moveTo()
+    <pptx.oxml.xyz.CT_Path2DMoveTo object at 0x10ab4b2d0>
+    >>> path._add_lnTo()
+    <pptx.oxml.xyz.CT_Path2DLineTo object at 0x10ab4b310>
+    >>> path._add_lnTo()
+    <pptx.oxml.xyz.CT_Path2DLineTo object at 0x10ab4b3a0>
+    >>> path._add_close()
+    <pptx.oxml.xyz.CT_Path2DClose object at 0x10ab4b420>
+    >>> [seg.tag.split('}')[1] for seg in path.eg_pathSeg_lst]
+    ['moveTo', 'lnTo', 'lnTo', 'close']
+    >>> path._remove_eg_pathSeg()
+    >>> path.eg_pathSeg_lst
+    []

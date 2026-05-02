@@ -20,6 +20,7 @@ from pptx.oxml.xmlchemy import (
     OptionalAttribute,
     RequiredAttribute,
     ZeroOrMore,
+    ZeroOrMoreChoice,
     ZeroOrOne,
     ZeroOrOneChoice,
 )
@@ -443,6 +444,134 @@ class DescribeZeroOrOne(object):
         return parent_bldr
 
 
+class DescribeZeroOrMoreChoice(object):
+    def it_adds_a_list_getter_for_the_choice_group_members(self, list_getter_fixture):
+        parent, expected_children = list_getter_fixture
+        assert parent.eg_zmcChoice_lst == expected_children
+
+    def it_returns_empty_list_when_no_choice_member_is_present(self):
+        parent = a_rptParent().with_nsdecls().element
+        assert parent.eg_zmcChoice_lst == []
+
+    def it_preserves_document_order_across_mixed_choice_members(self):
+        parent = (
+            a_rptParent()
+            .with_nsdecls()
+            .with_child(a_zmcB())
+            .with_child(a_zmcA())
+            .with_child(a_zmcB())
+        ).element
+        member_tags = [child.tag for child in parent.eg_zmcChoice_lst]
+        assert member_tags == [qn("p:zmcB"), qn("p:zmcA"), qn("p:zmcB")]
+
+    def it_adds_a_creator_method_for_each_member(self):
+        parent = a_rptParent().with_nsdecls().element
+        zmcA = parent._new_zmcA()
+        zmcB = parent._new_zmcB()
+        assert isinstance(zmcA, CT_ZmcA)
+        assert isinstance(zmcB, CT_ZmcB)
+        assert zmcA.xml == a_zmcA().with_nsdecls().xml()
+        assert zmcB.xml == a_zmcB().with_nsdecls().xml()
+
+    def it_adds_an_add_method_for_each_member(self, add_fixture):
+        parent, expected_xml = add_fixture
+        zmcA_1 = parent._add_zmcA()
+        zmcA_2 = parent._add_zmcA()
+        zmcB = parent._add_zmcB()
+        assert isinstance(zmcA_1, CT_ZmcA)
+        assert isinstance(zmcA_2, CT_ZmcA)
+        assert isinstance(zmcB, CT_ZmcB)
+        assert parent.xml == expected_xml
+
+    def it_adds_an_insert_method_for_each_member(self, insert_fixture):
+        parent, zmcA, expected_xml = insert_fixture
+        parent._insert_zmcA(zmcA)
+        assert parent.xml == expected_xml
+        assert parent._insert_zmcA.__doc__.startswith("Return the passed ``<p:zmcA>`` ")
+
+    def it_adds_a_group_remover_that_removes_every_member(self, remove_fixture):
+        parent, expected_xml = remove_fixture
+        parent._remove_eg_zmcChoice()
+        assert parent.xml == expected_xml
+
+    def it_does_not_add_a_get_or_change_to_method_for_group_members(self):
+        # -- the repeating-choice case has no mutually-exclusive semantics, so the
+        # -- `get_or_change_to_*` affordance from ZeroOrOneChoice is intentionally absent.
+        assert not hasattr(CT_RptParent, "get_or_change_to_zmcA")
+        assert not hasattr(CT_RptParent, "get_or_change_to_zmcB")
+
+    def it_removes_the_group_property_name_used_for_declaration(self):
+        assert not hasattr(CT_RptParent, "eg_zmcChoice")
+
+    # fixtures -------------------------------------------------------
+
+    @pytest.fixture
+    def add_fixture(self):
+        parent = a_rptParent().with_nsdecls().with_child(a_rptSucc()).element
+        expected_xml = (
+            a_rptParent()
+            .with_nsdecls()
+            .with_child(a_zmcA())
+            .with_child(a_zmcA())
+            .with_child(a_zmcB())
+            .with_child(a_rptSucc())
+        ).xml()
+        return parent, expected_xml
+
+    @pytest.fixture
+    def insert_fixture(self):
+        parent = (
+            a_rptParent().with_nsdecls().with_child(a_zmcB()).with_child(a_rptSucc())
+        ).element
+        zmcA = a_zmcA().with_nsdecls().element
+        expected_xml = (
+            a_rptParent()
+            .with_nsdecls()
+            .with_child(a_zmcB())
+            .with_child(a_zmcA())
+            .with_child(a_rptSucc())
+        ).xml()
+        return parent, zmcA, expected_xml
+
+    @pytest.fixture(
+        params=[
+            (),
+            ("zmcA",),
+            ("zmcB",),
+            ("zmcA", "zmcB"),
+            ("zmcA", "zmcB", "zmcA"),
+        ]
+    )
+    def list_getter_fixture(self, request):
+        member_tags = request.param
+        parent_bldr = a_rptParent().with_nsdecls()
+        member_bldr_for = {"zmcA": a_zmcA, "zmcB": a_zmcB}
+        for tag in member_tags:
+            parent_bldr.with_child(member_bldr_for[tag]())
+        parent = parent_bldr.element
+        tag_set = {qn("p:zmcA"), qn("p:zmcB")}
+        expected_children = [child for child in parent if child.tag in tag_set]
+        return parent, expected_children
+
+    @pytest.fixture(
+        params=[
+            (),
+            ("zmcA",),
+            ("zmcA", "zmcB", "zmcA"),
+        ]
+    )
+    def remove_fixture(self, request):
+        member_tags = request.param
+        parent_bldr = a_rptParent().with_nsdecls()
+        member_bldr_for = {"zmcA": a_zmcA, "zmcB": a_zmcB}
+        for tag in member_tags:
+            parent_bldr.with_child(member_bldr_for[tag]())
+        parent_bldr.with_child(a_rptSucc())
+        parent = parent_bldr.element
+        expected_xml = a_rptParent().with_nsdecls().with_child(a_rptSucc()).xml()
+        return parent, expected_xml
+
+
 class DescribeZeroOrOneChoice(object):
     def it_adds_a_getter_for_the_current_choice(self, getter_fixture):
         parent, expected_choice = getter_fixture
@@ -527,11 +656,35 @@ class CT_ZooChild(BaseOxmlElement):
     """
 
 
+class CT_RptParent(BaseOxmlElement):
+    """``<p:rptParent>`` element exercising :class:`ZeroOrMoreChoice`.
+
+    The repeating choice group has two members, each of which may appear zero or more times in
+    any order, followed by an arbitrary successor element.
+    """
+
+    eg_zmcChoice = ZeroOrMoreChoice(
+        (Choice("p:zmcA"), Choice("p:zmcB")),
+        successors=("p:rptSucc",),
+    )
+
+
+class CT_ZmcA(BaseOxmlElement):
+    """``<p:zmcA>`` member of the zero-or-more-choice test group."""
+
+
+class CT_ZmcB(BaseOxmlElement):
+    """``<p:zmcB>`` member of the zero-or-more-choice test group."""
+
+
 register_element_cls("p:parent", CT_Parent)
 register_element_cls("p:choice", CT_Choice)
 register_element_cls("p:oomChild", CT_OomChild)
 register_element_cls("p:zomChild", CT_ZomChild)
 register_element_cls("p:zooChild", CT_ZooChild)
+register_element_cls("p:rptParent", CT_RptParent)
+register_element_cls("p:zmcA", CT_ZmcA)
+register_element_cls("p:zmcB", CT_ZmcB)
 
 
 class CT_ChoiceBuilder(BaseBuilder):
@@ -576,6 +729,30 @@ class CT_ZooChildBuilder(BaseBuilder):
     __attrs__ = ()
 
 
+class CT_RptParentBuilder(BaseBuilder):
+    __tag__ = "p:rptParent"
+    __nspfxs__ = ("p",)
+    __attrs__ = ()
+
+
+class CT_RptSuccBuilder(BaseBuilder):
+    __tag__ = "p:rptSucc"
+    __nspfxs__ = ("p",)
+    __attrs__ = ()
+
+
+class CT_ZmcABuilder(BaseBuilder):
+    __tag__ = "p:zmcA"
+    __nspfxs__ = ("p",)
+    __attrs__ = ()
+
+
+class CT_ZmcBBuilder(BaseBuilder):
+    __tag__ = "p:zmcB"
+    __nspfxs__ = ("p",)
+    __attrs__ = ()
+
+
 def a_choice():
     return CT_ChoiceBuilder()
 
@@ -586,6 +763,22 @@ def a_choice2():
 
 def a_parent():
     return CT_ParentBuilder()
+
+
+def a_rptParent():
+    return CT_RptParentBuilder()
+
+
+def a_rptSucc():
+    return CT_RptSuccBuilder()
+
+
+def a_zmcA():
+    return CT_ZmcABuilder()
+
+
+def a_zmcB():
+    return CT_ZmcBBuilder()
 
 
 def a_zomChild():
