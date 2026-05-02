@@ -257,6 +257,46 @@ doesn't have any axes::
 .. image:: /_static/img/chart-07.png
 
 
+Refreshing cached values after an external workbook edit
+--------------------------------------------------------
+
+A chart created by python-pptx (or PowerPoint) stores its data in two places:
+
+* an embedded Excel workbook (``.xlsx``) that acts as the authored source
+  of truth, and
+* a set of cached values in the chart XML itself — the ``<c:numCache>``
+  and ``<c:strCache>`` elements under each series reference.
+
+PowerPoint only re-reads the workbook on an explicit *Refresh Data* action
+(``Alt+F5`` in the Chart Design ribbon). Until that happens, what you see
+in the slide is the cached copy. That means if you edit the embedded
+workbook directly — for example by extracting the ``.xlsx`` part,
+modifying cell values, and writing it back — the chart in the rendered
+slide will keep showing the old numbers and labels.
+
+:meth:`Chart.update_cached_values` rewrites those caches in-place from
+the embedded workbook::
+
+    from pptx import Presentation
+
+    prs = Presentation("deck-with-chart.pptx")
+    chart = prs.slides[0].shapes[0].chart
+
+    # ... externally modify chart._workbook.xlsx_part.blob, or use a
+    # helper that opens the embedded xlsx, edits it, and writes it back.
+
+    chart.update_cached_values()
+    prs.save("deck-refreshed.pptx")
+
+The method parses the embedded xlsx, resolves every ``<c:f>`` cell
+reference under the chart, and rewrites the neighbouring
+``<c:numCache>`` / ``<c:strCache>`` subtree so what PowerPoint renders
+matches the workbook. Cell references that cannot be resolved
+(multi-range formulas, links to an *external* workbook, unknown
+sheet names outside the embedded file) are left untouched. The method
+is a no-op for charts without an embedded workbook.
+
+
 Odds & Ends
 -----------
 

@@ -20,8 +20,10 @@ from pptx.chart.data import (
 from pptx.chart.xlsx import (
     BubbleWorkbookWriter,
     CategoryWorkbookWriter,
+    WorkbookReader,
     XyWorkbookWriter,
     _BaseWorkbookWriter,
+    parse_sheet_range_ref,
 )
 
 from ..unitutil.mock import ANY, call, class_mock, instance_mock, method_mock
@@ -423,3 +425,152 @@ class DescribeXyWorkbookWriter(object):
     @pytest.fixture
     def worksheet_(self, request):
         return instance_mock(request, Worksheet)
+
+
+class Describe_parse_sheet_range_ref(object):
+    """Unit-test suite for `pptx.chart.xlsx.parse_sheet_range_ref`."""
+
+    @pytest.mark.parametrize(
+        "ref, expected_sheet, expected_cells",
+        [
+            ("Sheet1!$A$1", "Sheet1", [(1, 1)]),
+            ("Sheet1!$B$2:$B$4", "Sheet1", [(2, 2), (3, 2), (4, 2)]),
+            ("Sheet1!A2:B3", "Sheet1", [(2, 1), (2, 2), (3, 1), (3, 2)]),
+            ("'My Sheet'!$A$1:$A$2", "My Sheet", [(1, 1), (2, 1)]),
+            ("'O''Brien'!$A$1", "O'Brien", [(1, 1)]),
+            ("Sheet1!$B$4:$B$2", "Sheet1", [(2, 2), (3, 2), (4, 2)]),
+            ("Sheet1!$AA$1:$AB$1", "Sheet1", [(1, 27), (1, 28)]),
+        ],
+    )
+    def it_parses_common_formula_refs(self, ref, expected_sheet, expected_cells):
+        sheet, cells = parse_sheet_range_ref(ref)
+        assert sheet == expected_sheet
+        assert cells == expected_cells
+
+    @pytest.mark.parametrize(
+        "ref",
+        [
+            None,
+            "",
+            "Sheet1",
+            "Sheet1!$A$1,$B$2",
+            "='Other.xlsx'!Range",
+            "42",
+        ],
+    )
+    def it_returns_None_for_unsupported_refs(self, ref):
+        assert parse_sheet_range_ref(ref) is None
+
+
+class DescribeWorkbookReader(object):
+    """Unit-test suite for `pptx.chart.xlsx.WorkbookReader`."""
+
+    def it_reads_numeric_and_shared_string_cells(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData>'
+                '<row r="1"><c r="A1" t="s"><v>0</v></c>'
+                '<c r="B1"><v>1.5</v></c></row>'
+                '<row r="2"><c r="A2" t="s"><v>1</v></c>'
+                '<c r="B2"><v>42</v></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=("East", "West"),
+        )
+        with WorkbookReader(blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == "East"
+            assert reader.cell_value("Sheet1", 2, 1) == "West"
+            assert reader.cell_value("Sheet1", 1, 2) == 1.5
+            assert reader.cell_value("Sheet1", 2, 2) == 42.0
+
+    def it_returns_None_for_missing_cells(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>7</v></c></row></sheetData>'
+                '</worksheet>'
+            ),
+            shared_strings=(),
+        )
+        with WorkbookReader(blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == 7.0
+            assert reader.cell_value("Sheet1", 99, 99) is None
+
+    def it_supports_inline_strings(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData>'
+                '<row r="1"><c r="A1" t="inlineStr"><is><t>Inline</t></is></c></row>'
+                '</sheetData></worksheet>'
+            ),
+            shared_strings=(),
+        )
+        with WorkbookReader(blob) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) == "Inline"
+
+    def it_falls_back_to_the_first_sheet_when_the_name_is_unknown(self):
+        blob = _make_xlsx_blob(
+            sheet=(
+                '<?xml version="1.0"?>'
+                '<worksheet xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                '<sheetData><row r="1"><c r="A1"><v>5</v></c></row></sheetData>'
+                '</worksheet>'
+            ),
+            shared_strings=(),
+        )
+        with WorkbookReader(blob) as reader:
+            assert reader.cell_value("CustomName", 1, 1) == 5.0
+
+    def it_returns_None_when_the_workbook_has_no_sheets(self):
+        buf = io.BytesIO()
+        import zipfile as _zipfile
+
+        with _zipfile.ZipFile(buf, "w") as z:
+            z.writestr("dummy.txt", "not a real workbook")
+        with WorkbookReader(buf.getvalue()) as reader:
+            assert reader.cell_value("Sheet1", 1, 1) is None
+
+
+def _make_xlsx_blob(sheet, shared_strings):
+    """Build a minimal xlsx blob with one sheet and optional sharedStrings."""
+    import zipfile as _zipfile
+
+    workbook_xml = (
+        '<?xml version="1.0"?>'
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+        ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets>'
+        "</workbook>"
+    )
+    rels_xml = (
+        '<?xml version="1.0"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+        'relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        "</Relationships>"
+    )
+    buf = io.BytesIO()
+    with _zipfile.ZipFile(buf, "w") as z:
+        z.writestr("xl/workbook.xml", workbook_xml)
+        z.writestr("xl/_rels/workbook.xml.rels", rels_xml)
+        z.writestr("xl/worksheets/sheet1.xml", sheet)
+        if shared_strings:
+            sst_xml = (
+                '<?xml version="1.0"?>'
+                '<sst xmlns='
+                '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                + "".join("<si><t>{}</t></si>".format(s) for s in shared_strings)
+                + "</sst>"
+            )
+            z.writestr("xl/sharedStrings.xml", sst_xml)
+    return buf.getvalue()

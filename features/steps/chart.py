@@ -378,3 +378,96 @@ def then_the_chart_has_new_chart_data(context):
     orig_xlsx_sha1 = context.xlsx_sha1
     new_xlsx_sha1 = hashlib.sha1(context.chart._workbook.xlsx_part.blob).hexdigest()
     assert new_xlsx_sha1 != orig_xlsx_sha1
+
+
+# --- steps for cht-update-cache.feature ---------------------------------
+
+
+@given("a chart whose embedded workbook has been updated externally")
+def given_a_chart_with_externally_updated_workbook(context):
+    import io as _io
+    import re as _re
+    import zipfile as _zipfile
+
+    # --- build a chart with known initial values/labels ---
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["Old-A", "Old-B", "Old-C"]
+    chart_data.add_series("Old-Series", (1.0, 2.0, 3.0))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        chart_data,
+    ).chart
+
+    # --- externally rewrite the embedded xlsx: replace numeric cells and
+    #     shared strings without touching the sheet-level shared-string
+    #     index lookups (so this only changes the data, not the structure) ---
+    blob = chart._workbook.xlsx_part.blob
+    with _zipfile.ZipFile(_io.BytesIO(blob)) as z:
+        files = {n: z.read(n) for n in z.namelist()}
+
+    sheet = files["xl/worksheets/sheet1.xml"].decode()
+    # Only numeric cells: pattern `s="1"` and no `t="s"`, with numeric `<v>`.
+    def _bump(m):
+        addr = m.group("addr")
+        val = m.group("val")
+        try:
+            new = float(val) * 10
+        except ValueError:
+            new = val
+        return '<c r="%s" s="1"><v>%s</v></c>' % (addr, new)
+
+    new_sheet = _re.sub(
+        r'<c r="(?P<addr>[A-Z]+\d+)" s="1"><v>(?P<val>[^<]+)</v></c>',
+        _bump,
+        sheet,
+    )
+
+    ss = files["xl/sharedStrings.xml"].decode()
+    new_ss = (
+        ss.replace("<t>Old-A</t>", "<t>New-A</t>")
+        .replace("<t>Old-B</t>", "<t>New-B</t>")
+        .replace("<t>Old-C</t>", "<t>New-C</t>")
+        .replace("<t>Old-Series</t>", "<t>New-Series</t>")
+    )
+    files["xl/worksheets/sheet1.xml"] = new_sheet.encode()
+    files["xl/sharedStrings.xml"] = new_ss.encode()
+    buf = _io.BytesIO()
+    with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as z:
+        for n, b in files.items():
+            z.writestr(n, b)
+    chart._workbook.xlsx_part.blob = buf.getvalue()
+
+    context.chart = chart
+
+
+@when("I call chart.update_cached_values()")
+def when_I_call_chart_update_cached_values(context):
+    context.chart.update_cached_values()
+
+
+@then("the cached series values match the embedded workbook")
+def then_cached_series_values_match_the_embedded_workbook(context):
+    chart = context.chart
+    series = chart.series[0]
+    # --- values should now be 10.0, 20.0, 30.0 ---
+    assert tuple(series.values) == (10.0, 20.0, 30.0), tuple(series.values)
+
+
+@then("the cached category labels match the embedded workbook")
+def then_cached_category_labels_match_the_embedded_workbook(context):
+    chart = context.chart
+    labels = [c.label for c in chart.plots[0].categories]
+    assert labels == ["New-A", "New-B", "New-C"], labels
+
+
+@then("the cached series name matches the embedded workbook")
+def then_cached_series_name_matches_the_embedded_workbook(context):
+    chart = context.chart
+    series = chart.series[0]
+    assert series.name == "New-Series", series.name

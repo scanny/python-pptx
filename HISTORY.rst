@@ -3,6 +3,16 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- feat: #381 How to get refresh the showing of picture or chart when I
+  updated the embedded excel data? — add
+  :meth:`Chart.update_cached_values` which re-reads the embedded Excel
+  workbook and rewrites the ``c:numCache`` / ``c:strCache`` entries in
+  chart XML so the chart displays the workbook's current values without
+  requiring PowerPoint's own *Refresh Data* action.
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

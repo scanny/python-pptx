@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from lxml import etree
+
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
 from pptx.chart.series import SeriesCollection
+from pptx.chart.xlsx import WorkbookReader, parse_sheet_range_ref
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
 from pptx.dml.chtfmt import ChartFormat
+from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
@@ -166,6 +170,36 @@ class Chart(PartElementProxy):
         rewriter.replace_series_data(self._chartSpace)
         self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
 
+    def update_cached_values(self):
+        """Rewrite cached chart values from the embedded Excel worksheet.
+
+        PowerPoint stores the values displayed in a chart in two places: the
+        embedded `.xlsx` workbook that is the authored data source, and a
+        set of XML caches (``c:numCache`` / ``c:strCache``) living under the
+        chart XML. When the workbook is edited by an external tool, only the
+        embedded copy changes; the cached XML still holds the old values and
+        keeps getting displayed until PowerPoint itself refreshes the chart
+        (typically on open via an F5 / "refresh data" action). Users that
+        round-trip a file through python-pptx therefore see stale values.
+
+        This method re-reads the embedded workbook, looks up each cell
+        reference recorded in a ``<c:f>`` formula element under the chart,
+        and rewrites the sibling ``c:numCache`` / ``c:strCache`` so the
+        cached values match the workbook again. Categories, series names,
+        and numeric values are all refreshed. When a cell reference cannot
+        be resolved — for example because the chart is linked to an
+        external workbook that is not embedded, or the referenced sheet is
+        absent — the corresponding cache is left untouched.
+
+        This is a no-op for charts that do not have an embedded workbook
+        (i.e. ``<c:externalData>`` is absent from the chart XML).
+        """
+        xlsx_part = self._workbook.xlsx_part
+        if xlsx_part is None:
+            return
+        with WorkbookReader(xlsx_part.blob) as reader:
+            _ChartCacheRefresher(self._chartSpace, reader).refresh()
+
     @lazyproperty
     def series(self):
         """
@@ -252,6 +286,149 @@ class ChartTitle(ElementProxy):
         """
         rich = self._title.get_or_add_tx_rich()
         return TextFrame(rich, self)
+
+
+class _ChartCacheRefresher(object):
+    """Rewrite `c:numCache`/`c:strCache` trees under a `c:chartSpace` from xlsx.
+
+    Iterates every `c:numRef` and `c:strRef` descendant of `chartSpace`,
+    reads the sibling `c:f` formula reference, resolves the referenced
+    cells in `reader`, and replaces the cache subtree with fresh
+    `c:numCache` / `c:strCache` elements. A reference that cannot be
+    resolved (unknown sheet, multi-range `f`, etc.) is left untouched so
+    the chart still renders with whatever was there before.
+    """
+
+    def __init__(self, chartSpace, reader):
+        self._chartSpace = chartSpace
+        self._reader = reader
+
+    def refresh(self):
+        for numRef in self._chartSpace.iter(qn("c:numRef")):
+            self._refresh_numRef(numRef)
+        for strRef in self._chartSpace.iter(qn("c:strRef")):
+            self._refresh_strRef(strRef)
+
+    # -- numRef -----------------------------------------------------------
+
+    def _refresh_numRef(self, numRef):
+        values, format_code = self._resolve_numRef(numRef)
+        if values is None:
+            return
+        self._replace_numCache(numRef, values, format_code)
+
+    def _resolve_numRef(self, numRef):
+        """Return `(values, format_code)` for `numRef` or `(None, None)`.
+
+        `values` is a list whose elements are floats or |None| (for empty
+        cells). `format_code` preserves any existing ``c:formatCode`` so the
+        refresh doesn't silently drop number-format metadata.
+        """
+        f_elm = numRef.find(qn("c:f"))
+        if f_elm is None or not f_elm.text:
+            return None, None
+        parsed = parse_sheet_range_ref(f_elm.text)
+        if parsed is None:
+            return None, None
+        sheet_name, cells = parsed
+        values = []
+        for row, col in cells:
+            v = self._reader.cell_value(sheet_name, row, col)
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                values.append(float(v))
+            elif v is None:
+                values.append(None)
+            else:
+                # --- non-numeric value in a numRef; try to coerce, else keep None ---
+                try:
+                    values.append(float(v))
+                except (TypeError, ValueError):
+                    values.append(None)
+        # --- preserve existing format code if present ---
+        old_cache = numRef.find(qn("c:numCache"))
+        format_code = None
+        if old_cache is not None:
+            fmt_elm = old_cache.find(qn("c:formatCode"))
+            if fmt_elm is not None:
+                format_code = fmt_elm.text
+        return values, format_code
+
+    def _replace_numCache(self, numRef, values, format_code):
+        # --- remove existing numCache/numLit siblings (replace) ---
+        for tag in ("c:numCache", "c:numLit"):
+            for child in numRef.findall(qn(tag)):
+                numRef.remove(child)
+        cache = etree.SubElement(numRef, qn("c:numCache"))
+        if format_code is not None:
+            fmt = etree.SubElement(cache, qn("c:formatCode"))
+            fmt.text = format_code
+        ptCount = etree.SubElement(cache, qn("c:ptCount"))
+        ptCount.set("val", str(len(values)))
+        for idx, v in enumerate(values):
+            if v is None:
+                continue
+            pt = etree.SubElement(cache, qn("c:pt"))
+            pt.set("idx", str(idx))
+            v_elm = etree.SubElement(pt, qn("c:v"))
+            v_elm.text = _format_numeric(v)
+
+    # -- strRef -----------------------------------------------------------
+
+    def _refresh_strRef(self, strRef):
+        values = self._resolve_strRef(strRef)
+        if values is None:
+            return
+        self._replace_strCache(strRef, values)
+
+    def _resolve_strRef(self, strRef):
+        f_elm = strRef.find(qn("c:f"))
+        if f_elm is None or not f_elm.text:
+            return None
+        parsed = parse_sheet_range_ref(f_elm.text)
+        if parsed is None:
+            return None
+        sheet_name, cells = parsed
+        values = []
+        for row, col in cells:
+            v = self._reader.cell_value(sheet_name, row, col)
+            if v is None:
+                values.append(None)
+            elif isinstance(v, bool):
+                values.append("TRUE" if v else "FALSE")
+            elif isinstance(v, float):
+                # --- format without trailing ".0" for whole numbers, to
+                #     match PowerPoint's own strCache output ---
+                if v.is_integer():
+                    values.append(str(int(v)))
+                else:
+                    values.append(repr(v))
+            else:
+                values.append(str(v))
+        return values
+
+    def _replace_strCache(self, strRef, values):
+        for tag in ("c:strCache", "c:strLit"):
+            for child in strRef.findall(qn(tag)):
+                strRef.remove(child)
+        cache = etree.SubElement(strRef, qn("c:strCache"))
+        ptCount = etree.SubElement(cache, qn("c:ptCount"))
+        ptCount.set("val", str(len(values)))
+        for idx, v in enumerate(values):
+            if v is None:
+                continue
+            pt = etree.SubElement(cache, qn("c:pt"))
+            pt.set("idx", str(idx))
+            v_elm = etree.SubElement(pt, qn("c:v"))
+            v_elm.text = v
+
+
+def _format_numeric(value):
+    """Serialize `value` to the form PowerPoint writes into `c:v`."""
+    if value == 0:
+        return "0"
+    if float(value).is_integer():
+        return str(int(value))
+    return repr(float(value))
 
 
 class _Plots(Sequence):
