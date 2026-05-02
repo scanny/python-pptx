@@ -1540,6 +1540,99 @@ class DescribeSlideShapes(object):
 
         assert shapes.find_all_by_name("Missing") == []
 
+    def it_can_enumerate_every_descendant_shape_on_the_slide(self):
+        # --- issue #532: Selection-Pane equivalent walking into any group ---
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Top},"
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=3,name=Group},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Inner1},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=Inner2}"
+            ")"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        names = [shape.name for shape in shapes.descendants()]
+
+        # --- group itself yielded before its children, then the sibling ---
+        assert names == ["Top", "Group", "Inner1", "Inner2"]
+
+    def it_walks_into_nested_groups_during_descendants(self):
+        spTree = element(
+            "p:spTree/("
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=2,name=Outer},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=LeafA},"
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=4,name=Inner},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=DeepLeaf}"
+            ")"
+            ")"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        names = [shape.name for shape in shapes.descendants()]
+
+        assert names == ["Outer", "LeafA", "Inner", "DeepLeaf"]
+
+    def it_returns_top_level_shapes_only_without_groups(self):
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        assert [s.name for s in shapes.descendants()] == ["A", "B"]
+
+    def it_can_get_a_shape_by_name_including_descendants(self):
+        spTree = element(
+            "p:spTree/("
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=2,name=Group 1},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Inner Rect}"
+            ")"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        # -- shallow lookup does not find the grouped shape --
+        assert shapes.get_by_name("Inner Rect") is None
+        # -- include_descendants walks into the group --
+        match = shapes.get_by_name("Inner Rect", include_descendants=True)
+        assert match is not None
+        assert match.name == "Inner Rect"
+
+    def it_can_find_all_shapes_by_name_including_descendants(self):
+        # -- two shapes named "Duplicate": one top-level, one nested --
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Duplicate},"
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=3,name=Group},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Duplicate}"
+            ")"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        # -- shallow search only finds the top-level one --
+        assert [m.shape_id for m in shapes.find_all_by_name("Duplicate")] == [2]
+        # -- deep search finds both in z-order (backmost first) --
+        assert [
+            m.shape_id
+            for m in shapes.find_all_by_name("Duplicate", include_descendants=True)
+        ] == [2, 4]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

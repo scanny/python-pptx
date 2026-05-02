@@ -377,6 +377,23 @@ class Slide(_BaseSlide):
         """Sequence of shape objects appearing on this slide."""
         return SlideShapes(self._element.spTree, self)
 
+    @property
+    def shape_tree_flat(self) -> Iterator[BaseShape]:
+        """Iterator over every shape on this slide, including descendants of groups.
+
+        Mirrors PowerPoint's Selection Pane: each shape PowerPoint would list —
+        top-level shapes plus every shape nested inside a :class:`.GroupShape`
+        at arbitrary depth — is yielded in document (z-order) sequence. Group
+        shapes themselves are yielded *before* their children so the caller
+        sees the container alongside its contents.
+
+        Convenience wrapper around :meth:`SlideShapes.descendants`; use the
+        latter directly when you need it on a layout, master, or notes slide.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self.shapes.descendants()
+
     def find_shapes_by_xpath(self, xpath_expr: str) -> list[BaseShape]:
         """Return shapes matching `xpath_expr` evaluated against this slide's ``p:spTree``.
 

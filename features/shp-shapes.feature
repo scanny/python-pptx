@@ -483,3 +483,18 @@ Feature: Access a shape on a slide
       And shape.has_math_equation is False for non-equation shapes
       And shape.math_equation_xml returns the raw OMML XML
       And shape.math_equation_xml is None for non-equation shapes
+
+
+  # -- issue #532: PowerPoint's Selection Pane lists every shape on a slide,
+  # -- including the contents of every group. `slide.shape_tree_flat` and
+  # -- `SlideShapes.descendants()` expose the same flat, z-ordered sequence.
+  Scenario: Slide.shape_tree_flat enumerates every shape including descendants
+    Given a slide with 1 top-level shape plus a group of 3 shapes
+     Then len(list(slide.shape_tree_flat)) == 5
+      And slide.shape_tree_flat yields the group before its children
+      And slide.shapes.descendants() matches slide.shape_tree_flat
+
+  Scenario: SlideShapes.get_by_name(include_descendants=True) walks into groups
+    Given a slide with 1 top-level shape plus a group of 3 shapes
+     Then shapes.get_by_name of an inner-group shape is None by default
+      And shapes.get_by_name of an inner-group shape with include_descendants finds it

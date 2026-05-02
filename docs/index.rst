@@ -79,6 +79,13 @@ Feature Support
 * Ungroup a :class:`.GroupShape` in place via :meth:`.GroupShape.ungroup`,
   hoisting each child onto the slide at its slide-relative effective rectangle
 
+* Enumerate every shape on a slide — including the descendants of any group,
+  at any nesting depth — via :attr:`.Slide.shape_tree_flat` (or the
+  :meth:`.SlideShapes.descendants` iterator it wraps). Mirrors PowerPoint's
+  Selection Pane listing. :meth:`.SlideShapes.get_by_name` and
+  :meth:`.SlideShapes.find_all_by_name` gained an ``include_descendants``
+  keyword that flips their search to the same flat traversal
+
 * Read and write the text-highlight (text-background) color on a run via
   :attr:`Font.highlight_color` (RGB or theme color) — the swatch PowerPoint
   exposes as the text background-color marker on the Home ribbon
