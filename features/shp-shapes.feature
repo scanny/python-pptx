@@ -257,6 +257,19 @@ Feature: Access a shape on a slide
       And the a:audioFile element is present on the movie shape
 
 
+  # -- issue #954: add_movie() used to append a fresh `p:timing` element
+  # -- as a direct child of `p:sld`, ignoring any pre-existing `p:timing`
+  # -- that PowerPoint had wrapped inside `mc:AlternateContent/mc:Choice`
+  # -- (the 2010+ extension form). The result was a duplicate `p:timing`.
+  # -- The fix merges the new `p:video` into the wrapped `p:timing` instead.
+  Scenario: SlideShapes.add_movie() on a slide with mc:AlternateContent-wrapped timing
+    Given a SlideShapes object whose slide has an mc:AlternateContent-wrapped p:timing
+     When I call shapes.add_movie(file, x, y, cx, cy, poster_frame)
+     Then movie is a Movie object
+      And the slide has exactly one p:timing element
+      And the movie shape's p:video entry sits inside that p:timing
+
+
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file

@@ -136,8 +136,15 @@ class CT_TimeNodeList(BaseOxmlElement):
 
     @property
     def _next_cTn_id(self):
-        """Next available unique ID (int) for a new `p:cTn` element."""
-        cTn_id_strs = self.xpath("/p:sld/p:timing//p:cTn/@id")
+        """Next available unique ID (int) for a new `p:cTn` element.
+
+        Collects `@id` from every `p:cTn` reachable from the containing
+        `p:sld` document root, including `p:cTn` elements nested inside
+        an ``mc:AlternateContent``/``mc:Choice`` (or ``mc:Fallback``)
+        wrapper. A plain ``/p:sld/p:timing//p:cTn/@id`` xpath misses
+        the wrapped variant and would mint a duplicate id (issue #954).
+        """
+        cTn_id_strs = self.xpath("/p:sld//p:cTn/@id")
         ids = [int(id_str) for id_str in cTn_id_strs]
         return max(ids) + 1 if ids else 1
 

@@ -99,3 +99,97 @@
     </p:tnLst>
   </p:timing>
 </p:sld>
+
+<p:sld xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree/>
+  </p:cSld>
+  <mc:AlternateContent>
+    <mc:Choice xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" Requires="p14">
+      <p:timing>
+        <p:tnLst>
+          <p:par>
+            <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+              <p:childTnLst>
+                <p:video>
+                  <p:cMediaNode vol="80000">
+                    <p:cTn id="2" fill="hold" display="0">
+                      <p:stCondLst>
+                        <p:cond delay="indefinite"/>
+                      </p:stCondLst>
+                    </p:cTn>
+                    <p:tgtEl>
+                      <p:spTgt spid="7"/>
+                    </p:tgtEl>
+                  </p:cMediaNode>
+                </p:video>
+              </p:childTnLst>
+            </p:cTn>
+          </p:par>
+        </p:tnLst>
+      </p:timing>
+    </mc:Choice>
+    <mc:Fallback>
+      <p:timing>
+        <p:tnLst>
+          <p:par>
+            <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"/>
+          </p:par>
+        </p:tnLst>
+      </p:timing>
+    </mc:Fallback>
+  </mc:AlternateContent>
+</p:sld>
+
+<p:sld xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree/>
+  </p:cSld>
+  <mc:AlternateContent>
+    <mc:Choice xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" Requires="p14">
+      <p:timing>
+        <p:tnLst>
+          <p:par>
+            <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+              <p:childTnLst>
+                <p:video>
+                  <p:cMediaNode vol="80000">
+                    <p:cTn id="2" fill="hold" display="0">
+                      <p:stCondLst>
+                        <p:cond delay="indefinite"/>
+                      </p:stCondLst>
+                    </p:cTn>
+                    <p:tgtEl>
+                      <p:spTgt spid="7"/>
+                    </p:tgtEl>
+                  </p:cMediaNode>
+                </p:video>
+                <p:video>
+                  <p:cMediaNode vol="80000">
+                    <p:cTn id="3" fill="hold" display="0">
+                      <p:stCondLst>
+                        <p:cond delay="indefinite"/>
+                      </p:stCondLst>
+                    </p:cTn>
+                    <p:tgtEl>
+                      <p:spTgt spid="42"/>
+                    </p:tgtEl>
+                  </p:cMediaNode>
+                </p:video>
+              </p:childTnLst>
+            </p:cTn>
+          </p:par>
+        </p:tnLst>
+      </p:timing>
+    </mc:Choice>
+    <mc:Fallback>
+      <p:timing>
+        <p:tnLst>
+          <p:par>
+            <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"/>
+          </p:par>
+        </p:tnLst>
+      </p:timing>
+    </mc:Fallback>
+  </mc:AlternateContent>
+</p:sld>

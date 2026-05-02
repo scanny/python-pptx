@@ -99,6 +99,60 @@ def given_a_SlideShapes_object_containing_a_or_no_movies(context, a_or_no):
     context.shapes = prs.slides[0].shapes
 
 
+@given(
+    "a SlideShapes object whose slide has an "
+    "mc:AlternateContent-wrapped p:timing"
+)
+def given_a_SlideShapes_obj_whose_slide_has_mc_wrapped_timing(context):
+    """Regression fixture for issue #954.
+
+    Builds an in-memory deck whose first slide carries a pre-existing
+    ``p:timing`` element wrapped inside an
+    ``mc:AlternateContent``/``mc:Choice`` block (the form PowerPoint
+    emits when the timing references 2010+ extensions such as a morph
+    trigger). Before the fix, a subsequent ``add_movie()`` call
+    produced a second, orphan ``p:timing`` sibling of the wrapper.
+    """
+    from pptx.oxml import parse_xml
+    from pptx.oxml.ns import nsdecls
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    # --- inject the wrapped timing onto the p:sld element ---
+    sld = slide._element
+    wrapper_xml = (
+        "<mc:AlternateContent %s>\n"
+        '  <mc:Choice xmlns:p14="http://schemas.microsoft.com/office/po'
+        'werpoint/2010/main" Requires="p14">\n'
+        "    <p:timing>\n"
+        "      <p:tnLst>\n"
+        "        <p:par>\n"
+        '          <p:cTn id="1" dur="indefinite" restart="never" '
+        'nodeType="tmRoot">\n'
+        "            <p:childTnLst/>\n"
+        "          </p:cTn>\n"
+        "        </p:par>\n"
+        "      </p:tnLst>\n"
+        "    </p:timing>\n"
+        "  </mc:Choice>\n"
+        "  <mc:Fallback>\n"
+        "    <p:timing>\n"
+        "      <p:tnLst>\n"
+        "        <p:par>\n"
+        '          <p:cTn id="1" dur="indefinite" restart="never" '
+        'nodeType="tmRoot"/>\n'
+        "        </p:par>\n"
+        "      </p:tnLst>\n"
+        "    </p:timing>\n"
+        "  </mc:Fallback>\n"
+        "</mc:AlternateContent>" % nsdecls("p", "mc")
+    )
+    sld.append(parse_xml(wrapper_xml))
+    context.prs = prs
+    context.slide = slide
+    context.shapes = slide.shapes
+
+
 @given("a SlideShapes object from a saved deck already containing a wav audio")
 def given_a_SlideShapes_object_from_a_saved_deck_with_wav_audio(context):
     # -- author a fresh deck that contains a wav audio movie shape, save it to
@@ -584,3 +638,37 @@ def then_shape_math_equation_xml_is_None_for_non_equation_shapes(context):
 def then_the_saved_presentation_reloads_without_error(context):
     """Regression guard for #323 — confirm the layout-audio pptx round-trips."""
     Presentation(saved_pptx_path)
+
+
+@then("the slide has exactly one p:timing element")
+def then_the_slide_has_exactly_one_p_timing_element(context):
+    """Regression guard for issue #954.
+
+    After a ``add_movie()`` call on a slide whose existing ``p:timing``
+    is wrapped inside ``mc:AlternateContent``, the slide must still
+    contain exactly one ``p:timing`` within the preferred-rendering
+    ``mc:Choice`` (the ``mc:Fallback`` copy is ignored) and no second
+    ``p:timing`` sibling of the wrapper.
+    """
+    sld = context.slide._element
+    direct_timings = sld.findall(
+        "{http://schemas.openxmlformats.org/presentationml/2006/main}timing"
+    )
+    assert len(direct_timings) == 0, (
+        "expected no direct p:timing children of p:sld (timing stays wrapped); "
+        "found %d" % len(direct_timings)
+    )
+    choice_timings = sld.xpath("./mc:AlternateContent/mc:Choice/p:timing")
+    assert len(choice_timings) == 1, (
+        "expected exactly one p:timing inside mc:Choice; found %d"
+        % len(choice_timings)
+    )
+
+
+@then("the movie shape's p:video entry sits inside that p:timing")
+def then_the_video_entry_sits_inside_that_timing(context):
+    """Regression guard for issue #954 — ensure the new video was merged
+    into the pre-existing wrapped `p:timing`, not appended elsewhere."""
+    sld = context.slide._element
+    videos = sld.xpath("./mc:AlternateContent/mc:Choice/p:timing//p:video")
+    assert len(videos) >= 1, "expected a p:video inside the wrapped p:timing"

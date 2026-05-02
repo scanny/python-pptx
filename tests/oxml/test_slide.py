@@ -15,6 +15,9 @@ from pptx.oxml.slide import (
     CT_TransitionVariant,
 )
 
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls
+
 from ..unitutil.cxml import element, xml
 from ..unitutil.file import snippet_text
 
@@ -281,3 +284,121 @@ class DescribeCT_TransitionMorph(object):
 
         morph = parse_xml("<p14:morph %s/>" % nsdecls("p14"))
         assert morph.option == "byObject"
+
+
+class DescribeCT_Slide_childTnLst(object):
+    """Regression suite for `pptx.oxml.slide.CT_Slide.get_or_add_childTnLst` (issue #954).
+
+    The helper must locate an existing `p:timing` element whether it
+    sits as a plain direct child of `p:sld` or is wrapped inside an
+    ``mc:AlternateContent``/``mc:Choice`` block (the form PowerPoint
+    emits when timing content references a 2010+ extension such as a
+    morph trigger). Before the fix, the wrapped case was not detected
+    and :meth:`SlideShapes.add_movie` appended a second, orphan
+    ``p:timing`` element alongside the wrapper.
+    """
+
+    def it_reuses_an_unwrapped_existing_timing_childTnLst(self):
+        sld = parse_xml(
+            "<p:sld %s>\n"
+            "  <p:cSld><p:spTree/></p:cSld>\n"
+            "  <p:timing>\n"
+            "    <p:tnLst>\n"
+            "      <p:par>\n"
+            '        <p:cTn id="1" nodeType="tmRoot">\n'
+            "          <p:childTnLst/>\n"
+            "        </p:cTn>\n"
+            "      </p:par>\n"
+            "    </p:tnLst>\n"
+            "  </p:timing>\n"
+            "</p:sld>" % nsdecls("p")
+        )
+        existing_childTnLst = sld.xpath(".//p:childTnLst")[0]
+
+        childTnLst = sld.get_or_add_childTnLst()
+
+        assert childTnLst is existing_childTnLst
+        assert len(sld.xpath("./p:timing")) == 1
+
+    def it_finds_childTnLst_inside_mc_AlternateContent_wrapping(self):
+        """Regression: #954 — mc:AlternateContent-wrapped timing was hidden."""
+        sld = parse_xml(
+            "<p:sld %s>\n"
+            "  <p:cSld><p:spTree/></p:cSld>\n"
+            "  <mc:AlternateContent>\n"
+            '    <mc:Choice xmlns:p14="http://schemas.microsoft.com/office/po'
+            'werpoint/2010/main" Requires="p14">\n'
+            "      <p:timing>\n"
+            "        <p:tnLst>\n"
+            "          <p:par>\n"
+            '            <p:cTn id="1" nodeType="tmRoot">\n'
+            "              <p:childTnLst/>\n"
+            "            </p:cTn>\n"
+            "          </p:par>\n"
+            "        </p:tnLst>\n"
+            "      </p:timing>\n"
+            "    </mc:Choice>\n"
+            "    <mc:Fallback>\n"
+            "      <p:timing/>\n"
+            "    </mc:Fallback>\n"
+            "  </mc:AlternateContent>\n"
+            "</p:sld>" % nsdecls("p", "mc")
+        )
+        # -- the pre-existing childTnLst lives inside mc:Choice --
+        wrapped_childTnLst = sld.xpath(".//mc:Choice/p:timing//p:childTnLst")[0]
+
+        childTnLst = sld.get_or_add_childTnLst()
+
+        # -- the same existing element is returned (no fresh timing created) --
+        assert childTnLst is wrapped_childTnLst
+        # -- and there is NO orphan p:timing added as a direct child of p:sld --
+        assert sld.find(qn("p:timing")) is None
+        # -- the mc:AlternateContent wrapper is left in place --
+        assert sld.find(qn("mc:AlternateContent")) is not None
+        # -- and the whole slide still has exactly one `p:timing` anywhere --
+        assert len(sld.xpath(".//p:timing")) == 2  # one in Choice, one in Fallback
+        # -- counting only Choice's timing gives exactly one --
+        assert len(sld.xpath("./mc:AlternateContent/mc:Choice/p:timing")) == 1
+
+    def it_replaces_a_wrapped_timing_inside_the_wrapper_when_structure_mismatches(
+        self,
+    ):
+        """When wrapped timing lacks the p:tnLst/p:par/p:cTn/p:childTnLst path,
+        the freshly-built replacement stays inside the mc:Choice wrapper."""
+        sld = parse_xml(
+            "<p:sld %s>\n"
+            "  <p:cSld><p:spTree/></p:cSld>\n"
+            "  <mc:AlternateContent>\n"
+            '    <mc:Choice xmlns:p14="http://schemas.microsoft.com/office/po'
+            'werpoint/2010/main" Requires="p14">\n'
+            "      <p:timing>\n"
+            "        <p:bldLst/>\n"
+            "      </p:timing>\n"
+            "    </mc:Choice>\n"
+            "  </mc:AlternateContent>\n"
+            "</p:sld>" % nsdecls("p", "mc")
+        )
+
+        childTnLst = sld.get_or_add_childTnLst()
+
+        # -- no bare p:timing was added to p:sld as a sibling of the wrapper --
+        assert sld.find(qn("p:timing")) is None
+        # -- the wrapper still exists, and its mc:Choice now owns a
+        # --- fresh p:timing with the required descendant ---
+        wrapped_timings = sld.xpath("./mc:AlternateContent/mc:Choice/p:timing")
+        assert len(wrapped_timings) == 1
+        assert wrapped_timings[0].find(qn("p:tnLst")) is not None
+        # -- returned childTnLst is the one inside the new timing ---
+        assert childTnLst.getparent().tag == qn("p:cTn")
+
+    def it_creates_a_fresh_timing_when_none_present(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+
+        childTnLst = sld.get_or_add_childTnLst()
+
+        assert sld.find(qn("p:timing")) is not None
+        # -- newly created `p:timing` sits at the schema-correct position
+        #    (after p:cSld / p:clrMapOvr / p:transition) ---
+        timing = sld.find(qn("p:timing"))
+        assert timing.getparent() is sld
+        assert childTnLst.getparent().tag == qn("p:cTn")

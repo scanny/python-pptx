@@ -1362,6 +1362,11 @@ class DescribeSlideShapes(object):
             (0, 1),  # no timing gets timing with one video
             (1, 2),  # timing with one video gets a second video
             (3, 1),  # timing without p:childTnLst parent gets replaced
+            # -- issue #954: when an existing p:timing is wrapped inside an
+            # -- mc:AlternateContent/mc:Choice the new p:video must be merged
+            # -- into that existing childTnLst, not emitted as a duplicate
+            # -- p:timing sibling of the wrapper.
+            (4, 5),  # mc:AlternateContent-wrapped timing gets a second video
         ]
     )
     def add_timing_fixture(self, request):
