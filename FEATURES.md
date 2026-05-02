@@ -500,6 +500,150 @@ pic.alt_text = "Company logo"
 pic.replace_image("logo-new.png")
 
 # crop edges (fractions of the original image)
+
+# accessibility metadata (issue #508)
+clone.alt_text = "decorative rounded rectangle"
+clone.title = "Decoration"
+
+# swap clone for a freshly-added oval in the same z-slot + geometry
+oval = slide.shapes.add_shape(MSO_SHAPE.OVAL, 0, 0, Inches(1), Inches(1))
+clone.replace_with(oval)
+
+# delete outright
+rect.delete()
+
+# lookup by name
+found = slide.shapes.get_by_name("Oval 4")
+matches = slide.shapes.find_all_by_name("Rectangle 1")
+
+prs.save("out.pptx")
+```
+
+- `BaseShape.shape_id` / `BaseShape.name` / `BaseShape.shape_type` — Core identity.
+- `BaseShape.left` / `.top` / `.width` / `.height` — Raw geometry in the enclosing group's coordinate system.
+- `BaseShape.effective_left` / `.effective_top` / `.effective_width` / `.effective_height` — Slide-relative geometry after group-transform cascade. `[Added in 1.0.2.dev0]`
+- `BaseShape.rotation` — Read/write float degrees.
+- `BaseShape.flip_horizontal` / `BaseShape.flip_vertical` — Read/write `bool`. `[Added in 1.0.2.dev0]`
+- `BaseShape.flip_horizontally()` / `BaseShape.flip_vertically()` — Toggle helpers. `[Added in 1.0.2.dev0]`
+- `BaseShape.is_hidden` — Read/write `bool` (`cNvPr/@hidden`). `[Added in 1.0.2.dev0]`
+- `BaseShape.alt_text` — Read/write `str` accessibility description (`cNvPr/@descr`); empty string when unset. `[Added in 1.0.2.dev0]`
+- `BaseShape.title` — Read/write `str` accessibility title (`cNvPr/@title`); empty string when unset. `[Added in 1.0.2.dev0]`
+- `BaseShape.delete()` — Remove from parent shape tree, tidying relationships. `[Added in 1.0.2.dev0]`
+- `BaseShape.duplicate()` — Deep-clone in place (subclass-aware; `GroupShape.duplicate()` preserves nested relationships). `[Added in 1.0.2.dev0]`
+- `BaseShape.replace_with(other_shape)` — Copy this shape's geometry onto `other_shape`, move it into this shape's z-order, then delete this. `[Added in 1.0.2.dev0]`
+- `BaseShape.bring_to_front()` / `.bring_forward()` / `.send_backward()` / `.send_to_back()` / `.zorder_index` — Z-order. `[Added in 1.0.2.dev0]`
+- `BaseShape.has_text_frame` / `.text_frame` / `.has_chart` / `.has_table` / `.is_placeholder` — Feature probes.
+- `BaseShape.has_math_equation` / `.math_equation_xml` — OMML equation read (see [Math equations](#math-equations)). `[Added in 1.0.2.dev0]`
+- `BaseShape.shadow` — `ShadowFormat` with full read/write `.blur_radius` / `.distance` / `.direction` / `.color` (see [Fills, colors, and effects](#fills-colors-and-effects)).
+- `BaseShape.click_action` — `ActionSetting` (hyperlink / click action).
+- `BaseShape.hover_action` — `ActionSetting` bound to `a:hlinkMouseOver`; parallel to `click_action` for mouse-over behaviors. `[Added in 1.0.2.dev0]`
+- `BaseShape.placeholder_format` — `_PlaceholderFormat` or `None`.
+- `BaseShape.animation` — Read-only `AnimationEffect` proxy for this shape's main-sequence animation. `[Added in 1.0.2.dev0]`
+- `BaseShape.set_animation(effect_type, trigger="onClick", delay=0)` — Author an entrance/exit/emphasis preset (see [Animations and transitions](#animations-and-transitions)). `[Added in 1.0.2.dev0]`
+- `BaseShape.element` — Underlying oxml element.
+- `SlideShapes.add_shape(shape_type, left, top, width, height)` — Add an autoshape.
+- `SlideShapes.add_textbox(left, top, width, height)` — Add a plain text box.
+- `SlideShapes.add_picture(image_file, left, top, width=None, height=None)` — Add an embedded picture (see [Pictures](#pictures)).
+- `SlideShapes.add_picture_link(url, left, top, width=None, height=None)` — Add a linked (external URL) picture. `[Added in 1.0.2.dev0]`
+- `SlideShapes.add_connector(connector_type, begin_x, begin_y, end_x, end_y)` — Add a straight connector.
+- `SlideShapes.add_group_shape(shapes=())` — Group existing shapes.
+- `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Add a chart (see [Charts](#charts)).
+- `SlideShapes.add_table(rows, cols, left, top, width, height)` — Add a table.
+- `SlideShapes.add_movie(...)` — Add a movie / audio (see [Media](#media-audio-and-video)).
+- `SlideShapes.add_ole_object(...)` — Embed an OLE object (see [OLE embedding](#ole-embedding)).
+- `SlideShapes.build_freeform(start_x=0, start_y=0, scale=1.0)` — Freeform builder.
+- `SlideShapes.clone_chart(source_chart, x, y, cx, cy)` — Cross-slide / cross-deck chart duplicate. `[Added in 1.0.2.dev0]`
+- `SlideShapes.get_by_name(name)` / `SlideShapes.find_all_by_name(name)` — Name-based lookup. `[Added in 1.0.2.dev0]`
+- `SlideShapes.title` — The title placeholder, or `None`.
+- `Slide.find_shapes_by_xpath(xpath_expr)` — XPath lookup (Open-XML namespace map pre-bound). `[Added in 1.0.2.dev0]`
+- `GroupShape.shapes` — Child shapes.
+- `GroupShape.duplicate()` — Override placing the clone at the source's slide-relative rectangle, with fresh unique IDs. `[Added in 1.0.2.dev0]`
+
+---
+
+## Autoshapes and connectors
+
+Autoshapes are added via `SlideShapes.add_shape(MSO_SHAPE.*)`. The fork
+adds `MSO_SHAPE.LINE` (so `.auto_shape_type` on a straight-line `prst="line"`
+resolves cleanly), read/write `Connector.adjustments` for elbow and curved
+connectors, and line-end arrow configuration via `LineFormat.begin_arrow` /
+`.end_arrow`.
+
+```python
+from pptx import Presentation
+from pptx.util import Inches
+from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
+from pptx.enum.dml import MSO_LINE_END_TYPE, MSO_LINE_END_WIDTH, MSO_LINE_END_LENGTH
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# autoshape with adjustments (rounded rectangle corner radius)
+rect = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(1), Inches(1), Inches(3), Inches(1),
+)
+rect.adjustments[0] = 0.25
+
+# line autoshape (fork addition: MSO_SHAPE.LINE is recognized)
+line = slide.shapes.add_shape(MSO_SHAPE.LINE,
+                              Inches(1), Inches(3), Inches(2), Inches(0))
+
+# elbow connector with an adjustment
+conn = slide.shapes.add_connector(
+    MSO_CONNECTOR.ELBOW,
+    Inches(1), Inches(4), Inches(5), Inches(5),
+)
+conn.adjustments[0] = 0.25  # bend position
+
+# arrow heads on the connector line
+conn.line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE
+conn.line.end_arrow.width = MSO_LINE_END_WIDTH.LARGE
+conn.line.end_arrow.length = MSO_LINE_END_LENGTH.LARGE
+
+prs.save("out.pptx")
+```
+
+- `Shape.auto_shape_type` / `Shape.adjustments` — Autoshape type and parameter adjustments (returns `None` for unknown `prst` `[Added in 1.0.2.dev0]`).
+- `MSO_SHAPE.LINE` — Enum member for `prst="line"`. `[Added in 1.0.2.dev0]`
+- `Connector.adjustments` — `ConnectorAdjustmentCollection` (indexable `float`). `[Added in 1.0.2.dev0]`
+- `Connector.begin_x` / `.begin_y` / `.end_x` / `.end_y` — Endpoint geometry (read/write).
+- `Connector.begin_connect(shape, cxn_pt_idx)` / `Connector.end_connect(shape, cxn_pt_idx)` — Snap to a connection point.
+- `Connector.line` — `LineFormat` proxy.
+- `LineFormat.begin_arrow` / `LineFormat.end_arrow` — `LineEndFormat` with `.type`, `.width`, `.length`. `[Added in 1.0.2.dev0]`
+- `LineFormat.color` / `.fill` / `.dash_style` / `.width` — Line formatting.
+- `LineEndFormat.type` — `MSO_LINE_END_TYPE` (NONE / TRIANGLE / STEALTH / DIAMOND / OVAL / OPEN). `[Added in 1.0.2.dev0]`
+- `LineEndFormat.width` — `MSO_LINE_END_WIDTH` (SMALL / MEDIUM / LARGE). `[Added in 1.0.2.dev0]`
+- `LineEndFormat.length` — `MSO_LINE_END_LENGTH` (SMALL / MEDIUM / LARGE). `[Added in 1.0.2.dev0]`
+
+---
+
+## Pictures
+
+`SlideShapes.add_picture()` embeds a new picture; the fork adds
+`add_picture_link()` for external-URL references, `Picture.replace_image()`
+for swapping the image bytes while keeping position / size / crop, MPO image
+detection, and SVG input that raises the dedicated
+`UnsupportedImageTypeError` instead of Pillow's opaque exception.
+
+```python
+from io import BytesIO
+from pptx import Presentation
+from pptx.util import Inches
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# embed (use any small PNG bytes)
+png = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xcf"
+    b"\xc0\x00\x00\x00\x03\x00\x01\xde\xfb\xc4f\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+pic = slide.shapes.add_picture(BytesIO(png), Inches(1), Inches(1),
+                               Inches(1), Inches(1))
+
+# crop
 pic.crop_left = 0.05
 pic.crop_right = 0.05
 
@@ -1479,8 +1623,10 @@ Shapes and runs support click-actions and hyperlinks. `ActionSetting`
 covers both a plain hyperlink and the PowerPoint-specific "click actions"
 (jump to slide, run program, play sound, etc.). The fork adds
 `ActionSetting.screen_tip` (hover tooltip), `set_sound()` /
-`remove_sound()` / `sound`, jump-to-named-slide targets for runs, and
-`Font.use_theme_hyperlink_color` to override the hyperlink color.
+`remove_sound()` / `sound`, jump-to-named-slide targets for runs,
+`BaseShape.hover_action` (the mouse-over counterpart of `click_action`,
+backed by `a:hlinkMouseOver`), and `Font.use_theme_hyperlink_color` to
+override the hyperlink color.
 
 ```python
 from pptx import Presentation
@@ -1508,6 +1654,14 @@ rect2 = slide1.shapes.add_shape(
 )
 rect2.click_action.target_slide = slide2
 
+# mouse-over action: hyperlink that fires as the pointer passes over the shape
+rect3 = slide1.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE,
+    Inches(1), Inches(3), Inches(2), Inches(1),
+)
+rect3.hover_action.hyperlink.address = "https://example.net/"
+rect3.hover_action.screen_tip = "Hover to open"
+
 # run-level hyperlink via a run's font / hyperlink
 tb = slide1.shapes.add_textbox(Inches(1), Inches(3), Inches(4), Inches(0.5))
 p = tb.text_frame.paragraphs[0]
@@ -1520,6 +1674,7 @@ prs.save("out.pptx")
 ```
 
 - `BaseShape.click_action` — `ActionSetting`.
+- `BaseShape.hover_action` — `ActionSetting` bound to `a:hlinkMouseOver`; parallel surface (`.action`, `.hyperlink`, `.target_slide`, `.screen_tip`, `.set_sound()` / `.remove_sound()` / `.sound`) for mouse-hover behaviors. `[Added in 1.0.2.dev0]`
 - `ActionSetting.hyperlink` — `Hyperlink` proxy with `.address` (read/write URL).
 - `ActionSetting.action` — `PP_ACTION` (HYPERLINK, FIRST_SLIDE, NEXT_SLIDE, PREVIOUS_SLIDE, LAST_SLIDE, NAMED_SLIDE, END_SHOW, RUN_PROGRAM, ...).
 - `ActionSetting.target_slide` — Read/write `Slide` (auto-sets `action` to `NAMED_SLIDE`).

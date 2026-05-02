@@ -100,3 +100,28 @@ Feature: Get and set click action properties
       And a WAV sound attached as click_action.sound
      When I call click_action.remove_sound
      Then click_action.sound is None
+
+
+  Scenario: Get BaseShape.hover_action returns an ActionSetting
+    Given a shape having click action none
+     Then hover_action is an ActionSetting object
+      And hover_action.action is NONE
+
+  Scenario: Set hover_action.hyperlink.address writes a:hlinkMouseOver
+    Given a shape having click action none
+     When I assign https://example.com/hover to hover_action.hyperlink.address
+     Then hover_action.action is HYPERLINK
+      And hover_action.hyperlink.address is https://example.com/hover
+      And click_action.hyperlink.address is None
+
+  Scenario: Set hover_action.target_slide jumps on mouse-over
+    Given a shape having click action none
+      And another slide in the deck as slide
+     When I assign slide to hover_action.target_slide
+     Then hover_action.action is NAMED_SLIDE
+      And hover_action.target_slide is slide
+
+  Scenario: hover_action.screen_tip writes the hover tooltip
+    Given a shape having click action none
+     When I assign Hover me to hover_action.screen_tip
+     Then hover_action.screen_tip is Hover me

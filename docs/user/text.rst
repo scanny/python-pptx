@@ -472,6 +472,33 @@ Remove an attached sound with
     shape.click_action.remove_sound()
 
 
+Mouse-hover actions
+-------------------
+
+Alongside :attr:`~pptx.shapes.base.BaseShape.click_action`, every shape
+also exposes :attr:`~pptx.shapes.base.BaseShape.hover_action` — an
+:class:`~pptx.action.ActionSetting` proxy that reads and writes the
+shape's ``a:hlinkMouseOver`` element instead of ``a:hlinkClick``. A
+hover action fires as the slideshow viewer's mouse pointer passes over
+the shape, without a click being required.
+
+The proxy exposes the same API surface as ``click_action``::
+
+    # -- attach a URL that opens on mouse-over --
+    shape.hover_action.hyperlink.address = "https://example.com/"
+    shape.hover_action.screen_tip = "Hover to open"
+
+    # -- jump to another slide when the pointer passes over the shape --
+    shape.hover_action.target_slide = slides[3]
+
+    # -- play a WAV sound on mouse-over --
+    shape.hover_action.set_sound("chime.wav")
+    shape.hover_action.remove_sound()
+
+Click and hover actions are independent: setting one does not affect the
+other, so a shape can carry separate behaviors for click and mouse-over.
+
+
 .. _templating-text:
 
 Templating text

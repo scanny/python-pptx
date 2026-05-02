@@ -6,7 +6,7 @@ from behave import given, then, when
 from helpers import test_file
 
 from pptx import Presentation
-from pptx.action import Hyperlink, Sound
+from pptx.action import ActionSetting, Hyperlink, Sound
 from pptx.enum.action import PP_ACTION
 
 WAV_FILENAME = "act-click-sound.wav"
@@ -54,7 +54,10 @@ def given_a_shape_having_click_action_action(context, action):
     ).index(action)
     slides = Presentation(test_file("act-props.pptm")).slides
     context.slides = slides
-    context.click_action = slides[2].shapes[shape_idx].click_action
+    shape = slides[2].shapes[shape_idx]
+    context.shape = shape
+    context.click_action = shape.click_action
+    context.hover_action = shape.hover_action
 
 
 # when ====================================================
@@ -80,6 +83,23 @@ def when_I_call_click_action_set_sound_with_a_WAV_file(context):
 @when("I call click_action.remove_sound")
 def when_I_call_click_action_remove_sound(context):
     context.click_action.remove_sound()
+
+
+@when("I assign {value} to hover_action.hyperlink.address")
+def when_I_assign_value_to_hover_action_hyperlink_address(context, value):
+    value = None if value == "None" else value
+    context.hover_action.hyperlink.address = value
+
+
+@when("I assign {value} to hover_action.target_slide")
+def when_I_assign_value_to_hover_action_target_slide(context, value):
+    rhs = {"None": None, "slide": context.slide}[value]
+    context.hover_action.target_slide = rhs
+
+
+@when("I assign {value} to hover_action.screen_tip")
+def when_I_assign_value_to_hover_action_screen_tip(context, value):
+    context.hover_action.screen_tip = None if value == "None" else value
 
 
 # then ====================================================
@@ -142,3 +162,46 @@ def then_click_action_target_slide_is_value(context, value):
 
     click_action = context.click_action
     assert click_action.target_slide == expected_value
+
+
+@then("hover_action is an ActionSetting object")
+def then_hover_action_is_an_ActionSetting_object(context):
+    assert isinstance(context.hover_action, ActionSetting)
+
+
+@then("hover_action.action is {member_name}")
+def then_hover_action_action_is_value(context, member_name):
+    expected_value = getattr(PP_ACTION, member_name)
+    assert context.hover_action.action == expected_value, (
+        "expected %s, got %s" % (expected_value, context.hover_action.action)
+    )
+
+
+@then("hover_action.hyperlink.address is {value}")
+def then_hover_action_hyperlink_address_is_value(context, value):
+    expected_value = None if value == "None" else value
+    address = context.hover_action.hyperlink.address
+    assert address == expected_value, (
+        "expected %s, got %s" % (expected_value, address)
+    )
+
+
+@then("hover_action.target_slide is {value}")
+def then_hover_action_target_slide_is_value(context, value):
+    if value.startswith("slides["):
+        idx = value[7]
+        expected_value = context.slides[int(idx)]
+    elif value == "None":
+        expected_value = None
+    else:
+        expected_value = context.slide
+
+    assert context.hover_action.target_slide == expected_value
+
+
+@then("hover_action.screen_tip is {value}")
+def then_hover_action_screen_tip_is_value(context, value):
+    expected_value = None if value == "None" else value
+    assert context.hover_action.screen_tip == expected_value, (
+        "expected %r, got %r" % (expected_value, context.hover_action.screen_tip)
+    )

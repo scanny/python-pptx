@@ -294,6 +294,20 @@ class BaseShape(object):
         cNvPr = self._element._nvXxPr.cNvPr  # pyright: ignore[reportPrivateUsage]
         return ActionSetting(cNvPr, self)
 
+    @lazyproperty
+    def hover_action(self) -> ActionSetting:
+        """|ActionSetting| instance providing access to mouse-hover behaviors.
+
+        Parallel to :attr:`click_action`, but backed by the shape's
+        ``a:hlinkMouseOver`` (``a:hlinkHover``) element rather than
+        ``a:hlinkClick``. A hover action fires when the slideshow viewer's
+        mouse pointer passes over the shape, without a click being required.
+        An |ActionSetting| object is always returned, even when no hover
+        behavior is defined on the shape.
+        """
+        cNvPr = self._element._nvXxPr.cNvPr  # pyright: ignore[reportPrivateUsage]
+        return ActionSetting(cNvPr, self, hover=True)
+
     def delete(self) -> None:
         """Remove this shape from the slide it appears on.
 
