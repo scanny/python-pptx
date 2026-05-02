@@ -625,3 +625,114 @@ class DescribeSound(object):
 
         assert sound.blob == b"RIFFWAVE..."
         part_.related_part.assert_called_once_with("rId2")
+
+
+class Describe_Issue782_SoundAccess(object):
+    """Regression suite pinning the issue #782 programmatic-sound-access contract.
+
+    Issue #782 asked for the ability to *access* click/hover-action sounds
+    programmatically (read name + blob, attach a new sound, remove one). Wave 2
+    #734 shipped that surface (``ActionSetting.sound``, ``.set_sound()``,
+    ``.remove_sound()`` plus the ``Sound`` view and ``Audio`` value object).
+    This suite round-trips those entry points at the proxy-object level so a
+    future refactor cannot silently regress the user-visible API.
+    """
+
+    def it_reads_an_existing_snd_via_ActionSetting_sound(self, request):
+        # -- read path: `<a:snd>` under `<a:hlinkClick>` surfaces as a Sound --
+        part_ = instance_mock(request, SlidePart)
+        media_part_ = instance_mock(request, SlidePart)
+        media_part_.blob = b"RIFFWAV_payload"
+        part_.related_part.return_value = media_part_
+        property_mock(request, ActionSetting, "part").return_value = part_
+        cNvPr = element(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId2,name=applause.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None)
+
+        sound = action_setting.sound
+
+        assert sound is not None
+        assert sound.name == "applause.wav"
+        assert sound.rId == "rId2"
+        assert sound.blob == b"RIFFWAV_payload"
+
+    def it_attaches_a_sound_via_ActionSetting_set_sound(self, request):
+        # -- write path: set_sound embeds the blob and writes an `<a:snd>` child --
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_sound_media_part.return_value = "rId42"
+        property_mock(request, ActionSetting, "part").return_value = slide_part_
+        # -- {a:a=a,r:r=r} forces the `a:` / `r:` namespace declarations onto
+        # -- the root `p:cNvPr` so the round-tripped XML comparison below is
+        # -- stable regardless of where lxml chooses to place them.
+        action_setting = ActionSetting(element("p:cNvPr{a:a=a,r:r=r}"), None)
+
+        audio = Audio.from_blob(b"RIFFWAVexplicit", "audio/wav", "ding.wav")
+        sound = action_setting.set_sound(audio)
+
+        # -- Audio is threaded through untouched to the media-part helper --
+        (args, _) = slide_part_.get_or_add_sound_media_part.call_args
+        assert args[0] is audio
+        assert sound.name == "ding.wav"
+        assert sound.rId == "rId42"
+        assert action_setting._element.xml == xml(
+            "p:cNvPr{a:a=a,r:r=r}/a:hlinkClick/a:snd{r:embed=rId42,name=ding.wav}"
+        )
+
+    def it_round_trips_read_replace_remove_on_the_same_ActionSetting(self, request):
+        # -- composite scenario: read -> replace -> remove leaves the shape
+        # -- with an empty `<a:hlinkClick>` (hyperlink element preserved) --
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_sound_media_part.return_value = "rId77"
+        property_mock(request, ActionSetting, "part").return_value = slide_part_
+        cNvPr = element(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId9,name=old.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None)
+
+        # (1) read the original sound -------------------------------------
+        original = action_setting.sound
+        assert original is not None
+        assert original.name == "old.wav"
+        assert original.rId == "rId9"
+
+        # (2) replace it with a new sound --------------------------------
+        replacement = action_setting.set_sound(
+            Audio.from_blob(b"RIFF_new", "audio/wav", "new.wav")
+        )
+        assert replacement.rId == "rId77"
+        # -- the prior audio relationship is dropped as part of replace --
+        assert call("rId9") in slide_part_.drop_rel.call_args_list
+
+        # (3) remove the sound completely --------------------------------
+        action_setting.remove_sound()
+        assert action_setting.sound is None
+        # -- hlinkClick itself is retained so any URL/action survives --
+        assert action_setting._element.xml == xml(
+            "p:cNvPr/a:hlinkClick{r:id=rId1}"
+        )
+
+    def it_exposes_sound_on_a_hover_action_through_the_same_surface(self, request):
+        # -- the same property reads from `<a:hlinkHover>` when hover=True --
+        part_ = instance_mock(request, SlidePart)
+        property_mock(request, ActionSetting, "part").return_value = part_
+        cNvPr = element(
+            "p:cNvPr/a:hlinkHover{r:id=rId1}/a:snd{r:embed=rId3,name=hover.wav}"
+        )
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        sound = action_setting.sound
+
+        assert sound is not None
+        assert sound.name == "hover.wav"
+        assert sound.rId == "rId3"
+
+    def it_returns_None_for_an_action_that_has_no_snd(self):
+        # -- and, critically, access is safe when no sound is present --
+        no_hlink = ActionSetting(element("p:cNvPr"), None)
+        hlink_no_snd = ActionSetting(
+            element("p:cNvPr/a:hlinkClick{r:id=rId1}"), None
+        )
+
+        assert no_hlink.sound is None
+        assert hlink_no_snd.sound is None

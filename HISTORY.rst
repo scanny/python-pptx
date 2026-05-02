@@ -6,6 +6,21 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #782 (programmatic access to click-action sounds) resolved by
+  Wave 2 #734. The shipped surface —
+  :attr:`~pptx.action.ActionSetting.sound`,
+  :meth:`~pptx.action.ActionSetting.set_sound`, and
+  :meth:`~pptx.action.ActionSetting.remove_sound`, together with the
+  :class:`~pptx.action.Sound` read-view and the
+  :class:`~pptx.media.Audio` value object — covers every item the
+  reporter asked for: read the sound name and embedded audio bytes from
+  an existing shape, attach a new ``<a:snd>`` to a click or hover
+  action, and remove one without dropping the enclosing hyperlink.
+  Adds a ``Describe_Issue782_SoundAccess`` regression suite in
+  ``tests/test_action.py`` pinning the read / set / replace / remove /
+  hover / missing-sound branches at the proxy-object level so the
+  user-visible contract cannot silently regress.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
