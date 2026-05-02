@@ -48,6 +48,11 @@ Unreleased
   sunburst, waterfall, histogram, box-and-whisker, map) can be created or
   read in detail. Companion to #386 (chartex passthrough) which ships the
   ``UNSUPPORTED_CHARTEX`` sentinel.
+- feat: #130 Shape.shadow and ShadowFormat object. ``ShadowFormat`` now exposes
+  the full outer-shadow property set (``blur_radius``, ``distance``,
+  ``direction``, ``color``) in addition to ``inherit``, and a new
+  ``ChartFormat.shadow`` property surfaces the same API on chart elements like
+  ``Axis.format``, ``Series.format``, and ``MajorGridlines.format``.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and
