@@ -66,6 +66,8 @@ Unreleased
   and a save + reopen round-trip (including the multi-delete case a real
   caller typically needs).
 
+- verify: #303 resolved by #141 secondary axis + #338 combo charts
+
 - docs: #963 "save slide as image" — close as out-of-scope (python-pptx
   does not render slides). Extend the LibreOffice headless example in the
   ``Rendering to video, PDF, or image formats`` section of
