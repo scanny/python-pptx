@@ -18,15 +18,44 @@ if TYPE_CHECKING:
     from pptx.parts.presentation import PresentationPart
 
 
-def Presentation(pptx: str | IO[bytes] | None = None) -> presentation.Presentation:
-    """
-    Return a |Presentation| object loaded from *pptx*, where *pptx* can be
-    either a path to a ``.pptx`` file (a string) or a file-like object. If
-    *pptx* is missing or ``None``, the built-in default presentation
+#: Aspect-ratio preset names accepted by :func:`Presentation`.
+#:
+#: Each key maps to the filename of a built-in template under
+#: ``src/pptx/templates/``. Aliases such as ``"widescreen"`` resolve to the
+#: same template as their canonical name (``"16x9"``).
+_PRESET_TEMPLATES: dict[str, str] = {
+    "4x3": "default.pptx",
+    "standard": "default.pptx",
+    "16x9": "default-16x9.pptx",
+    "widescreen": "default-16x9.pptx",
+}
+
+
+def Presentation(
+    pptx: str | IO[bytes] | None = None,
+    pptx_format: str | None = None,
+) -> presentation.Presentation:
+    """Return a |Presentation| object loaded from *pptx*.
+
+    *pptx* can be either a path to a ``.pptx`` file (a string) or a file-like
+    object. If *pptx* is missing or ``None``, the built-in default presentation
     "template" is loaded.
+
+    When *pptx* is ``None``, *pptx_format* selects the aspect ratio of the
+    built-in template. Accepted values are ``"4x3"`` (also spelled
+    ``"standard"``), ``"16x9"`` (also spelled ``"widescreen"``), and ``None``
+    (the default, which resolves to ``"4x3"`` for backwards compatibility).
+    Providing *pptx_format* together with a non-``None`` *pptx* raises
+    :class:`ValueError`, because the slide size is determined by the opened
+    file rather than the preset.
     """
+    if pptx_format is not None and pptx is not None:
+        raise ValueError(
+            "pptx_format is only valid when opening the default template (pptx is None)"
+        )
+
     if pptx is None:
-        pptx = _default_pptx_path()
+        pptx = _default_pptx_path(pptx_format)
 
     presentation_part = Package.open(pptx).main_document_part
 
@@ -37,10 +66,21 @@ def Presentation(pptx: str | IO[bytes] | None = None) -> presentation.Presentati
     return presentation_part.presentation
 
 
-def _default_pptx_path() -> str:
-    """Return the path to the built-in default .pptx package."""
+def _default_pptx_path(pptx_format: str | None = None) -> str:
+    """Return the path to the built-in default .pptx package.
+
+    *pptx_format* selects the aspect-ratio preset. ``None`` resolves to the
+    original 4:3 template. Valid string values are the keys of
+    :data:`_PRESET_TEMPLATES` (case-insensitive). An unknown preset name
+    raises :class:`ValueError`.
+    """
+    key = "4x3" if pptx_format is None else pptx_format.lower()
+    if key not in _PRESET_TEMPLATES:
+        valid = ", ".join(sorted(_PRESET_TEMPLATES))
+        raise ValueError("unknown pptx_format %r; expected one of: %s" % (pptx_format, valid))
+
     _thisdir = os.path.split(__file__)[0]
-    return os.path.join(_thisdir, "templates", "default.pptx")
+    return os.path.join(_thisdir, "templates", _PRESET_TEMPLATES[key])
 
 
 def _is_pptx_package(prs_part: PresentationPart):

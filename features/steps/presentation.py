@@ -73,6 +73,11 @@ def when_construct_default_prs(context: Context):
     context.prs = Presentation()
 
 
+@when('I construct a Presentation with pptx_format="{preset}"')
+def when_construct_prs_with_pptx_format(context: Context, preset: str):
+    context.prs = Presentation(pptx_format=preset)
+
+
 @when("I open a basic PowerPoint presentation")
 def when_open_basic_pptx(context: Context):
     context.prs = Presentation(test_pptx("test"))
@@ -251,6 +256,25 @@ def then_slide_height_matches_new_value(context: Context):
 def then_slide_width_matches_new_value(context: Context):
     presentation = context.presentation
     assert presentation.slide_width == Inches(4)
+
+
+@then("the new presentation has slide width {cx:d} and height {cy:d}")
+def then_new_prs_has_slide_width_and_height(context: Context, cx: int, cy: int):
+    prs = context.prs
+    assert prs.slide_width == cx, "expected %d, got %s" % (cx, prs.slide_width)
+    assert prs.slide_height == cy, "expected %d, got %s" % (cy, prs.slide_height)
+
+
+@then("len(prs.slide_masters) is {count:d}")
+def then_len_prs_slide_masters_is_count(context: Context, count: int):
+    actual = len(context.prs.slide_masters)
+    assert actual == count, "expected %d slide masters, got %d" % (count, actual)
+
+
+@then("len(prs.slide_layouts) is {count:d}")
+def then_len_prs_slide_layouts_is_count(context: Context, count: int):
+    actual = len(context.prs.slide_layouts)
+    assert actual == count, "expected %d slide layouts, got %d" % (count, actual)
 
 
 @then("both saved streams are byte-for-byte identical")

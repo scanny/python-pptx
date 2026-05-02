@@ -25,6 +25,10 @@ Unreleased
   ``pptx.opc.serialized.MAX_UNCOMPRESSED_PACKAGE_SIZE`` module attribute).
   A new ``docs/dev/security.rst`` documents the trust model and the
   defenses applied.
+- #1066 Create 16x9 presentations by default? ``Presentation(pptx_format=...)``
+  now accepts ``"16x9"`` / ``"widescreen"`` or ``"4x3"`` / ``"standard"`` to
+  select a built-in template aspect ratio; a new ``default-16x9.pptx`` ships
+  alongside the existing 4x3 default.
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
