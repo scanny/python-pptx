@@ -665,6 +665,35 @@ class ST_Style(XsdUnsignedByte):
         cls.validate_int_in_range(value, 1, 48)
 
 
+class ST_ViewType(XsdTokenEnumeration):
+    """Valid values for `p:viewPr/@lastView` (ECMA-376 `ST_ViewType`).
+
+    Identifies an editor view in PowerPoint. The value is written by the
+    authoring tool as the view the user last had open; PowerPoint restores
+    that view when the presentation is re-opened.
+    """
+
+    SLD_VIEW = "sldView"
+    SLD_MASTER_VIEW = "sldMasterView"
+    NOTES_VIEW = "notesView"
+    HANDOUT_VIEW = "handoutView"
+    NOTES_MASTER_VIEW = "notesMasterView"
+    OUTLINE_VIEW = "outlineView"
+    SLD_SORTER_VIEW = "sldSorterView"
+    SLD_THUMBNAIL_VIEW = "sldThumbnailView"
+
+    _members = (
+        SLD_VIEW,
+        SLD_MASTER_VIEW,
+        NOTES_VIEW,
+        HANDOUT_VIEW,
+        NOTES_MASTER_VIEW,
+        OUTLINE_VIEW,
+        SLD_SORTER_VIEW,
+        SLD_THUMBNAIL_VIEW,
+    )
+
+
 class ST_StyleEx(XsdUnsignedByte):
     """Valid values for the `val` attribute of `c14:style`.
 

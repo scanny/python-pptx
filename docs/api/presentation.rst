@@ -223,6 +223,52 @@ behavior is desired.
       *string* -- free-form version string
 
 
+Presentation open-settings
+--------------------------
+
+:attr:`Presentation.view_props` exposes the editor-view settings
+PowerPoint restores when the presentation is re-opened — stored in the
+``ppt/viewProps.xml`` part (``p:viewPr``). See issue #94.
+
+Typical usage::
+
+    from pptx import Presentation
+    from pptx.enum.presentation import PP_VIEW_TYPE
+
+    prs = Presentation("deck.pptx")
+
+    # -- persist the editor view PowerPoint will restore on re-open --
+    prs.view_props.view_type = PP_VIEW_TYPE.OUTLINE
+
+    # -- hide the comments pane on re-open --
+    prs.view_props.show_comments = False
+
+    # -- per-view zoom (1.0 = 100 %) --
+    prs.view_props.slide_view_zoom = 1.5
+    prs.view_props.notes_view_zoom = 0.85
+
+    # -- slide-sorter text-formatting toggle --
+    prs.view_props.show_formatting = False
+
+    # -- "Number slides from" setting (slide-number placeholder display) --
+    prs.first_slide_num = 3
+
+    prs.save("deck.pptx")
+
+The view-properties part is created lazily the first time
+``view_props`` is read if the package does not already contain one.
+
+.. autoclass:: pptx.presentation.ViewProps()
+   :members:
+   :member-order: bysource
+   :exclude-members: part
+
+The :attr:`ViewProps.element` attribute exposes the underlying
+``p:viewPr`` element directly, as an escape-hatch for callers who need
+to read or write attributes the MVP does not yet model (e.g.
+``showOutlineIcons`` on ``p:normalViewPr``).
+
+
 Extended (application) properties
 ---------------------------------
 

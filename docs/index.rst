@@ -66,6 +66,9 @@ Feature Support
 * Read and write legacy PowerPoint review comments on slides
 * Organize slides into named sections (``p14:sectionLst``): create, rename,
   delete, and assign slide-to-section membership
+* Read and write presentation open-settings (editor-view, zoom, comments-pane,
+  slide-sorter formatting) via :attr:`Presentation.view_props`, plus the
+  "Number slides from" setting via :attr:`Presentation.first_slide_num`
 * Open and save password-protected (ECMA-376 Agile Encryption) .pptx files
   (requires optional ``msoffcrypto-tool``)
 * Read and write shape accessibility metadata (``alt_text`` description and short

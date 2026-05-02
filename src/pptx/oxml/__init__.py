@@ -743,3 +743,29 @@ register_element_cls("p:txBody", CT_TextBody)
 from pptx.oxml.theme import CT_OfficeStyleSheet  # noqa: E402
 
 register_element_cls("a:theme", CT_OfficeStyleSheet)
+
+
+from pptx.oxml.viewprops import (  # noqa: E402
+    CT_CommonSlideViewProperties,
+    CT_CommonViewProperties,
+    CT_NormalViewProperties,
+    CT_NotesViewProperties,
+    CT_OutlineViewProperties,
+    CT_Ratio,
+    CT_Scale2D,
+    CT_SlideSorterViewProperties,
+    CT_SlideViewProperties,
+    CT_ViewProperties,
+)
+
+register_element_cls("a:sx", CT_Ratio)
+register_element_cls("a:sy", CT_Ratio)
+register_element_cls("p:cSldViewPr", CT_CommonSlideViewProperties)
+register_element_cls("p:cViewPr", CT_CommonViewProperties)
+register_element_cls("p:normalViewPr", CT_NormalViewProperties)
+register_element_cls("p:notesViewPr", CT_NotesViewProperties)
+register_element_cls("p:outlineViewPr", CT_OutlineViewProperties)
+register_element_cls("p:scale", CT_Scale2D)
+register_element_cls("p:slideViewPr", CT_SlideViewProperties)
+register_element_cls("p:sorterViewPr", CT_SlideSorterViewProperties)
+register_element_cls("p:viewPr", CT_ViewProperties)

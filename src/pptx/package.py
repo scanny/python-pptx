@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import re
-from typing import IO, Iterator
 from typing import IO, Iterator, cast
 
 from pptx.exc import UnsupportedImageTypeError
@@ -17,6 +16,7 @@ from pptx.parts.customprops import CustomProperties, CustomPropertiesPart
 from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.image import Image, ImagePart
 from pptx.parts.media import MediaPart
+from pptx.parts.viewprops import ViewPropsPart
 from pptx.util import lazyproperty
 
 # -- Used to detect SVG content in an image byte-stream. Looks at roughly the
@@ -112,6 +112,30 @@ class Package(OpcPackage):
             ext_props = ExtendedPropertiesPart.default(self)
             self.relate_to(ext_props, RT.EXTENDED_PROPERTIES)
             return ext_props
+
+    @lazyproperty
+    def view_props_part(self) -> ViewPropsPart:
+        """|ViewPropsPart| for this package (``ppt/viewProps.xml``).
+
+        Editor-view settings restored by PowerPoint on open — which editor
+        view was last active (``@lastView``), whether the comments pane is
+        visible (``@showComments``), and per-view zoom / scroll-position
+        state. See issue #94.
+
+        Attached to the *presentation part* (``ppt/presentation.xml``) via
+        a ``viewProps`` relationship, not to the package root. Creates a
+        default (empty) part and wires up the relationship if one is not
+        already present.
+        """
+        try:
+            return cast(
+                ViewPropsPart,
+                self.presentation_part.part_related_by(RT.VIEW_PROPS),
+            )
+        except KeyError:
+            view_props = ViewPropsPart.default(self)
+            self.presentation_part.relate_to(view_props, RT.VIEW_PROPS)
+            return view_props
 
     def get_or_add_image_part(self, image_file: str | IO[bytes]):
         """
@@ -326,9 +350,7 @@ def _read_image_head(image_file: str | IO[bytes]):
             return b"", None
 
     # -- assume file-like object --
-    if callable(getattr(image_file, "tell", None)) and callable(
-        getattr(image_file, "seek", None)
-    ):
+    if callable(getattr(image_file, "tell", None)) and callable(getattr(image_file, "seek", None)):
         pos = image_file.tell()
         head = image_file.read(_SVG_HEAD_BYTES)
 
