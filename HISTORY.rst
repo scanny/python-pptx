@@ -120,6 +120,19 @@ Unreleased
   accessors: ``None`` removes the ``c:majorUnit`` / ``c:minorUnit``
   child (restoring PowerPoint's Auto behaviour) and assigning a
   numeric value adds or replaces the child.
+- feat: #224 add ``Slide.find_shapes_by_xpath(xpath_expr)`` — evaluate an
+  XPath expression against the slide's ``p:spTree`` and return matching
+  elements as :class:`BaseShape` proxies (using the same
+  :func:`SlideShapeFactory` that :attr:`Slide.shapes` uses). The standard
+  Open-XML namespace map (``pptx.oxml.ns._nsmap``) is bound, so the usual
+  prefixes (``p``, ``a``, ``r``, ``mc``, ``p14``, …) work without further
+  setup. Matches that land on a child element (e.g. ``p:cNvPr`` or
+  ``a:xfrm``) are resolved to the nearest shape ancestor so callers always
+  get a shape proxy back; duplicates are deduplicated in XPath-result
+  order. Addresses the "find shape by name" use case requested in the
+  issue, e.g.
+  ``slide.find_shapes_by_xpath(".//p:sp[p:nvSpPr/p:cNvPr/@name='Title 1']")``.
+
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from pptx.parts.presentation import PresentationPart
     from pptx.parts.slide import SlideLayoutPart, SlideMasterPart, SlidePart
     from pptx.presentation import Presentation
+    from pptx.shapes.base import BaseShape
     from pptx.shapes.placeholder import LayoutPlaceholder, MasterPlaceholder
     from pptx.shapes.shapetree import NotesSlidePlaceholder
     from pptx.text.text import TextFrame
@@ -270,6 +271,65 @@ class Slide(_BaseSlide):
     def shapes(self) -> SlideShapes:
         """Sequence of shape objects appearing on this slide."""
         return SlideShapes(self._element.spTree, self)
+
+    def find_shapes_by_xpath(self, xpath_expr: str) -> list[BaseShape]:
+        """Return shapes matching `xpath_expr` evaluated against this slide's ``p:spTree``.
+
+        The expression is evaluated with the standard Open-XML namespace map
+        (``pptx.oxml.ns._nsmap``), so the usual prefixes (``p``, ``a``, ``r``,
+        ``mc``, ``p14``, …) are available without further declaration. The
+        expression is rooted at the slide's ``p:spTree`` element; start with
+        ``.//`` to search the whole tree, or use a relative path (``p:sp``,
+        etc.) to match direct children.
+
+        Each match that is itself a shape element (``p:sp``, ``p:pic``,
+        ``p:cxnSp``, ``p:graphicFrame``, or ``p:grpSp``) is wrapped in the
+        appropriate :class:`~pptx.shapes.base.BaseShape` subclass via
+        :func:`.SlideShapeFactory` — the same proxy kind
+        :attr:`Slide.shapes` would yield for that element. Matches that are
+        not shape elements (for example, the ``a:cNvPr`` or ``a:xfrm`` of a
+        shape) are resolved to their nearest shape ancestor so the caller
+        gets a shape proxy back regardless of how narrow the XPath is.
+        Non-shape matches with no shape ancestor (e.g. the ``p:spTree``
+        itself) are skipped.
+
+        Duplicates are suppressed: each shape appears at most once in the
+        returned list, in XPath-result order, even when the same shape is
+        matched by multiple predicates (for instance a ``./@name`` selector
+        that also matches a child element).
+
+        Example - find every shape whose ``@name`` is ``"Title 1"``::
+
+            shapes = slide.find_shapes_by_xpath(
+                './/p:sp[p:nvSpPr/p:cNvPr/@name="Title 1"]'
+            )
+
+        Example - every non-group shape anywhere in the tree::
+
+            shapes = slide.find_shapes_by_xpath(".//p:sp")
+        """
+        from pptx.shapes.shapetree import SlideShapeFactory
+
+        results = self._element.spTree.xpath(xpath_expr)
+
+        seen: set[int] = set()
+        shapes: list[BaseShape] = []
+        for match in results:
+            # -- `xpath` can return strings / numbers / booleans for value
+            # -- expressions (e.g. `.//@name`). Skip anything that isn't an
+            # -- element node — a shape cannot be wrapped around an
+            # -- attribute / text value.
+            if not hasattr(match, "tag"):
+                continue
+            shape_elm = match if _is_shape_elm(match) else _nearest_shape_ancestor(match)
+            if shape_elm is None:
+                continue
+            key = id(shape_elm)
+            if key in seen:
+                continue
+            seen.add(key)
+            shapes.append(SlideShapeFactory(shape_elm, self.shapes))
+        return shapes
 
     @property
     def slide_id(self) -> int:
@@ -1543,6 +1603,48 @@ def _ancestor_with_local_name(elm, local_names):
         tag = current.tag
         local = tag.rsplit("}", 1)[-1] if "}" in tag else tag
         if local in local_names:
+            return current
+        current = current.getparent()
+    return None
+
+
+_SHAPE_TAGS = frozenset(
+    (
+        qn("p:sp"),
+        qn("p:pic"),
+        qn("p:cxnSp"),
+        qn("p:graphicFrame"),
+        qn("p:grpSp"),
+    )
+)
+
+
+def _is_shape_elm(elm) -> bool:
+    """Return ``True`` when `elm` is one of the spTree shape elements.
+
+    Recognises the five shape tag names directly rather than by oxml class
+    hierarchy: ``CT_ShapeNonVisual`` and ``CT_GroupShapeNonVisual`` also
+    inherit from :class:`BaseShapeElement` so an ``isinstance`` check would
+    over-match helper elements like ``p:nvSpPr``.
+    """
+    return getattr(elm, "tag", None) in _SHAPE_TAGS
+
+
+def _nearest_shape_ancestor(elm):
+    """Walk up from `elm` returning the first ancestor that is a shape element.
+
+    A *shape element* is one of ``p:sp`` / ``p:pic`` / ``p:cxnSp`` /
+    ``p:graphicFrame`` / ``p:grpSp``. Returns ``None`` when no such
+    ancestor exists (for example, when walking up from the ``p:spTree``
+    element itself).
+
+    Used by :meth:`Slide.find_shapes_by_xpath` to resolve an XPath match
+    that landed on a child element (e.g. ``p:cNvPr`` or ``a:xfrm``) back
+    to the owning shape so a shape proxy can be returned.
+    """
+    current = elm.getparent()
+    while current is not None:
+        if _is_shape_elm(current):
             return current
         current = current.getparent()
     return None
