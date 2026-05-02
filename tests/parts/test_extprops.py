@@ -56,6 +56,64 @@ class DescribeExtendedPropertiesPart(object):
         assert b"<Slides>2</Slides>" in blob
         assert ext_props.slide_count == 2
 
+    # -- string-valued public properties (issue #105) --------------------
+
+    @pytest.mark.parametrize(
+        "prop_name",
+        [
+            "application",
+            "app_version",
+            "company",
+            "hyperlink_base",
+            "manager",
+            "presentation_format",
+            "template",
+        ],
+    )
+    def it_returns_empty_string_for_missing_string_fields(self, prop_name: str):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+
+        assert getattr(ext_props, prop_name) == ""
+
+    @pytest.mark.parametrize(
+        ("prop_name", "value"),
+        [
+            ("application", "Microsoft Office PowerPoint"),
+            ("app_version", "16.0000"),
+            ("company", "Acme Corp"),
+            ("hyperlink_base", "https://example.com/docs/"),
+            ("manager", "Alice Jones"),
+            ("presentation_format", "Widescreen"),
+            ("template", "Default Theme.potx"),
+        ],
+    )
+    def it_round_trips_string_fields(self, prop_name: str, value: str):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+
+        setattr(ext_props, prop_name, value)
+
+        assert getattr(ext_props, prop_name) == value
+
+    def it_persists_string_fields_in_the_serialized_blob(self):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+        ext_props.company = "Acme Corp"
+        ext_props.manager = "Alice Jones"
+        # -- avoid the save-time slide-count refresh by making the package unreachable --
+        ext_props._package = None  # type: ignore[assignment]
+
+        blob = ext_props.blob
+
+        assert b"<Company>Acme Corp</Company>" in blob
+        assert b"<Manager>Alice Jones</Manager>" in blob
+
+    def it_overwrites_existing_string_field_values(self):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+        ext_props.company = "Old Corp"
+
+        ext_props.company = "New Corp"
+
+        assert ext_props.company == "New Corp"
+
 
 class _FakePackage(object):
     """Minimal test double that stands in for `pptx.package.Package`."""

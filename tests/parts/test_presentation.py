@@ -8,6 +8,7 @@ from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.packuri import PackURI
 from pptx.package import Package
 from pptx.parts.coreprops import CorePropertiesPart
+from pptx.parts.extprops import ExtendedPropertiesPart
 from pptx.parts.font import FontPart
 from pptx.parts.presentation import PresentationPart
 from pptx.parts.slide import NotesMasterPart, SlideMasterPart, SlidePart
@@ -40,6 +41,13 @@ class DescribePresentationPart(object):
         prs_part = PresentationPart(None, None, package_, None)
 
         assert prs_part.core_properties is core_properties_
+
+    def it_provides_access_to_its_extended_properties(self, request, package_):
+        extended_properties_ = instance_mock(request, ExtendedPropertiesPart)
+        package_.extended_properties = extended_properties_
+        prs_part = PresentationPart(None, None, package_, None)
+
+        assert prs_part.extended_properties is extended_properties_
 
     def it_provides_access_to_an_existing_notes_master_part(
         self, notes_master_part_, part_related_by_

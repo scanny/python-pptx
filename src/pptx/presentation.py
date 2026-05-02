@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         CT_Section,
         CT_SlideId,
     )
+    from pptx.parts.extprops import ExtendedPropertiesPart
     from pptx.parts.presentation import PresentationPart
     from pptx.slide import NotesMaster, Slide, SlideLayouts
     from pptx.util import Length
@@ -79,6 +80,19 @@ class Presentation(PartElementProxy):
         ``str``, ``int``, ``float``, ``bool``, and ``datetime.datetime``. See issue #259.
         """
         return self.part.package.custom_properties
+
+    @property
+    def extended_properties(self) -> ExtendedPropertiesPart:
+        """|ExtendedPropertiesPart| for this presentation (``/docProps/app.xml``).
+
+        Provides read/write access to application-level document properties such as
+        ``application``, ``app_version``, ``company``, ``manager``, ``hyperlink_base``,
+        ``presentation_format``, and ``template``. Also exposes ``slide_count`` (read-only
+        in practice -- the count is refreshed automatically at save-time from the
+        presentation's slide list; see issue #131). The part is created lazily if the
+        package does not already contain one.
+        """
+        return self.part.extended_properties
 
     def embed_font(
         self,

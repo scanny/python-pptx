@@ -70,6 +70,86 @@ class DescribeCT_ExtendedProperties(object):
         with pytest.raises(ValueError, match="slide_count"):
             props.slide_count = bad_value  # type: ignore[assignment]
 
+    # -- string-valued fields --------------------------------------------
+
+    @pytest.mark.parametrize(
+        ("prop_name", "tag_local", "value"),
+        [
+            ("application_text", "Application", "Microsoft Office PowerPoint"),
+            ("app_version_text", "AppVersion", "16.0000"),
+            ("company_text", "Company", "Acme Corp"),
+            ("hyperlink_base_text", "HyperlinkBase", "https://example.com/docs/"),
+            ("manager_text", "Manager", "Alice Jones"),
+            ("presentation_format_text", "PresentationFormat", "Widescreen"),
+            ("template_text", "Template", "Default Theme.potx"),
+        ],
+    )
+    def it_reads_string_fields_when_present(
+        self, prop_name: str, tag_local: str, value: str
+    ):
+        props = self._props_with_child_xml(tag_local, value)
+
+        assert getattr(props, prop_name) == value
+
+    @pytest.mark.parametrize(
+        "prop_name",
+        [
+            "application_text",
+            "app_version_text",
+            "company_text",
+            "hyperlink_base_text",
+            "manager_text",
+            "presentation_format_text",
+            "template_text",
+        ],
+    )
+    def it_returns_empty_string_when_field_is_absent(self, prop_name: str):
+        props = CT_ExtendedProperties.new_extendedProperties()
+
+        assert getattr(props, prop_name) == ""
+
+    @pytest.mark.parametrize(
+        ("prop_name", "tag_local"),
+        [
+            ("application_text", "Application"),
+            ("app_version_text", "AppVersion"),
+            ("company_text", "Company"),
+            ("hyperlink_base_text", "HyperlinkBase"),
+            ("manager_text", "Manager"),
+            ("presentation_format_text", "PresentationFormat"),
+            ("template_text", "Template"),
+        ],
+    )
+    def it_creates_the_child_element_on_first_write(
+        self, prop_name: str, tag_local: str
+    ):
+        props = CT_ExtendedProperties.new_extendedProperties()
+        # -- element is absent to start with --
+        qname = (
+            "{http://schemas.openxmlformats.org/officeDocument/2006/"
+            "extended-properties}%s" % tag_local
+        )
+        assert props.find(qname) is None
+
+        setattr(props, prop_name, "hello")
+
+        element = props.find(qname)
+        assert element is not None
+        assert element.text == "hello"
+
+    def it_overwrites_an_existing_field_text_on_write(self):
+        props = self._props_with_child_xml("Company", "Old Corp")
+
+        props.company_text = "New Corp"
+
+        assert props.company_text == "New Corp"
+
+    def it_raises_TypeError_on_non_string_write(self):
+        props = CT_ExtendedProperties.new_extendedProperties()
+
+        with pytest.raises(TypeError, match="Company"):
+            props.company_text = 42  # type: ignore[assignment]
+
     # -- helpers ----------------------------------------------------------
 
     @staticmethod
@@ -80,4 +160,14 @@ class DescribeCT_ExtendedProperties(object):
             "<Slides>%s</Slides>"
             "</Properties>"
         ) % slides_text
+        return parse_xml(xml)
+
+    @staticmethod
+    def _props_with_child_xml(tag_local: str, text: str) -> CT_ExtendedProperties:
+        xml = (
+            '<Properties xmlns="http://schemas.openxmlformats.org/'
+            'officeDocument/2006/extended-properties">'
+            "<%s>%s</%s>"
+            "</Properties>"
+        ) % (tag_local, text, tag_local)
         return parse_xml(xml)

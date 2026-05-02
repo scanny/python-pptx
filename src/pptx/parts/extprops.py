@@ -1,15 +1,17 @@
 """Extended-properties part, corresponds to ``/docProps/app.xml`` part in package.
 
 This part contains application-level document properties such as the slide count, the
-authoring application's name, and the slide-titles list. python-pptx does not surface most of
-these as a user API; the part exists so that python-pptx can keep the `<Slides>` count in sync
-with the actual number of slides at save-time. See GitHub issue #131 — Gmail (and certain other
-downstream tools) refuse to preview a presentation when the count is stale.
+authoring application's name, the company, the manager, and the slide-titles list.
+
+The part is modeled so that python-pptx can keep the `<Slides>` count in sync with the
+actual number of slides at save-time (see GitHub issue #131 -- Gmail and certain other
+downstream tools refuse to preview a presentation when the count is stale) and so that
+the remaining curated app-metadata fields are readable and writable (issue #105).
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
@@ -25,6 +27,10 @@ class ExtendedPropertiesPart(XmlPart):
     """Corresponds to part named `/docProps/app.xml`.
 
     Holds the extended (application-level) document properties for this document package.
+    Exposes read/write access to the most commonly-used string-valued properties
+    (``application``, ``app_version``, ``company``, ``manager``, ``hyperlink_base``,
+    ``presentation_format``, ``template``) and read access to the ``slide_count``, which
+    is automatically refreshed on save.
     """
 
     _element: CT_ExtendedProperties
@@ -44,21 +50,109 @@ class ExtendedPropertiesPart(XmlPart):
             CT_ExtendedProperties.new_extendedProperties(),
         )
 
+    # -- string-valued app.xml fields (issue #105) -----------------------
+
+    @property
+    def application(self) -> str:
+        """Name of the authoring application, or '' when the `<Application>` element is absent.
+
+        For presentations created by Microsoft PowerPoint this is typically
+        ``"Microsoft Office PowerPoint"`` or ``"Microsoft Macintosh PowerPoint"``.
+        """
+        return self._element.application_text
+
+    @application.setter
+    def application(self, value: str) -> None:
+        self._element.application_text = value
+
+    @property
+    def app_version(self) -> str:
+        """Version of the authoring application, or '' when the `<AppVersion>` element is absent.
+
+        Format is an application-specific string (e.g. ``"16.0000"`` for PowerPoint 2016+);
+        python-pptx does not parse or validate this value.
+        """
+        return self._element.app_version_text
+
+    @app_version.setter
+    def app_version(self, value: str) -> None:
+        self._element.app_version_text = value
+
+    @property
+    def company(self) -> str:
+        """Value of the `<Company>` element, or '' when absent."""
+        return self._element.company_text
+
+    @company.setter
+    def company(self, value: str) -> None:
+        self._element.company_text = value
+
+    @property
+    def hyperlink_base(self) -> str:
+        """Value of the `<HyperlinkBase>` element, or '' when absent.
+
+        When non-empty, serves as the base URL used to resolve relative hyperlink targets.
+        """
+        return self._element.hyperlink_base_text
+
+    @hyperlink_base.setter
+    def hyperlink_base(self, value: str) -> None:
+        self._element.hyperlink_base_text = value
+
+    @property
+    def manager(self) -> str:
+        """Value of the `<Manager>` element, or '' when absent."""
+        return self._element.manager_text
+
+    @manager.setter
+    def manager(self, value: str) -> None:
+        self._element.manager_text = value
+
+    @property
+    def presentation_format(self) -> str:
+        """Value of the `<PresentationFormat>` element, or '' when absent.
+
+        Typical values include ``"Widescreen"``, ``"On-screen Show (4:3)"``, and
+        ``"On-screen Show (16:9)"``; python-pptx does not constrain or validate the string.
+        """
+        return self._element.presentation_format_text
+
+    @presentation_format.setter
+    def presentation_format(self, value: str) -> None:
+        self._element.presentation_format_text = value
+
+    @property
+    def template(self) -> str:
+        """Value of the `<Template>` element, or '' when absent."""
+        return self._element.template_text
+
+    @template.setter
+    def template(self, value: str) -> None:
+        self._element.template_text = value
+
+    # -- `<Slides>` count (issue #131) -----------------------------------
+
     @property
     def slide_count(self) -> int:
-        """Value of the `<Slides>` element, or 0 if absent."""
+        """Value of the `<Slides>` element, or 0 if absent.
+
+        Automatically refreshed at save-time to match the presentation's current slide
+        list; writing to this attribute directly is not usually necessary.
+        """
         return self._element.slide_count
 
     @slide_count.setter
     def slide_count(self, value: int) -> None:
         self._element.slide_count = value
 
+    # -- serialization hook ---------------------------------------------
+
     @property
     def blob(self) -> bytes:  # pyright: ignore[reportIncompatibleMethodOverride]
         """bytes XML serialization of this part.
 
         Before serializing, refresh the `<Slides>` count to match the current `sldIdLst` in the
-        presentation part. This is the fix for issue #131 — previously the count was whatever
+        presentation part. This is the fix for issue #131 -- previously the count was whatever
         value was present when the package was opened (or zero for a newly-created package).
         """
         self._sync_slide_count()
