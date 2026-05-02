@@ -139,6 +139,17 @@ Unreleased
   does not render slides and pointing at ``libreoffice --headless
   --convert-to``, PowerPoint COM automation, Aspose.Slides, and
   python-pptx-interface as integration points for downstream rendering.
+- docs: #501 Animated GIFs only showing first frame — close as wontfix
+  (renderer-capability limitation, not a library bug). Add an
+  "Animated GIFs" section to the user guide explaining that the ``<p:pic>``
+  XML python-pptx emits for a ``.gif`` is byte-for-byte identical to what
+  PowerPoint writes itself, that GIF cycling is a renderer behaviour keyed
+  off the image MIME type (no ``p:timing`` entry required), and summarising
+  which renderers animate GIFs in which modes; point at
+  ``add_movie`` + an ``ffmpeg`` ``.gif`` → ``.mp4`` conversion as the
+  workaround when a target renderer (notably LibreOffice) does not support
+  embedded-GIF animation. Adds a cross-referencing note to the ``add_picture``
+  quickstart example.
 - #151 xmlchemy - ZeroOrMoreChoice
 - security: #1055 harden XML parser and zip reader against malicious input.
   The lxml ``XMLParser`` used to parse every ``.pptx`` part (and the parser

@@ -160,6 +160,17 @@ before setting the text it contains.
 
 .. _cairosvg: https://cairosvg.org/
 
+.. note::
+
+    Animated GIFs inserted with ``add_picture()`` display only the first
+    frame in edit view and in many third-party renderers. PowerPoint for
+    Windows animates the GIF when the deck is running in slideshow mode;
+    other renderers (notably LibreOffice Impress and some converters) show
+    only the first frame in every mode. This is a renderer-capability
+    limitation — the ``.pptx`` file python-pptx produces is byte-for-byte
+    the same as the one PowerPoint writes when you drop an animated GIF on
+    a slide by hand. See :ref:`animated-gif-rendering` for details.
+
 
 ----
 
