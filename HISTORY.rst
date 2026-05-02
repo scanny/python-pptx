@@ -14,6 +14,37 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #1063 resolved by the #378/#938/#765 effective_* chain. Issue
+  #1063 (https://github.com/scanny/python-pptx/issues/1063) framed the
+  classic "walk a deck, read the font properties PowerPoint would
+  render" workflow: the reporter wanted ``run.font.color`` /
+  ``run.font.size`` / ``run.font.name`` on an arbitrary run and got
+  |None| (or a raised ``AttributeError`` on ``color.rgb``) whenever the
+  value came from the paragraph's ``a:pPr/a:defRPr``, the shape's
+  ``a:lstStyle``, or the slide-master's ``p:txStyles`` fallback — the
+  default for every placeholder-authored deck. The fix is the read-side
+  :attr:`.Font.effective_color` (#938, Wave 6) plus
+  :attr:`.Font.effective_size`, :attr:`.Font.effective_bold`,
+  :attr:`.Font.effective_italic`, and :attr:`.Font.effective_name`
+  (#378, Wave 12), which together walk the full inheritance chain (run
+  ``a:rPr`` → paragraph ``a:pPr/a:defRPr`` → text body
+  ``a:lstStyle/a:lvl{N}pPr/a:defRPr`` → master ``p:txStyles`` →
+  presentation ``p:defaultTextStyle``) and return the value PowerPoint
+  would render, with theme/scheme colours resolved against the master's
+  theme and ``a:lumMod``/``a:lumOff`` tint/shade applied. #1063 overlaps
+  #378 (same four non-colour properties) and #765 ("read after
+  loading"), and the read-side mechanism is the same as #938's colour
+  fix. Adds a regression suite
+  ``DescribeIssue1063EffectiveStyle`` under
+  ``tests/test_issue_1063_effective_style_verify.py`` that pins the
+  #1063 reporter's end-to-end workflow — walking a multi-slide deck and
+  reading effective colour/size/name/bold/italic on every run (title
+  placeholders, body placeholders, textboxes, and table cells), with
+  explicit-wins-over-inherited sanity checks, theme-coloured run
+  resolution (on both direct textbox runs and inherited placeholder
+  runs), and save+reopen round-trips of placeholder, table-cell, and
+  theme-coloured scenarios to cover #765's "read after loading" framing.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
