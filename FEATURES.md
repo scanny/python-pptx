@@ -769,10 +769,16 @@ p2.level = 1
 # bulk replace across paragraphs
 n = tf.replace_text("world", "everyone")
 
+# slide-relative rectangle PowerPoint allocates for rendering text
+# (shape bounding-box minus the four TextFrame.margin_* insets)
+rect = tb.text_frame_rect
+rect.width.inches   # 5.8 == 6.0 - 2 * 0.1" (default l/r inset)
+
 prs.save("out.pptx")
 ```
 
 - `BaseShape.has_text_frame` / `BaseShape.text_frame` — Text-frame access.
+- `BaseShape.text_frame_rect` — `TextFrameRect` namedtuple `(left, top, width, height)` in EMU for the rectangle PowerPoint allocates for rendering text, shape bounding-box shrunk by the four `TextFrame.margin_*` insets. Raises `ValueError` on a shape without a text frame. `[Added in 2026.05.0]`
 - `TextFrame.text` — Read/write plain text. `\v` round-trips as a soft line-break. `[Added in 2026.05.0]` for `\v` normalisation.
 - `TextFrame.paragraphs` — Tuple of `_Paragraph`.
 - `TextFrame.add_paragraph()` — Append a paragraph.

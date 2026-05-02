@@ -114,6 +114,55 @@ The possible values for ``TextFrame.auto_size`` and
 :ref:`MsoAutoSize` and :ref:`MsoVerticalAnchor` respectively.
 
 
+Inspecting the text-rendering rectangle
+---------------------------------------
+
+A shape's bounding box and its text-rendering rectangle are not the same.
+PowerPoint renders text inside an "inset box" smaller than the shape by the
+four ``TextFrame.margin_left`` / ``margin_top`` / ``margin_right`` /
+``margin_bottom`` insets. If you need to pick a font size that will not
+overflow a shape, or to lay out a diagram on top of the text region,
+reading ``shape.text_frame_rect`` is the most direct way to get that
+rectangle::
+
+    from pptx.util import Inches
+
+    shape = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(4), Inches(1))
+    rect = shape.text_frame_rect
+    rect.left.inches    # 1.1   (left + margin_left)
+    rect.top.inches     # 2.05  (top + margin_top)
+    rect.width.inches   # 3.8   (width - margin_left - margin_right)
+    rect.height.inches  # 0.9   (height - margin_top - margin_bottom)
+
+The return value is a :class:`~pptx.text.text.TextFrameRect`, a
+four-element ``(left, top, width, height)`` namedtuple of |Length|
+values in English Metric Units, so the usual ``.inches`` / ``.cm`` /
+``.pt`` / ``.emu`` readbacks are available and the tuple unpacks
+directly::
+
+    left, top, width, height = shape.text_frame_rect
+
+Why the rectangle differs from ``(shape.left, shape.top, shape.width,
+shape.height)``:
+
+* Default ``TextFrame`` insets are 0.1" on the left and right and 0.05"
+  on the top and bottom, so even a freshly-created text-box has a text
+  rectangle 0.2" narrower and 0.1" shorter than its bounding box.
+* Setting one of the margins (e.g. ``tf.margin_left = Inches(0.25)``)
+  shrinks the rectangle on that side accordingly.
+* The rectangle represents the *authored* inset box — it does not
+  compensate for auto-fit (``auto_size`` / ``normAutofit``) which
+  PowerPoint applies at render time to shrink the font, nor for text
+  rotation (``TextFrame.rotation``), nor for group-transform compositing
+  on a shape nested inside a group; use ``shape.effective_*`` if you
+  need the post-composite slide-relative geometry.
+
+``shape.text_frame_rect`` raises ``ValueError`` on a shape that has no
+text frame (e.g. a connector or a picture without text), mirroring
+``shape.placeholder_format`` — guard on ``shape.has_text_frame`` when
+you are not sure.
+
+
 Fitting text to a placeholder
 -----------------------------
 

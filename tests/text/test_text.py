@@ -26,6 +26,7 @@ from pptx.shapes.autoshape import Shape
 from pptx.text.text import (
     Font,
     TextFrame,
+    TextFrameRect,
     _BulletFormat,
     _Field,
     _Hyperlink,
@@ -701,6 +702,40 @@ class DescribeTextFrame(object):
     @pytest.fixture
     def text_prop_(self, request):
         return property_mock(request, TextFrame, "text")
+
+
+class DescribeTextFrameRect(object):
+    """Unit-test suite for `pptx.text.text.TextFrameRect` namedtuple."""
+
+    def it_exposes_its_fields_by_name_and_position(self):
+        from pptx.util import Emu
+
+        rect = TextFrameRect(
+            left=Emu(100), top=Emu(200), width=Emu(300), height=Emu(400)
+        )
+
+        # -- field access
+        assert rect.left == 100
+        assert rect.top == 200
+        assert rect.width == 300
+        assert rect.height == 400
+
+        # -- tuple unpacking preserves (left, top, width, height) order
+        left, top, width, height = rect
+        assert (left, top, width, height) == (100, 200, 300, 400)
+
+    def it_returns_Length_values_that_support_unit_conversion(self):
+        from pptx.util import Length
+
+        rect = TextFrameRect(
+            left=Inches(1), top=Inches(2), width=Inches(3), height=Inches(4)
+        )
+
+        assert isinstance(rect.left, Length)
+        assert rect.left.inches == 1
+        assert rect.top.inches == 2
+        assert rect.width.inches == 3
+        assert rect.height.inches == 4
 
 
 class DescribeFont(object):

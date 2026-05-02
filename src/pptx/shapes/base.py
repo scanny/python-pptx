@@ -24,8 +24,19 @@ if TYPE_CHECKING:
     from pptx.oxml.shapes.shared import CT_Placeholder
     from pptx.oxml.slide import CT_Slide
     from pptx.parts.slide import BaseSlidePart
+    from pptx.text.text import TextFrame, TextFrameRect
     from pptx.types import ProvidesPart
     from pptx.util import Length
+
+    class _ShapeWithTextFrame(Protocol):
+        """Structural type for a shape that exposes a `text_frame`.
+
+        Used by :attr:`BaseShape.text_frame_rect` to narrow from the base class
+        to a subclass that defines ``text_frame`` (e.g. :class:`Shape`).
+        """
+
+        @property
+        def text_frame(self) -> TextFrame: ...
 
     class _ShapesParent(Protocol):
         """Structural type for the shape-collection parent of a shape.
@@ -568,6 +579,61 @@ class BaseShape(object):
         """|True| if this shape can contain text."""
         # overridden on Shape to return True. Only <p:sp> has text frame
         return False
+
+    @property
+    def text_frame_rect(self) -> TextFrameRect:
+        """Slide-relative rectangle PowerPoint allocates for rendering this shape's text.
+
+        Returns a :class:`~pptx.text.text.TextFrameRect` — a 4-tuple
+        ``(left, top, width, height)`` of |Length| values in EMU — derived
+        from the shape's position and size minus the text frame's four
+        insets (``margin_left``, ``margin_top``, ``margin_right``,
+        ``margin_bottom``).
+
+        This is the rectangle text will actually render within; it is
+        smaller than the shape's bounding box by the sum of the opposing
+        insets on each axis. Useful for picking a font size that will not
+        overflow the shape (issue #663).
+
+        Raises |ValueError| when the shape does not have a text frame
+        (e.g. a connector, or a picture shape with no text body). Check
+        :attr:`has_text_frame` first when the caller is unsure.
+
+        Notes:
+
+        * The returned width or height may be zero or negative when the
+          shape is smaller than the sum of its insets on that axis; no
+          clamping is performed.
+        * Text auto-fit (``auto_size`` / ``normAutofit``) and text rotation
+          (``TextFrame.rotation``) are not accounted for — the rectangle
+          is the authored "inset box", not the rendered glyph extent.
+        * For a shape nested inside a group, :attr:`left` / :attr:`top` /
+          :attr:`width` / :attr:`height` reflect the raw (pre-composite)
+          coordinates; if you need the slide-relative rendered rectangle
+          use :attr:`effective_left` / :attr:`effective_top` /
+          :attr:`effective_width` / :attr:`effective_height` to compose
+          the transform yourself.
+
+        .. versionadded:: 2026.05.0
+        """
+        from pptx.text.text import TextFrameRect as _TextFrameRect
+
+        if not self.has_text_frame:
+            raise ValueError("shape has no text frame")
+
+        # -- mypy/pyright narrowing: `.text_frame` is only defined on
+        # -- subclasses that override `has_text_frame` to True; cast here.
+        text_frame = cast("_ShapeWithTextFrame", self).text_frame
+        margin_l = text_frame.margin_left
+        margin_t = text_frame.margin_top
+        margin_r = text_frame.margin_right
+        margin_b = text_frame.margin_bottom
+        return _TextFrameRect(
+            left=Emu(int(self.left) + int(margin_l)),
+            top=Emu(int(self.top) + int(margin_t)),
+            width=Emu(int(self.width) - int(margin_l) - int(margin_r)),
+            height=Emu(int(self.height) - int(margin_t) - int(margin_b)),
+        )
 
     @property
     def height(self) -> Length:
