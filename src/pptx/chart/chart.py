@@ -191,6 +191,36 @@ class Chart(PartElementProxy):
         return ValueAxis(valAx_lst[idx])
 
     @property
+    def has_secondary_value_axis(self):
+        """Read-only |bool| specifying whether this chart has a secondary value axis.
+
+        Returns |True| when this chart has a second `c:valAx` element designating
+        a secondary value axis (typically rendered on the right side of the chart
+        in a category-based chart). Always |False| for an XY/scatter chart, where
+        a second `c:valAx` identifies the X-axis rather than a secondary axis.
+        """
+        return self._chartSpace.plotArea.secondary_valAx is not None
+
+    @property
+    def secondary_value_axis(self):
+        """The |ValueAxis| object for the secondary value axis of this chart.
+
+        Raises |ValueError| if the chart has no secondary value axis. Use
+        :attr:`has_secondary_value_axis` to test for its presence
+        non-destructively.
+
+        A secondary value axis is an additional value axis (conventionally
+        rendered on the right side of the chart) against which one or more
+        series may be plotted, allowing two data ranges on different scales to
+        be compared on the same chart. An XY/scatter chart has two value axes
+        but neither is considered "secondary" in this sense; both are primary.
+        """
+        secondary_valAx = self._chartSpace.plotArea.secondary_valAx
+        if secondary_valAx is None:
+            raise ValueError("chart has no secondary value axis")
+        return ValueAxis(secondary_valAx)
+
+    @property
     def _workbook(self):
         """
         The |ChartWorkbook| object providing access to the Excel source data

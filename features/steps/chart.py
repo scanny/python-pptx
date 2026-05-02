@@ -107,6 +107,66 @@ def given_a_chart_title_having_a_or_no_text_frame(context, a_or_no):
     context.chart_title = prs.slides[1].shapes[shape_idx].chart.chart_title
 
 
+@given("a {axis_config}-axes chart")
+def given_a_axis_config_axes_chart(context, axis_config):
+    # -- build a basic column chart and optionally inject a secondary value axis --
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["East", "West", "Midwest"]
+    chart_data.add_series("Primary", (1.1, 2.2, 3.3))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(1), Inches(1), Inches(6), Inches(4), chart_data
+    ).chart
+
+    if axis_config == "primary-secondary":
+        _add_secondary_value_axis(chart)
+    elif axis_config == "single-value":
+        pass
+    else:
+        raise KeyError("unrecognized axes-config: %s" % axis_config)
+
+    context.chart = chart
+
+
+def _add_secondary_value_axis(chart):
+    """Inject a secondary value axis into `chart` by appending XML.
+
+    This mirrors the pattern PowerPoint writes for a category chart with a
+    secondary value axis: a hidden secondary catAx (axPos=t) and a visible
+    secondary valAx (axPos=r), each crossing the other via `c:crossAx`.
+    """
+    from pptx.oxml import parse_xml
+    from pptx.oxml.ns import _nsmap
+
+    plotArea = chart._chartSpace.plotArea
+    sec_val_id = 1000001
+    sec_cat_id = 1000002
+    ns = ' xmlns:c="%s"' % _nsmap["c"]
+
+    sec_catAx_xml = (
+        "<c:catAx%s>"
+        '<c:axId val="%d"/>'
+        '<c:scaling><c:orientation val="minMax"/></c:scaling>'
+        '<c:delete val="1"/>'
+        '<c:axPos val="t"/>'
+        '<c:crossAx val="%d"/>'
+        "</c:catAx>"
+    ) % (ns, sec_cat_id, sec_val_id)
+    sec_valAx_xml = (
+        "<c:valAx%s>"
+        '<c:axId val="%d"/>'
+        '<c:scaling><c:orientation val="minMax"/></c:scaling>'
+        '<c:delete val="0"/>'
+        '<c:axPos val="r"/>'
+        '<c:crossAx val="%d"/>'
+        "</c:valAx>"
+    ) % (ns, sec_val_id, sec_cat_id)
+
+    plotArea.append(parse_xml(sec_catAx_xml))
+    plotArea.append(parse_xml(sec_valAx_xml))
+
+
 # when ====================================================
 
 
@@ -314,6 +374,28 @@ def then_chart_series_is_a_SeriesCollection_object(context):
 def then_chart_value_axis_is_a_ValueAxis_object(context):
     value_axis = context.chart.value_axis
     assert type(value_axis).__name__ == "ValueAxis"
+
+
+@then("chart.has_secondary_value_axis is {value}")
+def then_chart_has_secondary_value_axis_is_value(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    actual_value = context.chart.has_secondary_value_axis
+    assert actual_value is expected_value, "got %s" % actual_value
+
+
+@then("chart.secondary_value_axis is a ValueAxis object")
+def then_chart_secondary_value_axis_is_a_ValueAxis_object(context):
+    secondary_value_axis = context.chart.secondary_value_axis
+    assert type(secondary_value_axis).__name__ == "ValueAxis"
+
+
+@then("accessing chart.secondary_value_axis raises ValueError")
+def then_accessing_chart_secondary_value_axis_raises(context):
+    try:
+        context.chart.secondary_value_axis
+    except ValueError:
+        return
+    raise AssertionError("ValueError not raised")
 
 
 @then("chart_title.format is a ChartFormat object")

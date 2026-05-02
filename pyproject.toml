@@ -70,6 +70,9 @@ filterwarnings = [
     "ignore::DeprecationWarning:xdist",
     # -- pytest complains when pytest-xdist is not installed --
     "ignore:Unknown config option. looponfailroots:pytest.PytestConfigWarning",
+    # -- pyparsing 3.x issues deprecation warnings for legacy camelCase API
+    #    (`delimitedList`, `setParseAction`, etc.) used in tests/unitutil/cxml.py --
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
 ]
 
 looponfailroots = [

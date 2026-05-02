@@ -81,6 +81,21 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.value_axis
 
+    def it_knows_whether_it_has_a_secondary_value_axis(self, has_sec_val_ax_fixture):
+        chart, expected_value = has_sec_val_ax_fixture
+        assert chart.has_secondary_value_axis is expected_value
+
+    def it_provides_access_to_the_secondary_value_axis(self, sec_val_ax_fixture):
+        chart, ValueAxis_, sec_valAx, value_axis_ = sec_val_ax_fixture
+        secondary_value_axis = chart.secondary_value_axis
+        ValueAxis_.assert_called_once_with(sec_valAx)
+        assert secondary_value_axis is value_axis_
+
+    def it_raises_when_no_secondary_value_axis(self, sec_val_ax_raise_fixture):
+        chart = sec_val_ax_raise_fixture
+        with pytest.raises(ValueError):
+            chart.secondary_value_axis
+
     def it_provides_access_to_its_series(self, series_fixture):
         chart, SeriesCollection_, plotArea, series_ = series_fixture
         series = chart.series
@@ -331,6 +346,54 @@ class DescribeChart(object):
     def val_ax_raise_fixture(self):
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
         return chart
+
+    @pytest.fixture(
+        params=[
+            # -- no value axes at all -> no secondary --
+            ("c:chartSpace/c:chart/c:plotArea", False),
+            # -- single value axis, no category axis (single val chart) -> no secondary --
+            ("c:chartSpace/c:chart/c:plotArea/c:valAx", False),
+            # -- single value axis, with category axis -> no secondary --
+            ("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)", False),
+            # -- two value axes, no category axis (XY/scatter) -> no secondary --
+            ("c:chartSpace/c:chart/c:plotArea/(c:valAx,c:valAx)", False),
+            # -- two value axes with category axis -> has secondary --
+            ("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx,c:valAx)", True),
+            # -- two value axes with date axis -> has secondary --
+            ("c:chartSpace/c:chart/c:plotArea/(c:dateAx,c:valAx,c:valAx)", True),
+        ]
+    )
+    def has_sec_val_ax_fixture(self, request):
+        chartSpace_cxml, expected_value = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        return chart, expected_value
+
+    @pytest.fixture(
+        params=[
+            "c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx,c:valAx)",
+            "c:chartSpace/c:chart/c:plotArea/(c:dateAx,c:valAx,c:valAx)",
+        ]
+    )
+    def sec_val_ax_fixture(self, request, ValueAxis_, value_axis_):
+        chartSpace_cxml = request.param
+        chartSpace = element(chartSpace_cxml)
+        chart = Chart(chartSpace, None)
+        sec_valAx = chartSpace.xpath(".//c:valAx")[1]
+        return chart, ValueAxis_, sec_valAx, value_axis_
+
+    @pytest.fixture(
+        params=[
+            # -- no value axes --
+            "c:chartSpace/c:chart/c:plotArea",
+            # -- only a primary value axis --
+            "c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)",
+            # -- XY chart (two valAx, no catAx) --
+            "c:chartSpace/c:chart/c:plotArea/(c:valAx,c:valAx)",
+        ]
+    )
+    def sec_val_ax_raise_fixture(self, request):
+        chartSpace_cxml = request.param
+        return Chart(element(chartSpace_cxml), None)
 
     # fixture components ---------------------------------------------
 
