@@ -54,6 +54,35 @@ class DescribeTextFitter(object):
         with pytest.raises(TextLayoutError, match="cannot be fit"):
             TextFitter.best_fit_font_size("Foobar", (19, 20), 42, "foobar.ttf")
 
+    def it_returns_a_smaller_size_when_max_size_would_overflow_the_width(self):
+        """Max-size overflow drops to a fitting smaller size instead of crashing.
+
+        Regression test for #936 -- when the first word was wider than the shape
+        at ``max_size`` (but fit at a smaller size), `_wrap_lines` crashed with
+        ``TypeError: cannot unpack non-iterable NoneType object`` at ``layout.py``
+        line 107 on the tuple-unpack of ``_break_line(...)``. The fix lets
+        ``_fits_inside_predicate`` report "does not fit" for that point size so
+        the binary search continues down to a size that does work.
+
+        This complements #773 (which covers "nothing fits at any size"); the #936
+        path exits through the predicate's ``False`` branch for the large sizes,
+        then finds a valid smaller size and returns it cleanly.
+        """
+        from os.path import abspath, dirname, join
+
+        # ---use the same Calibri-Italic font file as the existing behave step---
+        font_file = abspath(
+            join(dirname(__file__), "..", "..", "features", "steps", "test_files", "calibriz.ttf")
+        )
+        # ---"Supercalifragilisticexpialidocious" is too wide at large sizes---
+        text = "Supercalifragilisticexpialidocious is a long word"
+
+        size = TextFitter.best_fit_font_size(text, (500000, 2000000), 36, font_file)
+
+        # ---any small size is fine; the point is we didn't crash and we got an int---
+        assert isinstance(size, int)
+        assert 1 <= size < 36
+
     def it_finds_best_fit_font_size_to_help_best_fit(self, _best_fit_fixture):
         text_fitter, max_size, _BinarySearchTree_ = _best_fit_fixture[:3]
         sizes_, predicate_, font_size_ = _best_fit_fixture[3:]

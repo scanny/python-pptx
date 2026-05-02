@@ -94,9 +94,11 @@ class TextFrame(Subshape):
         best efforts are made to locate a font file with matchhing `font_family`, `bold`, and
         `italic` installed on the current system (usually succeeds if the font is installed).
 
+        When the text contains a word too wide to fit the shape at `max_size` but that fits
+        at a smaller point size, that smaller size is used (see issue #936).
         Raises :class:`pptx.exc.TextLayoutError` when no point size between 1 and `max_size`
         allows the text to fit the shape -- for example when a single word is too wide to fit
-        the shape at the smallest considered size.
+        the shape at the smallest considered size (see issue #773).
         """
         # ---no-op when empty as fit behavior not defined for that case---
         if self.text == "":

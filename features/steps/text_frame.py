@@ -95,13 +95,28 @@ def given_a_shape_too_narrow_to_fit_any_word(context):
     context.fit_max_size = 18
 
 
+@given("a shape whose first word overflows at max size but fits at a smaller size")
+def given_a_shape_with_first_word_too_wide_at_max(context):
+    from helpers import test_file
+
+    # ---narrow enough that the longest word does not fit at `max_size`
+    # but a smaller size does. This is the #936 repro: the predicate at
+    # max_size must report "does not fit" rather than crashing on a
+    # tuple-unpack of `None` inside `_wrap_lines`.---
+    context.fit_extents = (500000, 2000000)
+    context.fit_text_str = "Supercalifragilisticexpialidocious is a long word"
+    context.fit_font_file = test_file("calibriz.ttf")
+    context.fit_max_size = 36
+
+
 @when("I call TextFitter.best_fit_font_size() on that shape")
 def when_I_call_TextFitter_best_fit_font_size(context):
     from pptx.exc import TextLayoutError
     from pptx.text.layout import TextFitter
 
+    context.fit_point_size = None
     try:
-        TextFitter.best_fit_font_size(
+        context.fit_point_size = TextFitter.best_fit_font_size(
             context.fit_text_str,
             context.fit_extents,
             context.fit_max_size,
@@ -118,6 +133,17 @@ def then_a_TextLayoutError_is_raised(context):
 
     assert isinstance(context.raised_exc, TextLayoutError), (
         "expected TextLayoutError, got %r" % context.raised_exc
+    )
+
+
+@then("a smaller fitting point size is returned")
+def then_a_smaller_fitting_point_size_is_returned(context):
+    assert context.raised_exc is None, (
+        "expected no exception, got %r" % context.raised_exc
+    )
+    size = context.fit_point_size
+    assert isinstance(size, int) and 1 <= size < context.fit_max_size, (
+        "expected a point size in [1, max_size), got %r" % size
     )
 
 

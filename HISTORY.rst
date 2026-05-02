@@ -46,6 +46,8 @@ Unreleased
 - #946 Connector.adjustments for elbow/curved connectors
 - #420 universal ``to_rgb()`` across color classes
 - #716 DataLabel border and fill via ChartFormat
+- fix: #936 text_frame.fit_text crashes if no wrapped representation fits
+        in the width of the shape
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
