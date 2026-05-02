@@ -170,6 +170,29 @@ class DescribePoint(object):
         point.invert_if_negative = new_value
         assert point._element.xml == xml(expected_cxml)
 
+    def it_can_preserve_a_solid_fill_color_on_negative_bars_issue_504(self):
+        """Regression for #504.
+
+        Setting a solid fill on a data point is not enough to color a
+        negative bar: PowerPoint treats the point-level ``invertIfNegative``
+        as defaulting to |True|, so the solid fill is inverted to white.
+        Assigning ``False`` to ``point.invert_if_negative`` must emit an
+        explicit ``c:invertIfNegative val="0"`` sibling on the ``c:dPt`` so
+        the authored fill survives.
+        """
+        from pptx.dml.color import RGBColor
+
+        point = Point(element("c:ser"), 2)
+        point.format.fill.solid()
+        point.format.fill.fore_color.rgb = RGBColor(0xF3, 0x5D, 0x5D)
+        point.invert_if_negative = False
+
+        dPt = point._element.xpath('c:dPt[c:idx/@val="2"]')[0]
+        invertIfNegative_vals = dPt.xpath("c:invertIfNegative/@val")
+        srgbClr_vals = dPt.xpath("c:spPr/a:solidFill/a:srgbClr/@val")
+        assert invertIfNegative_vals == ["0"]
+        assert srgbClr_vals == ["F35D5D"]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
