@@ -58,6 +58,25 @@ Unreleased
   python-pptx (``python-pptx-templater``, ``pptx-template``,
   ``python-pptx-interface``) for callers who need looped slides,
   conditional inclusion, or chart-data substitution.
+- verify: #275 resolved by F2 + #446 + #130 + #705
+  (``feat/issue-275-shadows-verify``). The #275 reporter asked whether
+  autoshapes inserted via ``slide.shapes.add_shape(MSO_SHAPE.…)`` had any
+  option to "control the shadow" — at the time, ``BaseShape.shadow`` was a
+  skeletal ``ShadowFormat`` exposing only ``.inherit``. Foundation F2
+  (Wave 1) added the full ``a:effectLst`` family with read/write
+  ``blur_radius`` / ``distance`` / ``direction`` / ``color`` on
+  ``pptx.dml.effect.ShadowFormat``; #446 (Wave 2) tightened
+  ``inherit = False`` to also zero any sibling
+  ``p:style/a:effectRef/@idx`` so the explicit (empty) ``a:effectLst``
+  really does suppress the theme-inherited shadow a caller would otherwise
+  see on an MSO_SHAPE autoshape; #130 (Wave 3) lifted the same
+  ``ShadowFormat`` onto ``ChartFormat.shadow``; and #705 (Wave 7) pinned
+  the end-to-end API on ``Shape.shadow`` / ``GroupShape.shadow``. Adds a
+  regression suite ``DescribeIssue275AutoshapeShadows`` under
+  ``tests/test_issue_275_autoshape_shadows.py`` that walks the #275
+  reporter's exact code path (``add_shape(MSO_SHAPE.…)`` → set blur /
+  distance / direction / color) and round-trips every knob through
+  ``Presentation.save`` + reopen.
 - verify: #705 resolved by F2 + #130. Foundation F2 (Wave 1) shipped the
   full ``a:effectLst`` family on ``pptx.dml.effect`` — ``ShadowFormat``
   now exposes read/write ``blur_radius`` / ``distance`` / ``direction``
