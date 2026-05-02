@@ -7,6 +7,7 @@ Unreleased
 ++++++++++
 
 - Foundation: cross-part rel cloning helper
+- Foundation: DrawingML effectLst descriptor family
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
@@ -18,7 +19,6 @@ Unreleased
 
 - fix: #1000 add py.typed
 
-
 1.0.0 (2024-08-03)
 ++++++++++++++++++
 
@@ -28,12 +28,10 @@ Unreleased
 - fix: #990 do not require strict timestamps for Zip
 - Add type annotations
 
-
 0.6.23 (2023-11-02)
 +++++++++++++++++++
 
 - fix: #912 Pillow<=9.5 constraint entails security vulnerability
-
 
 0.6.22 (2023-08-28)
 +++++++++++++++++++
@@ -46,12 +44,10 @@ Unreleased
 - fix: #762 AttributeError: module 'collections' has no attribute 'abc'
        (Windows Python 3.10+)
 
-
 0.6.21 (2021-09-20)
 +++++++++++++++++++
 
 - Fix #741 _DirPkgReader must implement .__contains__()
-
 
 0.6.20 (2021-09-14)
 +++++++++++++++++++
@@ -61,13 +57,11 @@ Unreleased
 - Fix #517 option to display chart categories/values in reverse order.
 - Major refactoring of ancient package loading code.
 
-
 0.6.19 (2021-05-17)
 +++++++++++++++++++
 
 - Add shapes.add_ole_object(), allowing arbitrary Excel or other binary file to be
   embedded as a shape on a slide. The OLE object is represented as an icon.
-
 
 0.6.18 (2019-05-02)
 +++++++++++++++++++
@@ -88,7 +82,6 @@ Unreleased
   Previously a control character other than tab or newline in an assigned string would
   trigger an exception related to invalid XML character.
 
-
 0.6.17 (2018-12-16)
 +++++++++++++++++++
 
@@ -97,19 +90,16 @@ Unreleased
 - Add SlideLayouts.index() - Get index of slide-layout in master
 - Add SlideLayouts.get_by_name() - Get slide-layout by its str name
 
-
 0.6.16 (2018-11-09)
 +++++++++++++++++++
 
 - Feature #395 DataLabels.show_* properties, e.g. .show_percentage
 - Feature #453 Chart data tolerates None for labels
 
-
 0.6.15 (2018-09-24)
 +++++++++++++++++++
 
 - Fix #436 ValueAxis._cross_xAx fails on c:dateAxis
-
 
 0.6.14 (2018-09-24)
 +++++++++++++++++++
@@ -126,7 +116,6 @@ Unreleased
 - Move pptx.shapes.table module to pptx.table
 - Add user documentation 'Working with tables'
 
-
 0.6.13 (2018-09-10)
 +++++++++++++++++++
 
@@ -134,7 +123,6 @@ Unreleased
 - Fix #293 Can't hide title of single-series Chart
 - Fix shape.width value is not type Emu
 - Fix add a:defRPr with c:rich (fixes some font inheritance breakage)
-
 
 0.6.12 (2018-08-11)
 +++++++++++++++++++
@@ -146,13 +134,11 @@ Unreleased
 - Add _Paragraph.add_line_break()
 - Add Connector.line
 
-
 0.6.11 (2018-07-25)
 +++++++++++++++++++
 
 - Add gradient fill.
 - Add experimental "turbo-add" option for producing large shape-count slides.
-
 
 0.6.10 (2018-06-11)
 +++++++++++++++++++
@@ -161,7 +147,6 @@ Unreleased
   shape, returning a `ShadowFormat` object.
 - Add `ShadowFormat` object with read/write (boolean) `.inherit` property.
 - Fix #328 add support for 26+ series in a chart
-
 
 0.6.9 (2018-05-08)
 ++++++++++++++++++
@@ -176,7 +161,6 @@ Unreleased
 - Improve efficiency of `Shapes._next_shape_id` property to improve
   performance on high shape-count slides.
 
-
 0.6.8 (2018-04-18)
 ++++++++++++++++++
 
@@ -190,7 +174,6 @@ Unreleased
 - Add support for adding jump-to-named-slide behavior to shape and run
   hyperlinks.
 
-
 0.6.7 (2017-10-30)
 ++++++++++++++++++
 
@@ -199,7 +182,6 @@ Unreleased
 - Add support for patterned fills.
 - Add `LineFormat.dash_style` to allow interrogation and setting of dashed
   line styles.
-
 
 0.6.6 (2017-06-17)
 ++++++++++++++++++
@@ -211,7 +193,6 @@ Unreleased
 - fix #277 ASCII/Unicode error on non-ASCII multi-level category names
 - fix #279 BaseShape.id warning appearing on placeholder access.
 
-
 0.6.5 (2017-03-21)
 ++++++++++++++++++
 
@@ -221,20 +202,17 @@ Unreleased
   c:dLbl/c:tx that results in "can't save" error when explicit data labels
   are added to bubbles on a bubble chart.
 
-
 0.6.4 (2017-03-17)
 ++++++++++++++++++
 
 - add Chart.chart_title and ChartTitle object
 - #263 Use Number type to test for numeric category
 
-
 0.6.3 (2017-02-28)
 ++++++++++++++++++
 
 - add DataLabel.font
 - add Axis.axis_title
-
 
 0.6.2 (2017-01-03)
 ++++++++++++++++++
@@ -257,12 +235,10 @@ after upgrading. In particular:
 * Chart.has_legend now defaults to True for Line charts.
 * Plot.vary_by_categories now defaults to False for Line charts.
 
-
 0.6.1 (2016-10-09)
 ++++++++++++++++++
 
 - add Connector shape type
-
 
 0.6.0 (2016-08-18)
 ++++++++++++++++++
@@ -289,7 +265,6 @@ after upgrading. In particular:
 - add Point.marker
 - add Marker.format, .style, and .size
 
-
 0.5.8 (2015-11-27)
 ++++++++++++++++++
 
@@ -297,7 +272,6 @@ after upgrading. In particular:
 - fix: #128 Chart cat and ser names not escaped
 - fix: #153 shapes.title raises on no title shape
 - fix: #170 remove seek(0) from Image.from_file()
-
 
 0.5.7 (2015-01-17)
 ++++++++++++++++++
@@ -316,18 +290,15 @@ placeholder shapes. Previously, some placeholder shapes reported
 `MSO_SHAPE_TYPE.AUTO_SHAPE`, `MSO_SHAPE_TYPE.CHART`,
 `MSO_SHAPE_TYPE.PICTURE`, or `MSO_SHAPE_TYPE.TABLE` for that property.
 
-
 0.5.6 (2014-12-06)
 ++++++++++++++++++
 
 - fix #138 - UnicodeDecodeError in setup.py on Windows 7 Python 3.4
 
-
 0.5.5 (2014-11-17)
 ++++++++++++++++++
 
 - feature #51 - add Python 3 support
-
 
 0.5.4 (2014-11-15)
 ++++++++++++++++++
@@ -337,18 +308,15 @@ placeholder shapes. Previously, some placeholder shapes reported
 - feature #113 - Add Paragraph.space_before, Paragraph.space_after, and
   Paragraph.line_spacing
 
-
 0.5.3 (2014-11-09)
 ++++++++++++++++++
 
 - add experimental feature TextFrame.fit_text()
 
-
 0.5.2 (2014-10-26)
 ++++++++++++++++++
 
 - fix #127 - Shape.text_frame fails on shape having no txBody
-
 
 0.5.1 (2014-09-22)
 ++++++++++++++++++
@@ -362,7 +330,6 @@ placeholder shapes. Previously, some placeholder shapes reported
 
 - Rename Shape.textframe to Shape.text_frame.
   **Shape.textframe property (by that name) is deprecated.**
-
 
 0.5.0 (2014-09-13)
 ++++++++++++++++++
@@ -400,13 +367,11 @@ GraphicFrame.chart. SmartArt is not yet supported. Accessing one of these
 properties on a GraphicFrame not containing the corresponding object raises
 an exception.
 
-
 0.4.2 (2014-04-29)
 ++++++++++++++++++
 
 - fix: issue #88 -- raises on supported image file having uppercase extension
 - fix: issue #89 -- raises on add_slide() where non-contiguous existing ids
-
 
 0.4.1 (2014-04-29)
 ++++++++++++++++++
@@ -457,20 +422,17 @@ enumerations:
 Documentation for all enumerations is available in the Enumerations section
 of the User Guide.
 
-
 0.3.2 (2014-02-07)
 ++++++++++++++++++
 
 - Hotfix: issue #80 generated presentations fail to load in Keynote and other
   Apple applications
 
-
 0.3.1 (2014-01-10)
 ++++++++++++++++++
 
 - Hotfix: failed to load certain presentations containing images with
   uppercase extension
-
 
 0.3.0 (2013-12-12)
 ++++++++++++++++++
@@ -487,14 +449,12 @@ of the User Guide.
 - Replace PIL dependency with Pillow
 - Restructure modules to better suit size of library
 
-
 0.2.6 (2013-06-22)
 ++++++++++++++++++
 
 - Add read/write access to core document properties
 - Hotfix to accomodate connector shapes in _AutoShapeType
 - Hotfix to allow customXml parts to load when present
-
 
 0.2.5 (2013-06-11)
 ++++++++++++++++++
@@ -508,12 +468,10 @@ of the User Guide.
 - Add support for auto shape adjustment values, e.g. change radius of corner
   rounding on rounded rectangle, position of callout arrow, etc.
 
-
 0.2.4 (2013-05-16)
 ++++++++++++++++++
 
 - Add support for auto shapes (e.g. polygons, flowchart symbols, etc.)
-
 
 0.2.3 (2013-05-05)
 ++++++++++++++++++
@@ -522,14 +480,12 @@ of the User Guide.
 - Add indentation support to textbox shapes, enabling multi-level bullets on
   bullet slides.
 
-
 0.2.2 (2013-03-25)
 ++++++++++++++++++
 
 - Add support for opening and saving a presentation from/to a file-like
   object.
 - Refactor XML handling to use lxml objectify
-
 
 0.2.1 (2013-02-25)
 ++++++++++++++++++
@@ -541,7 +497,6 @@ of the User Guide.
 - Expand text methods to accept unicode and UTF-8 encoded 8-bit strings.
 - Fix potential install bug triggered by importing ``__version__`` from
   package ``__init__.py`` file.
-
 
 0.2.0 (2013-02-10)
 ++++++++++++++++++

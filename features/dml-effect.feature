@@ -27,3 +27,20 @@ Feature: ShadowFormat
       | inherits         | True      | True  |
       | does not inherit | None      | False |
       | does not inherit | False     | False |
+
+
+  Scenario: Write and re-read shadow blur-radius via the shared effectLst writer
+    Given a ShadowFormat object that inherits as shadow
+     When I assign 50800 to shadow.blur_radius
+     Then shadow.blur_radius is 50800
+
+
+  Scenario Outline: Each effect family exposes an inherit flag on a shape
+    Given a ShadowFormat object that inherits as shadow
+     Then the <effect-name> effect on that shape inherits
+
+    Examples:
+      | effect-name |
+      | glow        |
+      | reflection  |
+      | soft_edge   |
