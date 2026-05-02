@@ -78,7 +78,5 @@ Notes
   image cannot be generated because there is no OLE server available in a
   pure-Python environment.
 
-.. |PROG_ID| replace:: :class:`~pptx.enum.shapes.PROG_ID`
-
 .. _`issue #752`:
    https://github.com/scanny/python-pptx/issues/752

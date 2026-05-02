@@ -76,9 +76,15 @@ rst_epilog = """
 
 .. |AdjustmentCollection| replace:: :class:`.AdjustmentCollection`
 
+.. |AnimationEffect| replace:: :class:`.AnimationEffect`
+
+.. |AnimationEffectView| replace:: :class:`.AnimationEffectView`
+
 .. |AreaSeries| replace:: :class:`.AreaSeries`
 
 .. |AttributeError| replace:: :exc:`.AttributeError`
+
+.. |Audio| replace:: :class:`.Audio`
 
 .. |Axis| replace:: :class:`.Axis`
 
@@ -105,6 +111,8 @@ rst_epilog = """
 .. |BubbleChartData| replace:: :class:`.BubbleChartData`
 
 .. |_BulletFormat| replace:: :class:`._BulletFormat`
+
+.. |bool| replace:: :class:`bool`
 
 .. |BubblePlot| replace:: :class:`.BubblePlot`
 
@@ -154,9 +162,21 @@ rst_epilog = """
 
 .. |_ColumnCollection| replace:: :class:`_ColumnCollection`
 
+.. |Comment| replace:: :class:`.Comment`
+
+.. |CommentAuthor| replace:: :class:`.CommentAuthor`
+
+.. |CommentAuthors| replace:: :class:`.CommentAuthors`
+
+.. |Comments| replace:: :class:`.Comments`
+
 .. |Connector| replace:: :class:`.Connector`
 
+.. |ConnectorAdjustmentCollection| replace:: :class:`.ConnectorAdjustmentCollection`
+
 .. |CoreProperties| replace:: :class:`.CoreProperties`
+
+.. |CustomProperties| replace:: :class:`.CustomProperties`
 
 .. |DataLabel| replace:: :class:`.DataLabel`
 
@@ -172,7 +192,13 @@ rst_epilog = """
 
 .. |Emu| replace:: :class:`.Emu`
 
+.. |ErrorBars| replace:: :class:`.ErrorBars`
+
+.. |ExtendedPropertiesPart| replace:: :class:`.ExtendedPropertiesPart`
+
 .. |False| replace:: :class:`False`
+
+.. |_Field| replace:: :class:`._Field`
 
 .. |FileSystem| replace:: :class:`FileSystem`
 
@@ -191,6 +217,8 @@ rst_epilog = """
 .. |GroupShape| replace:: :class:`.GroupShape`
 
 .. |GroupShapes| replace:: :class:`.GroupShapes`
+
+.. |_HeaderFooter| replace:: :class:`._HeaderFooter`
 
 .. |_Hyperlink| replace:: :class:`._Hyperlink`
 
@@ -222,6 +250,8 @@ rst_epilog = """
 
 .. |LineFormat| replace:: :class:`.LineFormat`
 
+.. |LinePlot| replace:: :class:`.LinePlot`
+
 .. |_LineSegment| replace:: :class:`._LineSegment`
 
 .. |LineSeries| replace:: :class:`.LineSeries`
@@ -239,6 +269,10 @@ rst_epilog = """
 .. |MasterShapes| replace:: :class:`.MasterShapes`
 
 .. |_MediaFormat| replace:: :class:`._MediaFormat`
+
+.. |MediaPart| replace:: :class:`.MediaPart`
+
+.. |Movie| replace:: :class:`.Movie`
 
 .. |None| replace:: :class:`None`
 
@@ -264,6 +298,10 @@ rst_epilog = """
 
 .. |PartTypeSpec| replace:: :class:`PartTypeSpec`
 
+.. |Path| replace:: :class:`.Path`
+
+.. |PathGeometry| replace:: :class:`.PathGeometry`
+
 .. |Picture| replace:: :class:`.Picture`
 
 .. |PieSeries| replace:: :class:`.PieSeries`
@@ -284,6 +322,8 @@ rst_epilog = """
 
 .. |PresentationPart| replace:: :class:`.PresentationPart`
 
+.. |PROG_ID| replace:: :class:`~pptx.enum.shapes.PROG_ID`
+
 .. |Pt| replace:: :class:`.Pt`
 
 .. |RadarSeries| replace:: :class:`.RadarSeries`
@@ -299,6 +339,10 @@ rst_epilog = """
 .. |_RowCollection| replace:: :class:`_RowCollection`
 
 .. |_Run| replace:: :class:`_Run`
+
+.. |Section| replace:: :class:`.Section`
+
+.. |Sections| replace:: :class:`.Sections`
 
 .. |Series| replace:: :class:`.Series`
 
@@ -338,13 +382,23 @@ rst_epilog = """
 
 .. |SlideShapes| replace:: :class:`.SlideShapes`
 
+.. |SlideTags| replace:: :class:`.SlideTags`
+
+.. |SmartArt| replace:: :class:`.SmartArt`
+
+.. |Sound| replace:: :class:`.Sound`
+
 .. |str| replace:: :class:`str`
 
 .. |Table| replace:: :class:`Table`
 
+.. |TagsPart| replace:: :class:`.TagsPart`
+
 .. |TextFrame| replace:: :class:`.TextFrame`
 
 .. |TickLabels| replace:: :class:`.TickLabels`
+
+.. |Transition| replace:: :class:`.Transition`
 
 .. |True| replace:: :class:`True`
 
@@ -355,6 +409,16 @@ rst_epilog = """
 .. |ValueError| replace:: :exc:`ValueError`
 
 .. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
+
+.. |XL_AXIS_POSITION| replace:: :class:`.XL_AXIS_POSITION`
+
+.. |XL_CROSS_BETWEEN| replace:: :class:`.XL_CROSS_BETWEEN`
+
+.. |XL_ERROR_BAR_DIRECTION| replace:: :class:`.XL_ERROR_BAR_DIRECTION`
+
+.. |XL_ERROR_BAR_INCLUDE| replace:: :class:`.XL_ERROR_BAR_INCLUDE`
+
+.. |XL_ERROR_BAR_TYPE| replace:: :class:`.XL_ERROR_BAR_TYPE`
 
 .. |XyChartData| replace:: :class:`.XyChartData`
 
