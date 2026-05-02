@@ -20,8 +20,10 @@ from pptx.chart.data import (
 from pptx.chart.xmlwriter import (
     ChartXmlWriter,
     SeriesXmlRewriterFactory,
+    _Area3DChartXmlWriter,
     _AreaChartXmlWriter,
     _apply_accent_color_to_ser,
+    _Bar3DChartXmlWriter,
     _BarChartXmlWriter,
     _BarPlotFragmentBuilder,
     _BaseSeriesXmlRewriter,
@@ -31,8 +33,10 @@ from pptx.chart.xmlwriter import (
     _CategorySeriesXmlRewriter,
     _CategorySeriesXmlWriter,
     _DoughnutChartXmlWriter,
+    _Line3DChartXmlWriter,
     _LineChartXmlWriter,
     _LinePlotFragmentBuilder,
+    _Pie3DChartXmlWriter,
     _PieChartXmlWriter,
     _PlotFragmentBuilder,
     _RadarChartXmlWriter,
@@ -89,6 +93,20 @@ class DescribeChartXmlWriter(object):
             ("XY_SCATTER_LINES_NO_MARKERS", _XyChartXmlWriter),
             ("XY_SCATTER_SMOOTH", _XyChartXmlWriter),
             ("XY_SCATTER_SMOOTH_NO_MARKERS", _XyChartXmlWriter),
+            # -- 3D chart types (issue #266) --
+            ("THREE_D_AREA", _Area3DChartXmlWriter),
+            ("THREE_D_AREA_STACKED", _Area3DChartXmlWriter),
+            ("THREE_D_AREA_STACKED_100", _Area3DChartXmlWriter),
+            ("THREE_D_BAR_CLUSTERED", _Bar3DChartXmlWriter),
+            ("THREE_D_BAR_STACKED", _Bar3DChartXmlWriter),
+            ("THREE_D_BAR_STACKED_100", _Bar3DChartXmlWriter),
+            ("THREE_D_COLUMN", _Bar3DChartXmlWriter),
+            ("THREE_D_COLUMN_CLUSTERED", _Bar3DChartXmlWriter),
+            ("THREE_D_COLUMN_STACKED", _Bar3DChartXmlWriter),
+            ("THREE_D_COLUMN_STACKED_100", _Bar3DChartXmlWriter),
+            ("THREE_D_LINE", _Line3DChartXmlWriter),
+            ("THREE_D_PIE", _Pie3DChartXmlWriter),
+            ("THREE_D_PIE_EXPLODED", _Pie3DChartXmlWriter),
         ]
     )
     def call_fixture(self, request, series_seq_):
@@ -324,6 +342,119 @@ class Describe_RadarChartXmlWriter(object):
         xml_writer = _RadarChartXmlWriter(XL_CHART_TYPE.RADAR, series_data_seq)
 
         assert xml_writer.xml == snippet_text("2x5-radar")
+
+
+class Describe_3DChartXmlWriters(object):
+    """Regression suite for 3D chart types (issue #266).
+
+    Rather than pinning exact XML against a snippet, these tests assert the
+    MVP contract: (a) every 3D enum member produces parseable chartSpace
+    XML via the ChartXmlWriter factory, (b) the emitted XML contains the
+    expected `c:{x}3DChart` wrapper and a `c:view3D` sibling on `c:chart`
+    with PowerPoint's default angles, and (c) grouping/barDir/explosion
+    distinctions between sibling enum members are preserved.
+    """
+
+    @pytest.mark.parametrize(
+        "enum_member, wrapper_localname",
+        (
+            ("THREE_D_AREA", "area3DChart"),
+            ("THREE_D_AREA_STACKED", "area3DChart"),
+            ("THREE_D_AREA_STACKED_100", "area3DChart"),
+            ("THREE_D_BAR_CLUSTERED", "bar3DChart"),
+            ("THREE_D_BAR_STACKED", "bar3DChart"),
+            ("THREE_D_BAR_STACKED_100", "bar3DChart"),
+            ("THREE_D_COLUMN", "bar3DChart"),
+            ("THREE_D_COLUMN_CLUSTERED", "bar3DChart"),
+            ("THREE_D_COLUMN_STACKED", "bar3DChart"),
+            ("THREE_D_COLUMN_STACKED_100", "bar3DChart"),
+            ("THREE_D_LINE", "line3DChart"),
+            ("THREE_D_PIE", "pie3DChart"),
+            ("THREE_D_PIE_EXPLODED", "pie3DChart"),
+        ),
+    )
+    def it_emits_parseable_xml_for_every_3d_chart_type(
+        self, enum_member, wrapper_localname
+    ):
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        cat_count = 3 if "PIE" in enum_member else 2
+        ser_count = 1 if "PIE" in enum_member else 2
+        chart_data = make_category_chart_data(cat_count, str, ser_count)
+
+        xml_text = ChartXmlWriter(chart_type, chart_data).xml
+
+        # -- parseable --
+        chartSpace = parse_xml(xml_text.encode("utf-8"))
+        c_ns = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+        # -- expected wrapper element present --
+        assert chartSpace.find(
+            f".//{{{c_ns}}}{wrapper_localname}"
+        ) is not None, (
+            f"expected c:{wrapper_localname} element for {enum_member}"
+        )
+        # -- c:view3D sibling on c:chart with PowerPoint defaults --
+        view3D = chartSpace.find(f".//{{{c_ns}}}view3D")
+        assert view3D is not None, f"expected c:view3D for {enum_member}"
+        assert view3D.find(f"{{{c_ns}}}rotX").get("val") == "15"
+        assert view3D.find(f"{{{c_ns}}}rotY").get("val") == "20"
+        assert view3D.find(f"{{{c_ns}}}rAngAx").get("val") == "1"
+        assert view3D.find(f"{{{c_ns}}}depthPercent").get("val") == "100"
+
+    @pytest.mark.parametrize(
+        "enum_member, grouping_val",
+        (
+            ("THREE_D_AREA", "standard"),
+            ("THREE_D_AREA_STACKED", "stacked"),
+            ("THREE_D_AREA_STACKED_100", "percentStacked"),
+            ("THREE_D_BAR_CLUSTERED", "clustered"),
+            ("THREE_D_BAR_STACKED", "stacked"),
+            ("THREE_D_BAR_STACKED_100", "percentStacked"),
+            ("THREE_D_COLUMN", "clustered"),
+            ("THREE_D_COLUMN_CLUSTERED", "clustered"),
+            ("THREE_D_COLUMN_STACKED", "stacked"),
+            ("THREE_D_COLUMN_STACKED_100", "percentStacked"),
+        ),
+    )
+    def it_emits_the_right_grouping_for_bar_and_area_3d_variants(
+        self, enum_member, grouping_val
+    ):
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(2, str, 2)
+
+        xml_text = ChartXmlWriter(chart_type, chart_data).xml
+
+        assert f'<c:grouping val="{grouping_val}"/>' in xml_text
+
+    @pytest.mark.parametrize(
+        "enum_member, barDir_val",
+        (
+            ("THREE_D_BAR_CLUSTERED", "bar"),
+            ("THREE_D_BAR_STACKED", "bar"),
+            ("THREE_D_BAR_STACKED_100", "bar"),
+            ("THREE_D_COLUMN", "col"),
+            ("THREE_D_COLUMN_CLUSTERED", "col"),
+            ("THREE_D_COLUMN_STACKED", "col"),
+            ("THREE_D_COLUMN_STACKED_100", "col"),
+        ),
+    )
+    def it_distinguishes_3d_bar_from_3d_column(self, enum_member, barDir_val):
+        chart_type = getattr(XL_CHART_TYPE, enum_member)
+        chart_data = make_category_chart_data(2, str, 2)
+
+        xml_text = ChartXmlWriter(chart_type, chart_data).xml
+
+        assert f'<c:barDir val="{barDir_val}"/>' in xml_text
+
+    def it_emits_explosion_for_3d_pie_exploded(self):
+        chart_data = make_category_chart_data(3, str, 1)
+
+        exploded_xml = ChartXmlWriter(
+            XL_CHART_TYPE.THREE_D_PIE_EXPLODED, chart_data
+        ).xml
+        plain_xml = ChartXmlWriter(XL_CHART_TYPE.THREE_D_PIE, chart_data).xml
+
+        assert '<c:explosion val="25"/>' in exploded_xml
+        assert '<c:explosion' not in plain_xml
 
 
 class Describe_XyChartXmlWriter(object):

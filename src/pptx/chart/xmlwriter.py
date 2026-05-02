@@ -82,6 +82,23 @@ def ChartXmlWriter(chart_type, chart_data):
             XL_CT.XY_SCATTER_LINES_NO_MARKERS: _XyChartXmlWriter,
             XL_CT.XY_SCATTER_SMOOTH: _XyChartXmlWriter,
             XL_CT.XY_SCATTER_SMOOTH_NO_MARKERS: _XyChartXmlWriter,
+            # -- 3D chart types (issue #266). All emit a `c:view3D` sibling on
+            # -- `c:chart` and a `c:{x}3DChart` element inside `c:plotArea`.
+            # -- MVP: PowerPoint's default view-3D angles are used; per-chart
+            # -- rotation/perspective customization is a follow-up.
+            XL_CT.THREE_D_AREA: _Area3DChartXmlWriter,
+            XL_CT.THREE_D_AREA_STACKED: _Area3DChartXmlWriter,
+            XL_CT.THREE_D_AREA_STACKED_100: _Area3DChartXmlWriter,
+            XL_CT.THREE_D_BAR_CLUSTERED: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_BAR_STACKED: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_BAR_STACKED_100: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_COLUMN: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_COLUMN_CLUSTERED: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_COLUMN_STACKED: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_COLUMN_STACKED_100: _Bar3DChartXmlWriter,
+            XL_CT.THREE_D_LINE: _Line3DChartXmlWriter,
+            XL_CT.THREE_D_PIE: _Pie3DChartXmlWriter,
+            XL_CT.THREE_D_PIE_EXPLODED: _Pie3DChartXmlWriter,
         }[chart_type]
     except KeyError:
         raise NotImplementedError("XML writer for chart type %s not yet implemented" % chart_type)
@@ -1404,6 +1421,568 @@ class _BubbleChartXmlWriter(_XyChartXmlWriter):
                 }
             )
         return xml
+
+
+# =====================================================================
+# 3D chart writers (issue #266)
+# =====================================================================
+#
+# ECMA-376 defines `c:bar3DChart`, `c:line3DChart`, `c:pie3DChart`, and
+# `c:area3DChart` with a structure similar to their 2D counterparts. The
+# accompanying `c:view3D` element (sibling of `c:plotArea` under `c:chart`)
+# carries the rotation/perspective angles. PowerPoint's defaults for a
+# new 3D chart are rotX=15, rotY=20, rAngAx=1 (right-angle axes), and
+# depthPercent=100 — this MVP emits exactly those and defers per-chart
+# rotation/perspective customization to a follow-up.
+
+
+# -- shared `c:view3D` block inserted after `c:autoTitleDeleted` on `c:chart` --
+_VIEW_3D_XML = (
+    "    <c:view3D>\n"
+    '      <c:rotX val="15"/>\n'
+    '      <c:rotY val="20"/>\n'
+    '      <c:depthPercent val="100"/>\n'
+    '      <c:rAngAx val="1"/>\n'
+    "    </c:view3D>\n"
+)
+
+
+class _Area3DChartXmlWriter(_AreaChartXmlWriter):
+    """Generates XML for the ``<c:area3DChart>`` element (issue #266).
+
+    Reuses |_AreaChartXmlWriter|'s grouping / series / axis helpers but
+    swaps the ``c:areaChart`` wrapper for ``c:area3DChart`` and inserts a
+    ``c:view3D`` sibling on ``c:chart``.
+    """
+
+    @property
+    def xml(self):
+        return (
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
+            '  <c:roundedCorners val="0"/>\n'
+            "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
+            "{view3D_xml}"
+            "    <c:plotArea>\n"
+            "      <c:layout/>\n"
+            "      <c:area3DChart>\n"
+            "{grouping_xml}"
+            '        <c:varyColors val="0"/>\n'
+            "{ser_xml}"
+            "        <c:dLbls>\n"
+            '          <c:showLegendKey val="0"/>\n'
+            '          <c:showVal val="0"/>\n'
+            '          <c:showCatName val="0"/>\n'
+            '          <c:showSerName val="0"/>\n'
+            '          <c:showPercent val="0"/>\n'
+            '          <c:showBubbleSize val="0"/>\n'
+            "        </c:dLbls>\n"
+            '        <c:axId val="-2101159928"/>\n'
+            '        <c:axId val="-2100718248"/>\n'
+            '        <c:axId val="-2100718249"/>\n'
+            "      </c:area3DChart>\n"
+            "{cat_ax_xml}"
+            "      <c:valAx>\n"
+            '        <c:axId val="-2100718248"/>\n'
+            "        <c:scaling>\n"
+            '          <c:orientation val="minMax"/>\n'
+            "        </c:scaling>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            "        <c:majorGridlines/>\n"
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2101159928"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:crossBetween val="midCat"/>\n'
+            "      </c:valAx>\n"
+            "      <c:serAx>\n"
+            '        <c:axId val="-2100718249"/>\n'
+            "        <c:scaling>\n"
+            '          <c:orientation val="minMax"/>\n'
+            "        </c:scaling>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:numFmt formatCode="General" sourceLinked="1"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2100718248"/>\n'
+            "      </c:serAx>\n"
+            "    </c:plotArea>\n"
+            "    <c:legend>\n"
+            '      <c:legendPos val="r"/>\n'
+            "      <c:layout/>\n"
+            '      <c:overlay val="0"/>\n'
+            "    </c:legend>\n"
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="zero"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            "  </c:chart>\n"
+            "  <c:txPr>\n"
+            "    <a:bodyPr/>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
+            "      <a:pPr>\n"
+            '        <a:defRPr sz="1800"/>\n'
+            "      </a:pPr>\n"
+            "      <a:endParaRPr/>\n"
+            "    </a:p>\n"
+            "  </c:txPr>\n"
+            "</c:chartSpace>\n"
+        ).format(
+            **{
+                "view3D_xml": _VIEW_3D_XML,
+                "grouping_xml": self._grouping_xml,
+                "ser_xml": self._ser_xml,
+                "cat_ax_xml": self._cat_ax_xml,
+            }
+        )
+
+    @property
+    def _grouping_xml(self):
+        val = {
+            XL_CHART_TYPE.THREE_D_AREA: "standard",
+            XL_CHART_TYPE.THREE_D_AREA_STACKED: "stacked",
+            XL_CHART_TYPE.THREE_D_AREA_STACKED_100: "percentStacked",
+        }[self._chart_type]
+        return '        <c:grouping val="%s"/>\n' % val
+
+
+class _Bar3DChartXmlWriter(_BaseChartXmlWriter):
+    """Generates XML for the ``<c:bar3DChart>`` element (issue #266).
+
+    Supports the 3-D bar family (horizontal ``barDir=bar``) and 3-D column
+    family (vertical ``barDir=col``). Follows the same ``c:grouping`` /
+    ``c:ser`` / ``c:axId`` layout as ``c:barChart`` but with an additional
+    ``c:axId`` referencing a ``c:serAx`` depth axis, plus the ``c:view3D``
+    sibling on ``c:chart``.
+    """
+
+    @property
+    def xml(self):
+        return (
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
+            "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
+            "{view3D_xml}"
+            "    <c:plotArea>\n"
+            "      <c:bar3DChart>\n"
+            "{barDir_xml}"
+            "{grouping_xml}"
+            '        <c:varyColors val="0"/>\n'
+            "{ser_xml}"
+            '        <c:shape val="box"/>\n'
+            '        <c:axId val="-2068027336"/>\n'
+            '        <c:axId val="-2113994440"/>\n'
+            '        <c:axId val="-2113994441"/>\n'
+            "      </c:bar3DChart>\n"
+            "{cat_ax_xml}"
+            "      <c:valAx>\n"
+            '        <c:axId val="-2113994440"/>\n'
+            "        <c:scaling/>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="{val_ax_pos}"/>\n'
+            "        <c:majorGridlines/>\n"
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2068027336"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            "      </c:valAx>\n"
+            "      <c:serAx>\n"
+            '        <c:axId val="-2113994441"/>\n'
+            "        <c:scaling>\n"
+            '          <c:orientation val="minMax"/>\n'
+            "        </c:scaling>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2113994440"/>\n'
+            "      </c:serAx>\n"
+            "    </c:plotArea>\n"
+            '    <c:dispBlanksAs val="gap"/>\n'
+            "  </c:chart>\n"
+            "  <c:txPr>\n"
+            "    <a:bodyPr/>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
+            "      <a:pPr>\n"
+            '        <a:defRPr sz="1800"/>\n'
+            "      </a:pPr>\n"
+            '      <a:endParaRPr lang="en-US"/>\n'
+            "    </a:p>\n"
+            "  </c:txPr>\n"
+            "</c:chartSpace>\n"
+        ).format(
+            **{
+                "view3D_xml": _VIEW_3D_XML,
+                "barDir_xml": self._barDir_xml,
+                "grouping_xml": self._grouping_xml,
+                "ser_xml": self._ser_xml,
+                "cat_ax_xml": self._cat_ax_xml,
+                "val_ax_pos": self._val_ax_pos,
+            }
+        )
+
+    @property
+    def _barDir_xml(self):
+        XL = XL_CHART_TYPE
+        bar_types = (
+            XL.THREE_D_BAR_CLUSTERED,
+            XL.THREE_D_BAR_STACKED,
+            XL.THREE_D_BAR_STACKED_100,
+        )
+        if self._chart_type in bar_types:
+            return '        <c:barDir val="bar"/>\n'
+        return '        <c:barDir val="col"/>\n'
+
+    @property
+    def _cat_ax_pos(self):
+        XL = XL_CHART_TYPE
+        bar_types = (
+            XL.THREE_D_BAR_CLUSTERED,
+            XL.THREE_D_BAR_STACKED,
+            XL.THREE_D_BAR_STACKED_100,
+        )
+        return "l" if self._chart_type in bar_types else "b"
+
+    @property
+    def _val_ax_pos(self):
+        XL = XL_CHART_TYPE
+        bar_types = (
+            XL.THREE_D_BAR_CLUSTERED,
+            XL.THREE_D_BAR_STACKED,
+            XL.THREE_D_BAR_STACKED_100,
+        )
+        return "b" if self._chart_type in bar_types else "l"
+
+    @property
+    def _cat_ax_xml(self):
+        categories = self._chart_data.categories
+
+        if categories.are_dates:
+            return (
+                "      <c:dateAx>\n"
+                '        <c:axId val="-2068027336"/>\n'
+                "        <c:scaling>\n"
+                '          <c:orientation val="minMax"/>\n'
+                "        </c:scaling>\n"
+                '        <c:delete val="0"/>\n'
+                '        <c:axPos val="{cat_ax_pos}"/>\n'
+                '        <c:numFmt formatCode="{nf}" sourceLinked="1"/>\n'
+                '        <c:majorTickMark val="out"/>\n'
+                '        <c:minorTickMark val="none"/>\n'
+                '        <c:tickLblPos val="nextTo"/>\n'
+                '        <c:crossAx val="-2113994440"/>\n'
+                '        <c:crosses val="autoZero"/>\n'
+                '        <c:auto val="1"/>\n'
+                '        <c:lblOffset val="100"/>\n'
+                '        <c:baseTimeUnit val="days"/>\n'
+                "      </c:dateAx>\n"
+            ).format(**{"cat_ax_pos": self._cat_ax_pos, "nf": categories.number_format})
+
+        return (
+            "      <c:catAx>\n"
+            '        <c:axId val="-2068027336"/>\n'
+            "        <c:scaling>\n"
+            '          <c:orientation val="minMax"/>\n'
+            "        </c:scaling>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="{cat_ax_pos}"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="-2113994440"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:auto val="1"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
+            "      </c:catAx>\n"
+        ).format(**{"cat_ax_pos": self._cat_ax_pos})
+
+    @property
+    def _grouping_xml(self):
+        XL = XL_CHART_TYPE
+        clustered_types = (
+            XL.THREE_D_BAR_CLUSTERED,
+            XL.THREE_D_COLUMN,
+            XL.THREE_D_COLUMN_CLUSTERED,
+        )
+        stacked_types = (XL.THREE_D_BAR_STACKED, XL.THREE_D_COLUMN_STACKED)
+        percentStacked_types = (
+            XL.THREE_D_BAR_STACKED_100,
+            XL.THREE_D_COLUMN_STACKED_100,
+        )
+        if self._chart_type in clustered_types:
+            return '        <c:grouping val="clustered"/>\n'
+        if self._chart_type in stacked_types:
+            return '        <c:grouping val="stacked"/>\n'
+        if self._chart_type in percentStacked_types:
+            return '        <c:grouping val="percentStacked"/>\n'
+        raise NotImplementedError(
+            "no _grouping_xml() for chart type %s" % self._chart_type
+        )
+
+    @property
+    def _ser_xml(self):
+        xml = ""
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
+            xml += (
+                "        <c:ser>\n"
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                "{tx_xml}"
+                "{cat_xml}"
+                "{val_xml}"
+                "        </c:ser>\n"
+            ).format(
+                **{
+                    "ser_idx": series.index,
+                    "ser_order": series.index,
+                    "tx_xml": xml_writer.tx_xml,
+                    "cat_xml": xml_writer.cat_xml,
+                    "val_xml": xml_writer.val_xml,
+                }
+            )
+        return xml
+
+
+class _Line3DChartXmlWriter(_BaseChartXmlWriter):
+    """Generates XML for the ``<c:line3DChart>`` element (issue #266).
+
+    Mirrors |_LineChartXmlWriter| with a ``c:serAx`` depth axis and the
+    ``c:view3D`` sibling on ``c:chart``.
+    """
+
+    @property
+    def xml(self):
+        return (
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            '  <c:date1904 val="0"/>\n'
+            "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
+            "{view3D_xml}"
+            "    <c:plotArea>\n"
+            "      <c:line3DChart>\n"
+            '        <c:grouping val="standard"/>\n'
+            '        <c:varyColors val="0"/>\n'
+            "{ser_xml}"
+            '        <c:axId val="2118791784"/>\n'
+            '        <c:axId val="2140495176"/>\n'
+            '        <c:axId val="2140495177"/>\n'
+            "      </c:line3DChart>\n"
+            "{cat_ax_xml}"
+            "      <c:valAx>\n"
+            '        <c:axId val="2140495176"/>\n'
+            "        <c:scaling/>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="l"/>\n'
+            "        <c:majorGridlines/>\n"
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2118791784"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            "      </c:valAx>\n"
+            "      <c:serAx>\n"
+            '        <c:axId val="2140495177"/>\n'
+            "        <c:scaling>\n"
+            '          <c:orientation val="minMax"/>\n'
+            "        </c:scaling>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2140495176"/>\n'
+            "      </c:serAx>\n"
+            "    </c:plotArea>\n"
+            "    <c:legend>\n"
+            '      <c:legendPos val="r"/>\n'
+            "      <c:layout/>\n"
+            '      <c:overlay val="0"/>\n'
+            "    </c:legend>\n"
+            '    <c:plotVisOnly val="1"/>\n'
+            '    <c:dispBlanksAs val="gap"/>\n'
+            '    <c:showDLblsOverMax val="0"/>\n'
+            "  </c:chart>\n"
+            "  <c:txPr>\n"
+            "    <a:bodyPr/>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
+            "      <a:pPr>\n"
+            '        <a:defRPr sz="1800"/>\n'
+            "      </a:pPr>\n"
+            '      <a:endParaRPr lang="en-US"/>\n'
+            "    </a:p>\n"
+            "  </c:txPr>\n"
+            "</c:chartSpace>\n"
+        ).format(
+            **{
+                "view3D_xml": _VIEW_3D_XML,
+                "ser_xml": self._ser_xml,
+                "cat_ax_xml": self._cat_ax_xml,
+            }
+        )
+
+    @property
+    def _cat_ax_xml(self):
+        categories = self._chart_data.categories
+
+        if categories.are_dates:
+            return (
+                "      <c:dateAx>\n"
+                '        <c:axId val="2118791784"/>\n'
+                "        <c:scaling>\n"
+                '          <c:orientation val="minMax"/>\n'
+                "        </c:scaling>\n"
+                '        <c:delete val="0"/>\n'
+                '        <c:axPos val="b"/>\n'
+                '        <c:numFmt formatCode="{nf}" sourceLinked="1"/>\n'
+                '        <c:majorTickMark val="out"/>\n'
+                '        <c:minorTickMark val="none"/>\n'
+                '        <c:tickLblPos val="nextTo"/>\n'
+                '        <c:crossAx val="2140495176"/>\n'
+                '        <c:crosses val="autoZero"/>\n'
+                '        <c:auto val="1"/>\n'
+                '        <c:lblOffset val="100"/>\n'
+                '        <c:baseTimeUnit val="days"/>\n'
+                "      </c:dateAx>\n"
+            ).format(**{"nf": categories.number_format})
+
+        return (
+            "      <c:catAx>\n"
+            '        <c:axId val="2118791784"/>\n'
+            "        <c:scaling>\n"
+            '          <c:orientation val="minMax"/>\n'
+            "        </c:scaling>\n"
+            '        <c:delete val="0"/>\n'
+            '        <c:axPos val="b"/>\n'
+            '        <c:majorTickMark val="out"/>\n'
+            '        <c:minorTickMark val="none"/>\n'
+            '        <c:tickLblPos val="nextTo"/>\n'
+            '        <c:crossAx val="2140495176"/>\n'
+            '        <c:crosses val="autoZero"/>\n'
+            '        <c:auto val="1"/>\n'
+            '        <c:lblAlgn val="ctr"/>\n'
+            '        <c:lblOffset val="100"/>\n'
+            '        <c:noMultiLvlLbl val="0"/>\n'
+            "      </c:catAx>\n"
+        )
+
+    @property
+    def _ser_xml(self):
+        xml = ""
+        for series in self._chart_data:
+            xml_writer = _CategorySeriesXmlWriter(series)
+            xml += (
+                "        <c:ser>\n"
+                '          <c:idx val="{ser_idx}"/>\n'
+                '          <c:order val="{ser_order}"/>\n'
+                "{tx_xml}"
+                "{cat_xml}"
+                "{val_xml}"
+                '          <c:smooth val="0"/>\n'
+                "        </c:ser>\n"
+            ).format(
+                **{
+                    "ser_idx": series.index,
+                    "ser_order": series.index,
+                    "tx_xml": xml_writer.tx_xml,
+                    "cat_xml": xml_writer.cat_xml,
+                    "val_xml": xml_writer.val_xml,
+                }
+            )
+        return xml
+
+
+class _Pie3DChartXmlWriter(_BaseChartXmlWriter):
+    """Generates XML for the ``<c:pie3DChart>`` element (issue #266).
+
+    Mirrors |_PieChartXmlWriter|; the 3D rendering is driven by the
+    ``c:pie3DChart`` element name plus the ``c:view3D`` sibling on
+    ``c:chart``. ECMA-376's ``c:pie3DChart`` does not take axes.
+    """
+
+    @property
+    def xml(self):
+        return (
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n"
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawin'
+            'gml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/draw'
+            'ingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/off'
+            'iceDocument/2006/relationships">\n'
+            "  <c:chart>\n"
+            '    <c:autoTitleDeleted val="0"/>\n'
+            "{view3D_xml}"
+            "    <c:plotArea>\n"
+            "      <c:pie3DChart>\n"
+            '        <c:varyColors val="1"/>\n'
+            "{ser_xml}"
+            "      </c:pie3DChart>\n"
+            "    </c:plotArea>\n"
+            '    <c:dispBlanksAs val="gap"/>\n'
+            "  </c:chart>\n"
+            "  <c:txPr>\n"
+            "    <a:bodyPr/>\n"
+            "    <a:lstStyle/>\n"
+            "    <a:p>\n"
+            "      <a:pPr>\n"
+            '        <a:defRPr sz="1800"/>\n'
+            "      </a:pPr>\n"
+            '      <a:endParaRPr lang="en-US"/>\n'
+            "    </a:p>\n"
+            "  </c:txPr>\n"
+            "</c:chartSpace>\n"
+        ).format(**{"view3D_xml": _VIEW_3D_XML, "ser_xml": self._ser_xml})
+
+    @property
+    def _explosion_xml(self):
+        if self._chart_type == XL_CHART_TYPE.THREE_D_PIE_EXPLODED:
+            return '          <c:explosion val="25"/>\n'
+        return ""
+
+    @property
+    def _ser_xml(self):
+        xml_writer = _CategorySeriesXmlWriter(self._chart_data[0])
+        return (
+            "        <c:ser>\n"
+            '          <c:idx val="0"/>\n'
+            '          <c:order val="0"/>\n'
+            "{tx_xml}"
+            "{explosion_xml}"
+            "{cat_xml}"
+            "{val_xml}"
+            "        </c:ser>\n"
+        ).format(
+            **{
+                "tx_xml": xml_writer.tx_xml,
+                "explosion_xml": self._explosion_xml,
+                "cat_xml": xml_writer.cat_xml,
+                "val_xml": xml_writer.val_xml,
+            }
+        )
 
 
 class _CategorySeriesXmlWriter(_BaseSeriesXmlWriter):
