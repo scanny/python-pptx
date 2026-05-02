@@ -6,6 +6,26 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #115 (``Chart.update_cached_values()`` from linked Excel
+  workbook) resolved by Wave 2 #381. Issue #115 asked for a
+  programmatic way to refresh a chart's displayed values after its
+  backing data was updated out-of-band — the reporter's workflow was
+  "weekly presentation with lot of charts" whose embedded ``.xlsx``
+  was rewritten from an ODBC source, without the manual per-chart
+  *Refresh Data* (``Alt+F5``) click in PowerPoint. Wave 2 #381 shipped
+  :meth:`Chart.update_cached_values`, which re-reads the embedded
+  workbook, resolves every ``<c:f>`` cell reference under the chart,
+  and rewrites the sibling ``<c:numCache>`` / ``<c:strCache>`` subtrees
+  so the chart renders the workbook's current values with no
+  PowerPoint interaction. Adds a regression suite
+  ``DescribeIssue115UpdateCachedValuesVerify`` under
+  ``tests/test_issue_115_update_cached_values_verify.py`` pinning the
+  reporter's end-to-end workflow (author chart → rewrite embedded
+  xlsx → refresh → save → reopen), the "refresh every chart on every
+  slide" bulk case, the docstring-level edge cases (no-op on charts
+  without an embedded workbook; unresolved cell references left
+  untouched; idempotent), and XY/scatter coverage.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
