@@ -11,6 +11,7 @@ from pptx.enum.text import MSO_AUTO_SIZE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR, PP
 from pptx.enum.text import MSO_AUTO_SIZE, MSO_STRIKE, MSO_UNDERLINE, MSO_VERTICAL_ANCHOR
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.simpletypes import ST_TextWrappingType
+from pptx.oxml.text import CT_RegularTextRun
 from pptx.shapes import Subshape
 from pptx.text.fonts import FontFiles
 from pptx.text.layout import TextFitter
@@ -26,7 +27,6 @@ if TYPE_CHECKING:
     )
     from pptx.oxml.action import CT_Hyperlink
     from pptx.oxml.text import (
-        CT_RegularTextRun,
         CT_TextBody,
         CT_TextCharacterProperties,
         CT_TextField,
@@ -207,6 +207,26 @@ class TextFrame(Subshape):
         A text frame always contains at least one paragraph.
         """
         return tuple([_Paragraph(p, self) for p in self._txBody.p_lst])
+
+    def replace_text(self, find: str, replace: str) -> int:
+        """Replace every occurrence of `find` in this text-frame with `replace`.
+
+        Searches across runs so that a keyword broken across multiple `a:r`
+        elements by PowerPoint edits (a common occurrence) is still replaced.
+        Matches that would cross a line-break (`a:br`) or auto-refresh field
+        (`a:fld`) boundary are not replaced — search is effectively scoped to
+        each maximal consecutive group of `a:r` runs within a paragraph.
+
+        When a match spans multiple runs, the formatting of the run in which
+        the match starts is preserved for the replacement text. Any run fully
+        contained within the match is removed; if a match ends partway
+        through a run, that run's surviving suffix keeps its original
+        formatting. Replacements do not overlap and occur left-to-right.
+
+        Returns the number of replacements performed. `find` must be a
+        non-empty string (raises `ValueError` otherwise). See issue #836.
+        """
+        return sum(p.replace_text(find, replace) for p in self.paragraphs)
 
     @property
     def text(self) -> str:
@@ -944,6 +964,44 @@ class _Paragraph(Subshape):
         pPr = self._p.get_or_add_pPr()
         pPr.line_spacing = value
 
+    def replace_text(self, find: str, replace: str) -> int:
+        """Replace every occurrence of `find` in this paragraph with `replace`.
+
+        Searches across the paragraph's runs so that a keyword split across
+        multiple `a:r` elements (for example after a PowerPoint edit that
+        broke ``"{NAME}"`` into two runs) is still replaced. Matches that
+        would cross an `a:br` (line-break) or `a:fld` (auto-refresh field)
+        boundary are not replaced — search is scoped to each maximal
+        consecutive group of `a:r` runs.
+
+        When a match spans multiple runs, the formatting of the run in which
+        the match starts is preserved for the replacement text; runs fully
+        contained within the match are removed, and when a match ends partway
+        through a run the surviving suffix keeps its original formatting.
+        Replacements do not overlap and occur left-to-right.
+
+        Returns the number of replacements performed. Raises `ValueError` if
+        `find` is an empty string. See issue #836.
+        """
+        if not find:
+            raise ValueError("`find` must be a non-empty string")
+
+        # -- partition content children into maximal consecutive a:r groups,
+        # -- separated by a:br / a:fld boundaries (within which replacement
+        # -- is intentionally not attempted).
+        groups: list[list[CT_RegularTextRun]] = [[]]
+        for child in self._element.content_children:
+            if isinstance(child, CT_RegularTextRun):
+                groups[-1].append(child)
+            else:
+                if groups[-1]:
+                    groups.append([])
+        count = 0
+        for run_group in groups:
+            if run_group:
+                count += _replace_in_runs(run_group, find, replace)
+        return count
+
     @property
     def runs(self) -> tuple[_Run, ...]:
         """Sequence of runs in this paragraph."""
@@ -1119,3 +1177,101 @@ class _Field(Subshape):
     @text.setter
     def text(self, value: str):
         self._fld.text = value
+
+
+def _replace_in_runs(
+    runs: list[CT_RegularTextRun], find: str, replace: str
+) -> int:
+    """Replace every occurrence of `find` with `replace` within `runs`.
+
+    `runs` is a non-empty list of consecutive `a:r` elements that share a
+    parent `a:p`. Text is matched against the concatenation of the run
+    texts, so matches may span adjacent runs. Returns the number of
+    replacements performed.
+
+    The run in which a match begins is retained (its formatting is
+    preserved) and its `a:t` is rewritten to hold the text preceding the
+    match plus the replacement. When a match spans into later runs, those
+    runs are fully removed if entirely inside the match; a run that the
+    match ends partway through keeps only its suffix text (and its own
+    formatting). When repeat matches occur within a single run or a single
+    span, they are all processed in left-to-right order by rebuilding that
+    run's text in one pass.
+    """
+    # -- snapshot the text of each run and build the flattened string --
+    run_texts = [r.text for r in runs]
+    flat = "".join(run_texts)
+    if find not in flat:
+        return 0
+
+    # -- map each character of `flat` to its source run index --
+    run_index_at: list[int] = []
+    for i, t in enumerate(run_texts):
+        run_index_at.extend([i] * len(t))
+
+    # -- collect non-overlapping match spans, left-to-right --
+    matches: list[tuple[int, int]] = []  # (start, end) into `flat`
+    search_start = 0
+    while True:
+        idx = flat.find(find, search_start)
+        if idx < 0:
+            break
+        matches.append((idx, idx + len(find)))
+        search_start = idx + len(find)
+    if not matches:
+        return 0
+
+    # -- compute new text for each run and which runs to drop --
+    # -- run_offsets[i] is the start offset of run i in `flat` --
+    run_offsets: list[int] = []
+    off = 0
+    for t in run_texts:
+        run_offsets.append(off)
+        off += len(t)
+
+    new_texts: list[str | None] = list(run_texts)  # None => drop run
+
+    # -- walk matches in reverse so earlier indices stay valid --
+    for start, end in reversed(matches):
+        first_run = run_index_at[start] if start < len(run_index_at) else len(runs) - 1
+        # -- `end` may equal len(flat); clamp to last run in that case --
+        last_run = (
+            run_index_at[end - 1] if end - 1 < len(run_index_at) else len(runs) - 1
+        )
+        first_text = new_texts[first_run]
+        # -- first_text can't be None here: it contains the match start --
+        assert first_text is not None
+        prefix = first_text[: start - run_offsets[first_run]]
+        # -- compute the surviving suffix of the last run (if partial) --
+        last_text = new_texts[last_run]
+        if last_text is None:
+            # -- shouldn't happen for a match end, but guard anyway --
+            suffix = ""
+        else:
+            suffix = last_text[end - run_offsets[last_run] :]
+
+        if first_run == last_run:
+            # -- match lies entirely within a single run; just splice --
+            new_texts[first_run] = prefix + replace + suffix
+        else:
+            # -- match spans multiple runs: first run absorbs prefix +
+            # -- replace; intermediate runs are dropped; last run keeps
+            # -- only its suffix (preserving its own formatting).
+            new_texts[first_run] = prefix + replace
+            for mid in range(first_run + 1, last_run):
+                new_texts[mid] = None
+            new_texts[last_run] = suffix
+
+    # -- apply changes back to the XML elements --
+    # -- a run whose text becomes empty as a result of replacement is
+    # -- removed (preserving an originally-empty run is unnecessary
+    # -- after a targeted text rewrite).
+    for run, new_text in zip(runs, new_texts):
+        if new_text is None or (new_text == "" and run.text != ""):
+            parent = run.getparent()
+            if parent is not None:
+                parent.remove(run)
+        elif new_text != run.text:
+            run.text = new_text
+
+    return len(matches)

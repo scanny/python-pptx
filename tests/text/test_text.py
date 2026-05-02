@@ -311,6 +311,63 @@ class DescribeTextFrame(object):
 
         assert text_frame._element.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "find", "replace", "expected_count", "expected_cxml"),
+        [
+            # -- match in a single run --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"Hello {NAME}!")',
+                "{NAME}",
+                "Alice",
+                1,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"Hello Alice!")',
+            ),
+            # -- match split across two adjacent runs (the issue #836 case) --
+            (
+                'p:txBody/(a:bodyPr,a:p/(a:r/a:t"{NA",a:r/a:t"ME}"))',
+                "{NAME}",
+                "Alice",
+                1,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"Alice")',
+            ),
+            # -- match across paragraphs does NOT cross the paragraph boundary --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"{X}",a:p/(a:r/a:t"{NA",a:r/a:t"ME}"))',
+                "{NAME}",
+                "Bob",
+                1,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"{X}",a:p/a:r/a:t"Bob")',
+            ),
+            # -- multiple matches, one entirely in one run, one spanning two --
+            (
+                'p:txBody/(a:bodyPr,a:p/(a:r/a:t"{X} mid {",a:r/a:t"X}"))',
+                "{X}",
+                "Y",
+                2,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"Y mid Y")',
+            ),
+            # -- no match → no change, count 0 --
+            (
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"Hello")',
+                "NotFound",
+                "X",
+                0,
+                'p:txBody/(a:bodyPr,a:p/a:r/a:t"Hello")',
+            ),
+        ],
+    )
+    def it_can_replace_text_across_multiple_runs(
+        self,
+        txBody_cxml: str,
+        find: str,
+        replace: str,
+        expected_count: int,
+        expected_cxml: str,
+    ):
+        text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
+        assert text_frame.replace_text(find, replace) == expected_count
+        assert text_frame._element.xml == xml(expected_cxml)
+
     def it_can_resize_its_text_to_best_fit(self, request, text_prop_):
         family, max_size, bold, italic, font_file, font_size = (
             "Family",
@@ -1277,6 +1334,113 @@ class Describe_Paragraph(object):
         paragraph.text = value
 
         assert paragraph._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("p_cxml", "find", "replace", "expected_count", "expected_cxml"),
+        [
+            # -- match inside a single run --
+            (
+                'a:p/a:r/a:t"Hello {NAME}!"',
+                "{NAME}",
+                "Alice",
+                1,
+                'a:p/a:r/a:t"Hello Alice!"',
+            ),
+            # -- match spans two consecutive runs (the issue-#836 case) --
+            (
+                'a:p/(a:r/a:t"{NA",a:r/a:t"ME}")',
+                "{NAME}",
+                "Alice",
+                1,
+                'a:p/a:r/a:t"Alice"',
+            ),
+            # -- formatting of the run that starts the match is preserved;
+            # -- the run where the match ends keeps its surviving suffix
+            # -- along with its own formatting
+            (
+                'a:p/(a:r/(a:rPr{b=1},a:t"{N"),a:r/(a:rPr{i=1},a:t"AM"),'
+                'a:r/(a:rPr{u=sng},a:t"E}tail"))',
+                "{NAME}",
+                "X",
+                1,
+                'a:p/(a:r/(a:rPr{b=1},a:t"X"),a:r/(a:rPr{u=sng},a:t"tail"))',
+            ),
+            # -- two matches in a single paragraph: one within a run, one
+            # -- spanning two runs (the first run absorbs the replacement
+            # -- of the cross-run match; the last run keeps its suffix) --
+            (
+                'a:p/(a:r/a:t"{X} and {",a:r/a:t"X}!")',
+                "{X}",
+                "Y",
+                2,
+                'a:p/(a:r/a:t"Y and Y",a:r/a:t"!")',
+            ),
+            # -- match does NOT cross an a:br boundary --
+            (
+                'a:p/(a:r/a:t"{NA",a:br,a:r/a:t"ME}")',
+                "{NAME}",
+                "X",
+                0,
+                'a:p/(a:r/a:t"{NA",a:br,a:r/a:t"ME}")',
+            ),
+            # -- match does NOT cross an a:fld boundary --
+            (
+                'a:p/(a:r/a:t"{NA",a:fld{id=abc,type=slidenum}/a:t"#",a:r/a:t"ME}")',
+                "{NAME}",
+                "X",
+                0,
+                'a:p/(a:r/a:t"{NA",a:fld{id=abc,type=slidenum}/a:t"#",a:r/a:t"ME}")',
+            ),
+            # -- replacing with empty string removes the matched text --
+            (
+                'a:p/a:r/a:t"hello {NAME} world"',
+                "{NAME} ",
+                "",
+                1,
+                'a:p/a:r/a:t"hello world"',
+            ),
+            # -- replacements do not overlap; "aa" in "aaaa" replaces twice --
+            (
+                'a:p/a:r/a:t"aaaa"',
+                "aa",
+                "b",
+                2,
+                'a:p/a:r/a:t"bb"',
+            ),
+            # -- no match is a zero-count no-op --
+            (
+                'a:p/a:r/a:t"Hello"',
+                "XYZ",
+                "W",
+                0,
+                'a:p/a:r/a:t"Hello"',
+            ),
+            # -- empty paragraph (no runs) --
+            (
+                "a:p",
+                "X",
+                "Y",
+                0,
+                "a:p",
+            ),
+        ],
+    )
+    def it_can_replace_text_across_multiple_runs(
+        self,
+        p_cxml: str,
+        find: str,
+        replace: str,
+        expected_count: int,
+        expected_cxml: str,
+    ):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element(p_cxml)), None)
+        assert paragraph.replace_text(find, replace) == expected_count
+        assert paragraph._element.xml == xml(expected_cxml)
+
+    def it_raises_ValueError_when_replace_text_find_is_empty(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element('a:p/a:r/a:t"x"')), None)
+        with pytest.raises(ValueError):
+            paragraph.replace_text("", "y")
 
     # fixtures ---------------------------------------------
 
