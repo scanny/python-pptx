@@ -9,7 +9,7 @@ from pptx.dml.fill import FillFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.enum.transition import PP_TRANSITION_TYPE
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.oxml.ns import qn
+from pptx.oxml.ns import namespaces, qn
 from pptx.shapes.shapetree import (
     LayoutPlaceholders,
     LayoutShapes,
@@ -323,6 +323,56 @@ class Slide(_BaseSlide):
         if timing is None:
             return None
         return timing.xml
+
+    def iter_shape_animations(self) -> Iterator[ShapeAnimation]:
+        """Iterate over the shape-targeted animation effects on this slide.
+
+        Yields a :class:`.ShapeAnimation` proxy for each behaviour node
+        in the slide's ``p:timing`` subtree that targets a shape via
+        ``p:spTgt/@spid`` — namely ``p:anim``, ``p:animEffect``,
+        ``p:animMotion``, ``p:animRot``, ``p:animScale``, ``p:animClr``,
+        and ``p:set``.
+
+        This is the **read-only MVP** for issue #264. It lets callers
+        introspect authored animations (delay, duration, trigger shape,
+        effect type) without reaching into ``slide.timing_xml``. Write /
+        authoring support — adding entrance / exit / emphasis / motion
+        effects, or modifying an effect's delay in-place — is deferred
+        to the larger Wave-7 lift (#264 full, #102, #861, #1106). See
+        ``docs/dev/analysis/f8-animations-transitions.rst`` for the
+        extension-point map.
+        """
+        timing = self._element.timing
+        if timing is None:
+            return
+        tnLst = timing.tnLst
+        if tnLst is None:
+            return
+        # -- Find every behaviour element under this tnLst that targets a
+        # -- shape via `p:spTgt/@spid`. Using descendant XPath keeps us
+        # -- robust to arbitrary wrapping (`p:par`, `p:seq`, nested
+        # -- `p:childTnLst`, etc.) without hard-coding the main-sequence
+        # -- structure.
+        for spTgt in _xpath_p(tnLst, ".//p:spTgt[@spid]"):
+            # -- Walk up to the nearest behaviour ancestor whose tag is one
+            # -- of the known shape-animation effect types. `p:tgtEl` may
+            # -- live inside a shared `p:cBhvr` / `p:cMediaNode`; we want
+            # -- the behaviour element itself (p:anim, p:animEffect, ...).
+            effect = _ancestor_with_local_name(
+                spTgt,
+                (
+                    "anim",
+                    "animEffect",
+                    "animMotion",
+                    "animRot",
+                    "animScale",
+                    "animClr",
+                    "set",
+                ),
+            )
+            if effect is None:
+                continue
+            yield ShapeAnimation(effect, int(spTgt.get("spid")))
 
     @lazyproperty
     def transition(self) -> Transition:
@@ -972,6 +1022,168 @@ class Transition(ElementProxy):
             )
         transition = self._sld.get_or_add_transition()
         transition.advTm = value
+
+
+class ShapeAnimation(ElementProxy):
+    """Read-only proxy for a single shape-targeted animation effect.
+
+    Returned by :meth:`.Slide.iter_shape_animations`. Wraps one of the
+    shape-animation behaviour elements (``p:anim``, ``p:animEffect``,
+    ``p:animMotion``, ``p:animRot``, ``p:animScale``, ``p:animClr``,
+    ``p:set``) together with the ``shape_id`` resolved from that
+    effect's ``p:spTgt/@spid``.
+
+    MVP read surface (issue #264):
+
+    * :attr:`shape_id` — ``int``, the ``@spid`` of the targeted shape.
+    * :attr:`effect_type` — ``str``, the local name of the behaviour
+      element (``"anim"``, ``"animEffect"``, ``"set"``, …).
+    * :attr:`delay_ms` — ``int`` / ``"indefinite"`` / ``None``, the
+      value of the effect's first ``p:stCondLst/p:cond/@delay``.
+    * :attr:`duration_ms` — ``int`` / ``"indefinite"`` / ``None``, the
+      ``@dur`` attribute of the effect's ``p:cTn`` child.
+    * :attr:`element` — the underlying ``lxml`` element so callers that
+      need to hand-edit the XML today can still do so (the full-authoring
+      API is deferred to Wave 7).
+
+    Write support (adjusting delay, adding new entrance effects, etc.)
+    is deferred — see ``docs/dev/analysis/f8-animations-transitions.rst``
+    and the downstream-items matrix.
+    """
+
+    _SHAPE_EFFECT_TAGS = {
+        "anim",
+        "animEffect",
+        "animMotion",
+        "animRot",
+        "animScale",
+        "animClr",
+        "set",
+    }
+
+    def __init__(self, effect_elm: BaseOxmlElement, shape_id: int):
+        super(ShapeAnimation, self).__init__(effect_elm)
+        self._effect = effect_elm
+        self._shape_id = shape_id
+
+    @property
+    def shape_id(self) -> int:
+        """``int`` ``@spid`` of the shape this effect targets."""
+        return self._shape_id
+
+    @property
+    def effect_type(self) -> str:
+        """Local name of the behaviour element (e.g. ``"anim"``, ``"set"``)."""
+        tag = self._effect.tag
+        # -- strip the namespace prefix — tag looks like
+        # -- "{http://.../main}anim"
+        return tag.rsplit("}", 1)[-1] if "}" in tag else tag
+
+    @property
+    def delay_ms(self) -> int | str | None:
+        """First start-condition delay of this effect.
+
+        Returns the value of the effect's
+        ``p:cTn/p:stCondLst/p:cond/@delay`` attribute — an ``int``
+        (milliseconds), the string ``"indefinite"``, or ``None`` when
+        no start-condition delay is specified.
+
+        This is the exact read-half of the feature requested in #264
+        ("is there a way to modify the delay of shape animations?").
+        A write accessor is tracked under #861 and layered onto this
+        proxy when it lands.
+        """
+        cTn = self._cTn
+        if cTn is None:
+            return None
+        conds = _xpath_p(cTn, "p:stCondLst/p:cond")
+        if not conds:
+            return None
+        delay = conds[0].get("delay")
+        if delay is None:
+            return None
+        if delay == "indefinite":
+            return "indefinite"
+        return int(delay)
+
+    @property
+    def duration_ms(self) -> int | str | None:
+        """``@dur`` of the effect's ``p:cTn`` child, or ``None`` when absent.
+
+        ``int`` milliseconds, or the string ``"indefinite"``.
+        """
+        cTn = self._cTn
+        if cTn is None:
+            return None
+        # CT_TLCommonTimeNodeData.dur returns the already-converted
+        # ST_TLTime value when ``p:cTn`` was parsed with the typed class,
+        # but behaviour-scoped p:cTn elements may be plain
+        # BaseOxmlElement in early implementations — fall back to the
+        # raw attribute.
+        dur = getattr(cTn, "dur", None)
+        if dur is not None:
+            return dur
+        raw = cTn.get("dur")
+        if raw is None:
+            return None
+        if raw == "indefinite":
+            return "indefinite"
+        return int(raw)
+
+    @property
+    def element(self) -> BaseOxmlElement:
+        """The underlying behaviour element (``p:anim``, ``p:set``, …).
+
+        Exposed so callers can hand-edit the XML today; the full typed
+        authoring API is deferred.
+        """
+        return self._effect
+
+    # -- private helpers --------------------------------------------
+
+    @property
+    def _cTn(self):
+        """Return the behaviour's ``p:cTn`` descendant, or ``None``.
+
+        In every shape-animation behaviour type a ``p:cTn`` lives under
+        a ``p:cBhvr`` wrapper (or directly under ``p:set`` via
+        ``p:cBhvr``). We use a descendant XPath so we don't have to
+        hard-code each wrapper shape.
+        """
+        cTns = _xpath_p(self._effect, ".//p:cTn")
+        return cTns[0] if cTns else None
+
+
+def _xpath_p(elm, expr: str):
+    """Run an XPath expression on `elm` with the ``p`` prefix bound.
+
+    Works uniformly whether `elm` is a :class:`BaseOxmlElement` (which
+    carries the Open-XML namespace map built-in but overrides ``xpath``
+    to reject the ``namespaces=`` kwarg) or a plain ``lxml._Element``
+    (for which we must supply the namespaces explicitly).
+    """
+    from pptx.oxml.xmlchemy import BaseOxmlElement
+
+    if isinstance(elm, BaseOxmlElement):
+        return elm.xpath(expr)
+    return elm.xpath(expr, namespaces=namespaces("p"))
+
+
+def _ancestor_with_local_name(elm, local_names):
+    """Walk up from `elm` returning the first ancestor whose local tag is in `local_names`.
+
+    Returns ``None`` when no such ancestor exists. Used by
+    :meth:`Slide.iter_shape_animations` to locate the behaviour element
+    wrapping a ``p:spTgt`` match.
+    """
+    current = elm.getparent()
+    while current is not None:
+        tag = current.tag
+        local = tag.rsplit("}", 1)[-1] if "}" in tag else tag
+        if local in local_names:
+            return current
+        current = current.getparent()
+    return None
 
 
 class _Background(ElementProxy):

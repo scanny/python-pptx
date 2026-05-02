@@ -271,12 +271,18 @@ in place for the downstream work.
     ``mc:AlternateContent``.
 
 ``#264`` — shape-animation control
-    *Wave 7. Effort XL.*
-    The high-level API lift (author a full animation tree, not just
-    the presets #102 covers). Add a ``Sequence`` proxy on
-    ``Slide.animations`` that composes ``CT_TLTimeNodeSequence`` and
-    exposes click-vs-with-previous-vs-after-previous triggers.
-    F8's ``prevCondLst`` / ``nextCondLst`` descriptors on
+    *Wave 7. Effort XL.* Read-half landed in Wave 5 as
+    ``Slide.iter_shape_animations()`` — yields a ``ShapeAnimation``
+    proxy per behaviour element that exposes ``shape_id``,
+    ``effect_type``, ``delay_ms``, ``duration_ms``, and the underlying
+    ``element``. That directly serves the original ask on the issue
+    ("modify the delay of shape animations") for inspection + manual
+    XML editing. Remaining Wave-7 scope: the full authoring lift —
+    add a ``Sequence`` proxy on ``Slide.animations`` that composes
+    ``CT_TLTimeNodeSequence`` and exposes click-vs-with-previous-vs-
+    after-previous triggers, plus writable ``delay_ms`` /
+    ``duration_ms`` setters on ``ShapeAnimation`` (aligning with
+    #861). F8's ``prevCondLst`` / ``nextCondLst`` descriptors on
     ``CT_TLTimeNodeSequence`` are the leverage point.
 
 ``#861`` — animation delay read/write
