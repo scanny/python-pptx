@@ -3,6 +3,17 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: #529 Charts not using theme/Accent colors on new series. When
+  ``Chart.replace_data()`` adds series beyond the original count by cloning
+  the last existing ``c:ser``, any explicit ``a:solidFill/a:srgbClr`` color
+  carried over from the source is now replaced with a cycling
+  ``a:schemeClr val="accent1..6"`` reference so newly-added series follow
+  PowerPoint's theme-accent rotation.
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

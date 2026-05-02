@@ -21,6 +21,7 @@ from pptx.chart.xmlwriter import (
     ChartXmlWriter,
     SeriesXmlRewriterFactory,
     _AreaChartXmlWriter,
+    _apply_accent_color_to_ser,
     _BarChartXmlWriter,
     _BaseSeriesXmlRewriter,
     _BubbleChartXmlWriter,
@@ -579,6 +580,205 @@ class Describe_BaseSeriesXmlRewriter(object):
     @pytest.fixture
     def _trim_ser_count_by_(self, request):
         return method_mock(request, _BaseSeriesXmlRewriter, "_trim_ser_count_by", autospec=True)
+
+    # -- issue #529: ensure cloned sers get cycling theme-accent colors ---
+
+    def it_rotates_accent_colors_when_cloning_a_colored_ser(self):
+        """Explicit sRGB fill on source ser becomes schemeClr accent on clones.
+
+        The source ser (idx=0) carries an explicit red sRGB fill. The two
+        cloned sers (new idxs 1 and 2) should adopt schemeClr val="accent2"
+        and "accent3" respectively — PowerPoint's theme-accent rotation.
+        """
+        plotArea_xml = (
+            '<c:plotArea xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"'
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<c:barChart>"
+            "<c:ser>"
+            '<c:idx val="0"/>'
+            '<c:order val="0"/>'
+            '<c:spPr><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill></c:spPr>'
+            "</c:ser>"
+            "</c:barChart>"
+            "</c:plotArea>"
+        )
+        plotArea = parse_xml(plotArea_xml)
+        rewriter = _BaseSeriesXmlRewriter(None)
+
+        rewriter._add_cloned_sers(plotArea, 2)
+
+        sers = plotArea.xpath(".//c:ser")
+        assert len(sers) == 3
+        # -- source ser keeps original explicit sRGB color --
+        assert sers[0].xpath(".//a:srgbClr/@val") == ["FF0000"]
+        assert sers[0].xpath(".//a:schemeClr") == []
+        # -- first cloned ser (idx=1) gets accent2 --
+        assert sers[1].xpath(".//a:srgbClr") == []
+        assert sers[1].xpath(".//a:schemeClr/@val") == ["accent2"]
+        # -- second cloned ser (idx=2) gets accent3 --
+        assert sers[2].xpath(".//a:srgbClr") == []
+        assert sers[2].xpath(".//a:schemeClr/@val") == ["accent3"]
+
+    def it_cycles_accent_colors_past_the_sixth(self):
+        """Series at idx 6 wraps back to accent1; idx 7 to accent2, etc."""
+        plotArea_xml = (
+            '<c:plotArea xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"'
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<c:barChart>"
+            "<c:ser>"
+            '<c:idx val="5"/>'
+            '<c:order val="5"/>'
+            '<c:spPr><a:solidFill><a:srgbClr val="123456"/></a:solidFill></c:spPr>'
+            "</c:ser>"
+            "</c:barChart>"
+            "</c:plotArea>"
+        )
+        plotArea = parse_xml(plotArea_xml)
+        rewriter = _BaseSeriesXmlRewriter(None)
+
+        rewriter._add_cloned_sers(plotArea, 2)
+
+        sers = plotArea.xpath(".//c:ser")
+        # -- new ser at idx=6 wraps to accent1, idx=7 to accent2 --
+        assert sers[1].xpath("./c:idx/@val") == ["6"]
+        assert sers[1].xpath(".//a:schemeClr/@val") == ["accent1"]
+        assert sers[2].xpath("./c:idx/@val") == ["7"]
+        assert sers[2].xpath(".//a:schemeClr/@val") == ["accent2"]
+
+    def it_rewrites_colors_in_nested_ln_and_marker_spPr(self):
+        """Explicit colors in any descendant a:srgbClr element are replaced."""
+        plotArea_xml = (
+            '<c:plotArea xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"'
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<c:lineChart>"
+            "<c:ser>"
+            '<c:idx val="0"/>'
+            '<c:order val="0"/>'
+            "<c:spPr>"
+            '<a:ln><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill></a:ln>'
+            "</c:spPr>"
+            "<c:marker>"
+            '<c:symbol val="circle"/>'
+            "<c:spPr>"
+            '<a:solidFill><a:srgbClr val="00FF00"/></a:solidFill>'
+            '<a:ln><a:solidFill><a:srgbClr val="0000FF"/></a:solidFill></a:ln>'
+            "</c:spPr>"
+            "</c:marker>"
+            "</c:ser>"
+            "</c:lineChart>"
+            "</c:plotArea>"
+        )
+        plotArea = parse_xml(plotArea_xml)
+        rewriter = _BaseSeriesXmlRewriter(None)
+
+        rewriter._add_cloned_sers(plotArea, 1)
+
+        sers = plotArea.xpath(".//c:ser")
+        cloned = sers[1]
+        # -- no explicit sRGB colors should remain on the clone --
+        assert cloned.xpath(".//a:srgbClr") == []
+        # -- all three original sRGB locations should now be a:schemeClr="accent2" --
+        scheme_vals = cloned.xpath(".//a:schemeClr/@val")
+        assert scheme_vals == ["accent2", "accent2", "accent2"]
+
+    def it_leaves_a_ser_with_no_explicit_color_alone(self):
+        """Cloning a ser that has no sRGB color introduces no schemeClr either."""
+        plotArea_xml = (
+            '<c:plotArea xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"'
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<c:barChart>"
+            '<c:ser><c:idx val="0"/><c:order val="0"/></c:ser>'
+            "</c:barChart>"
+            "</c:plotArea>"
+        )
+        plotArea = parse_xml(plotArea_xml)
+        rewriter = _BaseSeriesXmlRewriter(None)
+
+        rewriter._add_cloned_sers(plotArea, 1)
+
+        sers = plotArea.xpath(".//c:ser")
+        assert len(sers) == 2
+        assert sers[1].xpath(".//a:srgbClr") == []
+        assert sers[1].xpath(".//a:schemeClr") == []
+
+    def it_preserves_srgbClr_child_elements_like_lumMod(self):
+        """Tint/shade/lumMod children inside a:srgbClr are carried onto the new schemeClr."""
+        plotArea_xml = (
+            '<c:plotArea xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"'
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<c:barChart>"
+            "<c:ser>"
+            '<c:idx val="0"/>'
+            '<c:order val="0"/>'
+            "<c:spPr>"
+            "<a:solidFill>"
+            '<a:srgbClr val="FF0000"><a:lumMod val="75000"/></a:srgbClr>'
+            "</a:solidFill>"
+            "</c:spPr>"
+            "</c:ser>"
+            "</c:barChart>"
+            "</c:plotArea>"
+        )
+        plotArea = parse_xml(plotArea_xml)
+        rewriter = _BaseSeriesXmlRewriter(None)
+
+        rewriter._add_cloned_sers(plotArea, 1)
+
+        cloned = plotArea.xpath(".//c:ser")[1]
+        schemeClrs = cloned.xpath(".//a:schemeClr")
+        assert len(schemeClrs) == 1
+        assert schemeClrs[0].get("val") == "accent2"
+        lumMods = schemeClrs[0].xpath("./a:lumMod")
+        assert len(lumMods) == 1
+        assert lumMods[0].get("val") == "75000"
+
+
+class Describe_ApplyAccentColorToSer(object):
+    """Unit tests for the module-level `_apply_accent_color_to_ser` helper."""
+
+    @pytest.mark.parametrize(
+        "series_idx,expected_accent",
+        [
+            (0, "accent1"),
+            (1, "accent2"),
+            (2, "accent3"),
+            (3, "accent4"),
+            (4, "accent5"),
+            (5, "accent6"),
+            (6, "accent1"),
+            (11, "accent6"),
+            (12, "accent1"),
+        ],
+    )
+    def it_picks_the_accent_color_for_a_series_idx(self, series_idx, expected_accent):
+        ser_xml = (
+            '<c:ser xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"'
+            ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<c:idx val="0"/>'
+            '<c:order val="0"/>'
+            '<c:spPr><a:solidFill><a:srgbClr val="ABCDEF"/></a:solidFill></c:spPr>'
+            "</c:ser>"
+        )
+        ser = parse_xml(ser_xml)
+
+        _apply_accent_color_to_ser(ser, series_idx)
+
+        assert ser.xpath(".//a:srgbClr") == []
+        assert ser.xpath(".//a:schemeClr/@val") == [expected_accent]
+
+    def it_is_a_noop_when_no_srgbClr_is_present(self):
+        ser_xml = (
+            '<c:ser xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">'
+            '<c:idx val="0"/>'
+            '<c:order val="0"/>'
+            "</c:ser>"
+        )
+        ser = parse_xml(ser_xml)
+        before_xml = ser.xml
+
+        _apply_accent_color_to_ser(ser, 0)
+
+        assert ser.xml == before_xml
 
 
 class Describe_BubbleSeriesXmlRewriter(object):
