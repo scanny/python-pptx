@@ -156,6 +156,7 @@ Package
    opc-rel-cloner
    chartex-foundation
    chartex-funnel
+   chartex-waterfall
 
 
 Major discovery sources
