@@ -7,6 +7,7 @@ Unreleased
 ++++++++++
 
 - Foundation: DrawingML effectLst descriptor family
+- #446 shape.shadow.inherit attribute not working
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

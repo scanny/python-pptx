@@ -44,3 +44,9 @@ Feature: ShadowFormat
       | glow        |
       | reflection  |
       | soft_edge   |
+
+
+  Scenario: Breaking shadow inheritance zeroes the sibling a:effectRef/@idx (#446)
+    Given a ShadowFormat object that inherits as shadow
+     When I assign False to shadow.inherit
+     Then the sibling a:effectRef has idx "0"
