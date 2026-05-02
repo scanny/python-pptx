@@ -80,10 +80,6 @@ rst_epilog = """
 
 .. |AdjustmentCollection| replace:: :class:`.AdjustmentCollection`
 
-.. |AnimationEffect| replace:: :class:`.AnimationEffect`
-
-.. |AnimationEffectView| replace:: :class:`.AnimationEffectView`
-
 .. |AreaSeries| replace:: :class:`.AreaSeries`
 
 .. |AttributeError| replace:: :exc:`.AttributeError`
@@ -147,6 +143,8 @@ rst_epilog = """
 .. |Chart| replace:: :class:`.Chart`
 
 .. |ChartData| replace:: :class:`.ChartData`
+
+.. |ChartDrawingPart| replace:: :class:`.ChartDrawingPart`
 
 .. |ChartFormat| replace:: :class:`.ChartFormat`
 
@@ -417,6 +415,8 @@ rst_epilog = """
 .. |ValueError| replace:: :exc:`ValueError`
 
 .. |Video| replace:: :class:`.Video`
+
+.. |ViewProps| replace:: :class:`.ViewProps`
 
 .. |WorkbookWriter| replace:: :class:`.WorkbookWriter`
 
