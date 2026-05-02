@@ -83,6 +83,29 @@ Unreleased
   grow-then-shrink sequence that exercises the #837 / #895 delete
   counterparts, and save + reopen round-trips for both directions.
 
+- verify: #235 (add 3-D pie chart type) resolved by Wave 7 #266. The #235
+  reporter asked for ``Shapes.add_chart`` to accept
+  :attr:`XL_CHART_TYPE.THREE_D_PIE`; on pre-fork python-pptx that call
+  raised ``NotImplementedError: XML writer for chart type THREE_D_PIE
+  (-4102) not yet implemented`` because ``ChartXmlWriter`` had no
+  3D-chart builders. #266 (``feat/issue-266-3d-chart-types``, Wave 7)
+  shipped ``_Pie3DChartXmlWriter`` (together with the other 12
+  ``THREE_D_*`` members — area/bar/column/line variants) so the factory
+  now emits schema-valid ``c:pie3DChart`` XML plus a ``c:view3D``
+  sibling on ``c:chart`` with PowerPoint's default 3D angles
+  (``rotX=15``, ``rotY=20``, ``rAngAx=1``, ``depthPercent=100``). Both
+  :attr:`XL_CHART_TYPE.THREE_D_PIE` and
+  :attr:`XL_CHART_TYPE.THREE_D_PIE_EXPLODED` are covered — the exploded
+  variant injects a ``c:explosion val="25"`` child on the series. Adds
+  a regression suite ``DescribeIssue235ThreeDPieVerify`` under
+  ``tests/test_issue_235_3d_pie_verify.py`` that pins the authoring
+  path through ``Shapes.add_chart``, the default ``c:view3D`` angles,
+  the plain-vs-exploded explosion distinction, series-data carriage,
+  and a save + reopen round-trip for both enum members. Read-access
+  for ``c:pie3DChart`` (``chart.plots`` iteration) remains the same
+  known limitation as the other non-area 3D chart types per the #266
+  MVP write-only contract and is not in scope for #235.
+
 - verify: #175 (add slide / slide layout from other presentation) resolved
   by #934 + :meth:`Slides.add_slide_from_external`. Wave 7 #934 shipped
   :meth:`Presentation.merge` for whole-deck full-fidelity copy, and
