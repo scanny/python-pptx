@@ -784,6 +784,22 @@ class Describe_Row(object):
         _CellCollection_.assert_called_once_with(row._tr, row)
         assert cells is cells_
 
+    def it_can_delete_itself_from_the_table(self, request):
+        parent_ = instance_mock(request, _RowCollection)
+        tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        tr_to_delete = tbl.tr_lst[0]
+        row = _Row(tr_to_delete, parent_)
+
+        row.delete()
+
+        # ---the target row is no longer a child of the table---
+        assert len(tbl.tr_lst) == 1
+        assert tr_to_delete not in tbl.tr_lst
+        parent_.notify_height_changed.assert_called_once_with()
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -893,6 +909,43 @@ class Describe_RowCollection(object):
 
         assert row.height == 370840
         assert len(list(row.cells)) == 2
+
+    def it_can_remove_a_row(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        rows = _RowCollection(tbl, parent_)
+        row_to_remove = rows[1]
+        tr_to_remove = row_to_remove._tr
+
+        rows.remove(row_to_remove)
+
+        assert len(rows) == 2
+        assert tr_to_remove not in tbl.tr_lst
+        parent_.notify_height_changed.assert_called_once_with()
+
+    def it_raises_when_removing_a_row_from_a_different_table(self, request):
+        parent_ = instance_mock(request, Table)
+        tbl_cxml = (
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        rows = _RowCollection(element(tbl_cxml), parent_)
+        # ---a row from a separate table---
+        other_tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        foreign_row = _Row(other_tbl.tr_lst[0], None)
+
+        with pytest.raises(ValueError, match="row is not a member of this table"):
+            rows.remove(foreign_row)
+        # ---no structural change, no notification---
+        assert len(rows) == 1
+        parent_.notify_height_changed.assert_not_called()
 
     # fixtures -------------------------------------------------------
 
