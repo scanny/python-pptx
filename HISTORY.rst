@@ -12,6 +12,7 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+<<<<<<< HEAD
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing
@@ -49,6 +50,20 @@ Unreleased
   on a real connector, plus a documentation snippet in
   ``docs/user/autoshapes.rst`` / a note in ``FEATURES.md`` mapping the
   PowerPoint gallery tile names onto the real API.
+
+- verify: #116 ``Picture.replace_image(...)`` regression test added.
+  Issue #116 (https://github.com/scanny/python-pptx/issues/116) — the
+  long-running "feature: Picture.replace_image()" request that drew 23
+  comments — is resolved by the supported API shipped in this release
+  line. ``tests/test_issue_116_replace_image_verify.py`` adds a
+  breadth-first ``DescribeIssue116ReplaceImage`` suite that pins every
+  preservation guarantee named in the method docstring (position, size,
+  rotation, all four crop fractions, masking auto-shape, outline color
+  and width, ``cNvPr/@name`` / ``@descr`` / ``@title``) across a
+  ``Presentation.save`` + reopen round-trip, plus both file-path and
+  ``BytesIO`` input forms and the ``ValueError`` branch for a picture
+  with no embedded image. Complements the existing #834 (geometry +
+  crop) and #819 (find-by-alt-text workflow) regression suites.
 
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
