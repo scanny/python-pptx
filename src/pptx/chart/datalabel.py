@@ -30,6 +30,18 @@ class DataLabels(object):
         font = Font(defRPr)
         return font
 
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to line and fill formatting.
+
+        Return the |ChartFormat| object providing shape formatting properties
+        for all data labels in this collection, such as the fill and line
+        color of their containing rectangle. The formatting applies to every
+        data label in the collection unless overridden on an individual
+        |DataLabel|.
+        """
+        return ChartFormat(self._element)
+
     @property
     def number_format(self):
         """

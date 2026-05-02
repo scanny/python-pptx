@@ -196,6 +196,24 @@ def then_data_labels_position_is_value(context, value):
     assert data_labels.position is expected_value, "got %s" % data_labels.position
 
 
+@then("data_labels.format is a ChartFormat object")
+def then_data_labels_format_is_a_ChartFormat_object(context):
+    data_labels = context.data_labels
+    assert type(data_labels.format).__name__ == "ChartFormat"
+
+
+@then("data_labels.format.fill is a FillFormat object")
+def then_data_labels_format_fill_is_a_FillFormat_object(context):
+    data_labels = context.data_labels
+    assert type(data_labels.format.fill).__name__ == "FillFormat"
+
+
+@then("data_labels.format.line is a LineFormat object")
+def then_data_labels_format_line_is_a_LineFormat_object(context):
+    data_labels = context.data_labels
+    assert type(data_labels.format.line).__name__ == "LineFormat"
+
+
 @then("data_labels.show_category_name is {value}")
 def then_data_labels_show_category_name_is_value(context, value):
     actual, expected = context.data_labels.show_category_name, eval(value)

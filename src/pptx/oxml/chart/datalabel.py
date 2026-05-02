@@ -149,6 +149,7 @@ class CT_DLbls(BaseOxmlElement):
     )
     dLbl = ZeroOrMore("c:dLbl", successors=_tag_seq[1:])
     numFmt = ZeroOrOne("c:numFmt", successors=_tag_seq[2:])
+    spPr = ZeroOrOne("c:spPr", successors=_tag_seq[3:])
     txPr = ZeroOrOne("c:txPr", successors=_tag_seq[4:])
     dLblPos = ZeroOrOne("c:dLblPos", successors=_tag_seq[5:])
     showLegendKey = ZeroOrOne("c:showLegendKey", successors=_tag_seq[6:])

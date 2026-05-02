@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- feat: #560 customize colors of series data labels. Per-point font color
+  (``series.points[i].data_label.font.color.rgb``), per-point fill / line
+  (via ``data_label.format`` shipped in #716), and per-series font color
+  (``series.data_labels.font.color.rgb``) all already worked; this change
+  closes the last gap by exposing ``DataLabels.format`` (``ChartFormat``
+  wrapping ``c:dLbls`` with ``.fill`` / ``.line`` / ``.shadow``) so
+  authors can color every label on a series at once without dropping to
+  oxml. Registers ``c:spPr`` on ``CT_DLbls`` so ``ChartFormat`` can add
+  it in correct schema position between ``c:numFmt`` and ``c:txPr``.
+  End-to-end round-trip regression suite lives in
+  ``tests/test_issue_560_data_label_colors.py``.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

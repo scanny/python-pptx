@@ -309,6 +309,40 @@ class DescribeDataLabels(object):
         data_labels.font
         assert data_labels._element.xml == expected_xml
 
+    def it_provides_access_to_its_format(self, request):
+        """`DataLabels.format` returns a `ChartFormat` on the `c:dLbls` element.
+
+        Addresses issue #560 for series-level data-label color customization.
+        """
+        chart_format_ = instance_mock(request, ChartFormat)
+        ChartFormat_ = class_mock(
+            request, "pptx.chart.datalabel.ChartFormat", return_value=chart_format_
+        )
+        dLbls = element("c:dLbls")
+        data_labels = DataLabels(dLbls)
+
+        chart_format = data_labels.format
+
+        ChartFormat_.assert_called_once_with(dLbls)
+        assert chart_format is chart_format_
+
+    def it_creates_spPr_in_correct_schema_order_for_fill(self):
+        """Regression for #560.
+
+        Setting fill on ``DataLabels.format`` must not corrupt the ``c:dLbls`` tree.
+        """
+        data_labels = DataLabels(
+            element("c:dLbls/(c:numFmt{formatCode=General},c:dLblPos{val=ctr})")
+        )
+
+        spPr = data_labels.format._element.get_or_add_spPr()
+
+        # ---spPr must be inserted between numFmt and dLblPos per schema---
+        assert data_labels._element.xml == xml(
+            "c:dLbls/(c:numFmt{formatCode=General},c:spPr,c:dLblPos{val=ctr})"
+        )
+        assert spPr is data_labels._element.xpath("c:spPr")[0]
+
     def it_knows_its_number_format(self, number_format_get_fixture):
         data_labels, expected_value = number_format_get_fixture
         assert data_labels.number_format == expected_value
