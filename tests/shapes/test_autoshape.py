@@ -398,6 +398,40 @@ class DescribeShape(object):
         text_frame = shape.text_frame
         assert text_frame._txBody.xml == expected_xml
 
+    def it_exposes_path_geometry_for_a_static_preset_shape(self):
+        from pptx.shapes.geometry import Close, LineTo, MoveTo, PathGeometry
+
+        sp_xml = (
+            '<p:sp xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
+            '<p:nvSpPr><p:cNvPr id="1" name="x"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>'
+            "<p:spPr>"
+            '<a:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="500"/></a:xfrm>'
+            '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+            "</p:spPr></p:sp>"
+        )
+        shape = Shape(cast(CT_Shape, parse_xml(sp_xml)), None)
+        pg = shape.path_geometry
+        assert isinstance(pg, PathGeometry)
+        assert len(pg) == 1
+        ops = list(pg[0])
+        assert ops[0] == MoveTo(0, 0)  # type: ignore[arg-type]
+        assert ops[1] == LineTo(1000, 0)  # type: ignore[arg-type]
+        assert ops[-1] == Close()
+
+    def it_returns_None_from_path_geometry_for_dynamic_preset(self):
+        sp_xml = (
+            '<p:sp xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            ' xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
+            '<p:nvSpPr><p:cNvPr id="1" name="x"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>'
+            "<p:spPr>"
+            '<a:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="500"/></a:xfrm>'
+            '<a:prstGeom prst="roundRect"><a:avLst/></a:prstGeom>'
+            "</p:spPr></p:sp>"
+        )
+        shape = Shape(cast(CT_Shape, parse_xml(sp_xml)), None)
+        assert shape.path_geometry is None
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

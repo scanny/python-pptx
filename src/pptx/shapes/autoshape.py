@@ -10,6 +10,7 @@ from pptx.dml.fill import FillFormat
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE, MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
+from pptx.shapes.geometry import PathGeometry
 from pptx.spec import autoshape_types
 from pptx.text.text import TextFrame
 from pptx.util import lazyproperty
@@ -310,6 +311,25 @@ class Shape(BaseShape):
         |None| if no `a:ln` element is present.
         """
         return self._sp.ln
+
+    @property
+    def path_geometry(self) -> PathGeometry | None:
+        """A |PathGeometry| describing this shape's outline, or |None| if unavailable.
+
+        Returns a sequence of |Path| objects in which drawing-operation coordinates are
+        |Length| instances expressed in shape-local EMU (the shape's bounding box is
+        `(0, 0)` to `(width, height)`).
+
+        Two geometry kinds are supported:
+
+        * Custom (freeform) geometry — reads directly from the shape's `a:custGeom` element.
+        * Preset geometry — reads the ECMA-376 preset definition for the subset of preset
+          shapes whose path does not depend on adjustment values. For a dynamic preset (one
+          whose `a:avLst` carries adjustment values or whose definition uses computed
+          guides), this property returns |None|. See `docs/user/autoshapes.rst` for the full
+          list of supported presets.
+        """
+        return PathGeometry.from_shape(self._sp)
 
     @property
     def shape_type(self) -> MSO_SHAPE_TYPE:

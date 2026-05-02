@@ -101,6 +101,7 @@ Unreleased
 - #67 feature: delete a slide
 - #41 Shape.delete() method
 - #533 Shape.duplicate() for simple shapes
+- #515 Expose preset-shape path geometry
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
