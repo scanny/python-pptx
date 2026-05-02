@@ -197,6 +197,15 @@ class _Cell(Subshape):
         return FillFormat.from_fill_parent(tcPr)
 
     @property
+    def col_idx(self) -> int:
+        """Zero-based column index of this cell in its table.
+
+        Reflects the position of this cell's `a:tc` element among its siblings in the containing
+        `a:tr` row element. Read-only.
+        """
+        return self._tc.col_idx
+
+    @property
     def is_merge_origin(self) -> bool:
         """True if this cell is the top-left grid cell in a merged cell."""
         return self._tc.is_merge_origin
@@ -286,6 +295,15 @@ class _Cell(Subshape):
             tc.hMerge = True
         for tc in tc_range.iter_except_top_row_tcs():
             tc.vMerge = True
+
+    @property
+    def row_idx(self) -> int:
+        """Zero-based row index of this cell in its table.
+
+        Reflects the position of this cell's parent `a:tr` element among its siblings in the
+        containing `a:tbl` table element. Read-only.
+        """
+        return self._tc.row_idx
 
     @property
     def span_height(self) -> int:

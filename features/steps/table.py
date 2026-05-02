@@ -303,3 +303,9 @@ def then_table_vert_banding_is_value(context, bool_lit):
     actual = context.table_.vert_banding
     expected = eval(bool_lit)
     assert actual is expected, "table.vert_banding is %s" % actual
+
+
+@then("table.cell({r:d}, {c:d}).{attr} == {int_lit:d}")
+def then_table_cell_r_c_attr_eq(context, r, c, attr, int_lit):
+    actual = getattr(context.table_.cell(r, c), attr)
+    assert actual == int_lit, "table.cell(%d, %d).%s == %s" % (r, c, attr, actual)

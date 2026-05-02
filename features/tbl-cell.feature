@@ -33,6 +33,16 @@ Feature: Table cell proxy objects
       | unmerged     | False           | False      |
 
 
+  Scenario: _Cell.row_idx and _Cell.col_idx
+    Given a 3x3 Table object as table
+     Then table.cell(0, 0).row_idx == 0
+      And table.cell(0, 0).col_idx == 0
+      And table.cell(1, 2).row_idx == 1
+      And table.cell(1, 2).col_idx == 2
+      And table.cell(2, 1).row_idx == 2
+      And table.cell(2, 1).col_idx == 1
+
+
   Scenario: _Cell.margin_{x} getters
     Given a _Cell object with known margins as cell
      Then cell.margin_left == Inches(0.2)

@@ -11,6 +11,7 @@ Unreleased
 - Foundation: mc:AlternateContent traversal
 - fix: #332 MSO_LINE_DASH_STYLE.ROUND_DOT correct mapping
 - #787 Support .MPO image files
+- #849 expose `_Cell.row_idx` and `col_idx`
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
