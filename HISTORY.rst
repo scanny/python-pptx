@@ -49,6 +49,12 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- fix: #490 ``Chart.replace_data`` raised ``KeyError: 'rId3'`` when the chart's
+  ``c:externalData`` element referenced a relationship that wasn't present in
+  the chart-part's rels (charts pasted from pre-2007 ``.xls`` workbooks, or
+  charts whose embedded-workbook relationship was stripped by another client).
+  ``ChartWorkbook.xlsx_part`` now returns |None| for an unresolved rId so
+  ``replace_data`` transparently synthesizes a fresh embedded workbook.
 - docs: F4 foundation + #583 scaffold — design analysis for the chartex
   (``cx:``) namespace at ``docs/dev/analysis/chartex-foundation.rst``,
   documenting the content type, relationship type, part class, OXML element

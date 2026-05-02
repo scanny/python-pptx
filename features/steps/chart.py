@@ -39,6 +39,38 @@ def given_a_chart_having_or_not_a_legend(context, having_or_not):
     context.chart = prs.slides[slide_idx].shapes[0].chart
 
 
+@given("a chart whose embedded workbook relationship is missing")
+def given_a_chart_with_broken_externalData_rId(context):
+    # --- regression scenario for issue #490: build a normal chart, then delete
+    # --- the `r:Package` relationship from the chart-part's rels without clearing
+    # --- the `c:externalData` element that references it. This mirrors the state
+    # --- seen when a chart is pasted from a pre-2007 `.xls` source or when another
+    # --- client strips the embedded-workbook rel while leaving the chart XML intact.
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["Old-A", "Old-B", "Old-C"]
+    chart_data.add_series("Old-Series", (1.0, 2.0, 3.0))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        chart_data,
+    ).chart
+
+    # --- drop the embedded-workbook rel from the chart part so the rId referenced
+    # --- by c:externalData no longer resolves; simulates the corruption in #490. ---
+    chart_part = chart.part
+    stale_rId = chart_part._element.xlsx_part_rId
+    assert stale_rId is not None
+    del chart_part._rels._rels[stale_rId]
+    # --- `c:externalData` still points at the now-stale rId; this is the broken state
+    assert chart_part._element.xlsx_part_rId == stale_rId
+    context.chart = chart
+
+
 @given("a chart of size and type {spec}")
 def given_a_chart_of_size_and_type_spec(context, spec):
     slide_idx = {

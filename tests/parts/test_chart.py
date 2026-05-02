@@ -88,6 +88,20 @@ class DescribeChartWorkbook(object):
         chart_workbook = ChartWorkbook(element("c:chartSpace"), None)
         assert chart_workbook.xlsx_part is None
 
+    def but_it_returns_None_when_the_externalData_rId_is_not_in_rels(self, chart_part_):
+        # --- regression for issue #490: charts pasted from pre-2007 `.xls` sources, or
+        # --- whose embedded-workbook relationship was stripped by an external client,
+        # --- retain a `c:externalData` element but have no matching slide-rels entry.
+        # --- The getter must swallow the resulting KeyError and return None so the
+        # --- caller can synthesize a fresh embedded workbook rather than raise.
+        chart_part_.related_part.side_effect = KeyError("no relationship with key 'rId3'")
+        chart_workbook = ChartWorkbook(
+            element("c:chartSpace/c:externalData{r:id=rId3}"), chart_part_
+        )
+
+        assert chart_workbook.xlsx_part is None
+        chart_part_.related_part.assert_called_once_with("rId3")
+
     @pytest.mark.parametrize(
         "chartSpace_cxml, expected_cxml",
         (
@@ -132,6 +146,31 @@ class DescribeChartWorkbook(object):
         chart_data.update_from_xlsx_blob(b"xlsx-blob")
 
         assert chart_data.xlsx_part.blob == b"xlsx-blob"
+
+    def it_recovers_when_externalData_references_a_broken_rId(
+        self, request, chart_part_, package_, xlsx_part_
+    ):
+        # --- regression for issue #490: if the externalData element's rId doesn't
+        # --- resolve to a related part, update_from_xlsx_blob() must synthesize a new
+        # --- EmbeddedXlsxPart (via the existing "not present" path) rather than raise
+        # --- KeyError. The getter returns None, triggering xlsx_part setter to attach
+        # --- a new rel (overwriting the stale rId on the existing externalData element).
+        EmbeddedXlsxPart_ = class_mock(request, "pptx.parts.chart.EmbeddedXlsxPart")
+        EmbeddedXlsxPart_.new.return_value = xlsx_part_
+        chart_part_.package = package_
+        chart_part_.related_part.side_effect = KeyError("rId3")
+        chart_part_.relate_to.return_value = "rId7"
+        chartSpace = element("c:chartSpace/c:externalData{r:id=rId3}/c:autoUpdate{val=0}")
+        chart_data = ChartWorkbook(chartSpace, chart_part_)
+
+        chart_data.update_from_xlsx_blob(b"new-blob")
+
+        EmbeddedXlsxPart_.new.assert_called_once_with(b"new-blob", package_)
+        chart_part_.relate_to.assert_called_once_with(xlsx_part_, RT.PACKAGE)
+        # --- the stale rId on the existing externalData element is replaced
+        assert chart_data._chartSpace.xml == xml(
+            "c:chartSpace/c:externalData{r:id=rId7}/c:autoUpdate{val=0}"
+        )
 
     # fixture components ---------------------------------------------
 

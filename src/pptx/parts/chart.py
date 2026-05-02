@@ -79,10 +79,20 @@ class ChartWorkbook(object):
         """Optional |EmbeddedXlsxPart| object containing data for this chart.
 
         This related part has its rId at `c:chartSpace/c:externalData/@rId`. This value
-        is |None| if there is no `<c:externalData>` element.
+        is |None| if there is no `<c:externalData>` element, or if the rId referenced
+        by that element is not present in the chart-part's relationships (e.g. the
+        chart was pasted from a pre-2007 `.xls` workbook, the embedded-package rel was
+        stripped by another client, or the chart uses externally-linked data). Prior
+        to the fix for issue #490, a stale rId caused ``KeyError`` to propagate out of
+        :meth:`Chart.replace_data`.
         """
         xlsx_part_rId = self._chartSpace.xlsx_part_rId
-        return None if xlsx_part_rId is None else self._chart_part.related_part(xlsx_part_rId)
+        if xlsx_part_rId is None:
+            return None
+        try:
+            return self._chart_part.related_part(xlsx_part_rId)
+        except KeyError:
+            return None
 
     @xlsx_part.setter
     def xlsx_part(self, xlsx_part):
