@@ -12,6 +12,15 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #1111 ``Font.color`` getter no longer mutates the run's XML. Previously,
+  reading ``run.font.color`` (or any attribute on it — ``.type``, ``.rgb``,
+  ``str()``, etc.) eagerly inserted an empty ``<a:solidFill/>`` child into the
+  run's ``<a:rPr>``, which PowerPoint interprets as "override inherited color
+  with nothing" and permanently breaks the theme-color inheritance chain. The
+  getter now returns a read-only proxy that reports ``.type is None`` when no
+  explicit color is set; ``<a:solidFill>`` is created only when the caller
+  writes ``color.rgb = ...`` or ``color.theme_color = ...``.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /

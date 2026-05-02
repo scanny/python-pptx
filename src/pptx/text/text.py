@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Iterator, cast
 
+from pptx.dml.color import ColorFormat as _ColorFormat
+from pptx.dml.color import _Color  # pyright: ignore[reportPrivateUsage]  # noqa: PLC2701
 from pptx.dml.effect import EffectFormat, ShadowFormat
 from pptx.dml.fill import FillFormat
 from pptx.enum.dml import MSO_FILL
@@ -21,6 +23,7 @@ from pptx.util import Centipoints, Emu, Length, Pt, lazyproperty
 
 if TYPE_CHECKING:
     from pptx.dml.color import ColorFormat, RGBColor
+    from pptx.enum.dml import MSO_THEME_COLOR
     from pptx.enum.text import (
         MSO_TEXT_STRIKE_TYPE,
         MSO_TEXT_UNDERLINE_TYPE,
@@ -417,10 +420,19 @@ class Font(object):
 
     @lazyproperty
     def color(self) -> ColorFormat:
-        """The |ColorFormat| instance that provides access to the color settings for this font."""
-        if self.fill.type != MSO_FILL.SOLID:
-            self.fill.solid()
-        return self.fill.fore_color
+        """The |ColorFormat| instance that provides access to the color settings for this font.
+
+        Reading the returned |ColorFormat| (e.g. ``font.color.type``,
+        ``font.color.rgb``) does *not* mutate the underlying XML: if no
+        ``<a:solidFill>`` is present on the run's ``<a:rPr>``, the color
+        appears as "not set" (``type`` is |None|) and the run continues to
+        inherit its color from the style hierarchy (see issue #1111).
+        Assigning ``font.color.rgb = ...`` or ``font.color.theme_color = ...``
+        will create the ``<a:solidFill>`` on first write.
+        """
+        if self.fill.type == MSO_FILL.SOLID:
+            return self.fill.fore_color
+        return _FontColorFormat(self)
 
     @lazyproperty
     def fill(self) -> FillFormat:
@@ -850,6 +862,68 @@ class Font(object):
             if rgb is not None:
                 return rgb
         return None
+
+
+class _FontColorFormat(_ColorFormat):
+    """|ColorFormat| that defers creating `<a:solidFill>` until first write.
+
+    Reading attributes (`type`, `rgb`, `theme_color`, ...) reports the "no
+    color set" state (|None| / `MSO_COLOR_TYPE.NOT_THEME_COLOR`) without
+    writing any XML, so the run's color-inheritance chain is preserved. The
+    first `rgb = ...` or `theme_color = ...` assignment promotes the run's
+    fill to `a:solidFill` and delegates to the normal |ColorFormat|
+    machinery. See issue #1111.
+    """
+
+    def __init__(self, font: "Font"):
+        self._font = font
+        # -- populate parent slots so read-side methods on ColorFormat /
+        # -- _NoneColor work without any mutation. `_xFill` here is the rPr:
+        # -- the read-side never dispatches on it, and the write-side is
+        # -- overridden below to promote the fill before touching it.
+        super().__init__(font._rPr, _Color(None))  # pyright: ignore[reportPrivateUsage]
+
+    def _promote(self) -> None:
+        """Ensure the run's fill is `a:solidFill` and re-sync state.
+
+        Creates the `a:solidFill` child on first call and replaces the
+        inner color + fill-parent bindings so subsequent reads/writes
+        behave like a regular |ColorFormat|.
+        """
+        font = self._font
+        if font.fill.type != MSO_FILL.SOLID:
+            font.fill.solid()
+        fresh = font.fill.fore_color
+        # -- replace the cached `color` lazyproperty on `font` so later
+        # -- `font.color` accesses return the newly-created solid-fill form.
+        font.__dict__["color"] = fresh
+        # -- `_xFill` / `_color` are private slots on the base ColorFormat;
+        # -- the base class is untyped so these assignments are "Unknown"
+        # -- from pyright's perspective.
+        self._xFill = fresh._xFill  # pyright: ignore[reportUnknownMemberType]
+        self._color = fresh._color  # pyright: ignore[reportUnknownMemberType]
+
+    # -- Setter-only overrides: promote the fill, then delegate to the base
+    # -- class's own setter via `fset`. The property getter is re-declared
+    # -- so pyright-strict accepts the override-setter pairing.
+
+    @property
+    def rgb(self) -> "RGBColor | None":
+        return self._color.rgb  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+
+    @rgb.setter
+    def rgb(self, rgb: "RGBColor") -> None:
+        self._promote()
+        _ColorFormat.rgb.fset(self, rgb)  # pyright: ignore[reportOptionalCall]
+
+    @property
+    def theme_color(self) -> "MSO_THEME_COLOR":
+        return self._color.theme_color  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+
+    @theme_color.setter
+    def theme_color(self, mso_theme_color_idx: "MSO_THEME_COLOR") -> None:
+        self._promote()
+        _ColorFormat.theme_color.fset(self, mso_theme_color_idx)  # pyright: ignore[reportOptionalCall]
 
 
 def _resolve_solid_fill_rgb(rPr_like, theme_colors):
