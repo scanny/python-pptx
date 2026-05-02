@@ -12,6 +12,7 @@ from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
 from pptx.parts.chart import ChartPart
+from pptx.parts.comments import CommentsPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.slide import NotesMaster, NotesSlide, Slide, SlideLayout, SlideMaster
 from pptx.util import lazyproperty
@@ -202,6 +203,24 @@ class SlidePart(BaseSlidePart):
         media_rId = self.relate_to(media_part, RT.MEDIA)
         video_rId = self.relate_to(media_part, RT.VIDEO)
         return media_rId, video_rId
+
+    @property
+    def comments_part(self) -> CommentsPart | None:
+        """Legacy |CommentsPart| for this slide, or None if no comments are attached."""
+        try:
+            return cast(CommentsPart, self.part_related_by(RT.COMMENTS))
+        except KeyError:
+            return None
+
+    def get_or_add_comments_part(self) -> CommentsPart:
+        """Return this slide's legacy |CommentsPart|, creating one if needed."""
+        part = self.comments_part
+        if part is not None:
+            return part
+        partname = self.package.next_partname("/ppt/comments/comment%d.xml")
+        part = CommentsPart.new(self.package, partname)
+        self.relate_to(part, RT.COMMENTS)
+        return part
 
     @property
     def has_notes_slide(self):

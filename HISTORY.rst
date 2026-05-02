@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #487 read/write legacy PowerPoint comments
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
