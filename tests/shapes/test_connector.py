@@ -88,6 +88,27 @@ class DescribeConnector(object):
         line.width = 91440
         assert line.width == 91440
 
+    def it_exposes_arrow_heads_through_its_line(self):
+        """Connector.line.begin_arrow / .end_arrow configure `a:headEnd`/`a:tailEnd`.
+
+        Round-trips #657 — arrow-head variants (Connector with Arrow, etc.) are
+        authored by assigning arrow-head properties to the connector's line,
+        not by adding new `MSO_CONNECTOR_TYPE` members.
+        """
+        from pptx.enum.dml import MSO_LINE_END_LENGTH, MSO_LINE_END_TYPE, MSO_LINE_END_WIDTH
+
+        connector = Connector(element("p:cxnSp/p:spPr"), None)
+
+        connector.line.begin_arrow.type = MSO_LINE_END_TYPE.OVAL
+        connector.line.end_arrow.type = MSO_LINE_END_TYPE.TRIANGLE
+        connector.line.end_arrow.width = MSO_LINE_END_WIDTH.LARGE
+        connector.line.end_arrow.length = MSO_LINE_END_LENGTH.LARGE
+
+        assert connector.line.begin_arrow.type == MSO_LINE_END_TYPE.OVAL
+        assert connector.line.end_arrow.type == MSO_LINE_END_TYPE.TRIANGLE
+        assert connector.line.end_arrow.width == MSO_LINE_END_WIDTH.LARGE
+        assert connector.line.end_arrow.length == MSO_LINE_END_LENGTH.LARGE
+
     def it_provides_access_to_its_adjustments(self):
         cxnSp = element("p:cxnSp/p:spPr/a:prstGeom{prst=bentConnector3}/a:avLst")
         connector = Connector(cxnSp, None)

@@ -24,6 +24,32 @@ Unreleased
   round-trips through ``Presentation.save`` and reads back the expected
   ``a:buAutoNum`` elements on each paragraph.
 
+- feat: #194 ``Slides.add_slide(slide_layout, index=None)`` now accepts an
+  optional ``index`` keyword so callers can insert a new slide at a
+  specific zero-based position rather than only appending. Index semantics
+  match :meth:`Slides.move_slide` and :meth:`Slides.duplicate`: ``None``
+  appends (the historical behavior), a negative index counts from the end,
+  and an index beyond the end is clamped to the last position.
+
+- verify: #657 resolved by prior line-end arrow work. Issue #657 asked to
+  expand ``MSO_CONNECTOR_TYPE`` with arrow-head variants (*Connector with
+  Arrow*, *Double Arrow*, *Curved with Arrow*, *Elbow with Arrow*) that
+  PowerPoint's Insert Shapes gallery lists as separate tiles. In OOXML
+  those are not distinct connector geometries — they are an existing
+  ``MSO_CONNECTOR`` preset (``STRAIGHT`` / ``ELBOW`` / ``CURVE``) whose
+  ``a:ln`` carries an ``a:headEnd`` / ``a:tailEnd`` decoration. That
+  machinery is already exposed for fork-era releases via
+  ``LineFormat.begin_arrow`` / ``LineFormat.end_arrow`` (with ``.type``,
+  ``.width``, ``.length`` sub-properties), reachable from a connector as
+  ``connector.line.begin_arrow`` / ``connector.line.end_arrow``. Adding
+  new ``MSO_CONNECTOR_TYPE`` members would have been a spec-breaking
+  change — those three are the only geometries defined by ISO/IEC 29500.
+  Ships a verify-close unit test on ``Connector`` and a
+  ``shp-connector.feature`` scenario that exercises arrow configuration
+  on a real connector, plus a documentation snippet in
+  ``docs/user/autoshapes.rst`` / a note in ``FEATURES.md`` mapping the
+  PowerPoint gallery tile names onto the real API.
+
 - docs: #960 add a "Check placeholder state before inserting a picture"
   recipe to ``docs/user/placeholders-using.rst`` showing how to use
   ``placeholder.placeholder_format.type`` (``PP_PLACEHOLDER.PICTURE`` /
