@@ -59,6 +59,12 @@ def given_notes_slide_placeholder_having_no_direct_pos_or_size(context):
     context.placeholder = prs.slides[0].notes_slide.placeholders[1]
 
 
+@given("a slide having placeholders at idx 0 and 10")
+def given_a_slide_having_placeholders_at_idx_0_and_10(context):
+    prs = Presentation(test_pptx("ph-inherit-props"))
+    context.slide = prs.slides[0]
+
+
 @given("a slide placeholder having directly set position and size")
 def given_slide_placeholder_with_directly_set_pos_and_size(context):
     prs = Presentation(test_pptx("ph-inherit-props"))
@@ -310,3 +316,51 @@ def step_then_text_appears_in_title_placeholder(context):
     title_shape = prs.slides[0].shapes.title
     title_text = title_shape.text_frame.paragraphs[0].runs[0].text
     assert title_text == test_text
+
+
+@then("slide.placeholders[0] returns the title placeholder")
+def then_slide_placeholders_0_returns_title(context):
+    placeholder = context.slide.placeholders[0]
+    assert placeholder.placeholder_format.idx == 0
+    assert placeholder.placeholder_format.type == PP_PLACEHOLDER.TITLE
+
+
+@then("slide.placeholders[10] returns the content placeholder")
+def then_slide_placeholders_10_returns_content(context):
+    placeholder = context.slide.placeholders[10]
+    assert placeholder.placeholder_format.idx == 10
+    assert placeholder.placeholder_format.type == PP_PLACEHOLDER.OBJECT
+
+
+@then("slide.placeholders.get(10) returns the content placeholder")
+def then_slide_placeholders_get_10_returns_content(context):
+    placeholder = context.slide.placeholders.get(10)
+    assert placeholder is not None
+    assert placeholder.placeholder_format.idx == 10
+    assert placeholder.placeholder_format.type == PP_PLACEHOLDER.OBJECT
+
+
+@then("slide.placeholders.get(99) is None")
+def then_slide_placeholders_get_99_is_None(context):
+    assert context.slide.placeholders.get(99) is None
+
+
+@then("a caller-supplied default is returned for an unknown idx")
+def then_caller_supplied_default_returned_for_unknown_idx(context):
+    # --- use the known title placeholder as the default sentinel ---
+    default_sentinel = context.slide.placeholders[0]
+    result = context.slide.placeholders.get(99, default_sentinel)
+    assert result is default_sentinel
+
+
+@then("slide.placeholders[99] raises KeyError")
+def then_slide_placeholders_99_raises_KeyError(context):
+    raised = False
+    message = ""
+    try:
+        context.slide.placeholders[99]
+    except KeyError as e:
+        raised = True
+        message = str(e)
+    assert raised, "expected KeyError was not raised"
+    assert "idx == 99" in message, "got %r" % message

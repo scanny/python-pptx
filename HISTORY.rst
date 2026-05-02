@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #769 lookup placeholder by idx
+
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

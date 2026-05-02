@@ -782,8 +782,9 @@ class SlidePlaceholders(ParentedElementProxy):
     def __getitem__(self, idx: int):
         """Access placeholder shape having `idx`.
 
-        Note that while this looks like list access, idx is actually a dictionary key and will
-        raise |KeyError| if no placeholder with that idx value is in the collection.
+        Note that while this looks like list access, `idx` is actually a dictionary key and will
+        raise |KeyError| if no placeholder with that `idx` value is in the collection. Use
+        :meth:`get` for a non-raising lookup.
         """
         for e in self._element.iter_ph_elms():
             if e.ph_idx == idx:
@@ -798,6 +799,18 @@ class SlidePlaceholders(ParentedElementProxy):
     def __len__(self) -> int:
         """Return count of placeholder shapes."""
         return len(list(self._element.iter_ph_elms()))
+
+    def get(self, idx: int, default: BaseShape | None = None) -> BaseShape | None:
+        """Return the placeholder shape having `idx`, or `default` if not found.
+
+        This is the non-raising counterpart to `placeholders[idx]` and provides a convenient way
+        to locate a specific placeholder (e.g. a picture placeholder with `idx == 1`) without
+        needing a try/except. `idx` is the ``p:ph/@idx`` attribute value, not a list position.
+        """
+        for e in self._element.iter_ph_elms():
+            if e.ph_idx == idx:
+                return SlideShapeFactory(e, self)
+        return default
 
 
 def BaseShapeFactory(shape_elm: ShapeElement, parent: ProvidesPart) -> BaseShape:

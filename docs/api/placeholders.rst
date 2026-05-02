@@ -13,6 +13,21 @@ There are a larger variety of slide placeholders to accomodate their more
 complex and varied behaviors.
 
 
+|SlidePlaceholders| objects
+---------------------------
+
+The placeholders collection on a slide is accessed as
+``slide.placeholders``. It supports iteration, ``len()``, and
+dictionary-style lookup by placeholder ``idx`` (not list position)::
+
+    title = slide.placeholders[0]         # raises KeyError if absent
+    body = slide.placeholders.get(1)      # returns None if absent
+
+.. autoclass:: pptx.shapes.shapetree.SlidePlaceholders()
+   :members: get
+   :special-members: __getitem__, __iter__, __len__
+
+
 |MasterPlaceholder| objects
 ---------------------------
 
