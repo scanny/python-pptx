@@ -19,6 +19,7 @@ from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
     ST_Coordinate32,
+    ST_TextBulletSizePercent,
     ST_TextBulletStartAtNum,
     ST_TextFontScalePercentOrPercentString,
     ST_TextFontSize,
@@ -41,7 +42,7 @@ from pptx.oxml.xmlchemy import (
     ZeroOrOne,
     ZeroOrOneChoice,
 )
-from pptx.util import Emu, Length
+from pptx.util import Centipoints, Emu, Length
 
 if TYPE_CHECKING:
     from pptx.oxml.action import CT_Hyperlink
@@ -466,12 +467,20 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     """`a:pPr` custom element class."""
 
     get_or_add_defRPr: Callable[[], CT_TextCharacterProperties]
+    get_or_add_buClr: Callable[[], "CT_TextBulletColor"]
+    get_or_add_buFont: Callable[[], "CT_TextFont"]
     _add_lnSpc: Callable[[], CT_TextSpacing]
     _add_spcAft: Callable[[], CT_TextSpacing]
     _add_spcBef: Callable[[], CT_TextSpacing]
+    _add_buSzPct: Callable[[], "CT_TextBulletSizePercent"]
+    _add_buSzPts: Callable[[], "CT_TextBulletSizePoint"]
     _remove_lnSpc: Callable[[], None]
     _remove_spcAft: Callable[[], None]
     _remove_spcBef: Callable[[], None]
+    _remove_buClr: Callable[[], None]
+    _remove_buFont: Callable[[], None]
+    _remove_buSzPct: Callable[[], None]
+    _remove_buSzPts: Callable[[], None]
     _remove_eg_textBullet: Callable[[], None]
     _add_buNone: Callable[[], "CT_TextNoBullet"]
     _add_buChar: Callable[[], "CT_TextCharBullet"]
@@ -508,6 +517,18 @@ class CT_TextParagraphProperties(BaseOxmlElement):
     )
     spcAft: CT_TextSpacing | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "a:spcAft", successors=_tag_seq[3:]
+    )
+    buClr: "CT_TextBulletColor | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buClr", successors=_tag_seq[5:]
+    )
+    buSzPct: "CT_TextBulletSizePercent | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buSzPct", successors=_tag_seq[7:]
+    )
+    buSzPts: "CT_TextBulletSizePoint | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buSzPts", successors=_tag_seq[8:]
+    )
+    buFont: "CT_TextFont | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:buFont", successors=_tag_seq[10:]
     )
     eg_textBullet = ZeroOrOneChoice(
         (Choice("a:buNone"), Choice("a:buAutoNum"), Choice("a:buChar")),
@@ -602,6 +623,68 @@ class CT_TextParagraphProperties(BaseOxmlElement):
         if start_at is not None:
             buAutoNum.startAt = start_at
         return buAutoNum
+
+    @property
+    def bullet_font(self) -> str | None:
+        """Typeface of the bullet `a:buFont` child, or |None| when not present."""
+        buFont = self.buFont
+        return None if buFont is None else buFont.typeface
+
+    @bullet_font.setter
+    def bullet_font(self, value: str | None):
+        if value is None:
+            self._remove_buFont()
+            return
+        buFont = self.get_or_add_buFont()
+        buFont.typeface = value
+
+    @property
+    def bullet_size_pct(self) -> float | None:
+        """Size-percent value of the bullet `a:buSzPct` child, or |None|.
+
+        Returns a float in range 0.25..4.0 (e.g. 0.75 for 75%).
+        """
+        buSzPct = self.buSzPct
+        return None if buSzPct is None else buSzPct.val
+
+    @bullet_size_pct.setter
+    def bullet_size_pct(self, value: float | None):
+        # -- assigning any size removes any conflicting size element --
+        self._remove_buSzPts()
+        self._remove_buSzPct()
+        if value is None:
+            return
+        self._add_buSzPct().val = value
+
+    @property
+    def bullet_size_points(self) -> Length | None:
+        """Size-in-points of the bullet `a:buSzPts` child, or |None|.
+
+        Returns a |Length| value (EMU) derived from the centipoint XML value.
+        """
+        buSzPts = self.buSzPts
+        if buSzPts is None:
+            return None
+        # -- XML @val is in centipoints; translate to a Length (EMU) --
+        return Centipoints(buSzPts.val)
+
+    @bullet_size_points.setter
+    def bullet_size_points(self, value: Length | None):
+        # -- assigning any size removes any conflicting size element --
+        self._remove_buSzPct()
+        self._remove_buSzPts()
+        if value is None:
+            return
+        # -- stored attribute is in centipoints (hundredths of a point) --
+        self._add_buSzPts().val = Emu(value).centipoints
+
+    def clear_bullet_size(self) -> None:
+        """Remove any `a:buSzPct` or `a:buSzPts` child.
+
+        This causes the bullet size to inherit from the style hierarchy.
+        """
+        self._remove_buSzPct()
+        self._remove_buSzPts()
 
     @property
     def line_spacing(self) -> float | Length | None:
@@ -743,4 +826,51 @@ class CT_TextAutonumberBullet(BaseOxmlElement):
     )
     startAt: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "startAt", ST_TextBulletStartAtNum, default=1
+    )
+
+
+class CT_TextBulletColor(BaseOxmlElement):
+    """`a:buClr` element.
+
+    Specifies an explicit color for the paragraph's bullet glyph. Contains a
+    single child of the ``EG_ColorChoice`` group, e.g. ``a:srgbClr`` or
+    ``a:schemeClr``.
+    """
+
+    eg_colorChoice = ZeroOrOneChoice(
+        (
+            Choice("a:scrgbClr"),
+            Choice("a:srgbClr"),
+            Choice("a:hslClr"),
+            Choice("a:sysClr"),
+            Choice("a:schemeClr"),
+            Choice("a:prstClr"),
+        ),
+        successors=(),
+    )
+
+
+class CT_TextBulletSizePercent(BaseOxmlElement):
+    """`a:buSzPct` element.
+
+    Specifies the bullet size as a percentage of the size of the text on the
+    paragraph. Value is in its ``@val`` attribute, typically as a percent
+    literal like ``"75%"``. Valid range is 25%..400%.
+    """
+
+    val: float = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "val", ST_TextBulletSizePercent
+    )
+
+
+class CT_TextBulletSizePoint(BaseOxmlElement):
+    """`a:buSzPts` element.
+
+    Specifies the bullet size as an absolute point size, in its ``@val``
+    attribute. The XML integer value is in centipoints (hundredths of a
+    point). Valid range is 1pt..4000pt.
+    """
+
+    val: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+        "val", ST_TextFontSize
     )

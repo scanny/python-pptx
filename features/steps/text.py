@@ -278,6 +278,30 @@ def when_I_call_paragraph_bullet_clear(context):
     context.paragraph.bullet.clear()
 
 
+@when('I assign paragraph.bullet.font = "{typeface}"')
+def when_assign_paragraph_bullet_font(context, typeface):
+    context.paragraph.bullet.font = typeface
+
+
+@when("I assign paragraph.bullet.size_pct = {value:f}")
+def when_assign_paragraph_bullet_size_pct(context, value):
+    context.paragraph.bullet.size_pct = value
+
+
+@when("I assign paragraph.bullet.size_points = Pt({value:d})")
+def when_assign_paragraph_bullet_size_points(context, value):
+    from pptx.util import Pt
+
+    context.paragraph.bullet.size_points = Pt(value)
+
+
+@when("I assign RGB FF0000 to paragraph.bullet.color")
+def when_assign_rgb_ff0000_to_paragraph_bullet_color(context):
+    from pptx.dml.color import RGBColor
+
+    context.paragraph.bullet.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+
+
 @then("paragraph.bullet.type is None")
 def then_paragraph_bullet_type_is_None(context):
     assert context.paragraph.bullet.type is None, (
@@ -315,3 +339,31 @@ def then_paragraph_bullet_number_scheme_eq(context, member):
 def then_paragraph_bullet_start_at_eq(context, expected):
     actual = context.paragraph.bullet.start_at
     assert actual == expected, "paragraph.bullet.start_at == %r" % actual
+
+
+@then('paragraph.bullet.font == "{expected}"')
+def then_paragraph_bullet_font_eq(context, expected):
+    actual = context.paragraph.bullet.font
+    assert actual == expected, "paragraph.bullet.font == %r" % actual
+
+
+@then("paragraph.bullet.size_pct == {expected:f}")
+def then_paragraph_bullet_size_pct_eq(context, expected):
+    actual = context.paragraph.bullet.size_pct
+    assert actual == expected, "paragraph.bullet.size_pct == %r" % actual
+
+
+@then("paragraph.bullet.size_points.pt == {expected:f}")
+def then_paragraph_bullet_size_points_pt_eq(context, expected):
+    actual = context.paragraph.bullet.size_points.pt
+    assert actual == expected, "paragraph.bullet.size_points.pt == %r" % actual
+
+
+@then("paragraph.bullet.color.rgb == RGBColor(FF0000)")
+def then_paragraph_bullet_color_rgb_eq_ff0000(context):
+    from pptx.dml.color import RGBColor
+
+    actual = context.paragraph.bullet.color.rgb
+    assert actual == RGBColor(0xFF, 0x00, 0x00), (
+        "paragraph.bullet.color.rgb == %r" % actual
+    )

@@ -7,6 +7,7 @@ Unreleased
 ++++++++++
 
 - #100 paragraph bullet API
+- #114 paragraph bullet font, color, and size
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

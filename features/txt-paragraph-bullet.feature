@@ -51,3 +51,31 @@ Feature: Change paragraph bullet formatting
       When I call paragraph.bullet.character("-")
        And I call paragraph.bullet.clear()
       Then paragraph.bullet.type is None
+
+
+  Scenario: Set a bullet font
+     Given a _Paragraph object as paragraph
+      When I call paragraph.bullet.character("-")
+       And I assign paragraph.bullet.font = "Wingdings"
+      Then paragraph.bullet.font == "Wingdings"
+
+
+  Scenario: Set a bullet size as percent of text
+     Given a _Paragraph object as paragraph
+      When I call paragraph.bullet.character("-")
+       And I assign paragraph.bullet.size_pct = 0.75
+      Then paragraph.bullet.size_pct == 0.75
+
+
+  Scenario: Set a bullet size in absolute points
+     Given a _Paragraph object as paragraph
+      When I call paragraph.bullet.character("-")
+       And I assign paragraph.bullet.size_points = Pt(14)
+      Then paragraph.bullet.size_points.pt == 14.0
+
+
+  Scenario: Set a bullet color
+     Given a _Paragraph object as paragraph
+      When I call paragraph.bullet.character("-")
+       And I assign RGB FF0000 to paragraph.bullet.color
+      Then paragraph.bullet.color.rgb == RGBColor(FF0000)

@@ -513,6 +513,106 @@ class _BulletFormat(object):
         """
         return self._pPr.bullet_number_start_at
 
+    @property
+    def font(self) -> str | None:
+        """The bullet-font typeface, or |None| when no ``a:buFont`` child is present.
+
+        This corresponds to the ``typeface`` attribute of the paragraph's
+        ``a:buFont`` element. Assigning a string sets the typeface; assigning
+        |None| removes any explicit bullet-font setting, causing the bullet
+        font to be inherited from the style hierarchy.
+
+        Note that in order to render a character bullet such as a Wingdings
+        glyph correctly, the matching bullet font must be set, e.g.
+        ``paragraph.bullet.character("§"); paragraph.bullet.font = "Wingdings"``.
+        """
+        return self._pPr.bullet_font
+
+    @font.setter
+    def font(self, value: str | None):
+        self._pPr.bullet_font = value
+
+    @property
+    def size_pct(self) -> float | None:
+        """The bullet size as a fraction of the surrounding text, or |None|.
+
+        When an ``a:buSzPct`` child is present, returns a float in range
+        0.25..4.0 (e.g. ``0.75`` for 75%). Returns |None| when no ``a:buSzPct``
+        child is present (which may mean an absolute ``a:buSzPts`` is in effect,
+        or the bullet size is inherited).
+
+        Assigning a float in range 0.25..4.0 writes ``a:buSzPct`` (replacing any
+        existing ``a:buSzPts``). Assigning |None| removes any size element.
+        """
+        return self._pPr.bullet_size_pct
+
+    @size_pct.setter
+    def size_pct(self, value: float | None):
+        self._pPr.bullet_size_pct = value
+
+    @property
+    def size_points(self) -> Length | None:
+        """The bullet size in absolute points, or |None|.
+
+        When an ``a:buSzPts`` child is present, returns a |Length| value (EMU)
+        convertible to points via ``.pt``. Returns |None| when no ``a:buSzPts``
+        child is present (which may mean an ``a:buSzPct`` is in effect, or the
+        bullet size is inherited).
+
+        Assigning a |Length| value (e.g. ``Pt(14)``) writes ``a:buSzPts``
+        (replacing any existing ``a:buSzPct``). Assigning |None| removes any
+        size element.
+        """
+        return self._pPr.bullet_size_points
+
+    @size_points.setter
+    def size_points(self, value: Length | None):
+        self._pPr.bullet_size_points = value
+
+    def clear_size(self) -> _BulletFormat:
+        """Remove any explicit bullet-size setting.
+
+        Removes both ``a:buSzPct`` and ``a:buSzPts`` children if present,
+        causing the bullet size to be inherited from the style hierarchy.
+        Returns self to support chaining.
+        """
+        self._pPr.clear_bullet_size()
+        return self
+
+    @lazyproperty
+    def color(self) -> ColorFormat:
+        """|ColorFormat| proxy for the bullet color.
+
+        Provides access to the ``a:buClr`` color settings. The underlying
+        ``a:buClr`` element is created on first access; ensuring it contains a
+        solid RGB color requires assigning a value such as
+        ``bullet.color.rgb = RGBColor(0xFF, 0, 0)`` or
+        ``bullet.color.theme_color = MSO_THEME_COLOR.ACCENT_1``.
+
+        Use :meth:`.clear_color` to remove the bullet-color setting entirely.
+        """
+        from pptx.dml.color import ColorFormat as _ColorFormat
+
+        buClr = self._pPr.get_or_add_buClr()
+        # -- ensure a concrete color choice is present so caller sees a usable
+        # -- ColorFormat; default to black sRGB (caller typically overrides it
+        # -- via .rgb or .theme_color).
+        if buClr.eg_colorChoice is None:
+            buClr.get_or_change_to_srgbClr()
+        return _ColorFormat.from_colorchoice_parent(buClr)
+
+    def clear_color(self) -> _BulletFormat:
+        """Remove any explicit bullet-color setting.
+
+        Removes any ``a:buClr`` child, causing the bullet color to be inherited
+        from the style hierarchy. Returns self to support chaining.
+        """
+        self._pPr._remove_buClr()  # pyright: ignore[reportPrivateUsage]
+        # -- invalidate the lazyproperty cache so a fresh ColorFormat is
+        # -- created on the next access (over a newly-added buClr).
+        self.__dict__.pop("color", None)
+        return self
+
     def character(self, char: str) -> _BulletFormat:
         """Configure this paragraph to use `char` as its bullet character.
 

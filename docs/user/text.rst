@@ -227,10 +227,68 @@ Each of ``.character()``, ``.auto_number()``, ``.none()``, and ``.clear()``
 returns the |_BulletFormat| itself to support chaining, e.g.
 ``paragraph.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD, 2)``.
 
+
+Bullet font, color, and size
+----------------------------
+
+The |_BulletFormat| proxy also exposes the bullet's font, color, and size.
+These overrides are written alongside the bullet itself (e.g. an ``<a:buChar>``
+or ``<a:buAutoNum>`` child) and, when not set, are inherited from the
+paragraph's style hierarchy.
+
+To set the bullet typeface — this is often required when the bullet character
+is a glyph from a symbol font such as Wingdings::
+
+    paragraph.bullet.character('§')  # section sign in Wingdings
+    paragraph.bullet.font = 'Wingdings'
+    paragraph.bullet.font  # -> 'Wingdings'
+
+Assigning |None| clears any bullet-font override::
+
+    paragraph.bullet.font = None
+    paragraph.bullet.font  # -> None
+
+To set the bullet size as a percentage of the surrounding text
+(``<a:buSzPct>``)::
+
+    paragraph.bullet.size_pct = 0.75  # 75% of text size
+    paragraph.bullet.size_pct         # -> 0.75
+
+The valid range is 0.25..4.0 (25% to 400% of the text size).
+
+To set the bullet size as an absolute point value (``<a:buSzPts>``)::
+
+    from pptx.util import Pt
+
+    paragraph.bullet.size_points = Pt(14)
+    paragraph.bullet.size_points.pt  # -> 14.0
+
+Only one of ``size_pct`` or ``size_points`` may be in effect at a time;
+assigning one automatically clears the other. Assigning |None| (or calling
+:meth:`._BulletFormat.clear_size`) removes any bullet-size setting::
+
+    paragraph.bullet.clear_size()
+
+To set the bullet color, use the |ColorFormat| exposed as
+``paragraph.bullet.color``. This mirrors the ``Font.color`` API::
+
+    from pptx.dml.color import RGBColor
+    from pptx.enum.dml import MSO_THEME_COLOR
+
+    paragraph.bullet.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    # or
+    paragraph.bullet.color.theme_color = MSO_THEME_COLOR.ACCENT_1
+
+To remove an explicit bullet color, causing it to inherit from the style
+hierarchy, call :meth:`._BulletFormat.clear_color`::
+
+    paragraph.bullet.clear_color()
+
 .. note::
 
-    This initial release covers the bullet *type* (character, auto-number,
-    none, inherit). Bullet-font, bullet-color, and bullet-size overrides
-    (``<a:buFont>``, ``<a:buClr>``, ``<a:buSzPct>``, ``<a:buSzPts>``) are
-    not yet exposed on |_BulletFormat|; use the underlying XML via
+    The "follow-text" variants of the bullet-font, bullet-color, and
+    bullet-size overrides (``<a:buFontTx>``, ``<a:buClrTx>``, ``<a:buSzTx>``)
+    are not yet exposed on |_BulletFormat|. These elements indicate that the
+    bullet property should follow the text rather than inherit from the style
+    hierarchy, and are relatively uncommon. Use the underlying XML via
     ``paragraph._pPr`` if you need them in the interim.
