@@ -65,6 +65,7 @@ Chart
    cht-chart-shape
    combo-chart
    f5-embedded-workbook
+   chart-user-shapes
 
 
 Table

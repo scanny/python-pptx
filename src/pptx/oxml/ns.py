@@ -8,6 +8,10 @@ _nsmap = {
     "a14": "http://schemas.microsoft.com/office/drawing/2010/main",
     "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "c14": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart",
+    # -- `cdr` is the chart-drawing namespace used by the `c:userShapes`
+    # -- relationship part (issue #351). The part root is `cdr:userShapes`
+    # -- and its child anchors are `cdr:relSizeAnchor` / `cdr:absSizeAnchor`. --
+    "cdr": "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing",
     "cp": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
     "cst": "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
     "ct": "http://schemas.openxmlformats.org/package/2006/content-types",

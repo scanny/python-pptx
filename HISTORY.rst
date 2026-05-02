@@ -6,6 +6,26 @@ Release History
 Unreleased
 ++++++++++
 
+- Add #351 chart user-shapes (annotation shapes) read access. A new
+  :class:`pptx.parts.chartdrawing.ChartDrawingPart` models the
+  ``c:userShapes`` relationship part that PowerPoint writes when a user
+  draws annotation shapes (arrows, call-outs, text boxes) on top of a
+  chart, and new :attr:`pptx.chart.chart.Chart.user_shapes` /
+  :attr:`~pptx.chart.chart.Chart.has_user_shapes` properties expose the
+  part — the former returns the :class:`ChartDrawingPart` (or ``None``
+  when no ``chartUserShapes`` relationship exists), the latter is a
+  non-destructive boolean probe. The part offers
+  :meth:`~pptx.parts.chartdrawing.ChartDrawingPart.iter_anchor_elements`
+  and :attr:`~pptx.parts.chartdrawing.ChartDrawingPart.anchor_count` to
+  enumerate the raw ``cdr:relSizeAnchor`` / ``cdr:absSizeAnchor`` anchor
+  elements. This MVP is read-only (raw-``lxml`` passthrough); a proxy
+  hierarchy and authoring API for chart-drawing shapes are deferred —
+  see ``docs/dev/analysis/chart-user-shapes.rst`` for the full design
+  note. Registering :class:`ChartDrawingPart` against the
+  ``chartshapes+xml`` content-type also fixes a subtle round-trip issue
+  where user-shapes parts were previously loaded as anonymous byte-blobs
+  via the generic :class:`~pptx.opc.package.Part` fallback.
+
 - rfctr: Resolve ``AnimationEffect`` class-name collision between
   :mod:`pptx.animation` (authoring API, Wave 5 #102) and :mod:`pptx.slide`
   (read-only introspection proxy for :attr:`.Slide.animation_sequence`,

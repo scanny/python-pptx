@@ -394,3 +394,23 @@ access, and ``len()``.
    :members:
    :member-order: bysource
    :undoc-members:
+
+
+|ChartDrawingPart| objects
+--------------------------
+
+A *chart drawing* (``c:userShapes`` relationship) carries the annotation
+shapes that PowerPoint overlays on a chart — arrows, call-outs, text
+boxes — pinned to the plot area so they track the chart as it resizes.
+Reach the :class:`ChartDrawingPart` for a chart via the
+:attr:`~pptx.chart.chart.Chart.user_shapes` property; use
+:attr:`~pptx.chart.chart.Chart.has_user_shapes` for a non-destructive
+probe.
+
+This is an MVP, **read-only** surface — authoring new annotation shapes
+is not yet supported. See :doc:`../dev/analysis/chart-user-shapes` for
+the design note.
+
+.. autoclass:: pptx.parts.chartdrawing.ChartDrawingPart()
+   :members:
+   :member-order: bysource

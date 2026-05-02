@@ -35,6 +35,9 @@ Feature Support
 * Discover Office 2016+ extended charts (funnel, treemap, sunburst, waterfall, histogram,
   box-and-whisker, map) on a slide as |GraphicFrame| shapes and preserve them on round-trip
   (detailed read/write not yet supported)
+* Inspect chart user-shape annotations (``c:userShapes`` — arrows, call-outs, text boxes
+  drawn on top of a chart) via :attr:`~pptx.chart.chart.Chart.user_shapes`; read-only MVP,
+  authoring deferred
 * Access and change core document properties such as title and subject
 * Toggle header / footer / slide-number / date placeholder visibility on a slide
   master or layout, and insert auto-refresh slide-number or date fields in a
