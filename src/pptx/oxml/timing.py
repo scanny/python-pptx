@@ -34,7 +34,7 @@ Key design notes:
 
 from __future__ import annotations
 
-from pptx.oxml.simpletypes import BaseSimpleType, XsdString, XsdUnsignedInt
+from pptx.oxml.simpletypes import BaseSimpleType, XsdInt, XsdString, XsdUnsignedInt
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
@@ -145,21 +145,41 @@ class CT_TimeNodeList(BaseOxmlElement):
 class CT_TLCommonTimeNodeData(BaseOxmlElement):
     """`p:cTn` element — common time-node attributes.
 
-    This type carries 24 attributes per pml.xsd. MVP surfaces three —
-    ``id`` (referenced by tests and required by cTn-id allocation),
-    ``nodeType`` (``tmRoot`` / ``mainSeq`` / ``clickEffect`` / ...
-    needed to route animations), and ``dur`` (ST_TLTime, used by
-    #861 / #376). The remaining 21 attributes round-trip transparently
-    through lxml.
+    This type carries 24 attributes per pml.xsd. MVP surfaces a growing
+    subset: ``id`` (referenced by tests and required by cTn-id
+    allocation), ``nodeType`` (``tmRoot`` / ``mainSeq`` / ``clickEffect``
+    / ... needed to route animations), ``dur`` (ST_TLTime, used by #861
+    / #376), and — added by issue #102 — ``presetID`` / ``presetClass``
+    / ``presetSubtype`` so entrance/emphasis/exit presets authored by
+    :meth:`pptx.shapes.base.BaseShape.set_animation` have a typed home.
+    The remaining 18 attributes round-trip transparently through lxml.
+
+    The ``stCondLst`` / ``childTnLst`` children are also now typed as
+    ``ZeroOrOne`` descriptors. This lets #102 read the "delay" on an
+    effect's start-condition (``cTn/stCondLst/cond/@delay``) and walk
+    the child time-node list that holds each effect's behaviors.
+    Other children (``endCondLst``, ``endSync``, ``iterate``,
+    ``subTnLst``) continue to round-trip via lxml.
 
     Downstream extension points (see the F8 analysis doc):
 
-    * #102 / #1106: add per-effect presetID / presetClass / presetSubtype
-      descriptors so entrance/exit presets can be authored.
-    * #861: surface ``stCondLst`` / ``endCondLst`` for delay read/write.
+    * #861: surface ``endCondLst`` and value-list semantics for
+      delay read/write on more than one condition.
     * #954: wrap in ``mc:AlternateContent`` for PowerPoint 2010+
       extensibility.
     """
+
+    _tag_seq = (
+        "p:stCondLst",
+        "p:endCondLst",
+        "p:endSync",
+        "p:iterate",
+        "p:childTnLst",
+        "p:subTnLst",
+    )
+    stCondLst = ZeroOrOne("p:stCondLst", successors=_tag_seq[1:])
+    childTnLst = ZeroOrOne("p:childTnLst", successors=_tag_seq[5:])
+    del _tag_seq
 
     id: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "id", XsdUnsignedInt
@@ -168,6 +188,9 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         "nodeType", XsdString
     )
     dur = OptionalAttribute("dur", ST_TLTime)
+    presetID = OptionalAttribute("presetID", XsdInt)
+    presetClass = OptionalAttribute("presetClass", XsdString)
+    presetSubtype = OptionalAttribute("presetSubtype", XsdInt)
 
 
 class CT_TLTimeNodeParallel(BaseOxmlElement):
