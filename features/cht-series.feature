@@ -213,3 +213,26 @@ Feature: Chart series
       And series has a linear trendline attached
      When I call delete() on series.trendlines[0]
      Then series.trendlines is an empty list
+
+
+  Scenario: series.source_range exposes the c:val/c:numRef/c:f formula
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     Then series.source_range is a non-empty string
+      And series.source_range ends with the value-range A1 reference
+      And series.values_sheet_reference.sheet_name is a non-empty string
+
+
+  Scenario: series.category_range exposes the c:cat/(str|num)Ref/c:f formula
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     Then series.category_range is a non-empty string
+
+
+  Scenario: series.name_range exposes the c:tx/c:strRef/c:f formula
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     Then series.name_range is a non-empty string
+
+
+  Scenario: series.source_range setter rewrites the formula text
+    Given a BarSeries object having values 1.2, 2.3, 3.4 as series
+     When I assign a new source_range formula to series.source_range
+     Then series.source_range reflects the new formula

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import namedtuple
 from collections.abc import Sequence
 
 from pptx.chart.datalabel import DataLabels
@@ -17,7 +18,41 @@ from pptx.enum.chart import (
 from pptx.oxml.chart.series import CT_ErrBars, CT_Trendline
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_TrendlineOrder, ST_TrendlinePeriod
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import lazyproperty
+
+SheetReference = namedtuple("SheetReference", ("sheet_name", "a1_range"))
+"""Parsed form of a ``c:f`` formula: ``(sheet_name, a1_range)``.
+
+For example the formula ``Sheet1!$B$2:$F$2`` parses as
+``SheetReference(sheet_name="Sheet1", a1_range="$B$2:$F$2")``. Sheet names
+that contain spaces or punctuation are quoted with single quotes in the
+formula (``'My Sheet'!$A$1:$A$3``); the quotes are stripped from
+``sheet_name``.
+
+.. versionadded:: 2026.05.0
+"""
+
+
+def _parse_sheet_reference(formula):
+    """Return a |SheetReference| parsed from `formula`, or |None|.
+
+    `formula` is the text content of a ``c:f`` element — e.g.
+    ``Sheet1!$B$2:$F$2`` or ``'My Sheet'!$A$1``. Returns |None| when
+    `formula` is |None|, empty, or has no ``!`` separator.
+    """
+    if not formula:
+        return None
+    sep = formula.rfind("!")
+    if sep == -1:
+        return None
+    sheet_name = formula[:sep]
+    a1_range = formula[sep + 1 :]
+    # -- strip surrounding single quotes from sheet_name (e.g. 'My Sheet') --
+    if len(sheet_name) >= 2 and sheet_name.startswith("'") and sheet_name.endswith("'"):
+        # -- Excel escapes an embedded apostrophe as '' inside a quoted name --
+        sheet_name = sheet_name[1:-1].replace("''", "'")
+    return SheetReference(sheet_name=sheet_name, a1_range=a1_range)
 
 
 class ErrorBars(object):
@@ -513,6 +548,117 @@ class _BaseSeries(object):
         names = self._element.xpath("./c:tx//c:pt/c:v/text()")
         name = names[0] if names else ""
         return name
+
+    @property
+    def source_range(self):
+        """Read/write formula text of ``c:val/c:numRef/c:f``, or |None|.
+
+        Returns the formula — e.g. ``"Sheet1!$B$2:$F$2"`` — that points the
+        series' numeric values into a range of the chart's embedded workbook.
+        |None| when the series has no ``c:val/c:numRef/c:f`` child (typically
+        a literal-value series that stores values inline under ``c:numLit``
+        rather than referencing the workbook).
+
+        Assigning a string replaces the existing ``c:f`` text. A ``c:f`` child
+        is created under ``c:val/c:numRef`` if one is not already present,
+        but the series must already have a ``c:val/c:numRef`` container —
+        attempting to set ``source_range`` on a series with no ``c:val`` or
+        with a literal-value ``c:val/c:numLit`` raises :class:`ValueError`.
+        Assigning |None| is not supported (raises :class:`ValueError`);
+        surface a ``c:f``-less series by removing the ``c:numRef`` directly
+        through the element tree.
+
+        The cached values under ``c:val/c:numRef/c:numCache`` are **not**
+        updated by this setter — they still reflect the prior range. Call
+        :meth:`Chart.update_cached_values` afterward (which re-reads the
+        embedded xlsx) or use
+        :meth:`Chart.replace_data_preserve_formulas` to reconcile the cache
+        with the new range's values.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._f_text("./c:val/c:numRef/c:f")
+
+    @source_range.setter
+    def source_range(self, value):
+        if value is None:
+            raise ValueError(
+                "assigning None to series.source_range is not supported; remove the "
+                "c:numRef element directly through the XML tree if that is intended"
+            )
+        numRefs = self._element.xpath("./c:val/c:numRef")
+        if not numRefs:
+            raise ValueError(
+                "series has no c:val/c:numRef element; source_range can only be set "
+                "on a series that already references a range in the embedded workbook"
+            )
+        numRef = numRefs[0]
+        fs = self._element.xpath("./c:val/c:numRef/c:f")
+        if fs:
+            f = fs[0]
+        else:
+            # -- c:f is the first child of c:numRef (before c:numCache/c:extLst) --
+            f = OxmlElement("c:f")
+            numRef.insert(0, f)
+        f.text = str(value)
+
+    @property
+    def category_range(self):
+        """Read-only formula text of ``c:cat/c:strRef/c:f`` or ``c:cat/c:numRef/c:f``.
+
+        Returns the formula — e.g. ``"Sheet1!$A$2:$A$6"`` — that points the
+        series' category labels into a range of the chart's embedded
+        workbook. |None| when the series has no ``c:cat`` child, or has
+        inline category data (``c:cat/c:strLit`` / ``c:cat/c:numLit``) rather
+        than a workbook reference. Category data may be carried under either
+        a ``c:strRef`` (text categories) or a ``c:numRef`` (numeric or date
+        categories); this property returns whichever is present.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._f_text("./c:cat/c:strRef/c:f") or self._f_text("./c:cat/c:numRef/c:f")
+
+    @property
+    def name_range(self):
+        """Read-only formula text of ``c:tx/c:strRef/c:f``.
+
+        Returns the formula — e.g. ``"Sheet1!$B$1"`` — that points the
+        series name into a single cell of the chart's embedded workbook.
+        |None| when the series has no ``c:tx/c:strRef/c:f`` child (a series
+        whose name is stored inline as ``c:tx/c:v`` literal text or is
+        omitted entirely returns |None| here; use :attr:`name` to read the
+        cached literal string instead).
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._f_text("./c:tx/c:strRef/c:f")
+
+    @property
+    def values_sheet_reference(self):
+        """|SheetReference| parsed from :attr:`source_range`, or |None|.
+
+        Returns a ``(sheet_name, a1_range)`` :class:`~pptx.chart.series.SheetReference`
+        namedtuple split out of the ``c:val/c:numRef/c:f`` formula. |None|
+        when :attr:`source_range` is |None| or the formula has no ``!``
+        sheet separator. Quoted sheet names (``'My Sheet'!$A$1``) are
+        unquoted and any ``''`` apostrophe escapes are unescaped.
+
+        .. versionadded:: 2026.05.0
+        """
+        return _parse_sheet_reference(self.source_range)
+
+    def _f_text(self, xpath):
+        """Return the text of the first ``c:f`` matched by `xpath`, or |None|.
+
+        A helper for the ``*_range`` properties — returns |None| when no
+        match is found and also when the match exists but is empty (``c:f``
+        with no text content).
+        """
+        matches = self._element.xpath(xpath)
+        if not matches:
+            return None
+        text = matches[0].text
+        return text if text else None
 
     @property
     def trendlines(self):

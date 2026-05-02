@@ -14,6 +14,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #695 add ``_BaseSeries.source_range``, ``_BaseSeries.category_range``,
+  ``_BaseSeries.name_range``, and ``_BaseSeries.values_sheet_reference`` —
+  read access to the ``c:f`` formula on ``c:val/c:numRef`` (values),
+  ``c:cat/c:strRef`` or ``c:cat/c:numRef`` (categories), and
+  ``c:tx/c:strRef`` (series name). ``source_range`` has a setter that
+  rewrites the formula text in place (creating a ``c:f`` child when
+  missing); the cached values under ``c:numCache`` are left untouched —
+  call ``Chart.update_cached_values()`` afterward to reconcile. A new
+  ``SheetReference(sheet_name, a1_range)`` namedtuple is returned from
+  ``values_sheet_reference`` with quoted sheet names unquoted
+  (``'My Sheet'!$A$1`` → ``sheet_name="My Sheet"``).
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

@@ -202,6 +202,100 @@ class Describe_BaseSeries(object):
         with pytest.raises(ValueError):
             series.add_trendline(XL_TRENDLINE_TYPE.MOVING_AVG, period=1)
 
+    # source-range / category-range / name-range ---------------------
+
+    def it_knows_its_source_range(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:f"Sheet1!$B$2:$F$2")'
+        series = _BaseSeries(element(ser_cxml))
+        assert series.source_range == "Sheet1!$B$2:$F$2"
+
+    def it_returns_None_for_source_range_when_no_numRef_is_present(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        assert series.source_range is None
+
+    def it_returns_None_for_source_range_when_f_is_absent(self):
+        ser_cxml = "c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:numCache)"
+        series = _BaseSeries(element(ser_cxml))
+        assert series.source_range is None
+
+    def it_can_set_its_source_range(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:f"Sheet1!$B$2:$F$2")'
+        series = _BaseSeries(element(ser_cxml))
+
+        series.source_range = "Sheet1!$B$2:$F$6"
+
+        assert series.source_range == "Sheet1!$B$2:$F$6"
+
+    def it_adds_an_f_element_when_source_range_setter_runs_with_no_f_present(self):
+        ser_cxml = "c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:numCache)"
+        series = _BaseSeries(element(ser_cxml))
+
+        series.source_range = "Sheet1!$A$1:$A$3"
+
+        assert series.source_range == "Sheet1!$A$1:$A$3"
+        # -- f should be the first child of numRef, before numCache --
+        numRef = series._element.xpath("c:val/c:numRef")[0]
+        assert numRef[0].tag.endswith("}f")
+        assert numRef[1].tag.endswith("}numCache")
+
+    def it_raises_on_setting_source_range_when_no_numRef_container_exists(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        with pytest.raises(ValueError):
+            series.source_range = "Sheet1!$A$1:$A$3"
+
+    def it_raises_on_setting_source_range_to_None(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:f"Sheet1!$B$2")'
+        series = _BaseSeries(element(ser_cxml))
+        with pytest.raises(ValueError):
+            series.source_range = None
+
+    def it_knows_its_category_range_from_strRef(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:cat/c:strRef/c:f"Sheet1!$A$2:$A$6")'
+        series = _BaseSeries(element(ser_cxml))
+        assert series.category_range == "Sheet1!$A$2:$A$6"
+
+    def it_knows_its_category_range_from_numRef(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:cat/c:numRef/c:f"Sheet1!$A$2:$A$6")'
+        series = _BaseSeries(element(ser_cxml))
+        assert series.category_range == "Sheet1!$A$2:$A$6"
+
+    def it_returns_None_for_category_range_when_absent(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        assert series.category_range is None
+
+    def it_knows_its_name_range(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:tx/c:strRef/c:f"Sheet1!$B$1")'
+        series = _BaseSeries(element(ser_cxml))
+        assert series.name_range == "Sheet1!$B$1"
+
+    def it_returns_None_for_name_range_when_absent(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        assert series.name_range is None
+
+    def it_parses_values_sheet_reference_from_source_range(self):
+        ser_cxml = 'c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:f"Sheet1!$B$2:$F$2")'
+        series = _BaseSeries(element(ser_cxml))
+        ref = series.values_sheet_reference
+        assert ref is not None
+        assert ref.sheet_name == "Sheet1"
+        assert ref.a1_range == "$B$2:$F$2"
+        # -- tuple unpacking works (namedtuple) --
+        sheet, a1 = ref
+        assert (sheet, a1) == ("Sheet1", "$B$2:$F$2")
+
+    def it_returns_None_for_values_sheet_reference_when_no_source_range(self):
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+        assert series.values_sheet_reference is None
+
+    def it_unquotes_quoted_sheet_names_in_values_sheet_reference(self):
+        ser_cxml = (
+            "c:ser/(c:idx{val=0},c:order{val=0},c:val/c:numRef/c:f"
+            "\"'My Sheet'!$B$2:$F$2\")"
+        )
+        series = _BaseSeries(element(ser_cxml))
+        ref = series.values_sheet_reference
+        assert ref == ("My Sheet", "$B$2:$F$2")
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
