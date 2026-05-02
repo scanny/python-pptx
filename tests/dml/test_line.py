@@ -25,7 +25,7 @@ class DescribeLineFormat(object):
         ("spPr_cxml", "dash_style", "expected_cxml"),
         [
             ("p:spPr{a:b=c}", MSO_LINE.DASH, "p:spPr{a:b=c}/a:ln/a:prstDash{val=dash}"),
-            ("p:spPr/a:ln", MSO_LINE.ROUND_DOT, "p:spPr/a:ln/a:prstDash{val=sysDot}"),
+            ("p:spPr/a:ln", MSO_LINE.ROUND_DOT, "p:spPr/a:ln/a:prstDash{val=dot}"),
             (
                 "p:spPr/a:ln/a:prstDash",
                 MSO_LINE.SOLID,

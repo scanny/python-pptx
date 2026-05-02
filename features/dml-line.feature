@@ -27,10 +27,12 @@ Feature: Get and change line properties
      Then line.dash_style is <dash-style>
 
     Examples: Line dash style assignment scenarios
-      | current     | dash-style        |
-      | no explicit | MSO_LINE.DASH     |
-      | dashed      | MSO_LINE.SOLID    |
-      | solid       | None              |
+      | current     | dash-style          |
+      | no explicit | MSO_LINE.DASH       |
+      | dashed      | MSO_LINE.SOLID      |
+      | solid       | None                |
+      | no explicit | MSO_LINE.ROUND_DOT  |
+      | no explicit | MSO_LINE.SQUARE_DOT |
 
 
   Scenario: LineFormat.fill

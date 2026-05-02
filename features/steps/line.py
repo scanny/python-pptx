@@ -42,7 +42,9 @@ def when_I_assign_value_to_line_dash_style(context, value_key):
         "None": None,
         "MSO_LINE.DASH": MSO_LINE.DASH,
         "MSO_LINE.DASH_DOT": MSO_LINE.DASH_DOT,
+        "MSO_LINE.ROUND_DOT": MSO_LINE.ROUND_DOT,
         "MSO_LINE.SOLID": MSO_LINE.SOLID,
+        "MSO_LINE.SQUARE_DOT": MSO_LINE.SQUARE_DOT,
     }[value_key]
     context.line.dash_style = value
 
@@ -72,7 +74,9 @@ def then_line_dash_style_is_value(context, dash_style):
         "None": None,
         "MSO_LINE.DASH": MSO_LINE.DASH,
         "MSO_LINE.DASH_DOT": MSO_LINE.DASH_DOT,
+        "MSO_LINE.ROUND_DOT": MSO_LINE.ROUND_DOT,
         "MSO_LINE.SOLID": MSO_LINE.SOLID,
+        "MSO_LINE.SQUARE_DOT": MSO_LINE.SQUARE_DOT,
     }[dash_style]
     actual_value = context.line.dash_style
     assert actual_value == expected_value, "expected %s, got %s" % (
