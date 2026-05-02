@@ -267,6 +267,61 @@ Note that the content migration performed as part of the `.merge()` operation
 was not reversed.
 
 
+Table height and row height
+---------------------------
+
+The height of a table (and of each row) stored in a `.pptx` file is the
+*authored* height — the value written into the XML. PowerPoint treats each row
+height as a **minimum**: at render time it will silently grow a row to fit its
+text content, including wrapped lines, cell margins, and any font-size
+differences. The rendered table on screen may therefore be taller than the sum
+of `row.height` values reported by |pp|.
+
+This can be surprising when, for example, positioning a shape immediately
+below a table::
+
+    >>> shape = slide.shapes.add_table(rows=3, cols=2, left, top, width, height)
+    >>> table = shape.table
+    >>> shape.height  # EMU of *authored* height, not rendered height
+    914400
+
+When the file is later opened in PowerPoint, the host application performs
+its layout pass, grows any rows that need more room, and (on save) writes the
+new heights back into the XML. The shape below the table may then overlap the
+table's rendered area.
+
+**Why python-pptx can't compute the rendered height.** The final row height
+depends on glyph metrics (font face, size, weight, kerning), the line-break
+algorithm, cell-margin interactions, and several other inputs that together
+comprise PowerPoint's proprietary layout engine. Reproducing that engine
+faithfully in pure Python is out of scope for |pp|.
+
+**Workarounds.**
+
+* *Round-trip through PowerPoint or LibreOffice.* The most reliable way to
+  obtain accurate row heights is to open the generated `.pptx` in a host
+  application (PowerPoint desktop, PowerPoint Online, or LibreOffice Impress)
+  and save it back. The application will update every row height to its
+  laid-out value. This can be automated on Windows or macOS via COM / AppleScript
+  automation of PowerPoint, or on Linux via a headless ``libreoffice --convert-to
+  pptx`` invocation.
+
+* *Estimate manually.* If a rough estimate is acceptable, multiply the number
+  of text lines you expect in each cell by the font size (converted to EMU via
+  :class:`pptx.util.Pt`), add top and bottom cell margins, and take the maximum
+  across all cells in the row. This will not match PowerPoint exactly but is
+  usually within a few percent for plain text content.
+
+* *Set an explicit minimum height and accept overflow.* For many reporting
+  workflows, positioning subsequent shapes with a generous gap below the table
+  is simpler than trying to compute the rendered height precisely.
+
+This limitation is tracked as `issue #296`_ and is a known wontfix for the
+reasons above.
+
+.. _issue #296: https://github.com/scanny/python-pptx/issues/296
+
+
 A few snippets that might be handy
 ----------------------------------
 
