@@ -266,6 +266,7 @@ Feature: Access a shape on a slide
       | CVS_LOGO.WMF     | wmf  |
       | pic.emf          | wmf  |
       | python.bmp       | bmp  |
+      | stereo.mpo       | jpg  |
 
 
   Scenario Outline: SlideShapes.add_picture() (using file-like object)
@@ -284,6 +285,7 @@ Feature: Access a shape on a slide
       | CVS_LOGO.WMF     | wmf  |
       | pic.emf          | wmf  |
       | python.bmp       | bmp  |
+      | stereo.mpo       | jpg  |
 
 
   Scenario: SlideShapes.add_shape()

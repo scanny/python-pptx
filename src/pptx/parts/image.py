@@ -227,6 +227,7 @@ class Image(object):
             "BMP": "bmp",
             "GIF": "gif",
             "JPEG": "jpg",
+            "MPO": "jpg",
             "PNG": "png",
             "TIFF": "tiff",
             "WMF": "wmf",

@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #787 Support .MPO image files
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
