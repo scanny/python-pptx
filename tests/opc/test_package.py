@@ -373,6 +373,17 @@ class DescribeOpcPackage:
             "prs.pptx", relationships_, parts_, zip_date_time=zdt, password="s3cret"
         )
 
+    def it_can_save_as_flat_opc_xml(self, request, _rels_prop_, relationships_):
+        _rels_prop_.return_value = relationships_
+        parts_ = tuple(instance_mock(request, Part) for _ in range(3))
+        method_mock(request, OpcPackage, "iter_parts", return_value=iter(parts_))
+        FlatOpcWriter_ = class_mock(request, "pptx.opc.flat_opc.FlatOpcWriter")
+        package = OpcPackage(None)
+
+        package.save_flat_xml("prs.xml")
+
+        FlatOpcWriter_.write.assert_called_once_with("prs.xml", relationships_, parts_)
+
     def it_loads_the_pkg_file_to_help(self, request, _rels_prop_, relationships_):
         _PackageLoader_ = class_mock(request, "pptx.opc.package._PackageLoader")
         _PackageLoader_.load.return_value = "pkg-rels-xml", {"partname": "part"}

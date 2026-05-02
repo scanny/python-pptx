@@ -96,6 +96,11 @@ class DescribePresentation(object):
         prs.save(file_, zdt, password="s3cret")
         prs_part_.save.assert_called_once_with(file_, zdt, password="s3cret")
 
+    def it_can_save_the_presentation_as_flat_opc_xml(self, save_fixture):
+        prs, file_, prs_part_ = save_fixture
+        prs.save_flat_xml(file_)
+        prs_part_.save_flat_xml.assert_called_once_with(file_)
+
     def it_starts_with_no_embedded_fonts(self):
         prs = Presentation(element("p:presentation"), None)
         assert prs.embedded_fonts == ()

@@ -209,6 +209,24 @@ class Presentation(PartElementProxy):
         """
         self.part.save(file, zip_date_time, password=password)
 
+    def save_flat_xml(self, file: str | IO[bytes]) -> None:
+        """Write this presentation to `file` as a Flat OPC single-file XML document.
+
+        Flat OPC is the "XML Presentation" (``.xml``) format defined in ECMA-376
+        Part 4 and produced by PowerPoint's *Save As \N{RIGHTWARDS ARROW} XML
+        Presentation* command. The entire package (the presentation part, every
+        slide, master, layout, theme, image, and so on) is serialized as one XML
+        document rooted at ``<pkg:package>``; XML parts are embedded verbatim
+        while binary parts (images, embedded fonts, OLE objects, media) are
+        base64-encoded inline.
+
+        `file` is either a filesystem path (``str``) or a file-like object open
+        for writing bytes. Unlike :meth:`save`, this method does not accept
+        ``zip_date_time`` or ``password`` -- the Flat OPC format is an XML
+        document, not a zip archive, and is not password-protectable.
+        """
+        self.part.save_flat_xml(file)
+
     @property
     def slide_height(self) -> Length | None:
         """Height of slides in this presentation, in English Metric Units (EMU).

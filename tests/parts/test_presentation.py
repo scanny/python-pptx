@@ -140,6 +140,10 @@ class DescribePresentationPart(object):
         )
         package_.save.assert_called_once_with("prs.pptx", zdt, password="s3cret")
 
+    def it_can_save_the_package_as_flat_opc_xml(self, package_):
+        PresentationPart(None, None, package_, None).save_flat_xml("prs.xml")
+        package_.save_flat_xml.assert_called_once_with("prs.xml")
+
     def it_can_add_a_font_part_and_relate_it(self, request, package_, relate_to_):
         font_blob = b"fake-ttf"
         font_part_ = instance_mock(request, FontPart)
