@@ -776,6 +776,60 @@ class DescribeFont(object):
     def it_provides_access_to_its_fill(self, font):
         assert isinstance(font.fill, FillFormat)
 
+    # -- effective_color (issue #938) -----------------------------------
+
+    def it_returns_None_for_effective_color_without_part_context(self):
+        # -- Font constructed with no parent can't walk inheritance --
+        font = Font(element("a:rPr"))
+        assert font.effective_color is None
+
+    def it_resolves_effective_color_from_run_rPr_solidFill(self):
+        from pptx.oxml import parse_xml
+
+        rPr_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:solidFill><a:srgbClr val="FF6600"/></a:solidFill>'
+            "</a:rPr>"
+        )
+        font = Font(parse_xml(rPr_xml))
+        assert font.effective_color == RGBColor(0xFF, 0x66, 0x00)
+
+    def it_resolves_effective_color_from_paragraph_defRPr(self):
+        from pptx.oxml import parse_xml
+
+        p_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:pPr><a:defRPr>'
+            '<a:solidFill><a:srgbClr val="00FF00"/></a:solidFill>'
+            '</a:defRPr></a:pPr>'
+            '<a:r><a:rPr/><a:t>hi</a:t></a:r>'
+            "</a:p>"
+        )
+        p = parse_xml(p_xml)
+        rPr = p[1].rPr
+        font = Font(rPr)
+        assert font.effective_color == RGBColor(0x00, 0xFF, 0x00)
+
+    def it_resolves_effective_color_from_lstStyle_level(self):
+        from pptx.oxml import parse_xml
+
+        txBody_xml = (
+            '<p:txBody xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+            '         xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            "<a:bodyPr/>"
+            "<a:lstStyle>"
+            '<a:lvl2pPr><a:defRPr>'
+            '<a:solidFill><a:srgbClr val="112233"/></a:solidFill>'
+            '</a:defRPr></a:lvl2pPr>'
+            "</a:lstStyle>"
+            '<a:p><a:pPr lvl="1"/><a:r><a:rPr/><a:t>x</a:t></a:r></a:p>'
+            "</p:txBody>"
+        )
+        txBody = parse_xml(txBody_xml)
+        rPr = txBody[2][1].rPr  # -- a:p -> a:r -> a:rPr --
+        font = Font(rPr)
+        assert font.effective_color == RGBColor(0x11, 0x22, 0x33)
+
     # -- use_theme_hyperlink_color (issue #940) -------------------------
 
     def it_returns_None_for_use_theme_hyperlink_color_when_no_hyperlink(self):
@@ -2061,7 +2115,7 @@ class Describe_Run(object):
     def it_provides_access_to_its_font(self, font_fixture):
         run, rPr, Font_, font_ = font_fixture
         font = run.font
-        Font_.assert_called_once_with(rPr)
+        Font_.assert_called_once_with(rPr, parent=run)
         assert font == font_
 
     def it_provides_access_to_a_hyperlink_proxy(self, hyperlink_fixture):

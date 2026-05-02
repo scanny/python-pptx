@@ -207,6 +207,19 @@ Unreleased
   that run's surviving suffix keeps its own formatting. Matches do not
   cross ``a:br`` (line break) or ``a:fld`` (auto-refresh field)
   boundaries. Returns the number of replacements performed.
+- feat: #938 add ``Font.effective_color`` read-only property that walks the
+  run's style inheritance chain and returns the |RGBColor| PowerPoint would
+  render — including cases where the run has no explicit color and its
+  effective color comes from a paragraph ``a:defRPr``, a text body
+  ``a:lstStyle``, or the slide master's ``p:txStyles`` (via the theme's
+  ``a:clrScheme``). Builds on the ``ColorFormat.to_rgb()`` resolver (#420)
+  and its tint/shade support (#308). Returns |None| when no color can be
+  resolved (for example when the |Font| object is created without a
+  part-aware parent, as is the case for chart ``a:defRPr`` text). Existing
+  ``run.font.color.rgb`` behaviour (``AttributeError`` on an inherited-only
+  run) is unchanged; use ``effective_color`` when you need the value
+  directly.
+
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort

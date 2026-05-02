@@ -54,6 +54,18 @@ Feature: Query and set font color
     | a theme    |  0.4  |
     | an RGB     |  0    |
 
+  # -- effective font color (issue #938) ---------------------------
+
+  Scenario Outline: Get effective font color via inheritance walk
+    Given a font with <color type> color
+     Then font.effective_color is <expected rgb>
+
+  Examples: Effective-color resolutions
+    | color type                | expected rgb              |
+    | no                        | RGBColor(0, 0, 0)         |
+    | an RGB                    | RGBColor(255, 102, 0)     |
+    | a theme                   | RGBColor(79, 129, 189)    |
+
   # -- hyperlink color override (issue #940) -----------------------
 
   Scenario: Override theme hyperlink color on a run
