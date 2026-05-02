@@ -367,6 +367,12 @@ class _Cell(Subshape):
         diagonal of the cell region may be specified in either order, e.g. self=bottom-right,
         other_cell=top-left, etc.
 
+        When the merge range spans every column of the table, the rows beneath the origin
+        row are removed and their heights absorbed by the origin row. Symmetrically, a
+        merge range that spans every row of the table collapses into its leftmost column.
+        This matches PowerPoint's rendering of full table-span merges (see issue #636),
+        which otherwise silently drops the merge on open.
+
         Raises |ValueError| if the specified range already contains merged cells anywhere within
         its extents or if `other_cell` is not in the same table as `self`.
         """
@@ -389,6 +395,47 @@ class _Cell(Subshape):
             tc.hMerge = True
         for tc in tc_range.iter_except_top_row_tcs():
             tc.vMerge = True
+
+        # -- Collapse full-table-span merges to match PowerPoint's rendering (see
+        # -- issue #636). PowerPoint silently drops a vertical merge that spans
+        # -- every column of the table and a horizontal merge that spans every row;
+        # -- instead it deletes all but the origin row (or column) of the range and
+        # -- absorbs their heights (or widths) into the surviving row (or column).
+        # -- `collapse_full_column_span` and `collapse_full_row_span` both apply
+        # -- the structural change and reset the spent merge markers on the
+        # -- surviving axis so the XML remains consistent.
+        spans_all_columns = tc_range.spans_all_columns
+        spans_all_rows = tc_range.spans_all_rows
+        if spans_all_columns:
+            tc_range.collapse_full_column_span()
+        if spans_all_rows:
+            tc_range.collapse_full_row_span()
+        if spans_all_columns:
+            self._parent_table_notify_height_changed()
+        if spans_all_rows:
+            self._parent_table_notify_width_changed()
+
+    def _parent_table_notify_height_changed(self) -> None:
+        """Notify the containing table that row heights have changed.
+
+        Re-sums row heights so the graphic-frame height tracks the current row count.
+        Silently no-ops when the parent is not a |Table| (e.g. in unit-test contexts
+        where the cell has been instantiated without a real parent).
+        """
+        parent = self._parent
+        if isinstance(parent, Table):
+            parent.notify_height_changed()
+
+    def _parent_table_notify_width_changed(self) -> None:
+        """Notify the containing table that column widths have changed.
+
+        Re-sums column widths so the graphic-frame width tracks the current column
+        count. Silently no-ops when the parent is not a |Table| (e.g. in unit-test
+        contexts where the cell has been instantiated without a real parent).
+        """
+        parent = self._parent
+        if isinstance(parent, Table):
+            parent.notify_width_changed()
 
     @property
     def row_idx(self) -> int:

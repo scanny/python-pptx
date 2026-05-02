@@ -601,6 +601,35 @@ class TcRange(object):
             return True
         return False
 
+    @lazyproperty
+    def spans_all_columns(self) -> bool:
+        """True if range covers every column in the containing table.
+
+        When this is True and the range covers more than one row, PowerPoint
+        collapses the merge by deleting all but the top row of the range
+        (see issue #636). Treating a single-row range as a full column-span
+        is not useful because there are no extra rows to remove.
+        """
+        _, _, width, height = self._extents
+        if height < 2:
+            return False
+        return width == len(self._tbl.tblGrid.gridCol_lst)
+
+    @lazyproperty
+    def spans_all_rows(self) -> bool:
+        """True if range covers every row in the containing table.
+
+        When this is True and the range covers more than one column,
+        PowerPoint collapses the merge by deleting all but the leftmost
+        column of the range (see issue #636). Treating a single-column
+        range as a full row-span is not useful because there are no extra
+        columns to remove.
+        """
+        _, _, width, height = self._extents
+        if width < 2:
+            return False
+        return height == len(self._tbl.tr_lst)
+
     def iter_except_left_col_tcs(self):
         """Generate each `a:tc` element not in leftmost column of range."""
         for tr in self._tbl.tr_lst[self._top : self._bottom]:
@@ -642,6 +671,82 @@ class TcRange(object):
         origin_tc = tcs[0]
         for spanned_tc in tcs[1:]:
             origin_tc.append_ps_from(spanned_tc)
+
+    def collapse_full_column_span(self) -> None:
+        """Remove all but the top row of this range, absorbing their heights.
+
+        This implements the PowerPoint behavior for a merge whose range spans
+        every column of the table (see issue #636). The top row of the range
+        retains the combined height of all rows in the range; the remaining
+        rows are deleted from the table. Any `rowSpan`/`vMerge` merge-state
+        on the top-row cells is reset to the unmerged state since there are
+        no longer any rows to span downward into. When the range covers
+        multiple columns, the horizontal merge within the top row is left
+        intact (the origin's `gridSpan` and the spanned cells' `hMerge`
+        markers are meaningful and valid within the single remaining row).
+
+        This method assumes `.spans_all_columns` is True; callers should check
+        that condition first. After this call, the previously-computed
+        ``_extents`` and related indexes no longer describe a valid range.
+        """
+        tbl = self._tbl
+        top, bottom = self._top, self._bottom
+        trs = tbl.tr_lst[top:bottom]
+
+        # -- accumulate row heights into the top row --
+        top_tr = trs[0]
+        top_tr.h = Emu(sum(tr.h for tr in trs))
+
+        # -- reset vertical-merge state on top-row cells (no more spanned rows) --
+        for tc in top_tr.tc_lst[self._left : self._right]:
+            tc.rowSpan = 1
+            tc.vMerge = False
+
+        # -- remove the now-redundant rows beneath the origin row --
+        for tr in trs[1:]:
+            tbl.remove(tr)
+
+    def collapse_full_row_span(self) -> None:
+        """Remove all but the leftmost column of this range, absorbing widths.
+
+        This implements the PowerPoint behavior for a merge whose range spans
+        every row of the table (see issue #636). The leftmost column of the
+        range retains the combined width of all columns in the range; the
+        remaining columns (and the corresponding `a:tc` in each row) are
+        deleted from the table. Any `gridSpan`/`hMerge` merge-state on the
+        leftmost-column cells is reset to the unmerged state since there are
+        no longer any columns to span rightward into. When the range covers
+        multiple rows, the vertical merge within the leftmost column is left
+        intact (the origin's `rowSpan` and the spanned cells' `vMerge`
+        markers are meaningful and valid within the single remaining column).
+
+        This method assumes `.spans_all_rows` is True; callers should check
+        that condition first. After this call, the previously-computed
+        ``_extents`` and related indexes no longer describe a valid range.
+        """
+        tbl = self._tbl
+        tblGrid = tbl.tblGrid
+        left, right = self._left, self._right
+        gridCols = tblGrid.gridCol_lst[left:right]
+
+        # -- accumulate column widths into the leftmost column --
+        left_gridCol = gridCols[0]
+        left_gridCol.w = Emu(sum(gridCol.w for gridCol in gridCols))
+
+        # -- reset horizontal-merge state on leftmost-column cells in range --
+        for tr in tbl.tr_lst[self._top : self._bottom]:
+            tc = tr.tc_lst[left]
+            tc.gridSpan = 1
+            tc.hMerge = False
+
+        # -- remove the now-redundant cells (right-to-left to keep indexes stable) --
+        for tr in tbl.tr_lst:
+            for col_idx in range(right - 1, left, -1):
+                tr.remove(tr.tc_lst[col_idx])
+
+        # -- remove the now-redundant gridCols (right-to-left) --
+        for gridCol in reversed(gridCols[1:]):
+            tblGrid.remove(gridCol)
 
     @lazyproperty
     def _bottom(self):

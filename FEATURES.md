@@ -614,6 +614,81 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.lang import MSO_LANGUAGE_ID
+
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+gf = slide.shapes.add_table(3, 4, Inches(1), Inches(1), Inches(6), Inches(2))
+tbl = gf.table
+
+# banding flags
+tbl.first_row = True
+tbl.horz_banding = True
+
+# apply a built-in style by its GUID ("Medium Style 2 - Accent 1")
+tbl.style_id = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"
+
+# cell content
+tbl.cell(0, 0).text = "Region"
+tbl.cell(1, 0).text = "North"
+
+# per-cell row / column index
+print(tbl.cell(2, 3).row_idx, tbl.cell(2, 3).col_idx)  # 2, 3
+
+# merge the top-left 2x2 block
+tbl.cell(0, 0).merge(tbl.cell(1, 1))
+
+# cell borders
+border = tbl.cell(2, 0).border_top
+border.width = Pt(1.5)
+border.color.rgb = RGBColor(0x44, 0x44, 0x44)
+
+# add a row, drop a column
+tbl.rows.add()
+tbl.columns[3].delete()
+
+prs.save("out.pptx")
+```
+
+- `SlideShapes.add_table(rows, cols, left, top, width, height)` — Returns a `GraphicFrame`; its `.table` attribute is the `Table`.
+- `Table.cell(row_idx, col_idx)` / `Table.iter_cells()` — Cell access.
+- `Table.rows` / `Table.columns` — `_RowCollection` / `_ColumnCollection`.
+- `Table.first_row` / `.first_col` / `.last_row` / `.last_col` / `.horz_banding` / `.vert_banding` — Style-flag toggles.
+- `Table.style_id` — Read/write GUID of the built-in PowerPoint table style. `[Added in 1.0.2.dev0]`
+- `Table.notify_height_changed()` / `Table.notify_width_changed()` — Size-change notifications.
+- `_RowCollection.add()` — Append a row. `[Added in 1.0.2.dev0]`
+- `_RowCollection.remove(row)` — Delete a row. `[Added in 1.0.2.dev0]`
+- `_ColumnCollection.add(width=None)` — Append a column. `[Added in 1.0.2.dev0]`
+- `_ColumnCollection.remove(column)` — Delete a column. `[Added in 1.0.2.dev0]`
+- `_Row.height` (read/write) / `_Row.cells` / `_Row.delete()` — Row API. `_Row.delete()` is `[Added in 1.0.2.dev0]`.
+- `_Column.width` (read/write) / `_Column.delete()` — Column API. `[Added in 1.0.2.dev0]`
+- `_Cell.text` (read/write) / `_Cell.text_frame` — Content.
+- `_Cell.row_idx` / `_Cell.col_idx` — Grid coordinates. `[Added in 1.0.2.dev0]`
+- `_Cell.fill` — `FillFormat` proxy.
+- `_Cell.border_left` / `.border_right` / `.border_top` / `.border_bottom` / `.border_diagonal_down` / `.border_diagonal_up` — Per-cell edge and diagonal borders. `[Added in 1.0.2.dev0]`
+- `_Cell.margin_left` / `.margin_right` / `.margin_top` / `.margin_bottom` — Cell padding.
+- `_Cell.merge(other_cell)` / `_Cell.split()` / `_Cell.is_merge_origin` / `_Cell.is_spanned` / `_Cell.span_height` / `_Cell.span_width` — Merge handling. `_Cell.merge()` now collapses a full-table-span range (every column or every row) by deleting the redundant rows / columns rather than emitting a merge PowerPoint would silently drop; the surviving row / column absorbs their height / width, and any residual in-axis merge is preserved. `[#636 fix Added in 1.0.2.dev0]`
+- `_Cell.vertical_anchor` — `MSO_VERTICAL_ANCHOR`.
+
+---
+
+## Text frames, paragraphs, and runs
+
+Text frames expose paragraphs, each with runs that carry a `Font`. The fork
+adds `TextFrame.rotation`, `TextFrame.replace_text()` (matches across runs;
+preserves origin-run formatting), `TextFrame.font_scale` and
+`line_space_reduction` (the autofit knobs), `_Paragraph.add_math_equation()`,
+`_Paragraph.replace_text()`, `_Paragraph.delete()`, `_Run.delete()`,
+a full `Font.effective_color` resolver that walks style inheritance (para
+`a:defRPr` → body `a:lstStyle` → master `p:txStyles` → theme
+`a:clrScheme`), `Font.strikethrough`, `Font.use_theme_hyperlink_color`,
+`Font.name_ea` / `name_cs` (East-Asian and complex-script slots), and a
+complete bullet-format API via `_Paragraph.bullet`.
+
+```python
+from pptx import Presentation
+from pptx.util import Emu, Inches, Pt
+from pptx.dml.color import RGBColor
 from pptx.enum.text import MSO_TEXT_STRIKE_TYPE
 
 prs = Presentation()

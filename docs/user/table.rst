@@ -332,6 +332,15 @@ A few things to observe:
   region. There are four distinct ways to specify a given rectangular region
   (two diagonals, each having two orderings).
 
+* When the merge range spans **every column** of the table (for instance any
+  multi-row merge inside a single-column table), ``merge()`` deletes the rows
+  beneath the origin row — PowerPoint silently drops such a merge otherwise.
+  The origin row absorbs the combined height of the removed rows, so the
+  graphic-frame height is unchanged. Symmetrically, a range that spans every
+  row collapses into its leftmost column, with the removed columns' widths
+  absorbed by the surviving column. Any residual horizontal or vertical merge
+  within the surviving row / column is preserved. See issue #636.
+
 
 Un-merging a cell
 -----------------
