@@ -7,16 +7,40 @@ from collections.abc import Sequence
 from lxml import etree
 
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
+from pptx.chart.data import BubbleChartData, CategoryChartData, XyChartData
 from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xlsx import WorkbookReader, parse_sheet_range_ref
 from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
 from pptx.dml.chtfmt import ChartFormat
+from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml.ns import qn
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
+
+
+# -- chart-type families for Chart.replace_data() compatibility check (#396). --
+# -- Bubble and XY chart types use distinct XML shapes (c:xVal/c:yVal and --
+# -- c:bubbleSize) that are incompatible with the c:cat/c:val shape produced --
+# -- for category charts; writing the wrong shape leaves PowerPoint unable to --
+# -- read the file, producing a "repair needed" dialog. --
+_BUBBLE_CHART_TYPES = frozenset(
+    {
+        XL_CHART_TYPE.BUBBLE,
+        XL_CHART_TYPE.BUBBLE_THREE_D_EFFECT,
+    }
+)
+_XY_CHART_TYPES = frozenset(
+    {
+        XL_CHART_TYPE.XY_SCATTER,
+        XL_CHART_TYPE.XY_SCATTER_LINES,
+        XL_CHART_TYPE.XY_SCATTER_LINES_NO_MARKERS,
+        XL_CHART_TYPE.XY_SCATTER_SMOOTH,
+        XL_CHART_TYPE.XY_SCATTER_SMOOTH_NO_MARKERS,
+    }
+)
 
 
 class Chart(PartElementProxy):
@@ -173,10 +197,57 @@ class Chart(PartElementProxy):
         reference (``a:schemeClr val="accent1..6"``) so newly added series adopt the
         theme's accent color rotation rather than all appearing in the source series's
         color (see GitHub issue #529).
+
+        Raises |ValueError| when *chart_data* is incompatible with the chart-type of
+        this chart (GitHub issue #396). XY (scatter) charts require an
+        |XyChartData| instance and bubble charts require a |BubbleChartData|
+        instance; passing a |CategoryChartData| (or plain |ChartData|) to one of
+        those chart types would otherwise produce a file that PowerPoint cannot
+        open without offering to "repair" it. Category-type charts (bar, line,
+        pie, area, radar, doughnut, etc.) require a |CategoryChartData|.
         """
+        self._validate_chart_data_type(chart_data)
         rewriter = SeriesXmlRewriterFactory(self.chart_type, chart_data)
         rewriter.replace_series_data(self._chartSpace)
         self._workbook.update_from_xlsx_blob(chart_data.xlsx_blob)
+
+    def _validate_chart_data_type(self, chart_data):
+        """Raise |ValueError| when *chart_data* is incompatible with the chart-type.
+
+        See :meth:`replace_data` for rationale (GitHub issue #396). The error
+        message names the expected |ChartData| subclass so the caller knows
+        exactly which type to construct.
+        """
+        chart_type = self.chart_type
+        if chart_type in _BUBBLE_CHART_TYPES:
+            if not isinstance(chart_data, BubbleChartData):
+                raise ValueError(
+                    "bubble chart requires BubbleChartData instance for "
+                    "Chart.replace_data(), got %s" % type(chart_data).__name__
+                )
+            return
+        if chart_type in _XY_CHART_TYPES:
+            # -- BubbleChartData is a subclass of XyChartData but carries --
+            # -- per-point bubble-size values that the XY rewriter ignores; --
+            # -- treat it as incompatible so callers get a clear error rather --
+            # -- than silently dropped data. --
+            if not isinstance(chart_data, XyChartData) or isinstance(
+                chart_data, BubbleChartData
+            ):
+                raise ValueError(
+                    "XY (scatter) chart requires XyChartData instance for "
+                    "Chart.replace_data(), got %s" % type(chart_data).__name__
+                )
+            return
+        # -- all other chart types expect a category-shaped data set. --
+        # -- XyChartData / BubbleChartData are siblings of CategoryChartData --
+        # -- (both inherit from _BaseChartData), so an isinstance check for --
+        # -- CategoryChartData here excludes them cleanly. --
+        if not isinstance(chart_data, CategoryChartData):
+            raise ValueError(
+                "category chart requires CategoryChartData instance for "
+                "Chart.replace_data(), got %s" % type(chart_data).__name__
+            )
 
     def update_cached_values(self):
         """Rewrite cached chart values from the embedded Excel worksheet.

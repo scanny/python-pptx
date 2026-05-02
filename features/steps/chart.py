@@ -382,6 +382,38 @@ def when_I_replace_its_data_with_3_series_of_three_points_each(context):
 # then ====================================================
 
 
+@then("replacing its data with {wrong_kind} raises ValueError")
+def then_replacing_its_data_with_wrong_kind_raises_ValueError(context, wrong_kind):
+    """Verify Chart.replace_data() rejects a mismatched ChartData type (issue #396).
+
+    *wrong_kind* selects which deliberately-incompatible ChartData subclass to
+    build; the resulting instance is minimally-populated so the validation
+    check is what trips the error (no xlsx-writing happens).
+    """
+    if wrong_kind == "CategoryData":
+        chart_data = CategoryChartData()
+        chart_data.categories = ["A", "B"]
+        chart_data.add_series("S1", (1.0, 2.0))
+    elif wrong_kind == "XyData":
+        chart_data = XyChartData()
+        series = chart_data.add_series("S1")
+        series.add_data_point(1, 2)
+    elif wrong_kind == "BubbleData":
+        chart_data = BubbleChartData()
+        series = chart_data.add_series("S1")
+        series.add_data_point(1, 2, 3)
+    else:  # pragma: no cover - guard against feature-file typos
+        raise ValueError("unknown wrong_kind '%s'" % wrong_kind)
+
+    try:
+        context.chart.replace_data(chart_data)
+    except ValueError:
+        return
+    raise AssertionError(
+        "Chart.replace_data() did not raise ValueError for wrong_kind=%r" % wrong_kind
+    )
+
+
 @then("chart.category_axis is a {cls_name} object")
 def then_chart_category_axis_is_a_cls_name_object(context, cls_name):
     category_axis = context.chart.category_axis

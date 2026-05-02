@@ -9,7 +9,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.oxml import parse_xml
 from pptx.chart.chart import Chart, ChartTitle, Legend, _Plots
-from pptx.chart.data import ChartData
+from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyChartData
 from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xmlwriter import _BaseSeriesXmlRewriter
@@ -287,6 +287,87 @@ class DescribeChart(object):
         SeriesXmlRewriterFactory_.assert_called_once_with(chart_type, chart_data_)
         rewriter_.replace_series_data.assert_called_once_with(chartSpace)
         workbook_.update_from_xlsx_blob.assert_called_once_with(xlsx_blob)
+
+    @pytest.mark.parametrize(
+        "chart_type, chart_data_factory, expected_substr",
+        [
+            # -- XY chart rejects CategoryChartData / ChartData (#396) --
+            (XL_CHART_TYPE.XY_SCATTER, CategoryChartData, r"XY \(scatter\) chart"),
+            (XL_CHART_TYPE.XY_SCATTER_LINES, ChartData, r"XY \(scatter\) chart"),
+            (XL_CHART_TYPE.XY_SCATTER_SMOOTH, CategoryChartData, r"XY \(scatter\) chart"),
+            # -- XY chart also rejects BubbleChartData (wrong shape) --
+            (XL_CHART_TYPE.XY_SCATTER, BubbleChartData, r"XY \(scatter\) chart"),
+            # -- Bubble chart rejects CategoryChartData / XyChartData --
+            (XL_CHART_TYPE.BUBBLE, CategoryChartData, "bubble chart"),
+            (XL_CHART_TYPE.BUBBLE, XyChartData, "bubble chart"),
+            (XL_CHART_TYPE.BUBBLE_THREE_D_EFFECT, ChartData, "bubble chart"),
+            # -- Category chart rejects XyChartData / BubbleChartData --
+            (XL_CHART_TYPE.BAR_CLUSTERED, XyChartData, "category chart"),
+            (XL_CHART_TYPE.LINE, BubbleChartData, "category chart"),
+            (XL_CHART_TYPE.PIE, XyChartData, "category chart"),
+        ],
+    )
+    def it_raises_on_replace_data_chart_type_mismatch(
+        self,
+        request,
+        chart_type,
+        chart_data_factory,
+        expected_substr,
+        workbook_prop_,
+        workbook_,
+        SeriesXmlRewriterFactory_,
+    ):
+        """Chart.replace_data() rejects mismatched ChartData types (#396)."""
+        chartSpace = element("c:chartSpace/c:chart/c:plotArea")
+        chart = Chart(chartSpace, None)
+        property_mock(
+            request, Chart, "chart_type", return_value=chart_type
+        )
+        chart_data = chart_data_factory()
+
+        with pytest.raises(ValueError, match=expected_substr):
+            chart.replace_data(chart_data)
+
+        # -- validation short-circuits before any rewrite happens --
+        SeriesXmlRewriterFactory_.assert_not_called()
+        workbook_.update_from_xlsx_blob.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "chart_type, chart_data_cls",
+        [
+            # -- Category-family types accept CategoryChartData / ChartData --
+            (XL_CHART_TYPE.BAR_CLUSTERED, CategoryChartData),
+            (XL_CHART_TYPE.LINE, ChartData),
+            (XL_CHART_TYPE.PIE, CategoryChartData),
+            # -- XY accepts XyChartData --
+            (XL_CHART_TYPE.XY_SCATTER, XyChartData),
+            # -- Bubble accepts BubbleChartData --
+            (XL_CHART_TYPE.BUBBLE, BubbleChartData),
+        ],
+    )
+    def it_accepts_matching_chart_data_type(
+        self,
+        request,
+        chart_type,
+        chart_data_cls,
+        workbook_prop_,
+        workbook_,
+        SeriesXmlRewriterFactory_,
+        series_rewriter_,
+    ):
+        """Chart.replace_data() accepts matching ChartData subclasses (#396)."""
+        chartSpace = element("c:chartSpace/c:chart/c:plotArea")
+        chart = Chart(chartSpace, None)
+        property_mock(
+            request, Chart, "chart_type", return_value=chart_type
+        )
+        chart_data = instance_mock(request, chart_data_cls)
+
+        chart.replace_data(chart_data)
+
+        SeriesXmlRewriterFactory_.assert_called_once_with(chart_type, chart_data)
+        series_rewriter_.replace_series_data.assert_called_once_with(chartSpace)
+        workbook_.update_from_xlsx_blob.assert_called_once_with(chart_data.xlsx_blob)
 
     def it_refreshes_cached_values_from_the_embedded_xlsx(
         self, update_cached_fixture

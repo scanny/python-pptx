@@ -9,6 +9,13 @@ Unreleased
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
+- fix: #396 ``Chart.replace_data()`` now validates that the supplied
+  |ChartData| subclass matches the chart's type family and raises
+  ``ValueError`` pointing at the correct subclass instead of silently
+  writing the wrong XML shape (which caused PowerPoint to offer to
+  "repair" the file on open). XY/scatter charts require
+  ``XyChartData``, bubble charts require ``BubbleChartData``, and all
+  other chart types require ``CategoryChartData``.
 - fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
   auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
   ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and
