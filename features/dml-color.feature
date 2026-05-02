@@ -33,3 +33,10 @@ Feature: Control color
      When I assign MSO_THEME_COLOR.ACCENT_1 to color.theme_color
       And I resolve color.to_rgb() using the slide master's theme_colors
      Then color.to_rgb(theme_colors) is the theme's accent1 RGB value
+
+
+  Scenario: ColorFormat.to_rgb() applies brightness (tint/shade) modifiers
+    Given a ColorFormat object as color
+     When I assign RGBColor(79, 129, 189) to color.rgb
+      And I assign 0.25 to color.brightness
+     Then color.to_rgb() reflects the tinted RGB value
