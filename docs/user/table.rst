@@ -494,6 +494,135 @@ element of that table in the unzipped XML.
 .. _issue #27: https://github.com/scanny/python-pptx/issues/27
 
 
+Creating an Excel-styled table
+------------------------------
+
+A common request is a table that "looks like an Excel table" — a bold header
+row with a solid fill and contrasting font color, alternating light/dark row
+banding for readability, and crisp borders around every cell. |pp| has no
+single ``make_excel_table()`` call for this, but every ingredient is already
+in the public API and they compose cleanly. The recipe below produces a table
+matching PowerPoint's built-in *Medium Style 2 - Accent 1* preset, which is
+the same blue/white banded look Excel applies by default.
+
+The pieces in play are:
+
+* :attr:`Table.style_id` — assign a built-in PowerPoint table-style GUID so
+  that host applications render the table using a familiar preset (see
+  `Applying a table style`_).
+* :attr:`Table.first_row` / :attr:`Table.horz_banding` — turn on the header
+  and alternating-row-band behaviors the style encodes.
+* Per-cell :attr:`~._Cell.fill` — paint an explicit header-row background so
+  the look does not rely on the host resolving ``tableStyles.xml`` (|pp| does
+  not currently read that part).
+* Per-run font color and weight via the cell's text-frame — make header text
+  white and bold.
+* The four ``cell.border_*`` |LineFormat| properties — draw a uniform thin
+  border on every cell so the grid is visible regardless of the host's
+  style-resolution behavior.
+
+.. rubric:: Copy-pasteable snippet
+
+::
+
+    from pptx import Presentation
+    from pptx.dml.color import RGBColor
+    from pptx.util import Inches, Pt
+
+    # ---built-in GUID for "Medium Style 2 - Accent 1" (blue)---
+    MEDIUM_STYLE_2_ACCENT_1 = "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"
+
+    HEADER_FILL = RGBColor(0x4F, 0x81, 0xBD)   # Accent 1 blue
+    HEADER_FONT = RGBColor(0xFF, 0xFF, 0xFF)   # white
+    BORDER      = RGBColor(0x95, 0xB3, 0xD7)   # light accent-1 border
+
+    def style_as_excel_table(table, headers, rows):
+        """Populate *table* with *headers* and *rows* and apply Excel-like styling.
+
+        *table* must already have ``len(rows) + 1`` rows and ``len(headers)``
+        columns. *headers* is a sequence of strings. *rows* is a sequence of
+        equal-length sequences of stringifiable values.
+        """
+        # ---ask the host to render the familiar Medium Style 2 - Accent 1 preset---
+        table.style_id = MEDIUM_STYLE_2_ACCENT_1
+        table.first_row = True        # bold, filled header row
+        table.horz_banding = True     # alternating row bands
+
+        # ---populate header row and paint it explicitly---
+        for col_idx, label in enumerate(headers):
+            cell = table.cell(0, col_idx)
+            cell.text = label
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = HEADER_FILL
+            run = cell.text_frame.paragraphs[0].runs[0]
+            run.font.bold = True
+            run.font.size = Pt(12)
+            run.font.color.rgb = HEADER_FONT
+
+        # ---populate body rows---
+        for row_idx, row in enumerate(rows, start=1):
+            for col_idx, value in enumerate(row):
+                cell = table.cell(row_idx, col_idx)
+                cell.text = str(value)
+                run = cell.text_frame.paragraphs[0].runs[0]
+                run.font.size = Pt(11)
+
+        # ---draw a thin, uniform border on every cell so the grid is visible
+        # regardless of how the host resolves tableStyles.xml---
+        for cell in table.iter_cells():
+            for border in (
+                cell.border_left,
+                cell.border_right,
+                cell.border_top,
+                cell.border_bottom,
+            ):
+                border.color.rgb = BORDER
+                border.width = Pt(0.75)
+
+    # ---build the presentation---
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+
+    headers = ["Region", "Q1", "Q2", "Q3", "Q4"]
+    data = [
+        ("North",  12500, 13800, 14200, 15100),
+        ("South",   9800, 10400, 11100, 11900),
+        ("East",   15200, 15900, 16400, 17200),
+        ("West",   11100, 11700, 12000, 12800),
+    ]
+
+    shape = slide.shapes.add_table(
+        rows=len(data) + 1,
+        cols=len(headers),
+        left=Inches(1), top=Inches(1),
+        width=Inches(8), height=Inches(2.5),
+    )
+    style_as_excel_table(shape.table, headers, data)
+
+    prs.save("excel_styled_table.pptx")
+
+A few notes on the recipe:
+
+* The GUID is just a string — any of PowerPoint's built-in table-style GUIDs
+  will do. Swap in ``"{2D5ABB26-0587-4C30-8999-92F81FD0307C}"`` (Medium Style
+  2 - Accent 2) or any other to recolor the preset. See
+  `Applying a table style`_ for how to discover GUIDs in a particular
+  template.
+* The explicit ``fill`` and ``border_*`` settings are defensive: because |pp|
+  does not currently read ``tableStyles.xml``, anything the host is "supposed"
+  to paint from the referenced style may not render if the file is opened in
+  a reader that lacks that style part. Painting header fill and cell borders
+  explicitly guarantees a consistent look everywhere the file is opened.
+* ``table.horz_banding = True`` turns on the banding *bit* but the band colors
+  themselves come from the referenced table style. If you need exact,
+  host-independent band colors, set ``cell.fill`` explicitly on every even-row
+  cell as well (mirroring the header-row loop above).
+* Adding rows after the table exists — for example, when populating from
+  a query of unknown length — works the same way: call
+  :meth:`._RowCollection.add` to append, then run the same per-cell styling
+  loop on the new cells. See `Adding a row to an existing table`_.
+
+
 A few snippets that might be handy
 ----------------------------------
 
