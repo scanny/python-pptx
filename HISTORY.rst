@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #1017 resolved by ``feat/issue-946-connector-adjustments``. The
+  ``Connector.adjustments`` collection shipped for #946 delivers the
+  elbow-connector "bend" operation the #1017 reporter was asking for —
+  ``connector.adjustments[0] = 0.25`` rewrites the ``a:gd`` child of
+  ``a:avLst`` and round-trips through save / reopen. Adds an end-to-end
+  regression suite ``DescribeIssue1017ElbowConnectorAdjust`` under
+  ``tests/test_issue_1017_elbow_connector_adjust.py`` that exercises the
+  reporter's flow against a saved package (bend, save, reopen, confirm
+  the new ``a:gd[@fmla='val 25000']`` survived) and also covers
+  reading a pre-authored ``a:avLst`` and partial assignment on a
+  three-adjustment ``bentConnector5``.
 - verify: #694 resolved by F7 foundation. The presentation-sections subsystem
   covers the issue's user stories (iterate ``prs.sections`` and each
   ``section.slides``, search by name via ``Sections.get_by_name``, sort
