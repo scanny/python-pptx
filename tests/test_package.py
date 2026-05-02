@@ -453,6 +453,30 @@ class Describe_MediaParts(object):
         media_part = media_parts._find_by_sha1(sha1)
         assert media_part is expected_value
 
+    def it_skips_non_MediaPart_entries_when_searching_by_sha1(self, request):
+        """Regression: #323.
+
+        Prior to the audio-MIME registration in #502 and the click-sound work
+        in #734, opening a deck whose slide-master or slide-layout owned an
+        ``audio/mpeg`` part produced a bare ``Part`` (no ``.sha1`` attribute).
+        A subsequent ``add_movie()`` call then raised ``AttributeError`` in
+        ``_MediaParts._find_by_sha1``. The guard below pins the defensive
+        behavior so a hypothetical future unmapped media MIME-type cannot
+        regress the issue.
+        """
+        media_parts = _MediaParts(None)
+        bare_part = instance_mock(request, Part, name="bare-audio-part", spec_set=True)
+        real_media_part = instance_mock(
+            request, MediaPart, name="real-movie", sha1="cafe"
+        )
+        method_mock(request, _MediaParts, "__iter__").return_value = iter(
+            (bare_part, real_media_part)
+        )
+
+        result = media_parts._find_by_sha1("cafe")
+
+        assert result is real_media_part
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[True, False])

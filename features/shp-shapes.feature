@@ -239,6 +239,17 @@ Feature: Access a shape on a slide
       And the a:videoFile element is not present on the movie shape
 
 
+  # -- issue #323: loading a deck whose slide-layout owned an audio/mpeg
+  # -- part used to raise AttributeError inside _MediaParts._find_by_sha1
+  # -- during a subsequent add_movie() call. #502 + #734 together fixed it.
+  Scenario: SlideShapes.add_movie() after loading a deck with mp3 in a layout
+    Given a Presentation whose slide-layout owns an audio/mpeg part
+     When I call shapes.add_movie() on a newly added slide
+      And I save the presentation
+     Then movie is a Movie object
+      And the saved presentation reloads without error
+
+
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file

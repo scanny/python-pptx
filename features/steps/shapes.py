@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import zipfile
 
 from behave import given, then, when
 from helpers import saved_pptx_path, test_file, test_image, test_pptx
@@ -120,6 +121,53 @@ def given_a_slide_with_an_mc_AlternateContent_wrapped_shape(context):
 def given_a_slide_with_a_math_equation_shape(context):
     context.prs = Presentation(test_pptx("shp-math-equation"))
     context.slide = context.prs.slides[0]
+
+
+@given("a Presentation whose slide-layout owns an audio/mpeg part")
+def given_a_Presentation_whose_layout_owns_an_mp3(context):
+    """Build a pptx package where ``slideLayout1`` carries an ``audio/mpeg`` rel.
+
+    Regression fixture for issue #323 — before #502/#734 a subsequent
+    ``add_movie()`` call on the loaded deck raised ``AttributeError`` inside
+    ``_MediaParts._find_by_sha1``.
+    """
+    src = test_pptx("shp-shapes")
+    with open(src, "rb") as f:
+        src_bytes = f.read()
+
+    with zipfile.ZipFile(io.BytesIO(src_bytes), "r") as zin:
+        items = {name: zin.read(name) for name in zin.namelist()}
+
+    items["ppt/media/media1.mp3"] = b"ID3\x03\x00\x00\x00\x00\x00\x00mp3-bytes"
+
+    ct_xml = items["[Content_Types].xml"].decode("utf-8")
+    ct_xml = ct_xml.replace(
+        "</Types>",
+        '<Override PartName="/ppt/media/media1.mp3"'
+        ' ContentType="audio/mpeg"/></Types>',
+    )
+    items["[Content_Types].xml"] = ct_xml.encode("utf-8")
+
+    rels_key = "ppt/slideLayouts/_rels/slideLayout1.xml.rels"
+    rels_xml = items.get(rels_key, b"").decode("utf-8") or (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/'
+        'package/2006/relationships"/>'
+    )
+    rels_xml = rels_xml.replace(
+        "</Relationships>",
+        '<Relationship Id="rIdAudio1"'
+        ' Type="http://schemas.microsoft.com/office/2007/relationships/media"'
+        ' Target="../media/media1.mp3"/></Relationships>',
+    )
+    items[rels_key] = rels_xml.encode("utf-8")
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zout:
+        for name, data in items.items():
+            zout.writestr(name, data)
+
+    context.prs = Presentation(io.BytesIO(buf.getvalue()))
 
 
 # when ====================================================
@@ -297,6 +345,21 @@ def when_I_call_shapes_add_movie_audio(context):
     x, y, cx, cy = Emu(2590800), Emu(571500), Emu(914400), Emu(914400)
     context.movie = shapes.add_movie(
         test_file("silence.wav"), x, y, cx, cy, mime_type="audio/wav"
+    )
+
+
+@when("I call shapes.add_movie() on a newly added slide")
+def when_I_call_shapes_add_movie_on_a_new_slide(context):
+    slide = context.prs.slides.add_slide(context.prs.slide_layouts[0])
+    context.shapes = slide.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(3962400), Emu(5715000)
+    context.movie = context.shapes.add_movie(
+        test_file("just-two-mice.mp4"),
+        x,
+        y,
+        cx,
+        cy,
+        test_file("just-two-mice.png"),
     )
 
 
@@ -486,3 +549,9 @@ def then_shape_math_equation_xml_is_None_for_non_equation_shapes(context):
             "expected math_equation_xml None for %r, got %r"
             % (shape.name, shape.math_equation_xml)
         )
+
+
+@then("the saved presentation reloads without error")
+def then_the_saved_presentation_reloads_without_error(context):
+    """Regression guard for #323 — confirm the layout-audio pptx round-trips."""
+    Presentation(saved_pptx_path)
