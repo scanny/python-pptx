@@ -21,6 +21,8 @@ Unreleased
 
 - verify: #1106 entrance/exit animations resolved by #102 set_animation API
 
+- verify: #1020 resolved by #62 alpha + #234 blip_fill + #515 preset geometry
+
 - docs: #963 "save slide as image" — close as out-of-scope (python-pptx
   does not render slides). Extend the LibreOffice headless example in the
   ``Rendering to video, PDF, or image formats`` section of
