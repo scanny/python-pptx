@@ -31,6 +31,7 @@ Unreleased
   mapping so a naive revert per #611's proposal cannot land silently.
 - fix: #674 correct UP_DOWN_ARROW adjustment list
 - fix: #773 guard fit_text() when no fitting layout is found
+- #776 Point.invert_if_negative
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++

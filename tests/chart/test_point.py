@@ -126,6 +126,50 @@ class DescribePoint(object):
         Marker_.assert_called_once_with(dPt)
         assert marker is marker_
 
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_value"),
+        [
+            ("c:ser", True),
+            ("c:ser/c:dPt/c:idx{val=42}", True),
+            ("c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative)", True),
+            ("c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=1})", True),
+            ("c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=0})", False),
+        ],
+    )
+    def it_knows_whether_it_should_invert_if_negative(self, ser_cxml, expected_value):
+        point = Point(element(ser_cxml), 42)
+        assert point.invert_if_negative is expected_value
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "new_value", "expected_cxml"),
+        [
+            (
+                "c:ser",
+                True,
+                "c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=1})",
+            ),
+            (
+                "c:ser/c:dPt/c:idx{val=42}",
+                False,
+                "c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=0})",
+            ),
+            (
+                "c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=0})",
+                True,
+                "c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=1})",
+            ),
+            (
+                "c:ser/c:dPt/(c:idx{val=42},c:spPr)",
+                False,
+                "c:ser/c:dPt/(c:idx{val=42},c:invertIfNegative{val=0},c:spPr)",
+            ),
+        ],
+    )
+    def it_can_change_whether_it_inverts_if_negative(self, ser_cxml, new_value, expected_cxml):
+        point = Point(element(ser_cxml), 42)
+        point.invert_if_negative = new_value
+        assert point._element.xml == xml(expected_cxml)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

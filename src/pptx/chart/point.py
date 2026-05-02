@@ -80,6 +80,29 @@ class Point(object):
         dPt = self._ser.get_or_add_dPt_for_point(self._idx)
         return ChartFormat(dPt)
 
+    @property
+    def invert_if_negative(self):
+        """
+        Read/write bool. |True| if this data point should appear with a
+        different fill when it has a negative value. Overrides the series-
+        level setting when present. When |True|, a data point with a solid
+        fill appears with white fill; the direction of a gradient fill is
+        reversed. Returns |True| when no explicit `c:invertIfNegative`
+        element is present on this data point, which is the default
+        behavior.
+        """
+        dPt = self._ser.get_or_add_dPt_for_point(self._idx)
+        invertIfNegative = dPt.invertIfNegative
+        if invertIfNegative is None:
+            return True
+        return invertIfNegative.val
+
+    @invert_if_negative.setter
+    def invert_if_negative(self, value):
+        dPt = self._ser.get_or_add_dPt_for_point(self._idx)
+        invertIfNegative = dPt.get_or_add_invertIfNegative()
+        invertIfNegative.val = value
+
     @lazyproperty
     def marker(self):
         """

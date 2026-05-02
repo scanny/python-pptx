@@ -147,6 +147,12 @@ def when_I_assign_value_to_marker_style(context, value):
     context.marker.style = new_value
 
 
+@when("I assign {value} to point.invert_if_negative")
+def when_I_assign_value_to_point_invert_if_negative(context, value):
+    new_value = {"True": True, "False": False}[value]
+    context.point.invert_if_negative = new_value
+
+
 @when("I assign {value} to series.invert_if_negative")
 def when_I_assign_value_to_series_invert_if_negative(context, value):
     new_value = {"True": True, "False": False}[value]
@@ -238,6 +244,13 @@ def then_marker_style_is_case(context, case):
 def then_point_data_label_is_a_DataLabel_object(context):
     point = context.point
     assert type(point.data_label).__name__ == "DataLabel"
+
+
+@then("point.invert_if_negative is {value}")
+def then_point_invert_if_negative_is_value(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    actual_value = context.point.invert_if_negative
+    assert actual_value is expected_value, "got %s" % actual_value
 
 
 @then("point.format is a ChartFormat object")
