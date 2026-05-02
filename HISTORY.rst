@@ -164,6 +164,31 @@ Unreleased
 
 .. _#371: https://github.com/scanny/python-pptx/issues/371
 
+- verify: #641 (read header/footer data from a pptx) resolved by Wave 1
+  #201 + the existing placeholder-access API. Issue #641
+  (https://github.com/scanny/python-pptx/issues/641) asked for a
+  supported way to introspect the header/footer configuration of an
+  opened ``.pptx`` — both the master-/layout-level ``p:hf`` visibility
+  toggles (slide number, header, footer, date on/off) and the actual
+  text content of header/footer/date/slide-number placeholders on
+  individual slides. Wave 1 #201 landed :class:`pptx.slide._HeaderFooter`
+  as a getter/setter proxy returned by
+  :attr:`.SlideMaster.header_footer` and :attr:`.SlideLayout.header_footer`,
+  exposing ``slide_number_visible`` / ``header_visible`` /
+  ``footer_visible`` / ``date_visible`` backed by the ``sldNum`` /
+  ``hdr`` / ``ftr`` / ``dt`` attributes of the ``p:hf`` child (with the
+  XSD "absent => True" default). Reading the text inside a
+  footer/date/slide-number placeholder on a slide requires no new API
+  — ``slide.placeholders[idx].text_frame.text`` with ``idx`` in
+  ``{10, 11, 12}`` (date / footer / slide number, the PowerPoint
+  convention) is sufficient. Adds a regression suite
+  ``DescribeIssue641HeaderFooterRead`` under
+  ``tests/test_issue_641_hf_read_verify.py`` that pins the two reads
+  end-to-end against a round-tripped package: master/layout ``p:hf``
+  flag reads for every flag + default-inheritance behaviour, and
+  idx-based and type-based reads of the actual footer / date /
+  slide-number placeholder text content.
+
 - verify: #1095 (apply a POTX / PPTX template to existing slides) resolved
   by composing #1070 (POTX open) + #310 (:meth:`Presentation.strip_slides`)
   + #934 (:meth:`Presentation.merge`). ``Presentation("brand.potx")
