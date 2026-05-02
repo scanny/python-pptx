@@ -26,6 +26,7 @@ from pptx.shapes.shapetree import (
 )
 from pptx.enum.transition import PP_TRANSITION_TYPE
 from pptx.slide import (
+    AnimationEffect,
     NotesMaster,
     NotesSlide,
     Slide,
@@ -1714,3 +1715,134 @@ class DescribeTransition(object):
         transition = Transition(sld)
         with pytest.raises(ValueError, match="non-negative"):
             transition.advance_after_time = -1
+
+
+class DescribeSlide_animation_sequence(object):
+    """Unit-test suite for `Slide.animation_sequence` (issue #256)."""
+
+    def it_returns_an_empty_tuple_when_no_timing(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        assert slide.animation_sequence == ()
+
+    def it_returns_an_empty_tuple_when_timing_has_no_mainSeq(self):
+        # -- media-only timing (the stub `add_movie` emits) has no main sequence --
+        slide = Slide(
+            element(
+                "p:sld/(p:cSld/p:spTree,p:timing/p:tnLst/p:par/p:cTn{id=1,nodeType=tmRoot})"
+            ),
+            None,
+        )
+        assert slide.animation_sequence == ()
+
+    def it_returns_one_AnimationEffect_per_effect_par(self, two_effect_slide):
+        seq = two_effect_slide.animation_sequence
+        assert isinstance(seq, tuple)
+        assert len(seq) == 2
+        assert all(isinstance(e, AnimationEffect) for e in seq)
+
+    def it_preserves_document_order(self, two_effect_slide):
+        shape_ids = [e.shape_id for e in two_effect_slide.animation_sequence]
+        assert shape_ids == [3, 4]
+
+    def it_does_not_create_a_timing_element_on_access(self):
+        slide = Slide(element("p:sld/p:cSld/p:spTree"), None)
+        _ = slide.animation_sequence
+        assert slide._element.timing is None
+
+    # -- fixtures ---------------------------------------------------------
+
+    @pytest.fixture
+    def two_effect_slide(self):
+        """A Slide whose XML has two entrance effects on shapes 3 and 4."""
+        from pptx.oxml import parse_xml
+        from pptx.oxml.ns import nsdecls
+
+        sld_xml = (
+            "<p:sld %s>"
+            "  <p:cSld><p:spTree/></p:cSld>"
+            "  <p:timing><p:tnLst>"
+            '    <p:par><p:cTn id="1" nodeType="tmRoot"><p:childTnLst>'
+            '      <p:seq><p:cTn id="2" nodeType="mainSeq"><p:childTnLst>'
+            '        <p:par><p:cTn id="3"><p:childTnLst>'
+            '          <p:par><p:cTn id="4"><p:childTnLst>'
+            '            <p:par><p:cTn id="5" presetID="1" presetClass="entr">'
+            "              <p:childTnLst>"
+            "                <p:set><p:cBhvr>"
+            '                  <p:cTn id="6"/>'
+            '                  <p:tgtEl><p:spTgt spid="3"/></p:tgtEl>'
+            "                </p:cBhvr></p:set>"
+            "              </p:childTnLst>"
+            "            </p:cTn></p:par>"
+            '            <p:par><p:cTn id="7" presetID="10" presetClass="exit">'
+            "              <p:childTnLst>"
+            "                <p:set><p:cBhvr>"
+            '                  <p:cTn id="8"/>'
+            '                  <p:tgtEl><p:spTgt spid="4"/></p:tgtEl>'
+            "                </p:cBhvr></p:set>"
+            "              </p:childTnLst>"
+            "            </p:cTn></p:par>"
+            "          </p:childTnLst></p:cTn></p:par>"
+            "        </p:childTnLst></p:cTn></p:par>"
+            "      </p:childTnLst></p:cTn></p:seq>"
+            "    </p:childTnLst></p:cTn></p:par>"
+            "  </p:tnLst></p:timing>"
+            "</p:sld>"
+        ) % nsdecls("p", "a", "r")
+        return Slide(parse_xml(sld_xml), None)
+
+
+class DescribeAnimationEffect(object):
+    """Unit-test suite for `pptx.slide.AnimationEffect` (issue #256)."""
+
+    def it_exposes_the_target_shape_id(self):
+        par = element(
+            "p:par/(p:cTn{id=5,presetClass=entr}/p:childTnLst/p:set/p:cBhvr/"
+            "(p:cTn{id=6},p:tgtEl/p:spTgt{spid=42}))"
+        )
+        assert AnimationEffect(par).shape_id == 42
+
+    def and_shape_id_is_None_when_no_spTgt(self):
+        par = element("p:par/p:cTn{id=5,presetClass=entr}")
+        assert AnimationEffect(par).shape_id is None
+
+    def it_reads_preset_class(self):
+        par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=1}")
+        assert AnimationEffect(par).preset_class == "entr"
+
+    def it_reads_preset_id(self):
+        par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=10}")
+        assert AnimationEffect(par).preset_id == 10
+
+    def it_reads_preset_subtype(self):
+        par = element(
+            "p:par/p:cTn{id=5,presetClass=entr,presetID=2,presetSubtype=8}"
+        )
+        assert AnimationEffect(par).preset_subtype == 8
+
+    def and_preset_subtype_is_None_when_absent(self):
+        par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=1}")
+        assert AnimationEffect(par).preset_subtype is None
+
+    def it_reads_delay_as_int_when_delay_is_numeric(self):
+        par = element(
+            "p:par/p:cTn{id=5,presetClass=entr,presetID=1}/"
+            "p:stCondLst/p:cond{delay=500}"
+        )
+        assert AnimationEffect(par).delay == 500
+
+    def and_reads_delay_as_indefinite_string(self):
+        par = element(
+            "p:par/p:cTn{id=5,presetClass=entr,presetID=1}/"
+            "p:stCondLst/p:cond{delay=indefinite}"
+        )
+        assert AnimationEffect(par).delay == "indefinite"
+
+    def and_delay_is_None_when_no_stCondLst(self):
+        par = element("p:par/p:cTn{id=5,presetClass=entr,presetID=1}")
+        assert AnimationEffect(par).delay is None
+
+    def and_delay_is_None_when_cond_has_no_delay_attr(self):
+        par = element(
+            "p:par/p:cTn{id=5,presetClass=entr,presetID=1}/p:stCondLst/p:cond"
+        )
+        assert AnimationEffect(par).delay is None

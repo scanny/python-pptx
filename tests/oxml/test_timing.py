@@ -8,9 +8,12 @@ from pptx.oxml.timing import (
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLCommonTimeNodeData,
+    CT_TLShapeTargetElement,
     CT_TLTimeNodeParallel,
     CT_TLTimeNodeSequence,
     ST_TLTime,
+    first_spTgt_spid,
+    iter_main_sequence_effects,
 )
 
 from ..unitutil.cxml import element
@@ -117,6 +120,131 @@ class DescribeCT_TLCommonTimeNodeData(object):
     def and_dur_is_None_when_absent(self):
         cTn = element("p:cTn")
         assert cTn.dur is None
+
+    # -- Issue #256: preset descriptors ----------------------------------
+
+    def it_reads_its_presetID_attribute(self):
+        cTn = element('p:cTn{presetID=10}')
+        assert cTn.presetID == 10
+
+    def and_presetID_is_None_when_absent(self):
+        cTn = element("p:cTn")
+        assert cTn.presetID is None
+
+    def it_reads_its_presetClass_attribute(self):
+        cTn = element('p:cTn{presetClass=entr}')
+        assert cTn.presetClass == "entr"
+
+    def it_reads_its_presetSubtype_attribute(self):
+        cTn = element('p:cTn{presetSubtype=8}')
+        assert cTn.presetSubtype == 8
+
+
+class DescribeCT_TLShapeTargetElement(object):
+    """Unit-test suite for `pptx.oxml.timing.CT_TLShapeTargetElement` (issue #256)."""
+
+    def it_is_used_for_the_p_spTgt_element(self):
+        spTgt = element("p:spTgt")
+        assert isinstance(spTgt, CT_TLShapeTargetElement)
+
+    def it_reads_its_spid_attribute(self):
+        spTgt = element('p:spTgt{spid=42}')
+        assert spTgt.spid == 42
+
+    def and_spid_is_None_when_absent(self):
+        spTgt = element("p:spTgt")
+        assert spTgt.spid is None
+
+
+class Describe_iter_main_sequence_effects(object):
+    """Unit-test suite for `pptx.oxml.timing.iter_main_sequence_effects`."""
+
+    def it_yields_nothing_for_a_None_timing(self):
+        assert list(iter_main_sequence_effects(None)) == []
+
+    def it_yields_nothing_when_there_is_no_mainSeq(self):
+        timing = element("p:timing/p:tnLst/p:par/p:cTn{id=1,nodeType=tmRoot}")
+        assert list(iter_main_sequence_effects(timing)) == []
+
+    def it_yields_nothing_for_a_mainSeq_with_no_preset_par(self):
+        # -- mainSeq present but with no effect-level `p:par` children --
+        timing = element(
+            "p:timing/p:tnLst/p:par/(p:cTn{id=1,nodeType=tmRoot}/p:childTnLst/"
+            "p:seq/p:cTn{id=2,nodeType=mainSeq})"
+        )
+        assert list(iter_main_sequence_effects(timing)) == []
+
+    def it_yields_each_effect_par_in_document_order(self, effect_timing):
+        effects = list(iter_main_sequence_effects(effect_timing))
+        assert len(effects) == 2
+        # -- first effect is on shape 3, second on shape 4 --
+        assert first_spTgt_spid(effects[0]) == 3
+        assert first_spTgt_spid(effects[1]) == 4
+
+    def it_skips_wrapping_par_nodes_without_presetClass(self, effect_timing):
+        # -- tree has intermediate (non-effect) `p:par` wrappers; they
+        # -- must NOT be yielded.
+        for effect in iter_main_sequence_effects(effect_timing):
+            cTn = effect[0]  # first child is p:cTn by schema
+            assert "presetClass" in cTn.attrib
+
+    # -- fixtures ---------------------------------------------------------
+
+    @pytest.fixture
+    def effect_timing(self):
+        """p:timing subtree with two effect-level `p:par` nodes in mainSeq."""
+        from pptx.oxml import parse_xml
+        from pptx.oxml.ns import nsdecls
+
+        timing_xml = (
+            "<p:timing %s>"
+            "  <p:tnLst>"
+            '    <p:par><p:cTn id="1" nodeType="tmRoot"><p:childTnLst>'
+            '      <p:seq><p:cTn id="2" nodeType="mainSeq"><p:childTnLst>'
+            # -- click-group par --
+            '        <p:par><p:cTn id="3"><p:childTnLst>'
+            # -- step par --
+            '          <p:par><p:cTn id="4"><p:childTnLst>'
+            # -- effect par #1 --
+            '            <p:par><p:cTn id="5" presetID="1" presetClass="entr">'
+            "              <p:childTnLst>"
+            "                <p:set><p:cBhvr>"
+            '                  <p:cTn id="6"/>'
+            '                  <p:tgtEl><p:spTgt spid="3"/></p:tgtEl>'
+            "                </p:cBhvr></p:set>"
+            "              </p:childTnLst>"
+            "            </p:cTn></p:par>"
+            # -- effect par #2 --
+            '            <p:par><p:cTn id="7" presetID="10" presetClass="exit">'
+            "              <p:childTnLst>"
+            "                <p:set><p:cBhvr>"
+            '                  <p:cTn id="8"/>'
+            '                  <p:tgtEl><p:spTgt spid="4"/></p:tgtEl>'
+            "                </p:cBhvr></p:set>"
+            "              </p:childTnLst>"
+            "            </p:cTn></p:par>"
+            "          </p:childTnLst></p:cTn></p:par>"
+            "        </p:childTnLst></p:cTn></p:par>"
+            "      </p:childTnLst></p:cTn></p:seq>"
+            "    </p:childTnLst></p:cTn></p:par>"
+            "  </p:tnLst>"
+            "</p:timing>"
+        ) % nsdecls("p")
+        return parse_xml(timing_xml)
+
+
+class Describe_first_spTgt_spid(object):
+    """Unit-test suite for `pptx.oxml.timing.first_spTgt_spid` (issue #256)."""
+
+    def it_returns_None_when_no_spTgt_descendant(self):
+        par = element("p:par/p:cTn")
+        assert first_spTgt_spid(par) is None
+
+    def it_returns_spid_of_first_spTgt_descendant(self):
+        par = element(
+            "p:par/p:cTn/p:childTnLst/p:set/p:cBhvr/p:tgtEl/p:spTgt{spid=7}"
+        )
+        assert first_spTgt_spid(par) == 7
 
 
 class DescribeCT_TLTimeNodeParallel(object):

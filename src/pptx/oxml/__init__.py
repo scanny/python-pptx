@@ -522,6 +522,7 @@ from pptx.oxml.slide import (  # noqa: E402
     CT_TimeNodeList,
     CT_TLCommonTimeNodeData,
     CT_TLMediaNodeVideo,
+    CT_TLShapeTargetElement,
     CT_TLTimeNodeParallel,
     CT_TLTimeNodeSequence,
     CT_TransitionMorph,
@@ -543,6 +544,7 @@ register_element_cls("p:sldLayout", CT_SlideLayout)
 register_element_cls("p:sldLayoutId", CT_SlideLayoutIdListEntry)
 register_element_cls("p:sldLayoutIdLst", CT_SlideLayoutIdList)
 register_element_cls("p:sldMaster", CT_SlideMaster)
+register_element_cls("p:spTgt", CT_TLShapeTargetElement)
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:tnLst", CT_TimeNodeList)
 register_element_cls("p:transition", CT_SlideTransition)

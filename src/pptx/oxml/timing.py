@@ -34,7 +34,8 @@ Key design notes:
 
 from __future__ import annotations
 
-from pptx.oxml.simpletypes import BaseSimpleType, XsdString, XsdUnsignedInt
+from pptx.oxml.ns import qn
+from pptx.oxml.simpletypes import BaseSimpleType, XsdInt, XsdString, XsdUnsignedInt
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
@@ -152,10 +153,14 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
     #861 / #376). The remaining 21 attributes round-trip transparently
     through lxml.
 
+    Issue #256 adds the three preset-selection attributes
+    (``presetID`` / ``presetClass`` / ``presetSubtype``) so callers can
+    introspect the entrance / exit / emphasis effect carried by an
+    effect-level ``p:cTn``. These are integer attributes in pml.xsd and
+    absent on non-effect time nodes (e.g. ``tmRoot`` / ``mainSeq``).
+
     Downstream extension points (see the F8 analysis doc):
 
-    * #102 / #1106: add per-effect presetID / presetClass / presetSubtype
-      descriptors so entrance/exit presets can be authored.
     * #861: surface ``stCondLst`` / ``endCondLst`` for delay read/write.
     * #954: wrap in ``mc:AlternateContent`` for PowerPoint 2010+
       extensibility.
@@ -168,6 +173,15 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         "nodeType", XsdString
     )
     dur = OptionalAttribute("dur", ST_TLTime)
+    presetID: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "presetID", XsdInt
+    )
+    presetClass: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "presetClass", XsdString
+    )
+    presetSubtype: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "presetSubtype", XsdInt
+    )
 
 
 class CT_TLTimeNodeParallel(BaseOxmlElement):
@@ -200,3 +214,86 @@ class CT_TLTimeNodeSequence(BaseOxmlElement):
     prevCondLst = ZeroOrOne("p:prevCondLst", successors=_tag_seq[2:])
     nextCondLst = ZeroOrOne("p:nextCondLst", successors=())
     del _tag_seq
+
+
+class CT_TLShapeTargetElement(BaseOxmlElement):
+    """`p:spTgt` element — shape-target reference inside a ``p:tgtEl``.
+
+    The ``@spid`` attribute carries the ``CT_Shape/@p:nvSpPr/p:cNvPr/@id``
+    (i.e. ``Shape.shape_id``) of the shape targeted by the containing
+    animation behavior. Used by issue #256's ``Slide.animation_sequence``
+    introspection helper to surface which shape each effect drives.
+
+    Issue #256 surfaces the attribute read-only. Downstream authoring
+    items (#102 / #1106 / #264) will extend the class with writer
+    helpers.
+    """
+
+    spid: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "spid", XsdUnsignedInt
+    )
+
+
+def iter_main_sequence_effects(timing):
+    """Generate each effect-level ``p:par`` in the main animation sequence.
+
+    `timing` is a ``p:timing`` element (``CT_SlideTiming`` instance) or
+    ``None``. Yields every ``p:par`` whose parent chain includes a
+    ``p:seq[@nodeType='mainSeq']`` and whose ``p:cTn`` child carries a
+    ``@presetClass`` attribute (i.e. represents an actual entrance /
+    exit / emphasis / motion-path effect rather than a grouping node).
+
+    Returns an empty generator when `timing` is ``None`` or when the
+    slide has no main animation sequence. Order matches document order
+    inside the main sequence, which is the order PowerPoint uses when
+    stepping through click-triggered effects.
+
+    This helper is the backbone of ``Slide.animation_sequence`` and is
+    deliberately kept free of Python-side proxy classes so downstream
+    animation-authoring work can reuse it.
+    """
+    if timing is None:
+        return
+    # -- PowerPoint canonically places the main sequence at
+    # --   p:timing/p:tnLst/p:par/p:cTn/p:childTnLst/p:seq
+    # -- where the inner `p:cTn` carries @nodeType="mainSeq". The
+    # -- @nodeType attribute lives on `p:cTn`, NOT on `p:seq` directly
+    # -- (per pml.xsd — CT_TLTimeNodeSequence has no nodeType attr).
+    # -- Descending from the whole timing subtree tolerates the
+    # -- occasional synthetic fixture that omits the wrapping
+    # -- `p:par`/`p:cTn/childTnLst` shell.
+    main_seqs = timing.xpath(".//p:seq[p:cTn/@nodeType='mainSeq']")
+    if not main_seqs:
+        return
+    # -- Effect-level p:par nodes carry a `p:cTn` with @presetClass. The
+    # -- main sequence has intermediate `p:par` wrappers (the click-group
+    # -- par, the "step" par, and an inner par per effect) — every
+    # -- wrapper has a p:cTn but only the innermost one carries
+    # -- @presetClass. Using that attribute as the discriminator is
+    # -- robust to the four-level vs five-level tree variants PowerPoint
+    # -- emits for click-vs-with-previous effects. `@presetClass` is
+    # -- unqualified (in the default namespace) so the local attribute
+    # -- name is used directly.
+    for main_seq in main_seqs:
+        for par in main_seq.iter(qn("p:par")):
+            cTn = par.find(qn("p:cTn"))
+            if cTn is None:
+                continue
+            if "presetClass" in cTn.attrib:
+                yield par
+
+
+def first_spTgt_spid(par):
+    """Return ``@spid`` (int) of first ``p:spTgt`` descendant, or ``None``.
+
+    Walks every ``p:tgtEl/p:spTgt`` descendant of `par` and returns the
+    first non-``None`` ``@spid`` value. The effect's behaviors (``p:set``,
+    ``p:anim``, ``p:animEffect`` …) each carry their own ``p:tgtEl``; for
+    most PowerPoint-authored effects every behavior targets the same
+    shape so returning the first is correct. Used by issue #256's
+    ``AnimationEffect.shape_id`` accessor.
+    """
+    for spTgt in par.iter(qn("p:spTgt")):
+        if spTgt.spid is not None:
+            return spTgt.spid
+    return None

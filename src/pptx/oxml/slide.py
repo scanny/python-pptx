@@ -12,6 +12,7 @@ from pptx.oxml.timing import (
     CT_SlideTiming,
     CT_TimeNodeList,
     CT_TLCommonTimeNodeData,
+    CT_TLShapeTargetElement,
     CT_TLTimeNodeParallel,
     CT_TLTimeNodeSequence,
 )
@@ -43,6 +44,7 @@ __all__ = [
     "CT_TimeNodeList",
     "CT_TLCommonTimeNodeData",
     "CT_TLMediaNodeVideo",
+    "CT_TLShapeTargetElement",
     "CT_TLTimeNodeParallel",
     "CT_TLTimeNodeSequence",
     "CT_TransitionMorph",

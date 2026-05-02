@@ -244,13 +244,20 @@ in place for the downstream work.
     extra attribute and re-register ``p:fade`` to point at it.
 
 ``#256`` — programmatic slide-timing authoring
-    *Wave 4. Effort XL.*
-    Build on ``Slide.transition`` and add a sibling
-    ``Slide.timing`` / ``Slide.animations`` collection. F8 already
-    provides ``CT_SlideTiming``, ``CT_TimeNodeList``,
-    ``CT_TLCommonTimeNodeData``, ``CT_TLTimeNodeParallel``,
-    ``CT_TLTimeNodeSequence`` so the new collection can compose
-    them. The ``_next_cTn_id`` helper provides ID allocation.
+    *Wave 4. Effort XL.* **Partially delivered (Wave 5, read-only MVP).**
+    ``Slide.animation_sequence`` returns a read-only tuple of
+    ``AnimationEffect`` describing each effect in the slide's main
+    sequence (``p:seq`` whose ``p:cTn/@nodeType == "mainSeq"``). Each
+    ``AnimationEffect`` exposes ``shape_id`` (``p:spTgt/@spid``),
+    ``preset_class`` / ``preset_id`` / ``preset_subtype``, and
+    ``delay`` (first ``p:cond/@delay``). The supporting oxml layer
+    adds ``CT_TLShapeTargetElement`` (for ``p:spTgt``), the three
+    preset attributes on ``CT_TLCommonTimeNodeData``, and the
+    module-level helpers :func:`~pptx.oxml.timing.iter_main_sequence_effects`
+    and :func:`~pptx.oxml.timing.first_spTgt_spid`.
+    Authoring (add / remove / reorder / retarget effects) is still
+    deferred to #102, #264, #1106 — they layer mutation methods
+    atop the read surface without further oxml changes.
 
 ``#102`` — animations on shapes
     *Wave 3. Effort M.*

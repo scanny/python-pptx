@@ -6,6 +6,20 @@ Release History
 Unreleased
 ++++++++++
 
+- #256 Adding Timings Programatically — MVP introspection surface. Adds
+  ``Slide.animation_sequence``, a read-only tuple of ``AnimationEffect``
+  describing each effect in the slide's main animation sequence (the
+  ``p:seq`` with ``nodeType="mainSeq"`` under ``p:timing``). Each
+  ``AnimationEffect`` exposes ``shape_id`` (``p:spTgt/@spid``),
+  ``preset_class`` / ``preset_id`` / ``preset_subtype`` (the
+  ``p:cTn/@presetClass`` / ``@presetID`` / ``@presetSubtype`` preset
+  selectors), and ``delay`` (first ``p:cond/@delay``). Adds
+  ``CT_TLShapeTargetElement`` for ``p:spTgt`` and the
+  ``iter_main_sequence_effects`` / ``first_spTgt_spid`` helpers in
+  ``pptx.oxml.timing``. Extends ``CT_TLCommonTimeNodeData`` with the
+  three preset attributes. Authoring (add / remove / reorder effects,
+  ``Shape.animation``) is deferred to downstream items #102 / #264 /
+  #1106 which now have a stable read surface to layer on top of.
 - Foundation: cross-part embedded-workbook handler (F5)
 - Foundation: presentation sections (F7). Adds read/write access to
   PowerPoint-2010 *sections* (``p14:sectionLst`` under
