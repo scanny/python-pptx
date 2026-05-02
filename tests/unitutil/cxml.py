@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 
 from pyparsing import (
     Combine,
-    DelimitedList,
     Forward,
     Group,
     Literal,
@@ -19,9 +18,10 @@ from pyparsing import (
     Word,
     alphanums,
     alphas,
-    dbl_quoted_string,
-    remove_quotes,
-    string_end,
+    dblQuotedString,
+    delimitedList,
+    removeQuotes,
+    stringEnd,
 )
 
 from pptx.oxml import parse_xml
@@ -43,8 +43,8 @@ def element(cxel_str: str) -> BaseOxmlElement:
 
 def xml(cxel_str: str) -> str:
     """Return the XML generated from `cxel_str`."""
-    root_node.parse_with_tabs()
-    root_token = root_node.parse_string(cxel_str)
+    root_node.parseWithTabs()
+    root_token = root_node.parseString(cxel_str)
     xml = root_token.element.xml
     return xml
 
@@ -254,30 +254,28 @@ def grammar():
     attr_name = Word(alphas + ":")
     attr_val = Word(alphanums + " %-./:_")
     attr_def = Group(attr_name + equal + attr_val)
-    attr_list = open_brace + DelimitedList(attr_def) + close_brace
+    attr_list = open_brace + delimitedList(attr_def) + close_brace
 
-    text = dbl_quoted_string.set_parse_action(remove_quotes)
+    text = dblQuotedString.setParseAction(removeQuotes)
 
     # w:jc{val=right} ----------------------------
     element = (
         tagname("tagname")
         + Group(Optional(attr_list))("attr_list")
         + Optional(text, default="")("text")
-    ).set_parse_action(Element.from_token)
+    ).setParseAction(Element.from_token)
 
     child_node_list = Forward()
 
     node = Group(
         element("element") + Group(Optional(slash + child_node_list))("child_node_list")
-    ).set_parse_action(connect_node_children)
+    ).setParseAction(connect_node_children)
 
-    child_node_list << (open_paren + DelimitedList(node) + close_paren | node)
+    child_node_list << (open_paren + delimitedList(node) + close_paren | node)
 
     root_node = (
-        element("element")
-        + Group(Optional(slash + child_node_list))("child_node_list")
-        + string_end
-    ).set_parse_action(connect_root_node_children)
+        element("element") + Group(Optional(slash + child_node_list))("child_node_list") + stringEnd
+    ).setParseAction(connect_root_node_children)
 
     return root_node
 
