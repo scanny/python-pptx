@@ -30,6 +30,10 @@ to specify and format a chart.
    :members:
    :member-order: bysource
 
+.. autoclass:: pptx.chart.chart._DataTable()
+   :members:
+   :member-order: bysource
+
 
 |Legend| objects
 ----------------

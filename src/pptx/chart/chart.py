@@ -101,9 +101,7 @@ class Chart(PartElementProxy):
         first_xChart = xCharts[0]
         axId_elms = first_xChart.findall(qn("c:axId"))
         if len(axId_elms) < 2:
-            raise ValueError(
-                "cannot add plot: existing plot is missing axId elements"
-            )
+            raise ValueError("cannot add plot: existing plot is missing axId elements")
         cat_axId = axId_elms[0].get("val")
         val_axId = axId_elms[1].get("val")
         base_idx = len(plotArea.sers)
@@ -357,6 +355,47 @@ class Chart(PartElementProxy):
         return Font(defRPr)
 
     @property
+    def has_data_table(self):
+        """Read/write |bool| specifying whether a data table is shown beneath the chart.
+
+        Assigning |True| adds a default ``c:plotArea/c:dTable`` element
+        (with all four ``c:show*`` flags set to ``1``) if one is not
+        already present. Assigning |False| removes any existing data
+        table. Implements GitHub issue #373.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._chartSpace.plotArea.dTable is not None
+
+    @has_data_table.setter
+    def has_data_table(self, value):
+        plotArea = self._chartSpace.plotArea
+        if bool(value) is False:
+            plotArea._remove_dTable()
+            return
+        if plotArea.dTable is None:
+            # -- create a default c:dTable (all four c:show* flags = 1) --
+            # -- matching what PowerPoint writes when the user toggles --
+            # -- "Data Table" on from the chart's Add Chart Element menu. --
+            plotArea._insert_dTable(_new_default_dTable())
+
+    @property
+    def data_table(self):
+        """A |_DataTable| proxy for the data table beneath this chart, or ``None``.
+
+        Returns ``None`` when the chart has no ``c:plotArea/c:dTable``
+        element. Use :attr:`has_data_table` to probe for presence
+        non-destructively, and assign |True| to add a default data table.
+        Implements GitHub issue #373.
+
+        .. versionadded:: 2026.05.0
+        """
+        dTable = self._chartSpace.plotArea.dTable
+        if dTable is None:
+            return None
+        return _DataTable(dTable)
+
+    @property
     def has_legend(self):
         """
         Read/write boolean, |True| if the chart has a legend. Assigning
@@ -541,9 +580,7 @@ class Chart(PartElementProxy):
         new_blob = updater.blob()
         self._workbook.update_from_xlsx_blob(new_blob)
         for sheet, row, col, value in writes:
-            _SingleCellCacheRefresher(
-                self._chartSpace, sheet, row, col, value
-            ).refresh()
+            _SingleCellCacheRefresher(self._chartSpace, sheet, row, col, value).refresh()
         return len(writes)
 
     def _validate_chart_data_type(self, chart_data):
@@ -566,9 +603,7 @@ class Chart(PartElementProxy):
             # -- per-point bubble-size values that the XY rewriter ignores; --
             # -- treat it as incompatible so callers get a clear error rather --
             # -- than silently dropped data. --
-            if not isinstance(chart_data, XyChartData) or isinstance(
-                chart_data, BubbleChartData
-            ):
+            if not isinstance(chart_data, XyChartData) or isinstance(chart_data, BubbleChartData):
                 raise ValueError(
                     "XY (scatter) chart requires XyChartData instance for "
                     "Chart.replace_data(), got %s" % type(chart_data).__name__
@@ -878,8 +913,7 @@ class Chart(PartElementProxy):
     def workbook(self, xlsx_blob):
         if not isinstance(xlsx_blob, (bytes, bytearray)):
             raise TypeError(
-                "Chart.workbook must be set to a bytes object, got %s"
-                % type(xlsx_blob).__name__
+                "Chart.workbook must be set to a bytes object, got %s" % type(xlsx_blob).__name__
             )
         self._workbook.update_from_xlsx_blob(bytes(xlsx_blob))
 
@@ -985,8 +1019,7 @@ class ChartTitle(ElementProxy):
             x, y = value
         except (TypeError, ValueError):
             raise ValueError(
-                "ChartTitle.position must be a 2-tuple (x, y) or None, got %r"
-                % (value,)
+                "ChartTitle.position must be a 2-tuple (x, y) or None, got %r" % (value,)
             )
         layout = self._title.get_or_add_layout()
         manualLayout = layout.get_or_add_manualLayout()
@@ -1023,6 +1056,127 @@ class PlotArea(ElementProxy):
         .. versionadded:: 2026.05.0
         """
         return ChartFormat(self._plotArea)
+
+
+class _DataTable(ElementProxy):
+    """Proxy for a chart's ``c:dTable`` (data-table) element.
+
+    Exposes the four ``c:show*`` border/outline/keys booleans as read/write
+    properties, and a :attr:`format` property returning a |ChartFormat| for
+    the data table's ``c:spPr`` shape-properties child (fill, line, and
+    effect formatting). Implements GitHub issue #373.
+
+    Access via :attr:`Chart.data_table` (returns ``None`` when no data
+    table is present; pair with :attr:`Chart.has_data_table` for a
+    non-destructive probe, and assign ``Chart.has_data_table = True`` to
+    add a default data table).
+
+    .. versionadded:: 2026.05.0
+    """
+
+    def __init__(self, dTable):
+        super(_DataTable, self).__init__(dTable)
+        self._dTable = dTable
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to line and fill formatting.
+
+        Returns the |ChartFormat| proxy for this data table's ``c:spPr``
+        shape-properties element, giving read/write access to its
+        :attr:`~pptx.dml.chtfmt.ChartFormat.fill`,
+        :attr:`~pptx.dml.chtfmt.ChartFormat.line`, and
+        :attr:`~pptx.dml.chtfmt.ChartFormat.shadow`.
+
+        .. versionadded:: 2026.05.0
+        """
+        return ChartFormat(self._dTable)
+
+    @property
+    def show_horz_border(self):
+        """Read/write |bool| specifying whether horizontal borders are shown.
+
+        Corresponds to the ``c:showHorzBorder`` child. Returns |True| when
+        the child is absent (the schema-declared default). Assigning |None|
+        removes the child (restoring the default).
+        """
+        return self._show_val("showHorzBorder")
+
+    @show_horz_border.setter
+    def show_horz_border(self, value):
+        self._set_show_val("showHorzBorder", value)
+
+    @property
+    def show_vert_border(self):
+        """Read/write |bool| specifying whether vertical borders are shown.
+
+        Corresponds to the ``c:showVertBorder`` child. Returns |True| when
+        the child is absent (the schema-declared default). Assigning |None|
+        removes the child (restoring the default).
+        """
+        return self._show_val("showVertBorder")
+
+    @show_vert_border.setter
+    def show_vert_border(self, value):
+        self._set_show_val("showVertBorder", value)
+
+    @property
+    def show_outline(self):
+        """Read/write |bool| specifying whether the data-table outline is shown.
+
+        Corresponds to the ``c:showOutline`` child. Returns |True| when the
+        child is absent (the schema-declared default). Assigning |None|
+        removes the child (restoring the default).
+        """
+        return self._show_val("showOutline")
+
+    @show_outline.setter
+    def show_outline(self, value):
+        self._set_show_val("showOutline", value)
+
+    @property
+    def show_keys(self):
+        """Read/write |bool| specifying whether legend keys are shown in the data table.
+
+        Corresponds to the ``c:showKeys`` child. Returns |True| when the
+        child is absent (the schema-declared default). Assigning |None|
+        removes the child (restoring the default).
+        """
+        return self._show_val("showKeys")
+
+    @show_keys.setter
+    def show_keys(self, value):
+        self._set_show_val("showKeys", value)
+
+    def _show_val(self, attr_name):
+        """Return the effective |bool| value of child ``c:<attr_name>``.
+
+        Missing child resolves to |True| per ``CT_Boolean``'s default.
+        """
+        child = getattr(self._dTable, attr_name)
+        if child is None:
+            return True
+        return bool(child.val)
+
+    def _set_show_val(self, attr_name, value):
+        if value is None:
+            getattr(self._dTable, "_remove_%s" % attr_name)()
+            return
+        child = getattr(self._dTable, "get_or_add_%s" % attr_name)()
+        child.val = bool(value)
+
+
+def _new_default_dTable():
+    """Return a newly-created default ``c:dTable`` element.
+
+    Thin wrapper over :meth:`CT_DTable.new_dTable` that keeps the
+    `Chart.has_data_table` setter free of an `oxml`-module import at the
+    top of this file (there's already a ripple of ``from pptx.oxml …``
+    lines above; one more helper function keeps the seam local).
+    """
+    from pptx.oxml.chart.chart import CT_DTable
+
+    return CT_DTable.new_dTable()
 
 
 def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):
@@ -1077,13 +1231,10 @@ def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):
     """
     workbook_bytes = chart.workbook
     if workbook_bytes is None:
-        raise ValueError(
-            "chart has no embedded workbook to update"
-        )
+        raise ValueError("chart has no embedded workbook to update")
     if "!" in a1_ref:
         raise ValueError(
-            "a1_ref must be a single-cell reference without sheet qualifier, "
-            "got %r" % a1_ref
+            "a1_ref must be a single-cell reference without sheet qualifier, " "got %r" % a1_ref
         )
     row, col = parse_a1_cell(a1_ref)
     updater = WorkbookUpdater(workbook_bytes)
@@ -1091,9 +1242,7 @@ def update_embedded_xlsx_cell(chart, sheet, a1_ref, value):
     new_blob = updater.blob()
     chart.workbook = new_blob
     # --- refresh any caches that point at this cell ---
-    _SingleCellCacheRefresher(
-        chart._chartSpace, sheet, row, col, value
-    ).refresh()
+    _SingleCellCacheRefresher(chart._chartSpace, sheet, row, col, value).refresh()
     return new_blob
 
 
@@ -1150,18 +1299,14 @@ class _SingleCellCacheRefresher(object):
         if idx is None:
             return
         numeric = self._as_number(self._value)
-        self._set_cache_pt(
-            numRef, "c:numCache", "c:numLit", idx, numeric
-        )
+        self._set_cache_pt(numRef, "c:numCache", "c:numLit", idx, numeric)
 
     def _update_strRef(self, strRef):
         idx = self._matching_index(strRef)
         if idx is None:
             return
         text = self._as_text(self._value)
-        self._set_cache_pt(
-            strRef, "c:strCache", "c:strLit", idx, text
-        )
+        self._set_cache_pt(strRef, "c:strCache", "c:strLit", idx, text)
 
     @staticmethod
     def _as_number(value):
@@ -1459,13 +1604,8 @@ class _CrtxReader(object):
                     if elm.tag == qn("c:chartSpace"):
                         return elm
         except zipfile.BadZipFile as exc:
-            raise ValueError(
-                "apply_template: template is not a valid .crtx ZIP package: %s"
-                % exc
-            )
-        raise ValueError(
-            "apply_template: no c:chartSpace XML part found in template"
-        )
+            raise ValueError("apply_template: template is not a valid .crtx ZIP package: %s" % exc)
+        raise ValueError("apply_template: no c:chartSpace XML part found in template")
 
     def _open_zip(self):
         """Return a binary file-like opened on the template data."""
@@ -1542,9 +1682,7 @@ class _ChartTemplateApplier(object):
                 self._target.remove(existing)
             if template_elm is None:
                 continue
-            self._insert_in_schema_order(
-                self._target, deepcopy(template_elm), tag
-            )
+            self._insert_in_schema_order(self._target, deepcopy(template_elm), tag)
 
     # -- axis formatting (per axis type) --
 
@@ -1556,9 +1694,7 @@ class _ChartTemplateApplier(object):
         axes of that type (1st valAx ↔ 1st valAx, 2nd valAx ↔ 2nd valAx).
         """
         target_pa = self._target.find(qn("c:chart") + "/" + qn("c:plotArea"))
-        template_pa = self._template.find(
-            qn("c:chart") + "/" + qn("c:plotArea")
-        )
+        template_pa = self._template.find(qn("c:chart") + "/" + qn("c:plotArea"))
         if target_pa is None or template_pa is None:
             return
         for axis_tag in self._AXIS_TAGS:
@@ -1604,10 +1740,12 @@ class _ChartTemplateApplier(object):
             target_axis.append(new_elm)
             return
         try:
-            new_idx = tag_seq.index(new_elm.tag.replace(
-                "{http://schemas.openxmlformats.org/drawingml/2006/chart}",
-                "c:",
-            ))
+            new_idx = tag_seq.index(
+                new_elm.tag.replace(
+                    "{http://schemas.openxmlformats.org/drawingml/2006/chart}",
+                    "c:",
+                )
+            )
         except ValueError:
             target_axis.append(new_elm)
             return
@@ -1639,9 +1777,7 @@ class _ChartTemplateApplier(object):
         (callers who want to drop the legend can set ``chart.has_legend =
         False`` separately).
         """
-        template_legend = self._template.find(
-            qn("c:chart") + "/" + qn("c:legend")
-        )
+        template_legend = self._template.find(qn("c:chart") + "/" + qn("c:legend"))
         if template_legend is None:
             return
         target_chart = self._target.find(qn("c:chart"))

@@ -373,6 +373,29 @@ and help a reader tell which one is which::
 Nice! Okay, let's try some other chart types.
 
 
+Data table
+----------
+
+A *data table* displays the chart's category and series values as a grid
+below the plot area. PowerPoint exposes it via the *Chart Design > Add
+Chart Element > Data Table* menu. Add one programmatically with
+:attr:`Chart.has_data_table` and tweak its four show-\* flags via the
+:attr:`Chart.data_table` proxy::
+
+    chart.has_data_table = True
+    chart.data_table.show_horz_border = True
+    chart.data_table.show_vert_border = True
+    chart.data_table.show_outline = True
+    chart.data_table.show_keys = True        # include legend-key column
+    chart.data_table.format.line.color.rgb = RGBColor(0x7F, 0x7F, 0x7F)
+
+All four booleans default to |True| on a freshly-added data table, matching
+what PowerPoint writes when a user toggles the feature on. Setting
+``chart.has_data_table = False`` removes the data table entirely.
+
+Added in 2026.05.0.
+
+
 Line Chart
 ----------
 

@@ -1366,6 +1366,7 @@ prs.save("out.pptx")
 - `Chart.update_cached_values()` — Re-read the embedded workbook and rewrite `c:numCache` / `c:strCache`. `[Added in 1.0.2.dev0]`
 - `Chart.workbook` — `ChartWorkbook` proxy; exposes `.xlsx_part` and a full workbook read/write path.
 - `Chart.has_user_shapes` / `Chart.user_shapes` — Read-only access to the chart's annotation-shapes (`c:userShapes`) drawing: `has_user_shapes` is a non-destructive boolean probe, `user_shapes` returns a `ChartDrawingPart` (or `None`) whose `iter_anchor_elements()` / `anchor_count` enumerate the raw `cdr:relSizeAnchor` / `cdr:absSizeAnchor` anchors. Authoring is deferred; see `docs/dev/analysis/chart-user-shapes.rst`. `[Added in 1.0.2.dev0]`
+- `Chart.has_data_table` / `Chart.data_table` — Show or hide the chart *data table* (`c:plotArea/c:dTable`) rendered beneath the plot area. Assigning `has_data_table = True` writes a default `c:dTable` with all four `c:show*` flags on (horizontal and vertical borders, outline, legend keys). The returned `_DataTable` proxy exposes read/write `show_horz_border`, `show_vert_border`, `show_outline`, `show_keys`, and a `format` `ChartFormat` for styling the data-table's fill / line / effect. `chart.data_table` returns `None` when no data table is present. `[Added in 2026.05.0]`
 - `Chart.font` — `Font` proxy for chart-space default text properties.
 - `ChartTitle.text_frame` / `ChartTitle.format` / `ChartTitle.has_text_frame` — Title body.
 - `ChartTitle.position` — `(x, y)` tuple in factor-space `[0, 1]`, or `None` for auto layout. `[Added in 1.0.2.dev0]`

@@ -214,6 +214,16 @@ Unreleased
   ECMA-376 ``EG_PieChartShared`` tag sequence (``c:varyColors`` /
   ``c:ser`` / ``c:dLbls`` / ``c:extLst``).
 
+- feat: #373 add ``Chart.has_data_table`` / ``Chart.data_table`` for the
+  chart data-table (``c:plotArea/c:dTable``) rendered beneath the plot
+  area. Assigning ``True`` to ``has_data_table`` writes a default
+  ``c:dTable`` with all four show-\* flags on (horizontal and vertical
+  borders, outline, legend keys); assigning ``False`` removes it. The
+  new ``_DataTable`` proxy exposes read/write
+  ``show_horz_border`` / ``show_vert_border`` / ``show_outline`` /
+  ``show_keys`` booleans and a ``format`` |ChartFormat| for fill / line /
+  effect styling of the data-table itself. Implemented against the
+  ``CT_DTable`` grammar in ``dml-chart.xsd``.
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

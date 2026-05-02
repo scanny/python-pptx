@@ -61,6 +61,12 @@ Feature Support
   power / exponential / moving-average) with on-chart equation and R² display
 * Toggle and format series lines on stacked bar / stacked column plots
   (``BarPlot.has_series_lines`` / ``BarPlot.series_lines.format``)
+* Show or hide the chart *data table* (the tabular source-values grid
+  rendered beneath the plot area) via
+  :attr:`~pptx.chart.chart.Chart.has_data_table` and tweak its border /
+  outline / legend-key flags through :attr:`Chart.data_table`
+  (``show_horz_border`` / ``show_vert_border`` / ``show_outline`` /
+  ``show_keys`` / ``format``)
 * Access and change core document properties such as title and subject
 * Toggle header / footer / slide-number / date placeholder visibility on a slide
   master or layout, and insert auto-refresh slide-number or date fields in a

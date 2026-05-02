@@ -9,7 +9,7 @@ import pytest
 from pptx.chart.axis import CategoryAxis, DateAxis, ValueAxis
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
-from pptx.chart.chart import Chart, ChartTitle, Legend, PlotArea, _Plots
+from pptx.chart.chart import Chart, ChartTitle, Legend, PlotArea, _DataTable, _Plots
 from pptx.chart.data import BubbleChartData, CategoryChartData, ChartData, XyChartData
 from pptx.chart.plot import _BasePlot
 from pptx.chart.series import SeriesCollection
@@ -136,6 +136,43 @@ class DescribeChart(object):
         chart.has_legend = new_value
         assert chart._chartSpace.xml == expected_xml
 
+    def it_knows_whether_it_has_a_data_table(self, has_data_table_get_fixture):
+        chart, expected_value = has_data_table_get_fixture
+        assert chart.has_data_table is expected_value
+
+    def it_can_add_a_data_table_on_assignment(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        chart.has_data_table = True
+        assert chart.has_data_table is True
+        # -- default dTable has all four c:show* flags set to "1" --
+        assert chart._chartSpace.plotArea.xml == xml(
+            "c:plotArea/c:dTable/(c:showHorzBorder{val=1},c:showVertBorder"
+            "{val=1},c:showOutline{val=1},c:showKeys{val=1})"
+        )
+
+    def it_can_remove_a_data_table_on_assignment(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/c:dTable"), None)
+        chart.has_data_table = False
+        assert chart.has_data_table is False
+        assert chart._chartSpace.plotArea.xml == xml("c:plotArea")
+
+    def it_is_idempotent_when_assigning_True_to_has_data_table_twice(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        chart.has_data_table = True
+        xml_after_first = chart._chartSpace.plotArea.xml
+        chart.has_data_table = True
+        assert chart._chartSpace.plotArea.xml == xml_after_first
+
+    def it_provides_access_to_its_data_table(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/c:dTable"), None)
+        data_table = chart.data_table
+        assert isinstance(data_table, _DataTable)
+        assert data_table._dTable is chart._chartSpace.plotArea.dTable
+
+    def it_returns_None_for_data_table_when_no_dTable_present(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        assert chart.data_table is None
+
     def it_provides_access_to_its_legend(self, legend_fixture):
         chart, Legend_, expected_calls, expected_value = legend_fixture
         legend = chart.legend
@@ -201,25 +238,16 @@ class DescribeChart(object):
         assert chart.chart_style == 118
         # -- wrapper was inserted --
         ac = chart._chartSpace.find(
-            "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
-            "AlternateContent"
+            "{http://schemas.openxmlformats.org/markup-compatibility/2006}" "AlternateContent"
         )
         assert ac is not None
-        choice = ac.find(
-            "{http://schemas.openxmlformats.org/markup-compatibility/2006}Choice"
-        )
+        choice = ac.find("{http://schemas.openxmlformats.org/markup-compatibility/2006}Choice")
         assert choice.get("Requires") == "c14"
-        c14_style = choice.find(
-            "{http://schemas.microsoft.com/office/drawing/2007/8/2/chart}style"
-        )
+        c14_style = choice.find("{http://schemas.microsoft.com/office/drawing/2007/8/2/chart}style")
         assert c14_style is not None
         assert c14_style.get("val") == "118"
-        fallback = ac.find(
-            "{http://schemas.openxmlformats.org/markup-compatibility/2006}Fallback"
-        )
-        c_style = fallback.find(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}style"
-        )
+        fallback = ac.find("{http://schemas.openxmlformats.org/markup-compatibility/2006}Fallback")
+        c_style = fallback.find("{http://schemas.openxmlformats.org/drawingml/2006/chart}style")
         # -- fallback is the base style (118 % 100 = 18) --
         assert c_style.get("val") == "18"
 
@@ -249,8 +277,7 @@ class DescribeChart(object):
         assert chart.chart_style == 4
         assert (
             chart._chartSpace.find(
-                "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
-                "AlternateContent"
+                "{http://schemas.openxmlformats.org/markup-compatibility/2006}" "AlternateContent"
             )
             is None
         )
@@ -281,8 +308,7 @@ class DescribeChart(object):
         assert chart.chart_style is None
         assert (
             chart._chartSpace.find(
-                "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
-                "AlternateContent"
+                "{http://schemas.openxmlformats.org/markup-compatibility/2006}" "AlternateContent"
             )
             is None
         )
@@ -496,9 +522,7 @@ class DescribeChart(object):
         """Chart.replace_data() rejects mismatched ChartData types (#396)."""
         chartSpace = element("c:chartSpace/c:chart/c:plotArea")
         chart = Chart(chartSpace, None)
-        property_mock(
-            request, Chart, "chart_type", return_value=chart_type
-        )
+        property_mock(request, Chart, "chart_type", return_value=chart_type)
         chart_data = chart_data_factory()
 
         with pytest.raises(ValueError, match=expected_substr):
@@ -534,9 +558,7 @@ class DescribeChart(object):
         """Chart.replace_data() accepts matching ChartData subclasses (#396)."""
         chartSpace = element("c:chartSpace/c:chart/c:plotArea")
         chart = Chart(chartSpace, None)
-        property_mock(
-            request, Chart, "chart_type", return_value=chart_type
-        )
+        property_mock(request, Chart, "chart_type", return_value=chart_type)
         chart_data = instance_mock(request, chart_data_cls)
 
         chart.replace_data(chart_data)
@@ -545,9 +567,7 @@ class DescribeChart(object):
         series_rewriter_.replace_series_data.assert_called_once_with(chartSpace)
         workbook_.update_from_xlsx_blob.assert_called_once_with(chart_data.xlsx_blob)
 
-    def it_refreshes_cached_values_from_the_embedded_xlsx(
-        self, update_cached_fixture
-    ):
+    def it_refreshes_cached_values_from_the_embedded_xlsx(self, update_cached_fixture):
         chart, expected_xml = update_cached_fixture
 
         chart.update_cached_values()
@@ -572,7 +592,7 @@ class DescribeChart(object):
             "<c:chart><c:plotArea>"
             "<c:barChart>"
             '<c:ser><c:idx val="0"/><c:order val="0"/>'
-            '<c:val><c:numRef><c:f>Sheet1!$A$1</c:f></c:numRef></c:val>'
+            "<c:val><c:numRef><c:f>Sheet1!$A$1</c:f></c:numRef></c:val>"
             "</c:ser>"
             '<c:axId val="1"/><c:axId val="2"/>'
             "</c:barChart>"
@@ -620,32 +640,23 @@ class DescribeChart(object):
         assert chartSpace.chart_style_ex_val == 118
         # -- chartSpace-level spPr / txPr copied --
         assert len(chartSpace.findall(qn("c:spPr"))) == 1
-        assert (
-            chartSpace.find(qn("c:spPr") + "/" + qn("a:solidFill")) is not None
-        )
+        assert chartSpace.find(qn("c:spPr") + "/" + qn("a:solidFill")) is not None
         assert len(chartSpace.findall(qn("c:txPr"))) == 1
         # -- legend copied onto target (target had none) --
         legend = chartSpace.find(qn("c:chart") + "/" + qn("c:legend"))
         assert legend is not None
         # -- catAx majorTickMark copied, axId preserved --
-        catAx = chartSpace.find(
-            qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:catAx")
-        )
+        catAx = chartSpace.find(qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:catAx"))
         assert catAx.find(qn("c:majorTickMark")).get("val") == "out"
         assert catAx.find(qn("c:axId")).get("val") == "1"
         # -- valAx numFmt copied --
-        valAx = chartSpace.find(
-            qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:valAx")
-        )
+        valAx = chartSpace.find(qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:valAx"))
         assert valAx.find(qn("c:numFmt")).get("formatCode") == "0.00%"
         # -- series data preserved (not overwritten) --
         ser = chartSpace.find(
-            qn("c:chart") + "/" + qn("c:plotArea")
-            + "/" + qn("c:barChart") + "/" + qn("c:ser")
+            qn("c:chart") + "/" + qn("c:plotArea") + "/" + qn("c:barChart") + "/" + qn("c:ser")
         )
-        val_f = ser.find(
-            qn("c:val") + "/" + qn("c:numRef") + "/" + qn("c:f")
-        )
+        val_f = ser.find(qn("c:val") + "/" + qn("c:numRef") + "/" + qn("c:f"))
         assert val_f.text == "Sheet1!$A$1"
 
     def it_raises_when_template_is_not_a_zip_243(self):
@@ -712,20 +723,22 @@ class DescribeChart(object):
         assert type(new_plot).__name__ == "LinePlot"
         # -- both plots share the same two axIds --
         xCharts = chart._chartSpace.plotArea.xCharts
-        bar_axIds = [e.get("val") for e in xCharts[0].findall(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}axId"
-        )]
-        line_axIds = [e.get("val") for e in xCharts[1].findall(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}axId"
-        )]
+        bar_axIds = [
+            e.get("val")
+            for e in xCharts[0].findall(
+                "{http://schemas.openxmlformats.org/drawingml/2006/chart}axId"
+            )
+        ]
+        line_axIds = [
+            e.get("val")
+            for e in xCharts[1].findall(
+                "{http://schemas.openxmlformats.org/drawingml/2006/chart}axId"
+            )
+        ]
         assert bar_axIds == line_axIds == ["111", "222"]
         # -- the new series index/order was offset past existing series --
-        new_ser = xCharts[1].find(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}ser"
-        )
-        new_idx = new_ser.find(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}idx"
-        )
+        new_ser = xCharts[1].find("{http://schemas.openxmlformats.org/drawingml/2006/chart}ser")
+        new_idx = new_ser.find("{http://schemas.openxmlformats.org/drawingml/2006/chart}idx")
         assert new_idx.get("val") == "1"
         # -- inline numLit is used rather than numRef (no workbook rewrite) --
         C_NS = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
@@ -764,12 +777,11 @@ class DescribeChart(object):
         assert len(chart.plots) == 2
         # -- new series idx starts at 2 (count of existing series) --
         bar_xChart = chart._chartSpace.plotArea.xCharts[1]
-        new_ser = bar_xChart.find(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}ser"
+        new_ser = bar_xChart.find("{http://schemas.openxmlformats.org/drawingml/2006/chart}ser")
+        assert (
+            new_ser.find("{http://schemas.openxmlformats.org/drawingml/2006/chart}idx").get("val")
+            == "2"
         )
-        assert new_ser.find(
-            "{http://schemas.openxmlformats.org/drawingml/2006/chart}idx"
-        ).get("val") == "2"
 
     def it_raises_when_add_plot_called_on_empty_plot_area(self):
         from pptx.chart.data import CategoryChartData
@@ -804,9 +816,7 @@ class DescribeChart(object):
 
     # -- Chart.update_cached_values follows below --------------------
 
-    def it_is_a_noop_when_the_chart_has_no_embedded_xlsx(
-        self, request, workbook_prop_, workbook_
-    ):
+    def it_is_a_noop_when_the_chart_has_no_embedded_xlsx(self, request, workbook_prop_, workbook_):
         workbook_.xlsx_part = None
         chartSpace = element("c:chartSpace/c:chart")
         chart = Chart(chartSpace, None)
@@ -896,34 +906,26 @@ class DescribeChart(object):
 
     # -- Chart.workbook property (F5) --------------------------------
 
-    def it_reads_embedded_workbook_bytes_via_workbook_property(
-        self, workbook_prop_, workbook_
-    ):
+    def it_reads_embedded_workbook_bytes_via_workbook_property(self, workbook_prop_, workbook_):
         workbook_.xlsx_part = _XlsxPartStub(b"blob-bytes")
         chart = Chart(element("c:chartSpace"), None)
 
         assert chart.workbook == b"blob-bytes"
 
-    def but_workbook_returns_None_when_chart_has_no_embedded_xlsx(
-        self, workbook_prop_, workbook_
-    ):
+    def but_workbook_returns_None_when_chart_has_no_embedded_xlsx(self, workbook_prop_, workbook_):
         workbook_.xlsx_part = None
         chart = Chart(element("c:chartSpace"), None)
 
         assert chart.workbook is None
 
-    def it_updates_the_embedded_workbook_bytes_on_assignment(
-        self, workbook_prop_, workbook_
-    ):
+    def it_updates_the_embedded_workbook_bytes_on_assignment(self, workbook_prop_, workbook_):
         chart = Chart(element("c:chartSpace"), None)
 
         chart.workbook = b"new-bytes"
 
         workbook_.update_from_xlsx_blob.assert_called_once_with(b"new-bytes")
 
-    def it_raises_TypeError_when_assigning_non_bytes_to_workbook(
-        self, workbook_prop_, workbook_
-    ):
+    def it_raises_TypeError_when_assigning_non_bytes_to_workbook(self, workbook_prop_, workbook_):
         chart = Chart(element("c:chartSpace"), None)
 
         with pytest.raises(TypeError, match="must be set to a bytes object"):
@@ -998,9 +1000,7 @@ class DescribeChart(object):
         v = chartSpace.find(f".//{C}strCache/{C}pt/{C}v")
         assert v.text == "New"
 
-    def it_raises_when_chart_has_no_embedded_workbook(
-        self, workbook_prop_, workbook_
-    ):
+    def it_raises_when_chart_has_no_embedded_workbook(self, workbook_prop_, workbook_):
         from pptx.chart.chart import update_embedded_xlsx_cell
 
         workbook_.xlsx_part = None
@@ -1008,9 +1008,7 @@ class DescribeChart(object):
         with pytest.raises(ValueError, match="no embedded workbook"):
             update_embedded_xlsx_cell(chart, "Sheet1", "B2", 7)
 
-    def it_raises_when_a1_ref_is_sheet_qualified(
-        self, workbook_prop_, workbook_
-    ):
+    def it_raises_when_a1_ref_is_sheet_qualified(self, workbook_prop_, workbook_):
         from pptx.chart.chart import update_embedded_xlsx_cell
 
         workbook_.xlsx_part = _XlsxPartStub(
@@ -1020,9 +1018,7 @@ class DescribeChart(object):
         with pytest.raises(ValueError, match="single-cell"):
             update_embedded_xlsx_cell(chart, "Sheet1", "Sheet1!B2", 1)
 
-    def it_does_not_truncate_other_cells_in_a_range_cache(
-        self, request, workbook_prop_, workbook_
-    ):
+    def it_does_not_truncate_other_cells_in_a_range_cache(self, request, workbook_prop_, workbook_):
         from pptx.chart.chart import update_embedded_xlsx_cell
 
         # --- range B2:B4, updating only B3 (idx=1) ---
@@ -1094,9 +1090,7 @@ class DescribeChart(object):
         )
         chartSpace = parse_xml(chartSpace_xml)
         chart = Chart(chartSpace, None)
-        property_mock(
-            request, _Chart, "chart_type", return_value=XL_CHART_TYPE.BAR_CLUSTERED
-        )
+        property_mock(request, _Chart, "chart_type", return_value=XL_CHART_TYPE.BAR_CLUSTERED)
         # -- existing workbook has B3 as a formula =B2*2 (cached value 2). --
         workbook_.xlsx_part = _XlsxPartStub(
             _build_update_cached_xlsx_blob(
@@ -1126,9 +1120,7 @@ class DescribeChart(object):
         # -- series-name strCache was refreshed --
         strCaches = chartSpace.findall(f".//{C}strCache")
         # first strCache is the series name cell (B1); second is categories
-        name_pts = {
-            pt.get("idx"): pt.find(f"{C}v").text for pt in strCaches[0].findall(f"{C}pt")
-        }
+        name_pts = {pt.get("idx"): pt.find(f"{C}v").text for pt in strCaches[0].findall(f"{C}pt")}
         assert name_pts["0"] == "NewName"
         # -- workbook was updated (bytes differ from input blob) --
         workbook_.update_from_xlsx_blob.assert_called_once()
@@ -1140,9 +1132,7 @@ class DescribeChart(object):
 
         workbook_.xlsx_part = None
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
-        property_mock(
-            request, _Chart, "chart_type", return_value=XL_CHART_TYPE.BAR_CLUSTERED
-        )
+        property_mock(request, _Chart, "chart_type", return_value=XL_CHART_TYPE.BAR_CLUSTERED)
         cd = CategoryChartData()
         cd.categories = ["A"]
         cd.add_series("S", (1.0,))
@@ -1157,9 +1147,7 @@ class DescribeChart(object):
         from pptx.chart.chart import Chart as _Chart
 
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
-        property_mock(
-            request, _Chart, "chart_type", return_value=XL_CHART_TYPE.XY_SCATTER
-        )
+        property_mock(request, _Chart, "chart_type", return_value=XL_CHART_TYPE.XY_SCATTER)
         # -- passing CategoryChartData to an XY chart is invalid --
         with pytest.raises(ValueError, match=r"XY \(scatter\) chart"):
             chart.replace_data_preserve_formulas(CategoryChartData())
@@ -1206,6 +1194,17 @@ class DescribeChart(object):
         chartSpace = element(chartSpace_cxml)
         expected_xml = xml(expected_cxml)
         return chartSpace, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("c:chartSpace/c:chart/c:plotArea", False),
+            ("c:chartSpace/c:chart/c:plotArea/c:dTable", True),
+        ]
+    )
+    def has_data_table_get_fixture(self, request):
+        chartSpace_cxml, expected_value = request.param
+        chart = Chart(element(chartSpace_cxml), None)
+        return chart, expected_value
 
     @pytest.fixture(
         params=[
@@ -1589,13 +1588,11 @@ class DescribeChartTitle(object):
                 None,
             ),
             (
-                "c:title/c:layout/c:manualLayout/"
-                "(c:xMode,c:x{val=0.25},c:y{val=0.5})",
+                "c:title/c:layout/c:manualLayout/" "(c:xMode,c:x{val=0.25},c:y{val=0.5})",
                 None,
             ),
             (
-                "c:title/c:layout/c:manualLayout/"
-                "(c:xMode,c:yMode,c:x{val=0.25},c:y{val=0.5})",
+                "c:title/c:layout/c:manualLayout/" "(c:xMode,c:yMode,c:x{val=0.25},c:y{val=0.5})",
                 (0.25, 0.5),
             ),
             (
@@ -1615,8 +1612,7 @@ class DescribeChartTitle(object):
             (
                 "c:title",
                 (0.3, 0.5),
-                "c:title/c:layout/c:manualLayout/"
-                "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.5})",
+                "c:title/c:layout/c:manualLayout/" "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.5})",
             ),
             (
                 "c:title/c:overlay{val=0}",
@@ -1625,15 +1621,12 @@ class DescribeChartTitle(object):
                 "(c:xMode,c:yMode,c:x{val=0.0},c:y{val=0.0}),c:overlay{val=0})",
             ),
             (
-                "c:title/c:layout/c:manualLayout/"
-                "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.2})",
+                "c:title/c:layout/c:manualLayout/" "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.2})",
                 (0.7, 0.8),
-                "c:title/c:layout/c:manualLayout/"
-                "(c:xMode,c:yMode,c:x{val=0.7},c:y{val=0.8})",
+                "c:title/c:layout/c:manualLayout/" "(c:xMode,c:yMode,c:x{val=0.7},c:y{val=0.8})",
             ),
             (
-                "c:title/c:layout/c:manualLayout/"
-                "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.2})",
+                "c:title/c:layout/c:manualLayout/" "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.2})",
                 None,
                 "c:title",
             ),
@@ -1757,6 +1750,92 @@ class DescribePlotArea(object):
         assert spPr is plot_area._element.xpath("c:spPr")[0]
 
 
+class Describe_DataTable(object):
+    """Unit-test suite for `pptx.chart.chart._DataTable` objects (issue #373)."""
+
+    def it_provides_access_to_its_format(self, request):
+        """`_DataTable.format` returns a `ChartFormat` on the `c:dTable` element."""
+        chart_format_ = instance_mock(request, ChartFormat)
+        ChartFormat_ = class_mock(
+            request, "pptx.chart.chart.ChartFormat", return_value=chart_format_
+        )
+        dTable = element("c:dTable")
+        data_table = _DataTable(dTable)
+
+        chart_format = data_table.format
+
+        ChartFormat_.assert_called_once_with(dTable)
+        assert chart_format is chart_format_
+
+    @pytest.mark.parametrize(
+        ("dTable_cxml", "prop_name", "expected_value"),
+        [
+            ("c:dTable", "show_horz_border", True),
+            ("c:dTable/c:showHorzBorder{val=1}", "show_horz_border", True),
+            ("c:dTable/c:showHorzBorder{val=0}", "show_horz_border", False),
+            ("c:dTable", "show_vert_border", True),
+            ("c:dTable/c:showVertBorder{val=1}", "show_vert_border", True),
+            ("c:dTable/c:showVertBorder{val=0}", "show_vert_border", False),
+            ("c:dTable", "show_outline", True),
+            ("c:dTable/c:showOutline{val=0}", "show_outline", False),
+            ("c:dTable", "show_keys", True),
+            ("c:dTable/c:showKeys{val=0}", "show_keys", False),
+        ],
+    )
+    def it_reads_each_show_flag(self, dTable_cxml, prop_name, expected_value):
+        data_table = _DataTable(element(dTable_cxml))
+        assert getattr(data_table, prop_name) is expected_value
+
+    @pytest.mark.parametrize(
+        ("initial_cxml", "prop_name", "new_value", "expected_cxml"),
+        [
+            (
+                "c:dTable",
+                "show_horz_border",
+                False,
+                "c:dTable/c:showHorzBorder{val=0}",
+            ),
+            (
+                # -- CT_Boolean has a True default, so writing True clears --
+                # -- @val back to the attribute-absent form. --
+                "c:dTable/c:showHorzBorder{val=0}",
+                "show_horz_border",
+                True,
+                "c:dTable/c:showHorzBorder",
+            ),
+            (
+                "c:dTable/c:showHorzBorder{val=0}",
+                "show_horz_border",
+                None,
+                "c:dTable",
+            ),
+            (
+                "c:dTable",
+                "show_vert_border",
+                False,
+                "c:dTable/c:showVertBorder{val=0}",
+            ),
+            (
+                "c:dTable",
+                "show_outline",
+                False,
+                "c:dTable/c:showOutline{val=0}",
+            ),
+            (
+                "c:dTable",
+                "show_keys",
+                False,
+                "c:dTable/c:showKeys{val=0}",
+            ),
+        ],
+    )
+    def it_writes_each_show_flag(self, initial_cxml, prop_name, new_value, expected_cxml):
+        dTable = element(initial_cxml)
+        data_table = _DataTable(dTable)
+        setattr(data_table, prop_name, new_value)
+        assert dTable.xml == xml(expected_cxml)
+
+
 class Describe_Plots(object):
     """Unit-test suite for `pptx.chart.chart._Plots` objects."""
 
@@ -1851,9 +1930,7 @@ def _build_update_cached_xlsx_blob(string_cells, number_cells, formula_cells=Non
     # --- group by row for the sheet xml ---
     rows = {}
     for (_s, r, c), v in string_cells.items():
-        rows.setdefault(r, []).append(
-            '<c r="%s" t="s"><v>%d</v></c>' % (_addr(r, c), sst_idx[v])
-        )
+        rows.setdefault(r, []).append('<c r="%s" t="s"><v>%d</v></c>' % (_addr(r, c), sst_idx[v]))
     for (_s, r, c), v in number_cells.items():
         rows.setdefault(r, []).append('<c r="%s"><v>%r</v></c>' % (_addr(r, c), v))
     for (_s, r, c), (formula, cached) in (formula_cells or {}).items():
@@ -1866,7 +1943,7 @@ def _build_update_cached_xlsx_blob(string_cells, number_cells, formula_cells=Non
     )
     sheet_xml = (
         '<?xml version="1.0"?>'
-        '<worksheet xmlns='
+        "<worksheet xmlns="
         '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
         "<sheetData>" + row_xml + "</sheetData></worksheet>"
     )
@@ -1893,7 +1970,7 @@ def _build_update_cached_xlsx_blob(string_cells, number_cells, formula_cells=Non
         if shared:
             sst_xml = (
                 '<?xml version="1.0"?>'
-                '<sst xmlns='
+                "<sst xmlns="
                 '"http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
                 + "".join("<si><t>%s</t></si>" % s for s in shared)
                 + "</sst>"
