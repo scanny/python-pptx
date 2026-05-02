@@ -6,6 +6,11 @@ Release History
 Unreleased
 ++++++++++
 
+- docs: #1049 PPT ---> MP4: Automation — add a "Rendering to video, PDF,
+  or image formats" section to the user guide clarifying that python-pptx
+  does not render slides and pointing at ``libreoffice --headless
+  --convert-to``, PowerPoint COM automation, Aspose.Slides, and
+  python-pptx-interface as integration points for downstream rendering.
 - Foundation: cross-part rel cloning helper
 - Foundation: DrawingML effectLst descriptor family
 - Foundation: mc:AlternateContent traversal
