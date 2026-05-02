@@ -83,6 +83,67 @@ Feature: Common shape properties
       | Connector    | 5264696 | 6825952 |
 
 
+  Scenario Outline: Get shape.alt_text
+    Given a <shape-type> object as shape
+     Then shape.alt_text == '<value>'
+
+    Examples: Shape types
+      | shape-type   | value             |
+      | Shape        |                   |
+      | Picture      | python-icon.jpeg  |
+      | GraphicFrame |                   |
+      | GroupShape   |                   |
+      | Connector    |                   |
+
+
+  Scenario Outline: Set shape.alt_text (issue #508)
+    Given a <shape-type> object as shape
+     When I assign 'a detailed description' to shape.alt_text
+     Then shape.alt_text == 'a detailed description'
+
+    Examples: Shape types
+      | shape-type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |
+
+
+  Scenario Outline: Get shape.title (default)
+    Given a <shape-type> object as shape
+     Then shape.title == ''
+
+    Examples: Shape types
+      | shape-type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |
+
+
+  Scenario Outline: Set shape.title (issue #508)
+    Given a <shape-type> object as shape
+     When I assign 'short title' to shape.title
+     Then shape.title == 'short title'
+
+    Examples: Shape types
+      | shape-type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |
+
+
+  Scenario: Clearing shape.alt_text removes the descr attribute
+    Given a Picture object as shape
+     When I assign 'a photo' to shape.alt_text
+      And I assign '' to shape.alt_text
+     Then shape.alt_text == ''
+
+
   Scenario Outline: Get shape.name
     Given a <shape-type> object as shape
      Then shape.name == '<name>'

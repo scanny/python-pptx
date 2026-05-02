@@ -390,9 +390,24 @@ def when_I_assign_value_to_shape_left(context, value):
     context.shape.left = int(value)
 
 
+@when("I assign '' to shape.alt_text")
+def when_I_assign_empty_to_shape_alt_text(context):
+    context.shape.alt_text = ""
+
+
+@when("I assign '{value}' to shape.alt_text")
+def when_I_assign_value_to_shape_alt_text(context, value):
+    context.shape.alt_text = value
+
+
 @when("I assign '{value}' to shape.name")
 def when_I_assign_value_to_shape_name(context, value):
     context.shape.name = value
+
+
+@when("I assign '{value}' to shape.title")
+def when_I_assign_value_to_shape_title(context, value):
+    context.shape.title = value
 
 
 @when("I assign True to shape.flip_horizontal")
@@ -788,11 +803,45 @@ def then_shape_line_is_a_LineFormat_object(context):
     )
 
 
+@then("shape.alt_text == ''")
+def then_shape_alt_text_eq_empty(context):
+    shape = context.shape
+    actual = shape.alt_text
+    assert actual == "", "expected shape.alt_text '', got %r" % (actual,)
+
+
+@then("shape.alt_text == '{expected_value}'")
+def then_shape_alt_text_eq_value(context, expected_value):
+    shape = context.shape
+    actual = shape.alt_text
+    assert actual == expected_value, "expected shape.alt_text %r, got %r" % (
+        expected_value,
+        actual,
+    )
+
+
 @then("shape.name == '{expected_value}'")
 def then_shape_name_eq_value(context, expected_value):
     shape = context.shape
     msg = "expected shape name '%s', got '%s'" % (shape.name, expected_value)
     assert shape.name == expected_value, msg
+
+
+@then("shape.title == ''")
+def then_shape_title_eq_empty(context):
+    shape = context.shape
+    actual = shape.title
+    assert actual == "", "expected shape.title '', got %r" % (actual,)
+
+
+@then("shape.title == '{expected_value}'")
+def then_shape_title_eq_value(context, expected_value):
+    shape = context.shape
+    actual = shape.title
+    assert actual == expected_value, "expected shape.title %r, got %r" % (
+        expected_value,
+        actual,
+    )
 
 
 @then("shape.ole_format is an _OleFormat object")
