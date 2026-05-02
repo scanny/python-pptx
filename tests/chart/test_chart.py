@@ -378,6 +378,132 @@ class DescribeChart(object):
 
         assert chart._chartSpace.xml == expected_xml
 
+    # -- Chart.add_plot (combo chart, issue #338) --------------------
+
+    def it_can_add_a_line_plot_to_an_existing_bar_chart_338(self):
+        from pptx.chart.data import CategoryChartData
+
+        # -- a one-plot barChart with category/value axes sharing axIds --
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea>"
+            "<c:barChart>"
+            '<c:barDir val="col"/>'
+            '<c:grouping val="clustered"/>'
+            '<c:ser><c:idx val="0"/><c:order val="0"/></c:ser>'
+            '<c:axId val="111"/>'
+            '<c:axId val="222"/>'
+            "</c:barChart>"
+            '<c:catAx><c:axId val="111"/></c:catAx>'
+            '<c:valAx><c:axId val="222"/></c:valAx>'
+            "</c:plotArea></c:chart></c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        data = CategoryChartData()
+        data.categories = ["Q1", "Q2", "Q3"]
+        data.add_series("Trend", (10, 20, 30))
+
+        new_plot = chart.add_plot(XL_CHART_TYPE.LINE, data)
+
+        # -- a second plot is appended --
+        assert len(chart.plots) == 2
+        # -- the new plot is a LinePlot --
+        assert type(new_plot).__name__ == "LinePlot"
+        # -- both plots share the same two axIds --
+        xCharts = chart._chartSpace.plotArea.xCharts
+        bar_axIds = [e.get("val") for e in xCharts[0].findall(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}axId"
+        )]
+        line_axIds = [e.get("val") for e in xCharts[1].findall(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}axId"
+        )]
+        assert bar_axIds == line_axIds == ["111", "222"]
+        # -- the new series index/order was offset past existing series --
+        new_ser = xCharts[1].find(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}ser"
+        )
+        new_idx = new_ser.find(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}idx"
+        )
+        assert new_idx.get("val") == "1"
+        # -- inline numLit is used rather than numRef (no workbook rewrite) --
+        C_NS = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
+        numLits = xCharts[1].findall(f".//{C_NS}numLit")
+        assert len(numLits) == 1
+        # -- inline strLit used for categories --
+        strLits = xCharts[1].findall(f".//{C_NS}cat/{C_NS}strLit")
+        assert len(strLits) == 1
+
+    def it_can_add_a_bar_plot_to_an_existing_line_chart_338(self):
+        from pptx.chart.data import CategoryChartData
+
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea>"
+            "<c:lineChart>"
+            '<c:grouping val="standard"/>'
+            '<c:ser><c:idx val="0"/><c:order val="0"/></c:ser>'
+            '<c:ser><c:idx val="1"/><c:order val="1"/></c:ser>'
+            '<c:axId val="111"/>'
+            '<c:axId val="222"/>'
+            "</c:lineChart>"
+            '<c:catAx><c:axId val="111"/></c:catAx>'
+            '<c:valAx><c:axId val="222"/></c:valAx>'
+            "</c:plotArea></c:chart></c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        data = CategoryChartData()
+        data.categories = ["a", "b"]
+        data.add_series("Bars", (5.0, 6.0))
+
+        plot = chart.add_plot(XL_CHART_TYPE.COLUMN_CLUSTERED, data)
+
+        assert type(plot).__name__ == "BarPlot"
+        assert len(chart.plots) == 2
+        # -- new series idx starts at 2 (count of existing series) --
+        bar_xChart = chart._chartSpace.plotArea.xCharts[1]
+        new_ser = bar_xChart.find(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}ser"
+        )
+        assert new_ser.find(
+            "{http://schemas.openxmlformats.org/drawingml/2006/chart}idx"
+        ).get("val") == "2"
+
+    def it_raises_when_add_plot_called_on_empty_plot_area(self):
+        from pptx.chart.data import CategoryChartData
+
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        data = CategoryChartData()
+        data.categories = ["a"]
+        data.add_series("s", (1,))
+        with pytest.raises(ValueError, match="no existing plot"):
+            chart.add_plot(XL_CHART_TYPE.LINE, data)
+
+    def it_raises_when_add_plot_chart_type_is_unsupported(self):
+        from pptx.chart.data import CategoryChartData
+
+        chartSpace_xml = (
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml'
+            '/2006/chart">'
+            "<c:chart><c:plotArea>"
+            "<c:barChart>"
+            '<c:barDir val="col"/>'
+            '<c:grouping val="clustered"/>'
+            '<c:axId val="1"/><c:axId val="2"/>'
+            "</c:barChart>"
+            "</c:plotArea></c:chart></c:chartSpace>"
+        )
+        chart = Chart(parse_xml(chartSpace_xml), None)
+        data = CategoryChartData()
+        data.categories = ["a"]
+        data.add_series("s", (1,))
+        with pytest.raises(NotImplementedError, match="combo-chart plot fragment"):
+            chart.add_plot(XL_CHART_TYPE.PIE, data)
+
+    # -- Chart.update_cached_values follows below --------------------
+
     def it_is_a_noop_when_the_chart_has_no_embedded_xlsx(
         self, request, workbook_prop_, workbook_
     ):

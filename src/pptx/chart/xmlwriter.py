@@ -7,7 +7,7 @@ from xml.sax.saxutils import escape
 
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 
 
 # -- PowerPoint cycles through these six theme-accent colors when assigning default colors to
@@ -1883,3 +1883,305 @@ class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
         ser._insert_tx(xml_writer.tx)
         ser._insert_xVal(xml_writer.xVal)
         ser._insert_yVal(xml_writer.yVal)
+
+
+# =====================================================================
+# Combo-chart plot-fragment builder (issue #338)
+# =====================================================================
+#
+# When adding a second (or later) plot to an existing chart, we need to emit
+# only the `c:{x}Chart` element rather than a whole `c:chartSpace`. The new
+# plot is appended inside the existing `c:plotArea` alongside the existing
+# xChart element(s) and reuses the existing axes.
+#
+# To avoid touching the embedded workbook (foundation F5 — not yet in master —
+# would provide that plumbing), the series in the new plot are emitted with
+# inline literal data (`c:numLit` / `c:strLit`) rather than workbook formula
+# references (`c:numRef` / `c:strRef`). This is schema-valid (see
+# `CT_NumDataSource` / `CT_AxDataSource` in `dml-chart.xsd`) and renders
+# correctly in PowerPoint and LibreOffice. The trade-off: the literal values
+# are not reflected back into the embedded xlsx, so round-tripping through
+# PowerPoint's "Edit Data" action for the new plot is limited. See
+# `docs/dev/analysis/combo-chart.rst` for the F5-dependent follow-up that
+# would synchronize the workbook.
+
+
+class _PlotFragmentBuilder(object):
+    """Builds a `c:{x}Chart` XML fragment for an additional plot.
+
+    Emits a stand-alone xChart element containing inline-literal series data
+    and the supplied `c:axId` references back to the existing plot's axes.
+    Used by :meth:`pptx.chart.chart.Chart.add_plot` (issue #338).
+    """
+
+    def __init__(self, chart_type, chart_data, cat_axId, val_axId):
+        self._chart_type = chart_type
+        self._chart_data = chart_data
+        self._cat_axId = cat_axId
+        self._val_axId = val_axId
+
+    @classmethod
+    def new(cls, chart_type, chart_data, cat_axId, val_axId):
+        """Return a builder appropriate for *chart_type*.
+
+        Only a subset of chart types is supported in the MVP: bar/column and
+        line (with/without markers, stacked/percent-stacked). Other types
+        raise |NotImplementedError| so callers get a clear error.
+        """
+        XL = XL_CHART_TYPE
+        bar_types = (
+            XL.BAR_CLUSTERED, XL.BAR_STACKED, XL.BAR_STACKED_100,
+            XL.COLUMN_CLUSTERED, XL.COLUMN_STACKED, XL.COLUMN_STACKED_100,
+        )
+        line_types = (
+            XL.LINE, XL.LINE_STACKED, XL.LINE_STACKED_100,
+            XL.LINE_MARKERS, XL.LINE_MARKERS_STACKED, XL.LINE_MARKERS_STACKED_100,
+        )
+        if chart_type in bar_types:
+            return _BarPlotFragmentBuilder(chart_type, chart_data, cat_axId, val_axId)
+        if chart_type in line_types:
+            return _LinePlotFragmentBuilder(chart_type, chart_data, cat_axId, val_axId)
+        raise NotImplementedError(
+            "combo-chart plot fragment not supported for chart type %s" % chart_type
+        )
+
+    @property
+    def xml(self):
+        """Return the `c:{x}Chart` element XML fragment as unicode text."""
+        raise NotImplementedError("must be implemented by each subclass")
+
+    @property
+    def element(self):
+        """Return the `c:{x}Chart` element as an lxml element."""
+        return parse_xml(self.xml)
+
+    # -- shared helpers ---------------------------------------------------
+
+    def _ser_xml(self, base_idx=0):
+        """Build the `c:ser` child XML, one per series, with literal data.
+
+        *base_idx* offsets the series index/order to avoid collisions with
+        series already present in other plots of the same chart.
+        """
+        return "".join(
+            self._one_ser_xml(base_idx + i, series)
+            for i, series in enumerate(self._chart_data)
+        )
+
+    def _one_ser_xml(self, ser_idx, series):
+        """Return the XML for a single `c:ser` element (bar/line variants override)."""
+        raise NotImplementedError
+
+    def _tx_xml(self, series):
+        """Build a `c:tx/c:strRef` with an inline `c:strCache` for the series name.
+
+        `CT_SerTx` also permits a bare `c:v`, but the existing `Series.name`
+        accessor reads ``./c:tx//c:pt/c:v/text()`` (see
+        ``pptx.chart.series.Series.name``); emitting the cached form keeps
+        the new plot's series names visible to the library without
+        requiring a collateral change to that accessor. The `c:f` reference
+        points at a placeholder cell ``'_combo'!$A$1`` that deliberately
+        does not exist in the embedded workbook — the cached name is what
+        PowerPoint renders, and when the workbook is refreshed the
+        unresolvable ``c:f`` is simply ignored (see
+        ``pptx.chart.chart._ChartCacheRefresher`` behaviour on unresolved
+        refs).
+        """
+        return (
+            "          <c:tx>\n"
+            "            <c:strRef>\n"
+            "              <c:f>'_combo'!$A$1</c:f>\n"
+            "              <c:strCache>\n"
+            '                <c:ptCount val="1"/>\n'
+            '                <c:pt idx="0">\n'
+            "                  <c:v>{name}</c:v>\n"
+            "                </c:pt>\n"
+            "              </c:strCache>\n"
+            "            </c:strRef>\n"
+            "          </c:tx>\n"
+        ).format(name=escape(series.name or ""))
+
+    def _cat_xml(self):
+        """Build a `c:cat/c:strLit` element containing the category labels.
+
+        Uses `c:strLit` (inline literal strings) rather than `c:strRef` so
+        no workbook cells need exist for the categories. `CT_AxDataSource`
+        permits `strLit` directly.
+        """
+        categories = self._chart_data.categories
+        labels = [str(c.label) for c in categories]
+        pt_xml = ""
+        for idx, label in enumerate(labels):
+            pt_xml += (
+                '                <c:pt idx="{idx}">\n'
+                "                  <c:v>{v}</c:v>\n"
+                "                </c:pt>\n"
+            ).format(idx=idx, v=escape(label))
+        return (
+            "          <c:cat>\n"
+            "            <c:strLit>\n"
+            '              <c:ptCount val="{count}"/>\n'
+            "{pt_xml}"
+            "            </c:strLit>\n"
+            "          </c:cat>\n"
+        ).format(count=len(labels), pt_xml=pt_xml)
+
+    def _val_xml(self, series):
+        """Build a `c:val/c:numLit` element containing numeric series values.
+
+        Uses `c:numLit` (inline literal numbers) rather than `c:numRef` so
+        no workbook cell range has to exist for the values.
+        """
+        values = list(series.values)
+        pt_xml = ""
+        for idx, v in enumerate(values):
+            if v is None:
+                continue
+            pt_xml += (
+                '                <c:pt idx="{idx}">\n'
+                "                  <c:v>{v}</c:v>\n"
+                "                </c:pt>\n"
+            ).format(idx=idx, v=v)
+        return (
+            "          <c:val>\n"
+            "            <c:numLit>\n"
+            "              <c:formatCode>{nf}</c:formatCode>\n"
+            '              <c:ptCount val="{count}"/>\n'
+            "{pt_xml}"
+            "            </c:numLit>\n"
+            "          </c:val>\n"
+        ).format(nf=series.number_format, count=len(values), pt_xml=pt_xml)
+
+
+class _BarPlotFragmentBuilder(_PlotFragmentBuilder):
+    """Builds a `c:barChart` fragment for an added plot."""
+
+    @property
+    def xml(self):
+        return (
+            '<c:barChart {nsdecls}>\n'
+            "{barDir_xml}"
+            "{grouping_xml}"
+            '        <c:varyColors val="0"/>\n'
+            "{ser_xml}"
+            '        <c:axId val="{cat_axId}"/>\n'
+            '        <c:axId val="{val_axId}"/>\n'
+            "      </c:barChart>"
+        ).format(
+            nsdecls=nsdecls("c"),
+            barDir_xml=self._barDir_xml,
+            grouping_xml=self._grouping_xml,
+            ser_xml=self._ser_xml(),
+            cat_axId=self._cat_axId,
+            val_axId=self._val_axId,
+        )
+
+    def _one_ser_xml(self, ser_idx, series):
+        return (
+            "        <c:ser>\n"
+            '          <c:idx val="{ser_idx}"/>\n'
+            '          <c:order val="{ser_idx}"/>\n'
+            "{tx_xml}"
+            "{cat_xml}"
+            "{val_xml}"
+            "        </c:ser>\n"
+        ).format(
+            ser_idx=ser_idx,
+            tx_xml=self._tx_xml(series),
+            cat_xml=self._cat_xml(),
+            val_xml=self._val_xml(series),
+        )
+
+    @property
+    def _barDir_xml(self):
+        XL = XL_CHART_TYPE
+        bar_types = (XL.BAR_CLUSTERED, XL.BAR_STACKED, XL.BAR_STACKED_100)
+        if self._chart_type in bar_types:
+            return '        <c:barDir val="bar"/>\n'
+        return '        <c:barDir val="col"/>\n'
+
+    @property
+    def _grouping_xml(self):
+        XL = XL_CHART_TYPE
+        clustered = (XL.BAR_CLUSTERED, XL.COLUMN_CLUSTERED)
+        stacked = (XL.BAR_STACKED, XL.COLUMN_STACKED)
+        pct_stacked = (XL.BAR_STACKED_100, XL.COLUMN_STACKED_100)
+        if self._chart_type in clustered:
+            return '        <c:grouping val="clustered"/>\n'
+        if self._chart_type in stacked:
+            return '        <c:grouping val="stacked"/>\n'
+        if self._chart_type in pct_stacked:
+            return '        <c:grouping val="percentStacked"/>\n'
+        raise NotImplementedError(
+            "no _grouping_xml() for chart type %s" % self._chart_type
+        )
+
+
+class _LinePlotFragmentBuilder(_PlotFragmentBuilder):
+    """Builds a `c:lineChart` fragment for an added plot."""
+
+    @property
+    def xml(self):
+        return (
+            '<c:lineChart {nsdecls}>\n'
+            "{grouping_xml}"
+            '        <c:varyColors val="0"/>\n'
+            "{ser_xml}"
+            '        <c:marker val="1"/>\n'
+            '        <c:axId val="{cat_axId}"/>\n'
+            '        <c:axId val="{val_axId}"/>\n'
+            "      </c:lineChart>"
+        ).format(
+            nsdecls=nsdecls("c"),
+            grouping_xml=self._grouping_xml,
+            ser_xml=self._ser_xml(),
+            cat_axId=self._cat_axId,
+            val_axId=self._val_axId,
+        )
+
+    def _one_ser_xml(self, ser_idx, series):
+        return (
+            "        <c:ser>\n"
+            '          <c:idx val="{ser_idx}"/>\n'
+            '          <c:order val="{ser_idx}"/>\n'
+            "{tx_xml}"
+            "{marker_xml}"
+            "{cat_xml}"
+            "{val_xml}"
+            '          <c:smooth val="0"/>\n'
+            "        </c:ser>\n"
+        ).format(
+            ser_idx=ser_idx,
+            tx_xml=self._tx_xml(series),
+            marker_xml=self._marker_xml,
+            cat_xml=self._cat_xml(),
+            val_xml=self._val_xml(series),
+        )
+
+    @property
+    def _marker_xml(self):
+        XL = XL_CHART_TYPE
+        no_marker = (XL.LINE, XL.LINE_STACKED, XL.LINE_STACKED_100)
+        if self._chart_type in no_marker:
+            return (
+                "          <c:marker>\n"
+                '            <c:symbol val="none"/>\n'
+                "          </c:marker>\n"
+            )
+        return ""
+
+    @property
+    def _grouping_xml(self):
+        XL = XL_CHART_TYPE
+        standard = (XL.LINE, XL.LINE_MARKERS)
+        stacked = (XL.LINE_STACKED, XL.LINE_MARKERS_STACKED)
+        pct_stacked = (XL.LINE_STACKED_100, XL.LINE_MARKERS_STACKED_100)
+        if self._chart_type in standard:
+            return '        <c:grouping val="standard"/>\n'
+        if self._chart_type in stacked:
+            return '        <c:grouping val="stacked"/>\n'
+        if self._chart_type in pct_stacked:
+            return '        <c:grouping val="percentStacked"/>\n'
+        raise NotImplementedError(
+            "no _grouping_xml() for chart type %s" % self._chart_type
+        )

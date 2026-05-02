@@ -23,6 +23,7 @@ from pptx.chart.xmlwriter import (
     _AreaChartXmlWriter,
     _apply_accent_color_to_ser,
     _BarChartXmlWriter,
+    _BarPlotFragmentBuilder,
     _BaseSeriesXmlRewriter,
     _BubbleChartXmlWriter,
     _BubbleSeriesXmlRewriter,
@@ -31,7 +32,9 @@ from pptx.chart.xmlwriter import (
     _CategorySeriesXmlWriter,
     _DoughnutChartXmlWriter,
     _LineChartXmlWriter,
+    _LinePlotFragmentBuilder,
     _PieChartXmlWriter,
+    _PlotFragmentBuilder,
     _RadarChartXmlWriter,
     _XyChartXmlWriter,
     _XySeriesXmlRewriter,
@@ -865,6 +868,94 @@ class Describe_XySeriesXmlRewriter(object):
         rewriter = _XySeriesXmlRewriter(chart_data)
         ser = parse_xml(ser_xml)
         return rewriter, ser, series_data, expected_xml
+
+
+class Describe_PlotFragmentBuilder(object):
+    """Unit-test suite for `_PlotFragmentBuilder` (issue #338 combo charts)."""
+
+    def it_dispatches_to_bar_builder_for_bar_and_column_types(self):
+        chart_data = make_category_chart_data(cat_count=3, cat_type=str, ser_count=1)
+        for ct in (
+            XL_CHART_TYPE.BAR_CLUSTERED,
+            XL_CHART_TYPE.COLUMN_CLUSTERED,
+            XL_CHART_TYPE.BAR_STACKED,
+            XL_CHART_TYPE.COLUMN_STACKED_100,
+        ):
+            builder = _PlotFragmentBuilder.new(ct, chart_data, "1", "2")
+            assert isinstance(builder, _BarPlotFragmentBuilder)
+
+    def it_dispatches_to_line_builder_for_line_types(self):
+        chart_data = make_category_chart_data(cat_count=3, cat_type=str, ser_count=1)
+        for ct in (
+            XL_CHART_TYPE.LINE,
+            XL_CHART_TYPE.LINE_MARKERS,
+            XL_CHART_TYPE.LINE_STACKED_100,
+        ):
+            builder = _PlotFragmentBuilder.new(ct, chart_data, "1", "2")
+            assert isinstance(builder, _LinePlotFragmentBuilder)
+
+    def it_raises_on_unsupported_chart_type(self):
+        chart_data = make_category_chart_data(cat_count=3, cat_type=str, ser_count=1)
+        with pytest.raises(NotImplementedError):
+            _PlotFragmentBuilder.new(
+                XL_CHART_TYPE.PIE, chart_data, "1", "2"
+            )
+
+    def it_builds_a_barChart_with_numLit_values_and_strLit_categories(self):
+        chart_data = make_category_chart_data(cat_count=3, cat_type=str, ser_count=2)
+        builder = _PlotFragmentBuilder.new(
+            XL_CHART_TYPE.COLUMN_CLUSTERED, chart_data, "111", "222"
+        )
+        xChart = builder.element
+        ns = {"c": "http://schemas.openxmlformats.org/drawingml/2006/chart"}
+
+        assert xChart.tag == "{%s}barChart" % ns["c"]
+        assert xChart.find("c:barDir", ns).get("val") == "col"
+        assert xChart.find("c:grouping", ns).get("val") == "clustered"
+        # -- two series are emitted --
+        sers = xChart.findall("c:ser", ns)
+        assert len(sers) == 2
+        # -- each series uses numLit and strLit, not numRef/strRef --
+        for ser in sers:
+            assert ser.find("c:val/c:numLit", ns) is not None
+            assert ser.find("c:val/c:numRef", ns) is None
+            assert ser.find("c:cat/c:strLit", ns) is not None
+            assert ser.find("c:cat/c:strRef", ns) is None
+        # -- axIds match those supplied to the builder --
+        axIds = [e.get("val") for e in xChart.findall("c:axId", ns)]
+        assert axIds == ["111", "222"]
+
+    def it_builds_a_lineChart_element_with_marker_and_smooth(self):
+        chart_data = make_category_chart_data(cat_count=2, cat_type=str, ser_count=1)
+        builder = _PlotFragmentBuilder.new(
+            XL_CHART_TYPE.LINE_MARKERS, chart_data, "333", "444"
+        )
+        xChart = builder.element
+        ns = {"c": "http://schemas.openxmlformats.org/drawingml/2006/chart"}
+
+        assert xChart.tag == "{%s}lineChart" % ns["c"]
+        assert xChart.find("c:grouping", ns).get("val") == "standard"
+        # -- LINE_MARKERS does not emit a c:marker override inside c:ser --
+        assert xChart.find("c:ser/c:marker", ns) is None
+        # -- the top-level c:marker val="1" is present --
+        assert xChart.find("c:marker", ns) is not None
+        # -- c:smooth val="0" is on each series --
+        smooth = xChart.find("c:ser/c:smooth", ns)
+        assert smooth is not None and smooth.get("val") == "0"
+        axIds = [e.get("val") for e in xChart.findall("c:axId", ns)]
+        assert axIds == ["333", "444"]
+
+    def it_emits_no_marker_sentinel_for_plain_LINE(self):
+        chart_data = make_category_chart_data(cat_count=2, cat_type=str, ser_count=1)
+        builder = _PlotFragmentBuilder.new(
+            XL_CHART_TYPE.LINE, chart_data, "1", "2"
+        )
+        xChart = builder.element
+        ns = {"c": "http://schemas.openxmlformats.org/drawingml/2006/chart"}
+        # -- plain LINE emits <c:marker><c:symbol val="none"/></c:marker>
+        #    inside each ser so markers are suppressed --
+        sym = xChart.find("c:ser/c:marker/c:symbol", ns)
+        assert sym is not None and sym.get("val") == "none"
 
 
 # helpers ------------------------------------------------------------

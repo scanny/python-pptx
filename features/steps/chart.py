@@ -132,6 +132,78 @@ def given_a_chart_title_having_a_or_no_text_frame(context, a_or_no):
     context.chart_title = prs.slides[1].shapes[shape_idx].chart.chart_title
 
 
+# -- issue #338 combo-chart scenario steps ---------------------------------
+
+
+@given("a column chart and new line-plot chart data")
+def given_a_column_chart_and_new_line_plot_chart_data(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    chart_data = CategoryChartData()
+    chart_data.categories = ["Q1", "Q2", "Q3"]
+    chart_data.add_series("Revenue", (11.0, 22.0, 33.0))
+    chart = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(8),
+        Inches(5),
+        chart_data,
+    ).chart
+    context.chart = chart
+    line_data = CategoryChartData()
+    line_data.categories = ["Q1", "Q2", "Q3"]
+    line_data.add_series("Trend", (10.0, 20.0, 30.0))
+    context.line_data = line_data
+
+
+@when("I call chart.add_plot(XL_CHART_TYPE.LINE, line_data)")
+def when_I_call_add_plot_LINE(context):
+    context.new_plot = context.chart.add_plot(
+        XL_CHART_TYPE.LINE_MARKERS, context.line_data
+    )
+
+
+@then("chart.plots has length 2")
+def then_chart_plots_has_length_2(context):
+    assert len(context.chart.plots) == 2, (
+        "expected 2 plots, got %d" % len(context.chart.plots)
+    )
+
+
+@then("the second plot is a LinePlot")
+def then_the_second_plot_is_a_LinePlot(context):
+    plot = context.chart.plots[1]
+    assert type(plot).__name__ == "LinePlot", (
+        "expected LinePlot, got %s" % type(plot).__name__
+    )
+
+
+@then("the line plot's axId elements match the column plot's")
+def then_axId_match(context):
+    from pptx.oxml.ns import qn
+
+    xCharts = context.chart._chartSpace.plotArea.xCharts
+    col_ids = [e.get("val") for e in xCharts[0].findall(qn("c:axId"))]
+    line_ids = [e.get("val") for e in xCharts[1].findall(qn("c:axId"))]
+    assert col_ids == line_ids and len(col_ids) == 2, (
+        "axId mismatch: col=%r line=%r" % (col_ids, line_ids)
+    )
+
+
+@then("the line plot's series use inline numLit and strLit data")
+def then_line_plot_uses_numLit_strLit(context):
+    from pptx.oxml.ns import qn
+
+    line_xChart = context.chart._chartSpace.plotArea.xCharts[1]
+    # -- c:val uses numLit (literal values, no workbook range ref) --
+    assert line_xChart.find(".//" + qn("c:val") + "/" + qn("c:numLit")) is not None
+    assert line_xChart.find(".//" + qn("c:val") + "/" + qn("c:numRef")) is None
+    # -- c:cat uses strLit (literal labels, no workbook range ref) --
+    assert line_xChart.find(".//" + qn("c:cat") + "/" + qn("c:strLit")) is not None
+    assert line_xChart.find(".//" + qn("c:cat") + "/" + qn("c:strRef")) is None
+
+
 @given("a {axis_config}-axes chart")
 def given_a_axis_config_axes_chart(context, axis_config):
     # -- build a basic column chart and optionally inject a secondary value axis --

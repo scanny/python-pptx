@@ -219,6 +219,15 @@ Unreleased
   (add ``Font.use_theme_hyperlink_color`` flag and
   ``ThemePart.theme.hlink_color`` / ``folHlink_color`` accessors)
 - #201 slide numbers / date / footer via p:hf and a:fld
+- feat: #338 combo charts — add ``Chart.add_plot(chart_type, chart_data)`` so
+  a second plot (e.g. a line overlaid on a column chart) can be appended to
+  an existing chart sharing the same axes. MVP supports bar/column and line
+  chart types for the added plot; series values are emitted inline
+  (``c:numLit`` / ``c:strLit``) rather than appended to the embedded
+  workbook, so PowerPoint's *Edit Data* dialog exposes only the original
+  plot's data range. See ``docs/dev/analysis/combo-chart.rst`` for the
+  embedded-workbook-handler (foundation F5) follow-up that would sync the
+  workbook.
 - #516 Chart Colors Sometimes Using Extended Alternates
 - #386 surface unsupported chartex chart types without dropping
 - feat: #734 add ``<a:snd>`` (sound) support to click-action

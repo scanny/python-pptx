@@ -12,7 +12,7 @@ from pptx.chart.legend import Legend
 from pptx.chart.plot import PlotFactory, PlotTypeInspector
 from pptx.chart.series import SeriesCollection
 from pptx.chart.xlsx import WorkbookReader, parse_sheet_range_ref
-from pptx.chart.xmlwriter import SeriesXmlRewriterFactory
+from pptx.chart.xmlwriter import SeriesXmlRewriterFactory, _PlotFragmentBuilder
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml.ns import qn
@@ -49,6 +49,66 @@ class Chart(PartElementProxy):
     def __init__(self, chartSpace, chart_part):
         super(Chart, self).__init__(chartSpace, chart_part)
         self._chartSpace = chartSpace
+
+    def add_plot(self, chart_type, chart_data):
+        """Append a new plot of *chart_type* to this chart (issue #338).
+
+        This is the entry-point for creating a *combo chart* — a chart that
+        displays two (or more) chart types sharing a single plot area, such
+        as a column plot with a line plot overlaid. *chart_type* must be a
+        member of :ref:`XlChartType`; only the bar/column and line variants
+        are supported in this MVP release (``BAR_CLUSTERED``,
+        ``COLUMN_CLUSTERED``, ``BAR_STACKED``, ``COLUMN_STACKED``,
+        ``BAR_STACKED_100``, ``COLUMN_STACKED_100``, ``LINE``,
+        ``LINE_MARKERS``, ``LINE_STACKED``, ``LINE_STACKED_100``,
+        ``LINE_MARKERS_STACKED`` and ``LINE_MARKERS_STACKED_100``). Other
+        chart types raise |NotImplementedError|.
+
+        *chart_data* is a |CategoryChartData| instance whose category
+        labels must match those already on this chart (they are written
+        only for schema conformance — the axis labels are drawn from the
+        first plot). Series values are stored inline in the chart XML
+        (`c:numLit` / `c:strLit`) rather than in the embedded Excel
+        workbook. This means the new plot renders correctly in PowerPoint
+        and LibreOffice but its values are not surfaced to PowerPoint's
+        "Edit Data" dialog for that plot; see
+        :file:`docs/dev/analysis/combo-chart.rst` for discussion of the
+        F5-dependent workbook synchronization that would lift this limit.
+
+        The added plot reuses the `c:axId` values of the chart's existing
+        back-most plot, so both plots share the category and value axes.
+        The new plot is appended after existing xCharts so it is drawn in
+        front of them.
+
+        Returns the newly-created |BarPlot| or |LinePlot| object.
+        """
+        plotArea = self._chartSpace.plotArea
+        xCharts = plotArea.xCharts
+        if not xCharts:
+            raise ValueError("cannot add plot: chart has no existing plot")
+        first_xChart = xCharts[0]
+        axId_elms = first_xChart.findall(qn("c:axId"))
+        if len(axId_elms) < 2:
+            raise ValueError(
+                "cannot add plot: existing plot is missing axId elements"
+            )
+        cat_axId = axId_elms[0].get("val")
+        val_axId = axId_elms[1].get("val")
+        base_idx = len(plotArea.sers)
+        builder = _PlotFragmentBuilder.new(chart_type, chart_data, cat_axId, val_axId)
+        new_xChart = builder.element
+        # --- re-index series to avoid idx/order collisions with existing series ---
+        for offset, ser in enumerate(new_xChart.findall(qn("c:ser"))):
+            idx_elm = ser.find(qn("c:idx"))
+            order_elm = ser.find(qn("c:order"))
+            if idx_elm is not None:
+                idx_elm.set("val", str(base_idx + offset))
+            if order_elm is not None:
+                order_elm.set("val", str(base_idx + offset))
+        # --- insert after the last existing xChart but before any axis elements ---
+        last_xChart = xCharts[-1]
+        last_xChart.addnext(new_xChart)
+        return PlotFactory(new_xChart, self)
 
     @property
     def category_axis(self):
