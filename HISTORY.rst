@@ -6,6 +6,23 @@ Release History
 Unreleased
 ++++++++++
 
+- verify: #357 (customize pie-chart slice colors) resolved by the
+  pre-existing ``Point.format`` API on ``CategoryPoints``. Pie-chart
+  per-slice color control has been available since commit
+  ``de58d605`` ("cht: add Point.format") because ``PieSeries``
+  inherits from ``_BaseCategorySeries`` and therefore exposes
+  ``CategoryPoints`` via ``PieSeries.points``. The idiomatic call
+  pattern is
+  ``chart.plots[0].series[0].points[n].format.fill.solid();
+  chart.plots[0].series[0].points[n].format.fill.fore_color.rgb =
+  RGBColor(...)``, which writes a ``c:dPt/c:spPr/a:solidFill/a:srgbClr``
+  subtree under the ``c:pieChart/c:ser``. Adds a regression suite
+  ``DescribeIssue357PieChartColors`` under
+  ``tests/test_issue_357_pie_chart_colors.py`` that authors a 4-slice
+  pie with distinct per-slice fills, inspects the emitted ``c:dPt``
+  elements (one per slice, ``c:idx`` matching position, ``c:spPr``
+  carrying the fill), round-trips through save + reopen, and also
+  covers per-slice line color via ``points[i].format.line``.
 - feat: #934 add ``Presentation.merge(other_presentation)`` for
   full-fidelity deck merging. Every slide in ``other_presentation`` is
   appended to the receiver via
