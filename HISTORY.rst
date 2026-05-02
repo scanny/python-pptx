@@ -7,6 +7,8 @@ Unreleased
 ++++++++++
 
 - fix: #773 guard fit_text() when no fitting layout is found
+- fix: #936 text_frame.fit_text crashes if no wrapped representation fits
+        in the width of the shape
 
 
 1.0.2 (2024-08-07)

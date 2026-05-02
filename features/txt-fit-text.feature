@@ -14,3 +14,8 @@ Feature: Resize text to fit shape
     Given a shape too narrow to fit any word at any considered font size
      When I call TextFitter.best_fit_font_size() on that shape
      Then a TextLayoutError is raised
+
+  Scenario: Fit text whose longest word overflows the shape at max_size
+    Given a shape whose first word overflows at max size but fits at a smaller size
+     When I call TextFitter.best_fit_font_size() on that shape
+     Then a smaller fitting point size is returned

@@ -29,9 +29,10 @@ class TextFitter(tuple):
         `max_size` that allows `text` to fit completely within `extents` when rendered
         using font defined in `font_file`.
 
-        Raises `TextLayoutError` when no point size in ``1..max_size`` allows the text
-        to fit. This happens for example when a single word is wider than the shape at
-        the smallest font size considered.
+        When the text contains a word that is wider than `extents` at `max_size` but
+        fits at a smaller size (#936), that smaller size is returned. Only when no
+        point size in ``1..max_size`` allows the text to fit (for example a single
+        word wider than the shape at point size 1, #773) is `TextLayoutError` raised.
         """
         line_source = _LineSource(text)
         text_fitter = cls(line_source, extents, font_file)
