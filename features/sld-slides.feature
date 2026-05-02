@@ -51,6 +51,16 @@ Feature: Access an individual slide
      Then the slide previously at index 0 is now at index 2
       And its slide_id is unchanged
       And len(slides) is 3
+  Scenario: Slides.duplicate() appends a deep copy of a slide to the presentation
+    Given a Presentation with a slide carrying a chart and a picture
+     When I call slides.duplicate(slides[0])
+     Then len(slides) is 2
+      And the duplicate slide's shape names match the source slide
+      And the duplicate's slide_id differs from the source
+      And the duplicate's slide_layout matches the source
+      And the presentation round-trips cleanly after duplicate
+
+
   Scenario: Slides.delete() removes a slide from the presentation
     Given a Slides object containing 3 slides
      When I call slides.delete(slides[1])

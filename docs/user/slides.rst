@@ -129,6 +129,34 @@ presentations turns out to be pretty hard to get right in the general case, so
 that probably won't come until more of the backlog is burned down.
 
 
+Duplicating a slide
+-------------------
+
+:meth:`.Slides.duplicate` creates a deep copy of an existing slide in the same
+presentation::
+
+    prs = Presentation("quarterly-deck.pptx")
+    source = prs.slides[0]
+    dup = prs.slides.duplicate(source)           # appends a copy at the end
+    prs.slides.duplicate(source, index=1)        # or insert at a specific spot
+
+The duplicate:
+
+* inherits from the same slide layout as ``source``,
+* contains a deep copy of the shape tree (text, shapes, tables, etc.), and
+* shares the underlying image, chart, OLE-object, media, and hyperlink parts
+  with ``source`` — they are *reused* rather than re-embedded, so duplicating
+  a slide doesn't bloat the package.
+
+The duplicate receives a freshly-allocated ``slide_id``; the source slide's
+``slide_id`` is unchanged.
+
+Notes attached to the source slide are *not* copied onto the duplicate,
+because each notes slide carries a back-reference to its owning slide and
+can't be shared. Accessing ``duplicate.notes_slide`` creates a fresh empty
+notes slide on demand.
+
+
 Copying a slide from one presentation to another (basic)
 --------------------------------------------------------
 

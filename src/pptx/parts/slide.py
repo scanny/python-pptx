@@ -9,7 +9,7 @@ from typing import IO, TYPE_CHECKING, cast
 from pptx.enum.shapes import PROG_ID
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import XmlPart
+from pptx.opc.package import PartRelationshipCloner, XmlPart
 from pptx.opc.packuri import PackURI
 from pptx.oxml.ns import qn
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
@@ -279,6 +279,51 @@ class SlidePart(BaseSlidePart):
 
         # -- Rewrite every `r:id` / `r:embed` / `r:link` on cloned element. --
         cls._remap_rel_ids(cloned_sld, rId_map)
+
+        return new_slide_part
+
+    @classmethod
+    def clone_within(
+        cls,
+        source_slide_part: SlidePart,
+        partname: PackURI,
+    ) -> SlidePart:
+        """Return new |SlidePart| cloned from `source_slide_part` in the same package.
+
+        Used to implement :meth:`Slides.duplicate` for duplicating a slide
+        within its own presentation. The new slide part is bound to the same
+        slide layout as the source and its shape tree is a deep copy of the
+        source slide's shape tree. Every relationship referenced from the
+        source shape tree (image, chart, OLE object, media, hyperlink, ...) is
+        re-established on the new slide part using the F1
+        |PartRelationshipCloner|, which reuses the existing target parts
+        because they already belong to this package.
+
+        The notes-slide relationship (if any) on the source is intentionally
+        *dropped* on the duplicate: a notes slide carries a back-reference to
+        its owning slide, so having two slides share one notes-slide part
+        would be invalid. Users who need notes on the duplicate can create
+        them on the returned slide in the usual way.
+        """
+        package = source_slide_part.package
+
+        # -- Seed the new part with a minimal `p:sld` root; `PartRelationshipCloner.clone`
+        # -- below produces the real (rId-remapped) element tree and replaces it. --
+        placeholder_sld = CT_Slide.new()
+        new_slide_part = cls(partname, CT.PML_SLIDE, package, placeholder_sld)
+
+        # -- Always relate the duplicate to the same slide-layout as the source. --
+        slide_layout_part = source_slide_part.part_related_by(RT.SLIDE_LAYOUT)
+        new_slide_part.relate_to(slide_layout_part, RT.SLIDE_LAYOUT)
+
+        # -- Delegate per-rId cloning to the F1 PartRelationshipCloner. It deep-copies the
+        # -- source `p:sld`, walks every `r:id` / `r:embed` / `r:link` on the copy, creates
+        # -- a matching relationship on `new_slide_part` (reusing existing target parts
+        # -- because this is a same-package clone), and rewrites the rId attributes in
+        # -- place. The returned element is the duplicate's authoritative shape tree. --
+        new_slide_part._element = PartRelationshipCloner.clone(
+            source_slide_part, new_slide_part, source_slide_part._element
+        )
 
         return new_slide_part
 

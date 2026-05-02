@@ -187,6 +187,27 @@ class DescribePresentationPart(object):
         assert rId == "rId42"
         assert slide is slide_
 
+    def it_can_duplicate_a_slide_within_this_presentation(
+        self, request, package_, slide_part_, slide_, relate_to_
+    ):
+        source_slide_ = instance_mock(request, Slide)
+        source_slide_part_ = instance_mock(request, SlidePart)
+        source_slide_.part = source_slide_part_
+        partname = PackURI("/ppt/slides/slide9.xml")
+        property_mock(request, PresentationPart, "_next_slide_partname", return_value=partname)
+        SlidePart_ = class_mock(request, "pptx.parts.presentation.SlidePart")
+        SlidePart_.clone_within.return_value = slide_part_
+        slide_part_.slide = slide_
+        relate_to_.return_value = "rId42"
+        prs_part = PresentationPart(None, None, package_, None)
+
+        rId, slide = prs_part.duplicate_slide(source_slide_)
+
+        SlidePart_.clone_within.assert_called_once_with(source_slide_part_, partname)
+        prs_part.relate_to.assert_called_once_with(prs_part, slide_part_, RT.SLIDE)
+        assert rId == "rId42"
+        assert slide is slide_
+
     def it_finds_the_slide_id_of_a_slide_part(self, slide_part_, related_part_):
         prs_elm = element(
             "p:presentation/p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id="

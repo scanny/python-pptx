@@ -512,6 +512,91 @@ class DescribeSlides(object):
         assert slides._sldIdLst.xml == expected_xml
         assert new_slide is slide_
 
+    def it_can_duplicate_a_slide(self, part_prop_, slide_):
+        """Slides.duplicate() appends a new `p:sldId` referencing the cloned slide."""
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257})")
+        slides = Slides(sldIdLst, None)
+        _slides = [Slide(element("p:sld"), None), Slide(element("p:sld"), None)]
+        # -- .index() iterates, driving related_slide() once per element until match --
+        part_prop_.return_value.related_slide.side_effect = _slides
+        new_slide_ = slide_
+        part_prop_.return_value.duplicate_slide.return_value = ("rIdNew", new_slide_)
+
+        new_slide = slides.duplicate(_slides[0])
+
+        part_prop_.return_value.duplicate_slide.assert_called_once_with(_slides[0])
+        assert new_slide is new_slide_
+        # -- the new p:sldId was appended to the end of p:sldIdLst --
+        assert sldIdLst.xml == xml(
+            "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+            "p:sldId{r:id=rIdNew,id=258})"
+        )
+
+    @pytest.mark.parametrize(
+        ("index", "expected_cxml"),
+        [
+            # --- insert at beginning ---
+            (
+                0,
+                "p:sldIdLst/(p:sldId{r:id=rIdNew,id=258},p:sldId{r:id=a,id=256},"
+                "p:sldId{r:id=b,id=257})",
+            ),
+            # --- insert in the middle ---
+            (
+                1,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=rIdNew,id=258},"
+                "p:sldId{r:id=b,id=257})",
+            ),
+            # --- insert at end via explicit positive index ---
+            (
+                2,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+                "p:sldId{r:id=rIdNew,id=258})",
+            ),
+            # --- negative index counts from the end ---
+            (
+                -1,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+                "p:sldId{r:id=rIdNew,id=258})",
+            ),
+            # --- index beyond end clamps to last position ---
+            (
+                99,
+                "p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257},"
+                "p:sldId{r:id=rIdNew,id=258})",
+            ),
+            # --- sufficiently-negative index clamps to first position ---
+            (
+                -99,
+                "p:sldIdLst/(p:sldId{r:id=rIdNew,id=258},p:sldId{r:id=a,id=256},"
+                "p:sldId{r:id=b,id=257})",
+            ),
+        ],
+    )
+    def it_can_duplicate_a_slide_at_a_given_index(
+        self, index, expected_cxml, part_prop_, slide_
+    ):
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a,id=256},p:sldId{r:id=b,id=257})")
+        slides = Slides(sldIdLst, None)
+        _slides = [Slide(element("p:sld"), None), Slide(element("p:sld"), None)]
+        part_prop_.return_value.related_slide.side_effect = _slides
+        part_prop_.return_value.duplicate_slide.return_value = ("rIdNew", slide_)
+
+        slides.duplicate(_slides[0], index=index)
+
+        assert sldIdLst.xml == xml(expected_cxml)
+
+    def it_raises_on_duplicate_when_slide_not_in_collection(self, part_prop_):
+        sldIdLst = element("p:sldIdLst/p:sldId{r:id=a,id=256}")
+        slides = Slides(sldIdLst, None)
+        part_prop_.return_value.related_slide.return_value = Slide(element("p:sld"), None)
+        stranger = Slide(element("p:sld"), None)
+
+        with pytest.raises(ValueError):
+            slides.duplicate(stranger)
+
+        part_prop_.return_value.duplicate_slide.assert_not_called()
+
     def it_finds_a_slide_by_slide_id(self, get_fixture):
         slides, slide_id, default, prs_part_, expected_value = get_fixture
         slide = slides.get(slide_id, default)
