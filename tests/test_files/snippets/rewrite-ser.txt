@@ -69,7 +69,7 @@
     <c:numRef>
       <c:f>Sheet1!$B$2:$B$3</c:f>
       <c:numCache>
-        <c:formatCode>General</c:formatCode>
+        <c:formatCode>0.0</c:formatCode>
         <c:ptCount val="2"/>
         <c:pt idx="0">
           <c:v>1</c:v>
@@ -389,7 +389,7 @@
     <c:numRef>
       <c:f>Sheet1!$B$2:$B$3</c:f>
       <c:numCache>
-        <c:formatCode>General</c:formatCode>
+        <c:formatCode>0.0</c:formatCode>
         <c:ptCount val="2"/>
         <c:pt idx="0">
           <c:v>1</c:v>
@@ -474,7 +474,7 @@
     <c:numRef>
       <c:f>Sheet1!$B$2:$B$3</c:f>
       <c:numCache>
-        <c:formatCode>General</c:formatCode>
+        <c:formatCode>0.0</c:formatCode>
         <c:ptCount val="2"/>
         <c:pt idx="0">
           <c:v>1</c:v>
