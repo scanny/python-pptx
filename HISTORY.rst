@@ -77,6 +77,26 @@ Unreleased
   reporter's exact code path (``add_shape(MSO_SHAPE.…)`` → set blur /
   distance / direction / color) and round-trips every knob through
   ``Presentation.save`` + reopen.
+
+- verify: #285 (change text without editing the formatting) resolved by
+  ``feat/issue-836-replace-text-across-runs`` (Wave 6). The reporter
+  asked for a way to rewrite the text of a placeholder / token without
+  having to re-apply every run-level formatting attribute afterwards.
+  :meth:`.TextFrame.replace_text` and :meth:`._Paragraph.replace_text`
+  now do exactly that: the run where the match starts keeps its full
+  ``a:rPr`` (bold, italic, underline, font size, font family, color,
+  highlight, …) and absorbs the replacement text, runs fully inside the
+  match are dropped, and any surviving suffix on a trailing run keeps
+  that run's own rPr. The cross-run case PowerPoint produces whenever
+  it re-flows a token after an edit (``"{NA"`` / ``"ME}"`` across two
+  ``a:r`` elements with different formatting) is handled too — the
+  origin run's rPr wins and the #285 caller no longer has to reach into
+  runs and reapply styles. Adds a regression suite
+  ``DescribeIssue285ReplaceTextPreservesFormatting`` under
+  ``tests/test_issue_285_replace_text_preserve_format.py`` that
+  round-trips bold / italic / font-size / font-name / RGB color through
+  ``Presentation.save`` + reopen for the one-run, cross-run, and
+  ends-mid-run cases.
 - verify: #705 resolved by F2 + #130. Foundation F2 (Wave 1) shipped the
   full ``a:effectLst`` family on ``pptx.dml.effect`` — ``ShadowFormat``
   now exposes read/write ``blur_radius`` / ``distance`` / ``direction``
