@@ -1417,6 +1417,37 @@ class DescribeSlideShapes(object):
         _shape_factory_.assert_called_once_with(shapes, movie_pic)
         assert movie is movie_
 
+    def it_leaves_start_condition_alone_when_autoplay_False(self, movie_fixture):
+        """Default `autoplay=False` must not touch `Movie.start_condition`.
+
+        The existing behavior — movies default to click-to-play — must be
+        preserved. Setting `start_condition` would overwrite the "onClick"
+        sentinel `_add_video_timing` already writes.
+        """
+        shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
+        poster_frame_image, mime_type = movie_fixture[6:8]
+        movie_ = movie_fixture[13]
+        # -- seed a sentinel so we can detect an overwrite --
+        movie_.start_condition = "__unset__"
+
+        shapes.add_movie(movie_file, x, y, cx, cy, poster_frame_image, mime_type)
+
+        # -- with autoplay defaulting to False the setter must not have run --
+        assert movie_.start_condition == "__unset__"
+
+    def it_sets_start_condition_withPrevious_when_autoplay_True(self, movie_fixture):
+        """`add_movie(..., autoplay=True)` must set `start_condition="withPrevious"`."""
+        shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
+        poster_frame_image, mime_type = movie_fixture[6:8]
+        movie_ = movie_fixture[13]
+
+        movie = shapes.add_movie(
+            movie_file, x, y, cx, cy, poster_frame_image, mime_type, autoplay=True
+        )
+
+        assert movie is movie_
+        assert movie_.start_condition == "withPrevious"
+
     def it_can_add_a_table(self, table_fixture):
         shapes, rows, cols, x, y, cx, cy, table_, expected_xml = table_fixture
 

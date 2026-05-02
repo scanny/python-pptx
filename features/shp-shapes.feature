@@ -270,6 +270,18 @@ Feature: Access a shape on a slide
       And the movie shape's p:video entry sits inside that p:timing
 
 
+  # -- issue #427: user-facing convenience kwarg that configures the
+  # -- movie to start automatically (start_condition="withPrevious")
+  # -- instead of PowerPoint's default click-to-play. Layered on top of
+  # -- the Wave 5 #811 Movie.start_condition property.
+  Scenario: SlideShapes.add_movie(autoplay=True) sets start_condition withPrevious
+    Given a SlideShapes object containing no movies
+     When I call shapes.add_movie(file, x, y, cx, cy, poster_frame, autoplay=True)
+      And I save the presentation
+     Then movie is a Movie object
+      And movie.start_condition == "withPrevious"
+
+
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file
