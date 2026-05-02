@@ -6,6 +6,11 @@ Release History
 Unreleased
 ++++++++++
 
+- fix: #749 ``Shape.auto_shape_type`` raised ``KeyError: 'line'`` on an
+  auto-shape whose ``a:prstGeom`` element had ``prst="line"``. A new
+  ``MSO_SHAPE.LINE`` enum member now maps the ``"line"`` preset, and
+  ``Shape.auto_shape_type`` returns |None| (instead of raising) when the
+  preset value is not a known member of ``MSO_AUTO_SHAPE_TYPE``.
 - fix: #332 MSO_LINE_DASH_STYLE.ROUND_DOT correct mapping
 
 1.0.2 (2024-08-07)

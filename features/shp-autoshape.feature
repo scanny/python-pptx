@@ -24,3 +24,13 @@ Feature: Shape properties and methods
      Given a Shape object having text as shape
       When I assign shape.text = "F\xf8o\vBar\nBaz\x1b"
       Then shape.text == "F\xf8o\vBar\nBaz_x001B_"
+
+
+  Scenario: Shape.auto_shape_type for a shape with prst="line" (issue #749)
+     Given an auto-shape with prst="line" as shape
+      Then shape.auto_shape_type is MSO_SHAPE.LINE
+
+
+  Scenario: Shape.auto_shape_type for a shape with an unknown prst (issue #749)
+     Given an auto-shape with an unknown prst as shape
+      Then shape.auto_shape_type is None

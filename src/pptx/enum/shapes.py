@@ -429,6 +429,17 @@ class MSO_AUTO_SHAPE_TYPE(BaseXmlEnum):
     LIGHTNING_BOLT = (22, "lightningBolt", "Lightning bolt")
     """Lightning bolt"""
 
+    LINE = (184, "line", "Straight line")
+    """Straight line.
+
+    Corresponds to the ``line`` preset-geometry value. Note this value is an
+    extension to ``MsoAutoShapeType`` -- it has no corresponding member in the
+    MS Office API because a straight line is represented by
+    ``MsoConnectorType.msoConnectorStraight`` in PowerPoint. It appears here
+    so that an auto-shape whose ``a:prstGeom`` element has ``prst="line"``
+    can be interrogated via :attr:`Shape.auto_shape_type` without error.
+    """
+
     LINE_CALLOUT_1 = (109, "borderCallout1", "Callout with border and horizontal callout line")
     """Callout with border and horizontal callout line"""
 

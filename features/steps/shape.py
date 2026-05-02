@@ -213,6 +213,54 @@ def given_a_shape_of_known_position_and_size(context):
     context.shape = prs.slides[0].shapes[0]
 
 
+@given('an auto-shape with prst="line" as shape')
+def given_an_autoshape_with_prst_line_as_shape(context):
+    # -- construct a minimal autoshape whose prstGeom has prst="line"; this
+    # -- exercises the issue #749 regression path without requiring a fixture PPTX
+    from pptx.oxml import parse_xml
+    from pptx.shapes.autoshape import Shape
+
+    sp_xml = (
+        '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+        ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+        "  <p:nvSpPr>"
+        '    <p:cNvPr id="2" name="Line 1"/>'
+        "    <p:cNvSpPr/>"
+        "    <p:nvPr/>"
+        "  </p:nvSpPr>"
+        "  <p:spPr>"
+        '    <a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm>'
+        '    <a:prstGeom prst="line"><a:avLst/></a:prstGeom>'
+        "  </p:spPr>"
+        "</p:sp>"
+    )
+    sp = parse_xml(sp_xml)
+    context.shape = Shape(sp, None)
+
+
+@given("an auto-shape with an unknown prst as shape")
+def given_an_autoshape_with_an_unknown_prst_as_shape(context):
+    from pptx.oxml import parse_xml
+    from pptx.shapes.autoshape import Shape
+
+    sp_xml = (
+        '<p:sp xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"'
+        ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+        "  <p:nvSpPr>"
+        '    <p:cNvPr id="2" name="Mystery 1"/>'
+        "    <p:cNvSpPr/>"
+        "    <p:nvPr/>"
+        "  </p:nvSpPr>"
+        "  <p:spPr>"
+        '    <a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm>'
+        '    <a:prstGeom prst="futurePreset42"><a:avLst/></a:prstGeom>'
+        "  </p:spPr>"
+        "</p:sp>"
+    )
+    sp = parse_xml(sp_xml)
+    context.shape = Shape(sp, None)
+
+
 # when ====================================================
 
 
@@ -669,3 +717,16 @@ def then_shape_width_eq_value(context, value):
     expected_width = int(value)
     actual_width = context.shape.width
     assert actual_width == expected_width, "shape.width == %s" % actual_width
+
+
+@then("shape.auto_shape_type is MSO_SHAPE.{member_name}")
+def then_shape_auto_shape_type_is_MSO_SHAPE_member(context, member_name):
+    expected = getattr(MSO_SHAPE, member_name)
+    actual = context.shape.auto_shape_type
+    assert actual is expected, "shape.auto_shape_type == %r" % (actual,)
+
+
+@then("shape.auto_shape_type is None")
+def then_shape_auto_shape_type_is_None(context):
+    actual = context.shape.auto_shape_type
+    assert actual is None, "shape.auto_shape_type == %r" % (actual,)

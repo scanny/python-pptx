@@ -317,6 +317,32 @@ class DescribeShape(object):
         with pytest.raises(ValueError):
             non_autoshape_shape_.auto_shape_type
 
+    def it_resolves_prst_line_to_MSO_SHAPE_LINE(self):
+        # -- regression test for issue #749: reading a shape with prst="line"
+        # -- must not raise; it resolves to the new MSO_SHAPE.LINE member
+        sp = (
+            an_sp()
+            .with_nsdecls()
+            .with_child(an_nvSpPr().with_child(a_cNvSpPr()))
+            .with_child(an_spPr().with_child(a_prstGeom().with_prst("line")))
+        ).element
+        shape = Shape(sp, None)
+
+        assert shape.auto_shape_type is MSO_SHAPE.LINE
+
+    def and_it_returns_None_for_a_prst_value_not_in_the_enum(self):
+        # -- defensive regression guard for issue #749: an unknown preset-geometry
+        # -- value must not crash, it returns None instead
+        sp = (
+            an_sp()
+            .with_nsdecls()
+            .with_child(an_nvSpPr().with_child(a_cNvSpPr()))
+            .with_child(an_spPr().with_child(a_prstGeom().with_prst("foobarBaz")))
+        ).element
+        shape = Shape(sp, None)
+
+        assert shape.auto_shape_type is None
+
     def it_has_a_fill(self, shape):
         assert isinstance(shape.fill, FillFormat)
 

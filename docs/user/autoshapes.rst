@@ -29,6 +29,12 @@ positioned one inch from the top-left corner of the slide::
 See the :ref:`MsoAutoShapeType` enumeration page for a list of all 182 auto
 shape types.
 
+Reading ``shape.auto_shape_type`` returns the member of
+:ref:`MsoAutoShapeType` corresponding to the shape's ``a:prstGeom/@prst``
+value. For a preset that has no matching enum member (for example, a ``prst``
+value written by a newer version of PowerPoint), ``shape.auto_shape_type``
+returns ``None`` instead of raising.
+
 
 .. _`EMU`:
 
