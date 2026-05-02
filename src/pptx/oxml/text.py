@@ -268,7 +268,11 @@ class CT_TextCharacterProperties(BaseOxmlElement):
 
     get_or_add_hlinkClick: Callable[[], CT_Hyperlink]
     get_or_add_latin: Callable[[], CT_TextFont]
+    get_or_add_ea: Callable[[], CT_TextFont]
+    get_or_add_cs: Callable[[], CT_TextFont]
     _remove_latin: Callable[[], None]
+    _remove_ea: Callable[[], None]
+    _remove_cs: Callable[[], None]
     _remove_hlinkClick: Callable[[], None]
 
     eg_fillProperties = ZeroOrOneChoice(
@@ -303,6 +307,27 @@ class CT_TextCharacterProperties(BaseOxmlElement):
         successors=(
             "a:ea",
             "a:cs",
+            "a:sym",
+            "a:hlinkClick",
+            "a:hlinkMouseOver",
+            "a:rtl",
+            "a:extLst",
+        ),
+    )
+    ea: CT_TextFont | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:ea",
+        successors=(
+            "a:cs",
+            "a:sym",
+            "a:hlinkClick",
+            "a:hlinkMouseOver",
+            "a:rtl",
+            "a:extLst",
+        ),
+    )
+    cs: CT_TextFont | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:cs",
+        successors=(
             "a:sym",
             "a:hlinkClick",
             "a:hlinkMouseOver",

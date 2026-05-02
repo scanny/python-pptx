@@ -3,6 +3,11 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- #337 support East-Asian and complex-script font slots
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 

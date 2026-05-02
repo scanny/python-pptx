@@ -21,6 +21,19 @@ def given_a_font(context):
     context.font = run.font
 
 
+@given("a font with Latin, East-Asian, and complex-script typefaces set")
+def given_a_font_with_latin_ea_cs_set(context):
+    prs = Presentation(test_pptx("txt-font-props"))
+    slide = prs.slides[1]
+    textbox = slide.shapes[0]
+    run = textbox.text_frame.paragraphs[0].runs[0]
+    font = run.font
+    font.name = "Calibri"
+    font.name_ea = "MS Gothic"
+    font.name_cs = "Arial"
+    context.font = font
+
+
 @given("a font having language id {value}")
 def given_a_font_having_language_id_value(context, value):
     shape_idx = {
@@ -103,6 +116,39 @@ def when_I_assign_value_to_font_underline(context, value):
     context.font.underline = new_value
 
 
+@when("I assign an East-Asian typeface name to the font")
+def when_assign_ea_typeface_name_to_font(context):
+    # -- remember the starting Latin name so we can assert it's unchanged --
+    context.original_name = context.font.name
+    context.font.name_ea = "MS Gothic"
+
+
+@when("I assign a complex-script typeface name to the font")
+def when_assign_cs_typeface_name_to_font(context):
+    context.original_name = context.font.name
+    context.font.name_cs = "Arial"
+
+
+@when("I assign Latin, East-Asian, and complex-script typeface names to the font")
+def when_assign_latin_ea_cs_typeface_names_to_font(context):
+    context.font.name = "Calibri"
+    context.font.name_ea = "MS Gothic"
+    context.font.name_cs = "Arial"
+
+
+@when("I assign None to font.name_ea")
+def when_assign_none_to_font_name_ea(context):
+    context.original_name = context.font.name
+    context.font.name_ea = None
+
+
+@when("I assign None to font.name_cs")
+def when_assign_none_to_font_name_cs(context):
+    if not hasattr(context, "original_name"):
+        context.original_name = context.font.name
+    context.font.name_cs = None
+
+
 # then ===================================================
 
 
@@ -148,3 +194,38 @@ def then_font_underline_is_value(context, value):
     font = context.font
     print(font._rPr.xml)
     assert font.underline is expected_value, "got %s" % font.underline
+
+
+@then("the East-Asian font name matches the typeface I set")
+def then_ea_font_name_matches(context):
+    assert context.font.name_ea == "MS Gothic", "got %s" % context.font.name_ea
+
+
+@then("the complex-script font name matches the typeface I set")
+def then_cs_font_name_matches(context):
+    assert context.font.name_cs == "Arial", "got %s" % context.font.name_cs
+
+
+@then("the Latin font name is unchanged")
+def then_latin_font_name_unchanged(context):
+    assert context.font.name == context.original_name, (
+        "expected Latin name %r, got %r" % (context.original_name, context.font.name)
+    )
+
+
+@then("font.name, font.name_ea, and font.name_cs each match the value I set")
+def then_all_three_font_names_match(context):
+    font = context.font
+    assert font.name == "Calibri", "font.name got %s" % font.name
+    assert font.name_ea == "MS Gothic", "font.name_ea got %s" % font.name_ea
+    assert font.name_cs == "Arial", "font.name_cs got %s" % font.name_cs
+
+
+@then("font.name_ea is None")
+def then_font_name_ea_is_none(context):
+    assert context.font.name_ea is None, "got %s" % context.font.name_ea
+
+
+@then("font.name_cs is None")
+def then_font_name_cs_is_none(context):
+    assert context.font.name_cs is None, "got %s" % context.font.name_cs

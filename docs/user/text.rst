@@ -177,3 +177,38 @@ this will not change color when the theme is changed::
 A run can also be made into a hyperlink by providing a target URL::
 
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
+
+
+Setting a typeface for East-Asian or complex-script text
+--------------------------------------------------------
+
+A run in PowerPoint has three independent font slots: one for Latin-script
+text, one for East-Asian (CJK: Chinese, Japanese, Korean) text, and one for
+complex-script text (e.g. Arabic, Hebrew, Thai, Devanagari). PowerPoint
+chooses the appropriate slot per-character based on the Unicode range of the
+glyph being rendered, so mixed-script text in a single run can display
+correctly.
+
+|Font| exposes each of these slots as a separate property:
+
+* :attr:`.Font.name` — Latin typeface (``a:latin``)
+* :attr:`.Font.name_ea` — East-Asian typeface (``a:ea``)
+* :attr:`.Font.name_cs` — complex-script typeface (``a:cs``)
+
+::
+
+    font = run.font
+    font.name = 'Calibri'       # Latin script
+    font.name_ea = 'MS Gothic'  # East-Asian / CJK
+    font.name_cs = 'Arial'      # complex scripts
+
+Each property reads and writes independently; assigning |None| removes only
+that slot's override and restores inheritance from the theme for that
+script::
+
+    font.name_ea = None  # clears a:ea; a:latin and a:cs are preserved
+
+Setting :attr:`.Font.name` alone has no effect on how CJK text is displayed,
+which is the most common reason ``font.name`` appeared not to work for
+East-Asian text — the typeface used for CJK characters is controlled by
+:attr:`.Font.name_ea`, not :attr:`.Font.name`.

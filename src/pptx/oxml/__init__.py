@@ -461,7 +461,9 @@ from pptx.oxml.text import (  # noqa: E402
 
 register_element_cls("a:bodyPr", CT_TextBodyProperties)
 register_element_cls("a:br", CT_TextLineBreak)
+register_element_cls("a:cs", CT_TextFont)
 register_element_cls("a:defRPr", CT_TextCharacterProperties)
+register_element_cls("a:ea", CT_TextFont)
 register_element_cls("a:endParaRPr", CT_TextCharacterProperties)
 register_element_cls("a:fld", CT_TextField)
 register_element_cls("a:latin", CT_TextFont)
