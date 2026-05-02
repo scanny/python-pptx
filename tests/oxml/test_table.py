@@ -7,10 +7,61 @@ import pytest
 from pptx.oxml.ns import nsdecls
 from pptx.oxml.table import CT_Table, TcRange
 
-from ..unitutil.cxml import element
+from ..unitutil.cxml import element, xml
 
 
 class DescribeCT_Table(object):
+    @pytest.mark.parametrize(
+        ("tbl_cxml", "expected_value"),
+        [
+            ("a:tbl/a:tblGrid", None),
+            ("a:tbl/(a:tblPr,a:tblGrid)", None),
+            (
+                'a:tbl/(a:tblPr/a:tableStyleId"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",a:tblGrid)',
+                "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",
+            ),
+        ],
+    )
+    def it_knows_its_tableStyleId(self, tbl_cxml, expected_value):
+        tbl = element(tbl_cxml)
+        assert tbl.tableStyleId == expected_value
+
+    @pytest.mark.parametrize(
+        ("tbl_cxml", "new_value", "expected_cxml"),
+        [
+            # ---assigning a GUID to a bare tbl adds tblPr and tableStyleId---
+            (
+                "a:tbl/a:tblGrid",
+                "{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",
+                'a:tbl/(a:tblPr/a:tableStyleId"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}",a:tblGrid)',
+            ),
+            # ---assigning a GUID to tblPr without tableStyleId adds the child---
+            (
+                "a:tbl/(a:tblPr,a:tblGrid)",
+                "{NEW-GUID}",
+                'a:tbl/(a:tblPr/a:tableStyleId"{NEW-GUID}",a:tblGrid)',
+            ),
+            # ---assigning a GUID overwrites existing tableStyleId text---
+            (
+                'a:tbl/(a:tblPr/a:tableStyleId"{OLD-GUID}",a:tblGrid)',
+                "{NEW-GUID}",
+                'a:tbl/(a:tblPr/a:tableStyleId"{NEW-GUID}",a:tblGrid)',
+            ),
+            # ---assigning None removes the tableStyleId child (leaves tblPr)---
+            (
+                'a:tbl/(a:tblPr/a:tableStyleId"{SOME-ID}",a:tblGrid)',
+                None,
+                "a:tbl/(a:tblPr,a:tblGrid)",
+            ),
+            # ---assigning None to a tbl without tblPr is a no-op---
+            ("a:tbl/a:tblGrid", None, "a:tbl/a:tblGrid"),
+        ],
+    )
+    def it_can_change_its_tableStyleId(self, tbl_cxml, new_value, expected_cxml):
+        tbl = element(tbl_cxml)
+        tbl.tableStyleId = new_value
+        assert tbl.xml == xml(expected_cxml)
+
     def it_can_create_a_new_tbl_element_tree(self):
         """
         Indirectly tests that column widths are a proportional split of total

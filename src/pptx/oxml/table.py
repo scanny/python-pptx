@@ -46,6 +46,32 @@ class CT_Table(BaseOxmlElement):
         return self._add_tr(h=height)
 
     @property
+    def tableStyleId(self) -> str | None:
+        """GUID of the table style referenced by this table, or `None`.
+
+        The value is the text of the `a:tblPr/a:tableStyleId` descendant element (a GUID
+        string like `{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}`). Returns `None` when either
+        the `a:tblPr` element or its `a:tableStyleId` child is not present.
+        """
+        tblPr = self.tblPr
+        if tblPr is None:
+            return None
+        return tblPr.tableStyleId_val
+
+    @tableStyleId.setter
+    def tableStyleId(self, value: str | None) -> None:
+        """Set the GUID of the table style referenced by this table.
+
+        Assigning `None` removes the `a:tableStyleId` child element (but leaves the
+        `a:tblPr` element in place if already present). Assigning a GUID string adds or
+        updates the `a:tableStyleId` child element, adding `a:tblPr` as needed.
+        """
+        if value is None and self.tblPr is None:
+            return
+        tblPr = self.get_or_add_tblPr()
+        tblPr.tableStyleId_val = value
+
+    @property
     def bandCol(self) -> bool:
         return self._get_boolean_property("bandCol")
 
@@ -416,12 +442,38 @@ class CT_TableGrid(BaseOxmlElement):
 class CT_TableProperties(BaseOxmlElement):
     """`a:tblPr` custom element class."""
 
+    get_or_add_tableStyleId: Callable[[], BaseOxmlElement]
+    _add_tableStyleId: Callable[[], BaseOxmlElement]
+    _remove_tableStyleId: Callable[[], None]
+
+    # `a:tableStyleId` is a child element holding the GUID of the referenced table
+    # style as its text content. The schema actually uses a `<xsd:choice>` between
+    # `a:tableStyle` (inline) and `a:tableStyleId` (GUID); we expose the GUID form
+    # only. `a:extLst` is the sole successor per `CT_TableProperties`.
+    tableStyleId = ZeroOrOne("a:tableStyleId", successors=("a:extLst",))
     bandRow = OptionalAttribute("bandRow", XsdBoolean, default=False)
     bandCol = OptionalAttribute("bandCol", XsdBoolean, default=False)
     firstRow = OptionalAttribute("firstRow", XsdBoolean, default=False)
     firstCol = OptionalAttribute("firstCol", XsdBoolean, default=False)
     lastRow = OptionalAttribute("lastRow", XsdBoolean, default=False)
     lastCol = OptionalAttribute("lastCol", XsdBoolean, default=False)
+
+    @property
+    def tableStyleId_val(self) -> str | None:
+        """GUID text content of `a:tableStyleId` child, or `None` if not present."""
+        tableStyleId = self.tableStyleId
+        if tableStyleId is None:
+            return None
+        return tableStyleId.text
+
+    @tableStyleId_val.setter
+    def tableStyleId_val(self, value: str | None) -> None:
+        """Set GUID text content of `a:tableStyleId` child; `None` removes the element."""
+        if value is None:
+            self._remove_tableStyleId()
+            return
+        tableStyleId = self.get_or_add_tableStyleId()
+        tableStyleId.text = value
 
 
 class CT_TableRow(BaseOxmlElement):

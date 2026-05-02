@@ -267,6 +267,45 @@ Note that the content migration performed as part of the `.merge()` operation
 was not reversed.
 
 
+Applying a table style
+----------------------
+
+A PowerPoint table can reference one of the host application's built-in table
+styles (e.g. *Medium Style 2 - Accent 1*). The reference is stored as a GUID on
+the table XML. |pp| exposes that GUID via :attr:`Table.style_id`, so a style can
+be read, changed, or cleared::
+
+    >>> table = shape.table
+    >>> # ---default GUID assigned by `add_table()`---
+    >>> table.style_id
+    '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}'
+
+    >>> # ---switch to a different built-in style---
+    >>> table.style_id = '{2D5ABB26-0587-4C30-8999-92F81FD0307C}'
+
+    >>> # ---clear the reference (host falls back to default)---
+    >>> table.style_id = None
+
+The GUIDs themselves are not invented by |pp|; PowerPoint (or another host
+application) ships a fixed set of built-in styles, each identified by a GUID,
+in the presentation's ``tableStyles.xml`` part. To discover the GUIDs
+available in a particular template, open the ``.pptx`` in PowerPoint, apply
+the style you want to a table, then inspect the ``a:tblPr/a:tableStyleId``
+element of that table in the unzipped XML.
+
+.. note::
+
+   |pp| does not currently expose a typed, by-name API for selecting built-in
+   table styles (for example, ``table.style = "Medium Style 2 - Accent 1"``);
+   that is deferred to a future release. This also means |pp| does not
+   validate the assigned GUID against the ``tableStyles.xml`` part — an
+   unknown GUID will still be written to the file, but the host application
+   will silently fall back to its default style when the file is opened. See
+   `issue #27`_ for background and the deferred roadmap.
+
+.. _issue #27: https://github.com/scanny/python-pptx/issues/27
+
+
 A few snippets that might be handy
 ----------------------------------
 

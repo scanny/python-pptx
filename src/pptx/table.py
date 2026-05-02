@@ -152,6 +152,28 @@ class Table(object):
         return _RowCollection(self._tbl, self)
 
     @property
+    def style_id(self) -> str | None:
+        """GUID of the table style referenced by this table, or `None`.
+
+        The value is a string like ``"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}"``. PowerPoint
+        ships with a fixed set of built-in table styles and stores the selection as a GUID
+        reference in the `a:tblPr/a:tableStyleId` element of the table XML. This property
+        is read/write; assigning `None` removes the style reference, causing the host
+        application to fall back to its default table style.
+
+        Note the referenced style must exist in the presentation's `tableStyles.xml` part
+        (or be one of PowerPoint's built-in GUIDs) for the assignment to take effect in
+        the rendered output. python-pptx does not validate the GUID against that part and
+        does not currently expose a typed, by-name API for selecting built-in styles; that
+        is deferred to a future release (see issue #27).
+        """
+        return self._tbl.tableStyleId
+
+    @style_id.setter
+    def style_id(self, value: str | None) -> None:
+        self._tbl.tableStyleId = value
+
+    @property
     def vert_banding(self) -> bool:
         """When `True`, indicates columns should have alternating shading.
 

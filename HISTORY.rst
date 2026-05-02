@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- feat: #27 apply table styles. Adds ``Table.style_id`` read/write property
+  exposing the GUID stored in ``a:tblPr/a:tableStyleId``. The typed,
+  by-name API for selecting built-in PowerPoint table styles is deferred to
+  a follow-up release; assignment of unknown GUIDs is not validated against
+  the ``tableStyles.xml`` part.
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
