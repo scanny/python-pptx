@@ -48,6 +48,55 @@ if TYPE_CHECKING:
     from pptx.oxml.text import CT_TextBody, CT_TextParagraph
 
 
+@pytest.fixture
+def _restore_part_factory():
+    """Guard against pollution from other tests that mutate `PartFactory.part_type_for`.
+
+    Mirror of the fixture in ``tests/shapes/test_base.py``: some tests in the suite
+    overwrite ``PartFactory.part_type_for[CT.PML_SLIDE]`` with a Mock and do not restore
+    it. Any test that round-trips a real `.pptx` through save + reopen needs the default
+    part-type mapping in place.
+    """
+    from pptx.opc.constants import CONTENT_TYPE as CT
+    from pptx.opc.package import PartFactory
+    from pptx.parts.chart import ChartPart
+    from pptx.parts.coreprops import CorePropertiesPart
+    from pptx.parts.image import ImagePart
+    from pptx.parts.media import MediaPart
+    from pptx.parts.presentation import PresentationPart
+    from pptx.parts.slide import (
+        NotesMasterPart,
+        NotesSlidePart,
+        SlideLayoutPart,
+        SlideMasterPart,
+        SlidePart,
+    )
+
+    saved = dict(PartFactory.part_type_for)
+    expected = {
+        CT.PML_PRESENTATION_MAIN: PresentationPart,
+        CT.PML_PRES_MACRO_MAIN: PresentationPart,
+        CT.PML_TEMPLATE_MAIN: PresentationPart,
+        CT.PML_SLIDESHOW_MAIN: PresentationPart,
+        CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
+        CT.PML_NOTES_MASTER: NotesMasterPart,
+        CT.PML_NOTES_SLIDE: NotesSlidePart,
+        CT.PML_SLIDE: SlidePart,
+        CT.PML_SLIDE_LAYOUT: SlideLayoutPart,
+        CT.PML_SLIDE_MASTER: SlideMasterPart,
+        CT.DML_CHART: ChartPart,
+        CT.JPEG: ImagePart,
+        CT.PNG: ImagePart,
+        CT.MP4: MediaPart,
+    }
+    PartFactory.part_type_for.update(expected)
+    try:
+        yield
+    finally:
+        PartFactory.part_type_for.clear()
+        PartFactory.part_type_for.update(saved)
+
+
 class DescribeTextFrame(object):
     """Unit-test suite for `pptx.text.text.TextFrame` object."""
 
@@ -1281,6 +1330,148 @@ class Describe_Paragraph(object):
         assert fld.type == "slidenum"
         # ---auto-assigned id looks like a GUID in braces---
         assert fld.id.startswith("{") and fld.id.endswith("}") and len(fld.id) == 38
+
+    def it_can_add_a_math_equation(self):
+        """Regression test for issue #528 (insert OMML into a paragraph).
+
+        Writes an ``mc:AlternateContent/mc:Choice[Requires="a14"]/a14:m`` scaffold around the
+        caller's OMML fragment, alongside an ``mc:Fallback/a:r`` plain-text rendering. Any
+        existing runs in the paragraph are preserved.
+        """
+        from pptx.oxml.ns import qn
+
+        p = cast("CT_TextParagraph", element('a:p/a:r/a:t"x = "'))
+        paragraph = _Paragraph(p, None)
+        omml = (
+            '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+            "<m:r><m:t>1+2</m:t></m:r>"
+            "</m:oMath>"
+        )
+
+        paragraph.add_math_equation(omml)
+
+        # -- the pre-existing run is preserved --
+        assert len(paragraph._p.r_lst) == 1
+        assert paragraph._p.r_lst[0].text == "x = "
+        # -- exactly one mc:AlternateContent child is appended --
+        ac_children = list(paragraph._p.iterchildren(qn("mc:AlternateContent")))
+        assert len(ac_children) == 1
+        ac = ac_children[0]
+        # -- mc:Choice/a14:m/m:oMath path is present --
+        choice = ac.find(qn("mc:Choice"))
+        assert choice is not None
+        assert choice.get("Requires") == "a14"
+        a14_m = choice.find(qn("a14:m"))
+        assert a14_m is not None
+        oMath_elms = a14_m.findall(qn("m:oMath"))
+        assert len(oMath_elms) == 1
+        # -- mc:Fallback/a:r/a:t carries the extracted plain text --
+        fallback = ac.find(qn("mc:Fallback"))
+        assert fallback is not None
+        fallback_r = fallback.find(qn("a:r"))
+        assert fallback_r is not None
+        assert fallback_r.findtext(qn("a:t")) == "1+2"
+
+    def it_can_add_a_math_equation_accepting_oMathPara(self):
+        from pptx.oxml.ns import qn
+
+        p = cast("CT_TextParagraph", element("a:p"))
+        paragraph = _Paragraph(p, None)
+        omml = (
+            '<m:oMathPara xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+            "<m:oMath><m:r><m:t>y=</m:t></m:r><m:r><m:t>2</m:t></m:r></m:oMath>"
+            "</m:oMathPara>"
+        )
+
+        paragraph.add_math_equation(omml)
+
+        ac = paragraph._p.find(qn("mc:AlternateContent"))
+        assert ac is not None
+        # -- the full m:oMathPara subtree is preserved --
+        para = ac.find("./" + qn("mc:Choice") + "/" + qn("a14:m") + "/" + qn("m:oMathPara"))
+        assert para is not None
+        assert para.find(qn("m:oMath")) is not None
+        # -- fallback text concatenates all m:t descendants --
+        fallback = ac.find(qn("mc:Fallback"))
+        assert fallback is not None
+        fallback_r = fallback.find(qn("a:r"))
+        assert fallback_r is not None
+        assert fallback_r.findtext(qn("a:t")) == "y=2"
+
+    def it_inserts_math_equation_before_endParaRPr(self):
+        from pptx.oxml.ns import qn
+
+        p = cast("CT_TextParagraph", element('a:p/(a:r/a:t"foo",a:endParaRPr)'))
+        paragraph = _Paragraph(p, None)
+        omml = (
+            '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+            "<m:r><m:t>z</m:t></m:r></m:oMath>"
+        )
+
+        paragraph.add_math_equation(omml)
+
+        # -- child order: a:r, mc:AlternateContent, a:endParaRPr --
+        tags = [child.tag for child in paragraph._p.iterchildren()]
+        assert tags == [qn("a:r"), qn("mc:AlternateContent"), qn("a:endParaRPr")]
+
+    def it_raises_ValueError_on_malformed_omml(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+        with pytest.raises(ValueError, match="not well-formed XML"):
+            paragraph.add_math_equation("not xml")
+
+    def it_raises_ValueError_when_root_is_not_oMath(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+        with pytest.raises(ValueError, match="root element must be"):
+            paragraph.add_math_equation(
+                '<a:r xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"/>'
+            )
+
+    def it_raises_ValueError_when_oMathPara_has_no_oMath(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+        with pytest.raises(ValueError, match="must contain at least one"):
+            paragraph.add_math_equation(
+                '<m:oMathPara xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"/>'
+            )
+
+    def it_round_trips_an_added_math_equation_through_save_and_reload(
+        self, _restore_part_factory
+    ):
+        """Regression test for issue #528 end-to-end.
+
+        Author an equation via ``_Paragraph.add_math_equation``, save the presentation,
+        reload it, and verify the equation surfaces on the hosting shape via the #126
+        read API (``has_math_equation`` / ``math_equation_xml``).
+        """
+        import io
+
+        from pptx import Presentation
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+        paragraph = shape.text_frame.paragraphs[0]
+        paragraph.text = "Formula: "
+        omml = (
+            '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+            "<m:r><m:t>E=mc^2</m:t></m:r></m:oMath>"
+        )
+        paragraph.add_math_equation(omml)
+
+        buf = io.BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+        reloaded = Presentation(buf)
+
+        # -- the authored shape reports an equation after reload --
+        equation_shapes = [
+            s for s in reloaded.slides[0].shapes if s.has_math_equation
+        ]
+        assert len(equation_shapes) == 1
+        oMath_xml = equation_shapes[0].math_equation_xml
+        assert oMath_xml is not None
+        assert oMath_xml.startswith("<m:oMath")
+        assert "<m:t>E=mc^2</m:t>" in oMath_xml
 
     def it_knows_its_horizontal_alignment(self, alignment_get_fixture):
         paragraph, expected_value = alignment_get_fixture

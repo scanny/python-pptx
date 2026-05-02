@@ -42,11 +42,48 @@ not need a structured proxy -- they hand the OMML string off to an external
 renderer (pandoc, Microsoft's ``omml.xsl``, etc.).
 
 
+Issue #528 -- inline write (``_Paragraph.add_math_equation``)
+-------------------------------------------------------------
+
+``_Paragraph.add_math_equation(omml_xml)`` is the write counterpart added by
+issue #528. The method accepts a caller-supplied OMML string (typically the
+output of Microsoft's ``MML2OMML.XSL``), validates that its root is
+``m:oMath`` or ``m:oMathPara``, and appends it to the paragraph wrapped as
+follows::
+
+    <a:p>
+      ...existing runs / line-breaks / fields...
+      <mc:AlternateContent>
+        <mc:Choice Requires="a14">
+          <a14:m>
+            <m:oMath>...caller's OMML...</m:oMath>
+          </a14:m>
+        </mc:Choice>
+        <mc:Fallback>
+          <a:r><a:t>...concatenated m:t text...</a:t></a:r>
+        </mc:Fallback>
+      </mc:AlternateContent>
+      ...optional a:endParaRPr...
+    </a:p>
+
+The ``mc:Fallback`` is populated with the visible text of the OMML
+(concatenation of every ``m:t`` descendant, XML-escaped) so that pre-2010
+consumers render *something* readable. Existing runs, line-breaks, and fields
+on the paragraph are preserved; the equation is inserted after them and before
+any ``a:endParaRPr``.
+
+Writing lives at the paragraph level because PowerPoint's own behaviour for an
+inline equation is to emit the ``mc:AlternateContent`` as a paragraph-content
+sibling of ``a:r`` / ``a:br`` / ``a:fld``. Call the new method on the
+``_Paragraph`` returned by ``text_frame.paragraphs[i]`` or
+``text_frame.add_paragraph()``. The ``a14`` namespace
+(``http://schemas.microsoft.com/office/drawing/2010/main``) is now registered
+in ``pptx.oxml.ns``.
+
+
 Explicitly deferred
 -------------------
 
-- **Equation authoring.** No ``add_equation(...)`` API; no setter for
-  ``math_equation_xml``.
 - **LaTeX / MathML conversion.** python-pptx never translates between OMML
   and other math formats.
 - **Structured equation object.** No typed ``Equation`` class exposing
@@ -55,8 +92,11 @@ Explicitly deferred
   *first* ``m:oMath`` descendant even when the shape contains several.
   Callers who need every equation can walk ``shape.element.xpath(".//m:oMath")``
   directly.
+- **Replacing / editing an existing equation.** ``add_math_equation`` only
+  appends; editing in place still requires raw XML manipulation through
+  ``shape.element``.
 
-These are tracked under issue #126 for a future iteration.
+These remain tracked under issue #126 for a future iteration.
 
 
 Specimen XML
