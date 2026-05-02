@@ -9,7 +9,6 @@ from pptx.chart.marker import Marker
 from pptx.chart.point import BubblePoints, CategoryPoints, XyPoints
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import (
-    XL_ERROR_BAR_DIRECTION,
     XL_ERROR_BAR_INCLUDE,
     XL_ERROR_BAR_TYPE,
     XL_TRENDLINE_TYPE,
@@ -441,7 +440,7 @@ class _BaseSeries(object):
             return
         if not isinstance(value, ErrorBars):
             raise TypeError(
-                "series.error_bars must be an ErrorBars instance or None, got %r" % type(value)
+                "series.error_bars must be an ErrorBars instance or None, got %r" % type(value),
             )
         # -- replace any existing c:errBars with the new one --
         self._ser._remove_errBars()
@@ -579,7 +578,31 @@ class _BaseCategorySeries(_BaseSeries):
     @lazyproperty
     def data_labels(self):
         """|DataLabels| object controlling data labels for this series."""
-        return DataLabels(self._ser.get_or_add_dLbls())
+        return DataLabels(
+            self._ser.get_or_add_dLbls(),
+            chart_type=self._chart_type_or_none,
+        )
+
+    @property
+    def _chart_type_or_none(self):
+        """The ``XL_CHART_TYPE`` of the plot owning this series, or ``None``.
+
+        Used to scope :class:`DataLabels` position validation (issue #789).
+        Resolution can fail on partial XML fixtures used in unit tests, in
+        which case this returns ``None`` so validation is skipped rather
+        than blowing up during attribute access.
+        """
+        # -- local import avoids a circular dependency at module import --
+        from pptx.chart.plot import PlotFactory, PlotTypeInspector
+
+        xChart = self._ser.getparent()
+        if xChart is None:
+            return None
+        try:
+            plot = PlotFactory(xChart, None)
+            return PlotTypeInspector.chart_type(plot)
+        except (KeyError, ValueError, IndexError, NotImplementedError):
+            return None
 
     @lazyproperty
     def points(self):

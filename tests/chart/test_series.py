@@ -252,7 +252,7 @@ class Describe_BaseCategorySeries(object):
 
         dLbls = ser.xpath("c:dLbls")[0]
         assert dLbls.xml == expected_dLbls_xml
-        DataLabels_.assert_called_once_with(dLbls)
+        DataLabels_.assert_called_once_with(dLbls, chart_type=None)
         assert data_labels is data_labels_
 
     def it_provides_access_to_its_points(self, points_fixture):

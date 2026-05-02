@@ -160,6 +160,22 @@ Unreleased
   earliest existing child whose tag is in the successor set, preserving
   schema order regardless of which successor types are present.
 
+- fix: #789 ``DataLabels.position`` now validates against a per-chart-type
+  whitelist and raises ``ValueError`` with a clear message when an
+  incompatible position is assigned, instead of silently producing a file
+  PowerPoint refuses to open. The classic trigger is
+  ``plots[0].data_labels.position = XL_LABEL_POSITION.OUTSIDE_END`` on a
+  stacked column / bar chart. The whitelist follows PowerPoint's UI: line
+  / scatter accept ``CENTER`` / ``LEFT`` / ``RIGHT`` / ``ABOVE`` /
+  ``BELOW``; clustered bar / column additionally accept ``OUTSIDE_END``;
+  stacked and 100%-stacked bar / column accept only ``CENTER`` /
+  ``INSIDE_END`` / ``INSIDE_BASE``; pie / doughnut accept ``CENTER`` /
+  ``INSIDE_END`` / ``OUTSIDE_END`` / ``BEST_FIT``; area accepts
+  ``CENTER``. Validation applies at both the plot-level
+  (``plot.data_labels``) and series-level (``series.data_labels``) entry
+  points. Assigning ``None`` remains universally legal and clears the
+  ``c:dLblPos`` element; a rejected assignment leaves the XML untouched.
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

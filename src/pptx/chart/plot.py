@@ -59,7 +59,21 @@ class _BasePlot(object):
         dLbls = self._element.dLbls
         if dLbls is None:
             raise ValueError("plot has no data labels, set has_data_labels = True first")
-        return DataLabels(dLbls)
+        return DataLabels(dLbls, chart_type=self._chart_type_or_none)
+
+    @property
+    def _chart_type_or_none(self):
+        """The ``XL_CHART_TYPE`` of this plot, or ``None`` if not determinable.
+
+        Resolution can fail on partial XML fixtures used in unit tests. In
+        that case, return ``None`` so :class:`DataLabels` position
+        validation (issue #789) is skipped rather than propagating a
+        construction-time error.
+        """
+        try:
+            return PlotTypeInspector.chart_type(self)
+        except (KeyError, ValueError, IndexError, NotImplementedError):
+            return None
 
     @property
     def has_data_labels(self):
@@ -339,7 +353,7 @@ class PlotTypeInspector(object):
             }[plot.__class__.__name__]
         except KeyError:
             raise NotImplementedError(
-                "chart_type() not implemented for %s" % plot.__class__.__name__
+                "chart_type() not implemented for %s" % plot.__class__.__name__,
             )
         return chart_type_method(plot)
 

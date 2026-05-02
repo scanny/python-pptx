@@ -64,7 +64,7 @@ class Describe_BasePlot(object):
     def it_provides_access_to_the_data_labels(self, data_labels_fixture):
         plot, data_labels_, DataLabels_, dLbls = data_labels_fixture
         data_labels = plot.data_labels
-        DataLabels_.assert_called_once_with(dLbls)
+        DataLabels_.assert_called_once_with(dLbls, chart_type=None)
         assert data_labels is data_labels_
 
     def it_provides_access_to_its_series(self, series_fixture):

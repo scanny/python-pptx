@@ -3,8 +3,64 @@
 from __future__ import annotations
 
 from pptx.dml.chtfmt import ChartFormat
+from pptx.enum.chart import XL_CHART_TYPE as XL
+from pptx.enum.chart import XL_LABEL_POSITION as POS
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
+
+# -- Per-chart-type whitelist of valid c:dLblPos values. Derived from
+# -- ECMA-376 / ISO-IEC-29500 §21.2.2.45 and confirmed against the
+# -- PowerPoint UI. Assigning a position not in the set for the plot's
+# -- chart type produces a file PowerPoint refuses to open (issue #789).
+# --
+# -- Keyed by ``XL_CHART_TYPE``; chart types not listed here fall through
+# -- (no validation). ``None`` is always permitted and clears c:dLblPos.
+_LINE_SCATTER_POSITIONS = frozenset(
+    {POS.CENTER, POS.LEFT, POS.RIGHT, POS.ABOVE, POS.BELOW},
+)
+_BAR_COL_CLUSTERED_POSITIONS = frozenset(
+    {POS.CENTER, POS.INSIDE_END, POS.INSIDE_BASE, POS.OUTSIDE_END},
+)
+_BAR_COL_STACKED_POSITIONS = frozenset(
+    {POS.CENTER, POS.INSIDE_END, POS.INSIDE_BASE},
+)
+_PIE_POSITIONS = frozenset(
+    {POS.CENTER, POS.INSIDE_END, POS.OUTSIDE_END, POS.BEST_FIT},
+)
+_AREA_POSITIONS = frozenset({POS.CENTER})
+
+_VALID_POSITIONS_BY_CHART_TYPE = {
+    # -- line family --
+    XL.LINE: _LINE_SCATTER_POSITIONS,
+    XL.LINE_STACKED: _LINE_SCATTER_POSITIONS,
+    XL.LINE_STACKED_100: _LINE_SCATTER_POSITIONS,
+    XL.LINE_MARKERS: _LINE_SCATTER_POSITIONS,
+    XL.LINE_MARKERS_STACKED: _LINE_SCATTER_POSITIONS,
+    XL.LINE_MARKERS_STACKED_100: _LINE_SCATTER_POSITIONS,
+    # -- scatter (xy) family --
+    XL.XY_SCATTER: _LINE_SCATTER_POSITIONS,
+    XL.XY_SCATTER_LINES: _LINE_SCATTER_POSITIONS,
+    XL.XY_SCATTER_LINES_NO_MARKERS: _LINE_SCATTER_POSITIONS,
+    XL.XY_SCATTER_SMOOTH: _LINE_SCATTER_POSITIONS,
+    XL.XY_SCATTER_SMOOTH_NO_MARKERS: _LINE_SCATTER_POSITIONS,
+    # -- clustered bar / column (OUTSIDE_END permitted) --
+    XL.BAR_CLUSTERED: _BAR_COL_CLUSTERED_POSITIONS,
+    XL.COLUMN_CLUSTERED: _BAR_COL_CLUSTERED_POSITIONS,
+    # -- stacked bar / column (OUTSIDE_END NOT permitted) --
+    XL.BAR_STACKED: _BAR_COL_STACKED_POSITIONS,
+    XL.BAR_STACKED_100: _BAR_COL_STACKED_POSITIONS,
+    XL.COLUMN_STACKED: _BAR_COL_STACKED_POSITIONS,
+    XL.COLUMN_STACKED_100: _BAR_COL_STACKED_POSITIONS,
+    # -- pie / doughnut --
+    XL.PIE: _PIE_POSITIONS,
+    XL.PIE_EXPLODED: _PIE_POSITIONS,
+    XL.DOUGHNUT: _PIE_POSITIONS,
+    XL.DOUGHNUT_EXPLODED: _PIE_POSITIONS,
+    # -- area (only CENTER per PowerPoint UI) --
+    XL.AREA: _AREA_POSITIONS,
+    XL.AREA_STACKED: _AREA_POSITIONS,
+    XL.AREA_STACKED_100: _AREA_POSITIONS,
+}
 
 
 class DataLabels(object):
@@ -16,9 +72,15 @@ class DataLabels(object):
     labels in its scope.
     """
 
-    def __init__(self, dLbls):
+    def __init__(self, dLbls, chart_type=None):
         super(DataLabels, self).__init__()
         self._element = dLbls
+        # -- Optional ``XL_CHART_TYPE`` of the owning plot. When provided,
+        # -- :attr:`position` rejects values that would corrupt the file for
+        # -- this chart type (issue #789). ``None`` disables validation
+        # -- (preserves prior behaviour for callers that instantiate
+        # -- ``DataLabels`` without plot context, such as unit tests).
+        self._chart_type = chart_type
 
     @lazyproperty
     def font(self):
@@ -103,7 +165,36 @@ class DataLabels(object):
         if value is None:
             self._element._remove_dLblPos()
             return
+        self._validate_position(value)
         self._element.get_or_add_dLblPos().val = value
+
+    def _validate_position(self, value):
+        """Raise ``ValueError`` if *value* is incompatible with the plot type.
+
+        Validation is skipped when the owning chart type is unknown (e.g.
+        when ``DataLabels`` is instantiated directly without plot context).
+        Chart types outside the compatibility table also pass through
+        unvalidated — the table covers the cases PowerPoint's UI restricts.
+
+        Addresses issue #789.
+        """
+        chart_type = self._chart_type
+        if chart_type is None:
+            return
+        valid = _VALID_POSITIONS_BY_CHART_TYPE.get(chart_type)
+        if valid is None:
+            return
+        if value in valid:
+            return
+        raise ValueError(
+            "%s is not a valid data-label position for a %s chart; "
+            "valid positions are: %s"
+            % (
+                getattr(value, "name", repr(value)),
+                getattr(chart_type, "name", repr(chart_type)),
+                ", ".join(sorted(p.name for p in valid)),
+            ),
+        )
 
     @property
     def show_category_name(self):
