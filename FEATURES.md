@@ -1264,10 +1264,11 @@ prs.save("out.pptx")
 
 Charts live on a slide as a graphic frame; each one owns its own
 `chart1.xml` part with data, series, axes, plot area, legend, and title.
-The fork ships all thirteen `THREE_D_*` chart types, combo charts,
-waterfall / treemap / funnel / sunburst / box-whisker / histogram /
-pareto / map via the chartEx surface, data-label customisation, and data-
-refresh helpers.
+The fork ships all thirteen `THREE_D_*` chart types (including
+`THREE_D_PIE` / `THREE_D_PIE_EXPLODED` via the new `Pie3DPlot` class),
+combo charts, waterfall / treemap / funnel / sunburst / box-whisker /
+histogram / pareto / map via the chartEx surface, data-label
+customisation, and data-refresh helpers.
 
 ```python
 from pptx import Presentation
@@ -1380,6 +1381,7 @@ prs.save("out.pptx")
 - `Series.trendlines` / `Series.add_trendline(trendline_type, order, period, forward, backward, intercept, display_equation, display_r_squared)` / `Trendline.delete()` — Fitted-curve overlays on a series: linear / logarithmic / polynomial (order 2..6) / power / exponential / moving-average. Each trendline exposes `.trendline_type`, `.order`, `.period`, `.forward`, `.backward`, `.intercept`, `.display_equation`, `.display_r_squared`, `.name`, and `.format` (a `ChartFormat` for fill / line / shadow). `[Added in 1.0.2.dev0]`
 - `BarPlot.gap_width` / `BarPlot.overlap` — Bar / column spacing and overlap (integer percentage of bar width).
 - `BarPlot.has_series_lines` / `BarPlot.series_lines` — Read/write boolean and `SeriesLines` accessor for series lines (`c:serLines`) on a stacked bar or stacked column plot; `plot.series_lines.format` returns a `ChartFormat` so the connecting line's color, width, and dash style are configured through the familiar `.format.line` API. Setting `has_series_lines = False` removes the element. `[Added in 1.0.2.dev0]`
+- `Pie3DPlot` — Plot class returned for `c:pie3DChart` elements (`XL_CHART_TYPE.THREE_D_PIE` / `THREE_D_PIE_EXPLODED`). Inherits the full `_BasePlot` API (series, categories, data labels, vary-by-categories) and unblocks `Chart.replace_data` / `replace_data_preserve_formulas` on 3D-pie charts (issue #321). `[Added in 2026.05.1.dev0]`
 - `Point.format` / `Point.marker` / `Point.data_label` / `Point.invert_if_negative` — Per-point formatting.
 - `DataLabel.text_frame` / `DataLabel.font` / `DataLabel.position` / `DataLabel.show_*`.
 - `DataLabel.format` — `ChartFormat` wrapping this single `c:dLbl` with `.fill` / `.line` / `.shadow`. `[Added in 1.0.2.dev0]`

@@ -173,6 +173,7 @@ from pptx.oxml.chart.plot import (  # noqa: E402
     CT_Grouping,
     CT_LineChart,
     CT_Overlap,
+    CT_Pie3DChart,
     CT_PieChart,
     CT_RadarChart,
     CT_ScatterChart,
@@ -189,6 +190,7 @@ register_element_cls("c:gapWidth", CT_GapAmount)
 register_element_cls("c:grouping", CT_Grouping)
 register_element_cls("c:lineChart", CT_LineChart)
 register_element_cls("c:overlap", CT_Overlap)
+register_element_cls("c:pie3DChart", CT_Pie3DChart)
 register_element_cls("c:pieChart", CT_PieChart)
 register_element_cls("c:radarChart", CT_RadarChart)
 register_element_cls("c:scatterChart", CT_ScatterChart)

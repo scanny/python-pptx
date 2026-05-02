@@ -251,6 +251,16 @@ class PiePlot(_BasePlot):
     """
 
 
+class Pie3DPlot(_BasePlot):
+    """A 3-dimensional pie chart-style plot (``<c:pie3DChart>``).
+
+    Added in support of `Chart.replace_data` round-trips on charts produced
+    with ``XL_CHART_TYPE.THREE_D_PIE`` / ``THREE_D_PIE_EXPLODED`` (issue #321).
+    Behaves like |PiePlot|; differentiation between the flat and exploded
+    variants is determined from the presence of ``c:ser/c:explosion``.
+    """
+
+
 class RadarPlot(_BasePlot):
     """
     A radar-style plot.
@@ -304,6 +314,7 @@ def PlotFactory(xChart, chart):
             qn("c:doughnutChart"): DoughnutPlot,
             qn("c:lineChart"): LinePlot,
             qn("c:pieChart"): PiePlot,
+            qn("c:pie3DChart"): Pie3DPlot,
             qn("c:radarChart"): RadarPlot,
             qn("c:scatterChart"): XyPlot,
         }[xChart.tag]
@@ -334,6 +345,7 @@ class PlotTypeInspector(object):
                 "DoughnutPlot": cls._differentiate_doughnut_chart_type,
                 "LinePlot": cls._differentiate_line_chart_type,
                 "PiePlot": cls._differentiate_pie_chart_type,
+                "Pie3DPlot": cls._differentiate_pie_3d_chart_type,
                 "RadarPlot": cls._differentiate_radar_chart_type,
                 "XyPlot": cls._differentiate_xy_chart_type,
             }[plot.__class__.__name__]
@@ -425,6 +437,12 @@ class PlotTypeInspector(object):
         pieChart = plot._element
         explosion = pieChart.xpath("./c:ser/c:explosion")
         return XL.PIE_EXPLODED if explosion else XL.PIE
+
+    @classmethod
+    def _differentiate_pie_3d_chart_type(cls, plot):
+        pie3DChart = plot._element
+        explosion = pie3DChart.xpath("./c:ser/c:explosion")
+        return XL.THREE_D_PIE_EXPLODED if explosion else XL.THREE_D_PIE
 
     @classmethod
     def _differentiate_radar_chart_type(cls, plot):

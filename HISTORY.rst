@@ -14,6 +14,20 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #321 ``Pie3DPlot`` support — charts of type
+  ``XL_CHART_TYPE.THREE_D_PIE`` / ``THREE_D_PIE_EXPLODED`` (backing element
+  ``c:pie3DChart``) now deserialize into a new
+  :class:`pptx.chart.plot.Pie3DPlot` instance rather than raising
+  ``ValueError("unsupported plot type ... pie3DChart")`` from
+  ``PlotFactory``. The class mirrors |PiePlot|: it inherits the full
+  ``_BasePlot`` API (series, categories, data labels, vary-by-categories)
+  and ``Chart.chart_type`` reports ``THREE_D_PIE`` /
+  ``THREE_D_PIE_EXPLODED`` based on ``c:ser/c:explosion``. This unblocks
+  ``Chart.replace_data`` and ``replace_data_preserve_formulas`` on
+  3D-pie charts. A new ``CT_Pie3DChart`` oxml class follows the
+  ECMA-376 ``EG_PieChartShared`` tag sequence (``c:varyColors`` /
+  ``c:ser`` / ``c:dLbls`` / ``c:extLst``).
+
 - docs: #655 add a "Numbered lists" recipe to ``docs/user/text.rst``
   documenting the loop-over-``text_frame.paragraphs`` idiom for turning a
   text frame into a numbered list via the existing

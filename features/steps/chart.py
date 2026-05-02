@@ -431,6 +431,8 @@ def when_I_add_a_chart_with_categories_and_series(context, kind, cats, sers):
         "100% Line Stacked": XL_CHART_TYPE.LINE_STACKED_100,
         "Pie": XL_CHART_TYPE.PIE,
         "Exploded Pie": XL_CHART_TYPE.PIE_EXPLODED,
+        "3D Pie": XL_CHART_TYPE.THREE_D_PIE,
+        "Exploded 3D Pie": XL_CHART_TYPE.THREE_D_PIE_EXPLODED,
         "Radar": XL_CHART_TYPE.RADAR,
         "Filled Radar": XL_CHART_TYPE.RADAR_FILLED,
         "Radar with markers": XL_CHART_TYPE.RADAR_MARKERS,

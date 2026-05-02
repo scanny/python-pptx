@@ -174,6 +174,21 @@ The following properties are only present on bubble-type plots.
    :undoc-members:
 
 
+|Pie3DPlot| objects
+~~~~~~~~~~~~~~~~~~~
+
+A |Pie3DPlot| is returned for charts authored with
+``XL_CHART_TYPE.THREE_D_PIE`` or ``XL_CHART_TYPE.THREE_D_PIE_EXPLODED``
+(backing XML element ``c:pie3DChart``). It inherits the full
+``_BasePlot`` API surface without adding plot-level properties of its
+own.
+
+.. autoclass:: pptx.chart.plot.Pie3DPlot()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |SeriesLines| objects
 ~~~~~~~~~~~~~~~~~~~~~
 

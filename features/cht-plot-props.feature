@@ -160,3 +160,18 @@ Feature: Plot properties
      Then plot.series_lines is a SeriesLines object
       And plot.series_lines.format is a ChartFormat object
       And plot.series_lines.format.line is a LineFormat object
+
+
+  Scenario Outline: Add Pie3DPlot and replace its data (issue #321)
+    Given a blank slide
+     When I add a <type> chart with 3 categories and 2 series
+      And I replace its data with 4 categories and 1 series
+     Then chart.chart_type is <type-enum>
+      And the chart's first plot is a Pie3DPlot
+      And len(chart.series) is 1
+      And len(plot.categories) is 4
+
+    Examples: 3D pie chart types
+      | type            | type-enum            |
+      | 3D Pie          | THREE_D_PIE          |
+      | Exploded 3D Pie | THREE_D_PIE_EXPLODED |

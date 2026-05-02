@@ -50,7 +50,7 @@ Feature Support
 * Add table to a slide
 * Add auto shapes (e.g. polygons, flowchart shapes, etc.) to a slide
 * Toggle bullet formatting on paragraphs (character, auto-number, none, inherit)
-* Add and manipulate column, bar, line, and pie charts
+* Add and manipulate column, bar, line, pie, and 3D pie charts
 * Discover Office 2016+ extended charts (funnel, treemap, sunburst, waterfall, histogram,
   box-and-whisker, map) on a slide as |GraphicFrame| shapes and preserve them on round-trip
   (detailed read/write not yet supported)

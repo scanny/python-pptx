@@ -426,6 +426,12 @@ doesn't have any axes::
 
 .. image:: /_static/img/chart-07.png
 
+3D Pie charts (``XL_CHART_TYPE.THREE_D_PIE`` and
+``XL_CHART_TYPE.THREE_D_PIE_EXPLODED``) are also supported. The returned
+plot is a |Pie3DPlot| that inherits the ``_BasePlot`` API surface (series,
+categories, data labels, etc.) and round-trips through
+:meth:`Chart.replace_data` (issue #321).
+
 
 Refreshing cached values after an external workbook edit
 --------------------------------------------------------
