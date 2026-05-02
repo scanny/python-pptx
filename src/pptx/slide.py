@@ -328,6 +328,41 @@ class Slide(_BaseSlide):
             return None
         return timing.xml
 
+    @property
+    def animation_sequence(self) -> tuple[AnimationEffect, ...]:
+        """Read-only tuple of |AnimationEffect| in this slide's main sequence.
+
+        Returns each entrance / emphasis / exit / motion-path effect
+        PowerPoint would step through when the slide's main animation
+        sequence runs, in document order.
+
+        Returns an empty tuple when the slide has no ``p:timing`` subtree
+        or when the subtree is media-playback-only (the stub tree added
+        by :meth:`.SlideShapes.add_movie` has no main sequence).
+
+        Each :class:`.AnimationEffect` exposes a handful of read-only
+        accessors — ``shape_id``, ``preset_class``, ``preset_id``,
+        ``preset_subtype``, ``delay`` — that are enough to describe
+        PowerPoint-authored effects for introspection and
+        test-harness purposes. Structured authoring (add / remove /
+        reorder / retarget effects) is out of scope for this MVP;
+        see downstream items #102 (Shape.animation entrance effects),
+        #264 (full animation-tree authoring), and #1106 (broader
+        entrance/exit/emphasis API) which will layer mutation methods
+        on top of this read surface.
+
+        This property is side-effect free — it does not create a
+        ``p:timing`` element on access. See
+        ``docs/dev/analysis/f8-animations-transitions.rst`` for the
+        full animation-tree design map.
+        """
+        from pptx.oxml.timing import iter_main_sequence_effects
+
+        timing = self._element.timing
+        if timing is None:
+            return ()
+        return tuple(AnimationEffect(par) for par in iter_main_sequence_effects(timing))
+
     @lazyproperty
     def transition(self) -> Transition:
         """|Transition| proxy for reading / writing this slide's transition.
@@ -1119,6 +1154,138 @@ class Transition(ElementProxy):
             if wipe is None:  # pragma: no cover - set_variant returns element
                 return
         wipe.set("dir", PP_TRANSITION_SIDE_DIRECTION.to_xml(value))
+
+
+class AnimationEffect(ElementProxy):
+    """Read-only proxy for a single entrance / exit / emphasis effect.
+
+    An *effect* is one step in the slide's main animation sequence —
+    the unit PowerPoint advances through on each click (or time
+    trigger) when running the slide. Each effect is represented in the
+    XML by an effect-level ``p:par`` whose ``p:cTn`` child carries a
+    ``@presetClass`` attribute. See
+    :func:`pptx.oxml.timing.iter_main_sequence_effects` for how the
+    main sequence is walked.
+
+    The MVP surfaces five read-only accessors — ``shape_id``,
+    ``preset_class``, ``preset_id``, ``preset_subtype``, and ``delay``.
+    They describe the effect well enough to round-trip a
+    PowerPoint-authored timing and to power introspection-based
+    regression tests (see issue #256). Authoring helpers —
+    ``AnimationEffect.set_preset()``, ``AnimationSequence.add(...)``,
+    reorder / delete — are deferred to the animation-authoring items
+    (#102, #264, #1106) that stack on this foundation.
+
+    Instances are not constructed by client code; obtain them from
+    :attr:`.Slide.animation_sequence`.
+    """
+
+    def __init__(self, par):
+        super(AnimationEffect, self).__init__(par)
+        self._par = par
+
+    @property
+    def shape_id(self) -> int | None:
+        """ID of the shape this effect targets, or ``None`` when absent.
+
+        Reads ``@spid`` from the first ``p:spTgt`` descendant of the
+        effect's ``p:par``. Matches :attr:`.BaseShape.shape_id` on the
+        corresponding shape in this slide. Some effects (e.g. timed
+        color-scheme changes, or effects targeting a graphic-frame
+        sub-element via ``p:subSpTgt``) do not carry a ``p:spTgt`` at
+        all; ``None`` is returned for those.
+        """
+        from pptx.oxml.timing import first_spTgt_spid
+
+        return first_spTgt_spid(self._par)
+
+    @property
+    def preset_class(self) -> str | None:
+        """Preset-class string — ``"entr"`` / ``"exit"`` / ``"emph"`` / ....
+
+        Reads ``p:cTn/@presetClass`` of the effect-level ``p:par``.
+        Canonical ST_TLTimeNodePresetClassType values from pml.xsd
+        include ``entr`` (entrance), ``exit``, ``emph`` (emphasis),
+        ``path`` (motion path), ``verb`` (OLE verb), and
+        ``mediacall``. Returns ``None`` on malformed XML where the
+        ``p:cTn`` is missing or the attribute is absent (both unusual
+        since :func:`iter_main_sequence_effects` filters on its
+        presence).
+        """
+        cTn = self._par.find(qn("p:cTn"))
+        if cTn is None:
+            return None
+        return cTn.presetClass
+
+    @property
+    def preset_id(self) -> int | None:
+        """Preset id (int) — identifies the specific effect, or ``None``.
+
+        Reads ``p:cTn/@presetID`` of the effect-level ``p:par``. This
+        integer identifier disambiguates within a preset class (e.g.
+        within ``entr`` the value ``1`` is ``appear``, ``2`` is
+        ``fly-in``, ``10`` is ``fade``, etc.). Values correspond to
+        the ``presetID`` column in Microsoft's ``[MS-PPTX]`` animation
+        preset documentation.
+        """
+        cTn = self._par.find(qn("p:cTn"))
+        if cTn is None:
+            return None
+        return cTn.presetID
+
+    @property
+    def preset_subtype(self) -> int | None:
+        """Preset subtype (int) — direction / variant selector, or ``None``.
+
+        Reads ``p:cTn/@presetSubtype`` of the effect-level ``p:par``.
+        The subtype combines with ``preset_id`` to pick, for example,
+        the direction of a "fly-in" entrance (``8`` = from-left,
+        ``4`` = from-top, etc.). A value of ``0`` typically means the
+        default variant for the selected preset. ``None`` when the
+        attribute is absent.
+        """
+        cTn = self._par.find(qn("p:cTn"))
+        if cTn is None:
+            return None
+        return cTn.presetSubtype
+
+    @property
+    def delay(self) -> int | str | None:
+        """Start-delay before the effect fires, or ``None``.
+
+        Walks the effect ``p:par``'s ``p:cTn/p:stCondLst/p:cond`` and
+        returns the ``@delay`` value. The value is:
+
+        * ``0`` — fires immediately on the click that advances to
+          this step (``with previous`` semantics).
+        * An ``int`` > 0 — delay in milliseconds after the trigger.
+        * ``"indefinite"`` — fires on an explicit click-trigger
+          (the PowerPoint default for ``on click`` effects).
+        * ``None`` — no ``p:stCondLst/p:cond/@delay`` present.
+
+        The MVP reads only the first ``p:cond``, which covers the
+        overwhelming majority of PowerPoint-authored effects (full
+        ``p:cond`` list semantics — multiple conditions, ``@evt``,
+        trigger-by-shape — are downstream #264 / #861).
+        """
+        cTn = self._par.find(qn("p:cTn"))
+        if cTn is None:
+            return None
+        stCondLst = cTn.find(qn("p:stCondLst"))
+        if stCondLst is None:
+            return None
+        cond = stCondLst.find(qn("p:cond"))
+        if cond is None:
+            return None
+        delay_str = cond.get("delay")
+        if delay_str is None:
+            return None
+        if delay_str == "indefinite":
+            return "indefinite"
+        try:
+            return int(delay_str)
+        except ValueError:  # pragma: no cover - defensive, schema forbids
+            return None
 
 
 class _Background(ElementProxy):

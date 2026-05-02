@@ -38,7 +38,6 @@ from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
     OptionalAttribute,
-    RequiredAttribute,
     ZeroOrOne,
 )
 
@@ -91,9 +90,15 @@ class CT_TLShapeTargetElement(BaseOxmlElement):
     ``cNvPr/@id``. The MVP only surfaces ``spid``; the optional
     ``bg`` / ``subSp`` / ``oleChartEl`` / ``txEl`` / ``graphicEl``
     choice children are preserved via lxml round-tripping.
+
+    Surfaced as an :class:`.OptionalAttribute` rather than
+    :class:`.RequiredAttribute` so introspection helpers (issue #256)
+    can tolerate the odd malformed slide without raising
+    :class:`.InvalidXmlError` at read time. PowerPoint always emits
+    ``@spid`` so well-formed slides are unaffected.
     """
 
-    spid: int = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
+    spid: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "spid", XsdUnsignedInt
     )
 

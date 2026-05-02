@@ -49,3 +49,19 @@ Feature: slide-transition round-trip (Foundation F8 MVP)
       And I save and reopen the presentation
      Then slide.transition.type is PP_TRANSITION_TYPE.FADE
       And slide.transition is not wrapped in mc:AlternateContent
+
+
+  Scenario: Slide.animation_sequence is empty for a clean slide
+    Given a blank slide
+     Then slide.animation_sequence is an empty tuple
+
+
+  Scenario: Slide.animation_sequence round-trips authored effects
+    Given a slide with two authored entrance effects
+     When I save and reopen the presentation
+     Then len(slide.animation_sequence) is 2
+      And slide.animation_sequence[0].shape_id is 3
+      And slide.animation_sequence[0].preset_class is 'entr'
+      And slide.animation_sequence[0].preset_id is 1
+      And slide.animation_sequence[1].shape_id is 4
+      And slide.animation_sequence[1].preset_class is 'exit'

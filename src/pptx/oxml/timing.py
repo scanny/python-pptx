@@ -192,6 +192,12 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
     single ``p:cond`` inside ``p:stCondLst`` so this convenience covers
     the overwhelming majority of real-world animation trees.
 
+    Issue #256 adds the three preset-selection attributes
+    (``presetID`` / ``presetClass`` / ``presetSubtype``) so callers can
+    introspect the entrance / exit / emphasis effect carried by an
+    effect-level ``p:cTn``. These are integer attributes in pml.xsd and
+    absent on non-effect time nodes (e.g. ``tmRoot`` / ``mainSeq``).
+
     Downstream extension points (see the F8 analysis doc):
 
     * #861: surface ``endCondLst`` and value-list semantics for
@@ -231,9 +237,15 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         "nodeType", XsdString
     )
     dur = OptionalAttribute("dur", ST_TLTime)
-    presetID = OptionalAttribute("presetID", XsdInt)
-    presetClass = OptionalAttribute("presetClass", XsdString)
-    presetSubtype = OptionalAttribute("presetSubtype", XsdInt)
+    presetID: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "presetID", XsdInt
+    )
+    presetClass: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "presetClass", XsdString
+    )
+    presetSubtype: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "presetSubtype", XsdInt
+    )
 
     @property
     def delay(self):
@@ -289,32 +301,6 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         cond.delay = value
 
 
-class CT_TLTimeConditionList(BaseOxmlElement):
-    """`p:stCondLst` or `p:endCondLst` element — list of `p:cond` triggers.
-
-    Per ``CT_TLTimeConditionList`` in pml.xsd, holds one or more ``p:cond``
-    children. Surfaced on this class for issue #811; downstream #861 will
-    build a richer ``Delay`` proxy atop the same descriptors.
-    """
-
-    cond = OneOrMore("p:cond")
-
-
-class CT_TLTimeCondition(BaseOxmlElement):
-    """`p:cond` element — single time-trigger condition.
-
-    MVP surfaces the two attributes issue #811 needs: ``evt`` (trigger
-    event, e.g. ``"onClick"`` / ``"onEnd"``) and ``delay`` (``ST_TLTime``,
-    milliseconds or the token ``"indefinite"``). The three child-element
-    choices (``p:tgtEl`` / ``p:tn`` / ``p:rtn``) round-trip transparently
-    through lxml; downstream items (#264 shape-animation control) will
-    surface them when needed.
-    """
-
-    evt = OptionalAttribute("evt", XsdToken)
-    delay = OptionalAttribute("delay", ST_TLTime)
-
-
 class CT_TLTimeNodeParallel(BaseOxmlElement):
     """`p:par` element — parallel time node.
 
@@ -347,13 +333,82 @@ class CT_TLTimeNodeSequence(BaseOxmlElement):
     del _tag_seq
 
 
+def iter_main_sequence_effects(timing):
+    """Generate each effect-level ``p:par`` in the main animation sequence.
+
+    `timing` is a ``p:timing`` element (``CT_SlideTiming`` instance) or
+    ``None``. Yields every ``p:par`` whose parent chain includes a
+    ``p:seq[@nodeType='mainSeq']`` and whose ``p:cTn`` child carries a
+    ``@presetClass`` attribute (i.e. represents an actual entrance /
+    exit / emphasis / motion-path effect rather than a grouping node).
+
+    Returns an empty generator when `timing` is ``None`` or when the
+    slide has no main animation sequence. Order matches document order
+    inside the main sequence, which is the order PowerPoint uses when
+    stepping through click-triggered effects.
+
+    This helper is the backbone of ``Slide.animation_sequence`` and is
+    deliberately kept free of Python-side proxy classes so downstream
+    animation-authoring work can reuse it.
+    """
+    if timing is None:
+        return
+    # -- PowerPoint canonically places the main sequence at
+    # --   p:timing/p:tnLst/p:par/p:cTn/p:childTnLst/p:seq
+    # -- where the inner `p:cTn` carries @nodeType="mainSeq". The
+    # -- @nodeType attribute lives on `p:cTn`, NOT on `p:seq` directly
+    # -- (per pml.xsd — CT_TLTimeNodeSequence has no nodeType attr).
+    # -- Descending from the whole timing subtree tolerates the
+    # -- occasional synthetic fixture that omits the wrapping
+    # -- `p:par`/`p:cTn/childTnLst` shell.
+    main_seqs = timing.xpath(".//p:seq[p:cTn/@nodeType='mainSeq']")
+    if not main_seqs:
+        return
+    # -- Effect-level p:par nodes carry a `p:cTn` with @presetClass. The
+    # -- main sequence has intermediate `p:par` wrappers (the click-group
+    # -- par, the "step" par, and an inner par per effect) — every
+    # -- wrapper has a p:cTn but only the innermost one carries
+    # -- @presetClass. Using that attribute as the discriminator is
+    # -- robust to the four-level vs five-level tree variants PowerPoint
+    # -- emits for click-vs-with-previous effects. `@presetClass` is
+    # -- unqualified (in the default namespace) so the local attribute
+    # -- name is used directly.
+    for main_seq in main_seqs:
+        for par in main_seq.iter(qn("p:par")):
+            cTn = par.find(qn("p:cTn"))
+            if cTn is None:
+                continue
+            if "presetClass" in cTn.attrib:
+                yield par
+
+
+def first_spTgt_spid(par):
+    """Return ``@spid`` (int) of first ``p:spTgt`` descendant, or ``None``.
+
+    Walks every ``p:tgtEl/p:spTgt`` descendant of `par` and returns the
+    first non-``None`` ``@spid`` value. The effect's behaviors (``p:set``,
+    ``p:anim``, ``p:animEffect`` …) each carry their own ``p:tgtEl``; for
+    most PowerPoint-authored effects every behavior targets the same
+    shape so returning the first is correct. Used by issue #256's
+    ``AnimationEffect.shape_id`` accessor.
+    """
+    for spTgt in par.iter(qn("p:spTgt")):
+        if spTgt.spid is not None:
+            return spTgt.spid
+    return None
+
+
 # -- CT_TLTimeCondition and CT_TLTimeConditionList are defined in
 # -- ``pptx.oxml.animation`` (canonical home shipped by #102). Re-export
 # -- them here so ``from pptx.oxml.timing import CT_TLTimeCondition``
 # -- continues to work for callers that predate the consolidation
 # -- (issue #861's tests import from this module). The #861 ``add_cond``
 # -- helper was folded into ``animation.CT_TLTimeConditionList``.
+# -- #256 originally defined a `CT_TLShapeTargetElement` here; that class
+# -- is also now canonical in `pptx.oxml.animation` (introduced by #102)
+# -- so it's re-exported below.
 from pptx.oxml.animation import (  # noqa: E402,F401
+    CT_TLShapeTargetElement,
     CT_TLTimeCondition,
     CT_TLTimeConditionList,
 )

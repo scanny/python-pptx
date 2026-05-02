@@ -525,6 +525,7 @@ from pptx.oxml.slide import (  # noqa: E402
     CT_TimeNodeList,
     CT_TLCommonTimeNodeData,
     CT_TLMediaNodeVideo,
+    CT_TLShapeTargetElement,
     CT_TLTimeCondition,
     CT_TLTimeConditionList,
     CT_TLTimeNodeParallel,
@@ -540,10 +541,8 @@ from pptx.oxml.slide import (  # noqa: E402
 register_element_cls("p:bg", CT_Background)
 register_element_cls("p:bgPr", CT_BackgroundProperties)
 register_element_cls("p:childTnLst", CT_TimeNodeList)
-register_element_cls("p:cond", CT_TLTimeCondition)
 register_element_cls("p:cSld", CT_CommonSlideData)
 register_element_cls("p:cTn", CT_TLCommonTimeNodeData)
-register_element_cls("p:endCondLst", CT_TLTimeConditionList)
 register_element_cls("p:hf", CT_HeaderFooter)
 register_element_cls("p:notes", CT_NotesSlide)
 register_element_cls("p:notesMaster", CT_NotesMaster)
@@ -554,7 +553,10 @@ register_element_cls("p:sldLayout", CT_SlideLayout)
 register_element_cls("p:sldLayoutId", CT_SlideLayoutIdListEntry)
 register_element_cls("p:sldLayoutIdLst", CT_SlideLayoutIdList)
 register_element_cls("p:sldMaster", CT_SlideMaster)
-register_element_cls("p:stCondLst", CT_TLTimeConditionList)
+# -- p:stCondLst / p:spTgt registrations were duplicated across #811,
+# -- #256, and #102; canonical registrations live in the animation
+# -- block below. Earlier duplicate lines removed to prevent shadowing
+# -- the canonical class with an import-order-sensitive override.
 register_element_cls("p:timing", CT_SlideTiming)
 register_element_cls("p:tnLst", CT_TimeNodeList)
 register_element_cls("p:transition", CT_SlideTransition)
