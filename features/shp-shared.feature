@@ -242,3 +242,27 @@ Feature: Common shape properties
       And I call A.send_backward()
       And I call C.bring_forward()
      Then the shape-tree order is [A, B, C]
+  Scenario Outline: Duplicate a simple shape
+    Given a <shape-type> object on a slide as shape
+     When I call shape.duplicate()
+     Then dup is a <shape-type> object
+      And dup.shape_id is unique among slide shapes
+      And dup.name != shape.name
+      And dup has the same position and size as shape
+      And dup is the last shape in the shape tree
+
+    Examples: Simple shape types
+      | shape-type |
+      | Shape      |
+      | Connector  |
+
+
+  Scenario Outline: Duplicate is not implemented for relationship-bearing shapes
+    Given a <shape-type> object on a slide as shape
+     Then shape.duplicate() raises NotImplementedError
+
+    Examples: Shapes with relationships
+      | shape-type   |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |

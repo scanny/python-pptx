@@ -814,3 +814,53 @@ def then_shape_tree_order_is(context, name_A, name_B, name_C):
     assert actual_names == expected_names, (
         "shape-tree order is %s, expected %s" % (actual_names, expected_names)
     )
+# ---- shape.duplicate() steps ----
+
+
+@when("I call shape.duplicate()")
+def when_I_call_shape_duplicate(context):
+    context.dup = context.shape.duplicate()
+
+
+@then("dup is a {shape_type} object")
+def then_dup_is_a_shape_type_object(context, shape_type):
+    actual = type(context.dup).__name__
+    assert actual == shape_type, "expected %s, got %s" % (shape_type, actual)
+
+
+@then("dup.shape_id is unique among slide shapes")
+def then_dup_shape_id_is_unique(context):
+    ids = [s.shape_id for s in context.slide.shapes]
+    assert ids.count(context.dup.shape_id) == 1, "dup shape_id is not unique: %r" % ids
+    assert context.dup.shape_id != context.shape.shape_id
+
+
+@then("dup.name != shape.name")
+def then_dup_name_neq_shape_name(context):
+    assert context.dup.name != context.shape.name, "names match: %r" % context.dup.name
+
+
+@then("dup has the same position and size as shape")
+def then_dup_has_same_position_and_size(context):
+    shape, dup = context.shape, context.dup
+    assert (dup.left, dup.top, dup.width, dup.height) == (
+        shape.left,
+        shape.top,
+        shape.width,
+        shape.height,
+    )
+
+
+@then("dup is the last shape in the shape tree")
+def then_dup_is_last_shape(context):
+    last = list(context.slide.shapes)[-1]
+    assert last._element is context.dup._element, "dup is not last in z-order"
+
+
+@then("shape.duplicate() raises NotImplementedError")
+def then_shape_duplicate_raises(context):
+    try:
+        context.shape.duplicate()
+    except NotImplementedError:
+        return
+    raise AssertionError("shape.duplicate() did not raise NotImplementedError")

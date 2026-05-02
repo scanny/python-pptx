@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING, cast
 
 import pytest
 
+from pptx import Presentation
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.enum.shapes import PP_PLACEHOLDER
 from pptx.oxml.ns import qn
+from pptx.enum.shapes import MSO_CONNECTOR_TYPE, MSO_SHAPE, PP_PLACEHOLDER
 from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.text import CT_TextBody
 from pptx.shapes import Subshape
@@ -20,6 +22,7 @@ from pptx.shapes.base import BaseShape, _PlaceholderFormat
 from pptx.shapes.graphfrm import GraphicFrame
 from pptx.shapes.picture import Picture
 from pptx.shapes.shapetree import BaseShapeFactory, SlideShapes
+from pptx.util import Inches
 
 from ..oxml.unitdata.shape import (
     a_cNvPr,
@@ -42,6 +45,7 @@ from ..unitutil.mock import class_mock, instance_mock, loose_mock
 if TYPE_CHECKING:
     from pptx.opc.package import XmlPart
     from pptx.oxml.shapes import ShapeElement
+    from pptx.shapes.connector import Connector
     from pptx.types import ProvidesPart
 
 
@@ -403,6 +407,107 @@ class DescribeBaseShape(object):
         s3.send_to_back()
         assert s3.zorder_index == 0
         assert slide.shapes.index(s3) == 0
+    def it_can_duplicate_an_autoshape(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+        shape.text = "hello"
+        orig_count = len(slide.shapes)
+
+        dup = shape.duplicate()
+
+        assert len(slide.shapes) == orig_count + 1
+        assert isinstance(dup, Shape)
+        assert dup is not shape
+        assert dup._element is not shape._element
+        assert dup.shape_id != shape.shape_id
+        assert dup.shape_id > shape.shape_id
+        assert dup.name != shape.name
+        assert dup.name.startswith(shape.name)
+        assert dup.text_frame.text == "hello"
+        assert dup.left == shape.left
+        assert dup.top == shape.top
+        assert dup.width == shape.width
+        assert dup.height == shape.height
+        # -- dup is the last shape in z-order --
+        assert slide.shapes[-1]._element is dup._element
+
+    def it_can_duplicate_a_textbox(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(2), Inches(1))
+        tb.text_frame.text = "tbx"
+
+        dup = tb.duplicate()
+
+        assert isinstance(dup, Shape)
+        assert dup.shape_id != tb.shape_id
+        assert dup.text_frame.text == "tbx"
+
+    def it_can_duplicate_a_connector(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        conn = slide.shapes.add_connector(
+            MSO_CONNECTOR_TYPE.STRAIGHT, Inches(1), Inches(1), Inches(3), Inches(1)
+        )
+
+        dup = cast("Connector", conn.duplicate())
+
+        assert type(dup).__name__ == "Connector"
+        assert dup.shape_id != conn.shape_id
+        assert dup.begin_x == conn.begin_x
+        assert dup.end_x == conn.end_x
+
+    def it_assigns_unique_name_to_duplicate(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+        base_name = shape.name
+
+        dup1 = shape.duplicate()
+        dup2 = shape.duplicate()
+        dup3 = dup1.duplicate()
+
+        names = {shape.name, dup1.name, dup2.name, dup3.name}
+        assert len(names) == 4
+        # -- all duplicate names derive from the original name --
+        for d in (dup1, dup2, dup3):
+            assert d.name.startswith(base_name)
+
+    def it_raises_when_duplicating_a_picture(self):
+        from tests.unitutil.file import test_file_dir
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        pic = slide.shapes.add_picture("%s/python-icon.jpeg" % test_file_dir, Inches(1), Inches(1))
+        with pytest.raises(NotImplementedError, match="simple shapes"):
+            pic.duplicate()
+
+    def it_raises_when_duplicating_a_graphic_frame(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        gf = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(3), Inches(1))
+        with pytest.raises(NotImplementedError, match="simple shapes"):
+            gf.duplicate()
+
+    def it_raises_when_duplicating_a_group_shape(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        gs = slide.shapes.add_group_shape()
+        with pytest.raises(NotImplementedError, match="simple shapes"):
+            gs.duplicate()
+
+    def it_raises_when_duplicating_a_placeholder(self):
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        title = slide.shapes.title
+        assert title is not None
+        with pytest.raises(NotImplementedError, match="placeholder"):
+            title.duplicate()
 
     # fixtures -------------------------------------------------------
 

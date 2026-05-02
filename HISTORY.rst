@@ -100,6 +100,7 @@ Unreleased
 - #68 feature: reorder a slide
 - #67 feature: delete a slide
 - #41 Shape.delete() method
+- #533 Shape.duplicate() for simple shapes
 
 1.0.2 (2024-08-07)
 ++++++++++++++++++
