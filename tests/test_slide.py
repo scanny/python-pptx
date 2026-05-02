@@ -331,7 +331,30 @@ class DescribeSlide(object):
     def it_knows_whether_it_follows_the_mstr_bkgd(self, follow_get_fixture):
         slide, expected_value = follow_get_fixture
         follows = slide.follow_master_background
-        assert follows is expected_value
+        # -- dual bool-like/callable proxy compares equal to a plain bool --
+        assert bool(follows) is expected_value
+        assert follows == expected_value
+
+    def it_can_reset_background_to_follow_master(self):
+        """Calling slide.follow_master_background() removes any `p:bg` child."""
+        # -- starts with a `p:bg` (i.e. an overridden background) --
+        slide = Slide(element("p:sld/p:cSld/p:bg"), None)
+        assert slide.follow_master_background == False  # noqa: E712
+
+        result = slide.follow_master_background()
+
+        assert result is slide
+        assert slide.follow_master_background == True  # noqa: E712
+        assert slide._element.xml == xml("p:sld/p:cSld")
+
+    def it_is_a_noop_to_reset_bg_on_slide_that_already_follows_master(self):
+        """Calling the method on a slide with no `p:bg` is idempotent."""
+        slide = Slide(element("p:sld/p:cSld"), None)
+
+        result = slide.follow_master_background()
+
+        assert result is slide
+        assert slide._element.xml == xml("p:sld/p:cSld")
 
     def it_knows_whether_it_has_a_notes_slide(self, has_notes_slide_fixture):
         slide, expected_value = has_notes_slide_fixture

@@ -122,7 +122,7 @@ class DescribeIssue366SlideBackgroundVerify:
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
 
-        assert slide.follow_master_background is True
+        assert bool(slide.follow_master_background) is True
         # -- no p:bg child written under p:cSld --
         assert slide._element.cSld.bg is None
         assert slide._element.cSld.find(qn("p:bg")) is None
@@ -145,7 +145,7 @@ class DescribeIssue366SlideBackgroundVerify:
         slide.background.fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
 
         # -- assert: in-memory state reflects the override --
-        assert slide.follow_master_background is False
+        assert bool(slide.follow_master_background) is False
         assert slide.background.fill.type == MSO_FILL.SOLID
         assert slide.background.fill.fore_color.rgb == RGBColor(0xFF, 0x00, 0x00)
 
@@ -157,7 +157,7 @@ class DescribeIssue366SlideBackgroundVerify:
         slide2 = prs2.slides[0]
 
         # -- assert: reloaded slide keeps the solid background --
-        assert slide2.follow_master_background is False
+        assert bool(slide2.follow_master_background) is False
         assert slide2.background.fill.type == MSO_FILL.SOLID
         assert slide2.background.fill.fore_color.rgb == RGBColor(0xFF, 0x00, 0x00)
         # -- and the p:bg subtree is still present --
@@ -179,7 +179,7 @@ class DescribeIssue366SlideBackgroundVerify:
         slide.background.fill.gradient()
 
         # -- assert: in-memory state --
-        assert slide.follow_master_background is False
+        assert bool(slide.follow_master_background) is False
         assert slide.background.fill.type == MSO_FILL.GRADIENT
         # -- default gradient has at least two stops --
         assert len(slide.background.fill.gradient_stops) >= 2
@@ -191,7 +191,7 @@ class DescribeIssue366SlideBackgroundVerify:
         prs2 = Presentation(buf)
         slide2 = prs2.slides[0]
 
-        assert slide2.follow_master_background is False
+        assert bool(slide2.follow_master_background) is False
         assert slide2.background.fill.type == MSO_FILL.GRADIENT
         assert len(slide2.background.fill.gradient_stops) >= 2
 
@@ -213,7 +213,7 @@ class DescribeIssue366SlideBackgroundVerify:
         slide.background.fill.blip_fill(image_path)
 
         # -- assert: in-memory state --
-        assert slide.follow_master_background is False
+        assert bool(slide.follow_master_background) is False
         assert slide.background.fill.type == MSO_FILL.PICTURE
         # -- a:blipFill lives under p:bg/p:bgPr --
         blips = slide._element.xpath(".//p:cSld/p:bg/p:bgPr/a:blipFill/a:blip")
@@ -229,7 +229,7 @@ class DescribeIssue366SlideBackgroundVerify:
         prs2 = Presentation(buf)
         slide2 = prs2.slides[0]
 
-        assert slide2.follow_master_background is False
+        assert bool(slide2.follow_master_background) is False
         assert slide2.background.fill.type == MSO_FILL.PICTURE
         reloaded_blips = slide2._element.xpath(".//p:cSld/p:bg/p:bgPr/a:blipFill/a:blip")
         assert len(reloaded_blips) == 1
@@ -258,14 +258,14 @@ class DescribeIssue366SlideBackgroundVerify:
         # -- arrange: apply a custom background so p:bg exists --
         slide.background.fill.solid()
         slide.background.fill.fore_color.rgb = RGBColor(0x33, 0x66, 0x99)
-        assert slide.follow_master_background is False
+        assert bool(slide.follow_master_background) is False
         assert slide._element.cSld.bg is not None
 
         # -- act: revert to master inheritance by removing p:bg --
         slide._element.cSld._remove_bg()
 
         # -- assert: master inheritance is restored --
-        assert slide.follow_master_background is True
+        assert bool(slide.follow_master_background) is True
         assert slide._element.cSld.bg is None
         assert slide._element.cSld.find(qn("p:bg")) is None
 
@@ -290,5 +290,5 @@ class DescribeIssue366SlideBackgroundVerify:
         prs2 = Presentation(buf)
         slide2 = prs2.slides[0]
 
-        assert slide2.follow_master_background is True
+        assert bool(slide2.follow_master_background) is True
         assert slide2._element.cSld.bg is None

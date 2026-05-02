@@ -30,26 +30,32 @@ interrogating the `.follow_master_background` property on each slide::
     >>> slide.follow_master_background
     True
 
-**Override inheritance of background.** Assigning `False` to
-`.follow_master_background` adds a "blank" background to the slide, which
-then no longer inherits any layout or master background::
+**Override inheritance of background.** The inheritance link is broken by
+applying an explicit fill to :attr:`Slide.background`::
 
-    >>> slide.follow_master_background = False
+    >>> slide.background.fill.solid()
     >>> slide.follow_master_background
     False
 
-Note that this step is not necessary to override inheritance. Merely
-specifying a background fill will also interrupt inheritance. This approach
-might be the easiest way though, if all you want is to interrupt inheritance
-and don't want to apply a particular fill.
+Any explicit fill authored through :attr:`Slide.background` (solid /
+gradient / picture) drops a ``p:bg`` element onto the slide, which is
+what flips :attr:`Slide.follow_master_background` to ``False``. There
+is no "blank override" form — merely interrogating the background for
+reading purposes is side-effect free, but a write through the fill API
+commits the override.
 
-**Restore inheritance of slide background.** Any explicitly-applied slide
-background can be removed by assigning `True` to
-`.follow_master_background`::
+**Restore inheritance of slide background.** Call
+:attr:`Slide.follow_master_background` as a method — the equivalent of
+PowerPoint's *Reset Background* button. This removes any ``p:bg``
+child from the slide and restores master inheritance::
 
-    >>> slide.follow_master_background = True
+    >>> slide.follow_master_background()
     >>> slide.follow_master_background
     True
+
+The returned value is the |Slide| itself, so the call can be chained.
+Calling it on a slide that already follows the master background is a
+no-op.
 
 **Access background fill.** The `FillFormat` object for a slide background is
 accessed using the background's `.fill` property. Note that merely accessing

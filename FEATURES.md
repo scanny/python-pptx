@@ -178,6 +178,9 @@ prs.save("out.pptx")
 - `Slide.follow_master_background` — True when the slide inherits its background from the master / layout.
 - `Slide.background` — `_Background` proxy; exposes `fill` for solid / gradient / picture backgrounds, plus the side-effect-free `bg_element` accessor for the raw `p:bg` element. `[bg_element added in 2026.05.0]`
 - `Slide.copy_background_from(source_slide)` — Deep-copy the source slide's `p:bg` subtree onto this slide (or restore inheritance if the source inherits). `[Added in 2026.05.0]`
+
+- `Slide.follow_master_background` / `Slide.follow_master_background()` — Dual-form attribute. Read it as a bool — True when the slide inherits its background from the master / layout, False when the slide carries an explicit `p:bg`. Call it (`slide.follow_master_background()`) to revert an overridden background to master inheritance — PowerPoint's *Reset Background* button equivalent. The callable form was `[Added in 2026.05.0.dev0]`.
+- `Slide.background` — `_Background` proxy; exposes `fill` for solid / gradient / picture backgrounds.
 - `Slide.has_notes_slide` / `Slide.notes_slide` — Notes access.
 - `Slide.has_comments` / `Slide.comments` — Legacy and threaded comments. `[Added in 2026.05.0]`
 - `Slide.has_tags` / `Slide.tags` — Slide-level custom tags. `[Added in 2026.05.0]`
