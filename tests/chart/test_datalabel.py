@@ -6,7 +6,7 @@ import pytest
 
 from pptx.chart.datalabel import DataLabel, DataLabels
 from pptx.dml.chtfmt import ChartFormat
-from pptx.enum.chart import XL_LABEL_POSITION
+from pptx.enum.chart import XL_CHART_TYPE, XL_LABEL_POSITION
 from pptx.text.text import Font
 
 from ..unitutil.cxml import element, xml
@@ -24,7 +24,7 @@ class DescribeDataLabel(object):
         data_label, ChartFormat_, chart_format_, expected_xml = format_fixture
         chart_format = data_label.format
         ChartFormat_.assert_called_once_with(
-            data_label._ser.xpath('c:dLbls/c:dLbl[c:idx/@val="9"]')[0]
+            data_label._ser.xpath('c:dLbls/c:dLbl[c:idx/@val="9"]')[0],
         )
         assert chart_format is chart_format_
         assert data_label._ser.xml == expected_xml
@@ -77,7 +77,7 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:txPr/(a:bodyPr,a:p/a:p"
                 "Pr/a:defRPr))",
             ),
-        ]
+        ],
     )
     def font_fixture(self, request):
         ser_cxml, expected_cxml = request.param
@@ -98,7 +98,7 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr)",
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=9},c:spPr)",
             ),
-        ]
+        ],
     )
     def format_fixture(self, request, ChartFormat_, chart_format_):
         ser_cxml, expected_cxml = request.param
@@ -114,7 +114,7 @@ class DescribeDataLabel(object):
             ("c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:strRef)", False),
             ("c:ser/c:dLbls/c:dLbl/(c:idx{val=24},c:tx/c:rich)", False),
             ("c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich)", True),
-        ]
+        ],
     )
     def has_tf_get_fixture(self, request):
         ser_cxml, expected_value = request.param
@@ -184,7 +184,7 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
                 ":lstStyle,a:p/a:pPr/a:defRPr))",
             ),
-        ]
+        ],
     )
     def has_tf_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
@@ -197,7 +197,7 @@ class DescribeDataLabel(object):
             ("c:ser", None),
             ("c:ser/c:dLbls/c:dLbl/c:idx{val=42}", None),
             ("c:ser/c:dLbls/c:dLbl/(c:idx{val=42},c:dLblPos{val=b})", "BELOW"),
-        ]
+        ],
     )
     def position_get_fixture(self, request):
         ser_cxml, value = request.param
@@ -227,7 +227,7 @@ class DescribeDataLabel(object):
                 "c:ser/c:dLbls/c:dLbl/c:idx{val=42}",
             ),
             ("c:ser", None, "c:ser"),
-        ]
+        ],
     )
     def position_set_fixture(self, request):
         ser_cxml, value, expected_cxml = request.param
@@ -250,7 +250,7 @@ class DescribeDataLabel(object):
                 "c:ser{a:b=c}/c:dLbls/c:dLbl/(c:idx{val=42},c:tx/c:rich/(a:bodyPr,a"
                 ":lstStyle,a:p/a:pPr/a:defRPr))",
             ),
-        ]
+        ],
     )
     def rich_fixture(self, request):
         ser_cxml, expected_cxml = request.param
@@ -303,7 +303,9 @@ class DescribeDataLabels(object):
         """
         chart_format_ = instance_mock(request, ChartFormat)
         ChartFormat_ = class_mock(
-            request, "pptx.chart.datalabel.ChartFormat", return_value=chart_format_
+            request,
+            "pptx.chart.datalabel.ChartFormat",
+            return_value=chart_format_,
         )
         dLbls = element("c:dLbls")
         data_labels = DataLabels(dLbls)
@@ -319,14 +321,14 @@ class DescribeDataLabels(object):
         Setting fill on ``DataLabels.format`` must not corrupt the ``c:dLbls`` tree.
         """
         data_labels = DataLabels(
-            element("c:dLbls/(c:numFmt{formatCode=General},c:dLblPos{val=ctr})")
+            element("c:dLbls/(c:numFmt{formatCode=General},c:dLblPos{val=ctr})"),
         )
 
         spPr = data_labels.format._element.get_or_add_spPr()
 
         # ---spPr must be inserted between numFmt and dLblPos per schema---
         assert data_labels._element.xml == xml(
-            "c:dLbls/(c:numFmt{formatCode=General},c:spPr,c:dLblPos{val=ctr})"
+            "c:dLbls/(c:numFmt{formatCode=General},c:spPr,c:dLblPos{val=ctr})",
         )
         assert spPr is data_labels._element.xpath("c:spPr")[0]
 
@@ -344,7 +346,8 @@ class DescribeDataLabels(object):
         assert data_labels.number_format_is_linked is expected_value
 
     def it_can_change_whether_its_number_format_is_linked(
-        self, number_format_is_linked_set_fixture
+        self,
+        number_format_is_linked_set_fixture,
     ):
         data_labels, new_value, expected_xml = number_format_is_linked_set_fixture
         data_labels.number_format_is_linked = new_value
@@ -358,6 +361,81 @@ class DescribeDataLabels(object):
         data_labels, new_value, expected_xml = position_set_fixture
         data_labels.position = new_value
         assert data_labels._element.xml == expected_xml
+
+    @pytest.mark.parametrize(
+        ("chart_type", "position"),
+        [
+            # -- stacked column / bar reject OUTSIDE_END (issue #789) --
+            (XL_CHART_TYPE.COLUMN_STACKED, XL_LABEL_POSITION.OUTSIDE_END),
+            (XL_CHART_TYPE.COLUMN_STACKED_100, XL_LABEL_POSITION.OUTSIDE_END),
+            (XL_CHART_TYPE.BAR_STACKED, XL_LABEL_POSITION.OUTSIDE_END),
+            (XL_CHART_TYPE.BAR_STACKED_100, XL_LABEL_POSITION.OUTSIDE_END),
+            # -- line charts reject bar-specific positions --
+            (XL_CHART_TYPE.LINE, XL_LABEL_POSITION.OUTSIDE_END),
+            (XL_CHART_TYPE.LINE, XL_LABEL_POSITION.INSIDE_BASE),
+            # -- scatter charts reject bar-specific positions --
+            (XL_CHART_TYPE.XY_SCATTER, XL_LABEL_POSITION.INSIDE_END),
+            # -- column / bar reject line-specific positions --
+            (XL_CHART_TYPE.COLUMN_CLUSTERED, XL_LABEL_POSITION.ABOVE),
+            (XL_CHART_TYPE.BAR_CLUSTERED, XL_LABEL_POSITION.LEFT),
+            # -- pie rejects INSIDE_BASE --
+            (XL_CHART_TYPE.PIE, XL_LABEL_POSITION.INSIDE_BASE),
+            # -- area accepts only CENTER --
+            (XL_CHART_TYPE.AREA, XL_LABEL_POSITION.OUTSIDE_END),
+            (XL_CHART_TYPE.AREA_STACKED, XL_LABEL_POSITION.INSIDE_END),
+        ],
+    )
+    def it_rejects_incompatible_position_for_chart_type(self, chart_type, position):
+        data_labels = DataLabels(element("c:dLbls"), chart_type=chart_type)
+        with pytest.raises(ValueError, match="not a valid data-label position"):
+            data_labels.position = position
+        # -- rejection must not mutate the XML tree --
+        assert data_labels._element.xml == xml("c:dLbls")
+
+    @pytest.mark.parametrize(
+        ("chart_type", "position"),
+        [
+            # -- clustered column / bar accept OUTSIDE_END --
+            (XL_CHART_TYPE.COLUMN_CLUSTERED, XL_LABEL_POSITION.OUTSIDE_END),
+            (XL_CHART_TYPE.BAR_CLUSTERED, XL_LABEL_POSITION.OUTSIDE_END),
+            # -- stacked column / bar accept INSIDE_END / INSIDE_BASE / CENTER --
+            (XL_CHART_TYPE.COLUMN_STACKED, XL_LABEL_POSITION.INSIDE_END),
+            (XL_CHART_TYPE.COLUMN_STACKED, XL_LABEL_POSITION.INSIDE_BASE),
+            (XL_CHART_TYPE.BAR_STACKED_100, XL_LABEL_POSITION.CENTER),
+            # -- line accepts ABOVE / BELOW --
+            (XL_CHART_TYPE.LINE, XL_LABEL_POSITION.ABOVE),
+            (XL_CHART_TYPE.LINE_MARKERS, XL_LABEL_POSITION.BELOW),
+            # -- scatter accepts ABOVE / BELOW / LEFT / RIGHT / CENTER --
+            (XL_CHART_TYPE.XY_SCATTER, XL_LABEL_POSITION.RIGHT),
+            # -- pie accepts BEST_FIT / OUTSIDE_END / INSIDE_END / CENTER --
+            (XL_CHART_TYPE.PIE, XL_LABEL_POSITION.BEST_FIT),
+            (XL_CHART_TYPE.PIE, XL_LABEL_POSITION.OUTSIDE_END),
+            # -- area accepts CENTER --
+            (XL_CHART_TYPE.AREA, XL_LABEL_POSITION.CENTER),
+        ],
+    )
+    def it_accepts_compatible_position_for_chart_type(self, chart_type, position):
+        data_labels = DataLabels(element("c:dLbls"), chart_type=chart_type)
+        data_labels.position = position
+        assert data_labels.position == position
+
+    def but_skips_validation_when_chart_type_is_None(self):
+        """Back-compat: callers that don't pass chart_type still get the
+        old unvalidated behaviour."""
+        data_labels = DataLabels(element("c:dLbls"))
+        # -- an otherwise-invalid combination must succeed when unscoped --
+        data_labels.position = XL_LABEL_POSITION.OUTSIDE_END
+        assert data_labels.position == XL_LABEL_POSITION.OUTSIDE_END
+
+    def and_clearing_position_with_None_never_validates(self):
+        """Assigning ``None`` must remove ``c:dLblPos`` regardless of chart
+        type — it's always a legal state."""
+        data_labels = DataLabels(
+            element("c:dLbls/c:dLblPos{val=ctr}"),
+            chart_type=XL_CHART_TYPE.AREA,
+        )
+        data_labels.position = None
+        assert data_labels._element.xml == xml("c:dLbls")
 
     def it_knows_whether_it_shows_category_name(self, catname_get_fixture):
         dLbls, expected_value = catname_get_fixture
@@ -476,7 +554,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showCatName{val=true}", True),
             # ---not an expected situation, but schema-compliant---
             ("c:dLbls/c:showCatName", True),
-        ]
+        ],
     )
     def catname_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -491,7 +569,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showCatName{val=0}", False, "c:dLbls/c:showCatName{val=0}"),
             ("c:dLbls/c:showCatName{val=0}", True, "c:dLbls/c:showCatName{val=1}"),
             ("c:dLbls/c:showCatName{val=1}", False, "c:dLbls/c:showCatName{val=0}"),
-        ]
+        ],
     )
     def catname_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -514,7 +592,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showLegendKey{val=true}", True),
             # ---not an expected situation, but schema-compliant---
             ("c:dLbls/c:showLegendKey", True),
-        ]
+        ],
     )
     def lgndkey_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -529,7 +607,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showLegendKey{val=0}", False, "c:dLbls/c:showLegendKey{val=0}"),
             ("c:dLbls/c:showLegendKey{val=0}", True, "c:dLbls/c:showLegendKey{val=1}"),
             ("c:dLbls/c:showLegendKey{val=1}", False, "c:dLbls/c:showLegendKey{val=0}"),
-        ]
+        ],
     )
     def lgndkey_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -541,7 +619,7 @@ class DescribeDataLabels(object):
         params=[
             ("c:dLbls", "General"),
             ("c:dLbls/c:numFmt{formatCode=foobar}", "foobar"),
-        ]
+        ],
     )
     def number_format_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -560,7 +638,7 @@ class DescribeDataLabels(object):
                 "00.00",
                 "c:dLbls/c:numFmt{formatCode=00.00,sourceLinked=0}",
             ),
-        ]
+        ],
     )
     def number_format_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -574,7 +652,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:numFmt", True),
             ("c:dLbls/c:numFmt{sourceLinked=0}", False),
             ("c:dLbls/c:numFmt{sourceLinked=1}", True),
-        ]
+        ],
     )
     def number_format_is_linked_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -592,7 +670,7 @@ class DescribeDataLabels(object):
                 False,
                 "c:dLbls/c:numFmt{sourceLinked=0}",
             ),
-        ]
+        ],
     )
     def number_format_is_linked_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -607,7 +685,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showPercent{val=1}", True),
             ("c:dLbls/c:showPercent{val=true}", True),
             ("c:dLbls/c:showPercent", True),
-        ]
+        ],
     )
     def percent_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -622,7 +700,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showPercent{val=0}", False, "c:dLbls/c:showPercent{val=0}"),
             ("c:dLbls/c:showPercent{val=0}", True, "c:dLbls/c:showPercent{val=1}"),
             ("c:dLbls/c:showPercent{val=1}", False, "c:dLbls/c:showPercent{val=0}"),
-        ]
+        ],
     )
     def percent_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -634,7 +712,7 @@ class DescribeDataLabels(object):
         params=[
             ("c:dLbls", None),
             ("c:dLbls/c:dLblPos{val=inBase}", XL_LABEL_POSITION.INSIDE_BASE),
-        ]
+        ],
     )
     def position_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -651,7 +729,7 @@ class DescribeDataLabels(object):
             ),
             ("c:dLbls/c:dLblPos{val=inBase}", None, "c:dLbls"),
             ("c:dLbls", None, "c:dLbls"),
-        ]
+        ],
     )
     def position_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -666,7 +744,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showSerName{val=1}", True),
             ("c:dLbls/c:showSerName{val=true}", True),
             ("c:dLbls/c:showSerName", True),
-        ]
+        ],
     )
     def sername_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -681,7 +759,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showSerName{val=0}", False, "c:dLbls/c:showSerName{val=0}"),
             ("c:dLbls/c:showSerName{val=0}", True, "c:dLbls/c:showSerName{val=1}"),
             ("c:dLbls/c:showSerName{val=1}", False, "c:dLbls/c:showSerName{val=0}"),
-        ]
+        ],
     )
     def sername_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
@@ -703,7 +781,7 @@ class DescribeDataLabels(object):
                 "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr)",
                 "c:dLbls{a:b=c}/c:txPr/(a:bodyPr,a:p/a:pPr/a:defRPr)",
             ),
-        ]
+        ],
     )
     def txPr_fixture(self, request):
         dLbls_cxml, expected_cxml = request.param
@@ -729,7 +807,7 @@ class DescribeDataLabels(object):
                 "c:dLbls{a:b=c}/(c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr),c:dLb"
                 "lPos{val=ctr})",
             ),
-        ]
+        ],
     )
     def text_frame_fixture(self, request):
         dLbls_cxml, expected_cxml = request.param
@@ -744,7 +822,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showVal{val=1}", True),
             ("c:dLbls/c:showVal{val=true}", True),
             ("c:dLbls/c:showVal", True),
-        ]
+        ],
     )
     def value_get_fixture(self, request):
         dLbls_cxml, expected_value = request.param
@@ -759,7 +837,7 @@ class DescribeDataLabels(object):
             ("c:dLbls/c:showVal{val=0}", False, "c:dLbls/c:showVal{val=0}"),
             ("c:dLbls/c:showVal{val=0}", True, "c:dLbls/c:showVal{val=1}"),
             ("c:dLbls/c:showVal{val=1}", False, "c:dLbls/c:showVal{val=0}"),
-        ]
+        ],
     )
     def value_set_fixture(self, request):
         dLbls_cxml, new_value, expected_dLbls_cxml = request.param
