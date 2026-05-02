@@ -6,6 +6,18 @@ Release History
 Unreleased
 ++++++++++
 
+- docs: #398 Jinja2 / templating of text placeholders — close as out-of-scope
+  (templating is the caller's concern; python-pptx provides the plumbing via
+  :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text` shipped
+  by #836). Add a ``Templating text`` section to ``docs/user/text.rst`` that
+  documents the recommended read-render-write pattern with concrete Jinja2
+  examples (whole-deck rendering paragraph-by-paragraph and per-token
+  replacement), calls out the ``replace_text`` scoping rules (no crossing
+  of paragraph / ``a:br`` / ``a:fld`` boundaries, origin-run formatting
+  wins), and cross-references third-party libraries built on top of
+  python-pptx (``python-pptx-templater``, ``pptx-template``,
+  ``python-pptx-interface``) for callers who need looped slides,
+  conditional inclusion, or chart-data substitution.
 - docs: #244 enumerate every ``XL_CHART_TYPE`` member in ``docs/user/charts.rst``
   with its current support level (create / read / round-trip / not yet),
   including the ``UNSUPPORTED_CHARTEX`` sentinel introduced by #386 and a
