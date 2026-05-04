@@ -241,6 +241,44 @@ matches PowerPoint's no-alt-text default.
 See issue #508.
 
 
+Click and hover actions -- picture, shape, and connector hyperlinks
+-------------------------------------------------------------------
+
+Every shape exposes :attr:`~.BaseShape.click_action` and
+:attr:`~.BaseShape.hover_action` — :class:`~pptx.action.ActionSetting`
+proxies bound to the shape's ``cNvPr`` element — so any shape on a slide
+can carry its own hyperlink, slide-jump, ScreenTip, or play-sound action.
+This applies equally to **pictures** (issue #576), auto-shapes,
+connectors, and group shapes.
+
+External-URL hyperlink on a picture::
+
+    pic = slide.shapes.add_picture("logo.png", Inches(1), Inches(1))
+    pic.click_action.hyperlink.address = "https://example.com"
+    pic.click_action.screen_tip = "Open our home page"
+
+Slide-jump on a picture — clicking the image during a slide show jumps
+to the assigned slide in the same deck::
+
+    pic.click_action.target_slide = prs.slides[2]
+
+Mouse-over (hover) action — fires when the pointer passes over the shape
+during a slide show without a click being required::
+
+    pic.hover_action.hyperlink.address = "https://example.com/hover"
+
+Removing a hyperlink is a matter of assigning |None| — the underlying
+``a:hlinkClick`` (or ``a:hlinkHover``) element and its relationship are
+both cleaned up::
+
+    pic.click_action.hyperlink.address = None      # -- clears the click action --
+    pic.click_action.target_slide = None           # -- clears any slide-jump --
+
+``hover_action`` is the mouse-over counterpart and shares the same API
+surface (``hyperlink``, ``target_slide``, ``screen_tip``, and
+``set_sound`` / ``remove_sound`` for a WAV chime).
+
+
 Up next ...
 -----------
 

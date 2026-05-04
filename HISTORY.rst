@@ -14,6 +14,27 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #576 picture hyperlink supported via ``BaseShape.click_action``.
+  Issue #576 (https://github.com/scanny/python-pptx/issues/576) asked
+  whether a caller can attach a hyperlink — either an external URL or a
+  jump to another slide — to a :class:`~pptx.shapes.picture.Picture`.
+  The capability has always been present: ``Picture`` inherits from
+  :class:`~pptx.shapes.base.BaseShape`, which exposes
+  :attr:`~pptx.shapes.base.BaseShape.click_action` (and, since Wave 14,
+  :attr:`~pptx.shapes.base.BaseShape.hover_action`) —
+  :class:`~pptx.action.ActionSetting` proxies bound to the picture's
+  ``p:nvPicPr/p:cNvPr`` element. ``pic.click_action.hyperlink.address``
+  sets a URL, ``pic.click_action.target_slide`` a slide-jump,
+  ``pic.click_action.screen_tip`` a tooltip, and
+  ``pic.hover_action.hyperlink.address`` a mouse-over hyperlink; assigning
+  |None| clears the action and its relationship cleanly.
+  ``tests/test_issue_576_picture_hyperlink_verify.py`` pins the
+  ten-scenario verify-close suite — API-surface guard, URL hyperlink
+  round-trip, slide-jump round-trip, hover-action round-trip, ScreenTip,
+  and clearing both click and hover actions — and
+  ``docs/user/understanding-shapes.rst`` now documents the picture
+  click/hover recipe inline.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
