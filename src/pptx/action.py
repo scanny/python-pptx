@@ -87,6 +87,75 @@ class ActionSetting(Subshape):
         return Hyperlink(self._element, self._parent, self._hover)
 
     @property
+    def macro(self) -> str | None:
+        """The VBA macro name invoked when the shape is clicked, or |None|.
+
+        Reading returns the macro identifier carried by a
+        ``ppaction://macro?name=…`` action verb on the shape's
+        ``a:hlinkClick`` (or ``a:hlinkHover`` when ``hover=True``). This is
+        typically a fully-qualified ``Module.Subroutine`` string
+        (e.g. ``"Module1.MySub"``). Returns |None| when no hyperlink
+        element is present, when the element carries a different action
+        verb, or when the macro action is missing a ``name`` query
+        parameter.
+
+        Assigning a string installs a macro click-action, replacing any
+        existing click action (hyperlink, slide-jump, or other
+        ``ppaction://`` verb). The written form is
+        ``ppaction://macro?name=<macro_name>`` on the ``a:hlinkClick`` /
+        ``a:hlinkHover`` element. Assigning |None| or the empty string
+        removes any existing macro action (but does nothing when the
+        current action is not a macro).
+
+        .. note::
+
+           This property only wires the click-action pointer at the shape
+           level; it does not author the VBA code itself. The enclosing
+           package must already contain a macro with the given name,
+           typically because the file was authored as or will be saved as
+           ``.pptm`` / ``.ppsm``. PowerPoint only invokes the macro when
+           the file is opened as a macro-enabled package; a ``.pptx``
+           package containing a macro action will render the action
+           attribute on round-trip but the click itself will have no
+           effect.
+
+           PowerPoint's own "Insert > Action > Run macro" dialog emits
+           ``name=`` (not ``id=``) as the query field and python-pptx
+           follows that convention. See issue #976.
+
+        .. versionadded:: 2026.05.0
+        """
+        hlink = self._hlink
+        if hlink is None:
+            return None
+        if hlink.action_verb != "macro":
+            return None
+        return hlink.action_fields.get("name")
+
+    @macro.setter
+    def macro(self, value: str | None) -> None:
+        if not value:
+            # -- only clear a click-action that is actually a macro action;
+            # -- leave other actions (hyperlink, slide-jump, sound-only) alone
+            hlink = self._hlink
+            if hlink is None:
+                return
+            if hlink.action_verb != "macro":
+                return
+            self._clear_click_action()
+            return
+        # -- install/replace a macro action; drop any prior click action
+        # -- (URL rel, slide-jump rel, sound rel) first
+        self._clear_click_action()
+        if self._hover:
+            hlink = cast(
+                "CT_NonVisualDrawingProps", self._element
+            ).get_or_add_hlinkHover()
+        else:
+            hlink = self._element.get_or_add_hlinkClick()
+        hlink.action = "ppaction://macro?name=%s" % value
+
+    @property
     def screen_tip(self) -> str | None:
         """The ScreenTip (tooltip) shown on hover for this click/hover action.
 

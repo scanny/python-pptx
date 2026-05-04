@@ -83,6 +83,12 @@ Feature Support
   "Number slides from" setting via :attr:`Presentation.first_slide_num`
 * Open and save password-protected (ECMA-376 Agile Encryption) .pptx files
   (requires optional ``msoffcrypto-tool``)
+* Author a shape-click "Run macro" action via
+  :attr:`.ActionSetting.macro`, which writes
+  ``ppaction://macro?name=<Module.Sub>`` on the shape's ``a:hlinkClick``;
+  saving with a ``.pptm`` / ``.ppsm`` extension auto-promotes the
+  presentation-part content-type so PowerPoint opens the file as
+  macro-enabled (issue #976)
 * Read and write shape accessibility metadata (``alt_text`` description and short
   ``title``) on any shape -- auto-shape, picture, graphic frame, group, or
   connector

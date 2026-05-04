@@ -183,8 +183,30 @@ class PresentationPart(XmlPart):
         package is stamped with that fixed last-modified timestamp. When `password` is
         provided, the saved package is encrypted using ECMA-376 Agile Encryption (see
         :meth:`pptx.presentation.Presentation.save`). The two keywords are orthogonal.
+
+        When `path_or_stream` is a string whose extension identifies a
+        macro-enabled package (``.pptm`` or ``.ppsm``), the
+        presentation-part content-type override is switched to the
+        corresponding macro-enabled variant for the duration of the save
+        so PowerPoint opens the file as macro-enabled. See
+        :meth:`pptx.presentation.Presentation.save` for the user-facing
+        description. File-like streams are written with whatever content
+        type the part currently carries.
         """
-        self.package.save(path_or_stream, zip_date_time, password=password)
+        target_ct = _macro_content_type_for(path_or_stream)
+        if target_ct is None or target_ct == self._content_type:
+            self.package.save(path_or_stream, zip_date_time, password=password)
+            return
+        original_ct = self._content_type
+        cached = self.__dict__.pop("content_type", None)
+        self._content_type = target_ct
+        try:
+            self.package.save(path_or_stream, zip_date_time, password=password)
+        finally:
+            self._content_type = original_ct
+            self.__dict__.pop("content_type", None)
+            if cached is not None:
+                self.__dict__["content_type"] = cached
 
     def save_flat_xml(self, path_or_stream: str | IO[bytes]) -> None:
         """Save this presentation package to `path_or_stream` as Flat OPC XML.
@@ -240,3 +262,24 @@ class PresentationPart(XmlPart):
         sldIdLst = self._element.get_or_add_sldIdLst()
         partname_str = "/ppt/slides/slide%d.xml" % (len(sldIdLst) + 1)
         return PackURI(partname_str)
+
+
+def _macro_content_type_for(path_or_stream: str | IO[bytes]) -> str | None:
+    """Return the macro-enabled content-type that matches `path_or_stream`, or None.
+
+    Returns :attr:`CT.PML_PRES_MACRO_MAIN` for a path ending in ``.pptm``
+    (case-insensitive) and :attr:`CT.PML_SLIDESHOW_MACRO_MAIN` for
+    ``.ppsm``. Returns |None| for any other string extension or when
+    `path_or_stream` is not a plain string (file-like objects carry no
+    extension to sniff). Used by :meth:`PresentationPart.save` to
+    auto-promote a save to macro-enabled when the caller supplied a
+    macro-enabled filename — see issue #976.
+    """
+    if not isinstance(path_or_stream, str):
+        return None
+    lowered = path_or_stream.lower()
+    if lowered.endswith(".pptm"):
+        return CT.PML_PRES_MACRO_MAIN
+    if lowered.endswith(".ppsm"):
+        return CT.PML_SLIDESHOW_MACRO_MAIN
+    return None

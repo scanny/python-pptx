@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import os
+import zipfile
+
 from behave import given, then, when
-from helpers import test_file
+from helpers import scratch_dir, test_file
 
 from pptx import Presentation
 from pptx.action import ActionSetting, Hyperlink, Sound
@@ -204,4 +207,45 @@ def then_hover_action_screen_tip_is_value(context, value):
     expected_value = None if value == "None" else value
     assert context.hover_action.screen_tip == expected_value, (
         "expected %r, got %r" % (expected_value, context.hover_action.screen_tip)
+    )
+
+
+# -- issue #976 ActionSetting.macro and .pptm save ---------------------
+
+
+@given("an otherwise-empty presentation")
+def given_an_otherwise_empty_presentation(context):
+    context.presentation = Presentation()
+
+
+@when("I assign {value} to click_action.macro")
+def when_I_assign_value_to_click_action_macro(context, value):
+    context.click_action.macro = None if value == "None" else value
+
+
+@when("I save it as a .pptm")
+def when_I_save_it_as_pptm(context):
+    path = os.path.join(scratch_dir, "issue976.pptm")
+    context.presentation.save(path)
+    context.saved_pptm_path = path
+
+
+@then("click_action.macro is {value}")
+def then_click_action_macro_is_value(context, value):
+    expected = None if value == "None" else value
+    actual = context.click_action.macro
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("the saved package has the macro-enabled presentation content type")
+def then_saved_pptm_has_macro_content_type(context):
+    path = context.saved_pptm_path
+    with zipfile.ZipFile(path) as zf:
+        content_types = zf.read("[Content_Types].xml").decode("utf-8")
+    expected = (
+        "application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml"
+    )
+    assert expected in content_types, (
+        "expected %r to appear in [Content_Types].xml; got:\n%s"
+        % (expected, content_types)
     )

@@ -78,6 +78,7 @@ class CONTENT_TYPE:
         "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"
     )
     PML_PRES_MACRO_MAIN = "application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml"
+    PML_SLIDESHOW_MACRO_MAIN = "application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml"
     PML_PRES_PROPS = "application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"
     PML_PRINTER_SETTINGS = (
         "application/vnd.openxmlformats-officedocument.presentationml.printerSettings"

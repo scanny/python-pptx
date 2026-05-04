@@ -45,6 +45,7 @@ content_type_to_part_class_map: dict[str, type[Part]] = {
     CT.PML_PRES_MACRO_MAIN: PresentationPart,
     CT.PML_TEMPLATE_MAIN: PresentationPart,
     CT.PML_SLIDESHOW_MAIN: PresentationPart,
+    CT.PML_SLIDESHOW_MACRO_MAIN: PresentationPart,
     CT.OPC_CORE_PROPERTIES: CorePropertiesPart,
     CT.OFC_CUSTOM_PROPERTIES: CustomPropertiesPart,
     CT.OFC_EXTENDED_PROPERTIES: ExtendedPropertiesPart,
