@@ -301,6 +301,22 @@ An XY/scatter chart has two value axes (one for X and one for Y), but neither
 is considered a *secondary* axis in this sense; both are primary axes, so
 :attr:`has_secondary_value_axis` is always ``False`` for XY/scatter charts.
 
+.. caution::
+   On a combo chart that carries both a primary and a secondary value axis,
+   :attr:`Chart.value_axis` returns the **last** ``c:valAx`` element —
+   i.e. the *secondary* axis, not the primary one. This is a legacy
+   "last-wins" resolution preserved for backward compatibility with
+   existing callers. Use :attr:`Chart.primary_value_axis` when you want
+   the primary axis unambiguously (e.g. a bar + line combo with the line
+   plotted on a secondary axis)::
+
+       primary = chart.primary_value_axis     # always the first c:valAx
+       secondary = chart.secondary_value_axis # second c:valAx, or raises
+
+   On a non-combo chart with a single value axis,
+   :attr:`Chart.value_axis` and :attr:`Chart.primary_value_axis` return
+   the same axis.
+
 .. note::
    Creating a new secondary value axis (and assigning series to it) in a chart
    that does not already have one requires combo-chart plumbing that is not

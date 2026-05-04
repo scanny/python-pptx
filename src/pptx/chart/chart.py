@@ -809,10 +809,23 @@ class Chart(PartElementProxy):
 
     @property
     def value_axis(self):
-        """
-        The |ValueAxis| object providing access to properties of the value
-        axis of this chart. Raises |ValueError| if the chart has no value
-        axis.
+        """The |ValueAxis| object for the value axis of this chart.
+
+        Returns the **last** ``c:valAx`` element in the chart's plot area —
+        which is the primary value axis on a single-axis chart but the
+        **secondary** axis on a category-based combo chart that also carries
+        a secondary value axis. That legacy "last-wins" resolution is
+        preserved for backward compatibility with callers that rely on it;
+        see :attr:`primary_value_axis` for an unambiguous accessor that
+        always returns the primary axis. Raises |ValueError| if the chart
+        has no value axis.
+
+        On an XY/scatter chart there are two ``c:valAx`` elements (X and Y)
+        but neither is a "secondary" axis in the combo-chart sense, so
+        ``value_axis`` returns the Y axis (the second element) and
+        :attr:`primary_value_axis` returns the X axis (the first). Callers
+        working with XY/scatter charts should consume the two via
+        ``chartSpace.valAx_lst`` directly if both are needed.
         """
         valAx_lst = self._chartSpace.valAx_lst
         if not valAx_lst:
@@ -820,6 +833,31 @@ class Chart(PartElementProxy):
 
         idx = 1 if len(valAx_lst) > 1 else 0
         return ValueAxis(valAx_lst[idx])
+
+    @property
+    def primary_value_axis(self):
+        """The |ValueAxis| for the primary value axis of this chart.
+
+        Returns the **first** ``c:valAx`` element in the chart's plot area.
+        For a category-based chart with a primary + secondary value axis
+        (e.g. a combo chart with bar on the primary axis and line on a
+        secondary axis) this is the primary axis — distinct from
+        :attr:`value_axis`, which returns the *last* ``c:valAx`` and
+        therefore resolves to the secondary axis on such a chart. For a
+        non-combo chart with a single value axis, both properties return
+        the same object.
+
+        Raises |ValueError| if the chart has no value axis. On an
+        XY/scatter chart the first ``c:valAx`` is the X axis (both
+        ``valAx`` elements are primary in the single-axis sense; see
+        :attr:`value_axis` for background).
+
+        .. versionadded:: 2026.05.2
+        """
+        valAx_lst = self._chartSpace.valAx_lst
+        if not valAx_lst:
+            raise ValueError("chart has no value axis")
+        return ValueAxis(valAx_lst[0])
 
     @property
     def has_secondary_value_axis(self):

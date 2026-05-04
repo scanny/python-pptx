@@ -126,6 +126,25 @@ Feature: Chart properties
   Scenario: Chart.secondary_value_axis raises when not present
     Given a single-value-axes chart
      Then accessing chart.secondary_value_axis raises ValueError
+
+
+  Scenario Outline: Chart.primary_value_axis (FU-2)
+    Given a <axis-config>-axes chart
+     Then chart.primary_value_axis is a ValueAxis object
+      And chart.primary_value_axis is the first c:valAx
+
+    Examples: primary value axis cases
+      | axis-config       |
+      | single-value      |
+      | primary-secondary |
+
+
+  Scenario: Chart.primary_value_axis differs from value_axis on combo (FU-2)
+    Given a primary-secondary-axes chart
+     Then chart.primary_value_axis is not chart.value_axis
+      And chart.value_axis is chart.secondary_value_axis
+
+
   Scenario: Chart.plot_area (issue #298)
     Given a Chart object as chart
      Then chart.plot_area is a PlotArea object
