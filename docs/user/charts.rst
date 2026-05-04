@@ -401,6 +401,26 @@ format instead (addresses
 `issue #638 <https://github.com/scanny/python-pptx/issues/638>`_ and
 `issue #803 <https://github.com/scanny/python-pptx/issues/803>`_).
 
+Individual data labels can also be pinned to an arbitrary position on the
+chart area — the same behaviour as dragging a label in PowerPoint.
+Coordinates are fractional offsets in ``[0.0, 1.0]``, relative to the chart
+area, with ``(0.0, 0.0)`` at the top-left corner::
+
+    point = chart.plots[0].series[0].points[2]
+    point.data_label.set_manual_layout(0.25, 0.5)
+
+    # read back as a ManualLayout(x, y) namedtuple (or None when inherited)
+    assert point.data_label.manual_layout == (0.25, 0.5)
+
+    # remove the per-point override — the label reverts to the chart-type /
+    # series-level default position
+    point.data_label.clear_manual_layout()
+
+This writes a ``c:dLbl/c:layout/c:manualLayout`` subtree with ``c:xMode`` and
+``c:yMode`` in the default ``"factor"`` mode. Addresses
+`issue #1024 <https://github.com/scanny/python-pptx/issues/1024>`_ and
+`issue #1025 <https://github.com/scanny/python-pptx/issues/1025>`_.
+
 .. note::
    A newly-added doughnut or exploded-doughnut chart emits its default
    ``c:dLbls`` block with ``c:showVal val="1"``, so the numeric values appear

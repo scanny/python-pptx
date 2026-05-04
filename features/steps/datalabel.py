@@ -152,6 +152,16 @@ def when_I_assign_value_to_data_labels_text_frame_word_wrap(context, value):
     context.data_labels.text_frame.word_wrap = new_value
 
 
+@when("I set the data label manual layout to ({x:g}, {y:g})")
+def when_I_set_the_data_label_manual_layout(context, x, y):
+    context.data_label.set_manual_layout(x, y)
+
+
+@when("I clear the data label manual layout")
+def when_I_clear_the_data_label_manual_layout(context):
+    context.data_label.clear_manual_layout()
+
+
 # then ====================================================
 
 
@@ -323,3 +333,46 @@ def then_the_c_dLbls_XML_has_c_txPr_a_bodyPr_with_wrap_none(context):
 def then_the_c_dLbls_XML_has_no_c_tx_c_rich_subtree(context):
     dLbls = context.data_labels._element
     assert dLbls.xpath("c:tx/c:rich") == [], "c:dLbls unexpectedly has c:tx/c:rich subtree"
+
+
+@then("data_label.manual_layout is None")
+def then_data_label_manual_layout_is_None(context):
+    actual = context.data_label.manual_layout
+    assert actual is None, "data_label.manual_layout is %r, expected None" % (actual,)
+
+
+@then("data_label.manual_layout is ({x:g}, {y:g})")
+def then_data_label_manual_layout_is_xy(context, x, y):
+    from pptx.chart.datalabel import ManualLayout
+
+    actual = context.data_label.manual_layout
+    expected = ManualLayout(x, y)
+    assert actual == expected, "data_label.manual_layout is %r, expected %r" % (actual, expected)
+    assert isinstance(actual, ManualLayout), "expected ManualLayout, got %s" % type(actual).__name__
+
+
+@then(
+    "the c:dLbl for the point has c:layout/c:manualLayout with x={x:g} and y={y:g}",
+)
+def then_c_dLbl_has_manualLayout(context, x, y):
+    ser = context.data_label._ser
+    xs = ser.xpath("c:dLbls/c:dLbl/c:layout/c:manualLayout/c:x/@val")
+    ys = ser.xpath("c:dLbls/c:dLbl/c:layout/c:manualLayout/c:y/@val")
+    assert len(xs) == 1 and len(ys) == 1, (
+        "expected a single c:manualLayout/c:x and c:y on the c:dLbl, got %d and %d"
+        % (len(xs), len(ys))
+    )
+    assert float(xs[0]) == x, "c:manualLayout/c:x/@val is %r, expected %r" % (xs[0], x)
+    assert float(ys[0]) == y, "c:manualLayout/c:y/@val is %r, expected %r" % (ys[0], y)
+    # -- xMode/yMode must be "factor" (default) for the position to apply --
+    xModes = ser.xpath("c:dLbls/c:dLbl/c:layout/c:manualLayout/c:xMode/@val")
+    yModes = ser.xpath("c:dLbls/c:dLbl/c:layout/c:manualLayout/c:yMode/@val")
+    for mode_val in xModes + yModes:
+        assert mode_val == "factor", "c:xMode/c:yMode must be 'factor', got %r" % mode_val
+
+
+@then("the c:dLbl for the point has no c:layout subtree")
+def then_c_dLbl_has_no_c_layout(context):
+    ser = context.data_label._ser
+    layouts = ser.xpath("c:dLbls/c:dLbl/c:layout")
+    assert layouts == [], "c:dLbl unexpectedly has c:layout subtree: %r" % layouts

@@ -256,3 +256,23 @@ Feature: Access and modify data labels properties
       And I assign True to data_label.number_format_is_linked
      Then data_label.number_format_is_linked is True
       And the c:dLbl for the point has c:numFmt with formatCode '0.0%' and sourceLinked '1'
+
+
+  Scenario: DataLabel.manual_layout defaults to None (issues #1024 and #1025)
+    Given a data label
+     Then data_label.manual_layout is None
+
+
+  Scenario: DataLabel.set_manual_layout writes c:dLbl/c:layout/c:manualLayout
+    Given a data label
+     When I set the data label manual layout to (0.25, 0.5)
+     Then data_label.manual_layout is (0.25, 0.5)
+      And the c:dLbl for the point has c:layout/c:manualLayout with x=0.25 and y=0.5
+
+
+  Scenario: DataLabel.clear_manual_layout removes the c:layout subtree
+    Given a data label
+     When I set the data label manual layout to (0.25, 0.5)
+      And I clear the data label manual layout
+     Then data_label.manual_layout is None
+      And the c:dLbl for the point has no c:layout subtree

@@ -14,6 +14,23 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #1024 / #1025 ``DataLabel.set_manual_layout(x, y)`` /
+  ``clear_manual_layout()`` / ``manual_layout``. Issues
+  `#1024 <https://github.com/scanny/python-pptx/issues/1024>`_ and
+  `#1025 <https://github.com/scanny/python-pptx/issues/1025>`_ asked how
+  to pin an individual data label to an arbitrary position on the chart
+  area — the same drag-to-place behaviour PowerPoint offers through its
+  UI. A new :class:`.ManualLayout` ``NamedTuple(x, y)`` exposes the
+  fractional offsets (in the 0.0-1.0 ``"factor"`` coordinate space
+  PowerPoint uses, relative to the chart area), the
+  :meth:`.DataLabel.set_manual_layout` method writes
+  ``c:dLbl/c:layout/c:manualLayout`` with ``c:xMode`` / ``c:yMode`` both
+  defaulting to ``"factor"``, and :meth:`.DataLabel.clear_manual_layout`
+  removes the ``c:layout`` subtree so the label reverts to the
+  inherited / chart-type-default position. The read-only
+  :attr:`.DataLabel.manual_layout` returns a :class:`.ManualLayout` when
+  a per-point manual position is present and |None| otherwise.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and

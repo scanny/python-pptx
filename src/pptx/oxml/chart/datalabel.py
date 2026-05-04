@@ -39,6 +39,7 @@ class CT_DLbl(BaseOxmlElement):
         "c:extLst",
     )
     idx = OneAndOnlyOne("c:idx")
+    layout = ZeroOrOne("c:layout", successors=_tag_seq[2:])
     tx = ZeroOrOne("c:tx", successors=_tag_seq[3:])
     numFmt = ZeroOrOne("c:numFmt", successors=_tag_seq[4:])
     spPr = ZeroOrOne("c:spPr", successors=_tag_seq[5:])

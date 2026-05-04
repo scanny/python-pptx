@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pptx.chart.datalabel import DataLabel, DataLabels
+from pptx.chart.datalabel import DataLabel, DataLabels, ManualLayout
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE, XL_LABEL_POSITION
 from pptx.text.text import Font
@@ -148,6 +148,162 @@ class DescribeDataLabel(object):
         data_label, value, expected_xml = position_set_fixture
         data_label.position = value
         assert data_label._element.xml == expected_xml
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_value"),
+        [
+            # -- no c:dLbls at all --
+            ("c:ser", None),
+            # -- c:dLbl exists but no c:layout --
+            ("c:ser/c:dLbls/c:dLbl/c:idx{val=7}", None),
+            # -- c:layout present but no c:manualLayout --
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout)", None),
+            # -- c:manualLayout present but no c:x / c:y --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout)",
+                None,
+            ),
+            # -- only c:x, no c:y --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:x{val=0.25}))",
+                None,
+            ),
+            # -- xMode=edge rejects manual layout (not "factor" mode) --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode{val=edge},c:yMode,c:x{val=0.25},c:y{val=0.5}))",
+                None,
+            ),
+            # -- full (x, y) in factor mode --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.25},c:y{val=0.5}))",
+                (0.25, 0.5),
+            ),
+            # -- c:dLbl at *different* idx is ignored --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.25},c:y{val=0.5}))",
+                None,
+            ),
+        ],
+    )
+    def it_knows_its_manual_layout(self, ser_cxml, expected_value):
+        data_label = DataLabel(element(ser_cxml), 7)
+        actual = data_label.manual_layout
+        if expected_value is None:
+            assert actual is None
+        else:
+            assert isinstance(actual, ManualLayout)
+            assert actual == ManualLayout(*expected_value)
+            # -- tuple unpacking / attribute access both work --
+            x, y = actual
+            assert (x, y) == expected_value
+            assert (actual.x, actual.y) == expected_value
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "xy", "expected_cxml"),
+        [
+            # -- from scratch: c:dLbls/c:dLbl/c:layout/c:manualLayout is created --
+            (
+                "c:ser{a:b=c}",
+                (0.25, 0.5),
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=7},c:layout/c:manualLa"
+                "yout/(c:xMode,c:yMode,c:x{val=0.25},c:y{val=0.5}),c:spPr,c:txP"
+                "r/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:defRPr)),c:showLegendKey{va"
+                "l=0},c:showVal{val=0},c:showCatName{val=0},c:showSerName{val="
+                "0},c:showPercent{val=0},c:showBubbleSize{val=0},c:showLeaderL"
+                "ines{val=1})",
+            ),
+            # -- updates existing values without resorting siblings --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.1},c:y{val=0.1}),c:dLblPos{val=ctr})",
+                (0.8, 0.9),
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.8},c:y{val=0.9}),c:dLblPos{val=ctr})",
+            ),
+            # -- switches xMode/yMode from "edge" back to default "factor" --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode{val=edge},c:yMode{val=edge},c:x{val=0.0},c:y{val=0.0}))",
+                (0.5, 0.5),
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.5},c:y{val=0.5}))",
+            ),
+            # -- layout inserted in correct schema order (after c:idx, before c:dLblPos) --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:dLblPos{val=ctr})",
+                (0.3, 0.4),
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.4}),c:dLblPos{val=ctr})",
+            ),
+        ],
+    )
+    def it_can_set_its_manual_layout(self, ser_cxml, xy, expected_cxml):
+        data_label = DataLabel(element(ser_cxml), 7)
+        data_label.set_manual_layout(*xy)
+        assert data_label._element.xml == xml(expected_cxml)
+
+    def it_coerces_ints_to_float_on_set_manual_layout(self):
+        data_label = DataLabel(element("c:ser/c:dLbls/c:dLbl/c:idx{val=7}"), 7)
+        data_label.set_manual_layout(0, 1)
+        assert data_label.manual_layout == ManualLayout(0.0, 0.0 + 1)
+        # -- values are float, not int --
+        layout = data_label.manual_layout
+        assert isinstance(layout.x, float)
+        assert isinstance(layout.y, float)
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_cxml"),
+        [
+            # -- nothing present: no-op --
+            ("c:ser", "c:ser"),
+            ("c:ser/c:dLbls", "c:ser/c:dLbls"),
+            # -- dLbl present but no c:layout: no-op --
+            (
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=7}",
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=7}",
+            ),
+            # -- c:layout present: full subtree is removed, c:dLbl is preserved --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.4}),c:dLblPos{val=ctr})",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:dLblPos{val=ctr})",
+            ),
+            # -- c:dLbl for a *different* idx is not touched --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.4}))",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:layout/c:manualLayout/"
+                "(c:xMode,c:yMode,c:x{val=0.3},c:y{val=0.4}))",
+            ),
+        ],
+    )
+    def it_can_clear_its_manual_layout(self, ser_cxml, expected_cxml):
+        data_label = DataLabel(element(ser_cxml), 7)
+        data_label.clear_manual_layout()
+        assert data_label._element.xml == xml(expected_cxml)
+        assert data_label.manual_layout is None
+
+    def it_round_trips_set_then_clear(self):
+        """Regression: set → clear returns the ``c:dLbl`` to its prior shape.
+
+        Covers issues #1024 / #1025 — the reporter expected a clean
+        round-trip between ``set_manual_layout`` and
+        ``clear_manual_layout``.
+        """
+        ser = element("c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:dLblPos{val=ctr})")
+        before = ser.xml
+        data_label = DataLabel(ser, 7)
+
+        data_label.set_manual_layout(0.25, 0.5)
+        assert data_label.manual_layout == ManualLayout(0.25, 0.5)
+
+        data_label.clear_manual_layout()
+        assert data_label.manual_layout is None
+        assert ser.xml == before
 
     def it_knows_whether_it_has_a_text_frame(self, has_tf_get_fixture):
         data_label, expected_value = has_tf_get_fixture

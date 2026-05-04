@@ -2,11 +2,31 @@
 
 from __future__ import annotations
 
+from typing import NamedTuple
+
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE as XL
 from pptx.enum.chart import XL_LABEL_POSITION as POS
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
+
+
+class ManualLayout(NamedTuple):
+    """Fractional ``(x, y)`` offsets for a data label's manual position.
+
+    Coordinates are in the 0.0 .. 1.0 "factor" coordinate space used by
+    ``c:manualLayout/c:x`` and ``c:manualLayout/c:y`` — relative to the
+    chart area, with ``(0.0, 0.0)`` at the top-left and ``(1.0, 1.0)`` at
+    the bottom-right. PowerPoint writes values in this range when the
+    user drags an individual data label; values outside the range are
+    accepted by the XML but place the label partly or wholly outside the
+    chart area.
+
+    .. versionadded:: 2026.05.1
+    """
+
+    x: float
+    y: float
 
 # -- Per-chart-type whitelist of valid c:dLblPos values. Derived from
 # -- ECMA-376 / ISO-IEC-29500 §21.2.2.45 and confirmed against the
@@ -325,6 +345,78 @@ class DataLabel(object):
             self._get_or_add_tx_rich()
         else:
             self._remove_tx_rich()
+
+    @property
+    def manual_layout(self):
+        """Read-only |ManualLayout| position of this data label, or |None|.
+
+        Returns a ``ManualLayout(x, y)`` namedtuple of fractional offsets
+        when this data label has an explicit position written to
+        ``c:dLbl/c:layout/c:manualLayout`` in "factor" mode (PowerPoint's
+        drag-to-position behaviour). Returns |None| when no per-point
+        manual position is present, meaning the label inherits its
+        position from series-level / plot-level :attr:`DataLabel.position`
+        or the chart-type default.
+
+        Use :meth:`set_manual_layout` to assign a position and
+        :meth:`clear_manual_layout` to remove one. Addresses issues
+        #1024 / #1025.
+
+        .. versionadded:: 2026.05.1
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return None
+        layout = dLbl.layout
+        if layout is None:
+            return None
+        manualLayout = layout.manualLayout
+        if manualLayout is None:
+            return None
+        pos = manualLayout.position
+        if pos is None:
+            return None
+        return ManualLayout(pos[0], pos[1])
+
+    def set_manual_layout(self, x, y):
+        """Pin this data label to a fractional position on the chart area.
+
+        *x* and *y* are fractional offsets in the 0.0 .. 1.0 "factor"
+        coordinate space used by PowerPoint when a user drags an
+        individual data label — relative to the chart area, with
+        ``(0.0, 0.0)`` at the top-left corner. Writes
+        ``c:dLbl/c:layout/c:manualLayout`` with ``c:xMode``, ``c:yMode``
+        both ``"factor"`` and ``c:x``, ``c:y`` carrying the supplied
+        values.
+
+        Both arguments are coerced to ``float``. Values outside
+        ``[0.0, 1.0]`` are written as-is (PowerPoint accepts them but
+        renders the label partly or wholly outside the chart area). Call
+        :meth:`clear_manual_layout` to remove a manual position.
+        Addresses issues #1024 / #1025.
+
+        .. versionadded:: 2026.05.1
+        """
+        dLbl = self._get_or_add_dLbl()
+        layout = dLbl.get_or_add_layout()
+        manualLayout = layout.get_or_add_manualLayout()
+        manualLayout.position = (float(x), float(y))
+
+    def clear_manual_layout(self):
+        """Remove any per-point manual position from this data label.
+
+        No-op when no ``c:dLbl/c:layout`` element is present. When
+        present, the ``c:layout`` subtree is removed entirely so the
+        label reverts to the position inherited from series- /
+        plot-level settings or the chart-type default. Addresses issues
+        #1024 / #1025.
+
+        .. versionadded:: 2026.05.1
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return
+        dLbl._remove_layout()
 
     @property
     def number_format(self):
