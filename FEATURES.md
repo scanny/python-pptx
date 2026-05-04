@@ -743,6 +743,8 @@ prs.save("out.pptx")
 - `Movie.delete()` — Remove the movie and drop its three media-related part relationships. `[Added in 2026.05.0]`
 - `Movie.poster_frame_image` — Access the poster-frame image part (read-only).
 - `add_movie` tolerates a pre-existing `p:timing` wrapped in `mc:AlternateContent` (merges new `p:video` into the existing `p:childTnLst`). `[Added in 2026.05.0]`
+- Per-slide audio narration composes from existing primitives — no
+  wrapper API. Call `SlideShapes.add_movie(audio_path, ..., mime_type="audio/*", autoplay=True)` to embed the clip with a `withPrevious` start condition, set `Movie.is_hidden = True` to hide the speaker icon during the slideshow, and assign `Slide.transition.advance_after_time` (milliseconds) to auto-advance the slide when the clip ends. See `docs/user/media.rst` → "Recipe: per-slide audio narration" and issue #622. `[Added in 2026.05.0]`
 
 ---
 

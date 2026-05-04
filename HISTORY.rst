@@ -14,6 +14,24 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #622 per-slide audio narration recipe. Issue #622
+  (https://github.com/scanny/python-pptx/issues/622) asked for an
+  ``add_narration(...)`` wrapper that would embed an audio clip,
+  auto-play it with the slide, hide the speaker icon, and advance the
+  slide when playback ended. Every primitive is already public:
+  ``SlideShapes.add_movie(mime_type="audio/*", autoplay=True)`` embeds
+  the audio and wires the ``withPrevious`` start condition,
+  ``BaseShape.is_hidden`` flips the ``cNvPr`` hidden attribute on the
+  returned shape, and ``Slide.transition.advance_after_time`` carries
+  the auto-advance delay (in milliseconds). No wrapper API is added;
+  instead, a new "Recipe: per-slide audio narration" section in
+  ``docs/user/media.rst`` documents the composition. A
+  ``DescribeIssue622AudioNarrationRecipe`` suite
+  (``tests/test_issue_622_audio_narration_verify.py``) pins each leg
+  and a save + reopen round-trip of the full recipe, and a matching
+  behave scenario in ``features/shp-shapes.feature`` runs the
+  composition end-to-end so the three legs stay wired together.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
