@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Iterator, Mapping, NamedTuple, cast
+from typing import IO, TYPE_CHECKING, Any, Iterator, Mapping, NamedTuple, cast
 
+from pptx.action import Sound
 from pptx.dml.color import ColorFormat as _ColorFormat
 from pptx.dml.color import _Color  # pyright: ignore[reportPrivateUsage]  # noqa: PLC2701
 from pptx.dml.effect import EffectFormat, ShadowFormat
@@ -19,6 +20,7 @@ from pptx.enum.text import (
     PP_AUTO_NUMBER_SCHEME,
 )
 from pptx.exc import TextLayoutError
+from pptx.media import Audio
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_TextWrappingType
@@ -1569,6 +1571,131 @@ class _Hyperlink(Subshape):
         # -- assigning None; it removes any hyperlink on the run.
         self.target_slide = None
 
+    @property
+    def screen_tip(self) -> str | None:
+        """The ScreenTip (tooltip) shown on hover for this run's hyperlink.
+
+        Corresponds to the ``tooltip`` attribute of the run's
+        ``a:hlinkClick`` element. Returns |None| when no ``a:hlinkClick``
+        child is present or when it carries no ``tooltip`` attribute.
+
+        Assigning a string sets the tooltip, creating the ``a:hlinkClick``
+        element if necessary. Assigning |None| or the empty string removes
+        the ``tooltip`` attribute, leaving the hyperlink element itself
+        untouched because it may still carry a URL, slide-jump, or sound.
+
+        .. note::
+           PowerPoint only **displays** a ScreenTip on hover when the
+           hyperlink carries an actionable target -- a URL, slide jump, or
+           embedded sound. Setting ``screen_tip`` on a run whose hyperlink
+           has no other target writes a spec-valid but behaviorally inert
+           ``<a:hlinkClick tooltip="..."/>`` element that PowerPoint
+           ignores at display time. To make the tooltip visible, assign a
+           URL (via :attr:`address`) or a slide jump (via
+           :attr:`target_slide`) in addition to the screen tip. See `issue
+           #1022`_ for the parallel caveat on shape-level screen tips.
+
+        .. _issue #1022: https://github.com/scanny/python-pptx/issues/1022
+
+        .. versionadded:: 2026.05.0
+        """
+        hlinkClick = self._hlinkClick
+        if hlinkClick is None:
+            return None
+        return hlinkClick.tooltip
+
+    @screen_tip.setter
+    def screen_tip(self, value: str | None) -> None:
+        if not value:
+            hlinkClick = self._hlinkClick
+            if hlinkClick is None:
+                return
+            hlinkClick.tooltip = None
+            return
+        hlinkClick = self._rPr.get_or_add_hlinkClick()
+        hlinkClick.tooltip = value
+
+    @property
+    def sound(self) -> Sound | None:
+        """A |Sound| object for the WAV audio played on click, or |None|.
+
+        Returns |None| when no ``a:snd`` child element is present on the
+        run's ``a:hlinkClick``. When present, the returned |Sound| provides
+        read-only access to the sound name and the embedded audio blob.
+
+        .. versionadded:: 2026.05.0
+        """
+        hlinkClick = self._hlinkClick
+        if hlinkClick is None:
+            return None
+        snd = hlinkClick.snd
+        if snd is None:
+            return None
+        return Sound(snd, cast("SlidePart", self.part))
+
+    def set_sound(
+        self,
+        audio_file: str | IO[bytes] | Audio,
+        name: str | None = None,
+        mime_type: str | None = None,
+    ) -> Sound:
+        """Attach a WAV audio clip to be played when this run is clicked.
+
+        `audio_file` may be a filesystem path, a file-like binary stream,
+        or a pre-built :class:`~pptx.media.Audio` instance. Any sound
+        previously set on this run's hyperlink is removed (including its
+        relationship when no other shape references the same audio part).
+        The audio is embedded as a media part inside the package and an
+        ``a:snd`` child element referencing it is added to the run's
+        ``a:hlinkClick`` element, creating that element if necessary.
+
+        `name` sets the ``name`` attribute on the ``a:snd`` element; when
+        omitted it defaults to the base filename of the source file (or
+        ``'sound.wav'`` for in-memory streams).
+
+        Returns the newly-created |Sound| object.
+
+        .. versionadded:: 2026.05.0
+        """
+        if isinstance(audio_file, Audio):
+            audio = audio_file
+        else:
+            audio = Audio.from_path_or_file_like(audio_file, mime_type)
+
+        self.remove_sound()
+
+        hlinkClick = self._rPr.get_or_add_hlinkClick()
+
+        slide_part = cast("SlidePart", self.part)
+        rId = slide_part.get_or_add_sound_media_part(audio)
+
+        snd = hlinkClick.get_or_add_snd()
+        snd.rEmbed = rId
+        snd.name = name if name is not None else audio.filename
+
+        return Sound(snd, slide_part)
+
+    def remove_sound(self) -> None:
+        """Remove any ``a:snd`` sound from this run's hyperlink.
+
+        Also drops the AUDIO relationship associated with the sound. Does
+        nothing when no sound is currently set. The enclosing
+        ``a:hlinkClick`` element itself is preserved because it may still
+        carry a separate URL, slide-jump, or tooltip.
+
+        .. versionadded:: 2026.05.0
+        """
+        hlinkClick = self._hlinkClick
+        if hlinkClick is None:
+            return
+        snd = hlinkClick.snd
+        if snd is None:
+            return
+        rId = snd.rEmbed
+        if rId:
+            self.part.drop_rel(rId)
+        hlinkClick.remove(snd)
+
     def _add_hlinkClick(self, url: str):
         rId = self.part.relate_to(url, RT.HYPERLINK, is_external=True)
         self._rPr.add_hlinkClick(rId)
@@ -1582,6 +1709,11 @@ class _Hyperlink(Subshape):
         rId = self._hlinkClick.rId
         if rId:
             self.part.drop_rel(rId)
+        # -- also drop any audio relationship carried by an `a:snd` child so we
+        # -- don't leave a dangling AUDIO rel when the hyperlink is removed
+        snd = self._hlinkClick.snd
+        if snd is not None and snd.rEmbed:
+            self.part.drop_rel(snd.rEmbed)
         self._rPr._remove_hlinkClick()  # pyright: ignore[reportPrivateUsage]
 
 

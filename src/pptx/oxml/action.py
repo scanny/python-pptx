@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Callable
+
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import XsdString
 from pptx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute, OxmlElement
@@ -41,6 +43,8 @@ class CT_EmbeddedWAVAudioFile(BaseOxmlElement):
 
 class CT_Hyperlink(BaseOxmlElement):
     """Custom element class for <a:hlinkClick> elements."""
+
+    get_or_add_snd: Callable[[], CT_EmbeddedWAVAudioFile]
 
     _tag_seq = ("a:snd", "a:extLst")
     snd: CT_EmbeddedWAVAudioFile | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]

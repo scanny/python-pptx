@@ -217,9 +217,7 @@ class DescribeTextFrame(object):
             ),
         ],
     )
-    def it_can_set_its_font_scale(
-        self, txBody_cxml: str, value: float, expected_cxml: str
-    ):
+    def it_can_set_its_font_scale(self, txBody_cxml: str, value: float, expected_cxml: str):
         text_frame = TextFrame(element(txBody_cxml), None)
         text_frame.font_scale = value
         assert text_frame._txBody.xml == xml(expected_cxml)
@@ -233,9 +231,7 @@ class DescribeTextFrame(object):
             ("p:txBody/a:bodyPr/a:noAutofit", 0.0),
         ],
     )
-    def it_knows_its_line_space_reduction(
-        self, txBody_cxml: str, expected_value: float
-    ):
+    def it_knows_its_line_space_reduction(self, txBody_cxml: str, expected_value: float):
         text_frame = TextFrame(element(txBody_cxml), None)
         assert text_frame.line_space_reduction == expected_value
 
@@ -391,9 +387,7 @@ class DescribeTextFrame(object):
             ("p:txBody/a:bodyPr", 45.5, "p:txBody/a:bodyPr{rot=2730000}"),
         ],
     )
-    def it_can_change_its_rotation(
-        self, txBody_cxml: str, new_value: float, expected_cxml: str
-    ):
+    def it_can_change_its_rotation(self, txBody_cxml: str, new_value: float, expected_cxml: str):
         text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
         text_frame.rotation = new_value
         assert text_frame._element.xml == xml(expected_cxml)
@@ -838,9 +832,7 @@ class DescribeTextFrameRect(object):
     def it_exposes_its_fields_by_name_and_position(self):
         from pptx.util import Emu
 
-        rect = TextFrameRect(
-            left=Emu(100), top=Emu(200), width=Emu(300), height=Emu(400)
-        )
+        rect = TextFrameRect(left=Emu(100), top=Emu(200), width=Emu(300), height=Emu(400))
 
         # -- field access
         assert rect.left == 100
@@ -855,9 +847,7 @@ class DescribeTextFrameRect(object):
     def it_returns_Length_values_that_support_unit_conversion(self):
         from pptx.util import Length
 
-        rect = TextFrameRect(
-            left=Inches(1), top=Inches(2), width=Inches(3), height=Inches(4)
-        )
+        rect = TextFrameRect(left=Inches(1), top=Inches(2), width=Inches(3), height=Inches(4))
 
         assert isinstance(rect.left, Length)
         assert rect.left.inches == 1
@@ -1112,10 +1102,10 @@ class DescribeFont(object):
 
         p_xml = (
             '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
-            '<a:pPr><a:defRPr>'
+            "<a:pPr><a:defRPr>"
             '<a:solidFill><a:srgbClr val="00FF00"/></a:solidFill>'
-            '</a:defRPr></a:pPr>'
-            '<a:r><a:rPr/><a:t>hi</a:t></a:r>'
+            "</a:defRPr></a:pPr>"
+            "<a:r><a:rPr/><a:t>hi</a:t></a:r>"
             "</a:p>"
         )
         p = parse_xml(p_xml)
@@ -1131,9 +1121,9 @@ class DescribeFont(object):
             '         xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
             "<a:bodyPr/>"
             "<a:lstStyle>"
-            '<a:lvl2pPr><a:defRPr>'
+            "<a:lvl2pPr><a:defRPr>"
             '<a:solidFill><a:srgbClr val="112233"/></a:solidFill>'
-            '</a:defRPr></a:lvl2pPr>'
+            "</a:defRPr></a:lvl2pPr>"
             "</a:lstStyle>"
             '<a:p><a:pPr lvl="1"/><a:r><a:rPr/><a:t>x</a:t></a:r></a:p>'
             "</p:txBody>"
@@ -1923,9 +1913,7 @@ class Describe_Hyperlink(object):
         from pptx.parts.slide import SlidePart
         from pptx.slide import Slide
 
-        rPr = element(
-            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
-        )
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}")
         hlink = _Hyperlink(rPr, None)
         slide_ = instance_mock(request, Slide)
         slide_part_ = instance_mock(request, SlidePart)
@@ -1940,9 +1928,7 @@ class Describe_Hyperlink(object):
         assert result is slide_
 
     def and_address_returns_None_for_a_slide_jump_hyperlink(self, request):
-        rPr = element(
-            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
-        )
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}")
         hlink = _Hyperlink(rPr, None)
         property_mock(request, _Hyperlink, "part")
         assert hlink.address is None
@@ -1987,16 +1973,12 @@ class Describe_Hyperlink(object):
 
         part_.drop_rel.assert_called_once_with("rId3")
         part_.relate_to.assert_called_once_with(slide_part_, RT.SLIDE)
-        assert hlink._rPr.xml == xml(
-            "a:rPr/a:hlinkClick{action=ppaction://hlinksldjump,r:id=rId9}"
-        )
+        assert hlink._rPr.xml == xml("a:rPr/a:hlinkClick{action=ppaction://hlinksldjump,r:id=rId9}")
 
     def it_clears_the_hlinkClick_when_target_slide_is_None(self, request):
         from pptx.oxml.ns import qn
 
-        rPr = element(
-            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
-        )
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}")
         hlink = _Hyperlink(rPr, None)
         part_ = instance_mock(request, XmlPart)
         property_mock(request, _Hyperlink, "part", return_value=part_)
@@ -2009,9 +1991,7 @@ class Describe_Hyperlink(object):
     def it_removes_the_target_slide_via_del(self, request):
         from pptx.oxml.ns import qn
 
-        rPr = element(
-            "a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}"
-        )
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId7,action=ppaction://hlinksldjump}")
         hlink = _Hyperlink(rPr, None)
         part_ = instance_mock(request, XmlPart)
         property_mock(request, _Hyperlink, "part", return_value=part_)
@@ -2021,9 +2001,7 @@ class Describe_Hyperlink(object):
         part_.drop_rel.assert_called_once_with("rId7")
         assert rPr.find(qn("a:hlinkClick")) is None
 
-    def it_is_a_noop_to_clear_target_slide_when_no_hyperlink_is_present(
-        self, request
-    ):
+    def it_is_a_noop_to_clear_target_slide_when_no_hyperlink_is_present(self, request):
         from pptx.oxml.ns import qn
 
         rPr = element("a:rPr")
@@ -2034,6 +2012,201 @@ class Describe_Hyperlink(object):
         hlink.target_slide = None
 
         part_.drop_rel.assert_not_called()
+        assert rPr.find(qn("a:hlinkClick")) is None
+
+    # -- screen_tip property (issue #455) ---------------------------------
+
+    def it_returns_None_screen_tip_when_no_hyperlink_is_present(self):
+        hlink = _Hyperlink(element("a:rPr"), None)
+        assert hlink.screen_tip is None
+
+    def it_returns_the_tooltip_when_set(self):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1,tooltip=Click me}")
+        hlink = _Hyperlink(rPr, None)
+        assert hlink.screen_tip == "Click me"
+
+    def it_returns_None_screen_tip_when_hlinkClick_has_no_tooltip(self):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1}")
+        hlink = _Hyperlink(rPr, None)
+        assert hlink.screen_tip is None
+
+    def it_can_set_the_screen_tip_creating_hlinkClick_if_needed(self):
+        rPr = element("a:rPr")
+        hlink = _Hyperlink(rPr, None)
+
+        hlink.screen_tip = "Hover me"
+
+        hlinkClick = rPr.find(qn("a:hlinkClick"))
+        assert hlinkClick is not None
+        assert hlinkClick.get("tooltip") == "Hover me"
+
+    def it_can_update_an_existing_tooltip_without_disturbing_the_URL(self):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId3,tooltip=old}")
+        hlink = _Hyperlink(rPr, None)
+
+        hlink.screen_tip = "new"
+
+        hlinkClick = rPr.find(qn("a:hlinkClick"))
+        assert hlinkClick is not None
+        assert hlinkClick.get("tooltip") == "new"
+        assert hlinkClick.get(qn("r:id")) == "rId3"
+
+    def it_removes_only_the_tooltip_attribute_when_screen_tip_set_to_None(self):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId3,tooltip=old}")
+        hlink = _Hyperlink(rPr, None)
+
+        hlink.screen_tip = None
+
+        hlinkClick = rPr.find(qn("a:hlinkClick"))
+        assert hlinkClick is not None  # -- element preserved
+        assert hlinkClick.get("tooltip") is None
+        assert hlinkClick.get(qn("r:id")) == "rId3"  # -- URL intact
+
+    def it_is_a_noop_to_clear_screen_tip_when_no_hyperlink_is_present(self):
+        rPr = element("a:rPr")
+        hlink = _Hyperlink(rPr, None)
+
+        hlink.screen_tip = None
+
+        assert rPr.find(qn("a:hlinkClick")) is None
+
+    def it_treats_empty_string_as_clear_of_the_tooltip(self):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId3,tooltip=old}")
+        hlink = _Hyperlink(rPr, None)
+
+        hlink.screen_tip = ""
+
+        hlinkClick = rPr.find(qn("a:hlinkClick"))
+        assert hlinkClick is not None
+        assert hlinkClick.get("tooltip") is None
+
+    # -- sound / set_sound / remove_sound (issue #455) --------------------
+
+    def it_returns_None_sound_when_no_hyperlink_is_present(self):
+        hlink = _Hyperlink(element("a:rPr"), None)
+        assert hlink.sound is None
+
+    def it_returns_None_sound_when_hlinkClick_has_no_snd(self):
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1}")
+        hlink = _Hyperlink(rPr, None)
+        assert hlink.sound is None
+
+    def it_provides_a_Sound_object_when_snd_is_present(self, request):
+        from pptx.action import Sound
+        from pptx.parts.slide import SlidePart
+
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1}" "/a:snd{r:embed=rId2,name=applause.wav}")
+        hlink = _Hyperlink(rPr, None)
+        slide_part_ = instance_mock(request, SlidePart)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        sound = hlink.sound
+
+        assert isinstance(sound, Sound)
+        assert sound.rId == "rId2"
+        assert sound.name == "applause.wav"
+
+    def it_can_set_a_sound_from_a_file_like(self, request):
+        import io as _io
+
+        from pptx.parts.slide import SlidePart
+
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_sound_media_part.return_value = "rId9"
+        rPr = element("a:rPr{a:a=a,r:r=r}")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        sound = hlink.set_sound(_io.BytesIO(b"RIFFWAV"), name="boing.wav")
+
+        assert slide_part_.get_or_add_sound_media_part.call_count == 1
+        assert sound.rId == "rId9"
+        assert sound.name == "boing.wav"
+        assert rPr.xml == xml("a:rPr{a:a=a,r:r=r}/a:hlinkClick/a:snd{r:embed=rId9,name=boing.wav}")
+
+    def it_replaces_an_existing_sound_when_setting_a_new_one(self, request):
+        import io as _io
+
+        from pptx.parts.slide import SlidePart
+
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_sound_media_part.return_value = "rId99"
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId5,name=old.wav}")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        sound = hlink.set_sound(_io.BytesIO(b"RIFFWAV"), name="new.wav")
+
+        assert slide_part_.drop_rel.call_args_list[0].args == ("rId5",)
+        assert sound.rId == "rId99"
+        assert rPr.xml == xml("a:rPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId99,name=new.wav}")
+
+    def it_accepts_an_Audio_instance_directly(self, request):
+        from pptx.media import Audio
+        from pptx.parts.slide import SlidePart
+
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.get_or_add_sound_media_part.return_value = "rId8"
+        audio = Audio.from_blob(b"RIFFWAV", None, "zap.wav")
+        rPr = element("a:rPr")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        hlink.set_sound(audio)
+
+        args, _ = slide_part_.get_or_add_sound_media_part.call_args
+        assert args[0] is audio
+
+    def it_removes_a_sound_and_drops_the_audio_rel(self, request):
+        from pptx.parts.slide import SlidePart
+
+        slide_part_ = instance_mock(request, SlidePart)
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1}/a:snd{r:embed=rId2,name=applause.wav}")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        hlink.remove_sound()
+
+        assert slide_part_.drop_rel.call_args_list[0].args == ("rId2",)
+        assert rPr.xml == xml("a:rPr/a:hlinkClick{r:id=rId1}")
+
+    def it_is_a_noop_to_remove_sound_when_no_hyperlink_is_present(self, request):
+        from pptx.parts.slide import SlidePart
+
+        slide_part_ = instance_mock(request, SlidePart)
+        rPr = element("a:rPr")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        hlink.remove_sound()
+
+        slide_part_.drop_rel.assert_not_called()
+
+    def it_is_a_noop_to_remove_sound_when_hlinkClick_has_no_snd(self, request):
+        from pptx.parts.slide import SlidePart
+
+        slide_part_ = instance_mock(request, SlidePart)
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId1}")
+        hlink = _Hyperlink(rPr, None)
+        property_mock(request, _Hyperlink, "part", return_value=slide_part_)
+
+        hlink.remove_sound()
+
+        slide_part_.drop_rel.assert_not_called()
+        assert rPr.find(qn("a:hlinkClick")) is not None
+
+    def it_drops_an_audio_rel_when_removing_a_hyperlink_carrying_sound(self, request):
+        """Clearing the URL drops both the URL rel *and* any snd rel."""
+        rPr = element("a:rPr/a:hlinkClick{r:id=rId3}" "/a:snd{r:embed=rId4,name=applause.wav}")
+        hlink = _Hyperlink(rPr, None)
+        part_ = instance_mock(request, XmlPart)
+        property_mock(request, _Hyperlink, "part", return_value=part_)
+
+        hlink.address = None
+
+        drop_rel_args = [c.args[0] for c in part_.drop_rel.call_args_list]
+        assert "rId3" in drop_rel_args
+        assert "rId4" in drop_rel_args
         assert rPr.find(qn("a:hlinkClick")) is None
 
     # fixtures ---------------------------------------------
@@ -2293,9 +2466,7 @@ class Describe_Paragraph(object):
                 '<m:oMathPara xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"/>'
             )
 
-    def it_round_trips_an_added_math_equation_through_save_and_reload(
-        self
-    ):
+    def it_round_trips_an_added_math_equation_through_save_and_reload(self):
         """Regression test for issue #528 end-to-end.
 
         Author an equation via ``_Paragraph.add_math_equation``, save the presentation,
@@ -2324,9 +2495,7 @@ class Describe_Paragraph(object):
         reloaded = Presentation(buf)
 
         # -- the authored shape reports an equation after reload --
-        equation_shapes = [
-            s for s in reloaded.slides[0].shapes if s.has_math_equation
-        ]
+        equation_shapes = [s for s in reloaded.slides[0].shapes if s.has_math_equation]
         assert len(equation_shapes) == 1
         oMath_xml = equation_shapes[0].math_equation_xml
         assert oMath_xml is not None
@@ -2660,9 +2829,7 @@ class Describe_Paragraph(object):
         assert run.font.underline == MSO_UNDERLINE.WAVY_LINE
 
     def it_appends_runs_after_existing_content_in_write_rich(self):
-        paragraph = _Paragraph(
-            cast("CT_TextParagraph", element('a:p/a:r/a:t"existing"')), None
-        )
+        paragraph = _Paragraph(cast("CT_TextParagraph", element('a:p/a:r/a:t"existing"')), None)
 
         paragraph.write_rich(" added")
 
@@ -2957,8 +3124,8 @@ class Describe_BulletFormat(object):
         [
             ("a:pPr", None),
             ("a:pPr/a:buNone", "none"),
-            ('a:pPr/a:buChar{char=-}', "char"),
-            ('a:pPr/a:buAutoNum{type=arabicPeriod}', "autonum"),
+            ("a:pPr/a:buChar{char=-}", "char"),
+            ("a:pPr/a:buAutoNum{type=arabicPeriod}", "autonum"),
         ],
     )
     def it_knows_its_bullet_type(self, pPr_cxml: str, expected_type: str | None):
@@ -2973,8 +3140,8 @@ class Describe_BulletFormat(object):
         [
             ("a:pPr", None),
             ("a:pPr/a:buNone", None),
-            ('a:pPr/a:buChar{char=-}', "-"),
-            ('a:pPr/a:buChar{char=x}', "x"),
+            ("a:pPr/a:buChar{char=-}", "-"),
+            ("a:pPr/a:buChar{char=x}", "x"),
         ],
     )
     def it_knows_its_bullet_char(self, pPr_cxml: str, expected_char: str | None):
@@ -2989,8 +3156,8 @@ class Describe_BulletFormat(object):
         [
             ("a:pPr", None),
             ("a:pPr/a:buNone", None),
-            ('a:pPr/a:buAutoNum{type=arabicPeriod}', PP_AUTO_NUMBER.ARABIC_PERIOD),
-            ('a:pPr/a:buAutoNum{type=romanUcPeriod}', PP_AUTO_NUMBER.ROMAN_UC_PERIOD),
+            ("a:pPr/a:buAutoNum{type=arabicPeriod}", PP_AUTO_NUMBER.ARABIC_PERIOD),
+            ("a:pPr/a:buAutoNum{type=romanUcPeriod}", PP_AUTO_NUMBER.ROMAN_UC_PERIOD),
         ],
     )
     def it_knows_its_number_scheme(
@@ -3006,8 +3173,8 @@ class Describe_BulletFormat(object):
         ("pPr_cxml", "expected_start_at"),
         [
             ("a:pPr", None),
-            ('a:pPr/a:buAutoNum{type=arabicPeriod}', 1),
-            ('a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}', 5),
+            ("a:pPr/a:buAutoNum{type=arabicPeriod}", 1),
+            ("a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}", 5),
         ],
     )
     def it_knows_its_start_at(self, pPr_cxml: str, expected_start_at: int | None):
@@ -3020,19 +3187,17 @@ class Describe_BulletFormat(object):
     @pytest.mark.parametrize(
         ("pPr_cxml", "char", "expected_cxml"),
         [
-            ("a:pPr", "-", 'a:pPr/a:buChar{char=-}'),
-            ("a:pPr/a:buNone", "-", 'a:pPr/a:buChar{char=-}'),
+            ("a:pPr", "-", "a:pPr/a:buChar{char=-}"),
+            ("a:pPr/a:buNone", "-", "a:pPr/a:buChar{char=-}"),
             (
-                'a:pPr/a:buAutoNum{type=arabicPeriod}',
+                "a:pPr/a:buAutoNum{type=arabicPeriod}",
                 "-",
-                'a:pPr/a:buChar{char=-}',
+                "a:pPr/a:buChar{char=-}",
             ),
-            ('a:pPr/a:buChar{char=-}', "x", 'a:pPr/a:buChar{char=x}'),
+            ("a:pPr/a:buChar{char=-}", "x", "a:pPr/a:buChar{char=x}"),
         ],
     )
-    def it_can_set_a_character_bullet(
-        self, pPr_cxml: str, char: str, expected_cxml: str
-    ):
+    def it_can_set_a_character_bullet(self, pPr_cxml: str, char: str, expected_cxml: str):
         pPr = element(pPr_cxml)
         bullet = _BulletFormat(pPr)
 
@@ -3058,19 +3223,19 @@ class Describe_BulletFormat(object):
                 "a:pPr",
                 PP_AUTO_NUMBER.ARABIC_PERIOD,
                 None,
-                'a:pPr/a:buAutoNum{type=arabicPeriod}',
+                "a:pPr/a:buAutoNum{type=arabicPeriod}",
             ),
             (
                 "a:pPr/a:buNone",
                 PP_AUTO_NUMBER.ROMAN_LC_PERIOD,
                 None,
-                'a:pPr/a:buAutoNum{type=romanLcPeriod}',
+                "a:pPr/a:buAutoNum{type=romanLcPeriod}",
             ),
             (
-                'a:pPr/a:buChar{char=-}',
+                "a:pPr/a:buChar{char=-}",
                 PP_AUTO_NUMBER.ARABIC_PERIOD,
                 3,
-                'a:pPr/a:buAutoNum{type=arabicPeriod,startAt=3}',
+                "a:pPr/a:buAutoNum{type=arabicPeriod,startAt=3}",
             ),
         ],
     )
@@ -3103,9 +3268,9 @@ class Describe_BulletFormat(object):
         [
             ("a:pPr", "a:pPr/a:buNone"),
             ("a:pPr/a:buNone", "a:pPr/a:buNone"),
-            ('a:pPr/a:buChar{char=-}', "a:pPr/a:buNone"),
+            ("a:pPr/a:buChar{char=-}", "a:pPr/a:buNone"),
             (
-                'a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}',
+                "a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}",
                 "a:pPr/a:buNone",
             ),
         ],
@@ -3126,8 +3291,8 @@ class Describe_BulletFormat(object):
         [
             ("a:pPr", "a:pPr"),
             ("a:pPr/a:buNone", "a:pPr"),
-            ('a:pPr/a:buChar{char=-}', "a:pPr"),
-            ('a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}', "a:pPr"),
+            ("a:pPr/a:buChar{char=-}", "a:pPr"),
+            ("a:pPr/a:buAutoNum{type=arabicPeriod,startAt=5}", "a:pPr"),
         ],
     )
     def it_can_remove_any_bullet_setting(self, pPr_cxml: str, expected_cxml: str):
@@ -3173,9 +3338,7 @@ class Describe_BulletFormat(object):
             ),
         ],
     )
-    def it_can_change_its_bullet_font(
-        self, pPr_cxml: str, value: str | None, expected_cxml: str
-    ):
+    def it_can_change_its_bullet_font(self, pPr_cxml: str, value: str | None, expected_cxml: str):
         pPr = element(pPr_cxml)
         bullet = _BulletFormat(pPr)
 
@@ -3239,9 +3402,7 @@ class Describe_BulletFormat(object):
             ("a:pPr/a:buSzPct{val=75%}", None),
         ],
     )
-    def it_knows_its_bullet_size_points(
-        self, pPr_cxml: str, expected_value: int | None
-    ):
+    def it_knows_its_bullet_size_points(self, pPr_cxml: str, expected_value: int | None):
         pPr = element(pPr_cxml)
         bullet = _BulletFormat(pPr)
         assert bullet.size_points == expected_value
@@ -3259,9 +3420,7 @@ class Describe_BulletFormat(object):
             ("a:pPr/a:buSzPts{val=1400}", None, "a:pPr"),
         ],
     )
-    def it_can_change_its_bullet_size_points(
-        self, pPr_cxml: str, value, expected_cxml: str
-    ):
+    def it_can_change_its_bullet_size_points(self, pPr_cxml: str, value, expected_cxml: str):
         pPr = element(pPr_cxml)
         bullet = _BulletFormat(pPr)
 
@@ -3381,9 +3540,7 @@ class Describe_Run(object):
             ),
         ],
     )
-    def it_can_delete_itself_from_its_paragraph(
-        self, p_cxml: str, r_idx: int, expected_cxml: str
-    ):
+    def it_can_delete_itself_from_its_paragraph(self, p_cxml: str, r_idx: int, expected_cxml: str):
         p = element(p_cxml)
         r = p.r_lst[r_idx]
         run = _Run(r, None)
