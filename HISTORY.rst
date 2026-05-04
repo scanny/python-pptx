@@ -14,6 +14,28 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #514 ``TextFrame.fit_text`` sets ``run.font.size`` on every
+  affected run. Issue #514
+  (https://github.com/scanny/python-pptx/issues/514) asked for
+  :meth:`TextFrame.fit_text` to record the chosen point size on each
+  run's ``a:rPr/@sz`` so callers can introspect the result — e.g. to
+  align effective sizes across multiple text frames ("use the smaller
+  of the two shrunk sizes"). The private ``TextFrame._set_font`` helper
+  has always walked every run's ``rPr`` (plus ``endParaRPr``) and
+  written ``@sz`` with the fit size, so :attr:`Font.size` returns a
+  concrete |Length| rather than ``None`` after the call. The
+  ``_extents`` tuple is recomputed from ``shape.width`` / ``height``
+  on every invocation, so resizing a shape between ``fit_text()`` calls
+  produces a size appropriate to the new extents.
+  ``tests/test_issue_514_fit_text_after_resize.py`` pins the
+  verify-close contract: ``run.font.size`` is not ``None`` after
+  ``fit_text()``, every run in every paragraph shares the same size,
+  cross-frame alignment via ``min(size1, size2)`` works, the
+  EMU↔centipoint round-trip is exact, a grow-then-refit produces a
+  larger size and a shrink-then-refit a smaller one, and the
+  ``auto_size = NONE`` / ``word_wrap = True`` side-effects hold on
+  every call.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
