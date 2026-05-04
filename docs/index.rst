@@ -173,6 +173,7 @@ User Guide
    user/ole-objects
    user/comments
    user/linked-content
+   user/rms-protected
    user/use-cases
    user/ai-use-cases
    user/concepts

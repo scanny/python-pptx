@@ -83,6 +83,25 @@ Unreleased
   on any one of those feature paths would now be caught by the umbrella
   alongside the feature-specific verify suites. No public-API change.
 
+- feat: #930 clearer error when opening an Azure RMS / AIP / IRM-protected
+  ``.pptx``. Issue #930
+  (https://github.com/scanny/python-pptx/issues/930) reported that opening
+  a Rights-Management-protected deck failed with an opaque
+  :class:`~pptx.exc.PackageNotFoundError`. RMS-protected files are CFBF
+  (OLE2) containers whose payload is encrypted to the user's Azure AD
+  identity and can only be decrypted by the Microsoft Information
+  Protection SDK (C#/.NET-only), not with a password. python-pptx now
+  sniffs the CFBF directory for the ``DRMEncryptedTransform`` /
+  ``DRMContent`` markers and raises a new
+  :class:`~pptx.exc.RmsProtectedPackageError` (a subclass of
+  :class:`~pptx.exc.EncryptedPackageError`, so legacy ``except
+  EncryptedPackageError`` handlers keep working) with a message pointing
+  at the new ``docs/user/rms-protected.rst`` workaround recipe
+  (PowerPoint/Office automation, the MIP SDK, the Purview unified
+  labeling client, or re-publishing without RMS). Adds
+  :func:`pptx.opc._crypto.is_rms_protected_stream` and a
+  ``tests/test_issue_930_rms_clear_error.py`` regression suite.
+
 - docs: #829 template replacement recipe (text + pictures). Issue #829
   (https://github.com/scanny/python-pptx/issues/829) collected utility
   functions several reporters had written for a common workflow: open
