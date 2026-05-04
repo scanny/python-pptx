@@ -362,6 +362,68 @@ A run can also be made into a hyperlink by providing a target URL::
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
 
 
+Font color vs. font fill
+------------------------
+
+|Font| exposes two seemingly overlapping attributes for text colour:
+
+* :attr:`.Font.color` — a |ColorFormat| proxy, the *shortcut* for the
+  common case: setting a solid (flat) colour on a run.
+* :attr:`.Font.fill` — a |FillFormat| proxy, the *full surface* over the
+  run's fill element (``a:rPr/EG_FillProperties``), with methods for every
+  fill kind PowerPoint supports on text: solid, gradient, and pattern.
+
+They are **not independent settings** — they are two views of the same
+underlying ``a:solidFill`` element when the run has a solid fill.
+Specifically, on a run whose fill is solid (or being promoted to solid by
+a first write), ``font.color`` and ``font.fill.fore_color`` return the
+same |ColorFormat| and resolve to the same ``<a:srgbClr>`` /
+``<a:schemeClr>`` child. Writing via either path produces identical XML::
+
+    # -- equivalent on a solid-fill run --
+    run.font.color.rgb = RGBColor(0xC0, 0x00, 0x00)
+
+    # -- is equivalent to --
+    run.font.fill.solid()
+    run.font.fill.fore_color.rgb = RGBColor(0xC0, 0x00, 0x00)
+
+Use :attr:`.Font.color` as the quick, readable path when all you need is
+"make this run red". Reach for :attr:`.Font.fill` when you need anything
+beyond a flat colour — gradient fills, patterned fills, or the pattern
+back colour::
+
+    # -- gradient-filled text (only available via font.fill) --
+    run.font.fill.gradient()
+    run.font.fill.gradient_stops[0].color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    run.font.fill.gradient_stops[1].color.rgb = RGBColor(0x00, 0x00, 0xFF)
+
+    # -- patterned text (only available via font.fill) --
+    from pptx.enum.dml import MSO_PATTERN_TYPE
+    run.font.fill.patterned()
+    run.font.fill.pattern = MSO_PATTERN_TYPE.HORIZONTAL_BRICK
+    run.font.fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    run.font.fill.back_color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+
+To branch on which fill a run carries (e.g. when deciding whether
+:attr:`.Font.color` is usable), inspect :attr:`.FillFormat.type`::
+
+    from pptx.enum.dml import MSO_FILL
+
+    if run.font.fill.type == MSO_FILL.SOLID:
+        rgb = run.font.color.rgb  # -- the shortcut works --
+    elif run.font.fill.type == MSO_FILL.GRADIENT:
+        ...  # -- query run.font.fill.gradient_stops --
+
+On a non-solid fill — gradient, pattern, picture, or transparent
+(``MSO_FILL.BACKGROUND``) — ``run.font.color.type`` reports |None|
+("no colour set via the shortcut"). That is the shortcut signalling
+"this run's colour is not a simple solid — read it through
+``font.fill``". To read the *rendered* colour of a run regardless of
+where it is set in the style hierarchy (master, paragraph defRPr, or
+the run's own rPr), use :attr:`.Font.effective_color` — that read path
+is orthogonal to the ``color`` vs. ``fill`` distinction above.
+
+
 Copying font formatting
 -----------------------
 
