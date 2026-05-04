@@ -359,6 +359,7 @@ prs.save("out.pptx")
 - `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table graphic frame. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
 - `SlideShapes.build_freeform(start_x, start_y, scale=EMU_PER_INCH)` — Freeform-geometry builder.
 - `SlideShapes.find_all_by_name(name, include_descendants=False)` / `SlideShapes.get_by_name(name, include_descendants=False)` — Look up shapes by `cNvPr/@name`; pass `include_descendants=True` to walk into every group on the slide. `[Added in 2026.05.0]`
+- `SlideShapes.clear(preserve_placeholders=True)` / `Slide.clear_shapes(preserve_placeholders=True)` — Bulk-remove every top-level shape from the tree; placeholders are preserved by default. Per-shape `.delete()` side effects (dropping a picture's image relationship, a chart's embedded chart part, etc.) run in the normal way. `[Added in 2026.05.0]`
 - `SlideShapes.descendants()` / `Slide.shape_tree_flat` — Iterator over every shape on the slide including the children of any `GroupShape`, yielded in document (z-order) sequence with each group yielded before its contents. Selection-Pane-equivalent traversal. `[Added in 2026.05.0]`
 - `SlideShapes.title` — Title placeholder shape, if any.
 - `SlideShapes.placeholders` — `SlidePlaceholders` view.

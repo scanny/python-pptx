@@ -212,6 +212,62 @@ class Describe_BaseShapes(object):
         shapes, ph_type, sp_id, orient, expected_value = ph_name_fixture
         assert shapes._next_ph_name(ph_type, sp_id, orient) == expected_value
 
+    def it_can_clear_all_non_placeholder_shapes(self):
+        # --- a shape-tree with a placeholder, a plain shape, and a picture ---
+        spTree = element(
+            "p:spTree/(p:sp/p:nvSpPr/(p:cNvPr{id=2,name=Title 1},p:nvPr/p:ph{type=title})"
+            ",p:sp/p:nvSpPr/p:cNvPr{id=3,name=Rect 2}"
+            ",p:pic/p:nvPicPr/p:cNvPr{id=4,name=Picture 3})"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        result = shapes.clear()
+
+        # --- clear() returns None (matching list.clear) ---
+        assert result is None
+        # --- only the placeholder survives ---
+        remaining = list(shapes)
+        assert len(remaining) == 1
+        assert remaining[0].is_placeholder
+        assert remaining[0].name == "Title 1"
+
+    def it_can_clear_every_shape_including_placeholders(self):
+        spTree = element(
+            "p:spTree/(p:sp/p:nvSpPr/(p:cNvPr{id=2,name=Title 1},p:nvPr/p:ph{type=title})"
+            ",p:sp/p:nvSpPr/p:cNvPr{id=3,name=Rect 2})"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        shapes.clear(preserve_placeholders=False)
+
+        assert len(shapes) == 0
+
+    def it_clears_a_group_shape_by_removing_the_group(self):
+        # --- nested group is removed wholesale with its children ---
+        spTree = element(
+            "p:spTree/(p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rect 1}"
+            ",p:grpSp/(p:nvGrpSpPr/p:cNvPr{id=3,name=Group 1}"
+            ",p:grpSpPr"
+            ",p:sp/p:nvSpPr/p:cNvPr{id=4,name=Inner 1}"
+            ",p:sp/p:nvSpPr/p:cNvPr{id=5,name=Inner 2}))"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        shapes.clear()
+
+        assert len(shapes) == 0
+
+    def it_leaves_the_tree_unchanged_when_only_placeholders_present(self):
+        spTree = element(
+            "p:spTree/p:sp/p:nvSpPr/"
+            "(p:cNvPr{id=2,name=Title 1},p:nvPr/p:ph{type=title})"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        shapes.clear()
+
+        assert len(shapes) == 1
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

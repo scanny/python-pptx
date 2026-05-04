@@ -544,6 +544,36 @@ class DescribeSlide(object):
         assert all(isinstance(s, BaseShape) for s in shapes)
         assert [s.name for s in shapes] == ["Title 1", "Body 2", "Title 1"]
 
+    def it_can_clear_its_shapes_preserving_placeholders_by_default(self):
+        # --- issue #96: slide.clear_shapes() removes non-placeholder shapes.
+        sld = element(
+            "p:sld/p:cSld/p:spTree/("
+            "p:sp/p:nvSpPr/(p:cNvPr{id=2,name=Title 1},p:nvPr/p:ph{type=title}),"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Rect 2},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Rect 3}"
+            ")"
+        )
+        slide = Slide(sld, None)
+
+        result = slide.clear_shapes()
+
+        assert result is None
+        remaining = [s.name for s in slide.shapes]
+        assert remaining == ["Title 1"]
+
+    def it_can_clear_every_shape_when_asked(self):
+        sld = element(
+            "p:sld/p:cSld/p:spTree/("
+            "p:sp/p:nvSpPr/(p:cNvPr{id=2,name=Title 1},p:nvPr/p:ph{type=title}),"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=Rect 2}"
+            ")"
+        )
+        slide = Slide(sld, None)
+
+        slide.clear_shapes(preserve_placeholders=False)
+
+        assert len(slide.shapes) == 0
+
     def it_provides_selection_pane_equivalent_traversal(self):
         # --- issue #532: shape_tree_flat yields every shape on the slide,
         # --- including descendants of any group, in z-order.

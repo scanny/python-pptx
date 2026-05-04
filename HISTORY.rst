@@ -14,6 +14,16 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #96 ``SlideShapes.clear(preserve_placeholders=True)`` and
+  convenience wrapper ``Slide.clear_shapes(preserve_placeholders=True)``
+  that bulk-remove every top-level shape from a slide. Placeholders are
+  preserved by default so the slide continues to inherit its layout;
+  pass ``preserve_placeholders=False`` to remove everything. Per-shape
+  ``.delete()`` side effects run in the normal way (a removed picture
+  drops its image relationship, a removed chart drops its embedded
+  chart part, a removed group is detached together with every shape
+  inside it). See ``docs/user/understanding-shapes.rst``.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

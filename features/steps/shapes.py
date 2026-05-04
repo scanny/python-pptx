@@ -765,3 +765,58 @@ def then_get_by_name_with_include_descendants(context):
     hit = context.shapes.get_by_name("Oval 2", include_descendants=True)
     assert hit is not None
     assert hit.name == "Oval 2"
+
+
+# --- issue #96: bulk removal via SlideShapes.clear() / Slide.clear_shapes() ---
+
+
+@given("a slide with placeholders and three non-placeholder shapes")
+def given_a_slide_with_placeholders_and_three_non_ph_shapes(context):
+    # -- `shp-shapes.pptx` slide 0 ships with 2 placeholders + 4 non-ph shapes
+    # -- (picture, table, chart, diagram). That satisfies "placeholders plus
+    # -- at least three non-placeholder shapes" for the clear scenarios.
+    prs = Presentation(test_pptx("shp-shapes"))
+    context.prs = prs
+    context.slide = prs.slides[0]
+    context.shapes = context.slide.shapes
+    context.initial_ph_count = sum(1 for s in context.shapes if s.is_placeholder)
+    context.initial_non_ph_count = sum(
+        1 for s in context.shapes if not s.is_placeholder
+    )
+    assert context.initial_ph_count >= 1
+    assert context.initial_non_ph_count >= 3
+
+
+@when("I call shapes.clear()")
+def when_I_call_shapes_clear(context):
+    context.shapes.clear()
+
+
+@when("I call shapes.clear(preserve_placeholders=False)")
+def when_I_call_shapes_clear_false(context):
+    context.shapes.clear(preserve_placeholders=False)
+
+
+@when("I call slide.clear_shapes()")
+def when_I_call_slide_clear_shapes(context):
+    context.slide.clear_shapes()
+
+
+@then("only the placeholders remain on the slide")
+def then_only_the_placeholders_remain(context):
+    remaining = list(context.slide.shapes)
+    assert len(remaining) == context.initial_ph_count, (
+        "expected %d remaining shapes, got %d"
+        % (context.initial_ph_count, len(remaining))
+    )
+    assert all(s.is_placeholder for s in remaining), (
+        "non-placeholder shape survived clear(): %r"
+        % [s.name for s in remaining if not s.is_placeholder]
+    )
+
+
+@then("the slide has zero shapes")
+def then_the_slide_has_zero_shapes(context):
+    assert len(context.slide.shapes) == 0, (
+        "expected 0 shapes, got %d" % len(context.slide.shapes)
+    )

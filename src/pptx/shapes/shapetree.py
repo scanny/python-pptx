@@ -110,6 +110,32 @@ class _BaseShapes(ParentedElementProxy):
         shape_elms = list(self._iter_member_elms())
         return len(shape_elms)
 
+    def clear(self, preserve_placeholders: bool = True) -> None:
+        """Remove every top-level shape from this shape tree.
+
+        By default placeholders are preserved because removing them severs the layout
+        inheritance that drives the slide's look and feel. Pass ``preserve_placeholders=False``
+        to remove every shape including placeholders.
+
+        Only the shapes enumerated by :attr:`__iter__` are considered — nested shapes inside
+        a :class:`.GroupShape` are removed together with their enclosing group because the
+        group element itself is detached from the shape tree. Non-shape children of
+        ``p:spTree`` (for example ``p:nvGrpSpPr`` / ``p:grpSpPr``) are left in place.
+
+        Subclass :meth:`~.BaseShape.delete` overrides run for each removed shape, so any
+        per-shape side effects (dropping an image relationship for a picture, dropping an
+        embedded chart part for a chart, etc.) execute in the normal way.
+
+        Returns ``None`` to match :meth:`list.clear`.
+
+        .. versionadded:: 2026.05.0
+        """
+        # -- snapshot first — mutating the tree during iteration would skip siblings --
+        for shape in list(self):
+            if preserve_placeholders and shape.is_placeholder:
+                continue
+            shape.delete()
+
     def descendants(self) -> Iterator[BaseShape]:
         """Generate each shape in this shape tree, including descendants of any group shape.
 
