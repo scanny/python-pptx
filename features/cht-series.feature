@@ -236,3 +236,10 @@ Feature: Chart series
     Given a BarSeries object having values 1.2, 2.3, 3.4 as series
      When I assign a new source_range formula to series.source_range
      Then series.source_range reflects the new formula
+
+
+  Scenario: series.delete() excludes a column from the chart (issue #1043)
+    Given a chart with 5 series named S0, S1, S2, S3, S4
+     When I delete chart.series[3] and chart.series[1]
+     Then chart.series has length 3
+      And the remaining series names are S0, S2, S4

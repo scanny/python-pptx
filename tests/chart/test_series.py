@@ -190,6 +190,55 @@ class Describe_BaseSeries(object):
         assert len(tls) == 1
         assert tls[0].trendline_type == XL_TRENDLINE_TYPE.POWER
 
+    # series.delete() -- issue #1043 ---------------------------------
+
+    def it_can_delete_itself_from_its_parent_chart(self):
+        # -- issue #1043: remove an embedded-workbook column from a chart --
+        plotArea_cxml = (
+            "c:plotArea/c:barChart/("
+            "c:ser/(c:idx{val=0},c:order{val=0}),"
+            "c:ser/(c:idx{val=1},c:order{val=1}),"
+            "c:ser/(c:idx{val=2},c:order{val=2}))"
+        )
+        plotArea = element(plotArea_cxml)
+        barChart = plotArea.xpath("c:barChart")[0]
+        middle_ser = barChart.xpath("c:ser")[1]
+        series = _BaseSeries(middle_ser)
+
+        series.delete()
+
+        remaining = barChart.xpath("c:ser")
+        assert len(remaining) == 2
+        assert [s.xpath("c:idx/@val")[0] for s in remaining] == ["0", "2"]
+
+    def but_delete_is_a_noop_on_an_orphan_ser(self):
+        # -- no parent, nothing to remove; must not raise --
+        series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
+
+        series.delete()  # does not raise
+
+    def it_can_be_deleted_via_SeriesCollection_indexing(self):
+        # -- reporter's usage: chart.series[i].delete() --
+        plotArea_cxml = (
+            "c:plotArea/c:barChart/("
+            "c:ser/(c:idx{val=0},c:order{val=0}),"
+            "c:ser/(c:idx{val=1},c:order{val=1}),"
+            "c:ser/(c:idx{val=2},c:order{val=2}),"
+            "c:ser/(c:idx{val=3},c:order{val=3}),"
+            "c:ser/(c:idx{val=4},c:order{val=4}))"
+        )
+        plotArea = element(plotArea_cxml)
+        series_collection = SeriesCollection(plotArea)
+
+        # -- delete index 3 then index 1 (order matters: delete from the --
+        # -- high side first so indices remain stable).                   --
+        series_collection[3].delete()
+        series_collection[1].delete()
+
+        remaining = SeriesCollection(plotArea)
+        assert len(remaining) == 3
+        assert [s.index for s in remaining] == [0, 2, 4]
+
     def it_raises_on_add_trendline_with_polynomial_order_out_of_range(self):
         series = _BaseSeries(element("c:ser/(c:idx{val=0},c:order{val=0})"))
         with pytest.raises(ValueError):
