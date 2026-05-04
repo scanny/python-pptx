@@ -27,6 +27,22 @@ Unreleased
   ``HISTORY.rst`` (changelog) as the canonical references. Docs-only;
   no public-API change.
 
+- docs: #1018 clarify append-mode semantics (read/modify/save is the
+  intended pattern). Issue #1018
+  (https://github.com/scanny/python-pptx/issues/1018) asked whether
+  python-pptx supports opening a ``.pptx`` in "append mode" to add
+  slides to an existing deck. A new ``docs/user/use-cases.rst`` section
+  "Frequently asked: why no append mode?" explains why no such mode
+  exists — the OOXML package is a ZIP of cross-referencing parts that
+  must be rewritten as a whole — and documents the canonical append
+  idiom (``Presentation(existing_path)`` → ``slides.add_slide(...)`` →
+  ``prs.save(...)``), plus the distinct "edit a running PowerPoint
+  instance" question which belongs to COM / AppleScript / Office.js.
+  A new ``tests/test_issue_1018_append_mode_recipe.py`` regression
+  suite pins the read / modify / save round-trip (in-place overwrite
+  *and* save-to-new-path), prior-slide preservation, and repeated
+  append-save cycles. No public-API change.
+
 - docs: #829 template replacement recipe (text + pictures). Issue #829
   (https://github.com/scanny/python-pptx/issues/829) collected utility
   functions several reporters had written for a common workflow: open

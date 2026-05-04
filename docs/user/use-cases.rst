@@ -230,3 +230,91 @@ Sensible external tools for this kind of conversion include:
 In short: |pp| can hand you the bytes of a picture that *is already* an
 SVG in the package, but turning a raster picture *into* an SVG is a
 rendering / tracing concern and belongs to an external tool.
+
+
+.. _append-mode-semantics:
+
+Frequently asked: why no append mode?
+-------------------------------------
+
+A recurring request (`issue #1018
+<https://github.com/scanny/python-pptx/issues/1018>`_) is for |pp| to
+"open a ``.pptx`` in append mode" — either to stream additional slides
+onto the end of a file on disk without re-reading and re-writing the
+whole package, or to add slides to a deck that is simultaneously open
+in PowerPoint. **Neither is supported, and neither is going to be
+supported.** Both are fundamentally out of scope for the file format
+and for the library's design.
+
+**No streaming append.** A ``.pptx`` is a ZIP archive (Open Packaging
+Convention) whose parts — the presentation part, each slide, every
+embedded image, the content-types manifest, the relationship graph —
+reference each other by internal URI. Adding a slide changes
+``/ppt/presentation.xml`` (the ``p:sldIdLst``), adds a new
+``/ppt/slides/slideN.xml`` part, adds a ``.rels`` file, and mutates
+``[Content_Types].xml``. There is no position in the ZIP at which
+PowerPoint can "append" new content without rewriting the manifest
+and central directory; the format simply does not allow for a
+streaming-append operation the way an append-mode plain text file does.
+|pp| reflects that: the :class:`.Presentation` constructor reads the
+entire package into memory, and :meth:`.Presentation.save` writes the
+entire package back out.
+
+**What "append" means for python-pptx.** The idiomatic way to add
+slides to an existing deck is the ordinary read / modify / save cycle:
+
+.. code-block:: python
+
+    from pptx import Presentation
+    from pptx.util import Inches
+
+    # 1. Open the existing deck.
+    prs = Presentation("existing-deck.pptx")
+
+    # 2. Add one or more slides. `slide_layouts[5]` is "Title Only" in
+    #    the default template; pick whichever layout matches the master.
+    layout = prs.slide_layouts[5]
+    slide = prs.slides.add_slide(layout)
+    slide.shapes.title.text = "Appended slide"
+
+    # 3. Save. Either overwrite in place or write to a new path.
+    prs.save("existing-deck.pptx")      # in-place overwrite
+    # prs.save("existing-deck-v2.pptx") # or write a new file
+
+This is the full append idiom. It *is* a full-deck rewrite under the
+hood — that's how the format works — but from the caller's point of
+view you are "opening the deck, adding slides, and saving". There is
+no separate :samp:`append=True` flag or :samp:`Presentation.append()`
+method because the above three lines already express it.
+
+**Concurrent editing with PowerPoint is a different problem.** If the
+goal is for a Python process to push slides into a deck that a user is
+*actively editing* in PowerPoint — so the new slides appear live in the
+editor — that's not something |pp| can do regardless of API shape.
+PowerPoint holds an exclusive lock on an open deck; even if a sibling
+process rewrote the file on disk, PowerPoint wouldn't pick up the
+change. "Live" edits into a running PowerPoint instance require an
+**automation** path, not a file-format library:
+
+* **Windows — PowerPoint COM automation** via ``pywin32`` (the
+  ``win32com.client`` module). Drive the running PowerPoint
+  application object, call ``Presentation.Slides.Add`` on the open
+  deck, let PowerPoint write the XML. Requires a licensed PowerPoint
+  install on the host.
+* **macOS — AppleScript / JXA** against ``Microsoft PowerPoint.app``
+  via ``osascript`` or the ``appscript`` bridge. Same model as COM:
+  you're talking to the running editor.
+* **Office.js add-ins** (cross-platform, including PowerPoint for the
+  web). An add-in runs inside PowerPoint's process and has sanctioned
+  APIs for inserting slides into the active presentation. This is
+  Microsoft's supported answer for "a program that edits a deck the
+  user is working on".
+
+|pp| occupies a different niche: it reads and writes ``.pptx`` files
+on disk, without any PowerPoint or Office install involved. Those two
+models compose — generate a deck with |pp|, then hand it to a COM or
+Office.js step for interactive work — but neither replaces the other.
+If the question is *"can python-pptx poke slides into a running
+PowerPoint?"*, the answer is no; reach for COM, AppleScript, or
+Office.js. If the question is *"how do I add slides to an existing
+``.pptx`` on disk?"*, the three-line recipe above is the intended API.
