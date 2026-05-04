@@ -141,6 +141,26 @@ Unreleased
   "Setting table border colors" recipe under ``docs/user/table.rst``
   documents the answer. No public-API change.
 
+- verify: #970 resolved by #525/#715 (``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT``).
+  Issue #970 (https://github.com/scanny/python-pptx/issues/970) asked
+  whether python-pptx exposes PowerPoint's "Resize shape to fit text"
+  textbox toggle. It does, and has since the library's earliest text-
+  frame work: :attr:`~pptx.text.text.TextFrame.auto_size` accepts
+  :class:`~pptx.enum.text.MSO_AUTO_SIZE` and writes the corresponding
+  ``a:bodyPr`` auto-fit choice — ``a:spAutoFit`` for
+  ``SHAPE_TO_FIT_TEXT`` (#970's ask), ``a:normAutofit`` for
+  ``TEXT_TO_FIT_SHAPE``, and ``a:noAutofit`` for ``NONE``. Adjacent
+  issues #525 (textbox auto-grow) and #715 (placeholder text-shrink via
+  ``normAutofit/@fontScale`` / ``@lnSpcReduction``) resolve the same
+  user-intent family. A new ``tests/test_issue_970_fit_shape_to_text_verify.py``
+  regression suite pins the #970-specific scenario — setting
+  ``MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT`` on a textbox authored via
+  :meth:`SlideShapes.add_textbox`, confirming ``a:spAutoFit`` lands in
+  the XML, round-tripping through save + reopen, clearing the flag with
+  ``MSO_AUTO_SIZE.NONE`` and ``None``, and cross-referencing the #525
+  and #715 API surface. No code change — the feature is the already-
+  existing ``TextFrame.auto_size`` setter.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
