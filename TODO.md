@@ -4,34 +4,45 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 ## Open
 
-- **FU-1: `_FontColorFormat` cache staleness (from W17 #537).** On a fresh
-  run with no `a:solidFill`, `font.color.rgb = RGBColor(...)` writes the
-  XML correctly, but subsequent reads of `font.color.rgb` raise because
-  `_FontColorFormat._promote()` caches the pre-promote `_NoneColor`
-  proxy into `font.__dict__["color"]` before the base setter upgrades
-  to `_SRgbColor`. Fix: invalidate / re-resolve the `lazyproperty`
-  after promotion.
-
-- **FU-2: `Chart.value_axis` returns secondary axis on combo charts (from
-  W17 #833).** `chart.value_axis` returns the LAST `c:valAx` in the
-  chartSpace, so on a combo chart with bar + line + secondary axis it
-  hands back the secondary axis. Callers must dig into
-  `chart._chartSpace.plotArea.primary_valAx` to touch the primary.
-  Options: (a) return primary by default and add
-  `chart.primary_value_axis` alias; (b) keep behavior, add
-  `chart.primary_value_axis` + deprecation note; (c) error on combo
-  charts and require explicit side-selection. Needs user-facing
-  decision before any code change.
-
-- **FU-4: `_rel_ref_count` doesn't count `@r:embed` attribute references
-  (flagged in early waves).** Causes shared-image refcount
-  underreporting. When two shapes share the same image rel, the ref
-  count ignores one because it only counts `r:link`-style attributes
-  and misses `r:embed` occurrences on `a:blip` and `p:blipFill` leaves.
+_None tracked yet._
 
 
 
 ## Done
+
+- **FU-1 (fixed).** `_FontColorFormat._promote()` now drops the cached
+  `color` entry on `font.__dict__` and returns the live `ColorFormat`
+  (`font.fill.fore_color`), so the deferred-promotion proxy no longer
+  leaves a stale pre-promotion `_NoneColor` in the `lazyproperty`
+  cache slot after a first `font.color.rgb = RGBColor(...)` or
+  `.theme_color = ...` assignment. Regression suite
+  `tests/test_fu1_font_color_cache.py` (7 scenarios: held-reference,
+  chained-access, `color.type` read, theme-color, double-write,
+  round-trip save-and-reopen, cache-consistency). Branch
+  `fix/fu1-font-color-cache`.
+
+- **FU-2 (shipped as additive API).** Added `Chart.primary_value_axis`
+  returning the first `c:valAx` in the plot area, unambiguous on
+  combo charts where `Chart.value_axis` legacy "last-wins" behaviour
+  resolves to the secondary axis. Both accessors raise `ValueError`
+  when the chart has no value axis; `Chart.value_axis` docstring now
+  spells out the combo-chart caveat explicitly. FEATURES.md bullet,
+  `docs/user/charts.rst` caution block, `docs/api/chart.rst` entry,
+  new unit tests in `tests/chart/test_chart.py`, behave scenario,
+  and `tests/test_issue_833_two_y_axis_verify.py` all updated.
+  Branch `feat/fu2-primary-value-axis`.
+
+- **FU-4 (fixed).** `XmlPart._rel_ref_count` xpath extended to count
+  every rId-bearing attribute (`@r:id`, `@r:embed`, `@r:link`)
+  instead of only `@r:id`. Fixes shared-image shapes (two pictures
+  from the same image file sharing a `@r:embed` on `a:blip`) where
+  deleting one would undercount the remaining reference, cause
+  `drop_rel` to remove the shared relationship prematurely, and
+  leave the second picture with a dangling rId. Same bug affected
+  `p14:media`, `a:videoFile`, `a:audioFile`, linked-image `a:blip`,
+  `am3d:model3D`. Regression test in
+  `tests/test_fu4_rel_ref_count_embed.py`. Branch
+  `fix/fu4-rel-ref-count-embed`.
 
 - **FU-3 (investigated, not reproducible, pinned as invariant).** Could
   not reproduce the W12 #956 report of ``UserWarning: Duplicate name:
