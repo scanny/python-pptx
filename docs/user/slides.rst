@@ -412,6 +412,24 @@ internal name on ``<p:cSld>`` — PowerPoint leaves it empty for most
 slides, so for human-readable identification you usually have to fall
 back to the slide layout or the title text (see below).
 
+The reverse lookup — resolving a stored ``slide_id`` back to its
+|Slide| — is :meth:`.Slides.get_by_slide_id`::
+
+    >>> sid = prs.slides[0].slide_id        # stash the id somewhere durable
+    >>> prs.slides.move_slide(prs.slides[0], 2)
+    >>> prs.slides.get_by_slide_id(sid)     # still finds the same slide
+    <pptx.slide.Slide object at 0x...>
+    >>> prs.slides.get_by_slide_id(9999) is None
+    True
+    >>> prs.slides.get_by_slide_id(9999, default="fallback")
+    'fallback'
+
+The lookup walks ``p:sldIdLst/p:sldId`` and resolves the matching entry's
+``r:id`` relationship to a slide part, so it is O(n) in the number of
+slides but survives any amount of reordering. It is the explicit-named
+counterpart to :meth:`.Slides.get` and the sibling of
+:meth:`.SlideMaster.get_layout`.
+
 **Background inheritance**::
 
     >>> slide.follow_master_background

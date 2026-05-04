@@ -924,6 +924,33 @@ class DescribeSlides(object):
         prs_part_.get_slide.assert_called_once_with(slide_id)
         assert slide is expected_value
 
+    def it_finds_a_slide_by_slide_id_via_get_by_slide_id(self, part_prop_, prs_part_, slide_):
+        slides = Slides(None, None)
+        prs_part_.get_slide.return_value = slide_
+
+        result = slides.get_by_slide_id(256)
+
+        prs_part_.get_slide.assert_called_once_with(256)
+        assert result is slide_
+
+    def but_returns_default_when_not_found_via_get_by_slide_id(self, part_prop_, prs_part_):
+        slides = Slides(None, None)
+        prs_part_.get_slide.return_value = None
+
+        result = slides.get_by_slide_id(999, default="fallback")
+
+        prs_part_.get_slide.assert_called_once_with(999)
+        assert result == "fallback"
+
+    def and_returns_None_default_when_not_found_via_get_by_slide_id(self, part_prop_, prs_part_):
+        slides = Slides(None, None)
+        prs_part_.get_slide.return_value = None
+
+        result = slides.get_by_slide_id(999)
+
+        prs_part_.get_slide.assert_called_once_with(999)
+        assert result is None
+
     @pytest.mark.parametrize(
         ("src_idx", "new_idx", "expected_cxml"),
         [

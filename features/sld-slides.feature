@@ -53,6 +53,13 @@ Feature: Access an individual slide
       And slides.get(666, default=slides[2]) is slides[2]
 
 
+  Scenario: Slides.get_by_slide_id() looks up by stable slide id (#377)
+    Given a Slides object containing 3 slides
+     Then slides.get_by_slide_id(slides[1].slide_id) is slides[1]
+      And slides.get_by_slide_id(0) is None
+      And slides.get_by_slide_id(0, default="fallback") is "fallback"
+
+
   Scenario: Slides.move_slide() moves a slide to a new position
     Given a Slides object containing 3 slides
      When I call slides.move_slide(slides[0], 2)
