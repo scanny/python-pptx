@@ -639,8 +639,18 @@ class XmlPart(Part):
         return self
 
     def _rel_ref_count(self, rId: str) -> int:
-        """Return int count of references in this part's XML to `rId`."""
-        return len([r for r in cast("list[str]", self._element.xpath("//@r:id")) if r == rId])
+        """Return int count of references in this part's XML to `rId`.
+
+        Counts every rId-bearing attribute — `@r:id` (standard reference, e.g. on `p:sldId`,
+        `c:chart`, `a:hlinkClick`), `@r:embed` (embedded-image reference on `a:blip`,
+        `p14:media`, `am3d:model3D`, etc.), and `@r:link` (linked resource reference on
+        `a:videoFile`, `a:audioFile`, or a linked-image `a:blip`). Counting only `@r:id`
+        would undercount when two shapes share the same image part (both carry the same
+        `@r:embed` on their respective `a:blip`), causing :meth:`drop_rel` to prematurely
+        remove the rel and leave the deck with a dangling reference.
+        """
+        xpath_expr = "//@r:id | //@r:embed | //@r:link"
+        return len([r for r in cast("list[str]", self._element.xpath(xpath_expr)) if r == rId])
 
 
 class PartFactory:
