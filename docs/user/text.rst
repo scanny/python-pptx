@@ -141,6 +141,33 @@ The possible values for ``TextFrame.auto_size`` and
 :ref:`MsoAutoSize` and :ref:`MsoVerticalAnchor` respectively.
 
 
+Controlling text overflow (wrap, single-line, clip)
+---------------------------------------------------
+
+PowerPoint offers three distinct strategies for what happens when the
+text authored into a shape is longer than fits. All three are exposed
+through the existing :attr:`TextFrame.word_wrap` and
+:attr:`TextFrame.auto_size` properties (see issue #623):
+
+* **Wrap at the shape boundary** — ``text_frame.word_wrap = True``
+  (emits ``a:bodyPr/@wrap="square"``). Text flows onto additional
+  lines at word boundaries so everything fits horizontally.
+
+* **Single line, overflow horizontally** —
+  ``text_frame.word_wrap = False`` (emits ``a:bodyPr/@wrap="none"``).
+  Text stays on one line and extends past the shape's right edge.
+
+* **Clip anything that doesn't fit** — set
+  ``text_frame.auto_size = MSO_AUTO_SIZE.NONE`` (emits
+  ``<a:noAutofit/>``). PowerPoint neither resizes the shape nor scales
+  the font; content that falls outside the shape is clipped at the
+  shape boundary. This is the correct recipe when you want text to be
+  cropped, as opposed to wrapped or overflowed.
+
+Assigning ``None`` to ``word_wrap`` removes the attribute so the
+effective value is inherited from the style hierarchy.
+
+
 Inspecting the text-rendering rectangle
 ---------------------------------------
 

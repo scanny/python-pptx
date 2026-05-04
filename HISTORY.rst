@@ -48,6 +48,21 @@ Unreleased
   single-sibling invariant on reassignment. No code change — the feature
   is the already-existing ``TextFrame.auto_size`` setter.
 
+- verify: #623 text overflow control (wrap, single-line, clip) supported
+  via existing :attr:`TextFrame.word_wrap` and :attr:`TextFrame.auto_size`.
+  Issue #623 (https://github.com/scanny/python-pptx/issues/623) asked
+  for a way to control what happens when a textbox's content is longer
+  than fits. All three PowerPoint behaviours are already on the public
+  surface: ``word_wrap = True`` wraps at the shape edge
+  (``a:bodyPr/@wrap="square"``), ``word_wrap = False`` overflows a
+  single line (``a:bodyPr/@wrap="none"``), and
+  ``auto_size = MSO_AUTO_SIZE.NONE`` emits ``<a:noAutofit/>`` so
+  PowerPoint clips anything outside the shape. A new
+  ``tests/test_issue_623_text_overflow_verify.py`` regression suite
+  pins each recipe — including the round-trip — and a new
+  "Controlling text overflow" section in ``docs/user/text.rst``
+  documents the three-way choice.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
