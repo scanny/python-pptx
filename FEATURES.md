@@ -705,7 +705,8 @@ prs.save("out.pptx")
 - `Picture.auto_shape_type` — Cropping / masking shape (e.g. `MSO_SHAPE.OVAL`). `[Added in 2026.05.0]`
 - `Picture.crop_left` / `.crop_top` / `.crop_right` / `.crop_bottom` — Fractional crop edges.
 - `Picture.line` — Outline `LineFormat`.
-- `Picture.click_action` — `ActionSetting`.
+- `Picture.click_action` — `ActionSetting` (URL hyperlink, slide-jump, ScreenTip, play-sound). Verified end-to-end for pictures by issue #576.
+- `Picture.hover_action` — `ActionSetting` bound to `a:hlinkMouseOver` for picture mouse-over behaviours. Parallel to `click_action`.
 - SVG images loaded into picture placeholders are supported (error-free SVG loading is `[Added in 2026.05.0]`).
 
 ---
