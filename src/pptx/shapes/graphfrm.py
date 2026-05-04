@@ -47,6 +47,26 @@ class GraphicFrame(BaseShape):
         super().__init__(graphicFrame, parent)
         self._graphicFrame = graphicFrame
 
+    def delete(self) -> None:
+        """Remove this graphic frame and drop its content-specific slide-part rels.
+
+        A :class:`GraphicFrame` may host a chart (classic ``c:chart`` or Office 2016+
+        extended ``cx:chart``), an OLE object (plus its icon-image rel on the embedded
+        ``a:blip``), a SmartArt diagram (four ``dgm:relIds`` rels), or a 3D-model
+        passthrough. All of these rels are carried by the slide part and were not being
+        dropped when the graphic frame's ``p:graphicFrame`` XML was removed, leaving the
+        referenced parts (chart, embedded xlsx, OLE blob, diagram bundle, 3D media, icon
+        image) stranded in the saved zip. This override drops each rel whose reference
+        count is at most 1 — tables, which are self-contained XML with no external rels,
+        need no cleanup and pass through to the base ``delete``.
+
+        .. versionadded:: 2026.05.0
+        """
+        part = self.part
+        for rId in self._rIds:
+            part.drop_rel(rId)
+        super().delete()
+
     @property
     def chart(self) -> Chart:
         """The |Chart| object containing the chart in this graphic frame.
@@ -323,6 +343,40 @@ class GraphicFrame(BaseShape):
             raise ValueError("shape does not contain a table")
         tbl = self._graphicFrame.graphic.graphicData.tbl
         return Table(tbl, self)
+
+    @property
+    def _rIds(self) -> list[str]:
+        """Every slide-part rId referenced from inside this graphic frame.
+
+        Covers each content-type a ``p:graphicFrame`` can host:
+
+        * classic ``c:chart/@r:id`` (ChartPart)
+        * extended ``cx:chart/@r:id`` (Office 2016+ chartex part)
+        * ``p:oleObj/@r:id`` (embedded or linked OLE part) and the companion
+          ``a:blip/@r:embed`` icon image inside the OLE's ``p:pic``
+        * ``dgm:relIds`` four SmartArt rIds (``r:dm``, ``r:lo``, ``r:qs``, ``r:cs``)
+        * ``am3d:model3D/@r:embed`` (embedded 3D-model part)
+
+        Tables carry no external rels and contribute nothing. Returns the list of
+        rIds found — order is incidental; duplicates are preserved so
+        :meth:`XmlPart.drop_rel`'s reference-count check sees the correct total.
+        """
+        graphicData = self._graphicFrame.graphicData
+        # -- every `@r:id`, `@r:embed`, and `@r:link` inside the graphic frame.
+        # -- Covers chart rIds, OLE object rId + icon image embed, 3D-model
+        # -- embed, and any future content kind that uses these relationship
+        # -- attributes — plus the four `dgm:relIds` attributes which, because
+        # -- they use bespoke attribute names, are collected separately below.
+        rIds = cast("list[str]", graphicData.xpath(".//@r:id | .//@r:embed | .//@r:link"))
+        # -- SmartArt `dgm:relIds` uses `r:dm` / `r:lo` / `r:qs` / `r:cs` rather
+        # -- than the standard `r:id` — pick them up explicitly.
+        dgm_relIds = graphicData.dgm_relIds
+        if dgm_relIds is not None:
+            for attr in ("dm_rId", "lo_rId", "qs_rId", "cs_rId"):
+                rId = getattr(dgm_relIds, attr)
+                if rId is not None:
+                    rIds.append(rId)
+        return rIds
 
 
 class _OleFormat(ParentedElementProxy):

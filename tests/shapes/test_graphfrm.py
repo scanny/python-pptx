@@ -352,6 +352,109 @@ class DescribeGraphicFrame(object):
         )
         assert GraphicFrame(graphicFrame, None).model_3d_xml is None
 
+    # -- delete() rel cleanup ---------------------------------------------
+
+    def it_can_delete_a_classic_chart_graphic_frame_and_drop_its_rel(
+        self, request, slide_part_, part_prop_
+    ):
+        spTree = element(
+            "p:spTree/(p:sp,p:graphicFrame/a:graphic/a:graphicData{uri=%s}/c:chart{r:id=rId3},p:sp)"
+            % GRAPHIC_DATA_URI_CHART
+        )
+        graphicFrame = spTree.xpath("p:graphicFrame")[0]
+        part_prop_.return_value = slide_part_
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        graphic_frame.delete()
+
+        slide_part_.drop_rel.assert_called_once_with("rId3")
+        assert spTree.xpath("p:graphicFrame") == []
+        assert len(spTree.xpath("p:sp")) == 2
+
+    def it_can_delete_a_chartex_graphic_frame_and_drop_its_rel(
+        self, request, slide_part_, part_prop_
+    ):
+        spTree = element(
+            "p:spTree/(p:sp,p:graphicFrame/a:graphic/a:graphicData{uri=%s}/cx:chart{r:id=rId7},p:sp)"
+            % GRAPHIC_DATA_URI_CHARTEX
+        )
+        graphicFrame = spTree.xpath("p:graphicFrame")[0]
+        part_prop_.return_value = slide_part_
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        graphic_frame.delete()
+
+        slide_part_.drop_rel.assert_called_once_with("rId7")
+        assert spTree.xpath("p:graphicFrame") == []
+
+    def it_can_delete_an_OLE_graphic_frame_and_drop_its_two_rels(
+        self, request, slide_part_, part_prop_
+    ):
+        # -- OLE graphic frame carries two rels: the oleObj @r:id (Excel part) and the
+        # -- icon image @r:embed on the a:blip inside p:oleObj/p:pic/p:blipFill.
+        spTree = element(
+            "p:spTree/p:graphicFrame/a:graphic/a:graphicData{uri=%s}/p:oleObj{r:id=rId5}/"
+            "p:pic/p:blipFill/a:blip{r:embed=rId6}" % GRAPHIC_DATA_URI_OLEOBJ
+        )
+        graphicFrame = spTree.xpath("p:graphicFrame")[0]
+        part_prop_.return_value = slide_part_
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        graphic_frame.delete()
+
+        dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
+        assert dropped == {"rId5", "rId6"}
+        assert spTree.xpath("p:graphicFrame") == []
+
+    def it_can_delete_a_SmartArt_graphic_frame_and_drop_its_four_rels(
+        self, request, slide_part_, part_prop_
+    ):
+        spTree = element(
+            "p:spTree/p:graphicFrame/a:graphic/a:graphicData{uri=%s}/"
+            "dgm:relIds{r:dm=rId2,r:lo=rId3,r:qs=rId4,r:cs=rId5}" % GRAPHIC_DATA_URI_SMART_ART
+        )
+        graphicFrame = spTree.xpath("p:graphicFrame")[0]
+        part_prop_.return_value = slide_part_
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        graphic_frame.delete()
+
+        dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
+        assert dropped == {"rId2", "rId3", "rId4", "rId5"}
+        assert spTree.xpath("p:graphicFrame") == []
+
+    def it_can_delete_a_model_3d_graphic_frame_and_drop_its_embed_rel(
+        self, request, slide_part_, part_prop_
+    ):
+        spTree = element(
+            "p:spTree/p:graphicFrame/a:graphic/a:graphicData{uri=%s}/"
+            "am3d:model3D{r:embed=rId9,ext=glb}" % GRAPHIC_DATA_URI_MODEL_3D
+        )
+        graphicFrame = spTree.xpath("p:graphicFrame")[0]
+        part_prop_.return_value = slide_part_
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        graphic_frame.delete()
+
+        slide_part_.drop_rel.assert_called_once_with("rId9")
+        assert spTree.xpath("p:graphicFrame") == []
+
+    def it_can_delete_a_table_graphic_frame_without_dropping_any_rel(
+        self, request, slide_part_, part_prop_
+    ):
+        # -- tables are self-contained XML with no external rels --
+        spTree = element(
+            "p:spTree/p:graphicFrame/a:graphic/a:graphicData{uri=%s}/a:tbl" % GRAPHIC_DATA_URI_TABLE
+        )
+        graphicFrame = spTree.xpath("p:graphicFrame")[0]
+        part_prop_.return_value = slide_part_
+        graphic_frame = GraphicFrame(graphicFrame, None)
+
+        graphic_frame.delete()
+
+        slide_part_.drop_rel.assert_not_called()
+        assert spTree.xpath("p:graphicFrame") == []
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -369,6 +472,14 @@ class DescribeGraphicFrame(object):
     @pytest.fixture
     def has_chartex_prop_(self, request):
         return property_mock(request, GraphicFrame, "has_chartex")
+
+    @pytest.fixture
+    def part_prop_(self, request):
+        return property_mock(request, GraphicFrame, "part")
+
+    @pytest.fixture
+    def slide_part_(self, request):
+        return instance_mock(request, SlidePart)
 
 
 class Describe_OleFormat(object):

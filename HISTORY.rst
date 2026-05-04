@@ -16,6 +16,23 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: FU-7 ``GraphicFrame.delete()`` now drops every slide-part rel the
+  frame carries — classic ``c:chart/@r:id``, Office 2016+ extended
+  ``cx:chart/@r:id``, embedded or linked ``p:oleObj/@r:id`` plus the
+  companion ``a:blip/@r:embed`` icon image, the four ``dgm:relIds``
+  SmartArt rIds (``r:dm`` / ``r:lo`` / ``r:qs`` / ``r:cs``), and the
+  ``am3d:model3D/@r:embed`` — so ``slide.shapes.clear()`` and single-
+  shape ``delete()`` calls compose correctly with the save-time
+  :meth:`OpcPackage.iter_parts` reachability walk. Previously the
+  base ``BaseShape.delete`` only removed the ``p:graphicFrame`` XML,
+  leaving the slide rels pointing at now-orphan chart / embedded
+  xlsx / OLE / diagram / 3D parts and bloating the saved zip.
+  Tables carry no external rels and continue to pass through
+  untouched. Inverts the FU-6 ``but_chart_parts_are_NOT_gc_ed_by_*``
+  pin to an ``it_gcs_chart_parts_*`` invariant and adds
+  ``tests/test_fu7_graphfrm_delete_rels.py`` plus unit tests in
+  ``tests/shapes/test_graphfrm.py`` covering each content kind.
+
 - test: FU-3 investigated — pinned "no duplicate partname on save-reopen-save"
   invariant. The FU-3 follow-up from the Wave 12 #956 investigation reported
   a ``UserWarning: Duplicate name: 'ppt/slideLayouts/slideLayout7.xml'`` on
