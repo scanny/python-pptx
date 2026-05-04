@@ -141,6 +141,75 @@ To place the (still-hidden) shape off-slide instead of in the corner, set
 on save and never renders a hidden shape anyway, so the positioning is a
 matter of author preference.
 
+Adding a URL-linked (online) video
+----------------------------------
+
+.. versionadded:: 2026.05.0
+
+PowerPoint supports embedding a video that lives on an external URL —
+YouTube, Vimeo, or any HTTPS host that serves a playable video — via its
+"Insert Online Video" command. The video bytes are **not** copied into
+the ``.pptx``; instead the shape carries an external relationship to the
+URL, which PowerPoint's media player loads at presentation time.
+
+:meth:`SlideShapes.add_movie_link` emits the same shape. A poster-frame
+image is required because there is no media part from which to derive a
+default loudspeaker graphic:
+
+.. code-block:: python
+
+    from pptx.util import Inches
+
+    movie = slide.shapes.add_movie_link(
+        "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "poster.png",
+        Inches(1), Inches(1), Inches(4), Inches(3),
+    )
+
+Choosing the URL form
+~~~~~~~~~~~~~~~~~~~~~
+
+PowerPoint's online-video player requires a URL it can actually load
+inside a slide. For YouTube, that means the ``/embed/`` form, **not** the
+ordinary ``watch?v=…`` address. The URL you'd paste into a browser's
+address bar won't play in-slide — it only works on youtube.com itself.
+
+=================================================================  ===========
+URL pattern                                                        Plays in
+                                                                   PowerPoint?
+=================================================================  ===========
+``https://www.youtube.com/embed/VIDEO_ID``                         yes
+``https://www.youtube.com/watch?v=VIDEO_ID``                       no
+``https://youtu.be/VIDEO_ID``                                      no
+``https://player.vimeo.com/video/VIDEO_ID``                        yes
+``https://example.com/path/to/clip.mp4`` (direct HTTPS, CORS-OK)   yes
+=================================================================  ===========
+
+Any ``watch?v=VIDEO_ID`` or ``youtu.be/VIDEO_ID`` URL you already have is
+trivial to convert — keep the ``VIDEO_ID`` and substitute it into the
+``/embed/`` form. ``add_movie_link`` does **not** validate the URL; the
+caller is responsible for supplying a playable form.
+
+Trade-offs vs :meth:`~SlideShapes.add_movie`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* **Package size**: URL-linked video keeps the ``.pptx`` small — only the
+  poster PNG lives in the package. Embedded video (``add_movie``) inlines
+  the full media bytes and can easily exceed attachment limits.
+* **Offline playback**: URL-linked video requires an internet connection
+  at presentation time. Embedded video always plays offline.
+* **Updates**: the URL-linked shape tracks whatever the host serves, so
+  the author can update the video without re-saving the deck. Embedded
+  video is pinned to the bytes at save time.
+* **Host policy**: YouTube, Vimeo and friends can withdraw, age-gate, or
+  change the video independently of your deck — if long-term archival of
+  the exact content matters, embed.
+
+``poster_frame_image`` is required: unlike ``add_movie`` there is no
+media part to fall back to for a default speaker-icon poster. Supply any
+path or binary file-like object accepted by
+:meth:`~SlideShapes.add_picture`.
+
 Extracting an embedded media clip
 ---------------------------------
 

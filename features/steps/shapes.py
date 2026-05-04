@@ -423,6 +423,17 @@ def when_I_call_shapes_add_movie(context):
     )
 
 
+# -- issue #839: URL-linked (online) video authoring --
+@when("I call shapes.add_movie_link(url, poster, x, y, cx, cy)")
+def when_I_call_shapes_add_movie_link(context):
+    shapes = context.shapes
+    x, y, cx, cy = Emu(2590800), Emu(571500), Emu(3962400), Emu(5715000)
+    context.url = "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    context.movie = shapes.add_movie_link(
+        context.url, test_file("just-two-mice.png"), x, y, cx, cy
+    )
+
+
 @when("I call shapes.add_movie(audio_file, mime_type='audio/wav')")
 def when_I_call_shapes_add_movie_audio(context):
     shapes = context.shapes

@@ -359,6 +359,7 @@ prs.save("out.pptx")
 - `SlideShapes.add_picture(path_or_stream, left, top, width=None, height=None)` — Inline picture.
 - `SlideShapes.add_picture_link(url, left, top, width=None, height=None)` — Linked (external URL) picture. `[Added in 2026.05.0]`
 - `SlideShapes.add_movie(path_or_stream, left, top, width, height, poster_frame_image=None, mime_type=None, autoplay=False)` — Add a video/audio shape. `autoplay` is `[Added in 2026.05.0]`.
+- `SlideShapes.add_movie_link(url, poster_frame_image, left, top, width, height)` — Add a URL-linked (online) video shape. `[Added in 2026.05.0]`
 - `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Append a chart graphic frame.
 - `SlideShapes.clone_chart(chart, x, y, cx=None, cy=None)` — Copy a chart from another slide/presentation into this slide. `[Added in 2026.05.0]`
 - `SlideShapes.add_connector(connector_type, begin_x, begin_y, end_x, end_y)` — Connector line between two points.
@@ -757,6 +758,7 @@ prs.save("out.pptx")
 ```
 
 - `SlideShapes.add_movie(movie_file, left, top, width, height, poster_frame_image=None, mime_type=None, autoplay=False)` — Add video or audio shape. `autoplay` is `[Added in 2026.05.0]`.
+- `SlideShapes.add_movie_link(url, poster_frame_image, left, top, width, height)` — Add a URL-linked (online) video shape. Emits the same `p:pic` PowerPoint writes for "Insert Online Video": `a:videoFile` and `p14:media` both carry `r:link` pointing at an external-mode slide-part relationship; the poster PNG is embedded but the video bytes are **not** copied into the `.pptx`. For YouTube, supply the `https://www.youtube.com/embed/<ID>` form — ordinary `watch?v=…` URLs won't play in-slide. See `docs/user/media.rst` → "Adding a URL-linked (online) video" and issue #839. `[Added in 2026.05.0]`
 - `Movie.media_type` — `PP_MEDIA_TYPE.VIDEO` or `PP_MEDIA_TYPE.AUDIO`.
 - `Movie.media_format` — Backing `MediaPart` wrapper.
 - `Movie.blob` / `Movie.ext` / `Movie.content_type` — Raw media data and metadata. `[Added in 2026.05.0]`

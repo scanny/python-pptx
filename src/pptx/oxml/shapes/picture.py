@@ -198,6 +198,46 @@ class CT_Picture(BaseShapeElement):
             ),
         )
 
+    @classmethod
+    def new_video_link_pic(
+        cls,
+        shape_id: int,
+        shape_name: str,
+        video_rId: str,
+        poster_frame_rId: str,
+        x: Length,
+        y: Length,
+        cx: Length,
+        cy: Length,
+    ) -> CT_Picture:
+        """Return a new `p:pic` for a URL-linked video.
+
+        The returned element matches what PowerPoint writes for an "Insert
+        Online Video" shape: both ``a:videoFile`` and the ``p14:media``
+        descriptor reference the same external-URL relationship via
+        ``r:link``. The ``r:embed``-based ``p14:media`` path used by embedded
+        media is **not** emitted — the video bytes are not in the package.
+        The poster-frame image is embedded and referenced via
+        ``a:blip/@r:embed``. See issue #839.
+        """
+        return cast(
+            CT_Picture,
+            parse_xml(
+                cls._pic_video_link_tmpl()
+                % (
+                    shape_id,
+                    shape_name,
+                    video_rId,
+                    video_rId,
+                    poster_frame_rId,
+                    x,
+                    y,
+                    cx,
+                    cy,
+                )
+            ),
+        )
+
     @property
     def srcRect_b(self):
         """Value of `p:blipFill/a:srcRect/@b` or 0.0 if not present."""
@@ -411,6 +451,53 @@ class CT_Picture(BaseShapeElement):
             "</p:pic>" % nsdecls("a", "p", "r")
         )
         return tmpl.replace("__MEDIA_TAG__", media_tag)
+
+    @classmethod
+    def _pic_video_link_tmpl(cls):
+        """Template for a ``p:pic`` referencing a URL-linked (online) video.
+
+        Matches PowerPoint's "Insert Online Video" output: the ``a:videoFile``
+        element carries ``r:link`` pointing at an external URL relationship
+        and the ``p14:media`` descriptor carries ``r:link`` with the same rId
+        (embedded-media uses ``r:embed`` on ``p14:media`` instead). The
+        poster-frame PNG is referenced by ``a:blip/@r:embed``. See issue #839.
+        """
+        return (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="%%d" name="%%s">\n'
+            '      <a:hlinkClick r:id="" action="ppaction://media"/>\n'
+            "    </p:cNvPr>\n"
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr>\n"
+            '      <a:videoFile r:link="%%s"/>\n'
+            "      <p:extLst>\n"
+            '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">\n'
+            '          <p14:media xmlns:p14="http://schemas.microsoft.com/of'
+            'fice/powerpoint/2010/main" r:link="%%s"/>\n'
+            "        </p:ext>\n"
+            "      </p:extLst>\n"
+            "    </p:nvPr>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:embed="%%s"/>\n'
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
+            '      <a:off x="%%d" y="%%d"/>\n'
+            '      <a:ext cx="%%d" cy="%%d"/>\n'
+            "    </a:xfrm>\n"
+            '    <a:prstGeom prst="rect">\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>" % nsdecls("a", "p", "r")
+        )
 
     def _srcRect_x(self, attr_name):
         """
