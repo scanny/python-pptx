@@ -4,21 +4,7 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 ## Open
 
-- **FU-7: `GraphicFrame.delete()` doesn't release chart / chartex rels (from
-  FU-6 test).** Pure-Python `BaseShape.delete()` removes the shape element
-  from `p:spTree` but the slide-part's relationship to the chart / chartex
-  part is never dropped. `iter_parts()` still reaches the chart via the
-  dangling rel at save time, so `clear_shapes()` on a chart-bearing slide
-  fails to shrink the zip. Evidence: the `but_chart_parts_are_NOT_gc_ed_
-  by_clear_shapes` regression test in `tests/test_fu6_clear_gc.py` pins
-  the current broken behaviour. Fix: override `delete()` on
-  `GraphicFrame` to walk `chart_rId` + `cx_chart_rId` and call
-  `slide.part.drop_rel()` for each, then call the parent `delete()`.
-  The FU-6 test has been structured to fail loudly once the fix lands,
-  prompting simultaneous inversion.
-
-
-
+_None tracked yet._
 
 
 ## Done
