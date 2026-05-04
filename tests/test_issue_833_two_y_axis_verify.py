@@ -299,8 +299,10 @@ class DescribeIssue833TwoYAxisVerify(object):
 
         Documented quirk inherited from the XY/scatter case (where the
         second ``c:valAx`` is the Y-axis). For a category-based combo
-        chart, callers wanting the primary (left-hand) axis go through
-        ``chart._chartSpace.plotArea.primary_valAx`` instead.
+        chart, callers wanting the primary (left-hand) axis should use
+        :attr:`Chart.primary_value_axis` (FU-2); the XML-level escape
+        hatch via ``chart._chartSpace.plotArea.primary_valAx`` also
+        remains available.
         """
         chartSpace = parse_xml(_two_y_axis_chartSpace_xml())
         chart = Chart(chartSpace, None)
@@ -308,6 +310,26 @@ class DescribeIssue833TwoYAxisVerify(object):
         valAx_lst = chartSpace.xpath(".//c:valAx")
         assert chart.value_axis._element is valAx_lst[1]
         assert chart.value_axis._element is chart.secondary_value_axis._element
+
+    def it_returns_the_primary_valAx_from_primary_value_axis_on_a_combo(self):
+        """`chart.primary_value_axis` resolves to the FIRST `c:valAx` (FU-2).
+
+        The backward-compatible fix for the `Chart.value_axis` combo-chart
+        quirk pinned above: add `Chart.primary_value_axis` returning the
+        first ``c:valAx`` unambiguously. Demonstrated here on the same
+        combo-chart fixture used throughout this module.
+        """
+        chartSpace = parse_xml(_two_y_axis_chartSpace_xml())
+        chart = Chart(chartSpace, None)
+
+        valAx_lst = chartSpace.xpath(".//c:valAx")
+        primary = chart.primary_value_axis
+
+        assert isinstance(primary, ValueAxis)
+        assert primary._element is valAx_lst[0]
+        # -- and explicitly not aliased to secondary --
+        assert primary._element is not chart.secondary_value_axis._element
+        assert primary._element is not chart.value_axis._element
 
     # -- round-trip save/reopen ------------------------------------------
 

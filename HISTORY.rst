@@ -16,6 +16,19 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: Add ``Chart.primary_value_axis`` for unambiguous primary-axis access
+  on combo charts (FU-2). ``Chart.value_axis`` returns the *last* ``c:valAx``
+  in the chart's plot area — which on a category-based combo chart that
+  has both a primary and a secondary value axis (e.g. bar + line +
+  secondary axis) resolves to the *secondary* axis, not the primary one
+  the caller usually wants. Changing ``value_axis`` would be a breaking
+  change for code that relies on the legacy "last-wins" behaviour, so the
+  new ``Chart.primary_value_axis`` property returns the first ``c:valAx``
+  explicitly and is equivalent to ``value_axis`` on non-combo charts with
+  a single value axis. Both accessors raise ``ValueError`` when the chart
+  has no value axis. Docstring on ``Chart.value_axis`` now spells out the
+  combo-chart caveat explicitly.
+
 - docs: triage 107 audit non-gap items — consolidated disposition page
   under ``docs/community/issue-triage.rst``, plus regression tests in
   ``tests/test_non_gap_triage.py`` that pin ~15 items whose "missing

@@ -749,6 +749,38 @@ def then_accessing_chart_secondary_value_axis_raises(context):
     raise AssertionError("ValueError not raised")
 
 
+@then("chart.primary_value_axis is a ValueAxis object")
+def then_chart_primary_value_axis_is_a_ValueAxis_object(context):
+    primary_value_axis = context.chart.primary_value_axis
+    assert type(primary_value_axis).__name__ == "ValueAxis"
+
+
+@then("chart.primary_value_axis is the first c:valAx")
+def then_chart_primary_value_axis_is_first_valAx(context):
+    from pptx.oxml.ns import qn
+
+    valAx_lst = context.chart._chartSpace.findall(".//" + qn("c:valAx"))
+    assert valAx_lst, "chart has no c:valAx element"
+    primary = context.chart.primary_value_axis
+    assert primary._element is valAx_lst[0], (
+        "primary_value_axis._element is not the first c:valAx"
+    )
+
+
+@then("chart.primary_value_axis is not chart.value_axis")
+def then_chart_primary_value_axis_is_not_chart_value_axis(context):
+    assert context.chart.primary_value_axis._element is not context.chart.value_axis._element, (
+        "primary_value_axis and value_axis unexpectedly alias the same c:valAx"
+    )
+
+
+@then("chart.value_axis is chart.secondary_value_axis")
+def then_chart_value_axis_is_chart_secondary_value_axis(context):
+    assert (
+        context.chart.value_axis._element is context.chart.secondary_value_axis._element
+    ), "value_axis is not aliased to secondary_value_axis"
+
+
 @then("chart_title.format is a ChartFormat object")
 def then_chart_title_format_is_a_ChartFormat_object(context):
     class_name = type(context.chart_title.format).__name__

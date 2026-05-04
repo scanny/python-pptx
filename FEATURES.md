@@ -1432,6 +1432,7 @@ prs.save("out.pptx")
 - `Chart.plots` / `Chart.series` / `Chart.category_axis` / `Chart.value_axis` — Chart anatomy.
 - `Chart.plot_area` — `PlotArea` proxy for `c:plotArea`; `.format` exposes `ChartFormat` (`.fill`, `.line`, `.shadow`) so the plot-area rectangle can be filled, outlined, or shadowed without dropping into XML. `[Added in 1.0.2.dev0]`
 - `Chart.has_secondary_value_axis` / `Chart.secondary_value_axis` — Secondary Y axis. `[Added in 1.0.2.dev0]`
+- `Chart.primary_value_axis` — Return the primary `c:valAx` (first in document order) as a `ValueAxis`, unambiguously identifying the primary value axis on a category-based combo chart that also carries a secondary value axis. `Chart.value_axis` returns the **last** `c:valAx` and therefore resolves to the *secondary* axis on such a combo chart — a subtle wart preserved for backward compatibility — so callers that want the primary on a bar + line + secondary-axis chart should reach for `primary_value_axis`. For non-combo charts with a single value axis, both accessors return the same axis. Raises `ValueError` when the chart has no value axis. `[Added in 2026.05.2.dev0]`
 - `Chart.add_plot(chart_type, chart_data)` — Add a second plot to an existing chart (combo charts). `[Added in 1.0.2.dev0]`
 - `Chart.apply_template(template)` — Apply a `.crtx` chart template (path, bytes, or file-like) onto an existing chart. `[Added in 1.0.2.dev0]`
 - `Chart.clone_to(shapes, x, y, cx, cy)` — Deep-copy the chart onto another slide (same or different presentation) with a fresh distinct embedded workbook. `[Added in 1.0.2.dev0]`
@@ -2105,6 +2106,7 @@ tl.rotation = -45
 ```
 
 - `Chart.category_axis` / `Chart.value_axis` / `Chart.date_axis` — Axis accessors.
+- `Chart.primary_value_axis` — Explicit primary-axis accessor for combo charts (`bar + line + secondary axis`), where `Chart.value_axis` returns the *last* `c:valAx` (i.e. the secondary axis) for backward compatibility. `[Added in 2026.05.2.dev0]`
 - `_BaseAxis.visible` — Show/hide the axis. `[Added in 2026.05.0]`
 - `_BaseAxis.has_title` / `_BaseAxis.axis_title` — `AxisTitle` with `.text_frame`, `.format`, `.has_text_frame`.
 - `_BaseAxis.has_major_gridlines` / `.has_minor_gridlines` / `.major_gridlines` / `.minor_gridlines` — Gridline toggles plus `MajorGridlines` and `MinorGridlines` proxies (each exposes `.format` for line / fill styling). `minor_gridlines` is `[Added in 2026.05.1.dev0]`.

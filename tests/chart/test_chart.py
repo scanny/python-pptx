@@ -165,6 +165,58 @@ class DescribeChart(object):
         with pytest.raises(ValueError):
             chart.value_axis
 
+    def it_provides_access_to_the_primary_value_axis(self, primary_val_ax_fixture):
+        """`Chart.primary_value_axis` returns the first `c:valAx` (FU-2).
+
+        On a category-based combo chart with a primary and a secondary
+        value axis, this is the primary axis — distinct from
+        `Chart.value_axis`, which returns the *last* `c:valAx` and
+        therefore resolves to the *secondary* axis on such a chart. For
+        non-combo charts both properties return the same axis.
+        """
+        chart, ValueAxis_, primary_valAx, value_axis_ = primary_val_ax_fixture
+        primary_value_axis = chart.primary_value_axis
+        ValueAxis_.assert_called_once_with(primary_valAx)
+        assert primary_value_axis is value_axis_
+
+    def it_raises_when_no_primary_value_axis(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
+        with pytest.raises(ValueError, match="chart has no value axis"):
+            chart.primary_value_axis
+
+    def it_returns_primary_distinctly_from_value_axis_on_combo(self):
+        """On a combo chart, `primary_value_axis` and `value_axis` point at
+        different XML elements — the first and last `c:valAx` respectively.
+
+        This is the load-bearing behaviour change from FU-2. `value_axis`
+        preserves its legacy last-wins semantics (returning the secondary
+        axis on combo charts) for backward compatibility, while callers
+        that want the primary axis unambiguously use `primary_value_axis`.
+        """
+        chartSpace = element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx,c:valAx)")
+        valAx_elms = chartSpace.xpath(".//c:valAx")
+        chart = Chart(chartSpace, None)
+
+        primary = chart.primary_value_axis
+        value = chart.value_axis
+
+        # -- value_axis still resolves to the SECOND valAx (secondary); --
+        # -- primary_value_axis resolves to the FIRST valAx (primary). --
+        assert primary._element is valAx_elms[0]
+        assert value._element is valAx_elms[1]
+        assert primary._element is not value._element
+
+    def it_returns_primary_equal_to_value_axis_on_non_combo(self):
+        """On a single-valAx chart, `primary_value_axis` and `value_axis`
+        return the same underlying axis element."""
+        chartSpace = element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)")
+        chart = Chart(chartSpace, None)
+
+        primary = chart.primary_value_axis
+        value = chart.value_axis
+
+        assert primary._element is value._element
+
     def it_knows_whether_it_has_a_secondary_value_axis(self, has_sec_val_ax_fixture):
         chart, expected_value = has_sec_val_ax_fixture
         assert chart.has_secondary_value_axis is expected_value
@@ -1489,6 +1541,25 @@ class DescribeChart(object):
     def val_ax_raise_fixture(self):
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
         return chart
+
+    @pytest.fixture(
+        params=[
+            # -- single valAx with category axis (non-combo) -- primary == only --
+            ("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)", 0),
+            # -- combo: catAx + two valAx -- primary is the FIRST valAx --
+            ("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx,c:valAx)", 0),
+            # -- XY/scatter: two valAx (X, Y) -- primary returns the first --
+            ("c:chartSpace/c:chart/c:plotArea/(c:valAx,c:valAx)", 0),
+            # -- dateAx + two valAx combo -- primary is the first valAx --
+            ("c:chartSpace/c:chart/c:plotArea/(c:dateAx,c:valAx,c:valAx)", 0),
+        ]
+    )
+    def primary_val_ax_fixture(self, request, ValueAxis_, value_axis_):
+        chartSpace_xml, idx = request.param
+        chartSpace = element(chartSpace_xml)
+        chart = Chart(chartSpace, None)
+        valAx = chartSpace.xpath(".//c:valAx")[idx]
+        return chart, ValueAxis_, valAx, value_axis_
 
     @pytest.fixture(
         params=[

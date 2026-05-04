@@ -80,6 +80,14 @@ via :attr:`~pptx.chart.chart.Chart.secondary_value_axis`; use
 :attr:`~pptx.chart.chart.Chart.has_secondary_value_axis` to test for its
 presence non-destructively.
 
+On a combo chart that has both a primary and a secondary value axis
+(e.g. a bar + line chart with the line plotted on the right-side axis),
+:attr:`~pptx.chart.chart.Chart.value_axis` returns the *last* ``c:valAx``
+element — which is the secondary axis, not the primary. Use
+:attr:`~pptx.chart.chart.Chart.primary_value_axis` for unambiguous
+access to the primary axis; on a non-combo chart both accessors return
+the same axis.
+
 .. autoclass:: pptx.chart.axis._BaseAxis()
    :members:
    :member-order: bysource
