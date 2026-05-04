@@ -2603,6 +2603,7 @@ prs.save("plain.pptx")
 - `Presentation.save(file, password=None)` — Write the package, optionally re-encrypting with `password`. `[Added in 2026.05.0]`
 - `pptx.opc._crypto` — Internal Agile-Encryption plumbing. `[Added in 2026.05.0]`
 - `pptx.exc.EncryptedPackageError` — Raised when decryption fails. `[Added in 2026.05.0]`
+- `pptx.exc.RmsProtectedPackageError` — Raised when a `.pptx` is wrapped in Azure RMS / AIP / IRM protection. Subclass of `EncryptedPackageError`. python-pptx cannot decrypt RMS files (the payload is keyed to the user's Azure AD identity and requires the Microsoft Information Protection SDK); the error points at `docs/user/rms-protected.rst` for workarounds. Issue #930. `[Added in 2026.05.0]`
 
 ---
 

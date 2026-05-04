@@ -64,3 +64,21 @@ class EncryptedPackageError(PythonPptxError):
     Also raised when the optional ``msoffcrypto-tool`` dependency is required to decrypt
     or encrypt a package but is not installed.
     """
+
+
+class RmsProtectedPackageError(EncryptedPackageError):
+    """Raised when opening a .pptx wrapped in Azure RMS / AIP / IRM protection.
+
+    "Rights Management Services" (also marketed as Azure Information Protection /
+    Microsoft Purview Information Protection / "Information Rights Management") wraps
+    the regular OOXML zip inside a CFBF (OLE2 compound file) container that stores the
+    encrypted payload under a ``DRMContent`` stream and a ``DRMEncryptedTransform``
+    descriptor. Unlike an ECMA-376 Agile-Encryption package, an RMS package cannot be
+    decrypted with a password alone — the user's Azure AD / Microsoft 365 identity must
+    be presented to the RMS service to retrieve the content key.
+
+    python-pptx does not bundle an RMS client (the Microsoft Information Protection SDK
+    is C#/.NET-only and requires an interactive Azure AD login flow). See
+    :ref:`rms-protected` in the user guide for recommended workarounds — delegating
+    decryption to Microsoft Office automation, the MIP SDK, or a pre-processing step.
+    """

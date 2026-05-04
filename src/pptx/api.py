@@ -82,6 +82,13 @@ def Presentation(
     file is decrypted before loading. This requires the optional
     ``msoffcrypto-tool`` dependency. Opening an encrypted package without
     a password raises :class:`pptx.exc.EncryptedPackageError`.
+
+    Opening a file wrapped in Azure RMS / AIP / IRM protection raises
+    :class:`pptx.exc.RmsProtectedPackageError` (a subclass of
+    :class:`~pptx.exc.EncryptedPackageError`) -- python-pptx cannot decrypt
+    RMS-protected files because the payload is keyed to the user's Azure AD
+    identity rather than a password. See :ref:`rms-protected` in the user
+    guide for workarounds.
     """
     if pptx_format is not None and pptx is not None:
         raise ValueError(

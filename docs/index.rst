@@ -172,6 +172,7 @@ User Guide
    user/notes
    user/ole-objects
    user/comments
+   user/rms-protected
    user/use-cases
    user/ai-use-cases
    user/concepts

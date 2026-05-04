@@ -10,7 +10,12 @@ import zipfile
 from typing import IO, TYPE_CHECKING, Any, Container, Sequence, Tuple, Union
 
 from pptx.exc import PackageNotFoundError, PackageTooLargeError
-from pptx.opc._crypto import decrypt_stream, encrypt_bytes, is_encrypted_stream
+from pptx.opc._crypto import (
+    decrypt_stream,
+    encrypt_bytes,
+    is_encrypted_stream,
+    is_rms_protected_stream,
+)
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.oxml import CT_Types, serialize_part_xml
 from pptx.opc.packuri import CONTENT_TYPES_URI, PACKAGE_URI, PackURI
@@ -256,11 +261,27 @@ class _PhysPkgReader(Container[PackURI]):
 
         Raises :class:`pptx.exc.EncryptedPackageError` when the stream is encrypted and
         either `password` is None or ``msoffcrypto-tool`` is not installed.
+
+        Raises :class:`pptx.exc.RmsProtectedPackageError` when the stream is wrapped in
+        Azure RMS / AIP / IRM protection. RMS-protected packages are CFBF containers
+        whose payload is encrypted to the user's Azure AD identity rather than a
+        password; python-pptx cannot decrypt them (see the ``rms-protected`` section of
+        the user guide for workarounds).
         """
         if not is_encrypted_stream(stream):
             return None
 
-        from pptx.exc import EncryptedPackageError
+        from pptx.exc import EncryptedPackageError, RmsProtectedPackageError
+
+        if is_rms_protected_stream(stream):
+            raise RmsProtectedPackageError(
+                "package is wrapped in Azure RMS / AIP / IRM protection; python-pptx "
+                "cannot decrypt RMS-protected files — the payload is encrypted to the "
+                "user's Microsoft 365 identity, not a password. See the "
+                "'RMS / AIP-protected files' section of the python-pptx user guide "
+                "for recommended workarounds (delegating decryption to Microsoft "
+                "Office automation or the Microsoft Information Protection SDK)."
+            )
 
         if password is None:
             raise EncryptedPackageError(
