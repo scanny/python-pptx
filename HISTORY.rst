@@ -116,6 +116,26 @@ Unreleased
   element is registered with ``CT_ChartLines`` (shared with
   ``c:majorGridlines``) so its ``c:spPr`` child is populated on demand.
 
+- Add #1045 ``Font.baseline`` + ``Font.subscript`` / ``Font.superscript``.
+  Issue #1045 (https://github.com/scanny/python-pptx/issues/1045) asked
+  for a way to render subscript and superscript text — PowerPoint's
+  *Home › Font › Subscript* / *Superscript* buttons, stored as the
+  ``a:rPr/@baseline`` attribute. :attr:`.Font.baseline` is a new
+  read/write ``int | None`` property exposing the raw attribute (in
+  thousandths of a percent, range -100000 .. 100000); positive values
+  raise the run (superscript), negative values lower it (subscript),
+  ``0`` pins it to the normal baseline, and |None| clears the
+  attribute so the run inherits. For the common on/off toggles,
+  :attr:`.Font.subscript` and :attr:`.Font.superscript` are tri-state
+  booleans that map |True| to PowerPoint's default shifts (-25000 and
+  30000 respectively), |False| to ``0``, and |None| to "clear". The
+  new ``Font.baseline`` descriptor lands on
+  ``CT_TextCharacterProperties`` alongside a new
+  ``ST_TextBaselinePercent`` simple-type that accepts both the raw
+  integer form PowerPoint itself emits and the percent-literal string
+  form the XSD allows. See the "Subscript and superscript" section in
+  ``docs/user/text.rst`` for the usage pattern.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and

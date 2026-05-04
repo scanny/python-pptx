@@ -339,3 +339,51 @@ Feature: Change appearance of font used to render text
       And a destination run with no explicit formatting
      When I call dst_run.font.copy_from(src_run.font) capturing the return
      Then the return value is the destination font
+
+
+  # -- baseline / subscript / superscript (issue #1045) -----------------
+
+  Scenario: Font.baseline is None by default and round-trips explicit values
+    Given a font
+     Then font.baseline is None
+     When I assign 30000 to font.baseline
+      And I save and reload the font's presentation
+     Then font.baseline is 30000
+      And font.superscript is True
+      And font.subscript is False
+
+
+  Scenario: Font.subscript = True writes PowerPoint's default -25% baseline
+    Given a font
+     When I assign True to font.subscript
+      And I save and reload the font's presentation
+     Then font.baseline is -25000
+      And font.subscript is True
+      And font.superscript is False
+
+
+  Scenario: Font.superscript = True writes PowerPoint's default +30% baseline
+    Given a font
+     When I assign True to font.superscript
+      And I save and reload the font's presentation
+     Then font.baseline is 30000
+      And font.superscript is True
+      And font.subscript is False
+
+
+  Scenario: Assigning None to Font.subscript clears the baseline attribute
+    Given a font
+     When I assign True to font.subscript
+      And I assign None to font.subscript
+     Then font.baseline is None
+      And font.subscript is None
+      And font.superscript is None
+
+
+  Scenario: Assigning False to Font.superscript pins the baseline to zero
+    Given a font
+     When I assign True to font.superscript
+      And I assign False to font.superscript
+     Then font.baseline is 0
+      And font.subscript is False
+      And font.superscript is False

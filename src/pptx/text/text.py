@@ -551,6 +551,120 @@ class Font(object):
         # -- it and get a None result from `effective_color`.
         self._parent = parent
 
+    #: Default ``a:rPr/@baseline`` value written by :attr:`Font.subscript` ``= True``.
+    #: Corresponds to the -25% baseline shift PowerPoint's *Home › Font › Subscript*
+    #: button applies out of the box.
+    _SUBSCRIPT_BASELINE = -25000
+
+    #: Default ``a:rPr/@baseline`` value written by :attr:`Font.superscript` ``= True``.
+    #: Corresponds to the +30% baseline shift PowerPoint's *Home › Font › Superscript*
+    #: button applies out of the box.
+    _SUPERSCRIPT_BASELINE = 30000
+
+    @property
+    def baseline(self) -> int | None:
+        """Vertical baseline-shift for this run, in thousandths of a percent.
+
+        Corresponds to the ``a:rPr/@baseline`` attribute. Read/write. Positive
+        values raise the run (superscript), negative values lower it
+        (subscript), and ``0`` pins the run to the normal baseline. ``None``
+        (the default) means no explicit setting is present on this run; the
+        effective baseline is inherited from the style hierarchy.
+
+        Typical values PowerPoint itself writes are ``30000`` (superscript,
+        +30%) and ``-25000`` (subscript, -25%); the accepted range is
+        ``-100000`` .. ``100000``. For the common superscript / subscript
+        toggles, see the tri-state :attr:`subscript` and :attr:`superscript`
+        convenience properties.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._rPr.baseline
+
+    @baseline.setter
+    def baseline(self, value: int | None):
+        self._rPr.baseline = value
+
+    @property
+    def subscript(self) -> bool | None:
+        """Whether this run renders as subscript -- read/write tri-state.
+
+        Derived from :attr:`baseline`:
+
+        - |None| -- ``baseline`` is unset; subscript is inherited from the
+          style hierarchy.
+        - |True| -- ``baseline`` is negative (the run renders below the
+          normal baseline).
+        - |False| -- ``baseline`` is ``0`` or positive (the run is *not*
+          subscript; it may be plain or superscript).
+
+        Assignment maps:
+
+        - |True| -- writes ``baseline = -25000`` (PowerPoint's default
+          subscript shift of -25%).
+        - |False| -- writes ``baseline = 0`` (explicit normal baseline).
+        - |None| -- clears any ``baseline`` attribute, restoring
+          inheritance.
+
+        To pick a custom shift (e.g. ``-40000`` for -40%) assign
+        :attr:`baseline` directly.
+
+        .. versionadded:: 2026.05.0
+        """
+        baseline = self._rPr.baseline
+        if baseline is None:
+            return None
+        return baseline < 0
+
+    @subscript.setter
+    def subscript(self, value: bool | None):
+        if value is None:
+            self._rPr.baseline = None
+        elif value:
+            self._rPr.baseline = self._SUBSCRIPT_BASELINE
+        else:
+            self._rPr.baseline = 0
+
+    @property
+    def superscript(self) -> bool | None:
+        """Whether this run renders as superscript -- read/write tri-state.
+
+        Derived from :attr:`baseline`:
+
+        - |None| -- ``baseline`` is unset; superscript is inherited from the
+          style hierarchy.
+        - |True| -- ``baseline`` is positive (the run renders above the
+          normal baseline).
+        - |False| -- ``baseline`` is ``0`` or negative (the run is *not*
+          superscript; it may be plain or subscript).
+
+        Assignment maps:
+
+        - |True| -- writes ``baseline = 30000`` (PowerPoint's default
+          superscript shift of +30%).
+        - |False| -- writes ``baseline = 0`` (explicit normal baseline).
+        - |None| -- clears any ``baseline`` attribute, restoring
+          inheritance.
+
+        To pick a custom shift (e.g. ``50000`` for +50%) assign
+        :attr:`baseline` directly.
+
+        .. versionadded:: 2026.05.0
+        """
+        baseline = self._rPr.baseline
+        if baseline is None:
+            return None
+        return baseline > 0
+
+    @superscript.setter
+    def superscript(self, value: bool | None):
+        if value is None:
+            self._rPr.baseline = None
+        elif value:
+            self._rPr.baseline = self._SUPERSCRIPT_BASELINE
+        else:
+            self._rPr.baseline = 0
+
     @property
     def bold(self) -> bool | None:
         """Get or set boolean bold value of |Font|, e.g. `paragraph.font.bold = True`.

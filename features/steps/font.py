@@ -189,6 +189,23 @@ def when_I_assign_value_to_font_strikethrough(context, value):
     context.font.strikethrough = new_value
 
 
+@when("I assign {value:d} to font.baseline")
+def when_assign_int_to_font_baseline(context, value):
+    context.font.baseline = value
+
+
+@when("I assign {value} to font.subscript")
+def when_assign_value_to_font_subscript(context, value):
+    new_value = {"True": True, "False": False, "None": None}[value]
+    context.font.subscript = new_value
+
+
+@when("I assign {value} to font.superscript")
+def when_assign_value_to_font_superscript(context, value):
+    new_value = {"True": True, "False": False, "None": None}[value]
+    context.font.superscript = new_value
+
+
 @when("I assign {value:d} to font.shadow.blur_radius")
 def when_assign_value_to_font_shadow_blur_radius(context, value):
     context.font.shadow.blur_radius = value
@@ -375,6 +392,27 @@ def then_font_strikethrough_is_value(context, value):
     }[value]
     font = context.font
     assert font.strikethrough is expected_value, "got %s" % font.strikethrough
+
+
+@then("font.baseline is {value}")
+def then_font_baseline_is_value(context, value):
+    expected_value = None if value == "None" else int(value)
+    got = context.font.baseline
+    assert got == expected_value, "expected %r, got %r" % (expected_value, got)
+
+
+@then("font.subscript is {value}")
+def then_font_subscript_is_value(context, value):
+    expected_value = {"True": True, "False": False, "None": None}[value]
+    got = context.font.subscript
+    assert got is expected_value, "expected %r, got %r" % (expected_value, got)
+
+
+@then("font.superscript is {value}")
+def then_font_superscript_is_value(context, value):
+    expected_value = {"True": True, "False": False, "None": None}[value]
+    got = context.font.superscript
+    assert got is expected_value, "expected %r, got %r" % (expected_value, got)
 
 
 @then("font.shadow.blur_radius is {value}")

@@ -21,6 +21,7 @@ from pptx.oxml.ns import nsdecls
 from pptx.oxml.simpletypes import (
     ST_Angle,
     ST_Coordinate32,
+    ST_TextBaselinePercent,
     ST_TextBulletSizePercent,
     ST_TextBulletStartAtNum,
     ST_TextFontScalePercentOrPercentString,
@@ -468,6 +469,9 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     strike: MSO_TEXT_STRIKE_TYPE | None = OptionalAttribute(
         "strike", MSO_TEXT_STRIKE_TYPE
     )  # pyright: ignore[reportAssignmentType]
+    baseline: int | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "baseline", ST_TextBaselinePercent
+    )
 
     def _new_gradFill(self):
         return CT_GradientFillProperties.new_gradFill()

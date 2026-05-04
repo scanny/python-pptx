@@ -643,6 +643,57 @@ background-color marker), call :meth:`.Font.clear_highlight_color`::
     run.font.clear_highlight_color()
 
 
+Subscript and superscript
+-------------------------
+
+PowerPoint's baseline-shift attribute — what the *Home › Font ›
+Subscript* / *Superscript* buttons control — is stored as
+``a:rPr/@baseline``, an integer in thousandths of a percent. Positive
+values raise the run above the normal baseline (superscript); negative
+values drop it below (subscript); ``0`` pins it to the normal baseline;
+and omitting the attribute lets the baseline inherit from the style
+hierarchy. PowerPoint itself writes ``30000`` (+30%) for the default
+superscript and ``-25000`` (-25%) for the default subscript.
+
+|Font| exposes this as :attr:`.Font.baseline` — a read/write
+integer or |None|::
+
+    run.font.baseline = -25000   # -- "H₂O" subscript at -25%
+    run.font.baseline = 30000    # -- "x²" superscript at +30%
+    run.font.baseline = 0        # -- explicit normal baseline
+    run.font.baseline = None     # -- clear, inherit from the style hierarchy
+
+Values outside the range ``-100000`` .. ``100000`` raise ``ValueError``.
+
+For the common on/off toggles, use the tri-state boolean shortcuts
+:attr:`.Font.subscript` and :attr:`.Font.superscript` — assigning
+|True| writes PowerPoint's default baseline shift, |False| writes
+``0`` (explicit "no shift"), and |None| removes the attribute::
+
+    h2o = paragraph.add_run()
+    h2o.text = "H"
+
+    two = paragraph.add_run()
+    two.text = "2"
+    two.font.subscript = True       # -- baseline = -25000
+
+    o = paragraph.add_run()
+    o.text = "O"
+
+Reading :attr:`.Font.subscript` returns |True| when ``baseline`` is
+negative, |False| when it is ``0`` or positive, and |None| when no
+``baseline`` is set. :attr:`.Font.superscript` is the mirror image.
+The two properties are not independent — both derive from the same
+``baseline`` attribute — so assigning one overwrites the other::
+
+    run.font.superscript = True
+    run.font.subscript    # -> False  (baseline is +30000, not negative)
+
+To pick a custom baseline shift (e.g. a tighter -15% subscript)
+assign :attr:`.Font.baseline` directly rather than using the boolean
+shortcuts.
+
+
 Paragraph bullets
 -----------------
 
