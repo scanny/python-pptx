@@ -14,6 +14,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #822 resolved by PROG_ID.XLSX + arbitrary prog_id support.
+  Issue #822 (https://github.com/scanny/python-pptx/issues/822) reported
+  that ``SlideShapes.add_ole_object()`` could not embed an .xlsx file on
+  v0.6.21. The fork-era generic OLE-object embedding path (issue #752)
+  added ``PROG_ID.XLSX`` as a registered Office-package member — routing
+  the xlsx bytes through ``EmbeddedXlsxPart`` with the xlsx content-type
+  and ``/ppt/embeddings/Microsoft_Excel_Sheet%d.xlsx`` part-name — and
+  the arbitrary ``prog_id`` + ``extension`` overload additionally accepts
+  the raw progId string ``"Excel.Sheet.12"``. A new
+  ``tests/test_issue_822_ole_excel_verify.py`` regression suite pins the
+  contract from the reporter's perspective: ``PROG_ID.XLSX`` embed,
+  save + reopen round-trip, OLE shape detection, icon PNG embedding, and
+  the raw-string progId form with explicit ``extension="xlsx"``. No
+  public-API change.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and
