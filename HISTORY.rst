@@ -89,6 +89,28 @@ Unreleased
   PowerPoint's "Edit Data" dialog operates on the target deck in
   isolation from the source.
 
+- verify: #1099 notes read correctly beyond slide 20. Issue #1099
+  (https://github.com/scanny/python-pptx/issues/1099) reported that
+  ``slide.notes_slide.notes_text_frame.text`` returned an empty string
+  for slides past index 20 in a specific deck and speculated about "a
+  known bug due to XML parsing"; the reporter never supplied the deck
+  or a repro. Inspecting the code path confirms there is no
+  index-dependent logic: :attr:`.Slide.has_notes_slide`,
+  :meth:`.Slide.notes_slide`, :attr:`.NotesSlide.notes_placeholder`,
+  and :attr:`.NotesSlide.notes_text_frame` all resolve the notes slide
+  via the slide-part's ``RT.NOTES_SLIDE`` relationship and then iterate
+  the notes-slide placeholders — no step consults the slide's ordinal
+  in the presentation's slide-id list, so there is no mechanism that
+  could drop notes past "slide 20".
+  ``tests/test_issue_1099_notes_after_20_verify.py`` pins the scenario
+  end-to-end: it authors 25- and 50-slide decks (including a mix of
+  short, long, and Unicode-heavy notes), saves, reopens via
+  ``Presentation(buf)``, and asserts every slide — with explicit
+  assertions on the slides past index 20 — round-trips its notes text
+  exactly. A parametrized case re-runs the pin at 21, 25, 30, and 40
+  slides. Any future regression that actually dropped notes past an
+  arbitrary slide ordinal would be caught by these.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
