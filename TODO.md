@@ -9,6 +9,17 @@ _None tracked yet._
 
 ## Done
 
+- **Wave 23-B type cleanup.** Reduced pyright strict-mode error count by
+  removing unnecessary ``# type: ignore`` / ``# pyright: ignore``
+  comments, pruning unused imports, and adding missing parameter
+  annotations on fork-era module-level helpers. Scope: ``src/pptx/api.py``,
+  ``src/pptx/animation.py``, ``src/pptx/oxml/chart/series.py``,
+  ``src/pptx/oxml/text.py``, ``src/pptx/oxml/timing.py``,
+  ``src/pptx/parts/extprops.py``, ``src/pptx/parts/image.py``,
+  ``src/pptx/shapes/base.py``, ``src/pptx/slide.py``, plus mirrored
+  cleanups in ``tests/``. All 6619 pytest tests still pass.
+  Branch ``chore/wave-23-b-type-cleanup``.
+
 - **FU-7 (fixed).** :class:`~pptx.shapes.graphfrm.GraphicFrame` now
   overrides :meth:`~pptx.shapes.base.BaseShape.delete` to drop every
   slide-part rel the graphic frame carries — classic ``c:chart``,

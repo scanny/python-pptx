@@ -10,7 +10,6 @@ from pptx.oxml.slide import (
     CT_NotesMaster,
     CT_NotesSlide,
     CT_SideDirectionTransition,
-    CT_Slide,
     CT_SlideTransition,
     CT_TransitionMorph,
     CT_TransitionVariant,

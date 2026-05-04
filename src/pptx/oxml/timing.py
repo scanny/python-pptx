@@ -43,18 +43,16 @@ Key design notes:
 
 from __future__ import annotations
 
-from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import (
     BaseSimpleType,
     XsdInt,
     XsdString,
-    XsdToken,
     XsdUnsignedInt,
 )
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
-    OneOrMore,
     OptionalAttribute,
     ZeroOrOne,
 )
@@ -230,16 +228,12 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
     childTnLst = ZeroOrOne("p:childTnLst", successors=_tag_seq[5:])
     del _tag_seq
 
-    id: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
-        "id", XsdUnsignedInt
-    )
+    id: int = OptionalAttribute("id", XsdUnsignedInt)  # pyright: ignore[reportAssignmentType]
     nodeType: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "nodeType", XsdString
     )
     dur = OptionalAttribute("dur", ST_TLTime)
-    presetID: int = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
-        "presetID", XsdInt
-    )
+    presetID: int = OptionalAttribute("presetID", XsdInt)  # pyright: ignore[reportAssignmentType]
     presetClass: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "presetClass", XsdString
     )
@@ -309,9 +303,7 @@ class CT_TLTimeNodeParallel(BaseOxmlElement):
     sequence is then a child ``p:seq`` of that root ``p:par``.
     """
 
-    cTn: CT_TLCommonTimeNodeData = OneAndOnlyOne(  # pyright: ignore[reportAssignmentType]
-        "p:cTn"
-    )
+    cTn: CT_TLCommonTimeNodeData = OneAndOnlyOne("p:cTn")  # pyright: ignore[reportAssignmentType]
 
 
 class CT_TLTimeNodeSequence(BaseOxmlElement):
@@ -325,9 +317,7 @@ class CT_TLTimeNodeSequence(BaseOxmlElement):
     """
 
     _tag_seq = ("p:cTn", "p:prevCondLst", "p:nextCondLst")
-    cTn: CT_TLCommonTimeNodeData = OneAndOnlyOne(  # pyright: ignore[reportAssignmentType]
-        "p:cTn"
-    )
+    cTn: CT_TLCommonTimeNodeData = OneAndOnlyOne("p:cTn")  # pyright: ignore[reportAssignmentType]
     prevCondLst = ZeroOrOne("p:prevCondLst", successors=_tag_seq[2:])
     nextCondLst = ZeroOrOne("p:nextCondLst", successors=())
     del _tag_seq
@@ -407,8 +397,6 @@ def first_spTgt_spid(par):
 # -- #256 originally defined a `CT_TLShapeTargetElement` here; that class
 # -- is also now canonical in `pptx.oxml.animation` (introduced by #102)
 # -- so it's re-exported below.
-from pptx.oxml.animation import (  # noqa: E402,F401
-    CT_TLShapeTargetElement,
-    CT_TLTimeCondition,
-    CT_TLTimeConditionList,
-)
+from pptx.oxml.animation import CT_TLShapeTargetElement as CT_TLShapeTargetElement  # noqa: E402
+from pptx.oxml.animation import CT_TLTimeCondition as CT_TLTimeCondition  # noqa: E402
+from pptx.oxml.animation import CT_TLTimeConditionList as CT_TLTimeConditionList  # noqa: E402

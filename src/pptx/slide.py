@@ -375,9 +375,7 @@ class Slide(_BaseSlide):
         cSld._remove_bg()  # pyright: ignore[reportPrivateUsage]
         source_bg = source_slide._element.cSld.bg
         if source_bg is not None:
-            cSld._insert_bg(  # pyright: ignore[reportPrivateUsage]
-                copy.deepcopy(source_bg)
-            )
+            cSld._insert_bg(copy.deepcopy(source_bg))  # pyright: ignore[reportPrivateUsage]
 
     @property
     def is_hidden(self) -> bool:
@@ -1124,7 +1122,7 @@ class SlideLayout(_BaseSlide):
         sldLayoutIdLst = master._element.sldLayoutIdLst  # pyright: ignore[reportPrivateUsage]
         if sldLayoutIdLst is None:
             return None
-        master_part = cast("SlideMasterPart", master.part)
+        master_part = master.part
         for entry in sldLayoutIdLst.sldLayoutId_lst:
             resolved = master_part.related_slide_layout(entry.rId)
             if resolved._element is self._element:
@@ -1214,9 +1212,7 @@ class SlideLayouts(ParentedElementProxy):
         """Support len() built-in function, e.g. `len(slides) == 4`."""
         return len(self._sldLayoutIdLst)
 
-    def get_by_id(
-        self, layout_id: int, default: SlideLayout | None = None
-    ) -> SlideLayout | None:
+    def get_by_id(self, layout_id: int, default: SlideLayout | None = None) -> SlideLayout | None:
         """Return |SlideLayout| having presentation-stable id `layout_id`.
 
         `layout_id` is matched against ``p:sldLayoutId/@id`` on each entry in
@@ -1463,9 +1459,7 @@ class SlideMaster(_BaseMaster):
         """|SlideLayouts| object providing access to this slide-master's layouts."""
         return SlideLayouts(self._element.get_or_add_sldLayoutIdLst(), self)
 
-    def get_layout(
-        self, layout_id: int, default: SlideLayout | None = None
-    ) -> SlideLayout | None:
+    def get_layout(self, layout_id: int, default: SlideLayout | None = None) -> SlideLayout | None:
         """Return |SlideLayout| having presentation-stable id `layout_id`.
 
         `layout_id` is matched against ``p:sldLayoutId/@id`` on each entry in

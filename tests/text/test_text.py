@@ -2456,7 +2456,7 @@ class Describe_Paragraph(object):
     def it_raises_on_add_run_with_bad_color_type(self, paragraph):
         """An unsupported `color` type raises TypeError — issue #134."""
         with pytest.raises(TypeError, match="RGBColor or MSO_THEME_COLOR"):
-            paragraph.add_run("x", color=42)  # pyright: ignore[reportArgumentType]
+            paragraph.add_run("x", color=42)
 
     def it_can_add_an_auto_refresh_field(self, paragraph):
         field = paragraph.add_field("slidenum", "#")
@@ -2680,7 +2680,7 @@ class Describe_Paragraph(object):
         # -- bullet is a lazyproperty so the same instance is returned every time --
         assert paragraph.bullet is bullet
         # -- bullet wraps the paragraph's a:pPr element --
-        assert bullet._pPr is paragraph._pPr  # pyright: ignore[reportPrivateUsage]
+        assert bullet._pPr is paragraph._pPr
 
     def it_knows_its_indentation_level(self, level_get_fixture):
         paragraph, expected_value = level_get_fixture

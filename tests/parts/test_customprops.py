@@ -46,7 +46,7 @@ class DescribeCustomPropertiesPart(object):
         part["x"] = "one"
         # -- non-str keys should not blow up; simply return False --
         assert 42 not in part
-        assert None not in part  # type: ignore[operator]
+        assert None not in part
         assert "x" in part
 
     def it_supports_len_and_iter_in_document_order(self):

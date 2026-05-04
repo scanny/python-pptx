@@ -309,7 +309,7 @@ class Image(object):
     def _pil_props(self) -> tuple[str | None, tuple[int, int], tuple[int, int] | None]:
         """tuple of image properties extracted from this image using Pillow."""
         stream = io.BytesIO(self._blob)
-        pil_image = PIL_Image.open(stream)  # pyright: ignore[reportUnknownMemberType]
+        pil_image = PIL_Image.open(stream)
         format = pil_image.format
         # -- Pillow reports both WMF and EMF metafiles with format "WMF"; distinguish
         # -- EMF using its "\x20EMF" signature at byte offset 40 so ext/content_type
@@ -319,7 +319,7 @@ class Image(object):
         width_px, height_px = pil_image.size
         dpi = cast(
             "tuple[int, int] | None",
-            pil_image.info.get("dpi"),  # pyright: ignore[reportUnknownMemberType]
+            pil_image.info.get("dpi"),
         )
         stream.close()
         return (format, (width_px, height_px), dpi)

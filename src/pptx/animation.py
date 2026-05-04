@@ -105,12 +105,8 @@ from pptx.oxml.ns import nsdecls
 from pptx.shared import ElementProxy
 
 if TYPE_CHECKING:
-    from pptx.oxml.animation import (
-        CT_TLAnimateEffectBehavior,
-        CT_TLCommonBehaviorData,
-        CT_TLSetBehavior,
-    )
-    from pptx.oxml.shapes.shared import BaseShapeElement
+    from lxml.etree import _Element  # pyright: ignore[reportPrivateUsage]
+
     from pptx.oxml.slide import CT_Slide
     from pptx.oxml.timing import CT_TLCommonTimeNodeData
 
@@ -126,9 +122,7 @@ _PRESET_MAP: dict[MSO_ANIMATION_TYPE, tuple[int, str, int]] = {
 }
 
 
-def _preset_to_type(
-    preset_id: int | None, preset_class: str | None
-) -> MSO_ANIMATION_TYPE:
+def _preset_to_type(preset_id: int | None, preset_class: str | None) -> MSO_ANIMATION_TYPE:
     """Reverse-lookup of ``(presetID, presetClass)`` to an MVP preset.
 
     Returns :attr:`MSO_ANIMATION_TYPE.NONE` when no MVP preset matches —
@@ -167,7 +161,7 @@ class AnimationEffect(ElementProxy):
     .. versionadded:: 2026.05.0
     """
 
-    def __init__(self, par_elm):  # par_elm: CT_TLTimeNodeParallel
+    def __init__(self, par_elm: "_Element"):  # par_elm: CT_TLTimeNodeParallel
         super().__init__(par_elm)
         self._par = par_elm
 
@@ -272,7 +266,7 @@ def _qn(nsptag: str) -> str:
     return qn(nsptag)
 
 
-def _find_effect_par_for_spid(sld, spid: int):  # sld: CT_Slide
+def _find_effect_par_for_spid(sld: "CT_Slide", spid: int) -> "_Element | None":
     """Return the "click-effect" ``p:par`` targeting shape `spid`, or ``None``.
 
     Walks the slide's ``p:timing`` subtree looking for a ``p:par`` whose
@@ -293,14 +287,14 @@ def _find_effect_par_for_spid(sld, spid: int):  # sld: CT_Slide
     return matches[0]
 
 
-def _remove_effect_par(sld, par_elm) -> None:  # sld: CT_Slide
+def _remove_effect_par(sld: "CT_Slide", par_elm: "_Element") -> None:
     """Remove the given effect ``p:par`` element from the main sequence."""
     parent = par_elm.getparent()
     if parent is not None:
         parent.remove(par_elm)
 
 
-def _ensure_main_sequence(sld) -> "CT_TLCommonTimeNodeData":
+def _ensure_main_sequence(sld: "CT_Slide") -> "CT_TLCommonTimeNodeData":
     """Return the ``p:cTn`` of the slide's main-sequence ``p:seq``.
 
     Creates the full tmRoot / mainSeq skeleton lazily if the slide has
@@ -360,7 +354,7 @@ def _ensure_main_sequence(sld) -> "CT_TLCommonTimeNodeData":
     return mainSeq_seq.cTn
 
 
-def _next_cTn_id(sld) -> int:
+def _next_cTn_id(sld: "CT_Slide") -> int:
     """Return 1 + max existing ``p:cTn/@id`` under the slide's ``p:timing``.
 
     Mirrors :meth:`CT_TimeNodeList._next_cTn_id` but operates on the
@@ -456,21 +450,20 @@ def _build_animEffect_xml(
         '                        <p:spTgt spid="%d"/>\n'
         "                      </p:tgtEl>\n"
         "                    </p:cBhvr>\n"
-        "                  </p:animEffect>\n"
-        % (transition, filter_str, cTn_id, dur, spid)
+        "                  </p:animEffect>\n" % (transition, filter_str, cTn_id, dur, spid)
     )
 
 
 def _build_set_xml(cTn_id: int, spid: int) -> str:
     """Return the ``p:set`` behavior XML fragment ("appear" preset)."""
     return (
-        '                  <p:set>\n'
+        "                  <p:set>\n"
         "                    <p:cBhvr>\n"
         '                      <p:cTn id="%d" dur="1" fill="hold">\n'
-        '                        <p:stCondLst>\n'
+        "                        <p:stCondLst>\n"
         '                          <p:cond delay="0"/>\n'
-        '                        </p:stCondLst>\n'
-        '                      </p:cTn>\n'
+        "                        </p:stCondLst>\n"
+        "                      </p:cTn>\n"
         "                      <p:tgtEl>\n"
         '                        <p:spTgt spid="%d"/>\n'
         "                      </p:tgtEl>\n"
@@ -481,13 +474,12 @@ def _build_set_xml(cTn_id: int, spid: int) -> str:
         "                    <p:to>\n"
         '                      <p:strVal val="visible"/>\n'
         "                    </p:to>\n"
-        "                  </p:set>\n"
-        % (cTn_id, spid)
+        "                  </p:set>\n" % (cTn_id, spid)
     )
 
 
 def _set_animation(
-    sld,
+    sld: "CT_Slide",
     spid: int,
     effect_type: MSO_ANIMATION_TYPE,
     trigger: MSO_ANIMATION_TRIGGER,
@@ -514,9 +506,7 @@ def _set_animation(
         )
     MSO_ANIMATION_TRIGGER.validate(trigger)
     if not isinstance(delay, int) or delay < 0:
-        raise ValueError(
-            "delay must be a non-negative int (milliseconds), got %r" % (delay,)
-        )
+        raise ValueError("delay must be a non-negative int (milliseconds), got %r" % (delay,))
 
     # -- Remove any existing effect targeting this shape --
     existing = _find_effect_par_for_spid(sld, spid)
@@ -540,21 +530,13 @@ def _set_animation(
     if effect_type is MSO_ANIMATION_TYPE.APPEAR:
         behavior_xml = _build_set_xml(id_behavior_cTn, spid)
     elif effect_type is MSO_ANIMATION_TYPE.FADE_IN:
-        behavior_xml = _build_animEffect_xml(
-            id_behavior_cTn, spid, "in", "fade", 500
-        )
+        behavior_xml = _build_animEffect_xml(id_behavior_cTn, spid, "in", "fade", 500)
     elif effect_type is MSO_ANIMATION_TYPE.FLY_IN:
-        behavior_xml = _build_animEffect_xml(
-            id_behavior_cTn, spid, "in", "slide(fromBottom)", 500
-        )
+        behavior_xml = _build_animEffect_xml(id_behavior_cTn, spid, "in", "slide(fromBottom)", 500)
     elif effect_type is MSO_ANIMATION_TYPE.PULSE:
-        behavior_xml = _build_animEffect_xml(
-            id_behavior_cTn, spid, "none", "fade", 500
-        )
+        behavior_xml = _build_animEffect_xml(id_behavior_cTn, spid, "none", "fade", 500)
     elif effect_type is MSO_ANIMATION_TYPE.FADE_OUT:
-        behavior_xml = _build_animEffect_xml(
-            id_behavior_cTn, spid, "out", "fade", 500
-        )
+        behavior_xml = _build_animEffect_xml(id_behavior_cTn, spid, "out", "fade", 500)
     else:  # pragma: no cover - guarded by _PRESET_MAP check above
         raise NotImplementedError(effect_type)
 

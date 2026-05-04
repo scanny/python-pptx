@@ -6,7 +6,6 @@ import pytest
 
 from pptx.animation import (
     AnimationEffect,
-    _PRESET_MAP,
     _ensure_main_sequence,
     _find_effect_par_for_spid,
     _next_cTn_id,
