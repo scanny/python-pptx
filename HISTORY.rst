@@ -42,6 +42,18 @@ Unreleased
   :attr:`.Slide.show_master_shapes` opt-out for the title slide. A new
   ``tests/test_issue_793_watermark_recipe.py`` regression suite pins
   the code paths the recipe depends on. No public-API change.
+- docs: #879 search-and-copy recipe. Issue #879
+  (https://github.com/scanny/python-pptx/issues/879) asked how to locate
+  a specific slide in one presentation (by title text, by stable
+  ``slide_id``, by layout name, or by any shape's text) and copy it into
+  another. A new ``docs/user/slides.rst`` section "Searching and copying
+  slides between presentations" documents the short Python helpers that
+  compose with :meth:`.Slides.add_slide_from_external` (Wave 1 #1036) and
+  :meth:`.Slides.get_by_slide_id` to cover the workflow end-to-end. A
+  new ``tests/test_issue_879_search_copy_recipe.py`` regression suite
+  pins the title-text / any-shape-text / stable-id / layout-name search
+  variations together with the cross-presentation copy and save/reopen
+  round-trip. No public-API change.
 
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
