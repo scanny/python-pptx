@@ -558,9 +558,10 @@ class CT_AlternateContent(BaseOxmlElement):
 
     Instances are encountered as direct children of a shape-tree (`p:spTree`/`p:grpSp`) when a
     shape requires a newer-namespace representation (e.g. an equation shape, a chartex chart, or
-    a modern comment). The library walks the first `mc:Choice` transparently so wrapped shapes
-    appear in `slide.shapes` iteration; the `mc:Fallback` subtree is retained as-is so that the
-    wrapper round-trips losslessly.
+    a modern comment). The library walks each `mc:Choice` in order, falling through to
+    `mc:Fallback` if no choice yields a recognizable shape, so wrapped shapes appear in
+    `slide.shapes` iteration regardless of which branch carries the renderable content. The
+    other branches are retained as-is so that the wrapper round-trips losslessly.
     """
 
     @property
@@ -578,20 +579,27 @@ class CT_AlternateContent(BaseOxmlElement):
         return cast("BaseOxmlElement | None", self.find(qn("mc:Fallback")))
 
     def iter_choice_shape_elms(self, shape_tags: tuple[str, ...]) -> Iterator[BaseOxmlElement]:
-        """Generate shape elements from the first `mc:Choice` child.
+        """Generate shape elements wrapped by this `mc:AlternateContent`.
 
         `shape_tags` is the set of Clark-notation shape tag names considered "shapes" by the
         caller (e.g. `p:sp`, `p:grpSp`, `p:graphicFrame`, ...). Shapes are yielded in document
-        order from within the first `mc:Choice` subtree, which represents the preferred (most
-        capable) rendering.
-
-        Yields nothing when no `mc:Choice` child is present. Fallback content is never yielded;
-        it is preserved as-is on the element tree so that it round-trips on save.
+        order from the first branch that contains any: each `mc:Choice` is tried in document
+        order (they represent the preferred rendering), and the `mc:Fallback` branch is used
+        only when no `mc:Choice` yields any shape. This mirrors how a PowerPoint viewer
+        resolves a Markup-Compatibility block — try the preferred choice, progress to the
+        next, ultimately render the fallback. The branches not yielded from are preserved
+        as-is on the element tree so that the wrapper round-trips on save.
         """
-        choices = self.choices
-        if not choices:
-            return
-        yield from _iter_alt_content_shape_elms(choices[0], shape_tags)
+        # -- prefer Choice branches (possibly several), try them in document order --
+        for choice in self.choices:
+            shape_elms = list(_iter_alt_content_shape_elms(choice, shape_tags))
+            if shape_elms:
+                yield from shape_elms
+                return
+        # -- no Choice produced a shape; surface the Fallback branch if present --
+        fallback = self.fallback
+        if fallback is not None:
+            yield from _iter_alt_content_shape_elms(fallback, shape_tags)
 
 
 def _iter_alt_content_shape_elms(
@@ -599,17 +607,15 @@ def _iter_alt_content_shape_elms(
 ) -> Iterator[BaseOxmlElement]:
     """Yield shape elements in `container`, descending through nested `mc:AlternateContent`.
 
-    This is a helper used to flatten one `mc:Choice` subtree into a stream of shape elements.
-    Plain shape children (matching `shape_tags`) are yielded directly. Nested `mc:AlternateContent`
-    children are recursively flattened via their first `mc:Choice`. Other elements are ignored.
+    This is a helper used to flatten one `mc:Choice` or `mc:Fallback` subtree into a stream
+    of shape elements. Plain shape children (matching `shape_tags`) are yielded directly.
+    Nested `mc:AlternateContent` children are recursively flattened using the same
+    preferred-choice-then-fallback resolution as the top level. Other elements are ignored.
     """
     ac_tag = qn("mc:AlternateContent")
     for elm in container.iterchildren():
         if elm.tag in shape_tags:
             yield cast("BaseOxmlElement", elm)
         elif elm.tag == ac_tag:
-            nested_choices = list(elm.iterchildren(qn("mc:Choice")))
-            if nested_choices:
-                yield from _iter_alt_content_shape_elms(
-                    cast("BaseOxmlElement", nested_choices[0]), shape_tags
-                )
+            ac = cast("CT_AlternateContent", elm)
+            yield from ac.iter_choice_shape_elms(shape_tags)

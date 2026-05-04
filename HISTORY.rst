@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #621 surface ``mc:AlternateContent``-wrapped shapes in
+  ``slide.shapes`` iteration with a Fallback fallback. Issue #621
+  (https://github.com/scanny/python-pptx/issues/621) reported that a
+  shape PowerPoint wraps in ``<mc:AlternateContent>`` — for example a
+  ``cx:chart`` (sunburst / treemap / funnel / histogram / waterfall /
+  box-whisker), a modern-comment anchor, or an equation-bearing shape —
+  silently disappeared from ``slide.shapes``. The library already
+  descended into the first ``mc:Choice`` child, but a non-empty
+  ``mc:Fallback`` with no ``mc:Choice`` sibling (or one whose
+  ``mc:Choice`` content was all extension-namespace elements the library
+  cannot model) yielded nothing. ``CT_AlternateContent.iter_choice_shape_elms``
+  now walks each ``mc:Choice`` in document order and falls through to
+  ``mc:Fallback`` when no ``mc:Choice`` yields a recognizable shape,
+  mirroring how a PowerPoint viewer resolves a Markup-Compatibility
+  block. The unused branches are preserved on the element tree so the
+  wrapper round-trips losslessly on save. A new
+  ``tests/test_issue_621_alternate_content_shape_iter.py`` regression
+  suite pins the behaviour from the public-API level.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
