@@ -124,6 +124,26 @@ Creation of a bubble chart is very similar, having an additional value for each 
 
 
 
+Titles
+------
+
+The chart title and each axis title can be set in a single call using
+:meth:`Chart.set_title` and :meth:`Chart.set_axis_title`. Both helpers
+ensure the underlying title element is present, overwrite any existing
+text, and return the chart so calls can be chained::
+
+    chart.set_title("Q4 Revenue").set_axis_title("value", "USD")
+
+*axis* is one of ``"category"``, ``"value"``, or ``"secondary_value"``,
+matching the corresponding :attr:`Chart.category_axis`,
+:attr:`Chart.value_axis`, and :attr:`Chart.secondary_value_axis`
+accessors. Pass ``None`` (or an empty string) to remove a title
+entirely::
+
+    chart.set_title(None)              # drop the chart title
+    chart.set_axis_title("value", "")  # drop the value-axis title
+
+
 Axes
 ----
 

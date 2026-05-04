@@ -172,3 +172,23 @@ Feature: Chart properties
   Scenario: Chart.series_in_rows reads a switched-orientation chart (issue #828)
     Given a chart whose XML has been flipped to row-series orientation
      Then chart.series_in_rows is True
+
+
+  Scenario: Chart.set_title sets the chart title text in one call (issue #764)
+    Given a chart having no title
+     When I call chart.set_title("Q4 Revenue")
+     Then chart.has_title is True
+      And chart.chart_title.text_frame.text is "Q4 Revenue"
+
+
+  Scenario: Chart.set_title(None) removes the chart title (issue #764)
+    Given a chart having a title
+     When I call chart.set_title(None)
+     Then chart.has_title is False
+
+
+  Scenario: Chart.set_axis_title sets a value-axis title in one call (issue #764)
+    Given a Chart object as chart
+     When I call chart.set_axis_title("value", "USD")
+     Then chart.value_axis.has_title is True
+      And chart.value_axis.axis_title.text_frame.text is "USD"

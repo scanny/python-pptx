@@ -1386,6 +1386,41 @@ def then_anchor_tags_match(context):
     assert actual == expected, "expected %r, got %r" % (expected, actual)
 
 
+# -- issue #764: chart-customization convenience helpers --
+
+
+@when('I call chart.set_title("{text}")')
+def when_I_call_chart_set_title_text(context, text):
+    context.chart.set_title(text)
+
+
+@when("I call chart.set_title(None)")
+def when_I_call_chart_set_title_None(context):
+    context.chart.set_title(None)
+
+
+@when('I call chart.set_axis_title("{axis}", "{text}")')
+def when_I_call_chart_set_axis_title(context, axis, text):
+    context.chart.set_axis_title(axis, text)
+
+
+@then('chart.chart_title.text_frame.text is "{text}"')
+def then_chart_title_text_is(context, text):
+    actual = context.chart.chart_title.text_frame.text
+    assert actual == text, "expected %r, got %r" % (text, actual)
+
+
+@then("chart.value_axis.has_title is True")
+def then_chart_value_axis_has_title_is_True(context):
+    assert context.chart.value_axis.has_title is True
+
+
+@then('chart.value_axis.axis_title.text_frame.text is "{text}"')
+def then_chart_value_axis_title_text_is(context, text):
+    actual = context.chart.value_axis.axis_title.text_frame.text
+    assert actual == text, "expected %r, got %r" % (text, actual)
+
+
 @then("the formula cell still contains its original formula")
 def then_formula_cell_unchanged(context):
     import io

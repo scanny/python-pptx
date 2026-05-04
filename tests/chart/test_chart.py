@@ -61,6 +61,88 @@ class DescribeChart(object):
         ChartTitle_.assert_called_once_with(chart.element.chart.title)
         assert chart_title is chart_title_
 
+    def it_can_set_its_title_text_in_one_call_via_set_title(self):
+        # -- Chart.set_title writes title text from absent-title starting state
+        # -- (GitHub issue #764 convenience helper). --
+        chart = Chart(element("c:chartSpace/c:chart"), None)
+
+        result = chart.set_title("Q4 Revenue")
+
+        assert result is chart  # -- returns self for chaining --
+        assert chart.has_title is True
+        assert chart.chart_title.text_frame.text == "Q4 Revenue"
+
+    def it_overwrites_existing_title_text_on_set_title(self):
+        chart = Chart(element("c:chartSpace/c:chart"), None)
+        chart.set_title("Old title")
+
+        chart.set_title("New title")
+
+        assert chart.chart_title.text_frame.text == "New title"
+
+    def it_removes_the_title_when_set_title_receives_None(self):
+        chart = Chart(element("c:chartSpace/c:chart"), None)
+        chart.set_title("Temporary")
+
+        result = chart.set_title(None)
+
+        assert result is chart
+        assert chart.has_title is False
+
+    def it_removes_the_title_when_set_title_receives_empty_string(self):
+        chart = Chart(element("c:chartSpace/c:chart"), None)
+        chart.set_title("Temporary")
+
+        chart.set_title("")
+
+        assert chart.has_title is False
+
+    def it_can_set_a_category_axis_title_via_set_axis_title(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)"), None)
+
+        result = chart.set_axis_title("category", "Quarter")
+
+        assert result is chart
+        assert chart.category_axis.has_title is True
+        assert chart.category_axis.axis_title.text_frame.text == "Quarter"
+
+    def it_can_set_a_value_axis_title_via_set_axis_title(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)"), None)
+
+        chart.set_axis_title("value", "USD")
+
+        assert chart.value_axis.has_title is True
+        assert chart.value_axis.axis_title.text_frame.text == "USD"
+
+    def it_can_set_a_secondary_value_axis_title_via_set_axis_title(self):
+        chart = Chart(
+            element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx,c:valAx)"),
+            None,
+        )
+
+        chart.set_axis_title("secondary_value", "pct")
+
+        assert chart.secondary_value_axis.has_title is True
+        assert chart.secondary_value_axis.axis_title.text_frame.text == "pct"
+
+    def it_removes_an_axis_title_when_set_axis_title_receives_None(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)"), None)
+        chart.set_axis_title("value", "USD")
+
+        chart.set_axis_title("value", None)
+
+        assert chart.value_axis.has_title is False
+
+    def it_raises_on_set_axis_title_with_unknown_axis(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)"), None)
+        with pytest.raises(ValueError, match="axis must be one of"):
+            chart.set_axis_title("bogus", "text")
+
+    def it_raises_on_set_axis_title_secondary_value_when_absent(self):
+        chart = Chart(element("c:chartSpace/c:chart/c:plotArea/(c:catAx,c:valAx)"), None)
+        with pytest.raises(ValueError):
+            chart.set_axis_title("secondary_value", "pct")
+
     def it_provides_access_to_the_category_axis(self, category_axis_fixture):
         chart, category_axis_, AxisCls_, xAx = category_axis_fixture
         category_axis = chart.category_axis

@@ -14,6 +14,12 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #764 ``Chart.set_title(text)`` and ``Chart.set_axis_title(axis, text)``
+  convenience helpers that collapse the common "ensure title present,
+  rewrite text" idiom into a single chainable call. Passing ``None`` (or
+  ``""``) removes the corresponding title. *axis* is one of
+  ``"category"``, ``"value"``, or ``"secondary_value"``.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
