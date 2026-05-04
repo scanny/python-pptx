@@ -582,3 +582,47 @@ def then_series_source_range_reflects_new(context):
     assert context.series.source_range == context.new_source_range, (
         "got %r" % context.series.source_range
     )
+
+
+# series.delete() (issue #1043) ----------------------------
+
+
+@given("a chart with 5 series named S0, S1, S2, S3, S4")
+def given_a_chart_with_5_series_S0_S4(context):
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.util import Inches
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    cd = CategoryChartData()
+    cd.categories = ["A", "B", "C"]
+    for i in range(5):
+        cd.add_series("S%d" % i, (float(i), float(i + 1), float(i + 2)))
+    gf = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        cd,
+    )
+    context.chart = gf.chart
+
+
+@when("I delete chart.series[3] and chart.series[1]")
+def when_I_delete_chart_series_3_and_1(context):
+    context.chart.series[3].delete()
+    context.chart.series[1].delete()
+
+
+@then("chart.series has length {count:d}")
+def then_chart_series_has_length(context, count):
+    actual = len(context.chart.series)
+    assert actual == count, "got %d" % actual
+
+
+@then("the remaining series names are S0, S2, S4")
+def then_the_remaining_series_names_are_S0_S2_S4(context):
+    names = [s.name for s in context.chart.series]
+    assert names == ["S0", "S2", "S4"], "got %r" % names

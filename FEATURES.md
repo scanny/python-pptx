@@ -2069,6 +2069,7 @@ series.add_trendline(XL_TRENDLINE_TYPE.LINEAR, display_r_squared=True)
 - `XySeries.x_values` / `XySeries.iter_x_values()` — Cached X values, parallel to `values`. `[Added in 2026.05.0]`
 - `BubbleSeries.bubble_sizes` / `BubbleSeries.iter_bubble_sizes()` — Cached bubble-size magnitudes. `[Added in 2026.05.0]`
 - `_BaseSeries.add_trendline(trendline_type, order=None, forward=None, backward=None, display_r_squared=False, display_equation=False)` — Append a trendline. `[Added in 2026.05.0]`
+- `_BaseSeries.delete()` — Remove this series from its parent chart (exclude an embedded-workbook column from the plot, analogous to PowerPoint's *Select Data* unchecking). `[Added in 2026.05.0]`
 - `_BaseSeries.has_error_bars` / `_BaseSeries.error_bars` — Error-bar toggle and `ErrorBars` proxy. `[Added in 2026.05.0]`
 - `Trendline.type` / `.order` / `.forward` / `.backward` / `.display_equation` / `.display_r_squared`. `[Added in 2026.05.0]`
 - `ErrorBars.direction` / `.end_style` / `.include_positive` / `.include_negative` / `.type` / `.value`. `[Added in 2026.05.0]`

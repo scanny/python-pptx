@@ -186,6 +186,24 @@ Unreleased
   non-member raises :class:`ValueError`. Also adds the new
   ``pptx.enum.chart.XL_TICK_LABEL_ALIGNMENT`` enum.
 
+- feat: #1043 ``_BaseSeries.delete()`` excludes a column from a chart.
+  Issue #1043 (https://github.com/scanny/python-pptx/issues/1043) asked
+  for a supported way to mark an embedded-workbook column as excluded
+  from the chart — the programmatic equivalent of PowerPoint's
+  right-click *Select Data* dialog unchecking a series. Series selection
+  is modelled at the ``c:ser`` level (a column that should not be
+  plotted simply has no corresponding ``c:ser``), so the fix is
+  series-level deletion: :meth:`.Series.delete` detaches the underlying
+  ``c:ser`` from its parent ``c:{x}Chart`` and leaves the embedded
+  xlsx untouched. PowerPoint tolerates (and silently re-normalises) the
+  resulting gaps in remaining series' ``c:idx`` / ``c:order``.
+  ``tests/test_issue_1043_series_delete.py`` pins the contract from the
+  reporter's perspective — 5-series chart, delete two non-contiguous
+  series, remaining names/values intact across a
+  :meth:`.Presentation.save` + reopen round-trip. Documented in the
+  user guide under *Working with charts → Excluding a series from a
+  chart*.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"

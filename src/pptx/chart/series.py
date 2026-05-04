@@ -512,6 +512,28 @@ class _BaseSeries(object):
         self._ser._insert_errBars(errBars)
         return ErrorBars(errBars)
 
+    def delete(self):
+        """Remove this series from its parent chart.
+
+        The underlying ``c:ser`` element is detached from its parent
+        ``c:{x}Chart``. After deletion the |Series| instance is stale —
+        further use raises or silently no-ops; fetch a fresh
+        ``chart.series[i]`` reference as needed.
+
+        Deletion is typically used to exclude embedded-workbook columns
+        from a chart without touching the workbook itself (GitHub issue
+        #1043) — analogous to PowerPoint's right-click "Select Data"
+        dialog unchecking a series. The ``c:idx`` and ``c:order`` values
+        on remaining sibling series are left unchanged; PowerPoint
+        tolerates gaps in either sequence and re-normalizes them on its
+        next save.
+
+        .. versionadded:: 2026.05.0
+        """
+        parent = self._ser.getparent()
+        if parent is not None:
+            parent.remove(self._ser)
+
     @lazyproperty
     def format(self):
         """

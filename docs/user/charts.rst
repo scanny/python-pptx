@@ -445,6 +445,28 @@ workbook and want the series to sweep in the extra cells::
    recomputes from the workbook.
 
 
+Excluding a series from a chart
+-------------------------------
+
+The embedded workbook behind a chart is a normal xlsx and may carry helper
+columns that should not be plotted. PowerPoint's right-click *Select Data*
+dialog exposes those as checkboxes; the programmatic equivalent is to
+delete the corresponding series::
+
+    # Drop S1 and S3 from a 5-series chart, keeping S0, S2, S4. Delete
+    # from the high index first so the remaining indices stay stable.
+    chart.series[3].delete()
+    chart.series[1].delete()
+
+    assert [s.name for s in chart.series] == ["S0", "S2", "S4"]
+
+:meth:`_BaseSeries.delete <pptx.chart.series._BaseSeries.delete>` detaches
+the underlying ``c:ser`` element from its parent ``c:{x}Chart``; the
+embedded workbook is untouched. PowerPoint tolerates (and silently
+re-normalises) the resulting gaps in the remaining series' ``c:idx`` /
+``c:order`` values.
+
+
 Legend
 ------
 
