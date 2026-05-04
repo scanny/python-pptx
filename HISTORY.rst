@@ -14,6 +14,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #168 ``TextFrame.fit_text()`` surfaces opaque exceptions for several
+  common edge cases (missing platform font directories, no system font
+  matching ``font_family``/``bold``/``italic``, unreadable or non-TrueType
+  ``font_file``, non-positive ``max_size``, margins exceeding shape
+  dimensions). All of these now raise :class:`pptx.exc.TextLayoutError`
+  with an actionable message pointing the caller at the supported
+  workaround (supply an explicit ``font_file`` or set
+  ``text_frame.auto_size``). The original exception is chained as
+  ``__cause__`` for debuggability. Regression coverage in
+  ``tests/test_issue_168_fit_text_exceptions.py``.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"

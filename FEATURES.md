@@ -826,7 +826,7 @@ prs.save("out.pptx")
 - `TextFrame.clear()` — Remove all paragraphs but keep the first (empty) one.
 - `TextFrame.word_wrap` / `TextFrame.auto_size` / `TextFrame.vertical_anchor` / `TextFrame.rotation` — Layout. `rotation` is `[Added in 2026.05.0]`.
 - `TextFrame.margin_top` / `margin_bottom` / `margin_left` / `margin_right` — Internal padding.
-- `TextFrame.fit_text(font_family, max_size=18, bold=False, italic=False, font_file=None)` — Shrink text until it fits. Guarded against no-fit scenarios. `[Added in 2026.05.0]`
+- `TextFrame.fit_text(font_family, max_size=18, bold=False, italic=False, font_file=None)` — Shrink text until it fits. Guarded against no-fit scenarios, missing-font and unreadable-`font_file` edge cases (#168), margins that exceed shape size, and non-positive `max_size` — all raise `TextLayoutError` with an actionable message. `[Added in 2026.05.0]`
 - `TextFrame.font_scale` / `TextFrame.line_space_reduction` — Readbacks for the scaling fit_text applied. `[Added in 2026.05.0]`
 - `TextFrame.replace_text(find, replace)` — Bulk search/replace preserving per-run formatting. `[Added in 2026.05.0]`
 - `_Paragraph.text` / `.runs` / `.alignment` / `.level` / `.space_before` / `.space_after` / `.line_spacing` — Paragraph formatting.

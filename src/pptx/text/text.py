@@ -17,6 +17,7 @@ from pptx.enum.text import (
     MSO_VERTICAL_ANCHOR,
     PP_AUTO_NUMBER_SCHEME,
 )
+from pptx.exc import TextLayoutError
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import ST_TextWrappingType
@@ -128,9 +129,23 @@ class TextFrame(Subshape):
 
         When the text contains a word too wide to fit the shape at `max_size` but that fits
         at a smaller point size, that smaller size is used (see issue #936).
-        Raises :class:`pptx.exc.TextLayoutError` when no point size between 1 and `max_size`
-        allows the text to fit the shape -- for example when a single word is too wide to fit
-        the shape at the smallest considered size (see issue #773).
+        Raises :class:`pptx.exc.TextLayoutError` in the following failure modes
+        (see issue #168):
+
+        * no point size between 1 and `max_size` allows the text to fit the
+          shape -- for example when a single word is too wide to fit the
+          shape at the smallest considered size (see issue #773);
+        * `font_file` is |None| and the current platform's font directories
+          cannot be determined (e.g. Linux) or no installed font matches
+          `font_family` / `bold` / `italic`;
+        * `font_file` was supplied but cannot be opened or is not a TrueType /
+          OpenType font file.
+
+        Callers who hit the missing-font or unsupported-platform case should
+        pass an explicit `font_file` pointing at a TrueType/OpenType file
+        bundled with their application, or set :attr:`auto_size` to
+        :attr:`MSO_AUTO_SIZE.NONE` / :attr:`MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE`
+        directly instead of calling :meth:`fit_text`.
         """
         # ---no-op when empty as fit behavior not defined for that case---
         if self.text == "":
@@ -368,10 +383,56 @@ class TextFrame(Subshape):
         allows all the text in this text frame to fit inside its extents when rendered using the
         font described by `family`, `bold`, and `italic`. If `font_file` is specified, it is used
         to calculate the fit, whether or not it matches `family`, `bold`, and `italic`.
+
+        Raises :class:`TextLayoutError` when `font_file` is |None| and no matching system font
+        can be located (unsupported platform, or no font installed with the requested family /
+        style), when a supplied `font_file` cannot be opened as a TrueType / OpenType font, or
+        when the text-frame's effective rendering area is non-positive (margins exceed the
+        shape's width or height). See issue #168.
         """
+        # -- extents must be positive for the layout algorithm; when margins
+        # -- exceed the shape size the text cannot possibly fit. Check first
+        # -- so the caller gets an actionable message rather than an opaque
+        # -- "nothing fits" further down. See issue #168.
+        cx, cy = self._extents
+        if cx <= 0 or cy <= 0:
+            raise TextLayoutError(
+                "text frame has no positive rendering area (cx=%d, cy=%d); margins may exceed "
+                "shape size. Reduce the text-frame margins or grow the shape, or set "
+                "`text_frame.auto_size = MSO_AUTO_SIZE.NONE` instead of calling fit_text()."
+                % (cx, cy)
+            )
         if font_file is None:
-            font_file = FontFiles.find(family, bold, italic)
-        return TextFitter.best_fit_font_size(self.text, self._extents, max_size, font_file)
+            try:
+                font_file = FontFiles.find(family, bold, italic)
+            except KeyError as exc:
+                raise TextLayoutError(
+                    "no font file found on this system matching family=%r bold=%s italic=%s; "
+                    "pass a `font_file` argument pointing at a TrueType/OpenType file (.ttf / "
+                    ".otf), or set `text_frame.auto_size = MSO_AUTO_SIZE.NONE` instead of "
+                    "calling fit_text()." % (family, bold, italic)
+                ) from exc
+            except OSError as exc:
+                # -- e.g. Linux: `FontFiles._font_directories()` raises OSError
+                # -- because only macOS / Windows default directories are known.
+                raise TextLayoutError(
+                    "cannot auto-discover installed fonts on this platform (%s); pass a "
+                    "`font_file` argument pointing at a TrueType/OpenType file (.ttf / .otf) "
+                    "bundled with your application, or set `text_frame.auto_size = "
+                    "MSO_AUTO_SIZE.NONE` instead of calling fit_text()." % exc
+                ) from exc
+        try:
+            return TextFitter.best_fit_font_size(self.text, (cx, cy), max_size, font_file)
+        except OSError as exc:
+            # -- Pillow's `ImageFont.truetype()` raises OSError when the file
+            # -- doesn't exist, isn't readable, or isn't a supported font
+            # -- format. Surface that as a TextLayoutError so callers only
+            # -- have to handle one exception type.
+            raise TextLayoutError(
+                "cannot read font file %r (%s); pass a valid TrueType/OpenType file (.ttf / "
+                ".otf) as `font_file`, or set `text_frame.auto_size = MSO_AUTO_SIZE.NONE` "
+                "instead of calling fit_text()." % (font_file, exc)
+            ) from exc
 
     @property
     def _bodyPr(self):
@@ -1074,7 +1135,9 @@ class _FontColorFormat(_ColorFormat):
 
     @property
     def rgb(self) -> "RGBColor | None":
-        return self._color.rgb  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        return (
+            self._color.rgb
+        )  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
 
     @rgb.setter
     def rgb(self, rgb: "RGBColor") -> None:
@@ -1083,12 +1146,16 @@ class _FontColorFormat(_ColorFormat):
 
     @property
     def theme_color(self) -> "MSO_THEME_COLOR":
-        return self._color.theme_color  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        return (
+            self._color.theme_color
+        )  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
 
     @theme_color.setter
     def theme_color(self, mso_theme_color_idx: "MSO_THEME_COLOR") -> None:
         self._promote()
-        _ColorFormat.theme_color.fset(self, mso_theme_color_idx)  # pyright: ignore[reportOptionalCall]
+        _ColorFormat.theme_color.fset(
+            self, mso_theme_color_idx
+        )  # pyright: ignore[reportOptionalCall]
 
 
 def _resolve_solid_fill_rgb(rPr_like, theme_colors):
@@ -1177,7 +1244,7 @@ def _lvl_defRPr(style_elm, lvl):
     (0 → `a:lvl1pPr`, 1 → `a:lvl2pPr`, ...). Returns |None| when the
     requested level is absent.
     """
-    lvl_tag = "a:lvl{}pPr".format(lvl + 1)
+    lvl_tag = f"a:lvl{lvl + 1}pPr"
     lvl_pPr = style_elm.find(qn(lvl_tag))
     if lvl_pPr is None:
         # -- lvl1pPr is sometimes written as a:defPPr on the master styles --
@@ -1449,10 +1516,11 @@ class _BulletFormat(object):
         `char` must be a single-character string. Any existing bullet setting is replaced.
         Returns self to support chaining.
         """
-        if not isinstance(char, str) or len(char) != 1:  # pyright: ignore[reportUnnecessaryIsInstance]
-            raise ValueError(
-                f"`char` must be a single-character string, got {char!r}"
-            )
+        if (
+            not isinstance(char, str)  # pyright: ignore[reportUnnecessaryIsInstance]
+            or len(char) != 1
+        ):
+            raise ValueError(f"`char` must be a single-character string, got {char!r}")
         self._pPr.set_char_bullet(char)
         return self
 
@@ -1875,9 +1943,7 @@ class _Field(Subshape):
         self._fld.text = value
 
 
-def _replace_in_runs(
-    runs: list[CT_RegularTextRun], find: str, replace: str
-) -> int:
+def _replace_in_runs(runs: list[CT_RegularTextRun], find: str, replace: str) -> int:
     """Replace every occurrence of `find` with `replace` within `runs`.
 
     `runs` is a non-empty list of consecutive `a:r` elements that share a
@@ -1931,9 +1997,7 @@ def _replace_in_runs(
     for start, end in reversed(matches):
         first_run = run_index_at[start] if start < len(run_index_at) else len(runs) - 1
         # -- `end` may equal len(flat); clamp to last run in that case --
-        last_run = (
-            run_index_at[end - 1] if end - 1 < len(run_index_at) else len(runs) - 1
-        )
+        last_run = run_index_at[end - 1] if end - 1 < len(run_index_at) else len(runs) - 1
         first_text = new_texts[first_run]
         # -- first_text can't be None here: it contains the match start --
         assert first_text is not None
