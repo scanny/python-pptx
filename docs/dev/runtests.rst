@@ -54,3 +54,34 @@ commands::
     30 scenarios passed, 0 failed, 0 skipped
     120 steps passed, 0 failed, 0 skipped, 0 undefined
     Took 0m1.3s
+
+
+Corpus conformance tests
+------------------------
+
+``tests/test_conformance_corpus.py`` exercises the library against the
+shared feature manifests maintained in the sibling ``loadfix/ooxml-reference-corpus``
+repository. For each ``features/pptx/<name>.json`` manifest, the test
+re-runs the committed generator script from that repo and feeds the
+resulting ``.pptx`` through ``ooxml_validate.conformance.run_feature``.
+A ``pass`` status means python-pptx's current output still satisfies
+the manifest's assertion block; a ``fail`` status signals drift.
+
+These tests **auto-skip** unless both of the following are present:
+
+1. **Sibling checkout of the corpus** at ``../ooxml-reference-corpus/``
+   (i.e. alongside your python-pptx checkout). Clone from
+   ``https://github.com/loadfix/ooxml-reference-corpus``.
+2. **`ooxml-validate`** importable in the current environment. It is
+   not on PyPI; install it as an editable sibling checkout::
+
+       git clone https://github.com/loadfix/ooxml-validate ../ooxml-validate
+       pip install -e ../ooxml-validate
+
+Once both are in place, the suite picks up every ``pptx/*.json``
+manifest automatically::
+
+    $ pytest tests/test_conformance_corpus.py -v
+
+When the corpus or ``ooxml-validate`` is missing the suite skips
+silently, so CI in environments without them still passes.
