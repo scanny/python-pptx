@@ -328,6 +328,53 @@ A run can also be made into a hyperlink by providing a target URL::
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
 
 
+Copying font formatting
+-----------------------
+
+Duplicating the look of one run on another — for example, applying the
+title run's bold 24-point coloured formatting to a newly-added run —
+used to require re-reading each attribute in turn and re-assigning it.
+:meth:`.Font.copy_from` folds that into a single call: every explicit
+character property of the source |Font| is copied onto the destination,
+and any explicit setting on the destination that the source does *not*
+carry is cleared so the two runs end up matching at the XML level.
+
+Only values *explicitly* set on the source are transferred — inherited
+("effective") values are **not** resolved first and then written out.
+If the source has ``bold = None`` (inheriting from the master style),
+the destination ends up with ``bold = None`` too, not with the
+master's effective bold setting.
+
+Properties copied:
+
+* :attr:`.Font.bold`, :attr:`.Font.italic`, :attr:`.Font.underline`,
+  :attr:`.Font.strikethrough`, :attr:`.Font.size`
+* :attr:`.Font.name`, :attr:`.Font.name_ea`, :attr:`.Font.name_cs`
+* :attr:`.Font.language_id`
+* :attr:`.Font.color` — RGB or theme color, including any
+  ``lumMod`` / ``lumOff`` brightness adjustment
+* :attr:`.Font.highlight_color`
+* :attr:`.Font.use_theme_hyperlink_color` — only when the destination
+  run already carries an ``a:hlinkClick``; otherwise the flag has
+  nowhere to attach and the copy is a no-op for this property.
+
+The method returns ``self`` so calls chain naturally::
+
+    # --- apply the title's formatting to a new run on another paragraph ---
+    title_run = slide.shapes.title.text_frame.paragraphs[0].runs[0]
+    body_p = slide.placeholders[1].text_frame.add_paragraph()
+    new_run = body_p.add_run()
+    new_run.text = "Matches the title"
+    new_run.font.copy_from(title_run.font)
+
+Run-level hyperlink relationships (the ``a:hlinkClick`` itself,
+``Font.color`` fills beyond a simple ``a:solidFill``, and effects such
+as shadow / glow) are **not** copied — :meth:`.Font.copy_from` stays
+focused on the character-property surface; use
+:attr:`._Run.hyperlink`, :attr:`.Font.shadow`, and
+:attr:`.Font.effect_format` directly for those.
+
+
 Rich text in one call
 ---------------------
 

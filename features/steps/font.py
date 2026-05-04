@@ -447,3 +447,122 @@ def then_run_has_no_highlight_element(context):
     assert rPr.find(qn("a:highlight")) is None, (
         "expected no a:highlight under a:rPr, got:\n%s" % rPr.xml
     )
+
+
+# -- Font.copy_from (issue #566) ----------------------------------
+
+
+def _build_two_run_paragraph(context):
+    """Set up context.src_run / context.dst_run in a fresh in-memory pptx."""
+    from pptx import Presentation
+    from pptx.util import Inches
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+    p = tb.text_frame.paragraphs[0]
+    context.src_run = p.add_run()
+    context.src_run.text = "src"
+    context.dst_run = p.add_run()
+    context.dst_run.text = "dst"
+
+
+@given("a source run with bold, italic, size, color, and a Latin typeface")
+def given_source_run_with_formatting(context):
+    from pptx.dml.color import RGBColor
+    from pptx.util import Pt
+
+    _build_two_run_paragraph(context)
+    font = context.src_run.font
+    font.bold = True
+    font.italic = True
+    font.size = Pt(18)
+    font.name = "Calibri"
+    font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+
+
+@given("a source run with no explicit formatting")
+def given_source_run_with_no_formatting(context):
+    _build_two_run_paragraph(context)
+
+
+@given("a destination run with no explicit formatting")
+def given_destination_run_with_no_formatting(context):
+    # -- context.dst_run was already provisioned by the source-side step --
+    assert context.dst_run is not None
+
+
+@given("a destination run with bold, italic, size, and a Latin typeface")
+def given_destination_run_with_formatting(context):
+    from pptx.util import Pt
+
+    font = context.dst_run.font
+    font.bold = True
+    font.italic = True
+    font.size = Pt(24)
+    font.name = "Arial"
+
+
+@when("I call dst_run.font.copy_from(src_run.font)")
+def when_call_dst_font_copy_from_src_font(context):
+    context.dst_run.font.copy_from(context.src_run.font)
+
+
+@when("I call dst_run.font.copy_from(src_run.font) capturing the return")
+def when_call_dst_font_copy_from_src_font_capturing(context):
+    # -- capture the dst Font instance on the left-hand side so we can
+    # -- compare it against the return value; accessing `run.font` again
+    # -- would hand back a freshly-wrapped Font over the same rPr.
+    dst_font = context.dst_run.font
+    context.dst_font = dst_font
+    context.return_value = dst_font.copy_from(context.src_run.font)
+
+
+@then("dst_run.font.bold equals src_run.font.bold")
+def then_dst_font_bold_equals_src_font_bold(context):
+    assert context.dst_run.font.bold == context.src_run.font.bold
+
+
+@then("dst_run.font.italic equals src_run.font.italic")
+def then_dst_font_italic_equals_src_font_italic(context):
+    assert context.dst_run.font.italic == context.src_run.font.italic
+
+
+@then("dst_run.font.size equals src_run.font.size")
+def then_dst_font_size_equals_src_font_size(context):
+    assert context.dst_run.font.size == context.src_run.font.size
+
+
+@then("dst_run.font.name equals src_run.font.name")
+def then_dst_font_name_equals_src_font_name(context):
+    assert context.dst_run.font.name == context.src_run.font.name
+
+
+@then("dst_run.font.color.rgb equals src_run.font.color.rgb")
+def then_dst_font_color_rgb_equals_src_font_color_rgb(context):
+    assert context.dst_run.font.color.rgb == context.src_run.font.color.rgb
+
+
+@then("dst_run.font.bold is None")
+def then_dst_font_bold_is_None(context):
+    assert context.dst_run.font.bold is None
+
+
+@then("dst_run.font.italic is None")
+def then_dst_font_italic_is_None(context):
+    assert context.dst_run.font.italic is None
+
+
+@then("dst_run.font.size is None")
+def then_dst_font_size_is_None(context):
+    assert context.dst_run.font.size is None
+
+
+@then("dst_run.font.name is None")
+def then_dst_font_name_is_None(context):
+    assert context.dst_run.font.name is None
+
+
+@then("the return value is the destination font")
+def then_return_value_is_destination_font(context):
+    assert context.return_value is context.dst_font
