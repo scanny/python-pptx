@@ -3,6 +3,8 @@
 ``MSO_ANIMATION_TYPE``
 ======================
 
+.. py:class:: pptx.enum.animation.MSO_ANIMATION_TYPE
+
 Identifies an animation-effect preset bound to a shape.
 
 The MVP preset set covers the most common entrance, emphasis, and exit

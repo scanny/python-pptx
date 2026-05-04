@@ -3,6 +3,8 @@
 Animation
 =========
 
+.. module:: pptx.animation
+
 Shape-level entrance / exit / emphasis animations are surfaced through
 two complementary proxies. The **authoring** proxy
 :class:`pptx.animation.AnimationEffect` is returned from

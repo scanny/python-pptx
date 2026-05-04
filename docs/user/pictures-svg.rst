@@ -45,7 +45,8 @@ python-pptx exposes this as
     )
     prs.save("svg-picture.pptx")
 
-The call returns a |Picture| proxy exactly like :meth:`.add_picture`.
+The call returns a |Picture| proxy exactly like
+:meth:`~pptx.shapes.shapetree.SlideShapes.add_picture`.
 
 Why the PNG fallback is required
 --------------------------------
