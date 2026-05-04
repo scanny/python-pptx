@@ -887,6 +887,33 @@ class ST_TextBulletSizePercent(BaseFloatType):
             raise ValueError("value must be in range 0.25..4.0 (25%% to 400%%), got %s" % value)
 
 
+class ST_TextBaselinePercent(BaseIntType):
+    """Valid values for the `baseline` attribute of ``<a:rPr>`` (and friends).
+
+    Represents a vertical baseline-shift for a run of text, stored as an
+    integer in thousandths of a percent. Positive values raise the text
+    (superscript), negative values lower it (subscript), and ``0`` is the
+    normal baseline. PowerPoint typically uses ``30000`` (30%) for
+    superscript and ``-25000`` (-25%) for subscript.
+
+    PowerPoint writes the attribute as a raw integer (e.g. ``"-25000"``)
+    but ``ST_Percentage`` in the XSD is a union that also permits a
+    percent-literal string (e.g. ``"-25%"``); both forms are accepted on
+    read. On write, the raw integer form is used — matching what
+    PowerPoint itself emits.
+    """
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if str_value.endswith("%"):
+            return int(round(float(str_value[:-1]) * 1000))
+        return int(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, -100000, 100000)
+
+
 class ST_TextIndentLevelType(BaseIntType):
     @classmethod
     def validate(cls, value):

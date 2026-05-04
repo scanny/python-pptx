@@ -882,8 +882,8 @@ prs.save("out.pptx")
 
 `Font` maps the DrawingML character-properties element. The fork adds
 effective-color resolution (walks master / theme inheritance),
-strikethrough, East-Asian / complex-script font slots, and a hyperlink-
-style toggle.
+strikethrough, East-Asian / complex-script font slots, baseline-shift
+(subscript / superscript), and a hyperlink-style toggle.
 
 ```python
 from pptx import Presentation
@@ -1040,6 +1040,8 @@ prs.save("out.pptx")
 
 - `Font.name` / `Font.size` / `Font.bold` / `Font.italic` / `Font.underline` — Core typography.
 - `Font.strikethrough` — `True` / `False` / `MSO_TEXT_STRIKE_TYPE`. `[Added in 2026.05.0]`
+- `Font.baseline` — Vertical baseline-shift for a run, as `int | None` in thousandths of a percent (positive = superscript, negative = subscript, `0` = normal, `None` = inherit). Range `-100000` .. `100000`. Corresponds to `a:rPr/@baseline`. `[Added in 2026.05.0]`
+- `Font.subscript` / `Font.superscript` — Tri-state boolean shortcuts for `Font.baseline`. Assigning `True` writes PowerPoint's default shift (`-25000` / `30000`); `False` writes `0`; `None` clears the attribute. Both properties read from the same underlying `@baseline`, so setting one overrides the other. `[Added in 2026.05.0]`
 - `Font.name_ea` / `Font.name_cs` — East-Asian and complex-script typeface overrides. `[Added in 2026.05.0]`
 - `Font.color` — `ColorFormat` proxy.
 - `Font.fill` — `FillFormat` for text-body fill (solid, gradient, picture).

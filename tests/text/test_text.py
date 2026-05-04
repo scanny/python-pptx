@@ -904,6 +904,113 @@ class DescribeFont(object):
         font.strikethrough = new_value
         assert font._element.xml == expected_xml
 
+    # -- baseline / subscript / superscript (issue #1045) ---------------
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "expected_value"),
+        [
+            ("a:rPr", None),
+            ("a:rPr{baseline=0}", 0),
+            ("a:rPr{baseline=30000}", 30000),
+            ("a:rPr{baseline=-25000}", -25000),
+        ],
+    )
+    def it_knows_its_baseline_setting(self, rPr_cxml, expected_value):
+        font = Font(element(rPr_cxml))
+        assert font.baseline == expected_value
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "new_value", "expected_rPr_cxml"),
+        [
+            ("a:rPr", 30000, "a:rPr{baseline=30000}"),
+            ("a:rPr", -25000, "a:rPr{baseline=-25000}"),
+            ("a:rPr{baseline=30000}", -25000, "a:rPr{baseline=-25000}"),
+            ("a:rPr{baseline=30000}", 0, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=-25000}", None, "a:rPr"),
+        ],
+    )
+    def it_can_change_its_baseline_setting(self, rPr_cxml, new_value, expected_rPr_cxml):
+        font = Font(element(rPr_cxml))
+        font.baseline = new_value
+        assert font._element.xml == xml(expected_rPr_cxml)
+
+    def it_accepts_a_percent_literal_on_read_for_baseline(self):
+        # -- ST_Percentage permits percent-literal strings (`-25%`); PowerPoint writes
+        # -- the raw integer form, but the attribute must round-trip either form on read.
+        from pptx.oxml import parse_xml
+
+        rPr = parse_xml(
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            ' baseline="-25%"/>'
+        )
+        font = Font(rPr)
+        assert font.baseline == -25000
+
+    def it_rejects_out_of_range_baseline_values(self):
+        font = Font(element("a:rPr"))
+        with pytest.raises(ValueError):
+            font.baseline = 100001
+        with pytest.raises(ValueError):
+            font.baseline = -100001
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "expected_value"),
+        [
+            ("a:rPr", None),
+            ("a:rPr{baseline=0}", False),
+            ("a:rPr{baseline=30000}", False),
+            ("a:rPr{baseline=-25000}", True),
+            ("a:rPr{baseline=-40000}", True),
+        ],
+    )
+    def it_knows_its_subscript_setting(self, rPr_cxml, expected_value):
+        font = Font(element(rPr_cxml))
+        assert font.subscript is expected_value
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "new_value", "expected_rPr_cxml"),
+        [
+            ("a:rPr", True, "a:rPr{baseline=-25000}"),
+            ("a:rPr{baseline=30000}", True, "a:rPr{baseline=-25000}"),
+            ("a:rPr", False, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=-25000}", False, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=-25000}", None, "a:rPr"),
+        ],
+    )
+    def it_can_change_its_subscript_setting(self, rPr_cxml, new_value, expected_rPr_cxml):
+        font = Font(element(rPr_cxml))
+        font.subscript = new_value
+        assert font._element.xml == xml(expected_rPr_cxml)
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "expected_value"),
+        [
+            ("a:rPr", None),
+            ("a:rPr{baseline=0}", False),
+            ("a:rPr{baseline=-25000}", False),
+            ("a:rPr{baseline=30000}", True),
+            ("a:rPr{baseline=50000}", True),
+        ],
+    )
+    def it_knows_its_superscript_setting(self, rPr_cxml, expected_value):
+        font = Font(element(rPr_cxml))
+        assert font.superscript is expected_value
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "new_value", "expected_rPr_cxml"),
+        [
+            ("a:rPr", True, "a:rPr{baseline=30000}"),
+            ("a:rPr{baseline=-25000}", True, "a:rPr{baseline=30000}"),
+            ("a:rPr", False, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=30000}", False, "a:rPr{baseline=0}"),
+            ("a:rPr{baseline=30000}", None, "a:rPr"),
+        ],
+    )
+    def it_can_change_its_superscript_setting(self, rPr_cxml, new_value, expected_rPr_cxml):
+        font = Font(element(rPr_cxml))
+        font.superscript = new_value
+        assert font._element.xml == xml(expected_rPr_cxml)
+
     def it_knows_its_size(self, size_get_fixture):
         font, expected_value = size_get_fixture
         assert font.size == expected_value
