@@ -55,6 +55,28 @@ Unreleased
   variations together with the cross-presentation copy and save/reopen
   round-trip. No public-API change.
 
+- verify: #848 resolved by #715/#969 (``TextFrame.font_scale`` +
+  ``line_space_reduction``). Issue #848
+  (https://github.com/scanny/python-pptx/issues/848) asked for
+  programmatic read/write access to PowerPoint's font-scale and
+  line-spacing reductions — the ``fontScale`` / ``lnSpcReduction``
+  attributes of ``a:normAutofit`` that shrink text to fit. Wave 12's
+  #715 added :attr:`~pptx.text.text.TextFrame.font_scale` and Wave
+  14's #969 added :attr:`~pptx.text.text.TextFrame.line_space_reduction`;
+  both read back defaults (``100.0`` and ``0.0`` respectively) on an
+  untouched textbox, emit the parts-per-hundred-thousand XML
+  encoding PowerPoint uses (``50.0`` -> ``fontScale="50000"``,
+  ``20.0`` -> ``lnSpcReduction="20000"``), coexist on a single
+  ``a:normAutofit`` child, replace any existing ``a:noAutofit`` /
+  ``a:spAutoFit`` sibling, round-trip cleanly through save + reopen,
+  and clear back to the default (``100.0`` / ``0.0``) by removing
+  the attribute. A new
+  ``tests/test_issue_848_font_scale_verify.py`` regression suite
+  pins the full public contract so #848 can be closed. No code
+  change — the feature is the already-shipped
+  ``TextFrame.font_scale`` / ``TextFrame.line_space_reduction``
+  setters.
+
 - verify: #824 resolved by #1044 (MasterShapes inherits add_picture).
   Issue #824 (https://github.com/scanny/python-pptx/issues/824) asked
   whether pictures can be added to a slide master so they appear on every
