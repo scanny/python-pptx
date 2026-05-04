@@ -424,3 +424,131 @@ a minimal one is added automatically.
 You do not need to do anything for this behaviour — there is no API to opt
 out, and the other application-level fields (``<Application>``, ``<Company>``,
 ``<TitlesOfParts>``, …) are not modified.
+
+
+Custom document properties (DOCPROPERTY fields)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``Presentation.custom_properties`` exposes the user-defined "Custom"
+document properties stored in ``/docProps/custom.xml`` — the properties
+PowerPoint surfaces under *File → Info → Properties → Advanced → Custom*
+and that ``{ DOCPROPERTY MyProp }`` field codes resolve against. The
+facade is dict-like, lazily materialises the underlying part (reading
+from an unlabelled deck never forces the part into the package), and
+preserves python types across save/reopen::
+
+    from pptx import Presentation
+    import datetime as dt
+
+    prs = Presentation()
+
+    prs.custom_properties["Department"] = "Engineering"
+    prs.custom_properties["Revision"] = 7
+    prs.custom_properties["Score"] = 98.6
+    prs.custom_properties["Approved"] = True
+    prs.custom_properties["Deadline"] = dt.datetime(2025, 3, 15, 12, 0, 0)
+
+    prs.save("deck.pptx")
+
+Supported value types are ``str`` (serialised as ``<vt:lpwstr>``),
+``int`` (``<vt:i4>``), ``float`` (``<vt:r8>``), ``bool``
+(``<vt:bool>``), and :class:`datetime.datetime` (``<vt:filetime>``).
+The facade also implements the usual ``dict`` operations — ``in``,
+``len()``, ``keys()``, ``items()``, ``update()``, ``pop()``,
+``setdefault()``, ``clear()``, and ``del``. See issue #259.
+
+
+Microsoft sensitivity labels (MIP)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Microsoft Information Protection (MIP) / Azure Information Protection
+(AIP) sensitivity labels — the "Confidential", "Internal", "Public" tags
+PowerPoint's *Sensitivity* menu applies — are not a first-class OOXML
+feature. They ride on top of the same ``/docProps/custom.xml`` part
+covered in the section above, as a conventional bundle of custom
+properties whose names follow the pattern::
+
+    MSIP_Label_<GUID>_<Field>
+
+For each label applied to a presentation, PowerPoint emits six fields:
+
+============================ =================================================================
+Field suffix                 Value
+============================ =================================================================
+``_Enabled``                 ``"true"`` / ``"false"`` (stored as a string, not a bool)
+``_SetDate``                 ISO-8601 UTC timestamp, e.g. ``"2025-05-02T09:15:00Z"``
+``_Method``                  ``"Standard"`` or ``"Privileged"``
+``_Name``                    Human-readable label name (``"Confidential"`` etc.)
+``_SiteId``                  Tenant GUID, in the same brace-enclosed form as ``<GUID>``
+``_ContentBits``             Integer bit-field flagging where the label is visualised
+                             (0 = none, 1 = header, 2 = footer, 4 = watermark)
+============================ =================================================================
+
+The ``<GUID>`` segment is the label's unique identifier, assigned by the
+administrator in the Microsoft Purview / AIP console, and is the same
+value for every field in the bundle. Write the bundle directly through
+:attr:`~pptx.presentation.Presentation.custom_properties`::
+
+    from pptx import Presentation
+
+    prs = Presentation("unlabelled.pptx")
+
+    guid = "{defa4170-0d19-0005-0004-bc88714345d2}"   # "Confidential" in this tenant
+    site_id = "{72f988bf-86f1-41af-91ab-2d7cd011db47}"
+
+    prefix = "MSIP_Label_%s" % guid
+    prs.custom_properties["%s_Enabled" % prefix] = "true"
+    prs.custom_properties["%s_SetDate" % prefix] = "2025-05-02T09:15:00Z"
+    prs.custom_properties["%s_Method" % prefix] = "Standard"
+    prs.custom_properties["%s_Name" % prefix] = "Confidential"
+    prs.custom_properties["%s_SiteId" % prefix] = site_id
+    prs.custom_properties["%s_ContentBits" % prefix] = 0
+
+    prs.save("labelled.pptx")
+
+Things to note:
+
+* ``_Enabled`` is a **string**, not a Python ``bool`` — that matches
+  what the MIP / AIP clients and downstream DLP scanners parse. Setting
+  it to ``True`` would serialise as ``<vt:bool>`` instead of the
+  expected ``<vt:lpwstr>true</vt:lpwstr>`` and break recognition.
+* ``_SetDate`` is likewise a **string** (ISO-8601 text), not a
+  :class:`datetime.datetime`. PowerPoint writes it as
+  ``<vt:lpwstr>`` and DLP scanners read it that way.
+* ``_ContentBits`` **is** an integer, and serialises as ``<vt:i4>``.
+  Set it to ``0`` if the label is metadata-only (no visible
+  header/footer/watermark).
+* The GUID is persistent across tenants for standard labels
+  (e.g. ``defa4170-0d19-0005-0004-bc88714345d2`` is Microsoft's
+  canonical "Confidential" id) but for custom labels you must obtain it
+  from the tenant administrator. There is no library-side GUID
+  allocation — if you invent one, the label will not round-trip through
+  a MIP-aware application.
+* Multiple labels can coexist (distinct GUIDs), which is sometimes seen
+  during migration between label taxonomies. Consumers typically act on
+  the most recent ``_SetDate`` among enabled labels.
+
+Reading labels back is symmetrical — enumerate the custom-properties
+keys and pick off the ``MSIP_Label_<GUID>_*`` family::
+
+    def applied_label_guids(prs):
+        """Return the set of MIP-label GUIDs carried by `prs`."""
+        seen = set()
+        for key in prs.custom_properties.keys():
+            if key.startswith("MSIP_Label_"):
+                tail = key[len("MSIP_Label_"):]
+                guid, _, _field = tail.rpartition("_")
+                if guid:
+                    seen.add(guid)
+        return seen
+
+Clearing a label is equally direct — delete every key in its bundle::
+
+    prefix = "MSIP_Label_%s_" % guid
+    for key in [k for k in prs.custom_properties.keys() if k.startswith(prefix)]:
+        del prs.custom_properties[key]
+
+python-pptx exposes the underlying :attr:`custom_properties` mapping
+rather than a dedicated sensitivity-label class so the recipe stays
+forward-compatible with any MIP field the Microsoft tooling may add in
+future. See issue #882.

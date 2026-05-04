@@ -29,6 +29,22 @@ Unreleased
   ``alt_text``-keyed variant — against the kind of silent regression
   that would break the recipe. No public-API change.
 
+- docs: #882 MIP sensitivity labels recipe via custom_properties.
+  Issue #882 (https://github.com/scanny/python-pptx/issues/882) asked how
+  to set Microsoft Information Protection (MIP) / Azure Information
+  Protection sensitivity labels on a PowerPoint presentation. MIP labels
+  are not a first-class OOXML feature; they ride on top of
+  ``/docProps/custom.xml`` as a conventional
+  ``MSIP_Label_<GUID>_<Field>`` bundle of custom properties. The
+  ``docs/user/presentations.rst`` "Microsoft sensitivity labels (MIP)"
+  section now walks through the six canonical fields (``Enabled``,
+  ``SetDate``, ``Method``, ``Name``, ``SiteId``, ``ContentBits``) and
+  shows authoring, enumerating, and clearing labels through
+  :attr:`.Presentation.custom_properties`. A new
+  ``tests/test_issue_882_sensitivity_labels.py`` regression suite pins
+  the round-trip, wire-format, multi-label, lazy-materialisation, and
+  clearing contracts. No public-API change.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and

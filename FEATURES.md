@@ -2564,6 +2564,7 @@ prs.save("out.pptx")
 - `Presentation.core_properties` — `CoreProperties` proxy (author / title / subject / keywords / category / comments / content_status / identifier / language / version / created / last_modified_by / last_printed / modified / revision).
 - `Presentation.custom_properties` — `CustomProperties` dict-like typed mapping. `[Added in 2026.05.0]`
 - `CustomProperties.__getitem__` / `__setitem__` / `__delitem__` / `__contains__` / `__iter__` / `__len__` / `.add(name, value)` / `.get(name, default=None)` / `.names()` / `.items()` — Full mapping interface (accepts `str`, `int`, `float`, `bool`, `datetime`). `[Added in 2026.05.0]`
+- Microsoft Information Protection (MIP) / Azure Information Protection sensitivity labels ride on top of `custom_properties` as an `MSIP_Label_<GUID>_<Field>` bundle (`Enabled`, `SetDate`, `Method`, `Name`, `SiteId`, `ContentBits`). See the "Microsoft sensitivity labels (MIP)" recipe in `docs/user/presentations.rst`. `[Added in 2026.05.0]`
 - `Presentation.extended_properties` — `ExtendedProperties` proxy for `docProps/app.xml`. `[Added in 2026.05.0]`
 - `ExtendedProperties.get(name)` / `ExtendedProperties.set(name, value)` — Generic reads/writes. Typed accessors (`company`, `manager`, `application`, `app_version`, `total_time`, `pages`, `words`, `template`, `presentation_format`, `slides`, `hidden_slides`, `notes`, `mm_clips`, `title_of_parts`, `heading_pairs`, etc.) are generated from a declarative spec. `[Added in 2026.05.0]`
 
