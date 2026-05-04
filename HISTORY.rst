@@ -246,6 +246,15 @@ Unreleased
   reference). Reading through the proxy does not mutate the underlying
   XML, so inheritance stays intact.
 
+- Add #582 ``shape.custom_props`` — dict-like mapping for attaching
+  application-specific string metadata to any shape. Values persist in
+  the shape's ``p:cNvPr/a:extLst`` under the URI
+  ``{urn:loadfix-pptx:custom-props:v1}`` and round-trip through both
+  python-pptx and PowerPoint. Available on every shape type (AutoShape,
+  Picture, GraphicFrame, GroupShape, Connector); supports ``__getitem__``,
+  ``__setitem__``, ``__delitem__``, ``__contains__``, ``get``, ``clear``,
+  iteration, and insertion-order preservation. Issue #582.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

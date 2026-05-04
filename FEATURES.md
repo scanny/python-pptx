@@ -338,6 +338,10 @@ rect = shapes.add_shape(
 rect.text_frame.text = "Hello"
 rect.alt_text = "Greeting box"
 
+# attach application metadata that survives save/reopen
+rect.custom_props["department"] = "marketing"
+rect.custom_props["record_id"] = "A-47"
+
 # duplicate, flip, bring to front
 dup = rect.duplicate()
 dup.flip_horizontal = True
@@ -373,6 +377,7 @@ prs.save("out.pptx")
 - `BaseShape.effective_left` / `.effective_top` / `.effective_width` / `.effective_height` — Group-aware absolute geometry. `[Added in 2026.05.0]`
 - `BaseShape.flip_horizontal` / `.flip_vertical` / `.flip_horizontally()` / `.flip_vertically()` — Mirroring. `[Added in 2026.05.0]`
 - `BaseShape.alt_text` / `.title` — Accessibility fields. `[Added in 2026.05.0]`
+- `BaseShape.custom_props` — Dict-like mapping of application-defined string metadata on the shape. Keys and values are `str` with insertion-order preservation; supports subscript get/set/del, `in`, `get()`, `clear()`, iteration, equality with `dict`. Values persist under `p:cNvPr/a:extLst/a:ext[@uri="{urn:loadfix-pptx:custom-props:v1}"]` and round-trip through both python-pptx and PowerPoint. Works on AutoShape, Picture, GraphicFrame, GroupShape, and Connector. Issue #582. `[Added in 2026.05.0]`
 - `BaseShape.is_hidden` — Show/hide a shape without deleting it. `[Added in 2026.05.0]`
 - `BaseShape.theme_style_refs` — Read/write a shape's four theme-style references (line / fill / effect indices into `a:fmtScheme`, plus the `a:fontRef` collection key) as a `ThemeStyleRefs` named-tuple, mirroring PowerPoint's "Shape Styles" gallery. Assigning `None` clears the `<p:style>` child. Graphic-frame and group-shape parents raise `ValueError`. `[Added in 2026.05.0]`
 - `BaseShape.shadow` — `ShadowFormat` proxy (with `.inherit`, `.blur_radius`, `.distance`, `.angle`, etc.). `[Added in 2026.05.0]`

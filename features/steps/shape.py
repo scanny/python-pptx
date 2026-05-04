@@ -1357,3 +1357,93 @@ def then_shape_theme_style_refs_is(context, expected_str):
         return
     assert actual is not None, "expected %r, got None" % (expected,)
     assert tuple(actual) == tuple(expected), "expected %r, got %r" % (expected, actual)
+
+
+# ==== issue #582 -- shape.custom_props ===================================
+
+
+@given("a Shape object with custom_props {mapping_literal}")
+def given_a_Shape_object_with_custom_props(context, mapping_literal):
+    import ast
+    from io import BytesIO
+
+    mapping = ast.literal_eval(mapping_literal)
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    shape = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
+    for key, value in mapping.items():
+        shape.custom_props[key] = value
+    context.shape = shape
+    context.prs = prs
+    context.expected_custom_props = mapping
+    context._pptx_buffer = BytesIO()
+
+
+@when("I assign '{value}' to shape.custom_props['{key}']")
+def when_assign_to_shape_custom_props_key(context, key, value):
+    context.shape.custom_props[key] = value
+
+
+@when("I delete shape.custom_props['{key}']")
+def when_delete_shape_custom_props_key(context, key):
+    del context.shape.custom_props[key]
+
+
+@when("I call shape.custom_props.clear()")
+def when_call_shape_custom_props_clear(context):
+    context.shape.custom_props.clear()
+
+
+@when("the presentation is saved and reopened")
+def when_presentation_saved_and_reopened(context):
+    from io import BytesIO
+
+    buf = BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    context.prs = Presentation(buf)
+    context.shape = context.prs.slides[0].shapes[0]
+
+
+@then("shape.custom_props['{key}'] == '{value}'")
+def then_shape_custom_props_key_equals(context, key, value):
+    actual = context.shape.custom_props[key]
+    assert actual == value, "expected %r, got %r" % (value, actual)
+
+
+@then("'{key}' not in shape.custom_props")
+def then_key_not_in_shape_custom_props(context, key):
+    assert key not in context.shape.custom_props, "expected %r to be absent" % (key,)
+
+
+@then("list(shape.custom_props) == {expected_literal}")
+def then_list_shape_custom_props_equals(context, expected_literal):
+    import ast
+
+    expected = ast.literal_eval(expected_literal)
+    actual = list(context.shape.custom_props)
+    assert actual == expected, "expected %r, got %r" % (expected, actual)
+
+
+@then("shape.custom_props is dict-equal to {mapping_literal}")
+def then_shape_custom_props_is_dict_equal(context, mapping_literal):
+    import ast
+
+    expected = ast.literal_eval(mapping_literal)
+    assert context.shape.custom_props == expected, "expected %r, got %r" % (
+        expected,
+        dict(context.shape.custom_props.items()),
+    )
+
+
+@then("the reopened shape.custom_props == {mapping_literal}")
+def then_reopened_shape_custom_props_equals(context, mapping_literal):
+    import ast
+
+    expected = ast.literal_eval(mapping_literal)
+    assert context.shape.custom_props == expected, "expected %r, got %r" % (
+        expected,
+        dict(context.shape.custom_props.items()),
+    )

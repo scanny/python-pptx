@@ -315,6 +315,38 @@ surface (``hyperlink``, ``target_slide``, ``screen_tip``, and
 ``set_sound`` / ``remove_sound`` for a WAV chime).
 
 
+Custom shape properties (persisted metadata)
+--------------------------------------------
+
+Sometimes you need to tag a shape with application-specific information
+— a department name, a record id, an export flag — that needs to travel
+with the shape when the deck is saved, reopened, or round-tripped through
+PowerPoint. Python attribute assignments (``shape.foo = "bar"``) live only
+on the in-memory proxy object and are lost on save. For persisted metadata,
+every shape exposes a dict-like :attr:`~.BaseShape.custom_props` mapping::
+
+    shape.custom_props["department"] = "marketing"
+    shape.custom_props["record_id"] = "A-47"
+
+    shape.custom_props["department"]          # -> "marketing"
+    shape.custom_props.get("missing")         # -> None
+    "record_id" in shape.custom_props         # -> True
+    list(shape.custom_props)                  # -> ["department", "record_id"]
+
+    del shape.custom_props["department"]
+    shape.custom_props.clear()
+
+Keys and values must both be strings and keys preserve insertion order.
+The values are written under the shape's
+``p:cNvPr/a:extLst/a:ext[@uri="{urn:loadfix-pptx:custom-props:v1}"]``,
+a schema-approved extension slot available on every shape type (AutoShape,
+Picture, GraphicFrame, GroupShape, Connector). PowerPoint preserves this
+``a:ext`` on save so the properties survive a full round trip through
+PowerPoint itself, not just python-pptx.
+
+See issue #582.
+
+
 Up next ...
 -----------
 

@@ -309,10 +309,15 @@ class CT_NonVisualDrawingProps(BaseOxmlElement):
 
     get_or_add_hlinkClick: Callable[[], CT_Hyperlink]
     get_or_add_hlinkHover: Callable[[], CT_Hyperlink]
+    get_or_add_extLst: Callable[[], BaseOxmlElement]
+    _remove_extLst: Callable[[], None]
 
     _tag_seq = ("a:hlinkClick", "a:hlinkHover", "a:extLst")
     hlinkClick: CT_Hyperlink | None = ZeroOrOne("a:hlinkClick", successors=_tag_seq[1:])
     hlinkHover: CT_Hyperlink | None = ZeroOrOne("a:hlinkHover", successors=_tag_seq[2:])
+    extLst: BaseOxmlElement | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "a:extLst", successors=()
+    )
     id = RequiredAttribute("id", ST_DrawingElementId)
     name = RequiredAttribute("name", XsdString)
     descr: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
