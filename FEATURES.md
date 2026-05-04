@@ -2167,6 +2167,9 @@ series.add_trendline(XL_TRENDLINE_TYPE.LINEAR, display_r_squared=True)
 - `DataLabels.show_value` / `.show_category_name` / `.show_series_name` / `.show_percentage` / `.show_legend_key` — Content toggles.
 - `DataLabels.number_format` / `.number_format_is_linked` / `.position` / `.font` / `.text_frame` — Formatting. `text_frame` is `[Added in 2026.05.0]`.
 - `Marker.style` / `.size` / `.format` — `XL_MARKER_STYLE` marker authoring.
+  `Marker.format` returns a `ChartFormat` whose `.line.color.rgb` /
+  `.line.width` / `.fill` write the marker's border color, border width,
+  and fill under `c:ser/c:marker/c:spPr` (issue #872).
 
 ---
 

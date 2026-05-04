@@ -57,3 +57,10 @@ Feature: Get and set marker properties
       | circle            | TRIANGLE |
       | triangle          | None     |
       | no explicit value | None     |
+
+
+  Scenario: Set marker border color via marker.format.line.color.rgb
+    Given a marker
+     When I assign RGBColor(0xFF, 0x00, 0x00) to marker.format.line.color.rgb
+     Then marker.format.line.color.rgb is FF0000
+      And the marker spPr/a:ln/a:solidFill/a:srgbClr val is FF0000
