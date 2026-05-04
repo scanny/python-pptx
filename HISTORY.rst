@@ -16,6 +16,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: audit and fix stale refs / orphan pages / broken FEATURES.md snippets.
+  Wired 3 previously-orphan ``docs/dev/analysis/*.rst`` pages
+  (``f8-animations-transitions``, ``chartex-box-whisker``, ``model-3d``) into
+  the analysis toctree, fixed 24 "Undefined substitution" errors by defining
+  missing ``rst_epilog`` aliases (|PiePlot|, |Pie3DPlot|, |SeriesLines|,
+  |SheetReference|, |ManualLayout|, |TextFrameRect|, |_DataTable|) plus an
+  ``autoclass`` page for :class:`~pptx.chart.plot.PiePlot` and
+  :class:`~pptx.chart.series.SheetReference`, repaired 3 malformed
+  reStructuredText tables, 5 under-length title underlines, and 7
+  ``FEATURES.md`` code snippets that no longer matched the current API
+  (``Sections.add_section`` signature, ``Presentation.embed_font`` style
+  slots, ``MSO_ANIMATION_TYPE`` enum name, ``AnimationEffectView`` property
+  names, ``ExtendedProperties`` accessors, missing imports, stray
+  ``...`` placeholders).
+
 - fix: FU-7 ``GraphicFrame.delete()`` now drops every slide-part rel the
   frame carries — classic ``c:chart/@r:id``, Office 2016+ extended
   ``cx:chart/@r:id``, embedded or linked ``p:oleObj/@r:id`` plus the

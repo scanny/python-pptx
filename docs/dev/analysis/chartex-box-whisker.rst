@@ -78,18 +78,18 @@ Specifically:
 How box-and-whisker differs from funnel and waterfall
 -----------------------------------------------------
 
-==================================  ==========  ==========  ==============
-Feature                             Funnel      Waterfall   Box-Whisker
-==================================  ==========  ==========  ==============
-One series per chart                yes         yes         yes
-``cx:series/@layoutId``             ``funnel``  ``...fall`` ``boxWhisker``
-``cx:axis`` children                **none**    **two**     **two**
-``cx:layoutPr`` on series           absent      present     **present**
-Quartile method selection           n/a         n/a         **yes**
-Mean / outlier visibility flags     n/a         n/a         **yes (4)**
-Supports negative values            n/a         yes         **yes**
-Input shape                         1 cat + val 1 cat + val grouped obs
-==================================  ==========  ==========  ==============
+==================================  ============  ============  ==============
+Feature                             Funnel        Waterfall     Box-Whisker
+==================================  ============  ============  ==============
+One series per chart                yes           yes           yes
+``cx:series/@layoutId``             ``funnel``    ``...fall``   ``boxWhisker``
+``cx:axis`` children                **none**      **two**       **two**
+``cx:layoutPr`` on series           absent        present       **present**
+Quartile method selection           n/a           n/a           **yes**
+Mean / outlier visibility flags     n/a           n/a           **yes (4)**
+Supports negative values            n/a           yes           **yes**
+Input shape                         1 cat + val   1 cat + val   grouped obs
+==================================  ============  ============  ==============
 
 Box-and-whisker is structurally closest to waterfall — both carry a
 ``cx:layoutPr`` block on the series and both require the two-axis

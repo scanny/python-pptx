@@ -2092,9 +2092,9 @@ class _Paragraph(Subshape):
     ) -> _Run:
         """Return a new run appended to the runs in this paragraph.
 
-        When `text` is not |None`, the new run's text is set to `text`. Any run-level
-        formatting kwargs (`bold`, `italic`, `size`, `color`, `font_name`) are applied
-        to the new run's |Font|. All run-level kwargs are keyword-only. `size` accepts
+        When ``text`` is not |None|, the new run's text is set to ``text``. Any run-level
+        formatting kwargs (``bold``, ``italic``, ``size``, ``color``, ``font_name``) are applied
+        to the new run's |Font|. All run-level kwargs are keyword-only. ``size`` accepts
         a |Length| value (use :class:`~pptx.util.Pt` for points). `color` accepts an
         |RGBColor| (explicit RGB) or a member of :class:`MSO_THEME_COLOR`. See issue
         #134.

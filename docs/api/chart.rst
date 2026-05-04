@@ -198,6 +198,19 @@ The following properties are only present on bubble-type plots.
    :undoc-members:
 
 
+|PiePlot| objects
+~~~~~~~~~~~~~~~~~
+
+A |PiePlot| is returned for charts authored with
+``XL_CHART_TYPE.PIE`` / ``XL_CHART_TYPE.PIE_EXPLODED`` (backing XML
+element ``c:pieChart``). It inherits the full ``_BasePlot`` API surface.
+
+.. autoclass:: pptx.chart.plot.PiePlot()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |Pie3DPlot| objects
 ~~~~~~~~~~~~~~~~~~~
 
@@ -337,6 +350,18 @@ XML directly.
    :members:
    :member-order: bysource
    :undoc-members:
+
+
+|SheetReference| objects
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A |SheetReference| is a named tuple returned by
+:attr:`~pptx.chart.series._BaseSeries.values_sheet_reference` (and the
+corresponding ``categories_sheet_reference`` accessor) that describes the
+A1-style range in the chart's embedded workbook that a series' values (or
+categories) point to.
+
+.. autoclass:: pptx.chart.series.SheetReference()
 
 
 |DataLabels| objects

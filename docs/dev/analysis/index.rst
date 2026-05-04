@@ -24,6 +24,7 @@ Slides
    sld-master
    sld-layout
    f6-slide-id-manager
+   f8-animations-transitions
 
 
 Chart
@@ -105,6 +106,7 @@ Shape
    placeholders/index
    shp-preset-geom
    f9-smartart
+   model-3d
 
 
 Text
@@ -160,6 +162,7 @@ Package
    chartex-funnel
    chartex-waterfall
    chartex-treemap
+   chartex-box-whisker
 
 
 Major discovery sources
