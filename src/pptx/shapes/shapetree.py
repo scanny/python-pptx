@@ -731,9 +731,15 @@ class SlideShapes(_BaseGroupShapes):
         """Add a |GraphicFrame| object containing a table.
 
         The table has the specified number of `rows` and `cols` and the specified position and
-        size. `width` is evenly distributed between the columns of the new table. Likewise,
-        `height` is evenly distributed between the rows. Note that the `.table` property on the
-        returned |GraphicFrame| shape must be used to access the enclosed |Table| object.
+        size. `width` is the *total* width of the table (not the width of a single column); it is
+        evenly distributed between the columns of the new table. Likewise, `height` is the *total*
+        (authored) height of the table (not the height of a single row); it is evenly distributed
+        between the rows, so each row is initially ``height // rows`` EMU tall. The last column
+        and last row absorb any integer-division remainder so ``sum(col_widths) == width`` and
+        ``sum(row_heights) == height``. Once PowerPoint opens the file its layout engine may
+        grow individual rows to fit their text content — see the "Table height and row height"
+        section of the user guide for the caveat. Note that the `.table` property on the returned
+        |GraphicFrame| shape must be used to access the enclosed |Table| object.
         """
         graphicFrame = self._add_graphicFrame_containing_table(rows, cols, left, top, width, height)
         return cast(GraphicFrame, self._shape_factory(graphicFrame))

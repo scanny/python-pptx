@@ -14,6 +14,24 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #613 clarify ``SlideShapes.add_table(height=)`` semantics. Issue
+  #613 (https://github.com/scanny/python-pptx/issues/613) reported that
+  ``add_table(rows, cols, left, top, width, height)`` looked as if
+  ``height`` was the *per-row* height — the reporter expected a
+  "total_height" kwarg that would divide across the rows. The argument
+  has always been the total (authored) table height; ``CT_Table.new_tbl``
+  derives ``rowheight = height // rows`` and the last row absorbs any
+  integer-division remainder, so ``sum(row.height) == height`` exactly.
+  The :meth:`SlideShapes.add_table` docstring and ``docs/user/table.rst``
+  now spell this out unambiguously and cross-reference the "Table height
+  and row height" caveat (PowerPoint may grow rows at render time to fit
+  wrapped text). ``tests/test_issue_613_add_table_height_verify.py`` pins
+  the contract end-to-end: the graphic-frame extent equals ``height``,
+  row heights are ``height // rows`` with remainder in the last row, the
+  symmetric invariant holds for widths, the ``p:xfrm/a:ext/@cy``
+  attribute carries the same value, and the whole shape survives a
+  ``Presentation.save`` + reopen unchanged.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

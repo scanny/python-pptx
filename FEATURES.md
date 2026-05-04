@@ -356,7 +356,7 @@ prs.save("out.pptx")
 - `SlideShapes.add_connector(connector_type, begin_x, begin_y, end_x, end_y)` — Connector line between two points.
 - `SlideShapes.add_group_shape(shapes=())` — Wrap shapes in a group. `[Added in 2026.05.0]`
 - `SlideShapes.add_ole_object(object_file, prog_id, left, top, width=None, height=None, icon_file=None, icon_width=None, icon_height=None)` — Embed an OLE payload. Generic `prog_id` + `extension` support is `[Added in 2026.05.0]`.
-- `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table graphic frame. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
+- `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table graphic frame. `width` / `height` are the **total** table width / height; they are distributed evenly across columns / rows. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
 - `SlideShapes.build_freeform(start_x, start_y, scale=EMU_PER_INCH)` — Freeform-geometry builder.
 - `SlideShapes.find_all_by_name(name, include_descendants=False)` / `SlideShapes.get_by_name(name, include_descendants=False)` — Look up shapes by `cNvPr/@name`; pass `include_descendants=True` to walk into every group on the slide. `[Added in 2026.05.0]`
 - `SlideShapes.descendants()` / `Slide.shape_tree_flat` — Iterator over every shape on the slide including the children of any `GroupShape`, yielded in document (z-order) sequence with each group yielded before its contents. Selection-Pane-equivalent traversal. `[Added in 2026.05.0]`
@@ -1235,7 +1235,7 @@ tbl.cell(1, 1).merge(tbl.cell(1, 2))
 prs.save("out.pptx")
 ```
 
-- `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
+- `SlideShapes.add_table(rows, cols, left, top, width, height)` — Append a table. `width` and `height` are the **total** width and height of the table; they are distributed evenly across columns and rows respectively, with the last column / row absorbing any integer-division remainder. Accepts float dimensions. `[Added in 2026.05.0]` for the float overload.
 - `Table.rows` / `Table.columns` / `Table.cell(row_idx, col_idx)` / `Table.iter_cells()` — Access helpers.
 - `Table.add_row(height=None)` / `Table.add_column(width=None)` — One-liner shortcuts that delegate to `_RowCollection.add` / `_ColumnCollection.add`. `[Added in 2026.05.0]`
 - `Table.style_id` — Apply a built-in table style by GUID. `[Added in 2026.05.0]`
