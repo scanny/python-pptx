@@ -16,6 +16,12 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- build(test): document corpus conformance test setup in
+  ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``
+  auto-skips when the sibling ``../ooxml-reference-corpus/`` checkout
+  or ``ooxml-validate`` is absent; the new docs section explains how
+  to wire both in for contributors running the full drift guard.
+
 <<<<<<< HEAD
 - chore(types): cleanup ~65 pyright strict-mode errors across
   ``src/pptx/api.py``, ``src/pptx/animation.py``,
