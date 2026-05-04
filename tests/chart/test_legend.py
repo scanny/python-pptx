@@ -46,6 +46,155 @@ class DescribeLegend(object):
         legend.position = new_value
         assert legend._element.xml == expected_xml
 
+    # exclude_entry / include_entry / hidden_entries (issue #649) ----
+
+    @pytest.mark.parametrize(
+        ("legend_cxml", "idx", "expected_cxml"),
+        [
+            # -- empty legend: inserts the full <c:legendEntry>
+            (
+                "c:legend",
+                1,
+                "c:legend/c:legendEntry/(c:idx{val=1},c:delete{val=1})",
+            ),
+            # -- preserves c:legendPos as the first child --
+            (
+                "c:legend/c:legendPos{val=b}",
+                0,
+                "c:legend/(c:legendPos{val=b},c:legendEntry/(c:idx{val=0},c:delete" "{val=1}))",
+            ),
+            # -- inserts in ascending idx order (new lower idx before existing) --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=2},c:delete{val=1})",
+                0,
+                "c:legend/(c:legendEntry/(c:idx{val=0},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=2},c:delete{val=1}))",
+            ),
+            # -- inserts after existing lower-idx entry, before higher --
+            (
+                "c:legend/(c:legendEntry/(c:idx{val=0},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=4},c:delete{val=1}))",
+                2,
+                "c:legend/(c:legendEntry/(c:idx{val=0},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=2},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=4},c:delete{val=1}))",
+            ),
+            # -- idempotent: excluding an already-hidden entry is a no-op --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=3},c:delete{val=1})",
+                3,
+                "c:legend/c:legendEntry/(c:idx{val=3},c:delete{val=1})",
+            ),
+            # -- promotes an existing txPr-only entry to hidden (adds c:delete) --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=2},c:txPr/(a:bodyPr,a:p))",
+                2,
+                "c:legend/c:legendEntry/(c:idx{val=2},c:delete{val=1}," "c:txPr/(a:bodyPr,a:p))",
+            ),
+        ],
+    )
+    def it_can_exclude_a_legend_entry(self, legend_cxml, idx, expected_cxml):
+        legend = Legend(element(legend_cxml))
+        expected_xml = xml(expected_cxml)
+        legend.exclude_entry(idx)
+        assert legend._element.xml == expected_xml
+
+    @pytest.mark.parametrize(
+        ("legend_cxml", "idx", "expected_cxml"),
+        [
+            # -- removes the whole c:legendEntry when only idx+delete are present --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=1},c:delete{val=1})",
+                1,
+                "c:legend",
+            ),
+            # -- keeps c:legendPos siblings intact --
+            (
+                "c:legend/(c:legendPos{val=b},c:legendEntry/(c:idx{val=0}," "c:delete{val=1}))",
+                0,
+                "c:legend/c:legendPos{val=b}",
+            ),
+            # -- drops only the matching entry, leaves other legendEntries --
+            (
+                "c:legend/(c:legendEntry/(c:idx{val=0},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=2},c:delete{val=1}))",
+                0,
+                "c:legend/c:legendEntry/(c:idx{val=2},c:delete{val=1})",
+            ),
+            # -- preserves a txPr override by only stripping c:delete --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=2},c:delete{val=1}," "c:txPr/(a:bodyPr,a:p))",
+                2,
+                "c:legend/c:legendEntry/(c:idx{val=2},c:txPr/(a:bodyPr,a:p))",
+            ),
+            # -- no-op when the idx is not currently excluded --
+            ("c:legend", 0, "c:legend"),
+            (
+                "c:legend/c:legendEntry/(c:idx{val=4},c:delete{val=1})",
+                7,
+                "c:legend/c:legendEntry/(c:idx{val=4},c:delete{val=1})",
+            ),
+        ],
+    )
+    def it_can_include_a_previously_excluded_entry(self, legend_cxml, idx, expected_cxml):
+        legend = Legend(element(legend_cxml))
+        expected_xml = xml(expected_cxml)
+        legend.include_entry(idx)
+        assert legend._element.xml == expected_xml
+
+    @pytest.mark.parametrize(
+        ("legend_cxml", "expected_hidden"),
+        [
+            ("c:legend", ()),
+            (
+                "c:legend/c:legendEntry/(c:idx{val=1},c:delete{val=1})",
+                (1,),
+            ),
+            # -- entries with c:delete[@val="0"] are not "hidden" --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=1},c:delete{val=0})",
+                (),
+            ),
+            # -- entries with only c:txPr formatting are not "hidden" --
+            (
+                "c:legend/c:legendEntry/(c:idx{val=0},c:txPr/(a:bodyPr,a:p))",
+                (),
+            ),
+            # -- mixed sequence returns only the hidden ones, in document order --
+            (
+                "c:legend/(c:legendEntry/(c:idx{val=3},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=0},c:delete{val=1}),"
+                "c:legendEntry/(c:idx{val=1},c:txPr/(a:bodyPr,a:p)))",
+                (3, 0),
+            ),
+        ],
+    )
+    def it_knows_which_entries_are_hidden(self, legend_cxml, expected_hidden):
+        legend = Legend(element(legend_cxml))
+        assert legend.hidden_entries == expected_hidden
+
+    def it_returns_a_tuple_from_hidden_entries(self):
+        legend = Legend(element("c:legend"))
+        assert isinstance(legend.hidden_entries, tuple)
+
+    @pytest.mark.parametrize(
+        "bad_idx",
+        [None, "0", 1.5, True, False, object()],
+    )
+    def it_rejects_non_int_idx_with_TypeError(self, bad_idx):
+        legend = Legend(element("c:legend"))
+        with pytest.raises(TypeError):
+            legend.exclude_entry(bad_idx)
+        with pytest.raises(TypeError):
+            legend.include_entry(bad_idx)
+
+    def it_rejects_negative_idx_with_ValueError(self):
+        legend = Legend(element("c:legend"))
+        with pytest.raises(ValueError):
+            legend.exclude_entry(-1)
+        with pytest.raises(ValueError):
+            legend.include_entry(-3)
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

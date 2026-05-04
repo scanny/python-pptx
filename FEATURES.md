@@ -2078,6 +2078,7 @@ tl.rotation = -45
 - `TickLabels.font` / `.number_format` / `.number_format_is_linked` / `.offset` / `.rotation` — Tick-label formatting. `rotation` is `[Added in 2026.05.0]`.
 - `Chart.has_legend` / `Chart.legend` — Legend access.
 - `Legend.position` / `.include_in_layout` / `.font` / `.horz_offset`.
+- `Legend.exclude_entry(idx)` / `.include_entry(idx)` / `.hidden_entries` — Hide / re-show individual legend entries without removing the underlying series (PowerPoint's *Format Legend Entry → Delete*). `[Added in 2026.05.0]`
 - `MajorGridlines.format` — `ChartFormat`.
 
 ---

@@ -152,9 +152,10 @@ register_element_cls("c:dLblPos", CT_DLblPos)
 register_element_cls("c:dLbls", CT_DLbls)
 
 
-from pptx.oxml.chart.legend import CT_Legend, CT_LegendPos  # noqa: E402
+from pptx.oxml.chart.legend import CT_Legend, CT_LegendEntry, CT_LegendPos  # noqa: E402
 
 register_element_cls("c:legend", CT_Legend)
+register_element_cls("c:legendEntry", CT_LegendEntry)
 register_element_cls("c:legendPos", CT_LegendPos)
 
 

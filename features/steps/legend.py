@@ -88,3 +88,61 @@ def then_legend_position_is_value(context, value):
     expected_position = getattr(XL_LEGEND_POSITION, value)
     legend = context.legend
     assert legend.position is expected_position, "got %s" % legend.position
+
+
+# legend.exclude_entry / include_entry / hidden_entries (issue #649) ----
+
+
+@given("a 4-series column chart with a visible legend")
+def given_a_4_series_column_chart_with_a_visible_legend(context):
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.util import Inches
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    cd = CategoryChartData()
+    cd.categories = ["A", "B", "C"]
+    for i in range(4):
+        cd.add_series("S%d" % i, (float(i), float(i + 1), float(i + 2)))
+    gf = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(6),
+        Inches(4),
+        cd,
+    )
+    context.chart = gf.chart
+    context.chart.has_legend = True
+    context.legend = context.chart.legend
+
+
+@given("legend entries 1 and 3 already excluded")
+def given_legend_entries_1_and_3_already_excluded(context):
+    context.legend.exclude_entry(1)
+    context.legend.exclude_entry(3)
+
+
+@when("I call legend.exclude_entry(1) and legend.exclude_entry(3)")
+def when_I_call_legend_exclude_entry_1_and_3(context):
+    context.legend.exclude_entry(1)
+    context.legend.exclude_entry(3)
+
+
+@when("I call legend.include_entry(1)")
+def when_I_call_legend_include_entry_1(context):
+    context.legend.include_entry(1)
+
+
+@then("legend.hidden_entries is {value}")
+def then_legend_hidden_entries_is_value(context, value):
+    expected = eval(value)  # e.g. "(1, 3)" or "(3,)"
+    actual = context.legend.hidden_entries
+    assert actual == expected, "got %r" % (actual,)
+
+
+@then("the chart still has its 4 original series")
+def then_the_chart_still_has_its_4_original_series(context):
+    names = [s.name for s in context.chart.series]
+    assert names == ["S0", "S1", "S2", "S3"], "got %r" % names
