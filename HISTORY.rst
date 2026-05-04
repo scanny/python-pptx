@@ -65,6 +65,19 @@ Unreleased
   held-reference, chained-access, ``color.type`` read, theme-color,
   double-write, round-trip save-and-reopen, and cache-consistency paths.
 
+- fix: FU-4 — ``XmlPart._rel_ref_count`` now counts every rId-bearing
+  attribute (``@r:id``, ``@r:embed``, ``@r:link``) instead of only
+  ``@r:id``. When two shapes on the same slide shared an image part —
+  e.g. two pictures added from the same image file, both carrying the
+  same ``@r:embed`` on their ``a:blip`` — deleting one picture would
+  undercount the remaining reference as zero, cause ``drop_rel`` to
+  remove the shared relationship prematurely, and leave the second
+  picture with a dangling rId (the image part would be garbage-
+  collected on save). The same bug affected other ``@r:embed`` /
+  ``@r:link`` sites (``p14:media``, ``a:videoFile``, ``a:audioFile``,
+  linked-image ``a:blip``, ``am3d:model3D``). Regression test in
+  ``tests/test_fu4_rel_ref_count_embed.py``.
+
 - docs: triage 107 audit non-gap items — consolidated disposition page
   under ``docs/community/issue-triage.rst``, plus regression tests in
   ``tests/test_non_gap_triage.py`` that pin ~15 items whose "missing
