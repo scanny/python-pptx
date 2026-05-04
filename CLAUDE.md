@@ -7,8 +7,9 @@ This project is one of a sibling series of OOXML libraries under the loadfix org
 - **loadfix/python-docx** — Word `.docx`
 - **loadfix/python-pptx** — PowerPoint `.pptx` (this repo)
 - **loadfix/python-xlsx** — Excel `.xlsx`
+- **loadfix/ooxml-validate** — cross-format validator (Microsoft Open XML SDK + LibreOffice)
 
-The three libraries share an architectural lineage (three-layer proxy/part/oxml pattern over lxml) and OOXML spec conventions. When implementing a feature that exists across the trio, consult the sibling repos for naming and API-shape precedent.
+The three reading/writing libraries share an architectural lineage (three-layer proxy/part/oxml pattern over lxml) and OOXML spec conventions. When implementing a feature that exists across the trio, consult the sibling repos for naming and API-shape precedent. When verifying that library output is correct, use `ooxml-validate`.
 
 ## Architecture
 
