@@ -14,6 +14,24 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #981 arbitrary prog_id OLE embedding regression test.
+  ``FEATURES.md`` advertises "arbitrary ``prog_id`` + extension
+  support" on :meth:`.SlideShapes.add_ole_object`, delivered originally
+  by the fork-era ``feat: #752 accept arbitrary prog_id + extension``
+  change (HISTORY line 3575) and previously spot-checked from the HTML
+  angle by ``tests/test_issue_777_html_ole_embed.py``. A new
+  ``tests/test_issue_981_arbitrary_prog_id_verify.py`` pins the
+  reporter-facing contract with a genuinely made-up ``prog_id``
+  (``"MyCustom.Object.1"``): the authored progId + blob survive
+  ``save`` / reopen byte-for-byte, the caller-supplied ``extension``
+  lands on the ``/ppt/embeddings/oleObject*.<ext>`` part with the
+  generic ``OFC_OLE_OBJECT`` content-type, the omit-extension fallback
+  still produces ``.bin``, two distinct arbitrary progIds coexist on a
+  single slide, and the :class:`pptx.enum.shapes.PROG_ID` convenience
+  path (``PROG_ID.XLSX``) continues to round-trip unchanged.
+  Cross-references #822 and the earlier #752 / #777 OLE wave. No
+  public-API change.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and
