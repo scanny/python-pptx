@@ -7,6 +7,7 @@ complement the more granular tests in :mod:`tests.opc.test__crypto` and
 
 from __future__ import annotations
 
+import importlib.util
 import io
 import os
 import zipfile
@@ -20,6 +21,13 @@ from pptx.opc._crypto import decrypt_stream
 from .unitutil.file import absjoin, test_file_dir
 
 _MINIMAL_PPTX = absjoin(test_file_dir, "minimal.pptx")
+
+# -- Issue #327: skip the entire module when msoffcrypto-tool is absent;
+#    every test here requires the optional dependency. --
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("msoffcrypto") is None,
+    reason="msoffcrypto-tool is not installed (optional test dependency for issue #327)",
+)
 
 
 class DescribePasswordRoundTrip:

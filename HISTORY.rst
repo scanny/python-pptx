@@ -145,6 +145,15 @@ Unreleased
   behave scenario in ``features/shp-shapes.feature`` runs the
   composition end-to-end so the three legs stay wired together.
 
+- build: #327 document test deps (msoffcrypto-tool, pyparsing). Annotate
+  ``requirements-test.txt`` so contributors can see at a glance which
+  optional third-party package each line unlocks, and add
+  ``@pytest.mark.skipif`` guards to ``tests/opc/test__crypto.py`` and
+  ``tests/test_password.py`` so the suite no longer errors out with
+  ``ModuleNotFoundError: No module named 'msoffcrypto'`` when the
+  optional dependency is absent — previously 5 failures + 4 errors in
+  the crypto test modules, now cleanly skipped.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
