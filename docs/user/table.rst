@@ -514,6 +514,65 @@ dash style to remove a previously-set preset.
    across the cell's interior, not along an edge.
 
 
+Setting table border colors
+---------------------------
+
+PowerPoint has no "table border" element — every border in a table is a
+per-cell attribute. To recolour the entire table's grid, walk every cell
+with :meth:`Table.iter_cells` and assign to the four edge ``LineFormat``
+properties:
+
+.. code-block:: python
+
+    from pptx import Presentation
+    from pptx.dml.color import RGBColor
+    from pptx.util import Inches, Pt
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    shape = slide.shapes.add_table(
+        rows=3, cols=4, left=Inches(1), top=Inches(1),
+        width=Inches(6), height=Inches(2),
+    )
+    table = shape.table
+
+    BORDER_COLOR = RGBColor(0xC0, 0x00, 0x00)  # dark red
+    BORDER_WIDTH = Pt(0.75)
+
+    for cell in table.iter_cells():
+        for border in (
+            cell.border_left,
+            cell.border_right,
+            cell.border_top,
+            cell.border_bottom,
+        ):
+            border.color.rgb = BORDER_COLOR
+            border.width = BORDER_WIDTH
+
+    prs.save("table-with-red-borders.pptx")
+
+A few useful variants of the same idiom:
+
+* **A single side** — skip the inner loop and assign only to
+  ``cell.border_bottom`` (for example) to draw a rule beneath the header
+  row: ``for cell in table.rows[0].cells: cell.border_bottom.color.rgb = ...``.
+* **Diagonals** — ``cell.border_diagonal_down`` and
+  ``cell.border_diagonal_up`` take the same color/width/dash assignments
+  and write ``a:lnTlToBr`` / ``a:lnBlToTr`` respectively.
+* **Dashes** — each ``LineFormat`` also accepts a ``dash_style`` from
+  :class:`~pptx.enum.dml.MSO_LINE` (e.g. ``MSO_LINE.DASH``,
+  ``MSO_LINE.ROUND_DOT``).
+* **Clear an explicit border** — assign ``width = 0`` to remove the
+  visible line; the cell then inherits whatever the table style specifies
+  for that edge.
+
+Because borders are per-cell, overlapping edges (the right edge of one
+cell and the left edge of its neighbour) are drawn by *both* cells.
+Assigning the same color and width to both guarantees a consistent line;
+setting a colour on only one side still renders, because PowerPoint
+treats the two edges independently.
+
+
 Applying a table style
 ----------------------
 

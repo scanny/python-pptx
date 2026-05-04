@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #815 resolved by feature #71 (``feat/issue-71-cell-borders``,
+  Wave 3) — per-cell border API. Issue #815
+  (https://github.com/scanny/python-pptx/issues/815) asked how to
+  change the border color of a table. In OOXML there is no table-level
+  border element; PowerPoint stores borders per-cell under
+  ``a:tc/a:tcPr`` as the children ``a:lnL`` / ``a:lnR`` / ``a:lnT`` /
+  ``a:lnB`` plus the diagonals ``a:lnTlToBr`` / ``a:lnBlToTr``. The
+  fork's ``_Cell.border_left`` / ``.border_right`` / ``.border_top`` /
+  ``.border_bottom`` / ``.border_diagonal_down`` / ``.border_diagonal_up``
+  ``LineFormat`` properties (shipped by #71) each write one of those
+  elements and support ``color.rgb``, ``width``, and ``dash_style``.
+  Paired with :meth:`Table.iter_cells`, the "colour every border in the
+  table" recipe is a one-liner. A new
+  ``tests/test_issue_815_table_border_color_verify.py`` regression
+  suite pins per-side color/width assignment, both diagonals, the
+  ``iter_cells`` bulk idiom, and a full save + reopen round-trip. A new
+  "Setting table border colors" recipe under ``docs/user/table.rst``
+  documents the answer. No public-API change.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
