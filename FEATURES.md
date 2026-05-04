@@ -1157,7 +1157,7 @@ prs.save("out.pptx")
 - `LineFormat.color` / `.width` / `.fill` — Stroke color, width, and fill overlay.
 - `LineFormat.dash_style` — `MSO_LINE_DASH_STYLE`. Fixed `ROUND_DOT` and `UP_DOWN_ARROW` mappings are `[Added in 2026.05.0]`.
 - `LineFormat.begin_arrow_head_style` / `.end_arrow_head_style` / `.begin_arrow_head_width` / `.end_arrow_head_width` / `.begin_arrow_head_length` / `.end_arrow_head_length` — Arrow-head authoring. `[Added in 2026.05.0]`
-- Enums: `MSO_FILL_TYPE`, `MSO_PATTERN_TYPE`, `MSO_THEME_COLOR`, `MSO_LINE_DASH_STYLE`, `MSO_LINE_FILL_TYPE`, `MSO_ARROWHEAD_STYLE`, `MSO_ARROWHEAD_WIDTH`, `MSO_ARROWHEAD_LENGTH`.
+- Enums: `MSO_FILL_TYPE`, `MSO_PATTERN_TYPE`, `MSO_THEME_COLOR`, `MSO_LINE_DASH_STYLE`, `MSO_LINE_FILL_TYPE`, `MSO_ARROWHEAD_STYLE`, `MSO_ARROWHEAD_WIDTH`, `MSO_ARROWHEAD_LENGTH`. `MSO_PATTERN_TYPE.PERCENT_40` is the canonical name for the former typo member `ERCENT_40`, which remains as a deprecated alias. `[Added in 2026.05.0]`
 
 ---
 
