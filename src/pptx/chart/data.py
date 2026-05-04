@@ -391,9 +391,7 @@ class Categories(Sequence):
             return False
         first_cat_label = self[0].label
         date_types = (datetime.date, datetime.datetime)
-        if isinstance(first_cat_label, date_types):
-            return True
-        return False
+        return isinstance(first_cat_label, date_types)
 
     @property
     def are_numeric(self):
@@ -414,9 +412,7 @@ class Categories(Sequence):
         # the caller's input.
         first_cat_label = self[0].label
         numeric_types = (Number, datetime.date, datetime.datetime)
-        if isinstance(first_cat_label, numeric_types):
-            return True
-        return False
+        return isinstance(first_cat_label, numeric_types)
 
     @property
     def depth(self):

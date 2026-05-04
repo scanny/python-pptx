@@ -130,9 +130,7 @@ class CT_TextBody(BaseOxmlElement):
         if not ps:
             raise InvalidXmlError("p:txBody must have at least one a:p")
 
-        if ps[0].text != "":
-            return False
-        return True
+        return ps[0].text == ""
 
     @classmethod
     def new(cls):

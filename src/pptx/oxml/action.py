@@ -5,8 +5,14 @@ from __future__ import annotations
 from typing import Callable
 
 from pptx.oxml.ns import qn
-from pptx.oxml.simpletypes import XsdString
-from pptx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute, OxmlElement
+from pptx.oxml.simpletypes import ST_RelationshipId, XsdString
+from pptx.oxml.xmlchemy import (
+    BaseOxmlElement,
+    OptionalAttribute,
+    OxmlElement,
+    RequiredAttribute,
+    ZeroOrOne,
+)
 
 # -- URI used by python-pptx to mark a run as opting out of the theme's
 # -- hyperlink-color override. PowerPoint ignores unknown extensions, so the
@@ -16,13 +22,6 @@ from pptx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute, OxmlElement
 # -- the python-pptx project domain so it won't collide with any Microsoft
 # -- or third-party extension.
 _NO_THEME_HLINK_COLOR_URI = "{PY-PPTX-940}"
-from pptx.oxml.simpletypes import ST_RelationshipId, XsdString
-from pptx.oxml.xmlchemy import (
-    BaseOxmlElement,
-    OptionalAttribute,
-    RequiredAttribute,
-    ZeroOrOne,
-)
 
 
 class CT_EmbeddedWAVAudioFile(BaseOxmlElement):

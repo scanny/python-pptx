@@ -104,7 +104,7 @@ class DataLabels(object):
         self._chart_type = chart_type
 
     @lazyproperty
-    def font(self):
+    def font(self) -> Font:
         """
         The |Font| object that provides access to the text properties for
         these data labels, such as bold, italic, etc.
@@ -114,7 +114,7 @@ class DataLabels(object):
         return font
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to line and fill formatting.
 
         Return the |ChartFormat| object providing shape formatting properties
@@ -148,7 +148,7 @@ class DataLabels(object):
         self.number_format_is_linked = False
 
     @property
-    def number_format_is_linked(self):
+    def number_format_is_linked(self) -> bool:
         """
         Read/write boolean specifying whether number formatting should be
         taken from the source spreadsheet rather than the value of
@@ -218,7 +218,7 @@ class DataLabels(object):
         )
 
     @property
-    def show_category_name(self):
+    def show_category_name(self) -> bool:
         """Read/write. True when name of category should appear in label."""
         return self._element.get_or_add_showCatName().val
 
@@ -227,7 +227,7 @@ class DataLabels(object):
         self._element.get_or_add_showCatName().val = bool(value)
 
     @property
-    def show_legend_key(self):
+    def show_legend_key(self) -> bool:
         """Read/write. True when data label displays legend-color swatch."""
         return self._element.get_or_add_showLegendKey().val
 
@@ -236,7 +236,7 @@ class DataLabels(object):
         self._element.get_or_add_showLegendKey().val = bool(value)
 
     @property
-    def show_percentage(self):
+    def show_percentage(self) -> bool:
         """Read/write. True when data label displays percentage.
 
         This option is not operative on all chart types. Percentage appears
@@ -249,7 +249,7 @@ class DataLabels(object):
         self._element.get_or_add_showPercent().val = bool(value)
 
     @property
-    def show_series_name(self):
+    def show_series_name(self) -> bool:
         """Read/write. True when data label displays series name."""
         return self._element.get_or_add_showSerName().val
 
@@ -258,7 +258,7 @@ class DataLabels(object):
         self._element.get_or_add_showSerName().val = bool(value)
 
     @property
-    def show_value(self):
+    def show_value(self) -> bool:
         """Read/write. True when label displays numeric value of datapoint."""
         return self._element.get_or_add_showVal().val
 
@@ -267,7 +267,7 @@ class DataLabels(object):
         self._element.get_or_add_showVal().val = bool(value)
 
     @property
-    def text_frame(self):
+    def text_frame(self) -> TextFrame:
         """|TextFrame| providing access to text-body properties of this data-label collection.
 
         The returned |TextFrame| wraps the ``c:txPr`` (text-properties) element that holds
@@ -313,7 +313,7 @@ class DataLabel(object):
         return paragraph.font
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to line and fill formatting.
 
         Return the |ChartFormat| object providing shape formatting properties
@@ -325,7 +325,7 @@ class DataLabel(object):
         return ChartFormat(dLbl)
 
     @property
-    def has_text_frame(self):
+    def has_text_frame(self) -> bool:
         """
         Return |True| if this data label has a text frame (implying it has
         custom data label text), and |False| otherwise. Assigning |True|
@@ -336,9 +336,7 @@ class DataLabel(object):
         dLbl = self._dLbl
         if dLbl is None:
             return False
-        if dLbl.xpath("c:tx/c:rich"):
-            return True
-        return False
+        return bool(dLbl.xpath("c:tx/c:rich"))
 
     @has_text_frame.setter
     def has_text_frame(self, value):
@@ -453,7 +451,7 @@ class DataLabel(object):
         numFmt.sourceLinked = False
 
     @property
-    def number_format_is_linked(self):
+    def number_format_is_linked(self) -> bool:
         """Read/write bool whether label's number format follows the source.
 
         |True| when the rendered number format is taken from the source
@@ -557,7 +555,7 @@ class DataLabel(object):
         dLbl.set_text_from_cells_f(str(value))
 
     @property
-    def text_frame(self):
+    def text_frame(self) -> TextFrame:
         """
         |TextFrame| instance for this data label, containing the text of the
         data label and providing access to its text formatting properties.

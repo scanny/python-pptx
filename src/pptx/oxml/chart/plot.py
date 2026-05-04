@@ -63,9 +63,9 @@ class BaseChartElement(BaseOxmlElement):
         if not cat_pts:
             cat_pts = self.xpath("./c:ser[1]/c:cat//c:pt")
 
-        cat_pt_dict = dict((pt.idx, pt) for pt in cat_pts)
+        cat_pt_dict = {pt.idx: pt for pt in cat_pts}
 
-        return [cat_pt_dict.get(idx, None) for idx in range(self.cat_pt_count)]
+        return [cat_pt_dict.get(idx) for idx in range(self.cat_pt_count)]
 
     @property
     def grouping_val(self):

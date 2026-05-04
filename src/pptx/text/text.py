@@ -331,7 +331,10 @@ class TextFrame(Subshape):
         60000ths of a degree under the hood. Assigning |None| (or ``0``)
         removes the ``@rot`` attribute entirely. See issues #133 and #485.
         """
-        return self._bodyPr.rot
+        # -- `OptionalAttribute` descriptor maps `None` to the declared default
+        # -- of `0.0` when reading, so the concrete return type is `float`. --
+        rot = self._bodyPr.rot
+        return 0.0 if rot is None else rot
 
     @rotation.setter
     def rotation(self, value: float | None):
@@ -1277,10 +1280,12 @@ class Font(object):
             prs_part = part.package.presentation_part
         except AttributeError:
             return None
-        if prs_part is None:
-            return None
+        # -- read the presentation root element off the part. `_element` is the
+        # -- XmlPart-shared attribute name; `element` is an older alias some
+        # -- test doubles still surface, so fall back to that rather than
+        # -- raising when a fixture hasn't wired up `_element`. --
         try:
-            return prs_part.element
+            return prs_part._element  # pyright: ignore[reportPrivateUsage]
         except AttributeError:
             return None
 
@@ -2420,7 +2425,7 @@ class _Run(Subshape):
         return _Hyperlink(rPr, self)
 
     @property
-    def text(self):
+    def text(self) -> str:
         """Read/write. A unicode string containing the text in this run.
 
         Assignment replaces all text in the run. The assigned value can be a 7-bit ASCII
@@ -2542,12 +2547,10 @@ def _replace_in_runs(runs: list[CT_RegularTextRun], find: str, replace: str) -> 
         assert first_text is not None
         prefix = first_text[: start - run_offsets[first_run]]
         # -- compute the surviving suffix of the last run (if partial) --
+        # -- last_text being None "shouldn't happen" for a match end but we
+        # -- guard anyway by defaulting the suffix to "". --
         last_text = new_texts[last_run]
-        if last_text is None:
-            # -- shouldn't happen for a match end, but guard anyway --
-            suffix = ""
-        else:
-            suffix = last_text[end - run_offsets[last_run] :]
+        suffix = "" if last_text is None else last_text[end - run_offsets[last_run] :]
 
         if first_run == last_run:
             # -- match lies entirely within a single run; just splice --

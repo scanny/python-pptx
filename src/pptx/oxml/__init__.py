@@ -685,11 +685,12 @@ from pptx.oxml.animation import (  # noqa: E402
     CT_TLAnimateEffectBehavior,
     CT_TLCommonBehaviorData,
     CT_TLSetBehavior,
-    CT_TLShapeTargetElement,
-    CT_TLTimeCondition,
-    CT_TLTimeConditionList,
     CT_TLTimeTargetElement,
 )
+
+# -- CT_TLShapeTargetElement / CT_TLTimeCondition / CT_TLTimeConditionList are
+# -- already imported above (via `pptx.oxml.slide`, which re-exports them from
+# -- `pptx.oxml.timing`, which re-exports them from `pptx.oxml.animation`).
 
 register_element_cls("p:anim", CT_TLAnimateBehavior)
 register_element_cls("p:animEffect", CT_TLAnimateEffectBehavior)

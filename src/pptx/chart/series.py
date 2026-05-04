@@ -94,7 +94,7 @@ class ErrorBars(object):
         errDir.val = value
 
     @property
-    def end_cap(self):
+    def end_cap(self) -> bool:
         """Read/write boolean.
 
         |True| if each error bar ends with a small perpendicular "T" cap (the
@@ -114,7 +114,7 @@ class ErrorBars(object):
         noEndCap.val = not bool(value)
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """The |ChartFormat| object providing line/fill properties for the bars.
 
         .. versionadded:: 2026.05.0
@@ -157,7 +157,7 @@ class ErrorBars(object):
         errValType.val = value
 
     @property
-    def value(self):
+    def value(self) -> float | None:
         """Read/write float specifying the fixed magnitude or percentage for the bars.
 
         Meaningful only when :attr:`type` is :attr:`XL_ERROR_BAR_TYPE.FIXED_VALUE`
@@ -239,7 +239,7 @@ class Trendline(object):
         self._trendline.trendlineType.val = value
 
     @property
-    def order(self):
+    def order(self) -> int:
         """Read/write int in range 2..6 specifying the polynomial order.
 
         Only meaningful when :attr:`trendline_type` is
@@ -257,7 +257,7 @@ class Trendline(object):
         self._trendline.get_or_add_order().val = value
 
     @property
-    def period(self):
+    def period(self) -> int:
         """Read/write int >= 2 specifying the moving-average window size.
 
         Only meaningful when :attr:`trendline_type` is
@@ -275,7 +275,7 @@ class Trendline(object):
         self._trendline.get_or_add_period().val = value
 
     @property
-    def forward(self):
+    def forward(self) -> float | None:
         """Read/write float specifying categories to extend past the data.
 
         How many category units the fitted curve extends *beyond* the last
@@ -295,7 +295,7 @@ class Trendline(object):
         self._trendline.get_or_add_forward().val = float(value)
 
     @property
-    def backward(self):
+    def backward(self) -> float | None:
         """Read/write float specifying categories to extend before the data.
 
         How many category units the fitted curve extends *before* the first
@@ -315,7 +315,7 @@ class Trendline(object):
         self._trendline.get_or_add_backward().val = float(value)
 
     @property
-    def intercept(self):
+    def intercept(self) -> float | None:
         """Read/write float forcing the curve through a specific y-intercept.
 
         |None| when no ``c:intercept`` child is present — PowerPoint then
@@ -334,7 +334,7 @@ class Trendline(object):
         self._trendline.get_or_add_intercept().val = float(value)
 
     @property
-    def display_equation(self):
+    def display_equation(self) -> bool:
         """Read/write bool: draw the fitted equation on the chart.
 
         Maps ``c:dispEq``. Defaults to |False| when the element is absent.
@@ -352,7 +352,7 @@ class Trendline(object):
         self._trendline.get_or_add_dispEq().val = True
 
     @property
-    def display_r_squared(self):
+    def display_r_squared(self) -> bool:
         """Read/write bool: draw the fit's R-squared value on the chart.
 
         Maps ``c:dispRSqr``. Defaults to |False| when the element is absent.
@@ -370,7 +370,7 @@ class Trendline(object):
         self._trendline.get_or_add_dispRSqr().val = True
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Read/write string: the user-visible label for this trendline.
 
         Maps ``c:name``. Returns an empty string when the element is absent —
@@ -390,7 +390,7 @@ class Trendline(object):
         name.text = str(value)
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """The |ChartFormat| object providing line/fill properties for this trendline.
 
         .. versionadded:: 2026.05.0
@@ -450,7 +450,7 @@ class _BaseSeries(object):
         self._ser = ser
 
     @property
-    def error_bars(self):
+    def error_bars(self) -> ErrorBars | None:
         """The |ErrorBars| object describing this series' error bars, or |None|.
 
         Returns |None| when the series has no ``c:errBars`` child. Assigning a
@@ -535,7 +535,7 @@ class _BaseSeries(object):
             parent.remove(self._ser)
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """
         The |ChartFormat| instance for this series, providing access to shape
         properties such as fill and line.
@@ -543,7 +543,7 @@ class _BaseSeries(object):
         return ChartFormat(self._ser)
 
     @property
-    def has_error_bars(self):
+    def has_error_bars(self) -> bool:
         """|True| if this series has a ``c:errBars`` child element, |False| otherwise.
 
         Equivalent to ``series.error_bars is not None`` but more idiomatic when the
@@ -552,7 +552,7 @@ class _BaseSeries(object):
         return self._ser.errBars is not None
 
     @property
-    def index(self):
+    def index(self) -> int:
         """
         The zero-based integer index of this series as reported in its
         `c:ser/c:idx` element.
@@ -560,7 +560,7 @@ class _BaseSeries(object):
         return self._element.idx.val
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         The string label given to this series, appears as the title of the
         column for this series in the Excel worksheet. It also appears as the
@@ -571,7 +571,7 @@ class _BaseSeries(object):
         return name
 
     @property
-    def source_range(self):
+    def source_range(self) -> str | None:
         """Read/write formula text of ``c:val/c:numRef/c:f``, or |None|.
 
         Returns the formula — e.g. ``"Sheet1!$B$2:$F$2"`` — that points the
@@ -624,7 +624,7 @@ class _BaseSeries(object):
         f.text = str(value)
 
     @property
-    def category_range(self):
+    def category_range(self) -> str | None:
         """Read-only formula text of ``c:cat/c:strRef/c:f`` or ``c:cat/c:numRef/c:f``.
 
         Returns the formula — e.g. ``"Sheet1!$A$2:$A$6"`` — that points the
@@ -640,7 +640,7 @@ class _BaseSeries(object):
         return self._f_text("./c:cat/c:strRef/c:f") or self._f_text("./c:cat/c:numRef/c:f")
 
     @property
-    def name_range(self):
+    def name_range(self) -> str | None:
         """Read-only formula text of ``c:tx/c:strRef/c:f``.
 
         Returns the formula — e.g. ``"Sheet1!$B$1"`` — that points the
@@ -655,7 +655,7 @@ class _BaseSeries(object):
         return self._f_text("./c:tx/c:strRef/c:f")
 
     @property
-    def values_sheet_reference(self):
+    def values_sheet_reference(self) -> SheetReference | None:
         """|SheetReference| parsed from :attr:`source_range`, or |None|.
 
         Returns a ``(sheet_name, a1_range)`` :class:`~pptx.chart.series.SheetReference`
@@ -682,7 +682,7 @@ class _BaseSeries(object):
         return text if text else None
 
     @property
-    def trendlines(self):
+    def trendlines(self) -> list[Trendline]:
         """List of |Trendline| objects currently attached to this series.
 
         Returns a fresh list on each access (mutations to the list itself are

@@ -30,7 +30,7 @@ class _BasePlot(object):
         self._chart = chart
 
     @lazyproperty
-    def categories(self):
+    def categories(self) -> Categories:
         """
         Returns a |category.Categories| sequence object containing
         a |category.Category| object for each of the category labels
@@ -51,7 +51,7 @@ class _BasePlot(object):
         return self._chart
 
     @property
-    def data_labels(self):
+    def data_labels(self) -> DataLabels:
         """
         |DataLabels| instance providing properties and methods on the
         collection of data labels associated with this plot.
@@ -76,7 +76,7 @@ class _BasePlot(object):
             return None
 
     @property
-    def has_data_labels(self):
+    def has_data_labels(self) -> bool:
         """
         Read/write boolean, |True| if the series has data labels. Assigning
         |True| causes data labels to be added to the plot. Assigning False
@@ -101,7 +101,7 @@ class _BasePlot(object):
                 dLbls.showVal.val = True
 
     @lazyproperty
-    def series(self):
+    def series(self) -> SeriesCollection:
         """
         A sequence of |Series| objects representing the series in this plot,
         in the order they appear in the plot.
@@ -109,7 +109,7 @@ class _BasePlot(object):
         return SeriesCollection(self._element)
 
     @property
-    def vary_by_categories(self):
+    def vary_by_categories(self) -> bool:
         """
         Read/write boolean value specifying whether to use a different color
         for each of the points in this plot. Only effective when there is
@@ -144,7 +144,7 @@ class BarPlot(_BasePlot):
     """
 
     @property
-    def gap_width(self):
+    def gap_width(self) -> int:
         """
         Width of gap between bar(s) of each category, as an integer
         percentage of the bar width. The default value for a new bar chart is
@@ -161,7 +161,7 @@ class BarPlot(_BasePlot):
         gapWidth.val = value
 
     @property
-    def has_series_lines(self):
+    def has_series_lines(self) -> bool:
         """Read/write |bool| specifying whether this plot has series lines.
 
         Series lines connect the tops of stacked bars or columns across
@@ -184,7 +184,7 @@ class BarPlot(_BasePlot):
             self._element.get_or_add_serLines()
 
     @lazyproperty
-    def series_lines(self):
+    def series_lines(self) -> SeriesLines:
         """|SeriesLines| object providing access to series-line formatting.
 
         Accessing this property is destructive in the sense that it adds
@@ -195,7 +195,7 @@ class BarPlot(_BasePlot):
         return SeriesLines(self._element)
 
     @property
-    def overlap(self):
+    def overlap(self) -> int:
         """
         Read/write int value in range -100..100 specifying a percentage of
         the bar width by which to overlap adjacent bars in a multi-series bar
@@ -226,7 +226,7 @@ class BubblePlot(_BasePlot):
     """
 
     @property
-    def bubble_scale(self):
+    def bubble_scale(self) -> int:
         """
         An integer between 0 and 300 inclusive indicating the percentage of
         the default size at which bubbles should be displayed. Assigning
@@ -302,7 +302,7 @@ class SeriesLines(ElementProxy):
         self._xChart = xChart  # c:barChart element
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| proxy for the ``c:serLines`` element.
 
         Provides ``format.line`` and ``format.fill`` access to the
@@ -429,9 +429,7 @@ class PlotTypeInspector(object):
 
         def has_line_markers():
             matches = lineChart.xpath('c:ser/c:marker/c:symbol[@val="none"]')
-            if matches:
-                return False
-            return True
+            return not matches
 
         if has_line_markers():
             return {
@@ -465,9 +463,7 @@ class PlotTypeInspector(object):
 
         def noMarkers():
             matches = radarChart.xpath("c:ser/c:marker/c:symbol")
-            if matches and matches[0].get("val") == "none":
-                return True
-            return False
+            return bool(matches and matches[0].get("val") == "none")
 
         if radar_style is None:
             return XL.RADAR
@@ -486,9 +482,7 @@ class PlotTypeInspector(object):
 
         def noMarkers():
             symbols = scatterChart.xpath("c:ser/c:marker/c:symbol")
-            if symbols and symbols[0].get("val") == "none":
-                return True
-            return False
+            return bool(symbols and symbols[0].get("val") == "none")
 
         scatter_style = scatterChart.xpath("c:scatterStyle")[0].get("val")
 

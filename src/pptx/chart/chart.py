@@ -196,7 +196,7 @@ class Chart(PartElementProxy):
         _ChartTemplateApplier(self._chartSpace, template_chartSpace).apply()
 
     @property
-    def category_axis(self):
+    def category_axis(self) -> CategoryAxis | DateAxis | ValueAxis:
         """
         The category axis of this chart. In the case of an XY or Bubble
         chart, this is the X axis. Raises |ValueError| if no category
@@ -217,7 +217,7 @@ class Chart(PartElementProxy):
         raise ValueError("chart has no category axis")
 
     @property
-    def chart_style(self):
+    def chart_style(self) -> int | None:
         """Read/write integer index of chart style used to format this chart.
 
         Chart styles live in two tiers in the OOXML schema, and this property spans both:
@@ -294,7 +294,7 @@ class Chart(PartElementProxy):
         self._chartSpace.set_chart_style_ex_val(value)
 
     @property
-    def chart_title(self):
+    def chart_title(self) -> ChartTitle:
         """A |ChartTitle| object providing access to title properties.
 
         Calling this property is destructive in the sense it adds a chart
@@ -361,7 +361,7 @@ class Chart(PartElementProxy):
         return self
 
     @property
-    def chart_type(self):
+    def chart_type(self) -> XL_CHART_TYPE:
         """Member of :ref:`XlChartType` enumeration specifying type of this chart.
 
         If the chart has two plots, for example, a line plot overlayed on a bar plot,
@@ -405,13 +405,13 @@ class Chart(PartElementProxy):
         dispBlanksAs.val = value
 
     @lazyproperty
-    def font(self):
+    def font(self) -> Font:
         """Font object controlling text format defaults for this chart."""
         defRPr = self._chartSpace.get_or_add_txPr().p_lst[0].get_or_add_pPr().get_or_add_defRPr()
         return Font(defRPr)
 
     @property
-    def has_data_table(self):
+    def has_data_table(self) -> bool:
         """Read/write |bool| specifying whether a data table is shown beneath the chart.
 
         Assigning |True| adds a default ``c:plotArea/c:dTable`` element
@@ -436,7 +436,7 @@ class Chart(PartElementProxy):
             plotArea._insert_dTable(_new_default_dTable())
 
     @property
-    def data_table(self):
+    def data_table(self) -> _DataTable | None:
         """A |_DataTable| proxy for the data table beneath this chart, or ``None``.
 
         Returns ``None`` when the chart has no ``c:plotArea/c:dTable``
@@ -452,7 +452,7 @@ class Chart(PartElementProxy):
         return _DataTable(dTable)
 
     @property
-    def has_legend(self):
+    def has_legend(self) -> bool:
         """
         Read/write boolean, |True| if the chart has a legend. Assigning
         |True| causes a legend to be added to the chart if it doesn't already
@@ -466,17 +466,14 @@ class Chart(PartElementProxy):
         self._chartSpace.chart.has_legend = bool(value)
 
     @property
-    def has_title(self):
+    def has_title(self) -> bool:
         """Read/write boolean, specifying whether this chart has a title.
 
         Assigning |True| causes a title to be added if not already present.
         Assigning |False| removes any existing title along with its text and
         settings.
         """
-        title = self._chartSpace.chart.title
-        if title is None:
-            return False
-        return True
+        return self._chartSpace.chart.title is not None
 
     @has_title.setter
     def has_title(self, value):
@@ -498,7 +495,7 @@ class Chart(PartElementProxy):
             autoTitleDeleted.val = False
 
     @property
-    def legend(self):
+    def legend(self) -> Legend | None:
         """
         A |Legend| object providing access to the properties of the legend
         for this chart.
@@ -509,7 +506,7 @@ class Chart(PartElementProxy):
         return Legend(legend_elm)
 
     @lazyproperty
-    def plot_area(self):
+    def plot_area(self) -> PlotArea:
         """|PlotArea| instance providing access to plot-area formatting.
 
         The plot area is the rectangular region of a chart that contains the
@@ -717,7 +714,7 @@ class Chart(PartElementProxy):
             _ChartCacheRefresher(self._chartSpace, reader).refresh()
 
     @lazyproperty
-    def series(self):
+    def series(self) -> SeriesCollection:
         """
         A |SeriesCollection| object containing all the series in this
         chart. When the chart has multiple plots, all the series for the
@@ -727,7 +724,7 @@ class Chart(PartElementProxy):
         return SeriesCollection(self._chartSpace.plotArea)
 
     @property
-    def series_in_rows(self):
+    def series_in_rows(self) -> bool | None:
         """Read-only |bool| indicating whether series data are in rows.
 
         Corresponds to the "Switch Row/Column" state of the chart's source
@@ -808,7 +805,7 @@ class Chart(PartElementProxy):
         return None
 
     @property
-    def value_axis(self):
+    def value_axis(self) -> ValueAxis:
         """The |ValueAxis| object for the value axis of this chart.
 
         Returns the **last** ``c:valAx`` element in the chart's plot area —
@@ -835,7 +832,7 @@ class Chart(PartElementProxy):
         return ValueAxis(valAx_lst[idx])
 
     @property
-    def primary_value_axis(self):
+    def primary_value_axis(self) -> ValueAxis:
         """The |ValueAxis| for the primary value axis of this chart.
 
         Returns the **first** ``c:valAx`` element in the chart's plot area.
@@ -860,7 +857,7 @@ class Chart(PartElementProxy):
         return ValueAxis(valAx_lst[0])
 
     @property
-    def has_secondary_value_axis(self):
+    def has_secondary_value_axis(self) -> bool:
         """Read-only |bool| specifying whether this chart has a secondary value axis.
 
         Returns |True| when this chart has a second `c:valAx` element designating
@@ -873,7 +870,7 @@ class Chart(PartElementProxy):
         return self._chartSpace.plotArea.secondary_valAx is not None
 
     @property
-    def secondary_value_axis(self):
+    def secondary_value_axis(self) -> ValueAxis:
         """The |ValueAxis| object for the secondary value axis of this chart.
 
         Raises |ValueError| if the chart has no secondary value axis. Use
@@ -934,7 +931,7 @@ class Chart(PartElementProxy):
         return shapes.clone_chart(self, x, y, cx, cy)
 
     @property
-    def has_user_shapes(self):
+    def has_user_shapes(self) -> bool:
         """Read-only |bool| specifying whether this chart has any user-shape annotations.
 
         ``True`` when the chart has a ``chartUserShapes`` relationship (the
@@ -985,7 +982,7 @@ class Chart(PartElementProxy):
             return None
 
     @property
-    def workbook(self):
+    def workbook(self) -> bytes | None:
         """Bytes of this chart's embedded Excel workbook, or ``None``.
 
         Reads the raw bytes of the ``.xlsx`` part referenced by this chart's
@@ -1042,7 +1039,7 @@ class ChartTitle(ElementProxy):
         self._title = title
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to line and fill formatting.
 
         Return the |ChartFormat| object providing shape formatting properties
@@ -1051,7 +1048,7 @@ class ChartTitle(ElementProxy):
         return ChartFormat(self._title)
 
     @property
-    def has_text_frame(self):
+    def has_text_frame(self) -> bool:
         """Read/write Boolean specifying whether this title has a text frame.
 
         Return |True| if this chart title has a text frame, and |False|
@@ -1059,9 +1056,7 @@ class ChartTitle(ElementProxy):
         already present. Assigning |False| causes any existing text frame to
         be removed along with its text and formatting.
         """
-        if self._title.tx_rich is None:
-            return False
-        return True
+        return self._title.tx_rich is not None
 
     @has_text_frame.setter
     def has_text_frame(self, value):
@@ -1071,7 +1066,7 @@ class ChartTitle(ElementProxy):
         self._title.get_or_add_tx_rich()
 
     @property
-    def text_frame(self):
+    def text_frame(self) -> TextFrame:
         """|TextFrame| instance for this chart title.
 
         Return a |TextFrame| instance allowing read/write access to the text
@@ -1147,7 +1142,7 @@ class PlotArea(ElementProxy):
         self._plotArea = plotArea
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to line and fill formatting.
 
         Returns the |ChartFormat| proxy for this plot area's ``c:spPr``
@@ -1182,7 +1177,7 @@ class _DataTable(ElementProxy):
         self._dTable = dTable
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to line and fill formatting.
 
         Returns the |ChartFormat| proxy for this data table's ``c:spPr``
@@ -1196,7 +1191,7 @@ class _DataTable(ElementProxy):
         return ChartFormat(self._dTable)
 
     @property
-    def show_horz_border(self):
+    def show_horz_border(self) -> bool:
         """Read/write |bool| specifying whether horizontal borders are shown.
 
         Corresponds to the ``c:showHorzBorder`` child. Returns |True| when
@@ -1210,7 +1205,7 @@ class _DataTable(ElementProxy):
         self._set_show_val("showHorzBorder", value)
 
     @property
-    def show_vert_border(self):
+    def show_vert_border(self) -> bool:
         """Read/write |bool| specifying whether vertical borders are shown.
 
         Corresponds to the ``c:showVertBorder`` child. Returns |True| when
@@ -1224,7 +1219,7 @@ class _DataTable(ElementProxy):
         self._set_show_val("showVertBorder", value)
 
     @property
-    def show_outline(self):
+    def show_outline(self) -> bool:
         """Read/write |bool| specifying whether the data-table outline is shown.
 
         Corresponds to the ``c:showOutline`` child. Returns |True| when the
@@ -1238,7 +1233,7 @@ class _DataTable(ElementProxy):
         self._set_show_val("showOutline", value)
 
     @property
-    def show_keys(self):
+    def show_keys(self) -> bool:
         """Read/write |bool| specifying whether legend keys are shown in the data table.
 
         Corresponds to the ``c:showKeys`` child. Returns |True| when the

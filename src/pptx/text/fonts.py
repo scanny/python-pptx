@@ -175,10 +175,10 @@ class _Font(object):
         A mapping of OpenType table tag, e.g. 'name', to a table object
         providing access to the contents of that table.
         """
-        return dict(
-            (tag, _TableFactory(tag, self._stream, off, len_))
+        return {
+            tag: _TableFactory(tag, self._stream, off, len_)
             for tag, off, len_ in self._iter_table_records()
-        )
+        }
 
     @property
     def _table_count(self):

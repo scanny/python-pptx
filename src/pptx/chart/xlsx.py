@@ -439,10 +439,7 @@ def parse_sheet_range_ref(ref):
     if m is None:
         return None
     sheet = m.group("qsheet")
-    if sheet is not None:
-        sheet = sheet.replace("''", "'")
-    else:
-        sheet = m.group("sheet")
+    sheet = sheet.replace("''", "'") if sheet is not None else m.group("sheet")
     col1 = _column_letters_to_index(m.group("col1"))
     row1 = int(m.group("row1"))
     col2 = _column_letters_to_index(m.group("col2")) if m.group("col2") else col1
@@ -602,10 +599,7 @@ class WorkbookReader(object):
             if target is None:
                 continue
             # Targets are relative to xl/ (e.g. 'worksheets/sheet1.xml').
-            if target.startswith("/"):
-                path = target.lstrip("/")
-            else:
-                path = "xl/" + target
+            path = target.lstrip("/") if target.startswith("/") else "xl/" + target
             self._sheet_targets[name] = path
 
     def _load_shared_strings(self):

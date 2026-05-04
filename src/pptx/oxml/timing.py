@@ -288,10 +288,7 @@ class CT_TLCommonTimeNodeData(BaseOxmlElement):
         ST_TLTime.validate(value)
         stCondLst = self.get_or_add_stCondLst()
         conds = stCondLst.findall(qn("p:cond"))
-        if not conds:
-            cond = stCondLst.add_cond()
-        else:
-            cond = conds[0]
+        cond = stCondLst.add_cond() if not conds else conds[0]
         cond.delay = value
 
 

@@ -59,7 +59,7 @@ class Legend(object):
             self._element.remove(legendEntry)
 
     @property
-    def hidden_entries(self):
+    def hidden_entries(self) -> tuple[int, ...]:
         """Read-only tuple of integer indices of currently hidden legend entries.
 
         Indices are 0-based and correspond to the ``c:idx/@val`` of each
@@ -72,7 +72,7 @@ class Legend(object):
         return self._element.hidden_entry_idxs
 
     @lazyproperty
-    def font(self):
+    def font(self) -> Font:
         """
         The |Font| object that provides access to the text properties for
         this legend, such as bold, italic, etc.
@@ -82,7 +82,7 @@ class Legend(object):
         return font
 
     @property
-    def horz_offset(self):
+    def horz_offset(self) -> float | None:
         """
         Adjustment of the x position of the legend from its default.
         Expressed as a float between -1.0 and 1.0 representing a fraction of
@@ -96,7 +96,7 @@ class Legend(object):
         self._element.horz_offset = value
 
     @property
-    def include_in_layout(self):
+    def include_in_layout(self) -> bool:
         """|True| if legend should be located inside plot area.
 
         Read/write boolean specifying whether legend should be placed inside

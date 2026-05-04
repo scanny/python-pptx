@@ -29,8 +29,8 @@ from pptx.shared import ElementProxy, ParentedElementProxy, PartElementProxy
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
-    from pptx.opc.package import Part
     from pptx.comments import Comments
+    from pptx.opc.package import Part
     from pptx.oxml.presentation import CT_SlideId, CT_SlideIdList, CT_SlideMasterIdList
     from pptx.oxml.slide import (
         CT_Background,
@@ -111,7 +111,7 @@ class _BaseMaster(_BaseSlide):
         return MasterPlaceholders(self._element.spTree, self)
 
     @lazyproperty
-    def shapes(self):
+    def shapes(self) -> MasterShapes:
         """
         Instance of |MasterShapes| containing sequence of shape objects
         appearing on this slide.
@@ -1153,7 +1153,7 @@ class SlideLayout(_BaseSlide):
         return self.part.slide_master
 
     @property
-    def used_by_slides(self):
+    def used_by_slides(self) -> tuple[Slide, ...]:
         """Tuple of slide objects based on this slide layout."""
         # ---getting Slides collection requires going around the horn a bit---
         slides = self.part.package.presentation_part.presentation.slides
@@ -2512,7 +2512,7 @@ class _Background(ElementProxy):
         return self._parent.part
 
     @lazyproperty
-    def fill(self):
+    def fill(self) -> FillFormat:
         """|FillFormat| instance for this background.
 
         This |FillFormat| object is used to interrogate or specify the fill
