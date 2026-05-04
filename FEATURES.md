@@ -827,7 +827,7 @@ prs.save("out.pptx")
 - `BaseShape.text_frame_rect` — `TextFrameRect` namedtuple `(left, top, width, height)` in EMU for the rectangle PowerPoint allocates for rendering text, shape bounding-box shrunk by the four `TextFrame.margin_*` insets. Raises `ValueError` on a shape without a text frame. `[Added in 2026.05.0]`
 - `TextFrame.text` — Read/write plain text. `\v` round-trips as a soft line-break. `[Added in 2026.05.0]` for `\v` normalisation.
 - `TextFrame.paragraphs` — Tuple of `_Paragraph`.
-- `TextFrame.add_paragraph()` — Append a paragraph.
+- `TextFrame.add_paragraph(text=None, *, bold=None, italic=None, size=None, color=None, font_name=None)` — Append a paragraph. `text` plus the keyword-only run-level formatting kwargs spawn a single `a:r` run carrying `text` with the requested font attributes applied. `color` accepts `RGBColor` or `MSO_THEME_COLOR`. Passing a run-level kwarg without `text` raises `ValueError`. The bare no-arg form is unchanged. `[Added in 2026.05.0]` for the `text=` / run-level kwargs (issue #134).
 - `TextFrame.clear()` — Remove all paragraphs but keep the first (empty) one.
 - `TextFrame.word_wrap` / `TextFrame.auto_size` / `TextFrame.vertical_anchor` / `TextFrame.rotation` — Layout. `rotation` is `[Added in 2026.05.0]`.
 - `TextFrame.margin_top` / `margin_bottom` / `margin_left` / `margin_right` — Internal padding.
@@ -835,7 +835,7 @@ prs.save("out.pptx")
 - `TextFrame.font_scale` / `TextFrame.line_space_reduction` — Readbacks for the scaling fit_text applied. `[Added in 2026.05.0]`
 - `TextFrame.replace_text(find, replace)` — Bulk search/replace preserving per-run formatting. `[Added in 2026.05.0]`
 - `_Paragraph.text` / `.runs` / `.alignment` / `.level` / `.space_before` / `.space_after` / `.line_spacing` — Paragraph formatting.
-- `_Paragraph.add_run()` / `.add_line_break()` — Authoring.
+- `_Paragraph.add_run(text=None, *, bold=None, italic=None, size=None, color=None, font_name=None)` / `.add_line_break()` — Authoring. `add_run` accepts the run text plus keyword-only run-level formatting shortcuts (same kwargs and semantics as `TextFrame.add_paragraph`). `[Added in 2026.05.0]` for the `text=` / run-level kwargs (issue #134).
 - `_Paragraph.add_field(field_type, text="")` — Append a `a:fld` (slide number, date, etc.). `[Added in 2026.05.0]`
 - `_Paragraph.add_math_equation(omml_xml)` — Append an OMML equation. `[Added in 2026.05.0]`
 - `_Paragraph.delete()` — Remove this paragraph. `[Added in 2026.05.0]`
@@ -1253,14 +1253,14 @@ prs.save("out.pptx")
 - `_Cell.margin_top` / `.margin_bottom` / `.margin_left` / `.margin_right` — Cell padding.
 - `_Cell.border_top` / `.border_bottom` / `.border_left` / `.border_right` / `.border_diagonal_down` / `.border_diagonal_up` — Cell-border `_CellBorder` proxies. `[Added in 2026.05.0]`
 
-- `TextFrame.paragraphs` / `TextFrame.add_paragraph()` / `TextFrame.text` / `TextFrame.clear()`.
+- `TextFrame.paragraphs` / `TextFrame.add_paragraph(text=None, *, bold=None, italic=None, size=None, color=None, font_name=None)` / `TextFrame.text` / `TextFrame.clear()`. `text` plus keyword-only run-level formatting shortcuts on `add_paragraph` are `[Added in 2026.05.0]` (issue #134).
 - `TextFrame.word_wrap` / `.vertical_anchor` / `.auto_size` / `.margin_left` / `.margin_right` / `.margin_top` / `.margin_bottom` — Body-property knobs.
 - `TextFrame.rotation` — Read/write float degrees (rotates text inside the frame, distinct from shape rotation). `[Added in 1.0.2.dev0]`
 - `TextFrame.font_scale` — Autofit font-scale percent (reads/writes `a:normAutofit/@fontScale`). `[Added in 1.0.2.dev0]`
 - `TextFrame.line_space_reduction` — Autofit line-space reduction percent. `[Added in 1.0.2.dev0]`
 - `TextFrame.fit_text(font_family=..., max_size=..., bold=..., italic=..., font_file=...)` — Compute and store autofit hints.
 - `TextFrame.replace_text(find, replace)` — Cross-run text replacement preserving origin-run formatting. Returns replacement count. `[Added in 1.0.2.dev0]`
-- `_Paragraph.add_run()` / `_Paragraph.add_line_break()` / `_Paragraph.add_field(field_type, text="")` — Content.
+- `_Paragraph.add_run(text=None, *, bold=None, italic=None, size=None, color=None, font_name=None)` / `_Paragraph.add_line_break()` / `_Paragraph.add_field(field_type, text="")` — Content. `text` plus run-level formatting kwargs on `add_run` are `[Added in 2026.05.0]` (issue #134).
 - `_Paragraph.add_math_equation(omml_xml)` — Insert a pre-authored OMML equation (see [Math equations](#math-equations)). `[Added in 1.0.2.dev0]`
 - `_Paragraph.replace_text(find, replace)` — Paragraph-scoped cross-run replace. `[Added in 1.0.2.dev0]`
 - `_Paragraph.delete()` — Remove the paragraph (fresh empty `a:p` inserted when it was the last one). `[Added in 1.0.2.dev0]`

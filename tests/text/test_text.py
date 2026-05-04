@@ -57,6 +57,74 @@ class DescribeTextFrame(object):
         text_frame.add_paragraph()
         assert text_frame._txBody.xml == expected_xml
 
+    def it_can_add_a_paragraph_with_text_in_one_call(self):
+        """`TextFrame.add_paragraph(text=...)` spawns an `a:r` carrying `text` — issue #134."""
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        paragraph = text_frame.add_paragraph("hello")
+
+        assert isinstance(paragraph, _Paragraph)
+        assert paragraph.text == "hello"
+        assert len(paragraph.runs) == 1
+        assert paragraph.runs[0].text == "hello"
+
+    def it_applies_font_kwargs_to_the_new_run_when_text_is_given(self):
+        """Run-level kwargs apply to the newly-spawned run — issue #134."""
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        paragraph = text_frame.add_paragraph(
+            "styled",
+            bold=True,
+            italic=True,
+            size=Pt(24),
+            color=RGBColor(0xAA, 0xBB, 0xCC),
+            font_name="Calibri",
+        )
+
+        run = paragraph.runs[0]
+        assert run.text == "styled"
+        assert run.font.bold is True
+        assert run.font.italic is True
+        assert run.font.size == Pt(24)
+        assert run.font.name == "Calibri"
+        assert run.font.color.rgb == RGBColor(0xAA, 0xBB, 0xCC)
+
+    def it_accepts_theme_color_as_color_kwarg(self):
+        """A MSO_THEME_COLOR member sets theme_color on the new run — issue #134."""
+        from pptx.enum.dml import MSO_THEME_COLOR
+
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        paragraph = text_frame.add_paragraph("x", color=MSO_THEME_COLOR.ACCENT_1)
+
+        assert paragraph.runs[0].font.color.theme_color == MSO_THEME_COLOR.ACCENT_1
+
+    def it_raises_when_run_kwargs_given_without_text(self):
+        """Passing a run-level kwarg without `text` raises ValueError — issue #134."""
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        with pytest.raises(ValueError, match="require `text`"):
+            text_frame.add_paragraph(bold=True)
+
+    def it_raises_when_color_kwarg_is_wrong_type(self):
+        """An unsupported `color` type raises TypeError — issue #134."""
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        with pytest.raises(TypeError, match="RGBColor or MSO_THEME_COLOR"):
+            text_frame.add_paragraph("x", color="red")  # pyright: ignore[reportArgumentType]
+
+    def it_leaves_font_attrs_unset_when_kwargs_default_to_None(self):
+        """`None` defaults don't mutate the new run's rPr — issue #134."""
+        text_frame = TextFrame(element("p:txBody/a:bodyPr"), None)
+
+        paragraph = text_frame.add_paragraph("plain")
+
+        run = paragraph.runs[0]
+        assert run.font.bold is None
+        assert run.font.italic is None
+        assert run.font.size is None
+        assert run.font.name is None
+
     def it_knows_its_autosize_setting(self, autosize_get_fixture):
         text_frame, expected_value = autosize_get_fixture
         assert text_frame.auto_size == expected_value
@@ -1751,6 +1819,61 @@ class Describe_Paragraph(object):
         run = paragraph.add_run()
         assert paragraph._p.xml == p_with_r_xml
         assert isinstance(run, _Run)
+
+    def it_can_add_a_run_with_text_in_one_call(self, paragraph):
+        """`_Paragraph.add_run(text=...)` sets the run's text — issue #134."""
+        run = paragraph.add_run("payload")
+
+        assert isinstance(run, _Run)
+        assert run.text == "payload"
+
+    def it_applies_font_kwargs_to_the_new_run(self, paragraph):
+        """Run-level kwargs populate the new run's rPr — issue #134."""
+        run = paragraph.add_run(
+            "body",
+            bold=True,
+            italic=False,
+            size=Pt(14),
+            color=RGBColor(0x10, 0x20, 0x30),
+            font_name="Arial",
+        )
+
+        assert run.text == "body"
+        assert run.font.bold is True
+        assert run.font.italic is False
+        assert run.font.size == Pt(14)
+        assert run.font.name == "Arial"
+        assert run.font.color.rgb == RGBColor(0x10, 0x20, 0x30)
+
+    def it_accepts_theme_color_on_add_run(self, paragraph):
+        """`color=MSO_THEME_COLOR.X` sets theme_color on the new run — issue #134."""
+        from pptx.enum.dml import MSO_THEME_COLOR
+
+        run = paragraph.add_run("x", color=MSO_THEME_COLOR.ACCENT_2)
+
+        assert run.font.color.theme_color == MSO_THEME_COLOR.ACCENT_2
+
+    def it_accepts_font_kwargs_without_text_on_add_run(self, paragraph):
+        """`add_run(bold=True)` applies formatting even with an empty run — issue #134."""
+        run = paragraph.add_run(bold=True, italic=True)
+
+        assert run.text == ""
+        assert run.font.bold is True
+        assert run.font.italic is True
+
+    def it_accepts_int_emu_for_size_on_add_run(self, paragraph):
+        """A plain int is treated as EMU, matching `Font.size` semantics — issue #134."""
+        run = paragraph.add_run("x", size=Pt(20))
+
+        # -- bare int (already EMU) is also accepted --
+        run2 = paragraph.add_run("y", size=int(Pt(18)))
+        assert run.font.size == Pt(20)
+        assert run2.font.size == Pt(18)
+
+    def it_raises_on_add_run_with_bad_color_type(self, paragraph):
+        """An unsupported `color` type raises TypeError — issue #134."""
+        with pytest.raises(TypeError, match="RGBColor or MSO_THEME_COLOR"):
+            paragraph.add_run("x", color=42)  # pyright: ignore[reportArgumentType]
 
     def it_can_add_an_auto_refresh_field(self, paragraph):
         field = paragraph.add_field("slidenum", "#")

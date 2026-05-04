@@ -10,6 +10,18 @@ Feature: Change paragraph properties
       Then paragraph.alignment == PP_ALIGN.CENTER
 
 
+  Scenario: _Paragraph.add_run accepts text and font kwargs (issue #134)
+     Given a _Paragraph object as paragraph
+      When I call paragraph.add_run with text and font kwargs
+      Then the new run carries the text and font kwargs
+
+
+  Scenario: TextFrame.add_paragraph accepts text and font kwargs (issue #134)
+     Given a TextFrame object as text_frame
+      When I call text_frame.add_paragraph with text and font kwargs
+      Then the new paragraph's run carries the text and font kwargs
+
+
   Scenario: _Paragraph.level setter
      Given a _Paragraph object as paragraph
       When I assign paragraph.level = 1

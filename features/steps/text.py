@@ -6,8 +6,9 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
+from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, PP_AUTO_NUMBER
-from pptx.util import Emu
+from pptx.util import Emu, Pt
 
 # given ===================================================
 
@@ -443,3 +444,47 @@ def then_paragraph_bullet_color_rgb_eq_ff0000(context):
     assert actual == RGBColor(0xFF, 0x00, 0x00), (
         "paragraph.bullet.color.rgb == %r" % actual
     )
+
+
+# -- issue #134: one-call add_run / add_paragraph ----------------------
+
+
+@when("I call paragraph.add_run with text and font kwargs")
+def when_I_call_paragraph_add_run_with_kwargs(context):
+    context.run = context.paragraph.add_run(
+        "bold-24pt-red",
+        bold=True,
+        size=Pt(24),
+        color=RGBColor(0xFF, 0x00, 0x00),
+    )
+
+
+@then("the new run carries the text and font kwargs")
+def then_new_run_carries_text_and_font_kwargs(context):
+    run = context.run
+    assert run.text == "bold-24pt-red", "run.text == %r" % run.text
+    assert run.font.bold is True, "run.font.bold is %r" % run.font.bold
+    assert run.font.size == Pt(24), "run.font.size == %r" % run.font.size
+    assert run.font.color.rgb == RGBColor(0xFF, 0x00, 0x00), (
+        "run.font.color.rgb == %r" % run.font.color.rgb
+    )
+
+
+@when("I call text_frame.add_paragraph with text and font kwargs")
+def when_I_call_text_frame_add_paragraph_with_kwargs(context):
+    context.paragraph = context.text_frame.add_paragraph(
+        "styled line",
+        italic=True,
+        font_name="Arial",
+    )
+
+
+@then("the new paragraph's run carries the text and font kwargs")
+def then_new_paragraph_run_carries_text_and_font_kwargs(context):
+    paragraph = context.paragraph
+    # -- exactly one run was spawned for the `text=` argument --
+    assert len(paragraph.runs) == 1, "len(paragraph.runs) == %d" % len(paragraph.runs)
+    run = paragraph.runs[0]
+    assert run.text == "styled line", "run.text == %r" % run.text
+    assert run.font.italic is True, "run.font.italic is %r" % run.font.italic
+    assert run.font.name == "Arial", "run.font.name == %r" % run.font.name

@@ -65,8 +65,31 @@ might like. Say for example you want a shape with three paragraphs::
     p.text = paragraph_strs[0]
 
     for para_str in paragraph_strs[1:]:
-        p = text_frame.add_paragraph()
-        p.text = para_str
+        text_frame.add_paragraph(para_str)
+
+:meth:`.TextFrame.add_paragraph` accepts the paragraph text as its first
+argument, saving a second ``.text = ...`` assignment (previously the
+one-line-per-paragraph idiom was ``p = tf.add_paragraph(); p.text =
+...``). Keyword-only ``bold``, ``italic``, ``size``, ``color``, and
+``font_name`` arguments apply run-level formatting to the single run
+``add_paragraph`` spawns for that text. The same shorthand is available
+on :meth:`._Paragraph.add_run`. See issue #134::
+
+    from pptx.dml.color import RGBColor
+    from pptx.util import Pt
+
+    text_frame.add_paragraph(
+        "Key insight",
+        bold=True,
+        size=Pt(18),
+        color=RGBColor(0xC0, 0x00, 0x00),
+        font_name="Calibri",
+    )
+
+``color`` accepts either an |RGBColor| or a member of
+:class:`~pptx.enum.dml.MSO_THEME_COLOR`. Passing any run-level kwarg to
+``add_paragraph`` without also supplying ``text`` raises ``ValueError`` —
+there is no run to apply it to.
 
 
 Adding text
@@ -84,8 +107,12 @@ the same result::
     text_frame = shape.text_frame
     text_frame.clear()
     p = text_frame.paragraphs[0]
-    run = p.add_run()
-    run.text = 'foobar'
+    p.add_run('foobar')
+
+:meth:`._Paragraph.add_run` accepts the run's text as its first argument
+and the same keyword-only ``bold`` / ``italic`` / ``size`` / ``color`` /
+``font_name`` shortcuts as :meth:`.TextFrame.add_paragraph`, so a single
+call can add a formatted run in one line instead of three. See issue #134.
 
 
 Applying text frame-level formatting
