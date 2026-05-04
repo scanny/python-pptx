@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Iterator, Mapping, NamedTuple, cast
 
 from pptx.dml.color import ColorFormat as _ColorFormat
@@ -613,6 +614,125 @@ class Font(object):
         # -- created on the next access (over a newly-added a:highlight).
         self.__dict__.pop("highlight_color", None)
         return self
+
+    def copy_from(self, other: Font) -> Font:
+        """Copy every explicit character-property from `other` onto this font.
+
+        Overwrites each supported property on this |Font| with the value
+        present on `other`; when `other` does not declare a property, any
+        explicit setting on this |Font| for that property is cleared so the
+        two runs end up matching at the XML level. Does not resolve or copy
+        inherited (``effective_*``) values — only values explicitly set on
+        `other` are transferred.
+
+        Copied properties:
+
+        - :attr:`bold`, :attr:`italic`, :attr:`underline`,
+          :attr:`strikethrough`, :attr:`size`
+        - :attr:`name`, :attr:`name_ea`, :attr:`name_cs`
+        - :attr:`language_id`
+        - :attr:`color` — solid-fill RGB or theme color (and brightness),
+          cleared when `other` has no explicit solid-fill color
+        - :attr:`highlight_color` — RGB or theme color, cleared when `other`
+          has none
+        - :attr:`use_theme_hyperlink_color` — only when this run already
+          carries an ``a:hlinkClick``; a no-op otherwise
+
+        Returns self to support chaining. See issue #566.
+
+        .. versionadded:: 2026.05.0
+        """
+        # -- scalar character properties; assigning None clears. Strikethrough
+        # -- setter accepts True/False/MSO_STRIKE/None, so the property value
+        # -- (which can be True/False/enum/None) round-trips cleanly.
+        self.bold = other.bold
+        self.italic = other.italic
+        self.underline = other.underline
+        self.strikethrough = other.strikethrough
+        self.size = other.size
+        self.name = other.name
+        self.name_ea = other.name_ea
+        self.name_cs = other.name_cs
+
+        # -- language_id: use the underlying `lang` attribute to distinguish
+        # -- "no explicit setting" (lang is None on rPr) from the sentinel
+        # -- MSO_LANGUAGE_ID.NONE the public getter reports in that case.
+        # -- Assigning None clears the attribute.
+        src_lang = other._rPr.lang
+        self._rPr.lang = src_lang
+
+        # -- color / solidFill: copy the entire a:solidFill subtree when
+        # -- present, else clear any existing fill so this font stops
+        # -- carrying an explicit color. Leaves non-solid fills (gradient,
+        # -- picture, pattern, none) on the source alone — copying them is
+        # -- out of scope for this method.
+        self._copy_color_from(other)
+
+        # -- highlight_color: copy the entire a:highlight subtree when
+        # -- present on the source; else remove any existing highlight.
+        self._copy_highlight_from(other)
+
+        # -- use_theme_hyperlink_color: only meaningful when this run has
+        # -- an a:hlinkClick; the setter is already a no-op otherwise.
+        self.use_theme_hyperlink_color = other.use_theme_hyperlink_color
+
+        return self
+
+    def _copy_color_from(self, other: Font) -> None:
+        """Copy `other`'s solid-fill color onto this font, or clear ours.
+
+        When `other` carries an `a:solidFill` directly on its `a:rPr`, the
+        element is cloned in full (preserving `a:lumMod` / `a:lumOff`
+        brightness and the color-choice type — srgbClr, schemeClr, etc.),
+        replacing whatever fill-choice currently sits on this rPr. When
+        `other` has no solid-fill and this rPr has none either, nothing
+        happens; when `other` has no solid-fill but this rPr does, that
+        solid-fill (and any other fill-choice) is cleared so the two rPrs
+        end up matching at the XML level.
+
+        Other fill kinds (`a:gradFill`, `a:blipFill`, `a:pattFill`,
+        `a:noFill`, `a:grpFill`) are never *read* from `other` — the public
+        :attr:`color` surface describes only solid fills — but when `other`
+        carries an explicit solid-fill they are cleared from this rPr so
+        the destination's resulting color matches `other`.
+        """
+        src_solidFill = other._rPr.find(qn("a:solidFill"))
+        dst_solidFill = self._rPr.find(qn("a:solidFill"))
+        if src_solidFill is None and dst_solidFill is None:
+            return
+        # -- remove any current fill-choice on the destination so the cloned
+        # -- a:solidFill slots in cleanly. eg_fillProperties is a choice
+        # -- group, so at most one of {noFill, solidFill, gradFill, blipFill,
+        # -- pattFill, grpFill} may be present at a time; copy_from's
+        # -- contract is "match `other`'s explicit color", so non-solid
+        # -- fills on this run (if any) are cleared too.
+        self._rPr._remove_eg_fillProperties()  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        # -- invalidate cached ColorFormat / FillFormat lazyproperties so
+        # -- the next access wraps the freshly-created element(s).
+        self.__dict__.pop("color", None)
+        self.__dict__.pop("fill", None)
+        if src_solidFill is None:
+            return
+        # -- deep-copy the source a:solidFill so nested lumMod / lumOff /
+        # -- alpha / color-choice subtrees ride along unchanged, then insert
+        # -- in the correct ordered position via the xmlchemy Choice's
+        # -- inserter (successors table drives placement).
+        self._rPr._insert_solidFill(  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+            deepcopy(src_solidFill)
+        )
+
+    def _copy_highlight_from(self, other: Font) -> None:
+        """Copy `other`'s `a:highlight` child onto this font, or clear ours."""
+        src_highlight = other._rPr.find(qn("a:highlight"))
+        # -- start by removing any existing highlight so the insertion lands
+        # -- in the canonical ordered position picked by the xmlchemy inserter.
+        self._rPr._remove_highlight()  # pyright: ignore[reportPrivateUsage]
+        self.__dict__.pop("highlight_color", None)
+        if src_highlight is None:
+            return
+        self._rPr._insert_highlight(  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+            deepcopy(src_highlight)
+        )
 
     @lazyproperty
     def effect_format(self) -> EffectFormat:

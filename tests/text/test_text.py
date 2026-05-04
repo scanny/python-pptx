@@ -22,6 +22,7 @@ from pptx.enum.text import (
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, MSO_STRIKE, MSO_UNDERLINE, PP_ALIGN
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.package import XmlPart
+from pptx.oxml.ns import qn
 from pptx.shapes.autoshape import Shape
 from pptx.text.text import (
     Font,
@@ -1319,6 +1320,249 @@ class DescribeFont(object):
         # -- still None, and rPr still has no children --
         assert font.use_theme_hyperlink_color is None
         assert len(font._element) == 0
+
+    # -- copy_from (issue #566) -----------------------------------------
+
+    def it_returns_self_from_copy_from_for_chaining(self):
+        src = Font(element("a:rPr"))
+        dst = Font(element("a:rPr"))
+
+        result = dst.copy_from(src)
+
+        assert result is dst
+
+    def it_copies_bold_italic_underline_strike_and_size(self):
+        from pptx.enum.text import MSO_STRIKE, MSO_UNDERLINE
+
+        src = Font(element("a:rPr{b=1,i=1,u=dbl,strike=dblStrike,sz=2800}"))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.bold is True
+        assert dst.italic is True
+        assert dst.underline is MSO_UNDERLINE.DOUBLE_LINE
+        assert dst.strikethrough is MSO_STRIKE.DOUBLE_LINE
+        assert dst.size == Pt(28)
+
+    def it_copies_latin_ea_and_cs_typeface_names(self):
+        src_cxml = (
+            "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic},"
+            "a:cs{typeface=Arial})"
+        )
+        src = Font(element(src_cxml))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.name == "Calibri"
+        assert dst.name_ea == "MS Gothic"
+        assert dst.name_cs == "Arial"
+
+    def it_copies_language_id(self):
+        from pptx.enum.lang import MSO_LANGUAGE_ID
+
+        src = Font(element("a:rPr{lang=pl-PL}"))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.language_id == MSO_LANGUAGE_ID.POLISH
+
+    def it_copies_rgb_color(self):
+        src = Font(element("a:rPr/a:solidFill/a:srgbClr{val=FF6600}"))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.color.rgb == RGBColor(0xFF, 0x66, 0x00)
+
+    def it_copies_theme_color(self):
+        from pptx.enum.dml import MSO_THEME_COLOR
+
+        src = Font(element("a:rPr/a:solidFill/a:schemeClr{val=accent1}"))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.color.theme_color == MSO_THEME_COLOR.ACCENT_1
+
+    def it_preserves_lumMod_lumOff_when_copying_color(self):
+        from pptx.oxml import parse_xml
+
+        src_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:solidFill><a:schemeClr val="accent1">'
+            '<a:lumMod val="75000"/><a:lumOff val="25000"/>'
+            "</a:schemeClr></a:solidFill></a:rPr>"
+        )
+        src = Font(parse_xml(src_xml))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        # -- nested lumMod / lumOff survived the deep copy --
+        assert dst.color.brightness == 0.25
+
+    def it_copies_highlight_color(self):
+        src = Font(element("a:rPr/a:highlight/a:srgbClr{val=FFFF00}"))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.highlight_color.rgb == RGBColor(0xFF, 0xFF, 0x00)
+
+    def it_copies_use_theme_hyperlink_color_marker(self):
+        from pptx.oxml import parse_xml
+
+        src_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:hlinkClick><a:extLst><a:ext uri="{PY-PPTX-940}"/></a:extLst>'
+            "</a:hlinkClick></a:rPr>"
+        )
+        src = Font(parse_xml(src_xml))
+        # -- dst must already carry an a:hlinkClick for the marker to stick --
+        dst = Font(element("a:rPr/a:hlinkClick"))
+
+        dst.copy_from(src)
+
+        assert dst.use_theme_hyperlink_color is False
+
+    def it_clears_dst_bold_when_src_has_none(self):
+        src = Font(element("a:rPr"))
+        dst = Font(element("a:rPr{b=1}"))
+
+        dst.copy_from(src)
+
+        assert dst.bold is None
+        assert dst._element.xml == xml("a:rPr")
+
+    def it_clears_dst_color_when_src_has_none(self):
+        src = Font(element("a:rPr"))
+        dst = Font(element("a:rPr/a:solidFill/a:srgbClr{val=FF0000}"))
+
+        dst.copy_from(src)
+
+        # -- color.type is None => no explicit color on the run --
+        assert dst.color.type is None
+        assert dst._element.xml == xml("a:rPr")
+
+    def it_clears_dst_highlight_when_src_has_none(self):
+        src = Font(element("a:rPr"))
+        dst = Font(element("a:rPr/a:highlight/a:srgbClr{val=FFFF00}"))
+
+        dst.copy_from(src)
+
+        assert dst._element.find(qn("a:highlight")) is None
+
+    def it_clears_dst_latin_ea_cs_when_src_has_none(self):
+        src = Font(element("a:rPr"))
+        cxml = (
+            "a:rPr/(a:latin{typeface=Calibri},a:ea{typeface=MS Gothic},"
+            "a:cs{typeface=Arial})"
+        )
+        dst = Font(element(cxml))
+
+        dst.copy_from(src)
+
+        assert dst.name is None
+        assert dst.name_ea is None
+        assert dst.name_cs is None
+
+    def it_clears_dst_language_id_when_src_has_none(self):
+        from pptx.enum.lang import MSO_LANGUAGE_ID
+
+        src = Font(element("a:rPr"))
+        dst = Font(element("a:rPr{lang=pl-PL}"))
+
+        dst.copy_from(src)
+
+        # -- public surface sentinels NONE for "no explicit setting" --
+        assert dst.language_id == MSO_LANGUAGE_ID.NONE
+        assert dst._rPr.lang is None
+
+    def it_is_idempotent_when_copying_an_empty_font_onto_itself(self):
+        src = Font(element("a:rPr"))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst._element.xml == xml("a:rPr")
+
+    def it_yields_equivalent_xml_after_copy_from(self):
+        from pptx.oxml import parse_xml
+
+        src_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            ' b="1" i="1" sz="2400" lang="en-US">'
+            '<a:solidFill><a:srgbClr val="2E74B5"/></a:solidFill>'
+            '<a:highlight><a:srgbClr val="FFFF00"/></a:highlight>'
+            '<a:latin typeface="Calibri"/>'
+            "</a:rPr>"
+        )
+        src = Font(parse_xml(src_xml))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        # -- the two rPrs should be indistinguishable at the XML level --
+        assert dst._element.xml == src._element.xml
+
+    def it_overwrites_existing_color_when_copying(self):
+        src = Font(element("a:rPr/a:solidFill/a:srgbClr{val=00FF00}"))
+        dst = Font(element("a:rPr/a:solidFill/a:srgbClr{val=FF0000}"))
+
+        dst.copy_from(src)
+
+        assert dst.color.rgb == RGBColor(0x00, 0xFF, 0x00)
+
+    def it_replaces_non_solid_fill_when_src_has_solid(self):
+        from pptx.oxml import parse_xml
+
+        src = Font(element("a:rPr/a:solidFill/a:srgbClr{val=00FF00}"))
+        # -- dst carries a gradient fill; copy_from should replace it with
+        # -- the src's solid fill so the public color surface matches.
+        dst_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:gradFill><a:gsLst/></a:gradFill></a:rPr>'
+        )
+        dst = Font(parse_xml(dst_xml))
+
+        dst.copy_from(src)
+
+        assert dst.color.rgb == RGBColor(0x00, 0xFF, 0x00)
+        assert dst._element.find(qn("a:gradFill")) is None
+
+    def it_does_not_mutate_src_when_copying(self):
+        src_cxml = (
+            "a:rPr{b=1}/(a:solidFill/a:srgbClr{val=FF6600},a:latin{typeface=Calibri})"
+        )
+        src = Font(element(src_cxml))
+        src_snapshot = src._element.xml
+        dst = Font(element("a:rPr/a:latin{typeface=Arial}"))
+
+        dst.copy_from(src)
+
+        assert src._element.xml == src_snapshot
+
+    def it_is_a_no_op_for_use_theme_hyperlink_color_when_dst_has_no_hlinkClick(self):
+        # -- src carries the override marker but dst has no hyperlink --
+        from pptx.oxml import parse_xml
+
+        src_xml = (
+            '<a:rPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:hlinkClick><a:extLst><a:ext uri="{PY-PPTX-940}"/></a:extLst>'
+            "</a:hlinkClick></a:rPr>"
+        )
+        src = Font(parse_xml(src_xml))
+        dst = Font(element("a:rPr"))
+
+        dst.copy_from(src)
+
+        assert dst.use_theme_hyperlink_color is None
+        # -- no hlinkClick was created on dst (copy_from doesn't reach into
+        # -- hyperlink relationships)
+        assert dst._element.find(qn("a:hlinkClick")) is None
 
     # fixtures ---------------------------------------------
 

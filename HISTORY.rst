@@ -14,6 +14,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #566 ``Font.copy_from(other)`` copies every explicit character
+  property — bold, italic, underline, strikethrough, size, name,
+  name_ea, name_cs, language_id, color (RGB / theme / brightness),
+  highlight_color, and ``use_theme_hyperlink_color`` — from one
+  |Font| onto another. Only values explicitly set on ``other`` are
+  transferred; inherited (``effective_*``) values are not resolved.
+  Destination properties absent on the source are cleared so the two
+  runs match at the XML level. Returns ``self`` for chaining. See
+  ``docs/user/text.rst`` ("Copying font formatting") for usage.
+  Issue #566 (https://github.com/scanny/python-pptx/issues/566).
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the

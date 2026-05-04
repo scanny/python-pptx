@@ -309,3 +309,33 @@ Feature: Change appearance of font used to render text
      When I assign target_slide to run.hyperlink.target_slide
      Then run.hyperlink.target_slide is target_slide
       And run.hyperlink.address is None
+
+
+  # -- Font.copy_from (issue #566) ------------------------------------
+
+  Scenario: Copy every explicit property from one font to another
+    Given a source run with bold, italic, size, color, and a Latin typeface
+      And a destination run with no explicit formatting
+     When I call dst_run.font.copy_from(src_run.font)
+     Then dst_run.font.bold equals src_run.font.bold
+      And dst_run.font.italic equals src_run.font.italic
+      And dst_run.font.size equals src_run.font.size
+      And dst_run.font.name equals src_run.font.name
+      And dst_run.font.color.rgb equals src_run.font.color.rgb
+
+
+  Scenario: copy_from clears destination properties absent on the source
+    Given a source run with no explicit formatting
+      And a destination run with bold, italic, size, and a Latin typeface
+     When I call dst_run.font.copy_from(src_run.font)
+     Then dst_run.font.bold is None
+      And dst_run.font.italic is None
+      And dst_run.font.size is None
+      And dst_run.font.name is None
+
+
+  Scenario: copy_from returns self to support chaining
+    Given a source run with bold, italic, size, color, and a Latin typeface
+      And a destination run with no explicit formatting
+     When I call dst_run.font.copy_from(src_run.font) capturing the return
+     Then the return value is the destination font

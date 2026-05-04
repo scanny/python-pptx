@@ -986,6 +986,11 @@ print(font.effective_color)
 print(font.effective_size, font.effective_name,
       font.effective_bold, font.effective_italic)
 
+# copy every explicit character property from one run to another (issue #566)
+new_run = tb.text_frame.paragraphs[0].add_run()
+new_run.text = " Twin"
+new_run.font.copy_from(run.font)
+
 # build a paragraph
 p = tf.paragraphs[0]
 r = p.add_run()
@@ -1033,6 +1038,7 @@ prs.save("out.pptx")
 - `Font.shadow` — `ShadowFormat` for this run. `[Added in 2026.05.0]`
 - `Font.effective_color` — Resolved RGB, walking paragraph/placeholder/layout/master/theme inheritance. `[Added in 2026.05.0]`
 - `Font.effective_size` / `Font.effective_bold` / `Font.effective_italic` / `Font.effective_name` — Resolved size / bold / italic / Latin-typeface for this run, walking the same inheritance chain (run `a:rPr` → paragraph `a:defRPr` → body `a:lstStyle` → master `p:txStyles` → presentation `p:defaultTextStyle`). Returns `None` when no ancestor in the chain declares the property. `[Added in 2026.05.0]`
+- `Font.copy_from(other)` — Copy every *explicit* character property from `other` onto this font (bold / italic / underline / strikethrough / size / name / name_ea / name_cs / language_id / color / highlight_color / `use_theme_hyperlink_color`). Inherited (`effective_*`) values are not resolved. Destination properties absent on `other` are cleared so the two runs match at the XML level. Returns self for chaining. `[Added in 2026.05.0]`
 - `Font.language_id` — `MSO_LANGUAGE_ID` enum.
 - `Font.use_theme_hyperlink_color` — When the run wraps a hyperlink, toggle using the theme's hyperlink color. `[Added in 2026.05.0]`
 - `ColorFormat.rgb` / `.theme_color` / `.brightness` / `.type` / `.alpha` / `.to_rgb()` — Color type resolution, tint/shade, plus `alpha` and `to_rgb()`. `[Added in 2026.05.0]` for `alpha` and `to_rgb`.
