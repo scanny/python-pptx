@@ -14,6 +14,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #719 resolved by #321 (Pie3DPlot). Issue #719
+  (https://github.com/scanny/python-pptx/issues/719) reported
+  ``NotImplementedError: XML writer for chart type THREE_D_PIE
+  (-4102) not yet implemented`` when authoring or updating a 3-D pie
+  chart. Wave 7 #266 added ``_Pie3DChartXmlWriter`` so
+  ``Shapes.add_chart(XL_CHART_TYPE.THREE_D_PIE, ...)`` emits a
+  ``c:pie3DChart`` wrapper, and Wave 13 #321 added ``Pie3DPlot`` so
+  ``chart.plots[0]`` / ``chart.chart_type`` / ``chart.replace_data``
+  stop raising ``ValueError: unsupported plot type c:pie3DChart``.
+  Together they close the issue end-to-end for both
+  ``THREE_D_PIE`` and ``THREE_D_PIE_EXPLODED``. A new
+  ``tests/test_issue_719_3d_pie_writer_verify.py`` regression suite
+  pins the author + ``replace_data`` + save/reopen round-trip so the
+  path cannot silently regress.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
