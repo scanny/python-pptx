@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 from typing import IO, Iterator, cast
@@ -157,6 +158,21 @@ class Package(OpcPackage):
         """
         return self._image_parts.get_or_add_image_part(image_file)
 
+    def get_or_add_svg_part(self, svg_file: str | IO[bytes]) -> ImagePart:
+        """Return an |ImagePart| object containing the SVG in *svg_file*.
+
+        The SVG bytes are hashed and deduplicated against other SVG image
+        parts already in the package — reinserting the same SVG on multiple
+        slides shares a single ``/ppt/media/imageN.svg`` part.
+
+        Bypasses the ``_raise_if_svg`` sniff applied by
+        :meth:`get_or_add_image_part`: here SVG content is the expected
+        input, not a rejected special case. See issue #358.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._image_parts.get_or_add_svg_part(svg_file)
+
     def get_or_add_media_part(self, media):
         """Return a |MediaPart| object containing the media in *media*.
 
@@ -301,6 +317,40 @@ class _ImageParts(object):
         image_part = self._find_by_sha1(image.sha1)
         return image_part if image_part else ImagePart.new(self._package, image)
 
+    def get_or_add_svg_part(self, svg_file: str | IO[bytes]) -> ImagePart:
+        """Return |ImagePart| holding the SVG bytes in `svg_file`.
+
+        Deduplicates against existing SVG image parts by SHA1 digest of the
+        raw SVG bytes, so embedding the same SVG on multiple slides shares a
+        single ``/ppt/media/imageN.svg`` part. Never runs the SVG-rejection
+        sniff used by :meth:`get_or_add_image_part` — on this path SVG is
+        exactly what the caller supplied. See issue #358.
+
+        .. versionadded:: 2026.05.0
+        """
+        blob, filename = _read_bytes(svg_file)
+        sha1 = hashlib.sha1(blob).hexdigest()
+        existing = self._find_svg_by_sha1(sha1)
+        if existing is not None:
+            return existing
+        return ImagePart.new_svg(self._package, blob, filename)
+
+    def _find_svg_by_sha1(self, sha1: str) -> ImagePart | None:
+        """Return the package's SVG |ImagePart| matching `sha1`, else |None|.
+
+        Walks the existing image parts in this package and matches any whose
+        partname ends in ``.svg`` — the PIL-backed ``sha1`` property used
+        for raster images doesn't work here (Pillow can't open SVG), so we
+        compute the digest on the part's raw blob instead.
+        """
+        for image_part in self:
+            # -- only consider SVG parts; raster parts use a different hash path --
+            if not image_part.partname.endswith(".svg"):
+                continue
+            if hashlib.sha1(image_part.blob).hexdigest() == sha1:
+                return image_part
+        return None
+
     def _find_by_sha1(self, sha1: str) -> ImagePart | None:
         """
         Return an |ImagePart| object belonging to this package or |None| if
@@ -376,6 +426,28 @@ def _read_image_head(image_file: str | IO[bytes]):
     # -- non-seekable stream: best-effort peek (consumes bytes) --
     head = image_file.read(_SVG_HEAD_BYTES)
     return head, None
+
+
+def _read_bytes(image_file: str | IO[bytes]) -> tuple[bytes, str | None]:
+    """Return `(blob, filename)` read from `image_file`.
+
+    `image_file` is either a path (``str``) or a seekable/readable file-like
+    object. When `image_file` is a path, its basename is returned as the
+    filename. For file-like input a ``name`` attribute is used when present,
+    otherwise ``None``.
+    """
+    if isinstance(image_file, str):
+        with open(image_file, "rb") as f:
+            blob = f.read()
+        return blob, os.path.basename(image_file)
+
+    # -- file-like: rewind if possible so reads from prior positions don't truncate --
+    if callable(getattr(image_file, "seek", None)):
+        image_file.seek(0)
+    blob = image_file.read()
+    name_attr = getattr(image_file, "name", None)
+    filename = os.path.basename(name_attr) if isinstance(name_attr, str) else None
+    return blob, filename
 
 
 def _image_file_name(image_file: str | IO[bytes]) -> str | None:

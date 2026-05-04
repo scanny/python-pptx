@@ -74,6 +74,20 @@ class DescribeBaseSlidePart(object):
         assert image_part is image_part_
         assert rId == "rId6"
 
+    def it_can_add_an_svg_part(self, request, image_part_):
+        # -- #358: the svg part is related under RT.IMAGE just like raster images --
+        package_ = instance_mock(request, Package)
+        package_.get_or_add_svg_part.return_value = image_part_
+        relate_to_ = method_mock(request, BaseSlidePart, "relate_to", return_value="rId11")
+        slide_part = BaseSlidePart(None, None, package_, None)
+
+        svg_part, rId = slide_part.get_or_add_svg_part("logo.svg")
+
+        package_.get_or_add_svg_part.assert_called_once_with("logo.svg")
+        relate_to_.assert_called_once_with(slide_part, image_part_, RT.IMAGE)
+        assert svg_part is image_part_
+        assert rId == "rId11"
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture

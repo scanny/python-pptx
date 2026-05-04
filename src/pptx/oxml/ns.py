@@ -12,6 +12,12 @@ _nsmap = {
     # -- `am3d:model3D`, a container for camera/lighting/scene parameters plus an
     # -- `r:embed` pointer to the `.glb`/`.obj`/`.fbx` part. See issue #410. --
     "am3d": "http://schemas.microsoft.com/office/drawing/2017/model3d",
+    # -- `asvg` is the SVG-blip namespace used by PowerPoint 365 (Office 2016+) to
+    # -- wrap an editable SVG alongside a rasterized PNG fallback. PowerPoint emits
+    # -- `<a:blip r:embed="<png-rid>"><a:extLst><a:ext uri="{96DAC541-7B7A-43D3-
+    # -- 8B79-37D633B846F1}"><asvg:svgBlip r:embed="<svg-rid>"/></a:ext></a:extLst>
+    # -- </a:blip>` whenever a user inserts an SVG. See issue #358.
+    "asvg": "http://schemas.microsoft.com/office/drawing/2016/SVG/main",
     "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "c14": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart",
     # -- `cdr` is the chart-drawing namespace used by the `c:userShapes`

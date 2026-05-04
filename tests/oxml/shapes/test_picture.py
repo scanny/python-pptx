@@ -106,6 +106,53 @@ class DescribeCT_Picture(object):
             "</p:pic>\n"
         ) % nsdecls("a", "p", "r")
 
+    def it_can_create_a_new_svg_pic_element(self):
+        # -- #358: new_pic_svg emits an a:blip with an asvg:svgBlip extension --
+        pic = CT_Picture.new_pic_svg(
+            shape_id=9,
+            name="Picture 8",
+            desc="logo.svg",
+            png_rId="rId6",
+            svg_rId="rId5",
+            x=1,
+            y=2,
+            cx=3,
+            cy=4,
+        )
+
+        assert pic.xml == (
+            "<p:pic %s>\n"
+            "  <p:nvPicPr>\n"
+            '    <p:cNvPr id="9" name="Picture 8" descr="logo.svg"/>\n'
+            "    <p:cNvPicPr>\n"
+            '      <a:picLocks noChangeAspect="1"/>\n'
+            "    </p:cNvPicPr>\n"
+            "    <p:nvPr/>\n"
+            "  </p:nvPicPr>\n"
+            "  <p:blipFill>\n"
+            '    <a:blip r:embed="rId6">\n'
+            "      <a:extLst>\n"
+            '        <a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">\n'
+            '          <asvg:svgBlip r:embed="rId5"/>\n'
+            "        </a:ext>\n"
+            "      </a:extLst>\n"
+            "    </a:blip>\n"
+            "    <a:stretch>\n"
+            "      <a:fillRect/>\n"
+            "    </a:stretch>\n"
+            "  </p:blipFill>\n"
+            "  <p:spPr>\n"
+            "    <a:xfrm>\n"
+            '      <a:off x="1" y="2"/>\n'
+            '      <a:ext cx="3" cy="4"/>\n'
+            "    </a:xfrm>\n"
+            '    <a:prstGeom prst="rect">\n'
+            "      <a:avLst/>\n"
+            "    </a:prstGeom>\n"
+            "  </p:spPr>\n"
+            "</p:pic>\n"
+        ) % nsdecls("a", "p", "r", "asvg")
+
     def it_can_create_a_new_audio_pic_element(self):
         """`is_audio=True` emits `<a:audioFile>` in place of `<a:videoFile>`."""
         pic = CT_Picture.new_video_pic(

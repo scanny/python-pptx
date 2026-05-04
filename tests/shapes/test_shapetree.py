@@ -1457,6 +1457,120 @@ class DescribeSlideShapes(object):
         assert ext.get("cx") == "914400"
         assert ext.get("cy") == "914400"
 
+    def it_can_add_an_svg_picture(
+        self,
+        part_prop_,
+        slide_part_,
+        _shape_factory_,
+        _next_shape_id_prop_,
+        _recalculate_extents_,
+        picture_,
+    ):
+        # --- happy path for add_picture_svg (#358) ---
+        shapes = SlideShapes(element("p:spTree"), None)
+        svg_bytes = b'<svg xmlns="http://www.w3.org/2000/svg"/>'
+        svg_file = io.BytesIO(svg_bytes)
+        png_bytes = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+            b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+            b"IDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01\xde\xfb\xc4f"
+            b"\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+        png_file = io.BytesIO(png_bytes)
+
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_svg_part.return_value = ("svg_part_", "rId5")
+        slide_part_.get_or_add_image_part.return_value = ("png_part_", "rId6")
+        _next_shape_id_prop_.return_value = 42
+        _shape_factory_.return_value = picture_
+
+        picture = shapes.add_picture_svg(svg_file, 10, 20, 30, 40, png_fallback=png_file)
+
+        slide_part_.get_or_add_svg_part.assert_called_once_with(svg_file)
+        slide_part_.get_or_add_image_part.assert_called_once_with(png_file)
+        assert picture is picture_
+
+        pic = shapes._element.xpath("p:pic")[0]
+        blip = shapes._element.xpath("p:pic/p:blipFill/a:blip")[0]
+        r_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        # -- primary embed is the PNG fallback --
+        assert blip.get("{%s}embed" % r_ns) == "rId6"
+        # -- asvg:svgBlip embed is the editable SVG --
+        svgBlip = blip.xpath(".//asvg:svgBlip")[0]
+        assert svgBlip.get("{%s}embed" % r_ns) == "rId5"
+        # -- extension uri matches the MS SVG GUID --
+        ext_elm = blip.xpath(".//a:extLst/a:ext")[0]
+        assert ext_elm.get("uri") == "{96DAC541-7B7A-43D3-8B79-37D633B846F1}"
+        # -- position and size propagated into p:spPr --
+        ext = shapes._element.xpath("p:pic/p:spPr/a:xfrm/a:ext")[0]
+        off = shapes._element.xpath("p:pic/p:spPr/a:xfrm/a:off")[0]
+        assert off.get("x") == "10"
+        assert off.get("y") == "20"
+        assert ext.get("cx") == "30"
+        assert ext.get("cy") == "40"
+        # -- shape id / name reflect _next_shape_id --
+        cNvPr = shapes._element.xpath("p:pic/p:nvPicPr/p:cNvPr")[0]
+        assert cNvPr.get("id") == "42"
+        assert cNvPr.get("name") == "Picture 41"
+        # -- factory/recalc called as expected --
+        _shape_factory_.assert_called_once_with(shapes, pic)
+        _recalculate_extents_.assert_called_once()
+
+    def it_falls_back_to_builtin_placeholder_png_when_png_fallback_is_None(
+        self,
+        part_prop_,
+        slide_part_,
+        _shape_factory_,
+        _next_shape_id_prop_,
+        _recalculate_extents_,
+        picture_,
+    ):
+        # --- the placeholder PNG is a tiny built-in 1x1 bytestream ---
+        shapes = SlideShapes(element("p:spTree"), None)
+        svg_file = io.BytesIO(b'<svg xmlns="http://www.w3.org/2000/svg"/>')
+
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_svg_part.return_value = ("svg_part_", "rId2")
+        slide_part_.get_or_add_image_part.return_value = ("png_part_", "rId3")
+        _next_shape_id_prop_.return_value = 5
+        _shape_factory_.return_value = picture_
+
+        shapes.add_picture_svg(svg_file, 0, 0, 100, 100)
+
+        # -- PNG fallback was supplied as a BytesIO containing the placeholder bytes --
+        args, _ = slide_part_.get_or_add_image_part.call_args
+        (png_arg,) = args
+        assert isinstance(png_arg, io.BytesIO)
+        head = png_arg.getvalue()
+        # -- PNG 8-byte signature present --
+        assert head.startswith(b"\x89PNG\r\n\x1a\n")
+        assert len(head) < 100  # -- tiny --
+
+    def it_defaults_svg_picture_size_when_width_and_height_omitted(
+        self,
+        part_prop_,
+        slide_part_,
+        _shape_factory_,
+        _next_shape_id_prop_,
+        _recalculate_extents_,
+        picture_,
+    ):
+        shapes = SlideShapes(element("p:spTree"), None)
+        svg_file = io.BytesIO(b'<svg xmlns="http://www.w3.org/2000/svg"/>')
+
+        part_prop_.return_value = slide_part_
+        slide_part_.get_or_add_svg_part.return_value = ("svg_part_", "rId2")
+        slide_part_.get_or_add_image_part.return_value = ("png_part_", "rId3")
+        _next_shape_id_prop_.return_value = 7
+        _shape_factory_.return_value = picture_
+
+        shapes.add_picture_svg(svg_file, 0, 0)
+
+        ext = shapes._element.xpath("p:pic/p:spPr/a:xfrm/a:ext")[0]
+        # -- unspecified width/height default to 1 inch (914400 EMU) --
+        assert ext.get("cx") == "914400"
+        assert ext.get("cy") == "914400"
+
     def it_can_add_a_movie(self, movie_fixture):
         shapes, movie_file, x, y, cx, cy = movie_fixture[:6]
         poster_frame_image, mime_type, shape_id_ = movie_fixture[6:9]
@@ -1542,9 +1656,7 @@ class DescribeSlideShapes(object):
         assert result.name == "Rectangle 2"
 
     def it_returns_None_when_no_shape_matches_get_by_name(self, _shape_factory_):
-        spTree = element(
-            "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}"
-        )
+        spTree = element("p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}")
         shapes = SlideShapes(spTree, None)
         _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
 
@@ -1560,9 +1672,7 @@ class DescribeSlideShapes(object):
             ")"
         )
         shapes = SlideShapes(spTree, None)
-        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(
-            sp.shape_name, sp.shape_id
-        )
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name, sp.shape_id)
 
         result = shapes.get_by_name("Duplicate")
 
@@ -1579,18 +1689,14 @@ class DescribeSlideShapes(object):
             ")"
         )
         shapes = SlideShapes(spTree, None)
-        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(
-            sp.shape_name, sp.shape_id
-        )
+        _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name, sp.shape_id)
 
         matches = shapes.find_all_by_name("Duplicate")
 
         assert [m.shape_id for m in matches] == [2, 4]
 
     def it_returns_empty_list_when_no_shape_matches_find_all_by_name(self, _shape_factory_):
-        spTree = element(
-            "p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}"
-        )
+        spTree = element("p:spTree/p:sp/p:nvSpPr/p:cNvPr{id=2,name=Rectangle 1}")
         shapes = SlideShapes(spTree, None)
         _shape_factory_.side_effect = lambda self_, sp: _FakeShape(sp.shape_name)
 
@@ -1735,8 +1841,7 @@ class DescribeSlideShapes(object):
         assert [m.shape_id for m in shapes.find_all_by_name("Duplicate")] == [2]
         # -- deep search finds both in z-order (backmost first) --
         assert [
-            m.shape_id
-            for m in shapes.find_all_by_name("Duplicate", include_descendants=True)
+            m.shape_id for m in shapes.find_all_by_name("Duplicate", include_descendants=True)
         ] == [2, 4]
 
     # fixtures -------------------------------------------------------
@@ -1983,9 +2088,7 @@ class DescribeLayoutShapes(object):
         layout = prs.slide_layouts[0]
 
         original_count = len(layout.shapes)
-        shape = layout.shapes.add_textbox(
-            Inches(1), Inches(1), Inches(2), Inches(1)
-        )
+        shape = layout.shapes.add_textbox(Inches(1), Inches(1), Inches(2), Inches(1))
 
         assert isinstance(shape, Shape)
         assert len(layout.shapes) == original_count + 1
@@ -2004,9 +2107,7 @@ class DescribeLayoutShapes(object):
         )
 
         original_count = len(layout.shapes)
-        pic = layout.shapes.add_picture(
-            test_image, Inches(1), Inches(1), Inches(2), Inches(2)
-        )
+        pic = layout.shapes.add_picture(test_image, Inches(1), Inches(1), Inches(2), Inches(2))
 
         assert isinstance(pic, Picture)
         assert len(layout.shapes) == original_count + 1
@@ -2257,9 +2358,7 @@ class DescribeMasterShapes(object):
         master = prs.slide_master
 
         original_count = len(master.shapes)
-        shape = master.shapes.add_textbox(
-            Inches(1), Inches(1), Inches(2), Inches(1)
-        )
+        shape = master.shapes.add_textbox(Inches(1), Inches(1), Inches(2), Inches(1))
 
         assert isinstance(shape, Shape)
         assert len(master.shapes) == original_count + 1
@@ -2278,9 +2377,7 @@ class DescribeMasterShapes(object):
         )
 
         original_count = len(master.shapes)
-        pic = master.shapes.add_picture(
-            test_image, Inches(1), Inches(1), Inches(2), Inches(2)
-        )
+        pic = master.shapes.add_picture(test_image, Inches(1), Inches(1), Inches(2), Inches(2))
 
         assert isinstance(pic, Picture)
         assert len(master.shapes) == original_count + 1

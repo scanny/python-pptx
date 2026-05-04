@@ -114,6 +114,11 @@ Feature Support
   appended to the destination master's layout list, its images and
   external hyperlinks are materialised in the target package, and its
   theme (colors, fonts, effects) is inherited from the destination master
+* Insert an **editable SVG** picture via
+  :meth:`.SlideShapes.add_picture_svg` — PowerPoint 365 stores the original
+  SVG alongside a rasterized PNG fallback via the ``asvg:svgBlip`` extension
+  so the same slide renders in older clients and opens as a live vector in
+  PowerPoint 365+ (issue #358)
 * And many others ...
 
 Even with all |pp| does, the PowerPoint document format is very rich and there are still
@@ -147,6 +152,7 @@ User Guide
    user/charts
    user/table
    user/media
+   user/pictures-svg
    user/math-equations
    user/notes
    user/ole-objects

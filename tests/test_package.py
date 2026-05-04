@@ -297,6 +297,59 @@ class Describe_ImageParts(object):
         with pytest.raises(UnsupportedImageTypeError):
             image_parts.get_or_add_image_part(svg_stream)
 
+    def it_can_get_or_add_an_svg_part_from_a_path(self, tmp_path, package_):
+        # -- #358: the SVG path must NOT go through the sniff/raise --
+        svg_path = tmp_path / "editable.svg"
+        svg_blob = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
+        svg_path.write_bytes(svg_blob)
+        # -- make the package walk return no existing image parts --
+        package_.iter_rels.return_value = iter(())
+        package_.next_image_partname.return_value = PackURI("/ppt/media/image1.svg")
+        image_parts = _ImageParts(package_)
+
+        part = image_parts.get_or_add_svg_part(str(svg_path))
+
+        assert isinstance(part, ImagePart)
+        assert part.partname == PackURI("/ppt/media/image1.svg")
+        assert part.content_type == "image/svg+xml"
+        assert part.blob == svg_blob
+
+    def it_can_get_or_add_an_svg_part_from_a_stream(self, package_):
+        svg_blob = b'<svg xmlns="http://www.w3.org/2000/svg"/>'
+        stream = io.BytesIO(svg_blob)
+        package_.iter_rels.return_value = iter(())
+        package_.next_image_partname.return_value = PackURI("/ppt/media/image1.svg")
+        image_parts = _ImageParts(package_)
+
+        part = image_parts.get_or_add_svg_part(stream)
+
+        assert part.content_type == "image/svg+xml"
+        assert part.blob == svg_blob
+
+    def it_deduplicates_matching_svg_bytes_on_get_or_add(self, request, package_):
+        svg_blob = b'<svg xmlns="http://www.w3.org/2000/svg"/>'
+        existing = ImagePart(
+            PackURI("/ppt/media/image1.svg"),
+            "image/svg+xml",
+            package_,
+            svg_blob,
+            "existing.svg",
+        )
+        # -- simulate an existing image-part rel pointing at the SVG part --
+        rel = instance_mock(
+            request,
+            _Relationship,
+            is_external=False,
+            reltype=RT.IMAGE,
+            target_part=existing,
+        )
+        package_.iter_rels.return_value = iter((rel,))
+        image_parts = _ImageParts(package_)
+
+        part = image_parts.get_or_add_svg_part(io.BytesIO(svg_blob))
+
+        assert part is existing
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(params=[True, False])

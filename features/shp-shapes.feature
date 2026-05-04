@@ -368,6 +368,15 @@ Feature: Access a shape on a slide
       | stereo.mpo       | jpg  |
 
 
+  Scenario: SlideShapes.add_picture_svg() embeds an editable SVG (#358)
+    Given a blank slide
+     When I add an SVG picture via shapes.add_picture_svg()
+      And I save the presentation
+     Then the picture appears in the slide
+      And an SVG media part appears in the pptx file
+      And the blipFill a:blip carries an asvg:svgBlip extension
+
+
   Scenario: SlideShapes.add_shape()
     Given a SlideShapes object as shapes
      When I assign shapes.add_shape() to shape

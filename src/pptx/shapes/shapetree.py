@@ -51,6 +51,34 @@ if TYPE_CHECKING:
     from pptx.types import ProvidesPart
     from pptx.util import Length
 
+# -- Minimal 1x1 fully-transparent PNG used as the rasterized fallback for an
+# -- editable SVG when the caller of ``add_picture_svg`` does not supply one.
+# -- PowerPoint 365 picks the ``asvg:svgBlip`` extension and renders the SVG
+# -- itself; only older clients (and the .pptx thumbnail preview) fall back to
+# -- the raster. Sized 1x1 so it never distorts the surrounding layout when it
+# -- does get drawn. See issue #358.
+_SVG_PNG_FALLBACK_BYTES = (
+    b"\x89PNG\r\n\x1a\n"
+    b"\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
+    b"\x00\x00\x00\rIDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01\xde\xfb\xc4f"
+    b"\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def _svg_desc(svg_file: str | IO[bytes]) -> str:
+    """Return a filename-like description for `svg_file` suitable for ``p:cNvPr/@descr``.
+
+    Falls back to ``"image.svg"`` when the source is a file-like object without
+    a readable ``name`` attribute.
+    """
+    if isinstance(svg_file, str):
+        return os.path.basename(svg_file) or "image.svg"
+    name = getattr(svg_file, "name", None)
+    if isinstance(name, str) and name:
+        return os.path.basename(name)
+    return "image.svg"
+
+
 # +-- _BaseShapes
 # |   |
 # |   +-- _BaseGroupShapes
@@ -683,6 +711,61 @@ class SlideShapes(_BaseGroupShapes):
     """
 
     parent: Slide  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    def add_picture_svg(
+        self,
+        svg_file: str | IO[bytes],
+        left: Length,
+        top: Length,
+        width: Length | None = None,
+        height: Length | None = None,
+        png_fallback: str | IO[bytes] | None = None,
+    ) -> Picture:
+        """Add picture shape referencing the editable SVG in `svg_file`.
+
+        PowerPoint 365 (Office 2016+) stores SVG imagery as a *pair*: a
+        rasterized PNG the renderer paints for compatibility, and the
+        original SVG kept for editing. Both parts are embedded in the
+        package and referenced from a single ``p:pic`` via an
+        ``asvg:svgBlip`` extension on the ``a:blip`` that points at the
+        PNG. See issue #358.
+
+        Because python-pptx does not bundle an SVG rasterizer, the caller
+        is expected to supply the PNG themselves via `png_fallback`. Pass
+        a path (``str``) or a file-like object containing PNG bytes. When
+        `png_fallback` is |None| a tiny built-in 1x1 transparent PNG is
+        used — the SVG will still render correctly in PowerPoint 365 and
+        newer, but older clients that fall back to the raster blip will
+        show the placeholder. Supply a properly rendered PNG whenever
+        appearance outside PowerPoint 365 matters.
+
+        `left` and `top` position the top-left corner of the picture.
+        `width` and `height` specify the display size; because the SVG
+        has no PIL-measurable intrinsic size, the fallback when either is
+        |None| is 1 inch (914400 EMU). Supply both explicitly to preserve
+        the SVG's own aspect ratio.
+
+        Returns the newly-added |Picture| shape.
+
+        .. versionadded:: 2026.05.0
+        """
+        default = Emu(914400)
+        cx = width if width is not None else default
+        cy = height if height is not None else default
+
+        slide_part = self.part
+        _, svg_rId = slide_part.get_or_add_svg_part(svg_file)
+        png_source = (
+            png_fallback if png_fallback is not None else io.BytesIO(_SVG_PNG_FALLBACK_BYTES)
+        )
+        _, png_rId = slide_part.get_or_add_image_part(png_source)
+
+        shape_id = self._next_shape_id
+        name = "Picture %d" % (shape_id - 1)
+        desc = _svg_desc(svg_file)
+        pic = self._grpSp.add_pic_svg(shape_id, name, desc, png_rId, svg_rId, left, top, cx, cy)
+        self._recalculate_extents()
+        return cast(Picture, self._shape_factory(pic))
 
     def add_picture_link(
         self,
