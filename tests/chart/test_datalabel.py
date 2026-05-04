@@ -305,6 +305,144 @@ class DescribeDataLabel(object):
         assert data_label.manual_layout is None
         assert ser.xml == before
 
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_value"),
+        [
+            # -- no c:dLbls at all --
+            ("c:ser", None),
+            # -- c:dLbls present but no c:dLbl for this idx --
+            ("c:ser/c:dLbls", None),
+            # -- c:dLbl present but no c:tx --
+            ("c:ser/c:dLbls/c:dLbl/c:idx{val=7}", None),
+            # -- c:dLbl with c:tx/c:rich (custom text, not a cell ref) --
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:rich)", None),
+            # -- c:dLbl with c:tx/c:strRef but no c:f --
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef)", None),
+            # -- c:dLbl with empty c:tx/c:strRef/c:f --
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f)", None),
+            # -- c:dLbl with c:tx/c:strRef/c:f carrying a formula --
+            (
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+                "Sheet1!$D$2",
+            ),
+            # -- c:dLbl at *different* idx is ignored --
+            (
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+                None,
+            ),
+        ],
+    )
+    def it_knows_its_text_from_cells(self, ser_cxml, expected_value):
+        data_label = DataLabel(element(ser_cxml), 7)
+        assert data_label.text_from_cells == expected_value
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "new_value", "expected_cxml"),
+        [
+            # -- assigning creates c:dLbls, c:dLbl, c:tx, c:strRef, c:f from scratch --
+            (
+                "c:ser{a:b=c}",
+                "Sheet1!$D$2",
+                'c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"'
+                'Sheet1!$D$2",c:spPr,c:txPr/(a:bodyPr,a:lstStyle,a:p/a:pPr/a:d'
+                "efRPr)),c:showLegendKey{val=0},c:showVal{val=0},c:showCatNam"
+                "e{val=0},c:showSerName{val=0},c:showPercent{val=0},c:showBub"
+                "bleSize{val=0},c:showLeaderLines{val=1})",
+            ),
+            # -- updating an existing c:f preserves tree shape --
+            (
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"OldRange")',
+                "Sheet1!$D$2",
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+            ),
+            # -- replacing a c:tx/c:rich drops the rich and inserts a c:strRef --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:rich)",
+                "Sheet1!$D$2",
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+            ),
+            # -- c:strRef exists but has no c:f yet: c:f is inserted as first child --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef)",
+                "Sheet1!$D$2",
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+            ),
+            # -- c:tx inserted in correct schema order relative to siblings --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:dLblPos{val=ctr})",
+                "Sheet1!$D$2",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"
+                '"Sheet1!$D$2",c:dLblPos{val=ctr})',
+            ),
+        ],
+    )
+    def it_can_set_its_text_from_cells(self, ser_cxml, new_value, expected_cxml):
+        data_label = DataLabel(element(ser_cxml), 7)
+        data_label.text_from_cells = new_value
+        assert data_label._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_cxml"),
+        [
+            # -- nothing present: no-op --
+            ("c:ser", "c:ser"),
+            ("c:ser/c:dLbls", "c:ser/c:dLbls"),
+            # -- c:dLbl present but no c:tx: no-op --
+            (
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=7}",
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=7}",
+            ),
+            # -- c:tx/c:strRef present: subtree removed, c:tx removed too --
+            (
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+                "c:ser/c:dLbls/c:dLbl/c:idx{val=7}",
+            ),
+            # -- c:tx/c:rich sibling is preserved, c:strRef is removed, c:tx stays --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/(c:strRef/c:f,c:rich))",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:tx/c:rich)",
+            ),
+            # -- c:dLbl at *different* idx is untouched --
+            (
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+                'c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:tx/c:strRef/c:f"Sheet1!$D$2")',
+            ),
+        ],
+    )
+    def it_can_clear_its_text_from_cells(self, ser_cxml, expected_cxml):
+        data_label = DataLabel(element(ser_cxml), 7)
+        data_label.text_from_cells = None
+        assert data_label._element.xml == xml(expected_cxml)
+        assert data_label.text_from_cells is None
+
+    def it_round_trips_set_then_clear_text_from_cells(self):
+        """Regression: set → clear returns the ``c:dLbl`` to its prior shape.
+
+        Addresses issue #953 — pairs symmetrically with the
+        ``manual_layout`` round-trip above.
+        """
+        ser = element("c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:dLblPos{val=ctr})")
+        before = ser.xml
+        data_label = DataLabel(ser, 7)
+
+        data_label.text_from_cells = "Sheet1!$D$2"
+        assert data_label.text_from_cells == "Sheet1!$D$2"
+
+        data_label.text_from_cells = None
+        assert data_label.text_from_cells is None
+        assert ser.xml == before
+
+    def it_coerces_non_str_to_str_on_set_text_from_cells(self):
+        data_label = DataLabel(element("c:ser/c:dLbls/c:dLbl/c:idx{val=7}"), 7)
+
+        # -- pathlib-like object with __str__ → stored as its str repr --
+        class _Path:
+            def __str__(self):
+                return "Sheet2!$A$1"
+
+        data_label.text_from_cells = _Path()
+        assert data_label.text_from_cells == "Sheet2!$A$1"
+
     def it_knows_whether_it_has_a_text_frame(self, has_tf_get_fixture):
         data_label, expected_value = has_tf_get_fixture
         value = data_label.has_text_frame

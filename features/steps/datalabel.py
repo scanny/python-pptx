@@ -162,6 +162,16 @@ def when_I_clear_the_data_label_manual_layout(context):
     context.data_label.clear_manual_layout()
 
 
+@when("I assign '{value}' to data_label.text_from_cells")
+def when_I_assign_value_to_data_label_text_from_cells(context, value):
+    context.data_label.text_from_cells = value
+
+
+@when("I assign None to data_label.text_from_cells")
+def when_I_assign_None_to_data_label_text_from_cells(context):
+    context.data_label.text_from_cells = None
+
+
 # then ====================================================
 
 
@@ -358,9 +368,11 @@ def then_c_dLbl_has_manualLayout(context, x, y):
     ser = context.data_label._ser
     xs = ser.xpath("c:dLbls/c:dLbl/c:layout/c:manualLayout/c:x/@val")
     ys = ser.xpath("c:dLbls/c:dLbl/c:layout/c:manualLayout/c:y/@val")
-    assert len(xs) == 1 and len(ys) == 1, (
-        "expected a single c:manualLayout/c:x and c:y on the c:dLbl, got %d and %d"
-        % (len(xs), len(ys))
+    assert (
+        len(xs) == 1 and len(ys) == 1
+    ), "expected a single c:manualLayout/c:x and c:y on the c:dLbl, got %d and %d" % (
+        len(xs),
+        len(ys),
     )
     assert float(xs[0]) == x, "c:manualLayout/c:x/@val is %r, expected %r" % (xs[0], x)
     assert float(ys[0]) == y, "c:manualLayout/c:y/@val is %r, expected %r" % (ys[0], y)
@@ -376,3 +388,30 @@ def then_c_dLbl_has_no_c_layout(context):
     ser = context.data_label._ser
     layouts = ser.xpath("c:dLbls/c:dLbl/c:layout")
     assert layouts == [], "c:dLbl unexpectedly has c:layout subtree: %r" % layouts
+
+
+@then("data_label.text_from_cells is None")
+def then_data_label_text_from_cells_is_None(context):
+    actual = context.data_label.text_from_cells
+    assert actual is None, "data_label.text_from_cells is %r, expected None" % (actual,)
+
+
+@then("data_label.text_from_cells is '{value}'")
+def then_data_label_text_from_cells_is_value(context, value):
+    actual = context.data_label.text_from_cells
+    assert actual == value, "data_label.text_from_cells is %r, expected %r" % (actual, value)
+
+
+@then("the c:dLbl for the point has c:tx/c:strRef/c:f with text '{value}'")
+def then_c_dLbl_has_c_tx_c_strRef_c_f(context, value):
+    ser = context.data_label._ser
+    fs = ser.xpath("c:dLbls/c:dLbl/c:tx/c:strRef/c:f")
+    assert len(fs) == 1, "expected a single c:tx/c:strRef/c:f on the c:dLbl, got %d" % len(fs)
+    assert fs[0].text == value, "c:tx/c:strRef/c:f text is %r, expected %r" % (fs[0].text, value)
+
+
+@then("the c:dLbl for the point has no c:tx subtree")
+def then_c_dLbl_has_no_c_tx_subtree(context):
+    ser = context.data_label._ser
+    txs = ser.xpath("c:dLbls/c:dLbl/c:tx")
+    assert txs == [], "c:dLbl unexpectedly has c:tx subtree: %r" % txs
