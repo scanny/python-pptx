@@ -14,6 +14,20 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #339 strikethrough regression test added. Issue #339
+  (https://github.com/scanny/python-pptx/issues/339) asked for a public
+  way to read and write the ``a:rPr/@strike`` attribute. The feature is
+  shipped as :attr:`Font.strikethrough` (tri-state |True| / |False| /
+  |None| plus the :class:`MSO_TEXT_STRIKE_TYPE` enum, see
+  ``FEATURES.md``); ``tests/test_issue_339_strikethrough_verify.py``
+  adds a ``DescribeIssue339Strikethrough`` suite that pins the
+  inherit-by-default read, the ``True`` / ``False`` / enum-assignment
+  setter paths (including ``DOUBLE_LINE``), ``None``-clears-attribute
+  semantics, the exact ``@strike`` attribute spelling on ``a:rPr``, a
+  :meth:`Presentation.save` + reopen round-trip across every flavour,
+  and strikethrough preservation through
+  :meth:`TextFrame.replace_text`.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
