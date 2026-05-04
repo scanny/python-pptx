@@ -82,6 +82,10 @@ Feature Support
 * Read and write shape accessibility metadata (``alt_text`` description and short
   ``title``) on any shape -- auto-shape, picture, graphic frame, group, or
   connector
+* Attach application-defined string metadata to any shape via
+  :attr:`.BaseShape.custom_props` — a dict-like mapping persisted under
+  the shape's ``p:cNvPr/a:extLst`` and round-tripped through both
+  python-pptx and PowerPoint (issue #582)
 * Ungroup a :class:`.GroupShape` in place via :meth:`.GroupShape.ungroup`,
   hoisting each child onto the slide at its slide-relative effective rectangle
 

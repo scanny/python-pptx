@@ -28,6 +28,13 @@ _nsmap = {
     "dgm": "http://schemas.openxmlformats.org/drawingml/2006/diagram",
     "ep": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
     "i": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
+    # -- `lfxcp` (loadfix custom-props) is a fork-defined namespace used to attach
+    # -- application-specific string-to-string metadata to a shape via the
+    # -- `p:cNvPr/a:extLst/a:ext` extension slot. Wrapped under an `a:ext` whose
+    # -- `uri` is ``urn:loadfix-pptx:custom-props:v1`` so it is scoped and does
+    # -- not collide with other Office extensions. See :attr:`BaseShape.custom_props`
+    # -- (issue #582).
+    "lfxcp": "urn:loadfix-pptx:custom-props:v1",
     "m": "http://schemas.openxmlformats.org/officeDocument/2006/math",
     "mc": "http://schemas.openxmlformats.org/markup-compatibility/2006",
     "mo": "http://schemas.microsoft.com/office/mac/office/2008/main",

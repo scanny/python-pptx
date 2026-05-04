@@ -341,6 +341,47 @@ Feature: Common shape properties
       And I call A.send_backward()
       And I call C.bring_forward()
      Then the shape-tree order is [A, B, C]
+  Scenario Outline: shape.custom_props starts empty (issue #582)
+    Given a <shape-type> object as shape
+     Then shape.custom_props is dict-equal to {}
+
+    Examples: Shape types
+      | shape-type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |
+
+
+  Scenario Outline: shape.custom_props supports set / get / del / clear (issue #582)
+    Given a <shape-type> object as shape
+     When I assign 'marketing' to shape.custom_props['department']
+      And I assign 'alice' to shape.custom_props['owner']
+     Then shape.custom_props['department'] == 'marketing'
+      And shape.custom_props['owner'] == 'alice'
+      And list(shape.custom_props) == ['department', 'owner']
+     When I delete shape.custom_props['owner']
+     Then 'owner' not in shape.custom_props
+      And list(shape.custom_props) == ['department']
+     When I call shape.custom_props.clear()
+     Then shape.custom_props is dict-equal to {}
+
+    Examples: Shape types
+      | shape-type   |
+      | Shape        |
+      | Picture      |
+      | GraphicFrame |
+      | GroupShape   |
+      | Connector    |
+
+
+  Scenario: shape.custom_props survives a save / reload round trip (issue #582)
+    Given a Shape object with custom_props {'dept': 'sales', 'owner': 'bob'}
+     When the presentation is saved and reopened
+     Then the reopened shape.custom_props == {'dept': 'sales', 'owner': 'bob'}
+
+
   Scenario Outline: Duplicate a simple shape
     Given a <shape-type> object on a slide as shape
      When I call shape.duplicate()

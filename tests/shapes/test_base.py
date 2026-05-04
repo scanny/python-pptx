@@ -1950,6 +1950,152 @@ class DescribeSubshape(object):
         return subshape, parent_
 
 
+class Describe_CustomPropsDict(object):
+    """Unit-test suite for `pptx.shapes.base._CustomPropsDict` (issue #582)."""
+
+    def it_reports_zero_keys_for_a_bare_shape(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        props = shape.custom_props
+        assert list(props) == []
+        assert len(props) == 0
+        assert "foo" not in props
+
+    def it_can_set_and_get_a_key(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props["department"] = "marketing"
+        assert shape.custom_props["department"] == "marketing"
+        assert shape.custom_props.get("department") == "marketing"
+
+    def it_preserves_insertion_order_across_multiple_keys(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        props = shape.custom_props
+        props["c"] = "1"
+        props["a"] = "2"
+        props["b"] = "3"
+        assert list(props) == ["c", "a", "b"]
+        assert props.items() == [("c", "1"), ("a", "2"), ("b", "3")]
+        assert props.values() == ["1", "2", "3"]
+
+    def it_overwrites_an_existing_value_in_place(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props["k"] = "first"
+        shape.custom_props["k2"] = "second"
+        shape.custom_props["k"] = "updated"
+        # -- overwrite is in-place, so order does not change --
+        assert list(shape.custom_props) == ["k", "k2"]
+        assert shape.custom_props["k"] == "updated"
+
+    def it_returns_default_on_get_for_missing_key(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        assert shape.custom_props.get("missing") is None
+        assert shape.custom_props.get("missing", "def") == "def"
+
+    def it_raises_KeyError_on_subscript_of_missing_key(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        with pytest.raises(KeyError):
+            shape.custom_props["missing"]
+
+    def it_raises_KeyError_on_del_of_missing_key(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        with pytest.raises(KeyError):
+            del shape.custom_props["missing"]
+
+    def it_deletes_a_key_and_leaves_other_keys_intact(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        props = shape.custom_props
+        props["a"] = "1"
+        props["b"] = "2"
+        props["c"] = "3"
+        del props["b"]
+        assert list(props) == ["a", "c"]
+        assert "b" not in props
+
+    def it_removes_the_extLst_when_the_last_prop_is_deleted(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props["only"] = "1"
+        del shape.custom_props["only"]
+        cNvPr = shape._element._nvXxPr.cNvPr
+        assert cNvPr.find(qn("a:extLst")) is None
+
+    def it_removes_the_extLst_on_clear(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props["a"] = "1"
+        shape.custom_props["b"] = "2"
+        shape.custom_props.clear()
+        assert list(shape.custom_props) == []
+        cNvPr = shape._element._nvXxPr.cNvPr
+        assert cNvPr.find(qn("a:extLst")) is None
+
+    def it_tolerates_clear_when_already_empty(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props.clear()
+        assert list(shape.custom_props) == []
+
+    def it_rejects_non_string_keys(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        with pytest.raises(TypeError):
+            shape.custom_props[42] = "x"  # type: ignore[index]
+
+    def it_rejects_non_string_values(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        with pytest.raises(TypeError):
+            shape.custom_props["k"] = 7  # type: ignore[assignment]
+
+    def it_equates_to_a_dict_with_the_same_items(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props["a"] = "1"
+        shape.custom_props["b"] = "2"
+        assert shape.custom_props == {"a": "1", "b": "2"}
+        assert shape.custom_props != {"a": "1"}
+
+    def it_handles_empty_string_values(self):
+        shape = self._shape("p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}")
+        shape.custom_props["blank"] = ""
+        assert shape.custom_props["blank"] == ""
+        assert list(shape.custom_props) == ["blank"]
+
+    def it_is_available_on_every_slide_shape_type(self):
+        """Smoke: every shape subtype exposes a working ``custom_props`` mapping."""
+        for cxml in (
+            "p:sp/p:nvSpPr/p:cNvPr{id=1,name=A}",
+            "p:pic/p:nvPicPr/p:cNvPr{id=1,name=A}",
+            "p:cxnSp/p:nvCxnSpPr/p:cNvPr{id=1,name=A}",
+            "p:graphicFrame/p:nvGraphicFramePr/p:cNvPr{id=1,name=A}",
+            "p:grpSp/p:nvGrpSpPr/p:cNvPr{id=1,name=A}",
+        ):
+            shape = self._shape(cxml)
+            shape.custom_props["k"] = "v"
+            assert shape.custom_props["k"] == "v"
+
+    def it_survives_a_full_save_reload_round_trip(self, tmp_path):
+        """End-to-end: values set before save are visible after reopen (issue #582)."""
+        from io import BytesIO
+
+        from pptx.util import Inches
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        shape = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
+        )
+        shape.custom_props["department"] = "marketing"
+        shape.custom_props["owner"] = "alice"
+
+        buf = BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+
+        prs2 = Presentation(buf)
+        reopened = prs2.slides[0].shapes[0]
+        assert reopened.custom_props == {"department": "marketing", "owner": "alice"}
+        assert list(reopened.custom_props) == ["department", "owner"]
+
+    # -- fixtures ------------------------------------------------------
+
+    def _shape(self, cxml: str) -> BaseShape:
+        return BaseShape(cast("ShapeElement", element(cxml)), None)
+
+
 class Describe_PlaceholderFormat(object):
     def it_knows_its_idx(self, idx_get_fixture):
         placeholder_format, expected_value = idx_get_fixture

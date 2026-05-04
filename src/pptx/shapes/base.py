@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, NamedTuple, cast
+from typing import TYPE_CHECKING, Iterator, NamedTuple, cast
 
 from lxml import etree
 
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
 from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls, qn
+from pptx.oxml.ns import nsdecls, nsuri, qn
 from pptx.shared import ElementProxy
 from pptx.util import Emu, lazyproperty
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes import ShapeElement
     from pptx.oxml.shapes.groupshape import CT_GroupShape
-    from pptx.oxml.shapes.shared import CT_Placeholder
+    from pptx.oxml.shapes.shared import CT_NonVisualDrawingProps, CT_Placeholder
     from pptx.oxml.slide import CT_Slide
     from pptx.parts.slide import BaseSlidePart
     from pptx.text.text import TextFrame, TextFrameRect
@@ -316,6 +316,44 @@ class BaseShape(object):
                 return elm  # type: ignore[return-value]
             elm = elm.getparent()
         return None
+
+    @property
+    def custom_props(self) -> _CustomPropsDict:
+        """Dict-like mapping of application-defined string metadata on this shape.
+
+        Provides a persisted, round-trip-safe place for callers to attach
+        arbitrary string-to-string metadata to an individual shape — analogous
+        to custom document properties but scoped to a single shape instead of
+        the whole presentation.
+
+        The returned object is a live proxy over the shape's XML; mutations
+        are written back to the shape element immediately and survive
+        :meth:`Presentation.save` / reload. Keys preserve insertion order, both
+        keys and values must be |str|, and the mapping supports the usual
+        ``mapping[key]`` / ``key in mapping``, ``del mapping[key]``,
+        :meth:`~._CustomPropsDict.get`, :meth:`~._CustomPropsDict.clear`, and
+        iteration idioms::
+
+            shape.custom_props["department"] = "marketing"
+            shape.custom_props["owner"] = "alice"
+            assert shape.custom_props.get("department") == "marketing"
+            assert list(shape.custom_props) == ["department", "owner"]
+            del shape.custom_props["owner"]
+            shape.custom_props.clear()
+
+        The values are stored under the shape's ``p:cNvPr/a:extLst`` using a
+        single ``a:ext`` element whose ``uri`` attribute is
+        ``{urn:loadfix-pptx:custom-props:v1}``. PowerPoint preserves unknown
+        ``a:ext`` entries on save, so the custom properties round-trip
+        through PowerPoint in addition to round-tripping through python-pptx.
+
+        .. versionadded:: 2026.05.0
+        """
+        cNvPr = cast(
+            "CT_NonVisualDrawingProps",
+            self._element._nvXxPr.cNvPr,  # pyright: ignore[reportPrivateUsage]
+        )
+        return _CustomPropsDict(cNvPr)
 
     @lazyproperty
     def click_action(self) -> ActionSetting:
@@ -1172,6 +1210,217 @@ def _unique_shape_name(base_name: str, spTree: ShapeElement) -> str:
         if candidate not in existing:
             return candidate
         n += 1
+
+
+class _CustomPropsDict:
+    """Live, dict-like view over a shape's custom-props extension entries.
+
+    Stores string-to-string metadata under the shape's ``p:cNvPr/a:extLst`` in
+    a single ``a:ext`` whose ``uri`` is the fork's custom-props URI.
+    Mutations write back to the XML tree immediately and survive save/reload
+    round-trips.
+
+    This proxy is intentionally low-level and is not exposed directly — callers
+    obtain an instance via :attr:`BaseShape.custom_props`. Instances are cheap
+    to create; each access re-resolves the underlying XML, so a proxy held
+    across XML mutations on the shape remains valid.
+    """
+
+    # -- URI under which we stash the custom-props container inside the shape's --
+    # -- `p:cNvPr/a:extLst`. The `urn:loadfix-pptx:…` scope prevents collision --
+    # -- with any Microsoft or third-party extension uri.                       --
+    _URI = "{urn:loadfix-pptx:custom-props:v1}"
+
+    def __init__(self, cNvPr: CT_NonVisualDrawingProps):
+        self._cNvPr = cNvPr
+
+    def __contains__(self, key: object) -> bool:
+        if not isinstance(key, str):
+            return False
+        return self._find_prop_elm(key) is not None
+
+    def __delitem__(self, key: str) -> None:
+        self._check_key(key)
+        prop_elm = self._find_prop_elm(key)
+        if prop_elm is None:
+            raise KeyError(key)
+        container = prop_elm.getparent()
+        assert container is not None
+        container.remove(prop_elm)
+        # -- when the container is emptied, remove the wrapping `a:ext` and --
+        # -- any now-orphan `a:extLst` so the on-disk XML stays tidy.       --
+        self._prune_empty_containers(container)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, _CustomPropsDict):
+            return self._cNvPr is other._cNvPr
+        if isinstance(other, dict):
+            return dict(self.items()) == other
+        return NotImplemented
+
+    def __getitem__(self, key: str) -> str:
+        self._check_key(key)
+        prop_elm = self._find_prop_elm(key)
+        if prop_elm is None:
+            raise KeyError(key)
+        return _prop_value(prop_elm)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.keys())
+
+    def __len__(self) -> int:
+        container = self._container_elm
+        if container is None:
+            return 0
+        return len(container.findall(qn("lfxcp:prop")))
+
+    def __ne__(self, other: object) -> bool:
+        result = self.__eq__(other)
+        if result is NotImplemented:
+            return NotImplemented  # type: ignore[return-value]
+        return not result
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({dict(self.items())!r})"
+
+    def __setitem__(self, key: str, value: str) -> None:
+        self._check_key(key)
+        if not isinstance(value, str):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(f"custom_props value must be str, not {type(value).__name__}")
+        container = self._get_or_add_container_elm()
+        existing = self._find_prop_in(container, key)
+        if existing is not None:
+            existing.text = value
+            return
+        prop_elm = etree.SubElement(container, qn("lfxcp:prop"))
+        prop_elm.set("key", key)
+        prop_elm.text = value
+
+    def clear(self) -> None:
+        """Remove all custom properties from this shape.
+
+        Equivalent to iterating every key and deleting it, but runs in a
+        single XML mutation. Removes the wrapping ``a:ext`` and ``a:extLst``
+        when they would otherwise be left empty.
+        """
+        container = self._container_elm
+        if container is None:
+            return
+        ext = container.getparent()
+        assert ext is not None
+        extLst = ext.getparent()
+        assert extLst is not None
+        extLst.remove(ext)
+        if len(extLst.findall(qn("a:ext"))) == 0:
+            parent_of_extLst = extLst.getparent()
+            assert parent_of_extLst is not None
+            parent_of_extLst.remove(extLst)
+
+    def get(self, key: str, default: str | None = None) -> str | None:
+        """Return the value for `key` if present, else `default`.
+
+        Mirrors :meth:`dict.get`. Returns |None| (the default) when `key` is
+        absent and no explicit `default` is supplied.
+        """
+        self._check_key(key)
+        prop_elm = self._find_prop_elm(key)
+        if prop_elm is None:
+            return default
+        return _prop_value(prop_elm)
+
+    def items(self) -> list[tuple[str, str]]:
+        """List of ``(key, value)`` tuples in insertion order."""
+        container = self._container_elm
+        if container is None:
+            return []
+        return [
+            (str(p.get("key")), _prop_value(p))
+            for p in container.findall(qn("lfxcp:prop"))
+            if p.get("key") is not None
+        ]
+
+    def keys(self) -> list[str]:
+        """List of keys in insertion order."""
+        return [k for k, _ in self.items()]
+
+    def values(self) -> list[str]:
+        """List of values in insertion order."""
+        return [v for _, v in self.items()]
+
+    def _check_key(self, key: object) -> None:
+        if not isinstance(key, str):
+            raise TypeError(f"custom_props key must be str, not {type(key).__name__}")
+
+    @property
+    def _container_elm(self) -> etree._Element | None:
+        """The `lfxcp:customProps` container, or |None| if absent."""
+        extLst = self._cNvPr.extLst
+        if extLst is None:
+            return None
+        ext = self._find_our_ext(extLst)
+        if ext is None:
+            return None
+        return ext.find(qn("lfxcp:customProps"))
+
+    def _find_our_ext(self, extLst: etree._Element) -> etree._Element | None:
+        """Return our `a:ext` child of `extLst` (matching our uri), or |None|."""
+        for ext in extLst.findall(qn("a:ext")):
+            if ext.get("uri") == self._URI:
+                return ext
+        return None
+
+    def _find_prop_elm(self, key: str) -> etree._Element | None:
+        container = self._container_elm
+        if container is None:
+            return None
+        return self._find_prop_in(container, key)
+
+    @staticmethod
+    def _find_prop_in(container: etree._Element, key: str) -> etree._Element | None:
+        for prop in container.findall(qn("lfxcp:prop")):
+            if prop.get("key") == key:
+                return prop
+        return None
+
+    def _get_or_add_container_elm(self) -> etree._Element:
+        """Return the `lfxcp:customProps` element, creating the chain if needed."""
+        extLst = self._cNvPr.get_or_add_extLst()
+        ext = self._find_our_ext(extLst)
+        if ext is None:
+            ext = etree.SubElement(extLst, qn("a:ext"))
+            ext.set("uri", self._URI)
+        container = ext.find(qn("lfxcp:customProps"))
+        if container is None:
+            # -- declare the fork namespace directly on the container so the --
+            # -- element is self-describing when PowerPoint serializes it.   --
+            container = etree.SubElement(
+                ext,
+                qn("lfxcp:customProps"),
+                nsmap={"lfxcp": nsuri("lfxcp")},
+            )
+        return container
+
+    def _prune_empty_containers(self, container: etree._Element) -> None:
+        if len(container.findall(qn("lfxcp:prop"))) > 0:
+            return
+        ext = container.getparent()
+        assert ext is not None
+        extLst = ext.getparent()
+        assert extLst is not None
+        extLst.remove(ext)
+        if len(extLst.findall(qn("a:ext"))) == 0:
+            parent_of_extLst = extLst.getparent()
+            assert parent_of_extLst is not None
+            parent_of_extLst.remove(extLst)
+
+
+def _prop_value(prop_elm: etree._Element) -> str:
+    """Return the text content of a `lfxcp:prop` element as a |str|.
+
+    An explicit empty string is preserved (i.e. ``<lfxcp:prop key="k"/>`` and
+    ``<lfxcp:prop key="k"></lfxcp:prop>`` both map to ``""``).
+    """
+    return prop_elm.text or ""
 
 
 class _PlaceholderFormat(ElementProxy):
