@@ -519,7 +519,9 @@ prs.save("out.pptx")
 - `GroupShape.shapes` — `GroupShapes` collection of direct children. `GroupShapes.descendants()` recurses into nested groups. `[Added in 2026.05.0]`
 - `GroupShape.duplicate()` — Clone the entire group, including every descendant. `[Added in 2026.05.0]`
 - `GroupShape.delete()` — Remove the group and drop orphan part references. `[Added in 2026.05.0]`
-- `GroupShapes.add_shape(...)` / `.add_textbox(...)` / `.add_picture(...)` — Author new shapes inside a group.
+- `GroupShapes.add_shape(...)` / `.add_textbox(...)` / `.add_picture(...)` / `.add_connector(...)` / `.add_group_shape(...)` / `.add_ole_object(...)` — Author new shapes inside a group.
+- `GroupShapes.add_table(rows, cols, left, top, width, height)` — Add a table directly inside a group shape. Issue #627. `[Added in 2026.05.dev0]`
+- `GroupShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Add a chart directly inside a group shape. Issue #627. `[Added in 2026.05.dev0]`
 - `BaseShape.effective_left` / `effective_top` / `effective_width` / `effective_height` — Group-transform-aware absolute geometry in slide space. `[Added in 2026.05.0]`
 
 ---

@@ -65,3 +65,18 @@ Feature: GroupShape properties and methods
     Given a nested group whose outer maps child space 2:1 onto the slide
      When I call ungroup() on the inner group
      Then the freed child renders at the same slide rectangle as before
+
+
+  Scenario Outline: Author shapes directly inside a GroupShape
+    Given an empty GroupShape object as shape
+     When I add a <inner_kind> to the group
+     Then the group contains exactly one <inner_kind>
+
+    Examples: shape kinds authorable inside a group
+      | inner_kind  |
+      | table       |
+      | chart       |
+      | textbox     |
+      | picture     |
+      | autoshape   |
+      | connector   |

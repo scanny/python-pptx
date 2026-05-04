@@ -1447,3 +1447,90 @@ def then_reopened_shape_custom_props_equals(context, mapping_literal):
         expected,
         dict(context.shape.custom_props.items()),
     )
+
+
+# ---- #627: GroupShapes authoring steps ------------------------------------
+
+
+@when("I add a {inner_kind} to the group")
+def when_i_add_a_shape_to_the_group(context, inner_kind):
+    import os
+
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.enum.shapes import MSO_CONNECTOR
+
+    group = context.shape
+    if inner_kind == "table":
+        context.added = group.shapes.add_table(
+            2, 3, Inches(1), Inches(1), Inches(4), Inches(2)
+        )
+    elif inner_kind == "chart":
+        chart_data = CategoryChartData()
+        chart_data.categories = ["A", "B", "C"]
+        chart_data.add_series("Series 1", (1, 2, 3))
+        context.added = group.shapes.add_chart(
+            XL_CHART_TYPE.BAR_CLUSTERED,
+            Inches(1),
+            Inches(1),
+            Inches(4),
+            Inches(3),
+            chart_data,
+        )
+    elif inner_kind == "textbox":
+        context.added = group.shapes.add_textbox(
+            Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+    elif inner_kind == "picture":
+        image_path = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "..",
+                "tests",
+                "test_files",
+                "python-powered.png",
+            )
+        )
+        context.added = group.shapes.add_picture(
+            image_path, Inches(1), Inches(1), Inches(2), Inches(2)
+        )
+    elif inner_kind == "autoshape":
+        context.added = group.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+    elif inner_kind == "connector":
+        context.added = group.shapes.add_connector(
+            MSO_CONNECTOR.STRAIGHT, Inches(1), Inches(1), Inches(2), Inches(2)
+        )
+    else:
+        raise AssertionError("unknown inner_kind %r" % inner_kind)
+
+
+@then("the group contains exactly one {inner_kind}")
+def then_group_contains_exactly_one(context, inner_kind):
+    from pptx.shapes.autoshape import Shape
+    from pptx.shapes.connector import Connector
+    from pptx.shapes.graphfrm import GraphicFrame
+    from pptx.shapes.picture import Picture
+
+    group = context.shape
+    assert len(group.shapes) == 1, "expected 1 shape, got %d" % len(group.shapes)
+    child = group.shapes[0]
+    if inner_kind == "table":
+        assert isinstance(child, GraphicFrame)
+        assert child.has_table
+    elif inner_kind == "chart":
+        assert isinstance(child, GraphicFrame)
+        assert child.has_chart
+    elif inner_kind == "textbox":
+        assert isinstance(child, Shape)
+        assert child.has_text_frame
+    elif inner_kind == "picture":
+        assert isinstance(child, Picture)
+    elif inner_kind == "autoshape":
+        assert isinstance(child, Shape)
+    elif inner_kind == "connector":
+        assert isinstance(child, Connector)
+    else:
+        raise AssertionError("unknown inner_kind %r" % inner_kind)

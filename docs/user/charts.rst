@@ -70,6 +70,10 @@ object. That's because a chart is not itself a shape. Rather it's a graphical
 (DrawingML) object *contained* in the graphic frame shape. Tables work this
 way too, also being contained in a graphic frame shape.
 
+``add_chart`` is also available on :class:`.GroupShapes`, :class:`.LayoutShapes`,
+and :class:`.MasterShapes`, so a chart can be authored directly inside a group
+(issue #627) or carried on a layout / master as a shared template-level shape.
+
 
 XY and Bubble charts
 --------------------

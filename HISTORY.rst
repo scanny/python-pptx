@@ -14,6 +14,34 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #627 author tables and charts directly inside a :class:`.GroupShape`.
+  Issue #627 (https://github.com/scanny/python-pptx/issues/627) asked
+  for ``group.shapes.add_table(...)`` and ``group.shapes.add_chart(...)``
+  to work analogously to the same calls on
+  :class:`~pptx.shapes.shapetree.SlideShapes`. ``add_table`` has been
+  promoted from :class:`~pptx.shapes.shapetree.SlideShapes` onto
+  :class:`~pptx.shapes.shapetree._BaseGroupShapes` so every subclass —
+  :class:`~pptx.shapes.shapetree.SlideShapes`,
+  :class:`~pptx.shapes.shapetree.LayoutShapes`,
+  :class:`~pptx.shapes.shapetree.MasterShapes`, and
+  :class:`~pptx.shapes.shapetree.GroupShapes` — now exposes it. The
+  existing ``add_chart``, ``add_picture``, ``add_textbox``,
+  ``add_shape``, ``add_connector``, ``add_group_shape``, and
+  ``add_ole_object`` already lived on the base class; they now have an
+  acceptance-tested contract when invoked on a group shape. When a
+  shape is added inside a group, the group's
+  :meth:`~pptx.shapes.shapetree._BaseGroupShapes._recalculate_extents`
+  hook runs so its outer ``a:off`` / ``a:ext`` composite-rectangle
+  includes the new child. Both ``p:spTree`` and ``p:grpSp`` map onto
+  ``CT_GroupShape`` in the OOXML schema and both accept
+  ``p:graphicFrame`` children, so the promotion is spec-clean.
+  ``tests/shapes/test_shapetree.py::DescribeGroupShapes`` gained
+  integration-style ``it_can_add_a_<kind>_inside_a_group_shape`` tests
+  for table, chart, textbox, picture, autoshape, and connector, and
+  ``features/shp-groupshape.feature`` gained a parameterised
+  "Author shapes directly inside a GroupShape" scenario outline with
+  the matching six examples.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
