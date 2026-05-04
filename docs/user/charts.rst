@@ -504,6 +504,37 @@ and help a reader tell which one is which::
 Nice! Okay, let's try some other chart types.
 
 
+Hiding individual legend entries
+--------------------------------
+
+Sometimes a chart needs to keep a series (or a pie/doughnut slice) in
+the plot while suppressing its entry in the legend — for example, a
+helper series used only to carry error bars, or a slice labeled inline.
+PowerPoint exposes this via *Format Legend Entry → Delete* on a single
+selected entry. The programmatic equivalent is
+:meth:`Legend.exclude_entry <pptx.chart.legend.Legend.exclude_entry>`::
+
+    chart.has_legend = True
+    chart.legend.exclude_entry(1)  # hide the entry for the 2nd series
+    chart.legend.exclude_entry(3)  # hide the entry for the 4th series
+
+    assert chart.legend.hidden_entries == (1, 3)
+    # ...all four series are still plotted.
+
+Call :meth:`Legend.include_entry
+<pptx.chart.legend.Legend.include_entry>` to re-show a previously
+hidden entry. :attr:`Legend.hidden_entries
+<pptx.chart.legend.Legend.hidden_entries>` returns the 0-based indices
+of the currently hidden entries as a read-only tuple, in document
+order. Indexing matches PowerPoint's ``c:legendEntry/c:idx`` — legend
+entries are numbered in the order PowerPoint would render them, which
+for series-per-entry charts (bar, column, line, scatter, …) is the
+series order, and for single-series pie / doughnut / funnel charts is
+the data-point order.
+
+Added in 2026.05.0. GitHub issue #649.
+
+
 Data table
 ----------
 

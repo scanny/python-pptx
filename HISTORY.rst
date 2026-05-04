@@ -14,6 +14,27 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #649 hide individual legend entries. Issue #649
+  (https://github.com/scanny/python-pptx/issues/649) asked for a way
+  to suppress specific legend entries while keeping their series
+  plotted — the programmatic equivalent of PowerPoint's right-click
+  *Format Legend Entry → Delete* on a single selected entry. The fix
+  models PowerPoint's ``c:legend/c:legendEntry/c:delete`` override:
+  :meth:`.Legend.exclude_entry` inserts (or promotes) a
+  ``c:legendEntry`` for the given 0-based index with an explicit
+  ``c:delete val="1"`` child; :meth:`.Legend.include_entry` reverses
+  the operation, removing the entire ``c:legendEntry`` when no other
+  overrides (e.g. a ``c:txPr`` formatting block) are present;
+  :attr:`.Legend.hidden_entries` returns the current set of hidden
+  indices as a tuple in document order. The underlying ``c:ser`` is
+  untouched so the series continues to contribute to the plot.
+  ``tests/test_issue_649_hide_legend_entries.py`` pins the contract —
+  4-series chart, hide two non-contiguous entries, all series still
+  plotted, ``Legend.hidden_entries`` reports (1, 3), round-trips
+  through :meth:`.Presentation.save` + reopen. Documented in the user
+  guide under *Working with charts → Hiding individual legend
+  entries*.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

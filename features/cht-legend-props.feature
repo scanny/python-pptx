@@ -80,3 +80,17 @@ Feature: Get and set legend properties
       | at an unspecified location of | RIGHT     | RIGHT          |
       | below                         | TOP       | TOP            |
       | to the right of               | BOTTOM    | BOTTOM         |
+
+
+  Scenario: Hide individual legend entries (issue #649)
+    Given a 4-series column chart with a visible legend
+     When I call legend.exclude_entry(1) and legend.exclude_entry(3)
+     Then legend.hidden_entries is (1, 3)
+      And the chart still has its 4 original series
+
+
+  Scenario: Re-show a previously excluded legend entry (issue #649)
+    Given a 4-series column chart with a visible legend
+      And legend entries 1 and 3 already excluded
+     When I call legend.include_entry(1)
+     Then legend.hidden_entries is (3,)
