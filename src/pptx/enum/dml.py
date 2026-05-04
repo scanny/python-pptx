@@ -331,8 +331,15 @@ class MSO_PATTERN_TYPE(BaseXmlEnum):
     PERCENT_30 = (5, "pct30", "30% of the foreground color.")
     """30% of the foreground color."""
 
-    ERCENT_40 = (6, "pct40", "40% of the foreground color.")
+    PERCENT_40 = (6, "pct40", "40% of the foreground color.")
     """40% of the foreground color."""
+
+    ERCENT_40 = (6, "pct40", "40% of the foreground color.")
+    """Deprecated alias for :attr:`PERCENT_40` (retained for backwards compatibility).
+
+    The original name was a typo (missing leading ``P``). New code should use
+    :attr:`PERCENT_40`. This alias will be removed in a future major release.
+    """
 
     PERCENT_5 = (1, "pct5", "5% of the foreground color.")
     """5% of the foreground color."""

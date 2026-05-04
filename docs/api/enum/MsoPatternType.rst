@@ -113,6 +113,11 @@ PERCENT_30
 PERCENT_40
     40% of the foreground color.
 
+ERCENT_40
+    Deprecated alias for ``PERCENT_40`` (retained for backwards
+    compatibility; the original name was a typo). Use ``PERCENT_40``
+    in new code.
+
 PERCENT_5
     5% of the foreground color.
 

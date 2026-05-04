@@ -14,6 +14,14 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #1127 rename ``ERCENT_40`` to ``PERCENT_40`` in
+  ``MSO_PATTERN_TYPE`` (alias retained for backcompat). The original
+  member name was missing its leading ``P``; the canonical name is now
+  ``PERCENT_40`` and existing code using ``ERCENT_40`` continues to
+  resolve to the same member (value ``6``, ``xml_value="pct40"``). The
+  alias is documented as deprecated and will be removed in a future
+  major release.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
