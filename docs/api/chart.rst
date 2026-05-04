@@ -122,6 +122,18 @@ divisions.
    :undoc-members:
 
 
+|MinorGridlines| objects
+------------------------
+
+Minor gridlines extend the minor tick marks of an axis across the chart
+and can be formatted independently from the major gridlines.
+
+.. autoclass:: pptx.chart.axis.MinorGridlines()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |TickLabels| objects
 --------------------
 

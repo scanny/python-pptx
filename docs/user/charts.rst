@@ -203,6 +203,24 @@ Let's change up the category and value axes a bit::
     tick_labels.font.bold = True
     tick_labels.font.size = Pt(14)
 
+Major and minor gridlines can be formatted independently. Each exposes
+a :class:`~pptx.dml.chtfmt.ChartFormat` block via its ``.format`` property,
+with the familiar ``.line`` / ``.fill`` sub-APIs::
+
+    from pptx.dml.color import RGBColor
+    from pptx.enum.dml import MSO_LINE_DASH_STYLE
+    from pptx.util import Emu
+
+    value_axis.has_major_gridlines = True
+    major = value_axis.major_gridlines
+    major.format.line.color.rgb = RGBColor(0x80, 0x80, 0x80)
+    major.format.line.width = Emu(9525)
+
+    value_axis.has_minor_gridlines = True
+    minor = value_axis.minor_gridlines
+    minor.format.line.color.rgb = RGBColor(0xC0, 0xC0, 0xC0)
+    minor.format.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+
 Tick labels can also be rotated, for example to prevent long category-axis
 labels from overlapping. :attr:`TickLabels.rotation` is a read/write
 clockwise rotation in degrees::

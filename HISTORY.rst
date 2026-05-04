@@ -14,6 +14,14 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #984 add ``_BaseAxis.minor_gridlines`` plus a ``MinorGridlines``
+  proxy class mirroring the existing ``MajorGridlines`` API. The returned
+  proxy exposes a ``.format`` property (a |ChartFormat|) so the minor
+  gridlines' color, width, and dash style are set via the familiar
+  ``axis.minor_gridlines.format.line`` surface. The ``c:minorGridlines``
+  element is registered with ``CT_ChartLines`` (shared with
+  ``c:majorGridlines``) so its ``c:spPr`` child is populated on demand.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and
