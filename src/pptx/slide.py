@@ -423,6 +423,23 @@ class Slide(_BaseSlide):
         """Sequence of shape objects appearing on this slide."""
         return SlideShapes(self._element.spTree, self)
 
+    def clear_shapes(self, preserve_placeholders: bool = True) -> None:
+        """Remove every top-level shape from this slide.
+
+        Convenience wrapper around :meth:`SlideShapes.clear`. By default
+        placeholders are preserved so the slide continues to inherit from
+        its layout; pass ``preserve_placeholders=False`` to remove every
+        shape including placeholders::
+
+            slide.clear_shapes()                         # keep placeholders
+            slide.clear_shapes(preserve_placeholders=False)  # wipe everything
+
+        Returns ``None`` to match :meth:`list.clear`.
+
+        .. versionadded:: 2026.05.0
+        """
+        self.shapes.clear(preserve_placeholders=preserve_placeholders)
+
     @property
     def shape_tree_flat(self) -> Iterator[BaseShape]:
         """Iterator over every shape on this slide, including descendants of groups.

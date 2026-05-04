@@ -215,6 +215,29 @@ Both return the same ordering as :meth:`~.SlideShapes.descendants`
 See issue #532.
 
 
+Removing every shape from a slide
+---------------------------------
+
+When you need to wipe a slide's shape tree -- for example when templating
+a deck where every slide starts empty but inherits its layout -- use
+:meth:`Slide.clear_shapes` (or the underlying
+:meth:`SlideShapes.clear`). The default call preserves placeholders so
+the slide continues to inherit titles, content regions, and any other
+layout-driven content regions; every non-placeholder shape (auto
+shapes, pictures, charts, tables, connectors, group shapes and their
+contents) is removed::
+
+    slide.clear_shapes()                              # keep placeholders
+    slide.clear_shapes(preserve_placeholders=False)   # wipe everything
+
+Per-shape side effects run in the normal way: a removed picture drops
+its image relationship, a removed chart drops its embedded chart part,
+a removed group is detached together with every shape inside it. Both
+methods return ``None`` to match :meth:`list.clear`.
+
+See issue #96.
+
+
 Accessibility -- shape alt-text and title
 -----------------------------------------
 

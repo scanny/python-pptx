@@ -514,3 +514,22 @@ Feature: Access a shape on a slide
     Given a slide with 1 top-level shape plus a group of 3 shapes
      Then shapes.get_by_name of an inner-group shape is None by default
       And shapes.get_by_name of an inner-group shape with include_descendants finds it
+
+
+  # -- issue #96: bulk removal of shapes with placeholder-preservation default.
+  Scenario: SlideShapes.clear() preserves placeholders by default
+    Given a slide with placeholders and three non-placeholder shapes
+     When I call shapes.clear()
+     Then only the placeholders remain on the slide
+
+
+  Scenario: SlideShapes.clear(preserve_placeholders=False) removes everything
+    Given a slide with placeholders and three non-placeholder shapes
+     When I call shapes.clear(preserve_placeholders=False)
+     Then the slide has zero shapes
+
+
+  Scenario: Slide.clear_shapes() is a convenience wrapper for SlideShapes.clear()
+    Given a slide with placeholders and three non-placeholder shapes
+     When I call slide.clear_shapes()
+     Then only the placeholders remain on the slide
