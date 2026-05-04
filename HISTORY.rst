@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #933 resolved by Wave 13 follow_master_background() callable proxy.
+  Issue #933 (https://github.com/scanny/python-pptx/issues/933) asked for a
+  write-side hook on :attr:`.Slide.follow_master_background` so a caller
+  who has painted a custom background onto a slide can revert to master
+  inheritance without reaching into ``p:cSld/p:bg`` directly. The Wave 13
+  follow-up to #366 delivered this: :attr:`.Slide.follow_master_background`
+  is now a dual bool-like/callable proxy
+  (:class:`pptx.slide._FollowMasterBackground`) — reading returns the
+  inheritance state (unchanged) and *calling* it
+  (``slide.follow_master_background()``) drops any ``p:bg`` child on the
+  slide's ``p:cSld``, matching PowerPoint's *Reset Background* button. Adds
+  ``tests/test_issue_933_follow_master_bg_verify.py`` pinning the default
+  ``True`` read on a fresh slide, the ``False`` read after authoring a
+  custom background, the call-to-reset drop and ``True`` flip, the
+  save/reopen round-trip of the reverted state, the idempotent no-op on
+  a slide that already inherits, and the fresh-proxy-per-access
+  contract. Companion to ``tests/test_issue_366_slide_background_verify.py``
+  which pins the authoring half of the contract.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and
