@@ -317,7 +317,14 @@ class _BaseSeriesXmlRewriter(object):
     def _add_cloned_sers(self, plotArea, count):
         """
         Add `c:ser` elements to the last xChart element in *plotArea*, cloned
-        from the last `c:ser` child of that last xChart.
+        from the last `c:ser` child found in *plotArea* (searched backwards
+        through xCharts so a `template` series is still found when the final
+        xChart happens to be empty -- GitHub issue #596).
+
+        If a cloned series lacks `c:idx` or `c:order` (the spec requires both,
+        but PowerPoint sometimes tolerates their absence in wild-caught decks)
+        the missing child is synthesized on the clone before its value is
+        assigned.
 
         Any explicit sRGB fill color on the cloned series is replaced with a
         cycling theme-accent ``a:schemeClr`` so the new series adopts the
@@ -325,8 +332,26 @@ class _BaseSeriesXmlRewriter(object):
         color (GitHub issue #529).
         """
 
+        def _ensure_idx_and_order(ser):
+            """Add `c:idx` / `c:order` children to *ser* if they are missing.
+
+            Uses `parse_xml` rather than descriptor `get_or_add_*` because
+            `CT_SeriesComposite.idx`/`order` are declared `OneAndOnlyOne`
+            (which only provides a getter).
+            """
+            ns = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+            if ser.find(qn("c:idx")) is None:
+                idx_elm = parse_xml('<c:idx xmlns:c="%s" val="0"/>' % ns)
+                ser.insert(0, idx_elm)
+            if ser.find(qn("c:order")) is None:
+                order_elm = parse_xml('<c:order xmlns:c="%s" val="0"/>' % ns)
+                # -- order must follow idx when present --
+                idx_elm = ser.find(qn("c:idx"))
+                idx_elm.addnext(order_elm)
+
         def clone_ser(ser):
             new_ser = deepcopy(ser)
+            _ensure_idx_and_order(new_ser)
             new_idx = plotArea.next_idx
             new_ser.idx.val = new_idx
             new_ser.order.val = plotArea.next_order
@@ -337,7 +362,32 @@ class _BaseSeriesXmlRewriter(object):
             ser.addnext(new_ser)
             return new_ser
 
-        last_ser = plotArea.last_ser
+        template_ser = plotArea.last_ser
+        if template_ser is None:
+            # -- No xChart in plotArea contains a c:ser we can clone from.  The chart has
+            # -- no template series to adopt formatting from, so there is nothing sensible
+            # -- to do; surface a clear error rather than the cryptic downstream
+            # -- AttributeError this used to produce (GitHub issue #596).
+            raise ValueError("cannot add series to a chart with no existing series to clone from")
+
+        last_xChart = plotArea.xCharts[-1]
+        if template_ser.getparent() is not last_xChart:
+            # -- Template ser lives in an earlier xChart because the last xChart has no
+            # -- sers of its own.  Clone it once into the last xChart so subsequent
+            # -- `addnext` insertions remain inside that xChart and preserve the
+            # -- "new sers append to the last xChart" contract.
+            bridge = deepcopy(template_ser)
+            _ensure_idx_and_order(bridge)
+            new_idx = plotArea.next_idx
+            bridge.idx.val = new_idx
+            bridge.order.val = plotArea.next_order
+            _apply_accent_color_to_ser(bridge, new_idx)
+            last_xChart.append(bridge)
+            last_ser = bridge
+            count -= 1
+        else:
+            last_ser = template_ser
+
         for _ in range(count):
             last_ser = clone_ser(last_ser)
 
