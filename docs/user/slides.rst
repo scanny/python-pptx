@@ -199,6 +199,90 @@ presentation's package. The notes-slide relationship is dropped -- a notes
 slide carries a back-reference to its owning slide and cannot be shared.
 
 
+Searching and copying slides between presentations
+---------------------------------------------------
+
+A common workflow (issue #879) is "find a specific slide in deck A by some
+human-readable criterion and graft it into deck B". |pp| does not ship a
+``Slides.find_by_title()`` method because no single criterion fits every
+deck -- callers typically match by title text, by a distinguishing word in
+any shape, by layout name, by ``slide_id`` (when the id has been stashed
+somewhere durable), or by the slide's internal ``p:cSld/@name``. A short
+helper plus :meth:`.Slides.add_slide_from_external` covers the whole
+recipe::
+
+    from pptx import Presentation
+
+
+    def find_slide_by_title(prs, title):
+        """Return the first slide in *prs* whose title text equals *title*.
+
+        The title placeholder is :attr:`.SlideShapes.title` (the placeholder
+        with ``idx == 0``) when the slide's layout provides one; slides
+        built from a *Blank* layout do not have a title and are skipped.
+        Returns ``None`` when no match is found.
+        """
+        for slide in prs.slides:
+            title_shape = slide.shapes.title
+            if title_shape is None:
+                continue
+            if not title_shape.has_text_frame:
+                continue
+            if title_shape.text_frame.text == title:
+                return slide
+        return None
+
+
+    source = Presentation("library-deck.pptx")
+    target = Presentation("all-hands.pptx")
+
+    wanted = find_slide_by_title(source, "Q3 Highlights")
+    if wanted is not None:
+        target.slides.add_slide_from_external(
+            wanted, target.slide_layouts[5]
+        )
+        target.save("all-hands.pptx")
+
+A few variations on the search predicate cover the common cases:
+
+* **Match by any shape's text** (the reporter of issue #696 wanted to
+  locate a slide by a phrase that could appear in any text-bearing shape,
+  not just the title)::
+
+      def find_slide_containing(prs, phrase):
+          for slide in prs.slides:
+              for shape in slide.shapes:
+                  if shape.has_text_frame and phrase in shape.text_frame.text:
+                      return slide
+          return None
+
+* **Match by stable** ``slide_id`` -- once the caller has stashed an id,
+  the deck can be reordered freely and the lookup still works
+  (:meth:`.Slides.get_by_slide_id`)::
+
+      sid = source.slides[2].slide_id      # stash once, durably
+      wanted = source.slides.get_by_slide_id(sid)
+
+* **Match by layout name** -- useful when a deck uses a custom layout
+  such as "Executive Summary" for exactly one slide::
+
+      def find_slide_by_layout_name(prs, layout_name):
+          for slide in prs.slides:
+              if slide.slide_layout.name == layout_name:
+                  return slide
+          return None
+
+Once the source slide is in hand, :meth:`.Slides.add_slide_from_external`
+clones it into the target deck (see "Copying a slide from one
+presentation to another" above for the full-fidelity semantics -- image
+and chart and OLE-object parts are all materialised in the target
+package). The source presentation is not mutated by the copy, so the
+source deck keeps working as a read-only "library" the caller pulls
+slides out of. When no single layout on the target fits every imported
+slide, call :meth:`.Slides.add_slide_from_external` once per slide and
+pass the matching ``target.slide_layouts[...]`` each time.
+
+
 Merging every slide of another presentation
 -------------------------------------------
 
