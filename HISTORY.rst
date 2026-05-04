@@ -165,6 +165,17 @@ Unreleased
   ``__cause__`` for debuggability. Regression coverage in
   ``tests/test_issue_168_fit_text_exceptions.py``.
 
+- Add #393 ``XySeries.x_values`` / ``BubbleSeries.bubble_sizes`` —
+  read the cached X values of a scatter-series and the bubble-size
+  values of a bubble series as tuples of floats (a ``None`` element
+  for each blank cell), complementing the existing ``values``
+  (Y-value) accessor. Streaming variants
+  ``XySeries.iter_x_values()`` and ``BubbleSeries.iter_bubble_sizes()``
+  are also provided. Resolves a long-standing ask to enumerate
+  scatter-plot (x, y) coordinates from python-pptx without dropping
+  into the ``c:xVal`` element tree by hand
+  (https://github.com/scanny/python-pptx/issues/393).
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"

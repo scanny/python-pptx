@@ -144,6 +144,19 @@ Feature: Chart series
       | 4.5, None, 6.7 | (4.5, None, 6.7) |
 
 
+  Scenario: XySeries.x_values exposes the cached X values of a scatter series
+    Given an XySeries object from a scatter chart as series
+     Then series.x_values is (0.7, 1.8, 2.6)
+      And series.values is (2.7, 3.2, 0.8)
+
+
+  Scenario: BubbleSeries.x_values and bubble_sizes expose the cached triples
+    Given a BubbleSeries object from a bubble chart as series
+     Then series.x_values is (0.7, 1.8, 2.6)
+      And series.values is (2.7, 3.2, 0.8)
+      And series.bubble_sizes is (10.0, 4.0, 8.0)
+
+
   Scenario: series.has_error_bars starts False on a vanilla series
     Given a BarSeries object having values 1.2, 2.3, 3.4 as series
      Then series.has_error_bars is False

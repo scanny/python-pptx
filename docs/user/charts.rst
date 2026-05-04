@@ -123,6 +123,37 @@ Creation of a bubble chart is very similar, having an additional value for each 
 .. image:: /_static/img/chart-09.png
 
 
+Reading XY/scatter and bubble values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An |XySeries| exposes its cached X and Y values as two parallel tuples::
+
+    series = chart.plots[0].series[0]
+    series.x_values   # -> (0.7, 1.8, 2.6)
+    series.values     # -> (2.7, 3.2, 0.8)
+
+    for x, y in zip(series.x_values, series.values):
+        ...
+
+For streaming access without building the tuple, there are also matching
+generator methods :meth:`~pptx.chart.series.XySeries.iter_x_values` and
+:meth:`~pptx.chart.series.XySeries.iter_values`.
+
+A |BubbleSeries| adds a third parallel sequence,
+:attr:`~pptx.chart.series.BubbleSeries.bubble_sizes`, carrying the magnitude
+assigned to each point::
+
+    series = chart.plots[0].series[0]
+    for x, y, size in zip(
+        series.x_values, series.values, series.bubble_sizes
+    ):
+        ...
+
+Any tuple element is ``None`` when the corresponding cell in the embedded
+workbook is blank (or the inline ``c:numLit`` / ``c:numCache`` is missing a
+``c:pt`` at that index). If the series has no ``c:xVal`` or ``c:bubbleSize``
+child at all, the tuple is empty.
+
 
 Axes
 ----

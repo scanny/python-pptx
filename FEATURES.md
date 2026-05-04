@@ -2063,8 +2063,9 @@ series.add_trendline(XL_TRENDLINE_TYPE.LINEAR, display_r_squared=True)
 - `BarSeries.fill` / `.line` / `.invert_if_negative` — Bar-specific formatting.
 - `LineSeries.smooth` — Smoothed-line flag.
 - `_MarkerMixin.marker` — Marker (style / size / format) for line / scatter / radar series.
-- `XySeries.iter_values()` — Iterate over (x, y) pairs.
-- `BubbleSeries.bubble_sizes` — Iterate over bubble magnitudes.
+- `XySeries.values` / `XySeries.iter_values()` — Cached Y values of a scatter series (tuple / generator). `None` for blanks.
+- `XySeries.x_values` / `XySeries.iter_x_values()` — Cached X values, parallel to `values`. `[Added in 2026.05.0]`
+- `BubbleSeries.bubble_sizes` / `BubbleSeries.iter_bubble_sizes()` — Cached bubble-size magnitudes. `[Added in 2026.05.0]`
 - `_BaseSeries.add_trendline(trendline_type, order=None, forward=None, backward=None, display_r_squared=False, display_equation=False)` — Append a trendline. `[Added in 2026.05.0]`
 - `_BaseSeries.has_error_bars` / `_BaseSeries.error_bars` — Error-bar toggle and `ErrorBars` proxy. `[Added in 2026.05.0]`
 - `Trendline.type` / `.order` / `.forward` / `.backward` / `.display_equation` / `.display_r_squared`. `[Added in 2026.05.0]`
