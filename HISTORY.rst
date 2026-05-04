@@ -48,6 +48,26 @@ Unreleased
   ``TEXT_1`` / ``tx1`` and ``DARK_1`` / ``dk1`` cases and confirms the
   MS-API integer values.
 
+- verify: #316 picture placeholder renders in LibreOffice. Issue #316
+  (https://github.com/scanny/python-pptx/issues/316) reported that a
+  picture inserted into a layout's picture placeholder showed blank in
+  LibreOffice Impress even though it rendered correctly in PowerPoint;
+  the thread went cold without an opc-diff. The Wave 13
+  ``_copy_inherited_spPr_decorations`` fix for #907 landed a ``p:pic``
+  structure that carries every element LibreOffice's stricter reader
+  requires (``p:nvPicPr`` with ``p:cNvPr`` / ``p:cNvPicPr`` (with
+  ``a:picLocks``) / ``p:nvPr`` (with ``p:ph``), ``p:blipFill`` with
+  ``a:blip@r:embed`` and ``a:stretch/a:fillRect``, and ``p:spPr``).
+  A manual LibreOffice render (``libreoffice --headless --convert-to
+  pdf``) confirms #316 is resolved on the current master.
+  ``tests/test_issue_316_libreoffice_placeholder_pic.py`` pins the XML
+  structure for three insertion variants — the specialised PICTURE
+  placeholder, a generic OBJECT/content placeholder, and the
+  ``crop=False`` fit path — both in memory and after
+  ``Presentation.save`` + reopen, so a future regression of the
+  placeholder-promotion XML would re-break LibreOffice compatibility
+  visibly in CI.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
