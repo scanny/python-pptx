@@ -9,6 +9,45 @@ _None tracked yet._
 
 ## Done
 
+- **Wave 24 (overnight polish pass).** Five parallel agents, all merged
+  to master (``5adf390b..8aa60af5``).
+  - **24-A deeper types**: pyright ``src/pptx`` 6255 → 6208 (-47),
+    ruff ``src/pptx`` 50 → 0 (-50). 27 files touched. Caught two real
+    bugs: missing ``tbl is not None`` guard in
+    ``GraphicFrame.table``, and ``TextFrame.rotation`` return type
+    was ``float | None`` where it should be ``float``.
+    Branch ``chore/wave-24-a-deeper-types``.
+  - **24-B Sphinx warnings**: actionable (non-epilog) warnings
+    1120 → 0, total 13942 → 10186. Fixed by adding ``.. module::``
+    directive to ``docs/api/animation.rst``, enum symbol
+    registration for ``MSO_ANIMATION_TYPE`` / ``_TRIGGER``, a
+    disambiguated cross-reference in pictures-svg, and a targeted
+    349-entry ``nitpick_ignore`` list in ``docs/conf.py`` covering
+    internal proxy classes. Branch
+    ``chore/wave-24-b-sphinx-warnings``.
+  - **24-C skipped behave scenarios**: the 2 scenarios in
+    ``features/interop-validate.feature`` intentionally skip when
+    a developer-local PowerPoint fixture, the ``ooxml-validate``
+    sibling, or LibreOffice is absent. Pinned with an explanatory
+    header comment documenting the three skip triggers. Branch
+    ``chore/wave-24-c-skipped-scenarios``.
+  - **24-D corpus conformance setup**: ``ooxml-validate`` is a
+    sibling ``loadfix`` git-only package (not on PyPI), and
+    ``../ooxml-reference-corpus/`` is similarly git-only. Added a
+    "Corpus conformance tests" section to ``docs/dev/runtests.rst``
+    explaining the sibling-checkout + ``pip install -e`` workflow.
+    Tests continue to auto-skip gracefully when siblings absent.
+    Branch ``build/wave-24-d-corpus-conformance``.
+  - **24-E behave coverage round 2**: +34 scenarios (1501 → 1535)
+    in ``features/prs-round-trip-2.feature`` covering group-shape
+    mixed content + nested, sections (rename/remove/reorder/
+    cross-section-move), transitions (speed/direction/advance),
+    shape animations (fade_in/pulse/fade_out/clear/sequence),
+    extended properties, password-protected round-trip (requires
+    ``msoffcrypto-tool``), chartex deep double round-trip,
+    cross-presentation ``add_slide_from_external`` +
+    ``Presentation.merge``. Branch ``chore/wave-24-e-behave-round-2``.
+
 - **Wave 23-B type cleanup.** Reduced pyright strict-mode error count by
   removing unnecessary ``# type: ignore`` / ``# pyright: ignore``
   comments, pruning unused imports, and adding missing parameter
