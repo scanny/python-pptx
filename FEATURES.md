@@ -12,7 +12,8 @@ variants that preserve formulas and number formats, full `ShadowFormat`,
 alpha and `to_rgb` across every color type, blip (picture) fills, line arrow
 ends, slide transitions (23 variants including MORPH), shape animations,
 timing introspection, comments read/write, OMML equation read/write, SmartArt
-scaffolding, OLE embedding for arbitrary progIds (ZIP/PDF/HTML/...), auto-
+scaffolding, embedded 3D-model passthrough (.glb/.obj/.fbx), OLE embedding for
+arbitrary progIds (ZIP/PDF/HTML/...), auto-
 play, headers/footers/date/slide-numbers, Content placeholder chart/picture/
 table insertion, font embedding (TTF + OTF), custom and extended document
 properties, slide-level tags, XXE hardening + zip-bomb guard, paper-size
@@ -54,6 +55,7 @@ other item is inherited from the upstream base.
 - [Chart series, points, and data labels](#chart-series-points-and-data-labels)
 - [Chart templates and cloning](#chart-templates-and-cloning)
 - [SmartArt and equations](#smartart-and-equations)
+- [Embedded 3D models](#embedded-3d-models)
 - [Action settings and click actions](#action-settings-and-click-actions)
 - [Animations and timing](#animations-and-timing)
 - [Transitions](#transitions)
@@ -1700,6 +1702,49 @@ All members in this section are `[Added in 1.0.2.dev0]`.
 - `GraphicFrame.smart_art` — `SmartArt` proxy.
 - `SmartArt.data_xml` / `.layout_xml` / `.colors_xml` / `.quick_style_xml` — Raw bytes of the four diagram parts.
 - `MSO_SHAPE_TYPE.IGX_GRAPHIC` — `shape_type` discriminator for SmartArt.
+
+---
+
+## Embedded 3D models
+
+PowerPoint 365 (Office 2016+) "Insert > 3D Models" produces a graphic-frame
+whose `a:graphicData/@uri` is the Microsoft extension
+`http://schemas.microsoft.com/office/drawing/2016/12/model3D` and whose
+single child is an `am3d:model3D` element pointing at an embedded `.glb` /
+`.obj` / `.fbx` part. The fork ships a read-only detection-and-passthrough
+MVP: a `GraphicFrame` containing a 3D model reports `has_model_3d == True`,
+its `model_3d_xml` returns the raw XML of the `am3d:model3D` element, and
+`model_3d` returns a `Model3D` proxy exposing the relationship id, file
+extension, and embedded bytes. 3D-model-containing decks round-trip
+verbatim through `Presentation.save` and reopen. Authoring (camera,
+lighting, scene-graph, animation selection) is deliberately deferred; see
+`docs/dev/analysis/model-3d.rst` for the roadmap.
+
+```python
+from pptx import Presentation
+
+# open a deck containing a 3D model
+# prs = Presentation("with-3d-model.pptx")
+prs = Presentation()  # (no 3D model in a fresh deck)
+
+for slide in prs.slides:
+    for shape in slide.shapes:
+        if getattr(shape, "has_model_3d", False):
+            model = shape.model_3d
+            print(model.ext, model.embedded_rel_id, len(model.media_blob or b""))
+            # -- raw XML of the am3d:model3D element (read-only) --
+            xml_snapshot = shape.model_3d_xml
+```
+
+All members in this section are `[Added in 2026.05.0]`.
+
+- `GraphicFrame.has_model_3d` — `True` for 3D-model graphic-frames.
+- `GraphicFrame.model_3d_xml` — Raw Unicode XML of the `am3d:model3D` element, or `None`.
+- `GraphicFrame.model_3d` — `Model3D` proxy. Raises `ValueError` for non-3D frames.
+- `Model3D.embedded_rel_id` — Relationship id (`r:embed`) pointing at the embedded model part.
+- `Model3D.ext` — File-extension discriminator (`"glb"` / `"obj"` / `"fbx"` / `None`).
+- `Model3D.media_blob` — Bytes of the embedded 3D-model part, or `None` when the rel is absent or unresolvable.
+- `pptx.spec.GRAPHIC_DATA_URI_MODEL_3D` — The `a:graphicData/@uri` discriminator for 3D models.
 
 ---
 

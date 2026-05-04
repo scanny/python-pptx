@@ -85,6 +85,13 @@ Feature Support
 * Ungroup a :class:`.GroupShape` in place via :meth:`.GroupShape.ungroup`,
   hoisting each child onto the slide at its slide-relative effective rectangle
 
+* Detect and round-trip-preserve embedded 3D models (PowerPoint 365 "Insert > 3D
+  Models") via :attr:`.GraphicFrame.has_model_3d`,
+  :attr:`.GraphicFrame.model_3d_xml`, and the
+  :attr:`.GraphicFrame.model_3d` proxy — expose the embedded ``.glb`` /
+  ``.obj`` / ``.fbx`` bytes and relationship id (authoring is deferred; see
+  ``docs/dev/analysis/model-3d.rst`` for the roadmap)
+
 * Enumerate every shape on a slide — including the descendants of any group,
   at any nesting depth — via :attr:`.Slide.shape_tree_flat` (or the
   :meth:`.SlideShapes.descendants` iterator it wraps). Mirrors PowerPoint's

@@ -8,13 +8,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from lxml import etree
+
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
+from pptx.shapes.model3d import Model3D
 from pptx.shared import ParentedElementProxy
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_CHARTEX,
+    GRAPHIC_DATA_URI_MODEL_3D,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_SMART_ART,
     GRAPHIC_DATA_URI_TABLE,
@@ -110,6 +114,23 @@ class GraphicFrame(BaseShape):
         return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_CHARTEX
 
     @property
+    def has_model_3d(self) -> bool:
+        """|True| if this graphic frame contains an embedded 3D model, |False| otherwise.
+
+        PowerPoint 365 (Office 2016+) "Insert > 3D Models" produces a graphic-frame
+        with an ``am3d:model3D`` child under ``a:graphicData`` whose ``uri`` matches
+        :data:`~pptx.spec.GRAPHIC_DATA_URI_MODEL_3D`. When |True|, :attr:`model_3d`
+        exposes a :class:`~pptx.shapes.model3d.Model3D` proxy and :attr:`model_3d_xml`
+        returns the raw XML of the ``am3d:model3D`` element. This is a read-only
+        passthrough MVP — 3D-model shapes are *discoverable* and
+        *round-trip-preserved*, but authoring is deliberately out of scope. See
+        ``docs/dev/analysis/model-3d.rst`` for the roadmap.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_MODEL_3D
+
+    @property
     def has_smart_art(self) -> bool:
         """|True| if this graphic frame contains a SmartArt diagram, |False| otherwise.
 
@@ -130,6 +151,51 @@ class GraphicFrame(BaseShape):
         When |True|, the table object can be accessed using the `.table` property.
         """
         return self._graphicFrame.graphicData_uri == GRAPHIC_DATA_URI_TABLE
+
+    @property
+    def model_3d(self) -> Model3D:
+        """A |Model3D| object providing read-only access to this 3D model's embedded part.
+
+        Raises |ValueError| if this graphic frame does not contain a 3D model (i.e.
+        :attr:`has_model_3d` is |False|).
+
+        The returned object exposes the embedded model's relationship id
+        (:attr:`~pptx.shapes.model3d.Model3D.embedded_rel_id`), its raw bytes
+        (:attr:`~pptx.shapes.model3d.Model3D.media_blob`), and its extension
+        (:attr:`~pptx.shapes.model3d.Model3D.ext`). This is a read-only MVP; structured
+        authoring of camera/scene/lighting parameters is deferred to a follow-up
+        iteration of issue #410. See ``docs/dev/analysis/model-3d.rst``.
+
+        .. versionadded:: 2026.05.0
+        """
+        if not self.has_model_3d:
+            raise ValueError("shape does not contain a 3D model")
+        model3D = self._graphicFrame.graphicData.model_3d
+        if model3D is None:
+            raise ValueError("shape does not contain a 3D model")
+        return Model3D(model3D, self._parent)
+
+    @property
+    def model_3d_xml(self) -> str | None:
+        """Raw XML of the ``am3d:model3D`` element, or |None| when not present.
+
+        Returns a Unicode string containing the serialized ``am3d:model3D`` subtree
+        (including whatever namespace declarations lxml emits to make it well-formed on
+        its own) when :attr:`has_model_3d` is |True|. Returns |None| when the graphic
+        frame does not contain a 3D model or when the ``am3d:model3D`` child is absent.
+
+        The returned string is a snapshot — mutating it has no effect on the
+        presentation. Callers wanting to touch the element should operate on
+        ``shape.element`` directly.
+
+        .. versionadded:: 2026.05.0
+        """
+        if not self.has_model_3d:
+            return None
+        model3D = self._graphicFrame.graphicData.model_3d
+        if model3D is None:
+            return None
+        return etree.tostring(model3D, encoding="unicode")
 
     @property
     def ole_format(self) -> _OleFormat:

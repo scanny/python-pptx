@@ -388,6 +388,8 @@ rst_epilog = """
 
 .. |SlideTags| replace:: :class:`.SlideTags`
 
+.. |Model3D| replace:: :class:`.Model3D`
+
 .. |SmartArt| replace:: :class:`.SmartArt`
 
 .. |Sound| replace:: :class:`.Sound`

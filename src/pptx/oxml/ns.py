@@ -6,6 +6,12 @@ from __future__ import annotations
 _nsmap = {
     "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
     "a14": "http://schemas.microsoft.com/office/drawing/2010/main",
+    # -- `am3d` is the 3D-model namespace used by PowerPoint 365 (Office 2016+) for
+    # -- embedded 3D models authored via Insert > 3D Models. The one child element of
+    # -- `a:graphicData` (discriminator URI `.../2016/12/model3D`) is
+    # -- `am3d:model3D`, a container for camera/lighting/scene parameters plus an
+    # -- `r:embed` pointer to the `.glb`/`.obj`/`.fbx` part. See issue #410. --
+    "am3d": "http://schemas.microsoft.com/office/drawing/2017/model3d",
     "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
     "c14": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart",
     # -- `cdr` is the chart-drawing namespace used by the `c:userShapes`

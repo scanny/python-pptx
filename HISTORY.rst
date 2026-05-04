@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #410 embedded 3D-model passthrough (detection + round-trip).
+  PowerPoint 365 (Office 2016+) "Insert > 3D Models" authoring produces
+  a ``p:graphicFrame`` whose ``a:graphicData/@uri`` is the Microsoft
+  extension ``http://schemas.microsoft.com/office/drawing/2016/12/model3D``
+  and whose single child is an ``am3d:model3D`` element pointing at an
+  embedded ``.glb`` / ``.obj`` / ``.fbx`` part. This wave ships a
+  read-only MVP: :attr:`GraphicFrame.has_model_3d` detects the frame,
+  :attr:`GraphicFrame.model_3d_xml` returns the raw XML of the
+  ``am3d:model3D`` element, and :attr:`GraphicFrame.model_3d` returns a
+  ``Model3D`` proxy exposing :attr:`~pptx.shapes.model3d.Model3D.embedded_rel_id`,
+  :attr:`~pptx.shapes.model3d.Model3D.ext`, and
+  :attr:`~pptx.shapes.model3d.Model3D.media_blob`. The
+  ``am3d:`` namespace (``.../2017/model3d``) and the
+  :data:`~pptx.spec.GRAPHIC_DATA_URI_MODEL_3D` spec constant are
+  registered so 3D-model-containing decks survive save+reopen verbatim.
+  Authoring 3D models (camera, lighting, scene-graph, animation
+  selection) is deliberately deferred; see
+  ``docs/dev/analysis/model-3d.rst`` for the roadmap.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"

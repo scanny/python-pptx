@@ -19,6 +19,7 @@ from pptx.oxml.xmlchemy import (
 )
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_MODEL_3D,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_SMART_ART,
     GRAPHIC_DATA_URI_TABLE,
@@ -101,6 +102,22 @@ class CT_GraphicalObjectData(BaseShapeElement):
         is False when the `showAsIcon` attribute is omitted on the `p:oleObj` element.
         """
         return None if self._oleObj is None else self._oleObj.showAsIcon
+
+    @property
+    def model_3d(self) -> CT_Model3D | None:
+        """Optional `am3d:model3D` child element carrying the embedded 3D model.
+
+        Returns |None| when this `a:graphicData` does not enclose a 3D model (i.e.
+        when `uri` is not :const:`~pptx.spec.GRAPHIC_DATA_URI_MODEL_3D`). The
+        `am3d:model3D` element carries an `r:embed` attribute identifying the relationship
+        to the embedded 3D-model part (`.glb` / `.obj` / `.fbx`) and scene/camera/lighting
+        metadata. This is a read-only passthrough: the element is preserved verbatim on
+        round-trip but not parsed further. See issue #410.
+        """
+        if self.uri != GRAPHIC_DATA_URI_MODEL_3D:
+            return None
+        models = cast("list[CT_Model3D]", self.xpath("./am3d:model3D"))
+        return models[0] if models else None
 
     @property
     def dgm_relIds(self) -> CT_DgmRelIds | None:
@@ -369,6 +386,27 @@ class CT_DgmRelIds(BaseOxmlElement):
     cs_rId: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "r:cs", XsdString
     )
+
+
+class CT_Model3D(BaseOxmlElement):
+    """`am3d:model3D` element, the one child of `a:graphicData` for an embedded 3D model.
+
+    PowerPoint 365 (Office 2016+) "Insert > 3D Models" authoring produces this element
+    under an `a:graphicData` whose `uri` is
+    :data:`~pptx.spec.GRAPHIC_DATA_URI_MODEL_3D`. The element carries an `r:embed`
+    attribute identifying the slide-relationship for the embedded 3D-model part
+    (typically a binary glTF `.glb`; `.obj` / `.fbx` are also observed) plus an `ext`
+    attribute recording the file extension. Additional descendants describe camera
+    position, scene lighting, bounding extents, and (when the model is animated) a
+    currently-selected animation and camera pose. python-pptx currently preserves the
+    element verbatim on round-trip without parsing its scene parameters — issue #410
+    ships *detection and passthrough* as the MVP.
+    """
+
+    embed_rId: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "r:embed", XsdString
+    )
+    ext: str | None = OptionalAttribute("ext", XsdString)  # pyright: ignore[reportAssignmentType]
 
 
 class CT_OleObject(BaseOxmlElement):
