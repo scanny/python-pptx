@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #939 ``_BulletFormat`` readers pinned. Issue #939
+  (https://github.com/scanny/python-pptx/issues/939) asked for a way
+  to *inspect* whether a paragraph has auto-numbered bullets enabled;
+  the companion authoring surface landed as ``_BulletFormat.auto_number``
+  via #100. This fork already ships the full symmetric reader on
+  ``_Paragraph.bullet``: ``.type`` returns ``"char"`` / ``"autonum"``
+  / ``"none"`` / |None| (the last meaning "no explicit setting;
+  inherits from the style hierarchy"); ``.char`` returns the literal
+  bullet character for a character bullet; ``.number_scheme`` returns
+  a :class:`PP_AUTO_NUMBER_SCHEME` member for an autonum bullet; and
+  ``.start_at`` returns the ECMA-376 ordinal (defaulting to 1 when
+  ``a:buAutoNum/@startAt`` is absent). ``tests/test_issue_939_autonum_inspect_verify.py``
+  adds a ``DescribeIssue939AutonumInspectVerify`` suite that pins
+  each reader against the real public API, covering the three
+  explicit bullet types, the inherited-bullet case (every reader
+  returns |None|), the ECMA default for ``start_at``, the
+  ``PP_AUTO_NUMBER`` alias, and a :meth:`Presentation.save` + reopen
+  round-trip of all three configurations.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
