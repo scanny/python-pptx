@@ -386,6 +386,69 @@ footer field. The ``text`` argument is the placeholder string PowerPoint shows
 until the field is refreshed.
 
 
+Editing the footer, slide-number, or date placeholder text
+----------------------------------------------------------
+
+A common question (issue #823) is "how do I change the small character /
+string in the lower-left (or lower-right) corner of every slide?" That
+text is almost always one of the *latent* footer, date, or slide-number
+placeholders authored on the slide master (and optionally overridden on
+specific layouts). Under PowerPoint conventions these three placeholders
+live at ``idx == 10`` (date), ``idx == 11`` (footer), and ``idx == 12``
+(slide number) on **layouts** — but their ``idx`` is different on the
+master (typically 2, 3, 4 in insertion order). The reliable way to find
+each one is by its ``placeholder_format.type`` enum value, not by index::
+
+    from pptx import Presentation
+    from pptx.enum.shapes import PP_PLACEHOLDER
+
+    prs = Presentation("deck.pptx")
+
+    def set_placeholder_text(container, ph_type, text):
+        """Set the text of the first ``ph_type`` placeholder on *container*.
+
+        *container* can be a |SlideMaster|, |SlideLayout|, or |Slide|.
+        Returns the placeholder that was edited, or |None| if the
+        container has no placeholder of that type.
+        """
+        for ph in container.placeholders:
+            if ph.placeholder_format.type == ph_type:
+                ph.text = text
+                return ph
+        return None
+
+    master = prs.slide_master
+    set_placeholder_text(master, PP_PLACEHOLDER.FOOTER, "Confidential – Q3 2026")
+
+    # overriding a single layout (e.g. the "Title Slide" layout only)
+    title_layout = master.slide_layouts.get_by_name("Title Slide")
+    set_placeholder_text(title_layout, PP_PLACEHOLDER.FOOTER, "")
+
+    prs.save("deck.pptx")
+
+Slide-level vs layout-level vs master-level edits follow the usual
+inheritance order: a layout-level footer text overrides the master, and
+a slide-level one overrides the layout. Because :meth:`.Slides.add_slide`
+does **not** clone the latent placeholders onto the slide, most callers
+edit the text on the master or on the layout and rely on PowerPoint's
+inheritance to display it everywhere.
+
+Controlling visibility is a separate concern and is handled by
+``header_footer`` (see the previous section); editing the text does
+nothing if the ``<p:hf>`` toggle has hidden that placeholder.
+
+If the "character in the lower-left corner" is actually a decorative
+non-placeholder shape baked into the master (e.g. a logo bitmap or a
+stylized watermark), iterate ``master.shapes`` instead and match by
+``name`` or by inspecting ``shape.text_frame.text``::
+
+    for shape in prs.slide_master.shapes:
+        if shape.has_text_frame and "watermark" in shape.text_frame.text.lower():
+            shape.text_frame.text = ""          # or edit runs individually
+
+    prs.save("deck.pptx")
+
+
 Reading slide properties
 ------------------------
 
