@@ -1162,6 +1162,11 @@ On a shape that wraps one of these charts:
 * :attr:`GraphicFrame.has_chart` returns ``True``
 * :attr:`GraphicFrame.has_chartex` returns ``True``
 * :attr:`GraphicFrame.chart_type` returns :attr:`XL_CHART_TYPE.UNSUPPORTED_CHARTEX`
+* :attr:`GraphicFrame.chartex_type` returns the raw ``cx:series/@layoutId``
+  string — one of ``"funnel"``, ``"treemap"``, ``"sunburst"``, ``"waterfall"``,
+  ``"boxWhisker"``, ``"clusteredColumn"`` (histogram), ``"paretoLine"``, or
+  ``"regionMap"`` — so you can distinguish the chartex kind without parsing
+  the chartex part yourself
 * :attr:`GraphicFrame.shape_type` returns :attr:`MSO_SHAPE_TYPE.CHART`
 * :attr:`GraphicFrame.chart` raises :exc:`NotImplementedError`
 
@@ -1174,6 +1179,8 @@ example::
         if shape.has_chartex:
             # -- Office 2016+ extended chart (funnel, treemap, ...) — not yet
             # -- readable, but it will round-trip unchanged --
+            if shape.chartex_type == "boxWhisker":
+                ...   # known kind; skip, log, or branch
             continue
         chart = shape.chart
         ...

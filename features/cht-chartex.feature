@@ -16,6 +16,7 @@ Feature: Office 2016+ extended (chartex) chart passthrough
       And shape.has_chartex is True
       And shape.chart_type is XL_CHART_TYPE.UNSUPPORTED_CHARTEX
       And shape.shape_type == MSO_SHAPE_TYPE.CHART
+      And shape.chartex_type == "waterfall"
 
     Examples: chartex variants
       | which                    |

@@ -14,6 +14,27 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #1047 box-and-whisker chartex passthrough — detection and
+  round-trip preservation for ``cx:series/@layoutId="boxWhisker"``
+  charts. Issue #1047 (https://github.com/scanny/python-pptx/issues/1047)
+  asked for support of PowerPoint's Office 2016+ box-and-whisker (box
+  plot) chart. Structured authoring of chartex charts remains blocked
+  on the F4 chartex foundation (see ``docs/dev/analysis/chartex-
+  foundation.rst``), but this release ships the *passthrough MVP* that
+  ``chartex_type`` discrimination adds on top of the existing
+  ``has_chartex`` detection: a new :attr:`GraphicFrame.chartex_type`
+  property returns the raw ``cx:series/@layoutId`` string (e.g.
+  ``"boxWhisker"``, ``"funnel"``, ``"treemap"``, ``"sunburst"``,
+  ``"waterfall"``, ``"clusteredColumn"`` (histogram), ``"paretoLine"``,
+  ``"regionMap"``) so callers can branch per-kind without parsing the
+  chartex part themselves. ``chartex_type`` returns |None| on non-
+  chartex graphic-frames. Round-trip preservation of the chartex part
+  is unchanged (inherited from #386 / Wave 1). A new regression suite
+  ``tests/test_issue_1047_box_whisker_passthrough.py`` pins the
+  detection + round-trip contract; ``docs/dev/analysis/chartex-box-
+  whisker.rst`` captures the authoring target for the eventual F4
+  follow-up.
+
 - docs: #829 template replacement recipe (text + pictures). Issue #829
   (https://github.com/scanny/python-pptx/issues/829) collected utility
   functions several reporters had written for a common workflow: open

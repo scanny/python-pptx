@@ -19,6 +19,7 @@ from pptx.oxml.xmlchemy import (
 )
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
+    GRAPHIC_DATA_URI_CHARTEX,
     GRAPHIC_DATA_URI_MODEL_3D,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_SMART_ART,
@@ -118,6 +119,22 @@ class CT_GraphicalObjectData(BaseShapeElement):
             return None
         models = cast("list[CT_Model3D]", self.xpath("./am3d:model3D"))
         return models[0] if models else None
+
+    @property
+    def cx_chart_rId(self) -> str | None:
+        """Optional `r:id` attribute value of the `cx:chart` child element.
+
+        Returns |None| when this `a:graphicData` does not enclose an Office 2016+
+        extended (chartex) chart (i.e. when :attr:`uri` is not
+        :const:`~pptx.spec.GRAPHIC_DATA_URI_CHARTEX`) or when the `cx:chart`
+        child is absent. The relationship-id points at the ``cx:chartSpace``
+        part carrying the chartex body — funnel, treemap, sunburst, waterfall,
+        histogram/Pareto, box-and-whisker, or map.
+        """
+        if self.uri != GRAPHIC_DATA_URI_CHARTEX:
+            return None
+        rIds = cast("list[str]", self.xpath("./cx:chart/@r:id"))
+        return rIds[0] if rIds else None
 
     @property
     def dgm_relIds(self) -> CT_DgmRelIds | None:
