@@ -159,6 +159,18 @@ Unreleased
   chart part, a removed group is detached together with every shape
   inside it). See ``docs/user/understanding-shapes.rst``.
 
+- feat: #377 add ``Slides.get_by_slide_id(slide_id, default=None)``.
+  Issue #377 (https://github.com/scanny/python-pptx/issues/377) asked for
+  an explicit-named lookup method on the slide collection that mirrors
+  :meth:`.SlideMaster.get_layout` / :meth:`.SlideLayouts.get_by_id`. The
+  new method walks ``p:sldIdLst/p:sldId`` for a matching ``@id`` and
+  resolves the ``r:id`` relationship to a |Slide|, returning ``default``
+  (``None`` by default) when no entry matches. It is an alias for the
+  pre-existing :meth:`.Slides.get` chosen for API-shape parity with its
+  layout-side siblings; callers that stashed a stable ``slide.slide_id``
+  can round-trip the id back to the |Slide| object regardless of
+  reordering.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

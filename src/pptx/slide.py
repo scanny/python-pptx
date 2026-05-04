@@ -861,6 +861,22 @@ class Slides(ParentedElementProxy):
             return default
         return slide
 
+    def get_by_slide_id(self, slide_id: int, default: Slide | None = None) -> Slide | None:
+        """Return the |Slide| having presentation-stable id `slide_id`.
+
+        `slide_id` is matched against ``p:sldIdLst/p:sldId/@id``. The id is
+        stable across slide reordering, so this lookup is the robust
+        alternative to ``presentation.slides[index]`` when a caller needs to
+        reference a specific slide that may have been moved within the deck.
+        Returns `default` (``None`` by default) when no entry has a matching
+        id. Equivalent to :meth:`Slides.get`, with the explicit name chosen
+        to mirror :meth:`SlideMaster.get_layout` and
+        :meth:`SlideLayouts.get_by_id`.
+
+        .. versionadded:: 2026.05.0
+        """
+        return self.get(slide_id, default)
+
     def index(self, slide: Slide) -> int:
         """Map `slide` to its zero-based position in this slide sequence.
 

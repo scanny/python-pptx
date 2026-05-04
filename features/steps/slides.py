@@ -345,6 +345,24 @@ def then_slides_get_666_default_slides_2_is_slides_2(context):
     assert slides.get(666, default=slides[2]) is slides[2]
 
 
+@then("slides.get_by_slide_id(slides[1].slide_id) is slides[1]")
+def then_slides_get_by_slide_id_matches(context):
+    slides = context.slides
+    assert slides.get_by_slide_id(slides[1].slide_id) is slides[1]
+
+
+@then("slides.get_by_slide_id(0) is None")
+def then_slides_get_by_slide_id_missing_returns_None(context):
+    slides = context.slides
+    assert slides.get_by_slide_id(0) is None
+
+
+@then('slides.get_by_slide_id(0, default="fallback") is "fallback"')
+def then_slides_get_by_slide_id_missing_returns_default(context):
+    slides = context.slides
+    assert slides.get_by_slide_id(0, default="fallback") == "fallback"
+
+
 @then("slides[2] is a Slide object")
 def then_slides_2_is_a_Slide_object(context):
     slides = context.slides

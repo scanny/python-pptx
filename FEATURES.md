@@ -172,6 +172,7 @@ prs.save("out.pptx")
 - `Slides.move_slide(slide, new_idx)` — Reorder a slide to `new_idx`. `[Added in 2026.05.0]`
 - `Slides.add_slide_from_external(source_slide, slide_layout)` — Copy a slide from another presentation, rewiring images, media, and other part-level dependencies. `[Added in 2026.05.0]`
 - `Slides.get(slide_id, default=None)` / `Slides.index(slide)` — Slide-id and position lookups.
+- `Slides.get_by_slide_id(slide_id, default=None)` — Explicit-named lookup by stable `p:sldId/@id` (mirrors `SlideMaster.get_layout`). `[Added in 2026.05.0]`
 - `Slide.slide_id` — Stable integer identifier assigned by PowerPoint.
 - `Slide.slide_layout` — The `SlideLayout` this slide inherits from.
 - `Slide.shapes` / `Slide.placeholders` — `SlideShapes` and `SlidePlaceholders`.
@@ -197,6 +198,7 @@ prs.save("out.pptx")
 - `Slides.move_slide(slide, new_idx)` — Reorder. `[Added in 1.0.2.dev0]`
 - `Slides.add_slide_from_external(source_slide, slide_layout)` — Full-fidelity copy from another presentation (images / charts / OLE rewritten into this package). `[Added in 1.0.2.dev0]`
 - `Slides.get(slide_id, default=None)` — Look up by slide ID.
+- `Slides.get_by_slide_id(slide_id, default=None)` — Explicit-named alias of `Slides.get`, paralleling `SlideMaster.get_layout` / `SlideLayouts.get_by_id`. `[Added in 2026.05.0]`
 - `Slides.index(slide)` — Positional lookup.
 - `Slide.slide_id` / `Slide.slide_layout` / `Slide.shapes` / `Slide.placeholders` / `Slide.name` / `Slide.element` / `Slide.part`.
 - `Slide.is_hidden` (read/write `bool`) — `p:sld/@show="0"` for hidden slides. `[Added in 1.0.2.dev0]`
