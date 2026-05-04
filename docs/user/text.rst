@@ -705,6 +705,20 @@ The proxy exposes the same API surface as ``click_action``::
 Click and hover actions are independent: setting one does not affect the
 other, so a shape can carry separate behaviors for click and mouse-over.
 
+.. note::
+   PowerPoint only renders a ScreenTip (tooltip) on hover when the
+   hyperlink element carries an actionable target — a URL, slide jump,
+   embedded sound, or ``ppaction://`` action verb. Setting
+   ``click_action.screen_tip`` (or ``hover_action.screen_tip``) on a
+   shape that has no other hyperlink target writes a spec-valid but
+   behaviorally inert element that PowerPoint will ignore at display
+   time. This matches PowerPoint's own Insert Hyperlink dialog, which
+   will not accept a ScreenTip without a target. To make a tooltip
+   visible, pair it with a URL, slide jump, or sound on the same
+   action. This caveat is reported in `issue #1022`_.
+
+.. _`issue #1022`: https://github.com/scanny/python-pptx/issues/1022
+
 
 .. _templating-text:
 

@@ -100,6 +100,23 @@ class ActionSetting(Subshape):
         ``tooltip`` attribute, leaving the hyperlink element itself
         untouched because it may still carry a URL, sound, or slide-jump
         action.
+
+        .. note::
+           PowerPoint only **displays** a ScreenTip on hover when the
+           hyperlink carries an actionable target — a URL, slide jump,
+           embedded sound, or ``ppaction://`` action verb. Setting
+           ``screen_tip`` on a shape with no other click/hover action
+           writes a spec-valid but behaviorally inert
+           ``<a:hlinkClick tooltip=".."/>`` element that PowerPoint ignores
+           at display time. This matches the behavior of PowerPoint's
+           own Insert Hyperlink dialog, which does not permit entering
+           a ScreenTip without an accompanying target. To make the
+           tooltip visible, assign a URL (via
+           :attr:`Hyperlink.address`) or a slide jump (via
+           :attr:`target_slide`) in addition to the screen tip. See
+           `issue #1022`_.
+
+        .. _issue #1022: https://github.com/scanny/python-pptx/issues/1022
         """
         hlink = self._sound_hlink()
         if hlink is None:

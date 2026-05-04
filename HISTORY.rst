@@ -14,6 +14,24 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
+  Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
+  reported that assigning ``click_action.screen_tip`` stores the
+  tooltip in the XML but PowerPoint does not show it on hover. The
+  ``<a:hlinkClick tooltip="..."/>`` element is spec-valid without an
+  ``r:id`` / ``action`` target, but PowerPoint only *renders* a
+  ScreenTip when the hyperlink element also carries an actionable
+  target — a URL, slide jump, embedded sound, or ``ppaction://``
+  action verb. This matches PowerPoint's own Insert Hyperlink dialog,
+  which will not accept a ScreenTip without a target. The
+  ``ActionSetting.screen_tip`` property docstring, the "Mouse-hover
+  actions" section of ``docs/user/text.rst``, and a new
+  ``tests/test_issue_1022_screen_tip.py`` regression suite now pin
+  the library-side contract and document the workaround (pair the
+  tooltip with a URL via ``hyperlink.address`` or a slide jump via
+  ``target_slide``). No code change to the setter — the observed
+  behaviour is genuine PowerPoint semantics, not a library bug.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
