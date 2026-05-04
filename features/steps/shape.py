@@ -744,6 +744,28 @@ def then_a_videoFile_element_is_not_present(context):
     assert not nodes, "unexpected a:videoFile element present"
 
 
+@then("the a:videoFile element is present on the movie shape")
+def then_a_videoFile_element_is_present(context):
+    pic = context.movie._element
+    nodes = pic.xpath(".//a:videoFile")
+    assert nodes, "expected a:videoFile element; found none"
+
+
+@then("the video URL is attached as an external VIDEO relationship")
+def then_video_url_attached_as_external_rel(context):
+    from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+
+    pic = context.movie._element
+    (rId,) = pic.xpath("./p:nvPicPr/p:nvPr/a:videoFile/@r:link")
+    rel = context.movie.part.rels[rId]
+    assert rel.is_external, "expected external rel, got internal"
+    assert rel.reltype == RT.VIDEO, "expected VIDEO reltype, got %r" % rel.reltype
+    assert rel.target_ref == context.url, "expected %r, got %r" % (
+        context.url,
+        rel.target_ref,
+    )
+
+
 @then("ole_format.blob matches ole_object_file byte-for-byte")
 def then_ole_format_bytes_matches_ole_object_file_byte_for_byte(context):
     assert context.ole_format.blob == context.ole_object_file.getvalue()

@@ -896,6 +896,59 @@ class SlideShapes(_BaseGroupShapes):
             movie.start_condition = "withPrevious"
         return cast(GraphicFrame, movie)
 
+    def add_movie_link(
+        self,
+        url: str,
+        poster_frame_image: str | IO[bytes],
+        left: Length,
+        top: Length,
+        width: Length,
+        height: Length,
+    ) -> Movie:
+        """Return newly added URL-linked movie shape for the video at `url`.
+
+        This emits a ``p:pic`` matching PowerPoint's "Insert Online Video"
+        output: the video is referenced by an external-mode relationship and
+        only the poster-frame image is embedded in the package. No media
+        bytes are copied into the ``.pptx``.
+
+        `url` is the external URL for the video. PowerPoint requires a URL
+        the media player can load in-slide — for YouTube, use the
+        ``https://www.youtube.com/embed/VIDEO_ID`` form (not the
+        ``watch?v=…`` form). Other CDN hosts work when they serve the video
+        directly over HTTPS and allow cross-origin embedding.
+
+        `poster_frame_image` is a path to an image file or a binary
+        file-like object; it is displayed in-slide before playback begins.
+        Unlike :meth:`add_movie`, a poster image is **required** because
+        there is no media part from which to derive a default.
+
+        `left`, `top`, `width`, `height` specify the position and size of
+        the shape in EMU (use :mod:`pptx.util` helpers like :class:`Inches`).
+
+        .. versionadded:: 2026.05.0
+        """
+        slide_part = self.part
+        # -- NoRels external URL relationship with VIDEO reltype --
+        video_rId = slide_part.relate_to(url, RT.VIDEO, is_external=True)
+        # -- embed poster PNG as a normal image part (internal rel) --
+        _, poster_rId = slide_part.get_or_add_image_part(poster_frame_image)
+        shape_id = self._next_shape_id
+        shape_name = "Video %d" % (shape_id - 1)
+        movie_pic = CT_Picture.new_video_link_pic(
+            shape_id,
+            shape_name,
+            video_rId,
+            poster_rId,
+            left,
+            top,
+            width,
+            height,
+        )
+        self._spTree.append(movie_pic)
+        self._add_video_timing(movie_pic)
+        return cast(Movie, self._shape_factory(movie_pic))
+
     def clone_layout_placeholders(self, slide_layout: SlideLayout) -> None:
         """Add placeholder shapes based on those in `slide_layout`.
 

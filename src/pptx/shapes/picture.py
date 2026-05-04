@@ -145,11 +145,18 @@ class Movie(_BasePicture):
         ``@r:link`` (``RT.VIDEO`` / ``RT.AUDIO`` rel). In a well-formed
         ``add_movie``-authored shape both rIds point at the same
         |MediaPart|. Returns |None| when neither descriptor carries an
-        rId — e.g. a malformed pic with no media references at all.
+        rId — e.g. a malformed pic with no media references at all — or
+        when the rId points at an external-URL relationship (a URL-linked
+        online video written by :meth:`.SlideShapes.add_movie_link`, see
+        issue #839) because there is no part at the target end.
         """
         pic = self._pic
         rId = pic.media_embed_rId or pic.media_video_rId
         if rId is None:
+            return None
+        # -- URL-linked (online) videos point at an external rel; no part exists --
+        rel = self.part.rels.get(rId)
+        if rel is None or rel.is_external:
             return None
         part = self.part.related_part(rId)
         if not isinstance(part, MediaPart):

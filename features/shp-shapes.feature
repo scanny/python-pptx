@@ -246,6 +246,18 @@ Feature: Access a shape on a slide
       | no          |
 
 
+  # -- issue #839: link a video by URL instead of embedding the bytes --
+  Scenario: SlideShapes.add_movie_link() wires an external VIDEO rel
+    Given a SlideShapes object containing no movies
+     When I call shapes.add_movie_link(url, poster, x, y, cx, cy)
+      And I save the presentation
+     Then movie is a Movie object
+      And movie.left, movie.top == x, y
+      And movie.width, movie.height == cx, cy
+      And the a:videoFile element is present on the movie shape
+      And the video URL is attached as an external VIDEO relationship
+
+
   Scenario: SlideShapes.add_movie() with audio mime-type emits audioFile
     Given a SlideShapes object containing no movies
      When I call shapes.add_movie(audio_file, mime_type='audio/wav')

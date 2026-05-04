@@ -1789,6 +1789,38 @@ class DescribeSlideShapes(object):
         assert movie is movie_
         assert movie_.start_condition == "withPrevious"
 
+    def it_can_add_a_url_linked_movie(self, request, _next_shape_id_prop_, _shape_factory_):
+        """`add_movie_link` wires an external VIDEO rel + embedded poster PNG.
+
+        Verifies: (1) the NoRels external VIDEO relationship is created for
+        `url`, (2) the poster PNG is embedded via `get_or_add_image_part`,
+        (3) the emitted ``p:pic`` has ``a:videoFile`` and ``p14:media``
+        pointing at the same external rId via ``r:link``. See issue #839.
+        """
+        slide_part = instance_mock(request, SlidePart)
+        slide_part.relate_to.return_value = "rId2"
+        image_part = instance_mock(request, ImagePart)
+        slide_part.get_or_add_image_part.return_value = (image_part, "rId3")
+        property_mock(request, _BaseGroupShapes, "part", return_value=slide_part)
+        method_mock(request, SlideShapes, "_add_video_timing", autospec=True)
+        url, poster = "https://www.youtube.com/embed/abc123", "poster.png"
+
+        spTree = element("p:spTree")
+        shapes = SlideShapes(spTree, None)
+        _next_shape_id_prop_.return_value = 42
+        movie_mock = instance_mock(request, Movie)
+        _shape_factory_.return_value = movie_mock
+
+        movie = shapes.add_movie_link(url, poster, 1, 2, 3, 4)
+
+        slide_part.relate_to.assert_called_once_with(url, RT.VIDEO, is_external=True)
+        slide_part.get_or_add_image_part.assert_called_once_with(poster)
+        assert movie is movie_mock
+        pic = spTree.xpath("p:pic")[0]
+        assert pic.xpath("./p:nvPicPr/p:nvPr/a:videoFile/@r:link") == ["rId2"]
+        assert pic.xpath("./p:nvPicPr/p:nvPr/p:extLst/p:ext/p14:media/@r:link") == ["rId2"]
+        assert pic.xpath("./p:blipFill/a:blip/@r:embed") == ["rId3"]
+
     def it_can_add_a_table(self, table_fixture):
         shapes, rows, cols, x, y, cx, cy, table_, expected_xml = table_fixture
 

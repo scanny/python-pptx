@@ -253,6 +253,23 @@ Unreleased
   ``ZeroOrOne`` descriptor in the correct schema position (between
   ``c:tx`` and ``c:spPr`` per ECMA-376 §21.2.2.48).
 
+- feat: #839 add ``SlideShapes.add_movie_link`` for URL-linked (online)
+  video.
+  Issue #839 (https://github.com/scanny/python-pptx/issues/839) asked
+  for the ability to insert a video by URL — the shape PowerPoint writes
+  for its "Insert Online Video" command, which references the video via
+  an external-mode relationship rather than embedding the media bytes in
+  the package. The new ``add_movie_link(url, poster_frame_image, left,
+  top, width, height)`` method on |SlideShapes| emits that shape: a
+  ``p:pic`` whose ``a:videoFile`` and ``p14:media`` descriptors both
+  carry ``r:link`` pointing at the same external URL relationship, with
+  the poster-frame PNG embedded as a normal image part. Payload-size
+  and authoring-offline trade-offs (and the YouTube ``/embed/`` URL
+  requirement) are documented in the "Working with media" user guide.
+  ``Movie.blob`` / ``.content_type`` return |None| for a URL-linked
+  shape (there is no MediaPart) instead of raising. New regression
+  suite: ``tests/test_issue_839_url_linked_movie.py``.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —

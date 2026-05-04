@@ -17,7 +17,7 @@ from pptx.shapes.picture import Movie, Picture, _BasePicture, _MediaFormat
 from pptx.util import Pt
 
 from ..unitutil.cxml import element, xml
-from ..unitutil.mock import call, class_mock, instance_mock, property_mock
+from ..unitutil.mock import call, class_mock, instance_mock, loose_mock, property_mock
 
 
 def _sld_with_movie_cond(shape_id, cond_cxml):
@@ -645,6 +645,11 @@ class DescribeMovie(object):
         media_part_.partname = PackURI("/ppt/media/media1.mp4")
         part_prop_.return_value = slide_part_
         slide_part_.related_part.return_value = media_part_
+        # -- _media_part short-circuits on external rels (url-linked video, #839);
+        # -- configure a non-external relationship for the embedded-media case --
+        rel_ = loose_mock(request)
+        rel_.is_external = False
+        slide_part_.rels.get.return_value = rel_
 
         movie = Movie(pic, None)
 
@@ -681,6 +686,11 @@ class DescribeMovie(object):
         media_part_.partname = PackURI("/ppt/media/media2.wav")
         part_prop_.return_value = slide_part_
         slide_part_.related_part.return_value = media_part_
+        # -- _media_part short-circuits on external rels (url-linked video, #839);
+        # -- configure a non-external relationship for the embedded-media case --
+        rel_ = loose_mock(request)
+        rel_.is_external = False
+        slide_part_.rels.get.return_value = rel_
 
         movie = Movie(pic, None)
 
