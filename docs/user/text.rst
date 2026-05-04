@@ -141,6 +141,40 @@ The possible values for ``TextFrame.auto_size`` and
 :ref:`MsoAutoSize` and :ref:`MsoVerticalAnchor` respectively.
 
 
+Rotating text inside a shape
+----------------------------
+
+Two text-frame properties control how text is oriented relative to the
+shape that contains it:
+
+* :attr:`.TextFrame.rotation` — a clockwise rotation in degrees applied to
+  the text *inside* the shape (corresponds to ``a:bodyPr/@rot``). This is
+  distinct from :attr:`.Shape.rotation`, which rotates the whole shape.
+  The setter accepts an ``int`` or ``float``; negative values are
+  normalized to the equivalent positive rotation in ``[0, 360)``.
+  Assigning |None| (or ``0``) removes the attribute::
+
+      from pptx.util import Inches
+
+      tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+      tb.text_frame.text = "Rotated"
+      tb.text_frame.rotation = 45   # text renders rotated 45° clockwise
+
+* :attr:`.TextFrame.upright` — a boolean that keeps the text visually
+  upright even when the enclosing shape is rotated (corresponds to
+  ``a:bodyPr/@upright``). By default rotating a shape rotates its text
+  along with it; setting ``upright = True`` is PowerPoint's "keep text
+  upright" option on a rotated shape. Useful for callouts, labels on
+  rotated diagrams, and legends that must remain readable::
+
+      shape.rotation = 30            # rotate the whole shape 30°
+      shape.text_frame.upright = True  # but keep the text itself upright
+
+The two flags are independent — ``rotation`` controls explicit
+text-inside-shape rotation, while ``upright`` opts the text out of the
+surrounding shape's transform. See issues #133 and #485.
+
+
 Inspecting the text-rendering rectangle
 ---------------------------------------
 
