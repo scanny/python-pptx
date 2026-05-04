@@ -541,6 +541,44 @@ class Describe_BubbleSeries(object):
         BubblePoints_.assert_called_once_with(ser)
         assert points is points_
 
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_values"),
+        [
+            ("c:ser", ()),
+            ("c:ser/c:bubbleSize/c:numRef", ()),
+            (
+                "c:ser/c:bubbleSize/c:numRef/c:numCache/(c:ptCount{val=1},"
+                'c:pt{idx=0}/c:v"10.0")',
+                (10.0,),
+            ),
+            (
+                "c:ser/c:bubbleSize/c:numRef/c:numCache/(c:ptCount{val=3},"
+                'c:pt{idx=0}/c:v"10.0",c:pt{idx=2}/c:v"8.0")',
+                (10.0, None, 8.0),
+            ),
+            (
+                'c:ser/c:bubbleSize/c:numLit/(c:ptCount{val=3},c:pt{idx=0}/c:v"10.0",'
+                'c:pt{idx=2}/c:v"8.0")',
+                (10.0, None, 8.0),
+            ),
+        ],
+    )
+    def it_knows_its_bubble_sizes(self, ser_cxml, expected_values):
+        series = BubbleSeries(element(ser_cxml))
+        assert series.bubble_sizes == expected_values
+
+    def it_can_iterate_its_bubble_sizes(self):
+        ser_cxml = (
+            "c:ser/c:bubbleSize/c:numRef/c:numCache/(c:ptCount{val=3},"
+            'c:pt{idx=0}/c:v"10.0",c:pt{idx=2}/c:v"8.0")'
+        )
+        series = BubbleSeries(element(ser_cxml))
+        assert list(series.iter_bubble_sizes()) == [10.0, None, 8.0]
+
+    def but_returns_empty_iterator_when_bubble_size_is_absent(self):
+        series = BubbleSeries(element("c:ser"))
+        assert list(series.iter_bubble_sizes()) == []
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -653,6 +691,45 @@ class Describe_XySeries(object):
     def it_knows_its_values(self, values_get_fixture):
         series, expected_values = values_get_fixture
         assert series.values == expected_values
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_values"),
+        [
+            ("c:ser", ()),
+            ("c:ser/c:xVal/c:numRef", ()),
+            ("c:ser/c:val/c:numRef/c:numCache", ()),
+            (
+                'c:ser/c:xVal/c:numRef/c:numCache/(c:ptCount{val=1},c:pt{idx=0}/c:v"0.7")',
+                (0.7,),
+            ),
+            (
+                "c:ser/c:xVal/c:numRef/c:numCache/(c:ptCount{val=3},"
+                'c:pt{idx=0}/c:v"0.7",c:pt{idx=2}/c:v"2.6")',
+                (0.7, None, 2.6),
+            ),
+            ("c:ser/c:val/c:numLit", ()),
+            (
+                'c:ser/c:xVal/c:numLit/(c:ptCount{val=3},c:pt{idx=0}/c:v"0.7",'
+                'c:pt{idx=2}/c:v"2.6")',
+                (0.7, None, 2.6),
+            ),
+        ],
+    )
+    def it_knows_its_x_values(self, ser_cxml, expected_values):
+        series = XySeries(element(ser_cxml))
+        assert series.x_values == expected_values
+
+    def it_can_iterate_its_x_values(self):
+        ser_cxml = (
+            "c:ser/c:xVal/c:numRef/c:numCache/(c:ptCount{val=3},"
+            'c:pt{idx=0}/c:v"0.7",c:pt{idx=2}/c:v"2.6")'
+        )
+        series = XySeries(element(ser_cxml))
+        assert list(series.iter_x_values()) == [0.7, None, 2.6]
+
+    def but_returns_empty_iterator_when_xVal_is_absent(self):
+        series = XySeries(element("c:ser"))
+        assert list(series.iter_x_values()) == []
 
     # fixtures -------------------------------------------------------
 

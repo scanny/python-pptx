@@ -363,6 +363,34 @@ def then_series_values_is_values(context, values):
     assert series.values == expected_values, "got %s" % (series.values,)
 
 
+@given("an XySeries object from a scatter chart as series")
+def given_an_XySeries_object_from_a_scatter_chart(context):
+    # -- slide 4 of cht-series.pptx carries the XY/scatter fixture --
+    prs = Presentation(test_pptx("cht-series"))
+    context.series = prs.slides[4].shapes[0].chart.plots[0].series[0]
+
+
+@given("a BubbleSeries object from a bubble chart as series")
+def given_a_BubbleSeries_object_from_a_bubble_chart(context):
+    # -- slide 5 of cht-series.pptx carries the bubble fixture --
+    prs = Presentation(test_pptx("cht-series"))
+    context.series = prs.slides[5].shapes[0].chart.plots[0].series[0]
+
+
+@then("series.x_values is {values}")
+def then_series_x_values_is_values(context, values):
+    series = context.series
+    expected_values = literal_eval(values)
+    assert series.x_values == expected_values, "got %s" % (series.x_values,)
+
+
+@then("series.bubble_sizes is {values}")
+def then_series_bubble_sizes_is_values(context, values):
+    series = context.series
+    expected_values = literal_eval(values)
+    assert series.bubble_sizes == expected_values, "got %s" % (series.bubble_sizes,)
+
+
 # error-bar steps -----------------------------------------
 
 

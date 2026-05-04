@@ -876,6 +876,26 @@ class XySeries(_BaseSeries, _MarkerMixin):
         for idx in range(yVal.ptCount_val):
             yield yVal.pt_v(idx)
 
+    def iter_x_values(self):
+        """Generate each X value in this series in on-chart order.
+
+        A value of |None| represents a missing X value — either a blank
+        cell in the Excel range or a missing ``c:pt`` in the inline
+        ``c:numLit`` / cached ``c:numCache``. The generator reads whichever
+        of ``c:xVal/c:numRef/c:numCache`` or ``c:xVal/c:numLit`` is present;
+        XY/scatter and bubble series alike carry X values under ``c:xVal``.
+        An empty sequence results when the series has no ``c:xVal`` child
+        or its point cache is empty.
+
+        .. versionadded:: 2026.05.0
+        """
+        xVal = self._element.xVal
+        if xVal is None:
+            return
+
+        for idx in range(xVal.ptCount_val):
+            yield xVal.pt_v(idx)
+
     @lazyproperty
     def points(self):
         """
@@ -892,11 +912,45 @@ class XySeries(_BaseSeries, _MarkerMixin):
         """
         return tuple(self.iter_values())
 
+    @property
+    def x_values(self):
+        """Read-only tuple of float X values for this series, in on-chart order.
+
+        Complements :attr:`values` (the Y values) — together they give the
+        (x, y) coordinates of each data point on an XY/scatter or bubble
+        chart. Reads whichever of ``c:xVal/c:numRef/c:numCache`` or
+        ``c:xVal/c:numLit`` is present; a tuple element is |None| for any
+        point where the X value is missing. Returns an empty tuple on a
+        series that has no ``c:xVal`` child.
+
+        .. versionadded:: 2026.05.0
+        """
+        return tuple(self.iter_x_values())
+
 
 class BubbleSeries(XySeries):
     """
     A data point series belonging to a bubble plot.
     """
+
+    def iter_bubble_sizes(self):
+        """Generate each bubble-size value in this series in on-chart order.
+
+        A value of |None| represents a missing bubble size — either a blank
+        cell in the Excel range or a missing ``c:pt`` in the inline
+        ``c:numLit`` / cached ``c:numCache``. Reads whichever of
+        ``c:bubbleSize/c:numRef/c:numCache`` or ``c:bubbleSize/c:numLit``
+        is present. An empty sequence results when the series has no
+        ``c:bubbleSize`` child.
+
+        .. versionadded:: 2026.05.0
+        """
+        bubbleSize = self._element.bubbleSize
+        if bubbleSize is None:
+            return
+
+        for idx in range(bubbleSize.ptCount_val):
+            yield bubbleSize.pt_v(idx)
 
     @lazyproperty
     def points(self):
@@ -906,6 +960,22 @@ class BubbleSeries(XySeries):
         a data point.
         """
         return BubblePoints(self._ser)
+
+    @property
+    def bubble_sizes(self):
+        """Read-only tuple of float bubble-size values in on-chart order.
+
+        A third parallel sequence alongside :attr:`x_values` and
+        :attr:`values` — together they give the (x, y, size) triple of each
+        data point on a bubble chart. Reads whichever of
+        ``c:bubbleSize/c:numRef/c:numCache`` or ``c:bubbleSize/c:numLit``
+        is present; a tuple element is |None| for any point where the
+        bubble size is missing. Returns an empty tuple when the series has
+        no ``c:bubbleSize`` child.
+
+        .. versionadded:: 2026.05.0
+        """
+        return tuple(self.iter_bubble_sizes())
 
 
 class SeriesCollection(Sequence):
