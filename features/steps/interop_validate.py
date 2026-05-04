@@ -1,9 +1,29 @@
+"""Step implementations for features/interop-validate.feature.
+
+These steps wire the round-trip scenarios to loadfix/ooxml-validate.
+
+They are designed to skip gracefully (via context.scenario.skip) when the
+developer-local prerequisites are not present, so a default `behave` run
+reports "2 skipped" rather than failing:
+
+- The PowerPoint-authored fixture at ``REAL_FIXTURE`` below is not shipped
+  in the repo; it's a developer-local reference deck used for opt-in
+  round-trip fidelity checks.
+- The ``ooxml-validate`` Python package is an optional `[dev]` dependency
+  installed from a sibling checkout (see pyproject.toml).
+- The underlying validator / LibreOffice binaries are resolved by
+  ooxml-validate itself and may be absent on CI or developer machines.
+
+See features/interop-validate.feature for the user-facing explanation.
+"""
+
 from __future__ import annotations
 
 import tempfile
 from pathlib import Path
 
 from behave import given, then, when
+
 from pptx import Presentation
 
 REAL_FIXTURE = Path("/mnt/data/Temp/microsoft/sample.pptx")
