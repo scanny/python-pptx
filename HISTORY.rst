@@ -85,6 +85,24 @@ Unreleased
   pins the author + ``replace_data`` + save/reopen round-trip so the
   path cannot silently regress.
 
+- verify: #742 resolved by #934/#835 (cross-presentation chart preservation).
+  Issue #742 (https://github.com/scanny/python-pptx/issues/742) reported
+  that merging decks whose slides carry charts backed by distinct embedded
+  ``.xlsx`` workbooks produced a merged deck in which chart data was lost
+  or cross-pollinated between charts. The slide-copy wave already serves
+  this scenario end-to-end: Wave 1 #1036 introduced
+  ``Slides.add_slide_from_external``, Wave 7 #934 promoted it to
+  ``Presentation.merge`` and shipped the F5 ``clone_embedded_xlsx`` helper
+  that materialises a fresh :class:`EmbeddedXlsxPart` for every chart the
+  cloner copies, and Wave 15 #835 pinned the "chart slides survive merge"
+  half of the guarantee. A new
+  ``tests/test_issue_742_merge_xlsx_charts_verify.py`` regression suite
+  closes out #742 by pinning the *embedded-workbook isolation* half:
+  after ``Presentation.merge``, every chart in the target deck carries a
+  distinct ``EmbeddedXlsxPart`` whose byte blob is unique, matches the
+  source chart's blob, and survives save+reopen alongside the expected
+  series values. No public-API change.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
