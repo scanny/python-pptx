@@ -52,7 +52,6 @@ src/pptx/           # library source (src-layout)
 tests/              pytest unit tests (mirrors src/pptx/ layout)
 features/           behave acceptance tests (.feature + steps/)
 docs/               Sphinx documentation (user, api, dev, community)
-spec/               ad-hoc OOXML discovery notes (excluded from lint)
 typings/            custom type stubs (mainly for lxml)
 HISTORY.rst         release-history changelog (user-visible)
 pyproject.toml      build + tool config
@@ -60,7 +59,9 @@ Makefile            convenience targets: accept, docs, coverage, build
 tox.ini             py38–py312 test envs
 ```
 
-The `spec/` directory is **intentionally undisciplined**. Ruff and pyright exclude it. Do not "clean it up" or reformat its contents; it's a reference archive and that's a feature.
+OOXML schemas and reference PDFs live in `loadfix/ooxml-reference-corpus`
+(sibling checkout at `../ooxml-reference-corpus/spec/ecma-376-5/`), not
+in this repo — see the "OOXML feature workflow" section below.
 
 ## Key Patterns
 
@@ -68,7 +69,7 @@ The `spec/` directory is **intentionally undisciplined**. Ruff and pyright exclu
 
 Define in `src/pptx/oxml/…`, register via the `ns` registry at the top of `src/pptx/oxml/__init__.py`. The descriptor vocabulary (`ZeroOrOne`, `OneAndOnlyOne`, `ZeroOrMore`, `RequiredAttribute`, `OptionalAttribute`, …) is the `xmlchemy` layer on top of `lxml.etree`. Don't bypass it with raw `etree` access in production code — the descriptors carry namespace, type, and default semantics.
 
-- `successors` tuple must match XSD schema ordering exactly — consult `spec/ISO-IEC-29500-1/schemas/xsd/` for authoritative grammar.
+- `successors` tuple must match XSD schema ordering exactly — consult `../ooxml-reference-corpus/spec/ecma-376-5/part-1/xsd/` for authoritative grammar.
 - Read `docs/dev/xmlchemy.rst` first if you're new to the descriptor layer.
 - Read a neighboring element class in the same subpackage (`src/pptx/oxml/…`) before adding a new one — it keeps the descriptor layer consistent.
 
@@ -86,19 +87,45 @@ Proxy objects wrap `CT_*` oxml elements and form the public API (`Slide`, `Shape
 - Namespaces: `src/pptx/oxml/ns.py` — `qn("a:solidFill")`, `nsmap`, `nsdecls`. Use these helpers consistently; don't hand-assemble Clark-notation strings.
 - Units: `src/pptx/util.py` — `Emu`, `Pt`, `Inches`, `Cm`, `Mm`.
 
+## OOXML feature workflow (required before implementing any new feature)
+
+Every OOXML feature is defined by a manifest in the shared corpus
+repository `loadfix/ooxml-reference-corpus` (sibling checkout at
+`../ooxml-reference-corpus/`). Before implementing any new feature:
+
+1. **Read the manifest.** Look under
+   `../ooxml-reference-corpus/features/pptx/` for a JSON manifest whose
+   `assertions` block defines what "passing" means.
+
+2. **Consult the ECMA-376 5th edition spec** (corpus-only — the spec
+   archive is NOT duplicated into this repo):
+   - PDFs: `../ooxml-reference-corpus/spec/ecma-376-5/part-{1,2,3,4}/*.pdf`
+   - RNC schemas (easier to read): `../ooxml-reference-corpus/spec/ecma-376-5/part-1/rnc/`
+   - XSD schemas (authoritative for validators): `../ooxml-reference-corpus/spec/ecma-376-5/part-1/xsd/`
+
+3. **If no manifest exists yet**, author one *first*, following the
+   schema at `../ooxml-reference-corpus/features/manifest.schema.json`.
+   Commit: the JSON manifest, a `scripts/gen_<name>.py` generator, the
+   machine-generated fixture under `fixtures/pptx/`, and (optional)
+   an Office-authored `.office.pptx` companion.
+
+4. **Verify conformance.** Implementation passes when
+   `ooxml_validate.conformance.run_feature(manifest, library="python-pptx",
+   fixture_path=output)` returns `status="pass"`.
+
 ## OOXML spec vs Microsoft PowerPoint reality
 
 Microsoft PowerPoint does NOT strictly implement ISO/IEC 29500 / ECMA-376. Treat the spec as a starting point, not ground truth.
 
 - PowerPoint writes the **Transitional** flavor, not **Strict**. The 4th/5th/6th editions of ISO 29500-1 tightened the spec toward Strict; PowerPoint still emits Transitional namespaces that trace back to the original 1st edition / ECMA-376 2006.
-- PowerPoint emits Microsoft extensions in the `p14:`, `p15:`, `a14:`, `c14:`, `cx:`, and related namespaces (PowerPoint 2010/2013/2016+), gated by `mc:AlternateContent` / `mc:Ignorable`. These are documented in the `[MS-PPTX]` / `[MS-OE376]` / `[MS-ODRAWXML]` extension series, not in the ISO PDFs under `spec/`.
+- PowerPoint emits Microsoft extensions in the `p14:`, `p15:`, `a14:`, `c14:`, `cx:`, and related namespaces (PowerPoint 2010/2013/2016+), gated by `mc:AlternateContent` / `mc:Ignorable`. These are documented in the `[MS-PPTX]` / `[MS-OE376]` / `[MS-ODRAWXML]` extension series, not in the corpus-level spec.
 - PowerPoint's reader tolerates out-of-order, extra, and missing elements that the spec forbids. PowerPoint's writer emits shapes the spec doesn't mandate. A spec-valid file is not automatically a file PowerPoint will open cleanly.
-- **When the spec and PowerPoint disagree, match PowerPoint.** The canonical way to resolve ambiguity is: save a minimal `.pptx` from PowerPoint, unzip it, and inspect the XML. `spec/…/xsd/*.xsd` tells you what is *allowed*; PowerPoint tells you what is *interoperable*.
+- **When the spec and PowerPoint disagree, match PowerPoint.** The canonical way to resolve ambiguity is: save a minimal `.pptx` from PowerPoint, unzip it, and inspect the XML. The corpus-level `.xsd` files tell you what is *allowed*; the `.office.pptx` companions in the corpus tell you what is *interoperable*.
 
 Workflow before writing code for a new element or feature:
 
-1. **Produce a real PowerPoint sample.** Create a minimal `.pptx` in Microsoft PowerPoint that exercises the feature, unzip it, and read the XML. This is ground truth.
-2. **Look up the grammar in `spec/ISO-IEC-29500-1/schemas/xsd/`** (or Part 2's `opc-xsd/` for packaging work). This gives the formal parent/child relationships, attribute types, defaults, and cardinality.
+1. **Produce a real PowerPoint sample.** Create a minimal `.pptx` in Microsoft PowerPoint that exercises the feature, unzip it, and read the XML. Commit it as `../ooxml-reference-corpus/fixtures/pptx/<name>.office.pptx`. This is ground truth.
+2. **Look up the grammar in `../ooxml-reference-corpus/spec/ecma-376-5/part-1/xsd/`** (or `part-2/xsd/` for packaging work). This gives the formal parent/child relationships, attribute types, defaults, and cardinality.
 3. **Reconcile steps 1 and 2.** They will diverge. python-pptx's commitment is round-trip fidelity with what PowerPoint actually writes, not strict ECMA-376 conformance. Prefer the real sample when the two conflict; use the XSD to understand structure and type.
 4. **Check `src/pptx/oxml/…` for similar elements already modeled.** Copy the established pattern from a neighboring element.
 
@@ -155,7 +182,6 @@ pip install -e ".[dev]"
 - Don't introduce backwards-incompatible API changes without a HISTORY/FEATURES note and a transition plan (deprecation warning where possible).
 - Don't silence warnings with broad `filterwarnings` ignores — they exist to catch real problems.
 - Don't delete `py.typed`; removing it silently breaks downstream type-checking.
-- Don't "fix" code inside `spec/` just because lint would catch it elsewhere — it's an intentionally undisciplined reference archive.
 - Don't bypass the xmlchemy descriptor layer with raw `lxml.etree` access in production code — the descriptors carry namespace, type, and default semantics.
 - Don't move unit tests out of their current location or rename test methods away from the `Describe*` / `it_*` BDD convention — test discovery relies on it.
 - Don't reach for `# type: ignore` as a first resort when `pyright --strict` flags something — fix the types. If you must suppress, target the specific rule (e.g. `# pyright: ignore[reportPrivateUsage]`) and include a one-line reason.
@@ -176,7 +202,7 @@ pip install -e ".[dev]"
 
 ### Adding a new XML element class
 - Custom element classes live in `src/pptx/oxml/…`. Read `docs/dev/xmlchemy.rst` first — it explains `ZeroOrOne`, `OneAndOnlyOne`, `ZeroOrMore`, `RequiredAttribute`, etc.
-- Consult `spec/ISO-IEC-29500-1/schemas/xsd/` for authoritative element ordering before declaring `successors`.
+- Consult `../ooxml-reference-corpus/spec/ecma-376-5/part-1/xsd/` for authoritative element ordering before declaring `successors`.
 - Register the new element with the `ns` registry (see top of `src/pptx/oxml/__init__.py`).
 - Save a minimal `.pptx` from PowerPoint that exercises the element, unzip it, and compare — **when the spec and PowerPoint disagree, match PowerPoint**.
 
@@ -191,7 +217,7 @@ Minimum check before every PR that touches source: `grep -n "<feature name>" REA
 
 ## Important
 
-- Before implementing a new feature or element class, consult `spec/` for authoritative schema information. The subdirectories: `spec/ISO-IEC-29500-1/schemas/xsd/` (Part 1 grammars for DrawingML, PresentationML, SpreadsheetML, shared types), `spec/ISO-IEC-29500-2/opc-xsd/` (Open Packaging Conventions), `spec/ISO-IEC-29500-3/` (Markup Compatibility — `mc:AlternateContent` / `mc:Choice` / `mc:Fallback`), `spec/ISO-IEC-29500-4/` (Transitional conformance). These are not runtime dependencies — they are the canonical sources for element ordering, attribute types, and cardinality. When you find a useful sample file or annotated fragment during investigation, keep it local to your worktree rather than committing it; `spec/` is intentionally an immutable reference archive.
+- Before implementing a new feature or element class, consult `../ooxml-reference-corpus/spec/ecma-376-5/` for authoritative schema information. The subdirectories: `part-1/xsd/` (Part 1 grammars for DrawingML, PresentationML, SpreadsheetML, shared types), `part-1/rnc/` (RELAX NG Compact equivalents, easier to read), and the four `Ecma Office Open XML Part N.pdf` files (markup-language reference, OPC packaging, markup compatibility, transitional migration features). These live in the corpus repo rather than here to avoid duplicating ~50 MB of PDFs across six sibling projects — they are not runtime dependencies, just the canonical sources for element ordering, attribute types, and cardinality.
 - Keep `FEATURES.md` and `HISTORY.rst` current when adding, modifying, or deleting public API. `FEATURES.md` is a single-page catalogue of every public capability; fork-era additions are marked `[Added in <version>.dev0]`. For each change: add the new entry (or update/remove the existing one) under the relevant section, refresh the snippet if the API surface shifted, and verify the snippet runs against a fresh `Presentation()`.
 - Always run tests after changes: `pytest` and `make accept`.
 - Use `src/` layout — all code is under `src/pptx/`, not `pptx/`.
