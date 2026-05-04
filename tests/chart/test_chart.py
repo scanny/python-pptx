@@ -503,7 +503,7 @@ class DescribeChart(object):
     def it_raises_on_assignment_of_invalid_display_blanks_as(self):
         chart = Chart(element("c:chartSpace/c:chart/c:plotArea"), None)
         with pytest.raises(ValueError):
-            chart.display_blanks_as = "nonsense"  # pyright: ignore[reportAttributeAccessIssue]
+            chart.display_blanks_as = "nonsense"
 
     # -- series_in_rows (issue #828) -----------------------------------
 

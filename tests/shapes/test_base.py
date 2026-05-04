@@ -518,7 +518,7 @@ class DescribeBaseShape(object):
     def it_can_set_theme_style_refs_using_a_plain_tuple(self):
         shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
 
-        shape.theme_style_refs = (0, 5, 2, "minor")  # type: ignore[assignment]
+        shape.theme_style_refs = (0, 5, 2, "minor")
 
         refs = shape.theme_style_refs
         assert refs is not None
@@ -582,14 +582,14 @@ class DescribeBaseShape(object):
             cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
         )
         with pytest.raises(ValueError, match="does not support a p:style"):
-            shape.theme_style_refs = (1, 2, 3, "minor")  # type: ignore[assignment]
+            shape.theme_style_refs = (1, 2, 3, "minor")
 
     def it_raises_when_setting_theme_style_refs_on_a_group_shape(self):
         shape = BaseShape(
             cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
         )
         with pytest.raises(ValueError, match="does not support a p:style"):
-            shape.theme_style_refs = (1, 2, 3, "minor")  # type: ignore[assignment]
+            shape.theme_style_refs = (1, 2, 3, "minor")
 
     @pytest.mark.parametrize(
         "bad_font_ref",
@@ -598,12 +598,12 @@ class DescribeBaseShape(object):
     def it_rejects_invalid_font_ref_strings(self, bad_font_ref):
         shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
         with pytest.raises(ValueError, match="font_ref must be one of"):
-            shape.theme_style_refs = (1, 2, 3, bad_font_ref)  # type: ignore[assignment]
+            shape.theme_style_refs = (1, 2, 3, bad_font_ref)
 
     def it_rejects_negative_ref_indices(self):
         shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
         with pytest.raises(ValueError, match="must be non-negative"):
-            shape.theme_style_refs = (-1, 2, 3, "minor")  # type: ignore[assignment]
+            shape.theme_style_refs = (-1, 2, 3, "minor")
 
     def it_rejects_non_integer_ref_values(self):
         shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)

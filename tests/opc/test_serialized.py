@@ -269,7 +269,7 @@ class DescribePackageWriter:
         method_mock(request, PackageWriter, "_write_pkg_rels")
         method_mock(request, PackageWriter, "_write_parts")
         function_mock(request, "pptx.opc.serialized.encrypt_bytes", return_value=b"ciphertext")
-        out_path = str(tmp_path) + "/enc.pptx"  # pyright: ignore[reportAttributeAccessIssue]
+        out_path = str(tmp_path) + "/enc.pptx"
         package_writer = PackageWriter(out_path, relationships_, [], password="s3cret")
 
         package_writer._write()
@@ -370,7 +370,7 @@ class Describe_PhysPkgReader:
         tmp_path: object,
     ):
         # -- write a file whose first bytes are the OLE magic so the sniff matches --
-        p = str(tmp_path) + "/encrypted.pptx"  # pyright: ignore[reportAttributeAccessIssue]
+        p = str(tmp_path) + "/encrypted.pptx"
         with open(p, "wb") as f:
             f.write(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 16)
         function_mock(

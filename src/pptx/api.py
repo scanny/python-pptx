@@ -121,8 +121,8 @@ def _apply_slide_size(
     """Rewrite `p:sldSz` on *prs_part*'s element to (*cx*, *cy*, *sld_sz_type*)."""
     prs_elm = prs_part._element  # pyright: ignore[reportPrivateUsage]
     sldSz = prs_elm.get_or_add_sldSz()
-    sldSz.cx = cx  # type: ignore[assignment]
-    sldSz.cy = cy  # type: ignore[assignment]
+    sldSz.cx = cx
+    sldSz.cy = cy
     sldSz.type = sld_sz_type
 
 

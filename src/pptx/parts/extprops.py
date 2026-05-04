@@ -148,7 +148,7 @@ class ExtendedPropertiesPart(XmlPart):
     # -- serialization hook ---------------------------------------------
 
     @property
-    def blob(self) -> bytes:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def blob(self) -> bytes:
         """bytes XML serialization of this part.
 
         Before serializing, refresh the `<Slides>` count to match the current `sldIdLst` in the

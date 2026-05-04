@@ -1277,7 +1277,7 @@ class _CustomPropsDict:
     def __ne__(self, other: object) -> bool:
         result = self.__eq__(other)
         if result is NotImplemented:
-            return NotImplemented  # type: ignore[return-value]
+            return NotImplemented
         return not result
 
     def __repr__(self) -> str:

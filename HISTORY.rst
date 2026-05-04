@@ -16,6 +16,20 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- chore(types): cleanup ~65 pyright strict-mode errors across
+  ``src/pptx/api.py``, ``src/pptx/animation.py``,
+  ``src/pptx/oxml/chart/series.py``, ``src/pptx/oxml/text.py``,
+  ``src/pptx/oxml/timing.py``, ``src/pptx/parts/extprops.py``,
+  ``src/pptx/parts/image.py``, ``src/pptx/shapes/base.py``, and
+  ``src/pptx/slide.py``. Removes unnecessary ``# type: ignore`` /
+  ``# pyright: ignore`` comments that pyright flagged as
+  ``reportUnnecessaryTypeIgnoreComment`` / ``reportUnnecessaryCast``,
+  drops unused imports in ``animation.py`` and ``oxml/timing.py``, and
+  adds missing ``_Element`` / ``CT_Slide`` parameter annotations on the
+  ``_set_animation`` / ``_ensure_main_sequence`` family of module-level
+  animation helpers. Zero test regressions (6619 pytest + 1449 behave
+  still pass).
+
 - fix: FU-7 ``GraphicFrame.delete()`` now drops every slide-part rel the
   frame carries — classic ``c:chart/@r:id``, Office 2016+ extended
   ``cx:chart/@r:id``, embedded or linked ``p:oleObj/@r:id`` plus the

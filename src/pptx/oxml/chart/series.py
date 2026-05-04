@@ -156,9 +156,7 @@ class CT_ErrBarType(BaseOxmlElement):
     Child of `c:errBars`. Attribute `val` is one of "both", "minus", "plus" (default "both").
     """
 
-    val = OptionalAttribute(
-        "val", XL_ERROR_BAR_INCLUDE, default=XL_ERROR_BAR_INCLUDE.BOTH
-    )  # pyright: ignore[reportAssignmentType]
+    val = OptionalAttribute("val", XL_ERROR_BAR_INCLUDE, default=XL_ERROR_BAR_INCLUDE.BOTH)
 
 
 class CT_ErrDir(BaseOxmlElement):
@@ -167,7 +165,7 @@ class CT_ErrDir(BaseOxmlElement):
     Child of `c:errBars`. Attribute `val` is one of "x" or "y".
     """
 
-    val = RequiredAttribute("val", XL_ERROR_BAR_DIRECTION)  # pyright: ignore[reportAssignmentType]
+    val = RequiredAttribute("val", XL_ERROR_BAR_DIRECTION)
 
 
 class CT_ErrValType(BaseOxmlElement):
@@ -177,9 +175,7 @@ class CT_ErrValType(BaseOxmlElement):
     "stdDev", "stdErr" (default "fixedVal").
     """
 
-    val = OptionalAttribute(
-        "val", XL_ERROR_BAR_TYPE, default=XL_ERROR_BAR_TYPE.FIXED_VALUE
-    )  # pyright: ignore[reportAssignmentType]
+    val = OptionalAttribute("val", XL_ERROR_BAR_TYPE, default=XL_ERROR_BAR_TYPE.FIXED_VALUE)
 
 
 class CT_ErrBars(BaseOxmlElement):
@@ -241,9 +237,7 @@ class CT_TrendlineType(BaseOxmlElement):
     "movingAvg", "poly", "power" (default "linear").
     """
 
-    val = OptionalAttribute(
-        "val", XL_TRENDLINE_TYPE, default=XL_TRENDLINE_TYPE.LINEAR
-    )  # pyright: ignore[reportAssignmentType]
+    val = OptionalAttribute("val", XL_TRENDLINE_TYPE, default=XL_TRENDLINE_TYPE.LINEAR)
 
 
 class CT_Trendline(BaseOxmlElement):

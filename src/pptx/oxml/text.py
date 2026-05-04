@@ -496,12 +496,10 @@ class CT_TextField(BaseOxmlElement):
         "a:t", successors=()
     )
     id: str = RequiredAttribute("id", XsdString)  # pyright: ignore[reportAssignmentType]
-    type: str | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
-        "type", XsdString
-    )
+    type: str | None = OptionalAttribute("type", XsdString)  # pyright: ignore[reportAssignmentType]
 
     @property
-    def text(self) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def text(self) -> str:
         """The text of the `a:t` child element."""
         t = self.t
         if t is None:
@@ -626,9 +624,7 @@ class CT_TextParagraph(BaseOxmlElement):
         # -- build the mc:AlternateContent scaffolding with the caller's OMML embedded --
         ac = parse_xml(_AC_WRAPPER_XML.format(fallback=fallback_text))
         # -- locate the a14:m element and append the (re-parsed) OMML fragment --
-        a14_m = ac.find(
-            ".//{http://schemas.microsoft.com/office/drawing/2010/main}m"
-        )
+        a14_m = ac.find(".//{http://schemas.microsoft.com/office/drawing/2010/main}m")
         assert a14_m is not None  # pragma: no cover  (guaranteed by template)
         a14_m.append(oMath_or_para)
 
@@ -689,9 +685,9 @@ class CT_TextParagraph(BaseOxmlElement):
 # The caller's OMML fragment is appended under the `a14:m` wrapper and the fallback
 # run's `a:t` child is populated with the visible text extracted from the OMML.
 _AC_WRAPPER_XML = (
-    '<mc:AlternateContent '
+    "<mc:AlternateContent "
     'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
-    '<mc:Choice '
+    "<mc:Choice "
     'xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" '
     'Requires="a14">'
     "<a14:m/>"
@@ -720,8 +716,7 @@ def _parse_omml_fragment(omml_xml: str) -> BaseOxmlElement:
     oMathPara_tag = qn("m:oMathPara")
     if elm.tag not in (oMath_tag, oMathPara_tag):
         raise ValueError(
-            "`omml_xml` root element must be `m:oMath` or `m:oMathPara`, got "
-            f"{elm.tag!r}"
+            "`omml_xml` root element must be `m:oMath` or `m:oMathPara`, got " f"{elm.tag!r}"
         )
     # -- require at least one m:oMath somewhere (either the root, or inside m:oMathPara) --
     if elm.tag == oMathPara_tag and elm.find(oMath_tag) is None:
@@ -1092,9 +1087,7 @@ class CT_TextCharBullet(BaseOxmlElement):
     ``@char`` attribute.
     """
 
-    char: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "char", XsdString
-    )
+    char: str = RequiredAttribute("char", XsdString)  # pyright: ignore[reportAssignmentType]
 
 
 class CT_TextAutonumberBullet(BaseOxmlElement):
@@ -1154,6 +1147,4 @@ class CT_TextBulletSizePoint(BaseOxmlElement):
     point). Valid range is 1pt..4000pt.
     """
 
-    val: Length = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "val", ST_TextFontSize
-    )
+    val: Length = RequiredAttribute("val", ST_TextFontSize)  # pyright: ignore[reportAssignmentType]
