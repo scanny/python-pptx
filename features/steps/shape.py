@@ -717,6 +717,19 @@ def then_movie_width_movie_height_eq_cx_cy(context):
     assert size == (Emu(3962400), Emu(5715000)), "got %s" % size
 
 
+# -- issue #622: assertions for the per-slide narration recipe --
+@then("movie.is_hidden is True")
+def then_movie_is_hidden_is_True(context):
+    actual = context.movie.is_hidden
+    assert actual is True, "expected movie.is_hidden True, got %r" % actual
+
+
+@then("the slide's transition advance_after_time is {ms:d}")
+def then_slide_transition_advance_after_time_eq(context, ms):
+    actual = context.slide.transition.advance_after_time
+    assert actual == ms, "expected advance_after_time %d, got %r" % (ms, actual)
+
+
 @then("the a:audioFile element is present on the movie shape")
 def then_a_audioFile_element_is_present(context):
     pic = context.movie._element

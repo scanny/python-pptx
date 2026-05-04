@@ -93,6 +93,54 @@ finishes, or with a delay — assign to :attr:`Movie.start_condition` and
     movie.start_condition = "afterPrevious"
     movie.start_time = 2.5  # seconds
 
+Recipe: per-slide audio narration
+---------------------------------
+
+Audio narration — a voice-over that plays automatically when the slide is
+shown, is hidden from the audience, and advances the slide when the clip
+ends — is a composition of three public APIs the library already exposes:
+
+* :meth:`SlideShapes.add_movie` with an ``audio/*`` MIME type and
+  ``autoplay=True`` to embed the clip and have it start automatically.
+* :attr:`BaseShape.is_hidden` to mark the speaker-icon shape hidden so it
+  doesn't draw over the slide content during presentation.
+* :attr:`Transition.advance_after_time` to auto-advance the slide once the
+  narration has finished (supply the clip duration in milliseconds).
+
+.. code-block:: python
+
+    from pptx import Presentation
+    from pptx.util import Emu
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
+
+    # embed the narration and start it with the slide ------------------
+    icon = Emu(228600)  # 0.25 in; small because it will be hidden
+    narration = slide.shapes.add_movie(
+        "narration.mp3",
+        left=Emu(0), top=Emu(0), width=icon, height=icon,
+        mime_type="audio/mpeg",
+        autoplay=True,
+    )
+
+    # hide the speaker icon from the audience --------------------------
+    narration.is_hidden = True
+
+    # optional: auto-advance after the clip's duration (in milliseconds)
+    slide.transition.advance_after_time = 5000  # 5.0 seconds
+
+Deriving ``advance_after_time`` from the audio file itself requires a
+duration parser (``mutagen``, ``wave``, ``tinytag``, ``ffprobe``, ...).
+python-pptx intentionally does not add such a runtime dependency — supply
+the duration yourself, in milliseconds, from whichever tool your pipeline
+already uses.
+
+To place the (still-hidden) shape off-slide instead of in the corner, set
+``left`` and ``top`` to negative values — PowerPoint preserves the offset
+on save and never renders a hidden shape anyway, so the positioning is a
+matter of author preference.
+
 Extracting an embedded media clip
 ---------------------------------
 

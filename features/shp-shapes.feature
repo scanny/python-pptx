@@ -282,6 +282,22 @@ Feature: Access a shape on a slide
       And movie.start_condition == "withPrevious"
 
 
+  # -- issue #622: per-slide audio narration. The reporter asked for an
+  # -- add_narration(...) wrapper but every primitive is already on the
+  # -- public surface: add_movie(autoplay=True) + Shape.is_hidden + the
+  # -- slide's Transition.advance_after_time. This scenario pins the
+  # -- documented recipe (docs/user/media.rst "per-slide audio narration")
+  # -- end-to-end so the three legs stay wired together.
+  Scenario: Compose per-slide audio narration from existing primitives (issue #622)
+    Given a SlideShapes object containing no movies
+     When I compose an audio narration clip (autoplay, hidden, 5s auto-advance)
+      And I save the presentation
+     Then movie is a Movie object
+      And movie.start_condition == "withPrevious"
+      And movie.is_hidden is True
+      And the slide's transition advance_after_time is 5000
+
+
   Scenario Outline: SlideShapes.add_ole_object()
     Given a SlideShapes object as shapes
       And a <prog-id> file as ole_object_file

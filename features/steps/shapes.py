@@ -462,6 +462,30 @@ def when_I_call_shapes_add_movie_autoplay_true(context):
     )
 
 
+# -- issue #622: compose per-slide audio narration from existing primitives. --
+# -- The recipe is add_movie(audio mime, autoplay=True) + is_hidden=True on
+# -- the returned shape + slide.transition.advance_after_time.
+@when("I compose an audio narration clip (autoplay, hidden, 5s auto-advance)")
+def when_I_add_audio_narration_recipe(context):
+    shapes = context.shapes
+    # -- derive the owning slide from the shapes collection so we can --
+    # -- reach its Transition later. --
+    slide = shapes.parent
+    icon = Emu(228600)  # 0.25 in; small because it will be hidden
+    context.movie = shapes.add_movie(
+        test_file("silence.wav"),
+        Emu(0),
+        Emu(0),
+        icon,
+        icon,
+        mime_type="audio/wav",
+        autoplay=True,
+    )
+    context.movie.is_hidden = True
+    slide.transition.advance_after_time = 5000
+    context.slide = slide
+
+
 # then ====================================================
 
 
