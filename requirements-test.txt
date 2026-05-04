@@ -1,6 +1,13 @@
 -r requirements.txt
+# -- acceptance test runner (behave + Gherkin) --
 behave>=1.2.3
+# -- enables the password-protected .pptx test suite (tests/test_password.py
+#    and tests/opc/test__crypto.py). Without it those tests are skipped; see
+#    issue #327. Also required to exercise the Presentation(..., password=...)
+#    and .save(..., password=...) round-trip code paths. --
 msoffcrypto-tool>=5.0.0
+# -- parser for the compact XML expression language used throughout
+#    tests/unitutil/cxml.py fixtures; required by most pytest modules. --
 pyparsing>=3.1.0
 pytest>=2.5
 pytest-coverage

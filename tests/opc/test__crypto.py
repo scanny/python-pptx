@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import io
 
 import pytest
@@ -15,6 +16,13 @@ from pptx.opc._crypto import (
     decrypt_stream,
     encrypt_bytes,
     is_encrypted_stream,
+)
+
+# -- Issue #327: gracefully skip tests that depend on the optional
+#    msoffcrypto-tool package when it is not installed. --
+requires_msoffcrypto = pytest.mark.skipif(
+    importlib.util.find_spec("msoffcrypto") is None,
+    reason="msoffcrypto-tool is not installed (optional test dependency for issue #327)",
 )
 
 
@@ -58,6 +66,7 @@ class Describe_decrypt_stream:
         with pytest.raises(EncryptedPackageError, match="msoffcrypto-tool"):
             decrypt_stream(io.BytesIO(b""), "pw")
 
+    @requires_msoffcrypto
     def it_raises_on_wrong_password(self, encrypted_minimal_pptx: bytes):
         with pytest.raises(EncryptedPackageError, match="password does not match"):
             decrypt_stream(io.BytesIO(encrypted_minimal_pptx), "wrong")
@@ -68,6 +77,7 @@ class Describe_decrypt_stream:
         with pytest.raises(EncryptedPackageError):
             decrypt_stream(io.BytesIO(garbage), "pw")
 
+    @requires_msoffcrypto
     def it_returns_plain_bytes_on_success(
         self, encrypted_minimal_pptx: bytes, minimal_pptx_bytes: bytes
     ):
@@ -107,6 +117,7 @@ class Describe_encrypt_bytes:
         with pytest.raises(EncryptedPackageError, match="msoffcrypto-tool"):
             encrypt_bytes(b"", "pw")
 
+    @requires_msoffcrypto
     def it_produces_a_CFBF_container(self):
         import os
 
@@ -118,6 +129,7 @@ class Describe_encrypt_bytes:
 
         assert encrypted.startswith(_OLE_SIGNATURE)
 
+    @requires_msoffcrypto
     def it_produces_bytes_that_round_trip_through_decrypt(self):
         import os
 
