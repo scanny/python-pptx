@@ -126,6 +126,20 @@ Feature: slide properties
      Then slide.slide_id is 256
 
 
+  Scenario: Slide.slide_layout can be re-pointed within the same master
+    Given a fresh presentation with a slide on layout 0
+     When I set slide.slide_layout to layout 5 of the same master
+     Then slide.slide_layout is layout 5 of master 0
+      And after a save/load round-trip slide.slide_layout is layout 5 of master 0
+
+
+  Scenario: Slide.slide_layout can be re-pointed to another master's layout
+    Given a presentation with two masters and a slide on master 0 layout 0
+     When I set slide.slide_layout to master 1 layout 0
+     Then slide.slide_layout is on master 1
+      And after a save/load round-trip slide.slide_layout is on master 1
+
+
   Scenario Outline: SlideLayout.name
     Given a SlideLayout object having name <name> as slide
      Then slide.name is <value>

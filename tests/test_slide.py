@@ -522,6 +522,14 @@ class DescribeSlide(object):
         slide, slide_layout_ = layout_fixture
         assert slide.slide_layout is slide_layout_
 
+    def it_can_change_its_slide_layout(self, request, slide_layout_, slide_part_):
+        property_mock(request, Slide, "part", return_value=slide_part_)
+        slide = Slide(None, None)
+
+        slide.slide_layout = slide_layout_
+
+        assert slide_part_.slide_layout is slide_layout_
+
     def it_provides_access_to_its_notes_slide(self, notes_slide_fixture):
         slide, notes_slide_ = notes_slide_fixture
         assert slide.notes_slide is notes_slide_

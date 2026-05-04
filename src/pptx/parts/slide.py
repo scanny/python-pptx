@@ -615,6 +615,41 @@ class SlidePart(BaseSlidePart):
         slide_layout_part = self.part_related_by(RT.SLIDE_LAYOUT)
         return slide_layout_part.slide_layout
 
+    @slide_layout.setter
+    def slide_layout(self, slide_layout: SlideLayout) -> None:
+        """Re-point this slide part at `slide_layout`.
+
+        Rewrites the ``RT.SLIDE_LAYOUT`` relationship so the slide inherits
+        appearance from `slide_layout` on its next render. The new layout
+        may belong to any slide master in the same presentation, including
+        a master different from the previously referenced layout's master.
+        The slide's own shape tree, placeholders, notes slide, and other
+        relationships are left untouched; only the slide-to-layout
+        relationship is re-pointed.
+
+        Raises |ValueError| when `slide_layout` is not part of the same
+        presentation as this slide part.
+        """
+        new_layout_part = slide_layout.part
+        if new_layout_part.package is not self.package:
+            raise ValueError(
+                "slide_layout must belong to the same presentation as this slide"
+            )
+
+        # -- locate the existing SLIDE_LAYOUT relationship --
+        prior_rId: str | None = None
+        for rId, rel in self.rels.items():
+            if rel.reltype == RT.SLIDE_LAYOUT:
+                prior_rId = rId
+                break
+
+        # -- add the new relationship (reused if already present) --
+        new_rId = self.relate_to(new_layout_part, RT.SLIDE_LAYOUT)
+
+        # -- drop the prior rel unless it is the same one we just reused --
+        if prior_rId is not None and prior_rId != new_rId:
+            self.drop_rel(prior_rId)
+
     def _add_notes_slide_part(self):
         """
         Return a newly created |NotesSlidePart| object related to this slide

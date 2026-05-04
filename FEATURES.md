@@ -174,7 +174,7 @@ prs.save("out.pptx")
 - `Slides.get(slide_id, default=None)` / `Slides.index(slide)` — Slide-id and position lookups.
 - `Slides.get_by_slide_id(slide_id, default=None)` — Explicit-named lookup by stable `p:sldId/@id` (mirrors `SlideMaster.get_layout`). `[Added in 2026.05.0]`
 - `Slide.slide_id` — Stable integer identifier assigned by PowerPoint.
-- `Slide.slide_layout` — The `SlideLayout` this slide inherits from.
+- `Slide.slide_layout` — The `SlideLayout` this slide inherits from. Settable since 2026.05.0 (#1109): assigning a new layout rewrites the slide's `RT.SLIDE_LAYOUT` relationship, supporting both same-master and cross-master swaps. The slide's own shape tree is not rewritten; only the layout rel is repointed.
 - `Slide.shapes` / `Slide.placeholders` — `SlideShapes` and `SlidePlaceholders`.
 - `Slide.name` — Read/write slide name (back-fills to `sld{n}` if unset).
 - `Slide.is_hidden` — Read/write boolean for hidden-slide flag. `[Added in 2026.05.0]`
@@ -201,7 +201,7 @@ prs.save("out.pptx")
 - `Slides.get(slide_id, default=None)` — Look up by slide ID.
 - `Slides.get_by_slide_id(slide_id, default=None)` — Explicit-named alias of `Slides.get`, paralleling `SlideMaster.get_layout` / `SlideLayouts.get_by_id`. `[Added in 2026.05.0]`
 - `Slides.index(slide)` — Positional lookup.
-- `Slide.slide_id` / `Slide.slide_layout` / `Slide.shapes` / `Slide.placeholders` / `Slide.name` / `Slide.element` / `Slide.part`.
+- `Slide.slide_id` / `Slide.slide_layout` / `Slide.shapes` / `Slide.placeholders` / `Slide.name` / `Slide.element` / `Slide.part`. `Slide.slide_layout` became writable in 2026.05.0 (#1109).
 - `Slide.is_hidden` (read/write `bool`) — `p:sld/@show="0"` for hidden slides. `[Added in 1.0.2.dev0]`
 - `Slide.show_master_shapes` (read/write `bool`) — `p:sld/@showMasterSp="0"` hides the master's non-placeholder shapes (e.g. a company logo) from this slide; mirrors PowerPoint's *Hide Background Graphics* checkbox. `[Added in 1.0.2.dev0]`
 - `Slide.background` / `Slide.follow_master_background()` — Per-slide background.

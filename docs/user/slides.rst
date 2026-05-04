@@ -174,6 +174,40 @@ can't be shared. Accessing ``duplicate.notes_slide`` creates a fresh empty
 notes slide on demand.
 
 
+Changing a slide's layout
+-------------------------
+
+Assigning to :attr:`.Slide.slide_layout` re-points an existing slide at
+a different slide layout. The new layout may belong to any slide master
+in the same presentation, including a master different from the
+previously referenced layout's master::
+
+    from pptx import Presentation
+
+    prs = Presentation("example.pptx")
+    slide = prs.slides[0]
+
+    # -- swap within the same master (e.g. from "Title Slide" to
+    # -- "Title and Content")
+    slide.slide_layout = prs.slide_layouts[1]
+
+    # -- or re-point at a layout belonging to a different slide master
+    slide.slide_layout = prs.slide_masters[1].slide_layouts[0]
+
+Only the slide-to-layout relationship is re-pointed; the slide's own
+shape tree (placeholders, text boxes, pictures, and so on) is not
+rewritten. The slide continues to inherit theme colours, fonts, and
+background from the new layout's master through the usual PowerPoint
+inheritance chain.
+
+.. note::
+
+   The new layout must belong to the same presentation as the slide.
+   To use a layout defined in a different presentation, first import
+   it via :meth:`.SlideMaster.add_layout_from` and then assign the
+   returned layout to ``slide.slide_layout``.
+
+
 Copying a slide from one presentation to another
 ------------------------------------------------
 

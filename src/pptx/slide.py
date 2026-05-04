@@ -575,6 +575,29 @@ class Slide(_BaseSlide):
         """|SlideLayout| object this slide inherits appearance from."""
         return self.part.slide_layout
 
+    @slide_layout.setter
+    def slide_layout(self, slide_layout: SlideLayout) -> None:
+        """Re-point this slide at `slide_layout`.
+
+        Replaces the slide's underlying ``RT.SLIDE_LAYOUT`` relationship so
+        the slide inherits appearance from `slide_layout`. Assigning a
+        layout from a different slide master ("cross-master" swap) is
+        supported; the slide's own shape tree is not rewritten so any
+        placeholder / theme references the slide inherits through the new
+        layout's master take effect via the inheritance chain.
+
+        Raises |ValueError| when `slide_layout` is not part of the same
+        presentation as this slide.
+
+        Note that the new layout must belong to the same presentation
+        (package); to import a layout from another presentation, use
+        :meth:`SlideMaster.add_layout` / :meth:`SlideMaster.add_layout_from`
+        first and then assign the returned layout here.
+
+        .. versionadded:: 2026.05.0
+        """
+        self.part.slide_layout = slide_layout
+
     @property
     def has_animations(self) -> bool:
         """`True` when this slide carries any ``p:timing`` / animation XML.
