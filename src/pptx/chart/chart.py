@@ -304,6 +304,62 @@ class Chart(PartElementProxy):
         """
         return ChartTitle(self._element.get_or_add_title())
 
+    def set_title(self, text):
+        """Set the chart title text in a single call (GitHub issue #764).
+
+        Convenience wrapper that ensures a title is present and rewrites
+        its text, collapsing the common three-step idiom
+        ``chart.has_title = True; chart.chart_title.text_frame.text = "…"``
+        into one line. Assigning ``None`` (or an empty string) removes the
+        chart title entirely, equivalent to setting
+        :attr:`has_title` to ``False``.
+
+        Returns this chart to support chaining, e.g.
+        ``chart.set_title("Q4 Revenue").set_axis_title("value", "USD")``.
+
+        .. versionadded:: 2026.05.1
+        """
+        if text is None or text == "":
+            self.has_title = False
+            return self
+        self.chart_title.text_frame.text = text
+        return self
+
+    def set_axis_title(self, axis, text):
+        """Set an axis's title text in a single call (GitHub issue #764).
+
+        *axis* is one of the strings ``"category"``, ``"value"``, or
+        ``"secondary_value"``, matching the corresponding
+        :attr:`category_axis`, :attr:`value_axis`, and
+        :attr:`secondary_value_axis` accessors on this chart. Assigning
+        ``None`` (or an empty string) for *text* removes the axis title
+        by setting the axis's ``has_title`` to ``False``; any non-empty
+        string ensures the axis title element is present and rewrites its
+        text. An unknown *axis* value raises :class:`ValueError`; a call
+        with ``"secondary_value"`` on a chart without a secondary value
+        axis propagates the :class:`ValueError` raised by
+        :attr:`secondary_value_axis`.
+
+        Returns this chart to support chaining.
+
+        .. versionadded:: 2026.05.1
+        """
+        if axis == "category":
+            axis_obj = self.category_axis
+        elif axis == "value":
+            axis_obj = self.value_axis
+        elif axis == "secondary_value":
+            axis_obj = self.secondary_value_axis
+        else:
+            raise ValueError(
+                "axis must be one of 'category', 'value', 'secondary_value', " "got %r" % (axis,)
+            )
+        if text is None or text == "":
+            axis_obj.has_title = False
+            return self
+        axis_obj.axis_title.text_frame.text = text
+        return self
+
     @property
     def chart_type(self):
         """Member of :ref:`XlChartType` enumeration specifying type of this chart.
