@@ -327,6 +327,67 @@ class DataLabel(object):
             self._remove_tx_rich()
 
     @property
+    def number_format(self):
+        """Read/write str specifying format code for this individual data label.
+
+        Returns the format code currently applied, or `"General"` if no
+        per-point number format is set (in which case the rendered format is
+        inherited from the series- or plot-level data-label settings).
+        Assigning a format string automatically sets
+        :attr:`number_format_is_linked` to |False|, matching the behaviour of
+        :class:`DataLabels.number_format`.
+
+        Writes to ``c:dLbl/c:numFmt/@formatCode`` on the ``c:dLbl`` element
+        for this data point, creating the ``c:dLbl`` and ``c:numFmt`` elements
+        if not already present. Addresses issues #638 and #803 (per-point
+        number format control for category, XY, and bubble series).
+
+        .. versionadded:: 2026.05.0
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return "General"
+        numFmt = dLbl.numFmt
+        if numFmt is None:
+            return "General"
+        return numFmt.formatCode
+
+    @number_format.setter
+    def number_format(self, value):
+        dLbl = self._get_or_add_dLbl()
+        numFmt = dLbl.get_or_add_numFmt()
+        numFmt.formatCode = value
+        numFmt.sourceLinked = False
+
+    @property
+    def number_format_is_linked(self):
+        """Read/write bool whether label's number format follows the source.
+
+        |True| when the rendered number format is taken from the source
+        spreadsheet value rather than from :attr:`number_format`. Returns
+        |True| when no per-point ``c:numFmt`` element is present, matching
+        PowerPoint's default behaviour.
+
+        .. versionadded:: 2026.05.0
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return True
+        numFmt = dLbl.numFmt
+        if numFmt is None:
+            return True
+        sourceLinked = numFmt.sourceLinked
+        if sourceLinked is None:
+            return True
+        return sourceLinked
+
+    @number_format_is_linked.setter
+    def number_format_is_linked(self, value):
+        dLbl = self._get_or_add_dLbl()
+        numFmt = dLbl.get_or_add_numFmt()
+        numFmt.sourceLinked = bool(value)
+
+    @property
     def position(self):
         """
         Read/write :ref:`XlDataLabelPosition` member specifying the position

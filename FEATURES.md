@@ -1451,6 +1451,7 @@ prs.save("out.pptx")
 - `Point.format` / `Point.marker` / `Point.data_label` / `Point.invert_if_negative` — Per-point formatting.
 - `DataLabel.text_frame` / `DataLabel.font` / `DataLabel.position` / `DataLabel.show_*`.
 - `DataLabel.format` — `ChartFormat` wrapping this single `c:dLbl` with `.fill` / `.line` / `.shadow`. `[Added in 1.0.2.dev0]`
+- `DataLabel.number_format` / `DataLabel.number_format_is_linked` — Per-point data-label format-code override. Writes `c:dLbl/c:numFmt/@formatCode` (with `@sourceLinked="0"`) on the `c:dLbl` for this point, allowing a single point to carry a different format than its plot- or series-level `DataLabels.number_format`. Assigning `number_format_is_linked = True` re-links rendering to the source value without clearing the stored format code. Works uniformly through `point.data_label` on `CategoryPoints`, `XyPoints`, and `BubblePoints`. Issues #638 and #803. `[Added in 2026.05.1.dev0]`
 - `DataLabels.text_frame` / `DataLabels.font` / `DataLabels.show_*` / `DataLabels.number_format`.
 - `DataLabels.format` — `ChartFormat` wrapping `c:dLbls` (collection-scope fill / line / shadow). `[Added in 1.0.2.dev0]`
 - `ChartFormat.fill` / `ChartFormat.line` / `ChartFormat.shadow` — Format block for a chart element. `shadow` is `[Added in 1.0.2.dev0]`.

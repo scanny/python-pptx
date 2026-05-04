@@ -29,6 +29,116 @@ class DescribeDataLabel(object):
         assert chart_format is chart_format_
         assert data_label._ser.xml == expected_xml
 
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_value"),
+        [
+            # -- no c:dLbls at all --
+            ("c:ser", "General"),
+            # -- c:dLbls present but no c:dLbl for this idx --
+            ("c:ser/c:dLbls", "General"),
+            # -- c:dLbl present but no c:numFmt child --
+            ("c:ser/c:dLbls/c:dLbl/c:idx{val=7}", "General"),
+            # -- c:dLbl/c:numFmt carries formatCode --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.00%})",
+                "0.00%",
+            ),
+            # -- c:dLbl exists for a *different* idx, expect default --
+            ("c:ser/c:dLbls/c:dLbl/(c:idx{val=4},c:numFmt{formatCode=0.00})", "General"),
+        ],
+    )
+    def it_knows_its_number_format(self, ser_cxml, expected_value):
+        data_label = DataLabel(element(ser_cxml), 7)
+        assert data_label.number_format == expected_value
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "new_value", "expected_cxml"),
+        [
+            # -- assigning creates c:dLbls, c:dLbl, and c:numFmt from scratch --
+            (
+                "c:ser{a:b=c}",
+                "0.00%",
+                "c:ser{a:b=c}/c:dLbls/(c:dLbl/(c:idx{val=7},c:numFmt{formatCo"
+                "de=0.00%,sourceLinked=0},c:spPr,c:txPr/(a:bodyPr,a:lstStyle,"
+                "a:p/a:pPr/a:defRPr)),c:showLegendKey{val=0},c:showVal{val=0}"
+                ",c:showCatName{val=0},c:showSerName{val=0},c:showPercent{va"
+                "l=0},c:showBubbleSize{val=0},c:showLeaderLines{val=1})",
+            ),
+            # -- updating an existing c:numFmt preserves schema order --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.00})",
+                "0.0%",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0%" ",sourceLinked=0})",
+            ),
+            # -- assigning sets sourceLinked=0 (overriding a prior linked state) --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.00" ",sourceLinked=1})",
+                "0.0%",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0%" ",sourceLinked=0})",
+            ),
+            # -- c:numFmt inserted in correct order among existing c:dLbl children --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:spPr)",
+                "0.00",
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.00"
+                ",sourceLinked=0},c:spPr)",
+            ),
+        ],
+    )
+    def it_can_change_its_number_format(self, ser_cxml, new_value, expected_cxml):
+        data_label = DataLabel(element(ser_cxml), 7)
+        data_label.number_format = new_value
+        assert data_label._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "expected_value"),
+        [
+            # -- no c:dLbls at all: default is True (linked) --
+            ("c:ser", True),
+            # -- c:dLbl present but no c:numFmt child --
+            ("c:ser/c:dLbls/c:dLbl/c:idx{val=7}", True),
+            # -- c:numFmt present but no sourceLinked attribute --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0})",
+                True,
+            ),
+            # -- sourceLinked=0 means unlinked --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0," "sourceLinked=0})",
+                False,
+            ),
+            # -- sourceLinked=1 means linked --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0," "sourceLinked=1})",
+                True,
+            ),
+        ],
+    )
+    def it_knows_whether_its_number_format_is_linked(self, ser_cxml, expected_value):
+        data_label = DataLabel(element(ser_cxml), 7)
+        assert data_label.number_format_is_linked is expected_value
+
+    @pytest.mark.parametrize(
+        ("ser_cxml", "new_value", "expected_cxml"),
+        [
+            # -- toggling linked on an existing c:numFmt preserves formatCode --
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0," "sourceLinked=0})",
+                True,
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0," "sourceLinked=1})",
+            ),
+            (
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0," "sourceLinked=1})",
+                False,
+                "c:ser/c:dLbls/c:dLbl/(c:idx{val=7},c:numFmt{formatCode=0.0," "sourceLinked=0})",
+            ),
+        ],
+    )
+    def it_can_change_whether_its_number_format_is_linked(self, ser_cxml, new_value, expected_cxml):
+        data_label = DataLabel(element(ser_cxml), 7)
+        data_label.number_format_is_linked = new_value
+        assert data_label._element.xml == xml(expected_cxml)
+
     def it_knows_its_position(self, position_get_fixture):
         data_label, expected_value = position_get_fixture
         position = data_label.position

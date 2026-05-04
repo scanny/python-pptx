@@ -67,6 +67,10 @@ Feature Support
   outline / legend-key flags through :attr:`Chart.data_table`
   (``show_horz_border`` / ``show_vert_border`` / ``show_outline`` /
   ``show_keys`` / ``format``)
+* Override the data-label number format on an individual data point via
+  :attr:`DataLabel.number_format` and :attr:`DataLabel.number_format_is_linked`
+  (accessed through ``point.data_label``) — works uniformly for category, XY,
+  and bubble series (issues #638, #803)
 * Access and change core document properties such as title and subject
 * Toggle header / footer / slide-number / date placeholder visibility on a slide
   master or layout, and insert auto-refresh slide-number or date fields in a
