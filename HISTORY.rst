@@ -11,6 +11,8 @@ Released: 2026-05-02
 This release switches to CalVer (YYYY.MM.patch) versioning, matching
 loadfix/python-docx and loadfix/python-xlsx.
 
+- Add interop-validate behave scenarios wiring loadfix/ooxml-validate as a round-trip fidelity check.
+
 Unreleased
 ++++++++++
 

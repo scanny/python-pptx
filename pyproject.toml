@@ -34,6 +34,11 @@ license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.8"
 
+[project.optional-dependencies]
+dev = [
+    "ooxml-validate @ file:///home/ben/code/ooxml-validate",
+]
+
 [project.urls]
 Changelog = "https://github.com/scanny/python-pptx/blob/master/HISTORY.rst"
 Documentation = "https://python-pptx.readthedocs.io/en/latest/"
