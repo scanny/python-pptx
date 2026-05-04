@@ -71,6 +71,24 @@ Unreleased
   attribute carries the same value, and the whole shape survives a
   ``Presentation.save`` + reopen unchanged.
 
+- verify: #835 chart-carrying slides round-trip via
+  ``add_slide_from_external`` and ``merge``. Issue #835
+  (https://github.com/scanny/python-pptx/issues/835) asked to combine
+  charts from different slides in different decks. The underlying
+  capability — copying a chart-bearing slide from a source presentation
+  into a target presentation with the chart's data intact — is served by
+  :meth:`Slides.add_slide_from_external` (per-slide) and
+  :meth:`Presentation.merge` (bulk), both of which route through the
+  Wave 7 #934 cross-package cloner so chart parts get a distinct embedded
+  workbook in the target.
+  ``tests/test_issue_835_merge_charts_verify.py`` pins the end-to-end
+  behaviour: a source deck with three chart slides (distinct series
+  values) round-trips through both APIs with
+  ``chart.plots[0].series[0].values`` preserved across save + reopen, and
+  every merged chart carries its own :class:`EmbeddedXlsxPart` so
+  PowerPoint's "Edit Data" dialog operates on the target deck in
+  isolation from the source.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
