@@ -187,11 +187,15 @@ class PackageWriter:
     def _write_parts(self, phys_writer: _PhysPkgWriter) -> None:
         """Write blob of each part in `parts` to the package.
 
-        A rels item for each part is also written when the part has relationships.
+        A rels item for each part is written when the part has relationships, or when an
+        (empty) rels file was physically present for this part in the input package — in
+        which case it is preserved verbatim so byte-level round-trips stay faithful.
         """
         for part in self._parts:
             phys_writer.write(part.partname, part.blob)
-            if part._rels:  # pyright: ignore[reportPrivateUsage]
+            has_rels = bool(part._rels)  # pyright: ignore[reportPrivateUsage]
+            preserved_empty = getattr(part, "_rels_file_present_on_load", False)
+            if has_rels or preserved_empty:
                 phys_writer.write(part.partname.rels_uri, part.rels.xml)
 
     def _write_pkg_rels(self, phys_writer: _PhysPkgWriter) -> None:

@@ -386,7 +386,7 @@ class DescribeOpcPackage:
 
     def it_loads_the_pkg_file_to_help(self, request, _rels_prop_, relationships_):
         _PackageLoader_ = class_mock(request, "pptx.opc.package._PackageLoader")
-        _PackageLoader_.load.return_value = "pkg-rels-xml", {"partname": "part"}
+        _PackageLoader_.load.return_value = "pkg-rels-xml", {"partname": "part"}, ()
         _rels_prop_.return_value = relationships_
         package = OpcPackage("prs.pptx")
 
@@ -430,10 +430,10 @@ class Describe_PackageLoader:
             request,
             _PackageLoader,
             "_load",
-            return_value=(pkg_xml_rels_, {"partname": "part"}),
+            return_value=(pkg_xml_rels_, {"partname": "part"}, ()),
         )
 
-        pkg_xml_rels, parts = _PackageLoader.load("prs.pptx", package_)
+        pkg_xml_rels, parts, orphan_partnames = _PackageLoader.load("prs.pptx", package_)
 
         _init_.assert_called_once_with(ANY, "prs.pptx", package_, None)
         _load_.assert_called_once_with(ANY)
@@ -455,12 +455,13 @@ class Describe_PackageLoader:
         _xml_rels_prop_.return_value = rels_
         package_loader = _PackageLoader(None, None)
 
-        pkg_xml_rels, parts = package_loader._load()
+        pkg_xml_rels, parts, orphan_partnames = package_loader._load()
 
         for part_ in parts_.values():
             part_.load_rels_from_xml.assert_called_once_with(rels_[part_.partname], parts_)
         assert pkg_xml_rels is rels_["/"]
         assert parts is parts_
+        assert orphan_partnames == ()
 
     def it_loads_the_xml_relationships_from_the_package_to_help(self, request):
         pkg_xml_rels = parse_xml(snippet_bytes("package-rels-xml"))
@@ -482,6 +483,15 @@ class Describe_PackageLoader:
                 )
             ),
         )
+        # -- stub the content-types / package-reader accessors used by the orphan-parts
+        # -- pass; the rel-graph walk already covers every partname this test cares
+        # -- about so the orphans collection is empty.
+        content_types_ = instance_mock(request, _ContentTypeMap)
+        content_types_.override_partnames = ()
+        property_mock(
+            request, _PackageLoader, "_content_types", return_value=content_types_
+        )
+        property_mock(request, _PackageLoader, "_package_reader", return_value=object())
         package_loader = _PackageLoader(None, None)
 
         xml_rels = package_loader._xml_rels
@@ -501,6 +511,7 @@ class Describe_PackageLoader:
             "/docProps/thumbnail.jpeg": thumbnail_xml_rels,
             "/docProps/core.xml": core_xml_rels,
         }
+        assert package_loader._orphan_partnames == ()
 
     # fixture components -----------------------------------
 

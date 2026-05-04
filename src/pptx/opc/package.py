@@ -91,6 +91,7 @@ class OpcPackage(_RelatableMixin):
     def __init__(self, pkg_file: str | IO[bytes], password: str | None = None):
         self._pkg_file = pkg_file
         self._password = password
+        self._orphan_parts: tuple[Part, ...] = ()
 
     @classmethod
     def open(cls, pkg_file: str | IO[bytes], password: str | None = None) -> Self:
@@ -106,7 +107,14 @@ class OpcPackage(_RelatableMixin):
         self._rels.pop(rId)
 
     def iter_parts(self) -> Iterator[Part]:
-        """Generate exactly one reference to each part in the package."""
+        """Generate exactly one reference to each part in the package.
+
+        Includes "orphan" parts — parts present in the loaded package that are declared
+        in ``[Content_Types].xml`` but not reachable via the relationships graph (e.g.
+        the traditional-chart fallback referenced from an ``mc:AlternateContent``
+        fallback element rather than via a rel). Preserving orphans on round-trip keeps
+        the output byte-level compatible with PowerPoint's expectations.
+        """
         visited: Set[Part] = set()
         for rel in self.iter_rels():
             if rel.is_external:
@@ -116,11 +124,20 @@ class OpcPackage(_RelatableMixin):
                 continue
             yield part
             visited.add(part)
+        # -- orphan parts (and anything reachable from their rels) --
+        for part in self._iter_orphan_parts(visited):
+            yield part
 
     def iter_rels(self) -> Iterator[_Relationship]:
         """Generate exactly one reference to each relationship in package.
 
         Performs a depth-first traversal of the rels graph.
+
+        Also yields relationships that hang off "orphan" parts — parts present in the
+        loaded package but not reachable from the package-root rels graph (e.g. a
+        fallback chart referenced via ``mc:AlternateContent`` rather than a rel). This
+        ensures, for example, that an orphan chart part's embedded xlsx is preserved
+        on round-trip.
         """
         visited: Set[Part] = set()
 
@@ -141,6 +158,35 @@ class OpcPackage(_RelatableMixin):
                 yield from walk_rels(part.rels)
 
         yield from walk_rels(self._rels)
+
+        # -- also walk rels of each orphan part so their dependents (e.g. an
+        # -- embedded xlsx referenced from a fallback chart) are reachable too.
+        for orphan in self._orphan_parts:
+            if orphan in visited:
+                continue
+            visited.add(orphan)
+            yield from walk_rels(orphan.rels)
+
+    def _iter_orphan_parts(self, visited: Set[Part]) -> Iterator[Part]:
+        """Yield each orphan part (and any descendant reachable only through it).
+
+        `visited` is updated in place with each yielded part so the caller can use
+        it as a de-duplication set across the combined rel-graph + orphan walk.
+        """
+        stack: list[Part] = [p for p in self._orphan_parts if p not in visited]
+        while stack:
+            part = stack.pop()
+            if part in visited:
+                continue
+            visited.add(part)
+            yield part
+            # -- queue descendants reached through this orphan's rels --
+            for rel in part.rels.values():
+                if rel.is_external:
+                    continue
+                target = rel.target_part
+                if target not in visited:
+                    stack.append(target)
 
     @property
     def main_document_part(self) -> PresentationPart:
@@ -227,10 +273,18 @@ class OpcPackage(_RelatableMixin):
 
     def _load(self) -> Self:
         """Return the package after loading all parts and relationships."""
-        pkg_xml_rels, parts = _PackageLoader.load(
+        pkg_xml_rels, parts, orphan_partnames = _PackageLoader.load(
             self._pkg_file, cast("Package", self), self._password
         )
         self._rels.load_from_xml(PACKAGE_URI, pkg_xml_rels, parts)
+        # -- record orphan parts (declared in [Content_Types].xml but not reachable
+        # -- from the package-root rels graph) so they survive round-trip. Any parts
+        # -- already reachable via the rels graph are filtered out to preserve the
+        # -- rel-walk as the source of truth for everything else.
+        reachable: Set[Part] = {p for p in self.iter_parts()}
+        self._orphan_parts = tuple(
+            parts[pn] for pn in orphan_partnames if parts[pn] not in reachable
+        )
         return self
 
     @lazyproperty
@@ -257,6 +311,13 @@ class _PackageLoader:
         self._pkg_file = pkg_file
         self._package = package
         self._password = password
+        # -- populated by :attr:`_xml_rels` with partnames declared in
+        # -- [Content_Types].xml but not reached via the rels graph.
+        self._orphan_partnames: tuple[PackURI, ...] = ()
+        # -- populated by :meth:`_xml_rels_for` with each partname whose ``.rels`` file
+        # -- was physically present in the input package (even if empty). Consumed by
+        # -- :meth:`_load` to flag the corresponding part for round-trip preservation.
+        self._partnames_with_rels_file: Set[PackURI] = set()
 
     @classmethod
     def load(
@@ -264,8 +325,8 @@ class _PackageLoader:
         pkg_file: str | IO[bytes],
         package: Package,
         password: str | None = None,
-    ) -> tuple[CT_Relationships, dict[PackURI, Part]]:
-        """Return (pkg_xml_rels, parts) pair resulting from loading `pkg_file`.
+    ) -> tuple[CT_Relationships, dict[PackURI, Part], tuple[PackURI, ...]]:
+        """Return (pkg_xml_rels, parts, orphan_partnames) triple from loading `pkg_file`.
 
         The returned `parts` value is a {partname: part} mapping with each part in the package
         included and constructed complete with its relationships to other parts in the package.
@@ -273,17 +334,29 @@ class _PackageLoader:
         The returned `pkg_xml_rels` value is a `CT_Relationships` object containing the parsed
         package relationships. It is the caller's responsibility (the package object) to load
         those relationships into its |_Relationships| object.
+
+        `orphan_partnames` lists partnames that were declared in ``[Content_Types].xml``
+        (as ``Override`` entries) but are not reachable via the package-root rels graph.
+        Preserving these on round-trip keeps parts such as an ``mc:AlternateContent``
+        fallback chart (and its embedded workbook) present in the output package.
         """
         return cls(pkg_file, package, password)._load()
 
-    def _load(self) -> tuple[CT_Relationships, dict[PackURI, Part]]:
-        """Return (pkg_xml_rels, parts) pair resulting from loading pkg_file."""
+    def _load(
+        self,
+    ) -> tuple[CT_Relationships, dict[PackURI, Part], tuple[PackURI, ...]]:
+        """Return (pkg_xml_rels, parts, orphan_partnames) triple from loading pkg_file."""
         parts, xml_rels = self._parts, self._xml_rels
 
         for partname, part in parts.items():
             part.load_rels_from_xml(xml_rels[partname], parts)
+            # -- propagate whether a physical ``.rels`` file was present on disk for this
+            # -- part, so the writer can preserve an empty rels file on round-trip when
+            # -- one was present in the input package.
+            if partname in self._partnames_with_rels_file:
+                part._rels_file_present_on_load = True  # pyright: ignore[reportPrivateUsage]
 
-        return xml_rels[PACKAGE_URI], parts
+        return xml_rels[PACKAGE_URI], parts, self._orphan_partnames
 
     @lazyproperty
     def _content_types(self) -> _ContentTypeMap:
@@ -329,6 +402,13 @@ class _PackageLoader:
 
         This is used as the basis for other loading operations such as loading parts and
         populating their relationships.
+
+        In addition to the parts reachable from the package-root rels graph, also includes
+        any "orphan" parts — those declared in ``[Content_Types].xml`` as ``Override``
+        entries but not reachable via rels. These can arise from ``mc:AlternateContent``
+        fallback elements (e.g. a traditional chart associated with an extended
+        ``chartEx`` part). Their rels are loaded too, so descendants (for example the
+        fallback chart's embedded xlsx) come along for the round-trip.
         """
         xml_rels: dict[PackURI, CT_Relationships] = {}
         visited_partnames: Set[PackURI] = set()
@@ -349,6 +429,23 @@ class _PackageLoader:
                 load_rels(target_partname, self._xml_rels_for(target_partname))
 
         load_rels(PACKAGE_URI, self._xml_rels_for(PACKAGE_URI))
+
+        # -- Include orphans: parts declared in [Content_Types].xml Overrides but not
+        # -- reached via the rels graph. We walk each orphan's rels too, so anything
+        # -- reachable solely through an orphan (e.g. the xlsx behind a fallback
+        # -- chart) is also materialised during load.
+        package_reader = self._package_reader
+        orphans: list[PackURI] = []
+        for partname in self._content_types.override_partnames:
+            if partname in visited_partnames:
+                continue
+            if partname not in package_reader:
+                continue
+            orphans.append(partname)
+            load_rels(partname, self._xml_rels_for(partname))
+        # -- stash the orphan partname list for the package to consume after
+        # -- `_parts` has been built.
+        self._orphan_partnames = tuple(orphans)
         return xml_rels
 
     def _xml_rels_for(self, partname: PackURI) -> CT_Relationships:
@@ -356,13 +453,16 @@ class _PackageLoader:
 
         A CT_Relationships object is returned in all cases. A part that has no relationships
         receives an "empty" CT_Relationships object, i.e. containing no `CT_Relationship` objects.
+
+        Records `partname` in :attr:`_partnames_with_rels_file` when a physical rels file
+        was found on disk (even an empty one). The writer uses this set to preserve an
+        empty rels file on round-trip when one was present in the input package.
         """
         rels_xml = self._package_reader.rels_xml_for(partname)
-        return (
-            CT_Relationships.new()
-            if rels_xml is None
-            else cast(CT_Relationships, parse_xml(rels_xml))
-        )
+        if rels_xml is None:
+            return CT_Relationships.new()
+        self._partnames_with_rels_file.add(partname)
+        return cast(CT_Relationships, parse_xml(rels_xml))
 
 
 class Part(_RelatableMixin):
@@ -381,6 +481,10 @@ class Part(_RelatableMixin):
         self._content_type = content_type
         self._package = package
         self._blob = blob
+        # -- True when this part was loaded from a package that had a ``.rels`` file for
+        # -- it, even if that file was empty. Used by the package writer to preserve an
+        # -- empty rels file on round-trip when one was physically present in the input.
+        self._rels_file_present_on_load = False
 
     @classmethod
     def load(cls, partname: PackURI, content_type: str, package: Package, blob: bytes) -> Self:
@@ -609,6 +713,15 @@ class _ContentTypeMap:
             (d.extension.lower(), d.contentType) for d in types_elm.default_lst
         )
         return cls(overrides, defaults)
+
+    @property
+    def override_partnames(self) -> tuple[PackURI, ...]:
+        """Tuple of |PackURI| partnames with an explicit ``Override`` content-type.
+
+        Useful for discovering parts that are present in the package but not reachable
+        via the rels graph, so they can still be preserved on round-trip.
+        """
+        return tuple(PackURI(pn) for pn in self._overrides)
 
 
 class _Relationships(Mapping[str, "_Relationship"]):
