@@ -14,6 +14,28 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #556 replace title text with run-level ``__`` placeholders
+  while preserving formatting. Issue #556
+  (https://github.com/scanny/python-pptx/issues/556) asked how to
+  replace a title authored as ``"My title __ placeholder __"`` —
+  substituting each double-underscore token with a value — *without*
+  losing the bold / italic / size / colour / underline applied to the
+  surrounding runs. The capability has shipped since Wave 6 (#836) via
+  :meth:`TextFrame.replace_text` and :meth:`_Paragraph.replace_text`,
+  which rewrite every occurrence of ``find`` with ``replace`` across
+  consecutive ``a:r`` runs while keeping the origin run's ``a:rPr``;
+  Wave 8 (#285) pinned the textbox-facing regression. ``slide.shapes.
+  title`` returns a :class:`~pptx.shapes.placeholder.SlidePlaceholder`
+  whose ``text_frame`` exposes the same API, so
+  ``slide.shapes.title.text_frame.replace_text("__", "NAME")`` rewrites
+  both ``__`` tokens in one call and returns ``2``.
+  ``tests/test_issue_556_title_replace_preserve_verify.py`` pins the
+  three-scenario verify-close suite: both tokens rewritten from a
+  single formatted run, the same scenario surviving a ``Presentation.
+  save`` + reopen round-trip, and a three-run PowerPoint-split layout
+  where only the placeholder run is rewritten and the flanking prose
+  runs' ``a:rPr`` is left untouched.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
