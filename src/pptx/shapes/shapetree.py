@@ -359,7 +359,7 @@ class _BaseGroupShapes(_BaseShapes):
         cx: Length,
         cy: Length,
         chart_data: ChartData,
-    ) -> Chart:
+    ) -> GraphicFrame:
         """Add a new chart of `chart_type` to the slide.
 
         The chart is positioned at (`x`, `y`), has size (`cx`, `cy`), and depicts `chart_data`.
@@ -373,7 +373,7 @@ class _BaseGroupShapes(_BaseShapes):
         rId = self.part.add_chart_part(chart_type, chart_data)
         graphicFrame = self._add_chart_graphicFrame(rId, x, y, cx, cy)
         self._recalculate_extents()
-        return cast("Chart", self._shape_factory(graphicFrame))
+        return cast("GraphicFrame", self._shape_factory(graphicFrame))
 
     def clone_chart(
         self,

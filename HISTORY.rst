@@ -14,6 +14,18 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #1035 correct add_chart return type annotation (GraphicFrame not
+  Chart). Issue #1035 (https://github.com/scanny/python-pptx/issues/1035)
+  reported that :meth:`SlideShapes.add_chart` was annotated as returning
+  a |Chart| while the runtime behaviour — documented in the method's own
+  docstring — is that a |GraphicFrame| is returned (the chart itself is
+  reached through :attr:`GraphicFrame.chart`). The annotation and the
+  internal ``cast`` are now both ``GraphicFrame``; runtime behaviour is
+  unchanged, so calling code that accesses ``shape.chart`` continues to
+  work. A new ``tests/test_issue_1035_add_chart_return_type.py``
+  regression pins both the runtime ``isinstance`` and the static
+  annotation via ``typing.get_type_hints``.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and
