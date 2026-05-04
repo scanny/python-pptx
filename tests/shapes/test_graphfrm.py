@@ -12,10 +12,12 @@ from pptx.parts.chart import ChartPart
 from pptx.parts.embeddedpackage import EmbeddedPackagePart
 from pptx.parts.slide import SlidePart
 from pptx.shapes.graphfrm import GraphicFrame, SmartArt, _OleFormat
+from pptx.shapes.model3d import Model3D
 from pptx.shapes.shapetree import SlideShapes
 from pptx.spec import (
     GRAPHIC_DATA_URI_CHART,
     GRAPHIC_DATA_URI_CHARTEX,
+    GRAPHIC_DATA_URI_MODEL_3D,
     GRAPHIC_DATA_URI_OLEOBJ,
     GRAPHIC_DATA_URI_SMART_ART,
     GRAPHIC_DATA_URI_TABLE,
@@ -192,9 +194,7 @@ class DescribeGraphicFrame(object):
 
     def it_provides_access_to_a_SmartArt_object(self, request):
         smart_art_ = instance_mock(request, SmartArt)
-        SmartArt_ = class_mock(
-            request, "pptx.shapes.graphfrm.SmartArt", return_value=smart_art_
-        )
+        SmartArt_ = class_mock(request, "pptx.shapes.graphfrm.SmartArt", return_value=smart_art_)
         graphicFrame = element(
             "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_SMART_ART
         )
@@ -213,6 +213,76 @@ class DescribeGraphicFrame(object):
         with pytest.raises(ValueError) as e:
             GraphicFrame(graphicFrame, None).smart_art
         assert str(e.value) == "shape does not contain SmartArt"
+
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
+            (GRAPHIC_DATA_URI_CHART, False),
+            (GRAPHIC_DATA_URI_MODEL_3D, True),
+            (GRAPHIC_DATA_URI_OLEOBJ, False),
+            (GRAPHIC_DATA_URI_SMART_ART, False),
+            (GRAPHIC_DATA_URI_TABLE, False),
+        ),
+    )
+    def it_knows_whether_it_contains_a_3D_model(self, graphicData_uri, expected_value):
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
+        assert GraphicFrame(graphicFrame, None).has_model_3d is expected_value
+
+    def it_provides_access_to_a_Model3D_object(self, request):
+        model_3d_ = instance_mock(request, Model3D)
+        Model3D_ = class_mock(request, "pptx.shapes.graphfrm.Model3D", return_value=model_3d_)
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/am3d:model3D{r:embed=rId9,ext=glb}"
+            % GRAPHIC_DATA_URI_MODEL_3D
+        )
+        parent_ = instance_mock(request, SlideShapes)
+        graphic_frame = GraphicFrame(graphicFrame, parent_)
+
+        model_3d = graphic_frame.model_3d
+
+        Model3D_.assert_called_once_with(graphicFrame.graphicData.model_3d, parent_)
+        assert model_3d is model_3d_
+
+    def but_it_raises_on_model_3d_when_not_a_3D_model_shape(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_TABLE
+        )
+        with pytest.raises(ValueError) as e:
+            GraphicFrame(graphicFrame, None).model_3d
+        assert str(e.value) == "shape does not contain a 3D model"
+
+    def and_it_raises_on_model_3d_when_the_am3d_model3D_child_is_absent(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_MODEL_3D
+        )
+        with pytest.raises(ValueError) as e:
+            GraphicFrame(graphicFrame, None).model_3d
+        assert str(e.value) == "shape does not contain a 3D model"
+
+    def it_provides_the_raw_model_3d_xml(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/am3d:model3D{r:embed=rId9,ext=glb}"
+            % GRAPHIC_DATA_URI_MODEL_3D
+        )
+
+        xml_str = GraphicFrame(graphicFrame, None).model_3d_xml
+
+        assert xml_str is not None
+        assert "model3D" in xml_str
+        assert 'ext="glb"' in xml_str
+        assert "rId9" in xml_str
+
+    def but_model_3d_xml_is_None_when_not_a_3D_model_shape(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_TABLE
+        )
+        assert GraphicFrame(graphicFrame, None).model_3d_xml is None
+
+    def and_model_3d_xml_is_None_when_the_am3d_model3D_child_is_absent(self):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_MODEL_3D
+        )
+        assert GraphicFrame(graphicFrame, None).model_3d_xml is None
 
     # fixture components ---------------------------------------------
 
@@ -286,13 +356,9 @@ class DescribeSmartArt(object):
         slide_part_.related_part.assert_called_once_with(rId_value)
         assert value == b"<dgm:payload/>"
 
-    @pytest.mark.parametrize(
-        "attr", ("data_xml", "layout_xml", "colors_xml", "quick_style_xml")
-    )
+    @pytest.mark.parametrize("attr", ("data_xml", "layout_xml", "colors_xml", "quick_style_xml"))
     def but_it_returns_None_when_the_dgm_relIds_element_is_missing(self, attr):
-        graphicData = element(
-            "a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_SMART_ART
-        )
+        graphicData = element("a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_SMART_ART)
         assert getattr(SmartArt(graphicData, None), attr) is None
 
     @pytest.mark.parametrize(
@@ -308,8 +374,7 @@ class DescribeSmartArt(object):
         # -- use a different rId attr so the named one is missing --
         other_attr = "r:dm" if rId_attr != "r:dm" else "r:lo"
         graphicData = element(
-            "a:graphicData{uri=%s}/dgm:relIds{%s=rId7}"
-            % (GRAPHIC_DATA_URI_SMART_ART, other_attr)
+            "a:graphicData{uri=%s}/dgm:relIds{%s=rId7}" % (GRAPHIC_DATA_URI_SMART_ART, other_attr)
         )
         assert getattr(SmartArt(graphicData, None), attr) is None
 
@@ -322,3 +387,48 @@ class DescribeSmartArt(object):
         )
 
         assert SmartArt(graphicData, None).data_xml is None
+
+
+class DescribeModel3D(object):
+    """Unit-test suite for `pptx.shapes.model3d.Model3D` object."""
+
+    def it_exposes_the_embedded_relationship_id(self):
+        model3D = element("am3d:model3D{r:embed=rId9,ext=glb}")
+        assert Model3D(model3D, None).embedded_rel_id == "rId9"
+
+    def but_embedded_rel_id_is_None_when_the_attribute_is_absent(self):
+        model3D = element("am3d:model3D{ext=glb}")
+        assert Model3D(model3D, None).embedded_rel_id is None
+
+    @pytest.mark.parametrize("ext_value", ("glb", "obj", "fbx"))
+    def it_exposes_the_model_file_extension(self, ext_value):
+        model3D = element("am3d:model3D{r:embed=rId9,ext=%s}" % ext_value)
+        assert Model3D(model3D, None).ext == ext_value
+
+    def but_ext_is_None_when_the_attribute_is_absent(self):
+        model3D = element("am3d:model3D{r:embed=rId9}")
+        assert Model3D(model3D, None).ext is None
+
+    def it_provides_the_embedded_media_blob(self, request):
+        media_part_ = instance_mock(request, Part, blob=b"glTF-binary-payload")
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.return_value = media_part_
+        property_mock(request, Model3D, "part", return_value=slide_part_)
+        model3D = element("am3d:model3D{r:embed=rId9,ext=glb}")
+
+        blob = Model3D(model3D, None).media_blob
+
+        slide_part_.related_part.assert_called_once_with("rId9")
+        assert blob == b"glTF-binary-payload"
+
+    def but_media_blob_is_None_when_the_embed_rId_is_absent(self):
+        model3D = element("am3d:model3D{ext=glb}")
+        assert Model3D(model3D, None).media_blob is None
+
+    def and_media_blob_is_None_when_the_rId_cannot_be_resolved(self, request):
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.side_effect = KeyError("rId9")
+        property_mock(request, Model3D, "part", return_value=slide_part_)
+        model3D = element("am3d:model3D{r:embed=rId9,ext=glb}")
+
+        assert Model3D(model3D, None).media_blob is None

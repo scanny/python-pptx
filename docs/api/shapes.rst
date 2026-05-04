@@ -244,6 +244,23 @@ structured editing API is not provided at this tier (see
    :undoc-members:
 
 
+|Model3D| objects
+-----------------
+
+The |Model3D| proxy provides read-only access to an embedded 3D model
+(PowerPoint 365 "Insert > 3D Models") carried in a graphic frame. It is
+obtained from :attr:`GraphicFrame.model_3d` when the graphic frame
+contains a 3D model (``am3d:model3D`` under ``a:graphicData`` with the
+Microsoft extension URI ``.../2016/12/model3D``). The MVP is
+detection-and-passthrough: camera, lighting, and scene-graph authoring
+are deferred — see ``docs/dev/analysis/model-3d.rst`` for the roadmap.
+
+.. autoclass:: pptx.shapes.model3d.Model3D()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |GroupShape| objects
 --------------------
 

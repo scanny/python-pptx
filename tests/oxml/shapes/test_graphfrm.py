@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from pptx.oxml.shapes.graphfrm import CT_DgmRelIds, CT_GraphicalObjectFrame
+from pptx.oxml.shapes.graphfrm import CT_DgmRelIds, CT_GraphicalObjectFrame, CT_Model3D
 
 from ...unitutil.cxml import element, xml
 
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+MODEL_3D_URI = "http://schemas.microsoft.com/office/drawing/2016/12/model3D"
 SMART_ART_URI = "http://schemas.openxmlformats.org/drawingml/2006/diagram"
 TABLE_URI = "http://schemas.openxmlformats.org/drawingml/2006/table"
 
@@ -103,6 +104,23 @@ class DescribeCT_GraphicalObjectFrame(object):
     def and_dgm_relIds_is_None_when_the_child_element_is_absent(self):
         graphicData = element("a:graphicData{uri=%s}" % SMART_ART_URI)
         assert graphicData.dgm_relIds is None
+
+    def it_exposes_the_am3d_model3D_child_for_a_3D_model_graphicData(self):
+        graphicData = element(
+            "a:graphicData{uri=%s}/am3d:model3D{r:embed=rId9,ext=glb}" % MODEL_3D_URI
+        )
+        model3D = graphicData.model_3d
+        assert isinstance(model3D, CT_Model3D)
+        assert model3D.embed_rId == "rId9"
+        assert model3D.ext == "glb"
+
+    def but_model_3d_is_None_for_non_model_3d_graphicData(self):
+        graphicData = element("a:graphicData{uri=%s}" % CHART_URI)
+        assert graphicData.model_3d is None
+
+    def and_model_3d_is_None_when_the_child_element_is_absent(self):
+        graphicData = element("a:graphicData{uri=%s}" % MODEL_3D_URI)
+        assert graphicData.model_3d is None
 
     @pytest.fixture
     def new_table_graphicFrame_fixture(self):
