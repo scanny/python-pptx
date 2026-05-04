@@ -16,6 +16,26 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- test: FU-6 pin ``Slide.clear_shapes()`` + ``save()`` GC composition.
+  Wave 15 #96 added bulk shape-removal and wave 12 #956 verified that
+  save-time ``iter_parts()`` walk drops orphan parts — FU-6 adds
+  ``tests/test_fu6_clear_gc.py`` confirming the two features compose:
+  calling ``slide.clear_shapes()`` on a picture-bearing deck and
+  re-saving yields a meaningfully smaller zip (~60 KB recovered for
+  three sample images), with every ``ppt/media/*`` entry gone and the
+  three added image SHAs absent from the reopened package. Also
+  pins placeholder preservation under the default
+  ``preserve_placeholders=True``. A companion scenario documents a
+  real finding surfaced while writing the test:
+  :class:`GraphicFrame` has no ``.delete()`` override, so
+  ``clear_shapes()`` does *not* drop the slide -> chart relationship
+  and the chart + embedded xlsx linger in the saved zip. That is a
+  pre-existing gap in the wave-15 #96 delete chain (contrast wave-12
+  #956 where deleting the whole slide *does* GC the chart because
+  the slide part itself becomes unreachable); FU-6 pins the current
+  behaviour so a future ``GraphicFrame.delete()`` fix will flip the
+  assertion loudly.
+
 - docs: triage 107 audit non-gap items — consolidated disposition page
   under ``docs/community/issue-triage.rst``, plus regression tests in
   ``tests/test_non_gap_triage.py`` that pin ~15 items whose "missing
