@@ -14,6 +14,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #829 template replacement recipe (text + pictures). Issue #829
+  (https://github.com/scanny/python-pptx/issues/829) collected utility
+  functions several reporters had written for a common workflow: open
+  a template deck, replace every ``{{ token }}`` in the text, and swap
+  identified pictures for per-customer artwork. A new ``docs/user/text.rst``
+  section "Template-style replacement: text and pictures" documents the
+  canonical recipe gluing :meth:`.TextFrame.replace_text` and
+  :meth:`.Picture.replace_image` together with a
+  :attr:`.BaseShape.name` lookup and a group-shape descent helper.
+  A new ``tests/test_issue_829_template_replacement_recipe.py``
+  regression suite pins the end-to-end flow — text + picture swap,
+  save + reopen, geometry preservation, group-descent, and
+  ``alt_text``-keyed variant — against the kind of silent regression
+  that would break the recipe. No public-API change.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and

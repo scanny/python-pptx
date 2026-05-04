@@ -1122,6 +1122,119 @@ inside table cells or chart text that ``slide.shapes`` does not walk for
 you.
 
 
+.. _template-style-replacement-text-and-pictures:
+
+Template-style replacement: text and pictures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The same "open template deck, fill in the blanks" idiom that drives the
+Jinja2 loop above is often used on mixed content — a title slide with
+``{{ customer_name }}`` text *and* a logo picture whose bytes should be
+swapped per customer. Both halves are supported directly on the
+existing objects; no custom XML plumbing is required. `Issue #829`_
+collected several utility functions reporters had written around this
+workflow; the canonical forms below supersede those helpers.
+
+The three building blocks are:
+
+* :meth:`.TextFrame.replace_text` / :meth:`._Paragraph.replace_text` —
+  replace every occurrence of a literal string across a shape's runs
+  while preserving the formatting of the run in which each match
+  starts (see :ref:`templating-text` above for the match semantics).
+* :attr:`.BaseShape.name` — the author-assigned shape name
+  (``cNvPr/@name``), set in PowerPoint via the *Selection* pane or
+  *Home → Arrange → Selection Pane*. Stable across edits and a good
+  key for *"swap this specific picture"*.
+* :meth:`.Picture.replace_image` — swap an existing picture's pixel
+  bytes in place, preserving its position, size, rotation, cropping,
+  masking shape, and every identifying attribute.
+
+A small helper that descends into group shapes keeps the recipe
+applicable to real-world decks where placeholders and pictures are
+sometimes nested:
+
+.. code-block:: python
+
+    from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+
+    def iter_shapes(shapes):
+        """Yield every shape under *shapes*, descending into groups."""
+        for shape in shapes:
+            if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+                yield from iter_shapes(shape.shapes)
+            else:
+                yield shape
+
+Then a single pass over the deck applies a token map to every text
+frame and a picture map (keyed by shape name) to every picture:
+
+.. code-block:: python
+
+    from pptx import Presentation
+
+
+    TOKENS = {
+        "{{ customer_name }}": "Acme Corp",
+        "{{ order_total }}":   "$12,450.00",
+        "{{ close_date }}":    "2026-03-14",
+    }
+
+    PICTURES = {
+        # shape name (set in PowerPoint's Selection pane) -> new image path
+        "CustomerLogo":  "assets/acme-logo.png",
+        "AccountPhoto":  "assets/jane-doe.jpg",
+    }
+
+    prs = Presentation("template.pptx")
+
+    for slide in prs.slides:
+        for shape in iter_shapes(slide.shapes):
+            # -- text tokens -------------------------------------------
+            if shape.has_text_frame:
+                for find, replace in TOKENS.items():
+                    shape.text_frame.replace_text(find, replace)
+            # -- picture swap by shape name ----------------------------
+            if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                new_image = PICTURES.get(shape.name)
+                if new_image is not None:
+                    shape.replace_image(new_image)
+
+    prs.save("rendered.pptx")
+
+Keying pictures by :attr:`.BaseShape.name` is usually the right
+choice — the name is what the author sees in PowerPoint's Selection
+pane and is easy to set deliberately on template pictures. When the
+deck came from somewhere you do not control and the names are not
+reliable, :attr:`.BaseShape.alt_text` (the picture's ``cNvPr/@descr``)
+is an equally stable alternative: set the alt text in PowerPoint's
+*Picture Format → Alt Text* dialog and key the picture map off
+``shape.alt_text`` instead of ``shape.name``.
+
+A few behaviours worth noting:
+
+* :meth:`.TextFrame.replace_text` matches across runs within a
+  paragraph — a token PowerPoint has split across multiple ``a:r``
+  elements is still replaced, and the run containing the start of the
+  match keeps its formatting (see
+  ``tests/test_issue_285_replace_text_preserve_format.py``).
+* :meth:`.Picture.replace_image` preserves every shape-level attribute
+  of the picture: position, size, rotation, crop values, the masking
+  shape (``spPr/custGeom``), outline, and the identifying
+  ``cNvPr/@name`` / ``cNvPr/@descr`` values the recipe keys off. A
+  freshly added ``add_picture`` call would reset those.
+* Tokens inside table cells are reached by iterating
+  :meth:`.Table.iter_cells` — ``slide.shapes`` does not descend into
+  table cells. Add a nested loop when the template includes tables.
+* Tokens inside chart titles / axis titles / data labels live on a
+  different object graph; reach each ``text_frame`` through the
+  relevant chart accessor (e.g. ``chart.chart_title.text_frame``) and
+  call ``replace_text`` on it — ``slide.shapes`` does not walk chart
+  text.
+
+.. _`issue #829`: https://github.com/scanny/python-pptx/issues/829
+
+
 Third-party templating libraries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
