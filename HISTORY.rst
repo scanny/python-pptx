@@ -16,6 +16,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- test: FU-3 investigated — pinned "no duplicate partname on save-reopen-save"
+  invariant. The FU-3 follow-up from the Wave 12 #956 investigation reported
+  a ``UserWarning: Duplicate name: 'ppt/slideLayouts/slideLayout7.xml'`` on
+  save-after-reopen of a default deck. A directed retry on current master
+  (default deck, save-reopen-save; also all-layouts-used, chart+notes,
+  triple save-reopen cycle) cannot reproduce the warning — the saved zip
+  contains exactly one entry per ``slideLayout{1..11}.xml`` across every
+  cycle. ``tests/test_fu3_duplicate_layout_partname.py`` pins the invariant
+  as a regression guard so any future cloner/reachability-walk change that
+  re-introduces a duplicate partname emission is caught immediately.
+
 - docs: triage 107 audit non-gap items — consolidated disposition page
   under ``docs/community/issue-triage.rst``, plus regression tests in
   ``tests/test_non_gap_triage.py`` that pin ~15 items whose "missing

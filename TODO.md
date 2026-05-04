@@ -23,13 +23,6 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
   charts and require explicit side-selection. Needs user-facing
   decision before any code change.
 
-- **FU-3: Duplicate `slideLayout7.xml` on save-after-reopen (from W12
-  #956).** After opening a default deck and re-saving, the zip emits
-  `UserWarning: Duplicate name: 'ppt/slideLayouts/slideLayout7.xml'`.
-  Two distinct layout parts end up with the same partname when
-  `iter_parts()` walks the reachable graph. Investigate whether the
-  cloner or the reachability walk is the source.
-
 - **FU-4: `_rel_ref_count` doesn't count `@r:embed` attribute references
   (flagged in early waves).** Causes shared-image refcount
   underreporting. When two shapes share the same image rel, the ref
@@ -45,6 +38,20 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 
 ## Done
+
+- **FU-3 (investigated, not reproducible, pinned as invariant).** Could
+  not reproduce the W12 #956 report of ``UserWarning: Duplicate name:
+  'ppt/slideLayouts/slideLayout7.xml'`` on save-after-reopen of a
+  default deck. Tried default save-reopen-save, triple cycle, every
+  built-in layout used, and chart + notes round-trip — none emit a
+  duplicate-name warning. The saved zip contains exactly one entry per
+  ``slideLayout{1..11}.xml`` on every cycle. The original report likely
+  referred to a deck manipulated by in-progress Wave 12 #956 clone /
+  delete code paths that did not land on master. Pinned the current
+  correct behavior in ``tests/test_fu3_duplicate_layout_partname.py``
+  (8 tests covering the warning-free invariant and the zip-entry
+  uniqueness invariant) as a regression guard. Branch
+  ``feat/fu3-verify-no-dupe-warning``.
 
 - **FU-5 (reviewed and dropped).** The scratch branch
   `scratch/wave-15-orphan-parts-residue` carried two WIP commits
