@@ -1402,29 +1402,37 @@ class _FontColorFormat(_ColorFormat):
         # -- overridden below to promote the fill before touching it.
         super().__init__(font._rPr, _Color(None))  # pyright: ignore[reportPrivateUsage]
 
-    def _promote(self) -> None:
-        """Ensure the run's fill is `a:solidFill` and re-sync state.
+    def _promote(self) -> "_ColorFormat":
+        """Promote the run's fill to `a:solidFill` and return the live |ColorFormat|.
 
-        Creates the `a:solidFill` child on first call and replaces the
-        inner color + fill-parent bindings so subsequent reads/writes
-        behave like a regular |ColorFormat|.
+        Ensures an `a:solidFill` child is present on the run's `<a:rPr>`, then
+        drops the cached `_FontColorFormat` on `font.color` so the next
+        `font.color` access resolves through `Font.color` -> `self.fill.fore_color`
+        -- i.e. to the plain |ColorFormat| proxy returned here. The caller
+        forwards the actual `.rgb` / `.theme_color` assignment to the returned
+        proxy so both the base-class setter (which caches on that proxy) and
+        any subsequent reads via `font.color` observe the same live state.
+
+        Fixes FU-1 (follow-up to #1111): previously `_promote` populated its
+        own `_xFill`/`_color` slots from a freshly-created proxy and then
+        stored that proxy in `font.__dict__["color"]`; the base-class setter
+        ran against `self` and mutated `self._color` to `_SRgbColor` without
+        updating the cached-on-font proxy, leaving `font.color.rgb` reading
+        a stale `_NoneColor` and raising `AttributeError`.
         """
         font = self._font
         if font.fill.type != MSO_FILL.SOLID:
             font.fill.solid()
-        fresh = font.fill.fore_color
-        # -- replace the cached `color` lazyproperty on `font` so later
-        # -- `font.color` accesses return the newly-created solid-fill form.
-        font.__dict__["color"] = fresh
-        # -- `_xFill` / `_color` are private slots on the base ColorFormat;
-        # -- the base class is untyped so these assignments are "Unknown"
-        # -- from pyright's perspective.
-        self._xFill = fresh._xFill  # pyright: ignore[reportUnknownMemberType]
-        self._color = fresh._color  # pyright: ignore[reportUnknownMemberType]
+        # -- invalidate the cached `_FontColorFormat` on `font.color` so the
+        # -- next `font.color` access re-resolves via `Font.color`, which
+        # -- now sees `fill.type == SOLID` and returns `self.fill.fore_color`.
+        font.__dict__.pop("color", None)
+        return font.fill.fore_color
 
-    # -- Setter-only overrides: promote the fill, then delegate to the base
-    # -- class's own setter via `fset`. The property getter is re-declared
-    # -- so pyright-strict accepts the override-setter pairing.
+    # -- Setter-only overrides: promote the fill to `a:solidFill`, then
+    # -- forward the assignment to the live |ColorFormat| proxy returned by
+    # -- `_promote()`. The property getter is re-declared so pyright-strict
+    # -- accepts the override-setter pairing.
 
     @property
     def rgb(self) -> "RGBColor | None":
@@ -1434,8 +1442,7 @@ class _FontColorFormat(_ColorFormat):
 
     @rgb.setter
     def rgb(self, rgb: "RGBColor") -> None:
-        self._promote()
-        _ColorFormat.rgb.fset(self, rgb)  # pyright: ignore[reportOptionalCall]
+        self._promote().rgb = rgb
 
     @property
     def theme_color(self) -> "MSO_THEME_COLOR":
@@ -1445,10 +1452,7 @@ class _FontColorFormat(_ColorFormat):
 
     @theme_color.setter
     def theme_color(self, mso_theme_color_idx: "MSO_THEME_COLOR") -> None:
-        self._promote()
-        _ColorFormat.theme_color.fset(
-            self, mso_theme_color_idx
-        )  # pyright: ignore[reportOptionalCall]
+        self._promote().theme_color = mso_theme_color_idx
 
 
 def _apply_font_kwargs(

@@ -47,6 +47,24 @@ Unreleased
   behaviour so a future ``GraphicFrame.delete()`` fix will flip the
   assertion loudly.
 
+- fix: FU-1 ``Font.color`` cache invalidation after ``_FontColorFormat``
+  promotion. Follow-up to the issue #1111 fix: the deferred-promotion
+  ``_FontColorFormat`` proxy is cached on ``font.__dict__["color"]`` by
+  ``lazyproperty``. The first ``font.color.rgb = RGBColor(...)`` (or
+  ``.theme_color = ...``) assignment correctly created the
+  ``<a:solidFill>`` and updated ``self._color`` to ``_SRgbColor`` on the
+  *setter's* proxy, but left a stale ``_FontColorFormat`` (whose inner
+  ``_color`` was still the pre-promotion ``_NoneColor``) in the cache
+  slot. Subsequent reads of ``font.color.rgb`` on a held ``Font``
+  reference therefore raised ``AttributeError: no .rgb property on color
+  type '_NoneColor'``. ``_FontColorFormat._promote()`` now drops the
+  cached ``color`` entry on ``font.__dict__`` and returns the live
+  ``ColorFormat`` (``font.fill.fore_color``) so the setter applies to the
+  proxy that future reads will observe. New regression suite
+  ``tests/test_fu1_font_color_cache.py`` (7 scenarios) pins the
+  held-reference, chained-access, ``color.type`` read, theme-color,
+  double-write, round-trip save-and-reopen, and cache-consistency paths.
+
 - docs: triage 107 audit non-gap items — consolidated disposition page
   under ``docs/community/issue-triage.rst``, plus regression tests in
   ``tests/test_non_gap_triage.py`` that pin ~15 items whose "missing
