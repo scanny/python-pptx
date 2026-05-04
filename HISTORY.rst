@@ -64,6 +64,25 @@ Unreleased
   :meth:`.TextFrame.replace_text` for the ``{{ token }}`` substitution
   variant. No public-API change.
 
+- verify: #1101 comprehensive chart-features regression covering shipped
+  work from #141/#299/#338/#450/#470/#544/#607/#617/#638/#764. Issue
+  #1101 (https://github.com/scanny/python-pptx/issues/1101) was a
+  meta-issue cataloguing chart features the reporter could not reach
+  through python-pptx — combo / secondary-axis authoring, trendlines,
+  error bars, per-point formatting, and axis-title text. Each of those
+  has since shipped on this fork under the referenced issues. The new
+  ``tests/test_issue_1101_chart_features_verify.py`` suite is an
+  umbrella regression pin that exercises every one of those features in
+  a single end-to-end flow (author → save → reopen → assert
+  round-trip): a column + line combo via :meth:`Chart.add_plot`, a
+  linear trendline with equation / R-squared display, a fixed-value
+  error-bars block, a per-point fill override plus a per-point data
+  label ``number_format``, and chart / category / value / secondary-value
+  axis titles through the single-call :meth:`Chart.set_title` /
+  :meth:`Chart.set_axis_title` convenience wrappers. A silent regression
+  on any one of those feature paths would now be caught by the umbrella
+  alongside the feature-specific verify suites. No public-API change.
+
 - docs: #829 template replacement recipe (text + pictures). Issue #829
   (https://github.com/scanny/python-pptx/issues/829) collected utility
   functions several reporters had written for a common workflow: open
