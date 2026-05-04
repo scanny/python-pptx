@@ -32,6 +32,43 @@ property of |GroupShape|.
    :exclude-members: clone_placeholder, ph_basename
 
 
+|LayoutShapes| objects
+----------------------
+
+The |LayoutShapes| object is encountered as the :attr:`SlideLayout.shapes`
+property of |SlideLayout|. In addition to the read access provided by its
+base class, it shares the shape-authoring methods of |SlideShapes| —
+:meth:`~.SlideShapes.add_shape`, :meth:`~.SlideShapes.add_picture`,
+:meth:`~.SlideShapes.add_textbox`, :meth:`~.SlideShapes.add_connector`,
+:meth:`~.SlideShapes.add_group_shape`, and
+:meth:`~.SlideShapes.build_freeform`. Shapes added to the layout appear on
+every slide that inherits from it, which is useful for baking branding
+elements (logos, background images, fixed text like a confidentiality
+notice) into a layout without having to edit each slide individually.
+
+.. autoclass:: pptx.shapes.shapetree.LayoutShapes()
+   :members:
+   :inherited-members:
+   :exclude-members: clone_placeholder, clone_layout_placeholders,
+                     ph_basename
+
+
+|MasterShapes| objects
+----------------------
+
+The |MasterShapes| object is encountered as the :attr:`SlideMaster.shapes`
+property of |SlideMaster|. Like |LayoutShapes| it shares the shape-authoring
+methods of |SlideShapes|, so non-placeholder shapes appended to the master
+appear on every slide in the presentation (subject to
+:attr:`Slide.show_master_shapes`).
+
+.. autoclass:: pptx.shapes.shapetree.MasterShapes()
+   :members:
+   :inherited-members:
+   :exclude-members: clone_placeholder, clone_layout_placeholders,
+                     ph_basename
+
+
 Shape objects in general
 ------------------------
 

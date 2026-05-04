@@ -352,6 +352,43 @@ use :meth:`.SlideMaster.add_layout_from` to clone a layout from a
 *different* master into this one.
 
 
+Adding shared shapes to a layout or master
+------------------------------------------
+
+|SlideLayout| and |SlideMaster| both expose a ``shapes`` collection that
+supports the same shape-authoring methods as |SlideShapes| —
+:meth:`~.SlideShapes.add_shape`, :meth:`~.SlideShapes.add_picture`,
+:meth:`~.SlideShapes.add_textbox`, :meth:`~.SlideShapes.add_connector`,
+:meth:`~.SlideShapes.add_group_shape`, and
+:meth:`~.SlideShapes.build_freeform`. Shapes appended to a layout or
+master appear on every slide inheriting from it, which makes them the
+right home for branding elements (a client logo, a confidentiality
+banner, a running footer) that should show up on every slide without
+having to edit each slide individually.
+
+Authoring a shared text box on a layout (issue #1044)::
+
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+
+    prs = Presentation()
+    layout = prs.slide_layouts[0]
+
+    tb = layout.shapes.add_textbox(Inches(0.3), Inches(6.7), Inches(9), Inches(0.3))
+    tf = tb.text_frame
+    tf.text = "CONFIDENTIAL — Draft"
+    tf.paragraphs[0].runs[0].font.size = Pt(10)
+
+    slide = prs.slides.add_slide(layout)
+    prs.save("deck.pptx")  # every slide built from this layout sees the banner
+
+The same idiom works on ``prs.slide_master.shapes`` when the shared
+content should apply to *every* layout (and therefore every slide)
+rather than just one layout. Individual slides may opt out of
+master-level shared shapes by assigning
+``slide.show_master_shapes = False``.
+
+
 Header, footer, slide number, and date placeholders
 ---------------------------------------------------
 

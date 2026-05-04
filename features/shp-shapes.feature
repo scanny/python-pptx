@@ -87,6 +87,14 @@ Feature: Access a shape on a slide
       And iterating shapes produces 3 objects that subclass BaseShape
 
 
+  # -- issue #1044: shared text owned by the layout --
+  Scenario: LayoutShapes.add_textbox()
+    Given a LayoutShapes object of length 3 as shapes
+     When I assign shapes.add_textbox() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
+
+
   Scenario: MasterPlaceholders is a sequence
     Given a MasterPlaceholders object of length 2 as shapes
      Then len(shapes) == 2
@@ -100,6 +108,14 @@ Feature: Access a shape on a slide
      Then len(shapes) == 2
       And shapes[1] is a Picture object
       And iterating shapes produces 2 objects that subclass BaseShape
+
+
+  # -- issue #575: shared text owned by the master --
+  Scenario: MasterShapes.add_textbox()
+    Given a MasterShapes object of length 2 as shapes
+     When I assign shapes.add_textbox() to shape
+     Then shape is a Shape object
+      And shapes[-1] == shape
 
 
   Scenario: SlideShapes is a sequence

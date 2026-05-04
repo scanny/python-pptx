@@ -407,7 +407,7 @@ prs.save("out.pptx")
 - `SlideLayout.slide_layout_type` — `ST_SlideLayoutType` token (`"title"`, `"obj"`, `"blank"`, `"cust"`, ...); defaults to `"cust"` when the attribute is absent. `[Added in 1.0.2.dev0]`
 - `SlideLayout.used_by_slides` / `SlideLayout.slide_master` / `SlideLayout.header_footer`.
 - `SlideLayout.iter_cloneable_placeholders()` — Placeholders new slides inherit.
-- `MasterShapes` / `LayoutShapes` — Shape collections; inherit `add_shape`, `add_picture`, `add_textbox`, `add_connector`, `add_group_shape`, `build_freeform`. `[Added in 1.0.2.dev0]`
+- `MasterShapes` / `LayoutShapes` — Shape collections; inherit `add_shape`, `add_picture`, `add_textbox`, `add_connector`, `add_group_shape`, `build_freeform`. Authoring a textbox on a layout (issue #1044) or master lets shared text — a confidentiality banner, a running footer, a branded sub-title — appear on every slide that inherits from it, without having to edit each slide individually. `[Added in 1.0.2.dev0]`
 
 ---
 

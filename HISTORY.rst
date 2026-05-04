@@ -145,6 +145,27 @@ Unreleased
   stacked, 100% stacked). No code change — the behaviour is the
   existing trendline feature exercised through a column-chart shape.
 
+- verify: #1044 ``SlideLayout.shapes.add_textbox(...)`` supported.
+  Issue #1044 (https://github.com/scanny/python-pptx/issues/1044) asked
+  whether a text box can be appended to a slide layout so every slide
+  inheriting from that layout displays the shared text. The capability
+  was delivered by the fork-era resolution of #575, which promoted
+  :class:`~pptx.shapes.shapetree.LayoutShapes` (and
+  :class:`~pptx.shapes.shapetree.MasterShapes`) to subclass
+  ``_BaseGroupShapes`` and therefore inherit the full shape-authoring
+  surface — ``add_shape``, ``add_picture``, ``add_textbox``,
+  ``add_connector``, ``add_group_shape`` and ``build_freeform``.
+  ``tests/test_issue_1044_layout_textbox.py`` pins the contract from the
+  reporter's perspective (return type, text round-trip through save +
+  reopen, shape written into ``ppt/slideLayouts/slideLayoutN.xml``
+  rather than a slide part, and layout-to-slide inheritance behaviour)
+  so a future refactor cannot silently regress. Behave scenarios
+  ``LayoutShapes.add_textbox()`` and ``MasterShapes.add_textbox()`` were
+  added alongside the existing ``SlideShapes.add_textbox()`` /
+  ``GroupShapes.add_textbox()`` scenarios, and the docs/api shape page
+  gained dedicated autoclass entries for both ``LayoutShapes`` and
+  ``MasterShapes``.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
