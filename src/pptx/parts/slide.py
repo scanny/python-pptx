@@ -61,6 +61,21 @@ class BaseSlidePart(XmlPart):
         rId = self.relate_to(image_part, RT.IMAGE)
         return image_part, rId
 
+    def get_or_add_svg_part(self, svg_file: str | IO[bytes]):
+        """Return `(svg_part, rId)` pair corresponding to `svg_file`.
+
+        The returned |ImagePart| object contains the SVG bytes read from
+        `svg_file` and carries the ``image/svg+xml`` content-type; it is
+        related to this slide with the key `rId` under the standard
+        ``RT.IMAGE`` relationship type. If either the SVG part or
+        relationship already exists, they are reused. See issue #358.
+
+        .. versionadded:: 2026.05.0
+        """
+        svg_part = self._package.get_or_add_svg_part(svg_file)
+        rId = self.relate_to(svg_part, RT.IMAGE)
+        return svg_part, rId
+
     @property
     def name(self) -> str:
         """Internal name of this slide."""

@@ -61,6 +61,20 @@ def when_I_assign_value_to_picture_transparency(context, value):
     context.picture.transparency = float(value)
 
 
+@when("I add an SVG picture via shapes.add_picture_svg()")
+def when_I_add_an_svg_picture_via_add_picture_svg(context):
+    svg_bytes = (
+        b'<?xml version="1.0" encoding="UTF-8"?>\n'
+        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">\n'
+        b'  <circle cx="50" cy="50" r="40" fill="#4B8BBE"/>\n'
+        b"</svg>\n"
+    )
+    shapes = context.slide.shapes
+    context.shape = shapes.add_picture_svg(
+        io.BytesIO(svg_bytes), Inches(1), Inches(1), Inches(2), Inches(2)
+    )
+
+
 # then ====================================================
 
 
@@ -105,3 +119,28 @@ def then_picture_transparency_eq(context, expected):
     expected_value = float(expected)
     actual = context.picture.transparency
     assert abs(actual - expected_value) < 1e-6, "picture.transparency == %r" % actual
+
+
+@then("an SVG media part appears in the pptx file")
+def then_an_svg_media_part_appears(context):
+    pkg = Package.open(saved_pptx_path)
+    partnames = [str(p.partname) for p in pkg.iter_parts()]
+    svg_parts = [p for p in partnames if p.endswith(".svg")]
+    assert svg_parts, "no SVG part found; got %r" % partnames
+
+
+@then("the blipFill a:blip carries an asvg:svgBlip extension")
+def then_the_blipfill_blip_carries_svgBlip_extension(context):
+    prs = Presentation(saved_pptx_path)
+    slide = prs.slides[0]
+    pic = next(sp for sp in slide.shapes if sp.__class__.__name__ == "Picture")
+    blips = pic._element.xpath(  # noqa: SLF001
+        "./p:blipFill/a:blip"
+    )
+    assert blips, "no a:blip element found"
+    svgBlips = blips[0].xpath(".//asvg:svgBlip")
+    assert svgBlips, "asvg:svgBlip extension missing from a:blip"
+    # -- the svgBlip carries r:embed pointing at the SVG part --
+    r_ns = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    rId = svgBlips[0].get("{%s}embed" % r_ns)
+    assert rId, "asvg:svgBlip missing r:embed"

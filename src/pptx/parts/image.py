@@ -51,6 +51,28 @@ class ImagePart(Part):
             image.filename,
         )
 
+    @classmethod
+    def new_svg(cls, package: Package, blob: bytes, filename: str | None = None) -> ImagePart:
+        """Return new |ImagePart| holding the raw SVG bytes in `blob`.
+
+        PowerPoint stores SVG alongside a rasterized PNG fallback referenced
+        via the ``asvg:svgBlip`` extension; the SVG bytes live in a plain
+        ``/ppt/media/imageN.svg`` part with content-type ``image/svg+xml``.
+        This factory skips the PIL-backed image-format detection used by
+        :meth:`new` because Pillow cannot open SVG content. See issue #358.
+
+        .. versionadded:: 2026.05.0
+        """
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        return cls(
+            package.next_image_partname("svg"),
+            CT.SVG,
+            package,
+            blob,
+            filename,
+        )
+
     @property
     def desc(self) -> str:
         """The filename associated with this image.

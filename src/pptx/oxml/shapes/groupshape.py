@@ -106,6 +106,28 @@ class CT_GroupShape(BaseShapeElement):
         self.insert_element_before(pic, "p:extLst")
         return pic
 
+    def add_pic_svg(
+        self,
+        id_: int,
+        name: str,
+        desc: str,
+        png_rId: str,
+        svg_rId: str,
+        x: int,
+        y: int,
+        cx: int,
+        cy: int,
+    ) -> CT_Picture:
+        """Append a `p:pic` shape with an editable SVG / PNG-fallback pair.
+
+        The emitted ``a:blip`` references a rasterized PNG via ``r:embed``
+        and carries a Microsoft ``asvg:svgBlip`` extension pointing at the
+        editable SVG part. See issue #358.
+        """
+        pic = CT_Picture.new_pic_svg(id_, name, desc, png_rId, svg_rId, x, y, cx, cy)
+        self.insert_element_before(pic, "p:extLst")
+        return pic
+
     def add_placeholder(
         self, id_: int, name: str, ph_type: PP_PLACEHOLDER, orient: str, sz: str, idx: int
     ) -> CT_Shape:

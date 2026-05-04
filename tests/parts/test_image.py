@@ -48,6 +48,21 @@ class DescribeImagePart(object):
         )
         assert isinstance(image_part, ImagePart)
 
+    def it_can_construct_an_svg_image_part(self, request):
+        # -- #358: new_svg bypasses the PIL-based Image wrapper that cannot open SVG --
+        package_ = instance_mock(request, Package)
+        _init_ = initializer_mock(request, ImagePart)
+        partname_ = package_.next_image_partname.return_value
+        blob = b'<svg xmlns="http://www.w3.org/2000/svg"/>'
+
+        image_part = ImagePart.new_svg(package_, blob, "logo.svg")
+
+        package_.next_image_partname.assert_called_once_with("svg")
+        _init_.assert_called_once_with(
+            image_part, partname_, "image/svg+xml", package_, blob, "logo.svg"
+        )
+        assert isinstance(image_part, ImagePart)
+
     def it_provides_access_to_its_image(self, request, image_):
         Image_ = class_mock(request, "pptx.parts.image.Image")
         Image_.return_value = image_

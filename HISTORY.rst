@@ -278,6 +278,24 @@ Unreleased
   ``p:pic/p:blipFill/a:blip/a:alphaModFix@amt``; writing ``0`` removes
   the effect element.
 
+- feat: #358 add :meth:`.SlideShapes.add_picture_svg` for editable SVG
+  pictures. PowerPoint 365 stores each inserted SVG as a *pair* — the
+  original SVG (editable as a live vector) plus a rasterized PNG the
+  older render path falls back to — wired up via Microsoft's
+  ``asvg:svgBlip`` extension on the ``a:blip`` element
+  (``uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}"``). The new method
+  embeds both parts, registers the ``asvg:`` namespace and the
+  ``image/svg+xml`` content type, and returns a |Picture| proxy. An
+  optional ``png_fallback`` argument supplies the raster companion
+  (str path or file-like); when omitted a tiny built-in 1×1
+  transparent PNG is inserted so authoring workflows that target only
+  PowerPoint 365+ don't need an SVG rasterizer. The pre-existing
+  :class:`~pptx.exc.UnsupportedImageTypeError` raised by
+  :meth:`.SlideShapes.add_picture` on SVG input is retained — that
+  path still requires a pre-rasterized PNG because it offers no slot
+  for the SVG companion. See the new
+  "Editable SVG pictures" section of the user guide.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the

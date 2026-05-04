@@ -104,6 +104,7 @@ class CONTENT_TYPE:
     )
     PML_VIEW_PROPS = "application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml"
     PNG = "image/png"
+    SVG = "image/svg+xml"
     SML_CALC_CHAIN = "application/vnd.openxmlformats-officedocument.spreadsheetml.calcChain+xml"
     SML_CHARTSHEET = "application/vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml"
     SML_COMMENTS = "application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"

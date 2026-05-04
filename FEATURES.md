@@ -716,6 +716,7 @@ prs.save("out.pptx")
 
 - `SlideShapes.add_picture(image_file, left, top, width=None, height=None)` — Inline picture (PNG, JPEG, GIF, BMP, TIFF, WMF, EMF, SVG supported; `.mpo` support is `[Added in 2026.05.0]`).
 - `SlideShapes.add_picture_link(url, left, top, width=None, height=None)` — Linked (external URL) picture. `[Added in 2026.05.0]`
+- `SlideShapes.add_picture_svg(svg_file, left, top, width=None, height=None, png_fallback=None)` — Inline *editable* SVG picture. Embeds the SVG alongside a PNG raster fallback wired up via Microsoft's `asvg:svgBlip` extension so PowerPoint 365+ opens the vector for editing while older clients fall back to the PNG. When `png_fallback` is `None` a built-in 1×1 transparent placeholder PNG is inserted. `[Added in 2026.05.0]`
 - `Picture.image` — `Image` wrapper (`.blob`, `.content_type`, `.ext`, `.filename`, `.size`). EMF content-type correction is `[Added in 2026.05.0]`.
 - `Picture.replace_image(image_file)` — Swap the picture's bytes while preserving position, size, cropping, masking shape, outline, alt-text, and name. `[Added in 2026.05.0]`
 - `Picture.auto_shape_type` — Cropping / masking shape (e.g. `MSO_SHAPE.OVAL`). `[Added in 2026.05.0]`
