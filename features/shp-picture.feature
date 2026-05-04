@@ -63,6 +63,25 @@ Feature: Picture properties and methods
       | cropping    | 0.0   | bottom |
 
 
+  Scenario: Picture.transparency getter default
+    Given a Picture object as picture
+     Then picture.transparency == 0.0
+
+
+  Scenario Outline: Picture.transparency setter
+    Given a Picture object as picture
+     When I assign <value> to picture.transparency
+     Then picture.transparency == <expected>
+
+    Examples: transparency round-trip cases
+      | value | expected |
+      | 0.0   | 0.0      |
+      | 25.0  | 25.0     |
+      | 50    | 50.0     |
+      | 100.0 | 100.0    |
+      | 0     | 0.0      |
+
+
   Scenario: Picture.image
     Given a Picture object as picture
      Then picture.image is an Image object

@@ -706,6 +706,9 @@ pic.crop_right = 0.05
 # mask (crop) into an oval
 pic.auto_shape_type = MSO_SHAPE.OVAL
 
+# 50% picture transparency
+pic.transparency = 50.0
+
 prs.save("out.pptx")
 ```
 
@@ -715,6 +718,7 @@ prs.save("out.pptx")
 - `Picture.replace_image(image_file)` — Swap the picture's bytes while preserving position, size, cropping, masking shape, outline, alt-text, and name. `[Added in 2026.05.0]`
 - `Picture.auto_shape_type` — Cropping / masking shape (e.g. `MSO_SHAPE.OVAL`). `[Added in 2026.05.0]`
 - `Picture.crop_left` / `.crop_top` / `.crop_right` / `.crop_bottom` — Fractional crop edges.
+- `Picture.transparency` — Read/write picture transparency as a `float` percentage in `[0.0, 100.0]`; `0` is fully opaque (the default) and `100` is fully transparent. Writes `p:blipFill/a:blip/a:alphaModFix@amt`; assigning `0` removes the effect element. `[Added in 2026.05.0]`
 - `Picture.line` — Outline `LineFormat`.
 - `Picture.click_action` — `ActionSetting` (URL hyperlink, slide-jump, ScreenTip, play-sound). Verified end-to-end for pictures by issue #576.
 - `Picture.hover_action` — `ActionSetting` bound to `a:hlinkMouseOver` for picture mouse-over behaviours. Parallel to `click_action`.

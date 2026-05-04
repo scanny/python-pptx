@@ -606,6 +606,20 @@ class ST_PositiveFixedPercentage(ST_Percentage):
         cls.validate_float_in_range(value, 0.0, 1.0)
 
 
+class ST_PositivePercentage(ST_Percentage):
+    """Non-negative percentage value like 42000 or '42.0%'.
+
+    Either an integer literal representing 1000ths of a percent
+    (e.g. "42000"), or a floating point literal with a '%' suffix
+    (e.g. "42.0%"). Value must be >= 0%; there is no upper bound in the
+    XSD. The source value is a float >= 0.0.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_float_in_range(value, 0.0, 21474.83647)
+
+
 class ST_RelationshipId(XsdString):
     pass
 

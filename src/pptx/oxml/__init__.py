@@ -362,6 +362,7 @@ register_element_cls("a:sysClr", CT_SystemColor)
 
 
 from pptx.oxml.dml.fill import (  # noqa: E402
+    CT_AlphaModulateFixedEffect,
     CT_Blip,
     CT_BlipFillProperties,
     CT_GradientFillProperties,
@@ -375,6 +376,7 @@ from pptx.oxml.dml.fill import (  # noqa: E402
     CT_SolidColorFillProperties,
 )
 
+register_element_cls("a:alphaModFix", CT_AlphaModulateFixedEffect)
 register_element_cls("a:blip", CT_Blip)
 register_element_cls("a:blipFill", CT_BlipFillProperties)
 register_element_cls("a:gradFill", CT_GradientFillProperties)

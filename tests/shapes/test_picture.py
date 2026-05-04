@@ -226,16 +226,16 @@ class DescribeMovie(object):
         ("cond_cxml", "expected_condition", "expected_start_time"),
         [
             # -- default PowerPoint encoding: onClick, no explicit delay --
-            ('p:cond{delay=indefinite}', "onClick", None),
+            ("p:cond{delay=indefinite}", "onClick", None),
             # -- explicit evt="onClick" with numeric delay --
-            ('p:cond{evt=onClick,delay=3000}', "onClick", 3.0),
+            ("p:cond{evt=onClick,delay=3000}", "onClick", 3.0),
             # -- no evt, delay=0 is PowerPoint "with previous" --
-            ('p:cond{delay=0}', "withPrevious", 0.0),
+            ("p:cond{delay=0}", "withPrevious", 0.0),
             # -- no evt, numeric delay is with-previous + offset --
-            ('p:cond{delay=1500}', "withPrevious", 1.5),
+            ("p:cond{delay=1500}", "withPrevious", 1.5),
             # -- evt=onEnd is "after previous" --
-            ('p:cond{evt=onEnd,delay=0}', "afterPrevious", 0.0),
-            ('p:cond{evt=onEnd,delay=2500}', "afterPrevious", 2.5),
+            ("p:cond{evt=onEnd,delay=0}", "afterPrevious", 0.0),
+            ("p:cond{evt=onEnd,delay=2500}", "afterPrevious", 2.5),
         ],
     )
     def it_reads_its_start_condition_and_start_time(
@@ -352,7 +352,7 @@ class DescribeMovie(object):
             '      <a:videoFile r:link="rId_old_v"/>'
             "      <p:extLst>"
             '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
-            '          <p14:media'
+            "          <p14:media"
             '            xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'
             '            r:embed="rId_old_m"/>'
             "        </p:ext>"
@@ -393,7 +393,7 @@ class DescribeMovie(object):
             '      <a:audioFile r:link="rId_a"/>'
             "      <p:extLst>"
             '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
-            '          <p14:media'
+            "          <p14:media"
             '            xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'
             '            r:embed="rId_m"/>'
             "        </p:ext>"
@@ -481,9 +481,7 @@ class DescribeMovie(object):
         cond = sld.xpath(".//p:cond")[0]
         assert cond.delay == 1000
 
-    def it_can_delete_itself_and_clean_up_its_rels_and_timing(
-        self, part_prop_, slide_part_
-    ):
+    def it_can_delete_itself_and_clean_up_its_rels_and_timing(self, part_prop_, slide_part_):
         # -- issue #974: removing a movie used to corrupt the file because the
         # -- p:video timing entry and the three media-related rels were left
         # -- dangling. Verify the override drops all three rels and removes
@@ -547,9 +545,7 @@ class DescribeMovie(object):
         dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
         assert dropped == {"rId2", "rId3", "rId4"}
 
-    def it_can_delete_an_audio_movie_and_drop_its_link_rel(
-        self, part_prop_, slide_part_
-    ):
+    def it_can_delete_an_audio_movie_and_drop_its_link_rel(self, part_prop_, slide_part_):
         # -- audio clips use <a:audioFile> instead of <a:videoFile>; both should be
         # -- picked up by the rId-collection xpath. --
         part_prop_.return_value = slide_part_
@@ -582,9 +578,7 @@ class DescribeMovie(object):
         dropped = {c.args[0] for c in slide_part_.drop_rel.call_args_list}
         assert dropped == {"rId11"}
 
-    def it_deletes_cleanly_when_no_timing_node_is_present(
-        self, part_prop_, slide_part_
-    ):
+    def it_deletes_cleanly_when_no_timing_node_is_present(self, part_prop_, slide_part_):
         # -- some pre-existing movies (loaded from files authored elsewhere) may
         # -- have no p:video timing entry; delete() must tolerate that. --
         part_prop_.return_value = slide_part_
@@ -635,7 +629,7 @@ class DescribeMovie(object):
             '      <a:videoFile r:link="rId_v"/>'
             "      <p:extLst>"
             '        <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
-            '          <p14:media'
+            "          <p14:media"
             '            xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'
             '            r:embed="rId_m"/>'
             "        </p:ext>"
@@ -845,9 +839,7 @@ class DescribePicture(object):
         slide_part_.drop_rel.assert_not_called()
         assert spTree.xpath("p:pic") == []
 
-    def it_can_replace_its_embedded_image(
-        self, part_prop_, slide_part_, image_part_
-    ):
+    def it_can_replace_its_embedded_image(self, part_prop_, slide_part_, image_part_):
         pic = element("p:pic/p:blipFill/a:blip{r:embed=rIdOld}")
         picture = Picture(pic, None)
         slide_part_.get_or_add_image_part.return_value = (image_part_, "rIdNew")
@@ -857,9 +849,10 @@ class DescribePicture(object):
         slide_part_.get_or_add_image_part.assert_called_once_with("new.png")
         slide_part_.drop_rel.assert_called_once_with("rIdOld")
         blip = pic.xpath(".//a:blip")[0]
-        assert blip.get(
-            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
-        ) == "rIdNew"
+        assert (
+            blip.get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed")
+            == "rIdNew"
+        )
 
     def it_leaves_the_rel_in_place_when_replacement_dedupes_to_same_image(
         self, part_prop_, slide_part_, image_part_
@@ -875,13 +868,12 @@ class DescribePicture(object):
 
         slide_part_.drop_rel.assert_not_called()
         blip = pic.xpath(".//a:blip")[0]
-        assert blip.get(
-            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
-        ) == "rIdSame"
+        assert (
+            blip.get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed")
+            == "rIdSame"
+        )
 
-    def it_raises_when_replacing_a_picture_with_no_embedded_image(
-        self, part_prop_, slide_part_
-    ):
+    def it_raises_when_replacing_a_picture_with_no_embedded_image(self, part_prop_, slide_part_):
         # -- malformed a:blip with no r:embed attribute --
         pic = element("p:pic/p:blipFill/a:blip")
         picture = Picture(pic, None)
@@ -909,9 +901,7 @@ class DescribePicture(object):
 
         # -- embedded image rId swapped --
         blip = pic.xpath(".//a:blip")[0]
-        rembed_qn = (
-            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
-        )
+        rembed_qn = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
         assert blip.get(rembed_qn) == "rIdNew"
         # -- crop preserved verbatim --
         srcRect = pic.xpath(".//a:srcRect")[0]
@@ -929,6 +919,95 @@ class DescribePicture(object):
         # -- masking preset geometry preserved --
         prstGeom = pic.xpath(".//a:prstGeom")[0]
         assert prstGeom.get("prst") == "rect"
+
+    @pytest.mark.parametrize(
+        ("pic_cxml", "expected_value"),
+        [
+            # -- no blipFill at all -> fully opaque --
+            ("p:pic/p:spPr", 0.0),
+            # -- blipFill with no blip child -> fully opaque --
+            ("p:pic/p:blipFill", 0.0),
+            # -- blip without alphaModFix -> fully opaque --
+            ("p:pic/p:blipFill/a:blip{r:embed=rId1}", 0.0),
+            # -- amt=100000 (100%) is fully opaque in the XML encoding --
+            ("p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=100000}", 0.0),
+            # -- amt=50000 (50%) -> 50% transparency --
+            ("p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=50000}", 50.0),
+            # -- amt=25000 (25%) -> 75% transparency --
+            ("p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=25000}", 75.0),
+            # -- amt=0 -> 100% transparency (fully transparent) --
+            ("p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=0}", 100.0),
+        ],
+    )
+    def it_knows_its_transparency(self, pic_cxml, expected_value):
+        picture = Picture(element(pic_cxml), None)
+        assert abs(picture.transparency - expected_value) < 1e-6
+
+    @pytest.mark.parametrize(
+        ("pic_cxml", "value", "expected_cxml"),
+        [
+            # -- set 50% transparency on a picture that previously had none --
+            (
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}",
+                50.0,
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=50000}",
+            ),
+            # -- replace an existing transparency value --
+            (
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=25000}",
+                10.0,
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=90000}",
+            ),
+            # -- int value accepted --
+            (
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}",
+                25,
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=75000}",
+            ),
+            # -- set to 0 removes the alphaModFix element --
+            (
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=50000}",
+                0,
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}",
+            ),
+            # -- set to 0.0 removes the alphaModFix element (no-op on an
+            # -- already-opaque picture) --
+            (
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}",
+                0.0,
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}",
+            ),
+            # -- set to 100.0 (fully transparent) writes amt=0 --
+            (
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}",
+                100.0,
+                "p:pic/p:blipFill/a:blip{r:embed=rId1}/a:alphaModFix{amt=0}",
+            ),
+        ],
+    )
+    def it_can_change_its_transparency(self, pic_cxml, value, expected_cxml):
+        picture = Picture(element(pic_cxml), None)
+        picture.transparency = value
+        assert picture._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        "bad_value",
+        [-0.001, -1, 100.001, 200, "50", None],
+    )
+    def it_raises_on_out_of_range_transparency(self, bad_value):
+        picture = Picture(element("p:pic/p:blipFill/a:blip{r:embed=rId1}"), None)
+        with pytest.raises(ValueError):
+            picture.transparency = bad_value
+
+    def it_raises_on_setting_transparency_when_blipFill_is_missing(self):
+        picture = Picture(element("p:pic/p:spPr"), None)
+        with pytest.raises(ValueError, match="no blipFill"):
+            picture.transparency = 50.0
+
+    def it_raises_on_setting_transparency_when_blip_is_missing(self):
+        picture = Picture(element("p:pic/p:blipFill"), None)
+        with pytest.raises(ValueError, match="no a:blip"):
+            picture.transparency = 50.0
 
     # fixtures -------------------------------------------------------
 

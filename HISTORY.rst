@@ -14,6 +14,12 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #165 add read/write ``Picture.transparency`` for picture-level
+  alpha modulation. Value is a ``float`` percentage in ``[0.0, 100.0]``
+  — ``0`` is fully opaque, ``100`` is fully transparent. Maps to
+  ``p:pic/p:blipFill/a:blip/a:alphaModFix@amt``; writing ``0`` removes
+  the effect element.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the

@@ -9,6 +9,7 @@ from pptx.oxml.simpletypes import (
     ST_Percentage,
     ST_PositiveFixedAngle,
     ST_PositiveFixedPercentage,
+    ST_PositivePercentage,
     ST_RelationshipId,
 )
 from pptx.oxml.xmlchemy import (
@@ -22,11 +23,32 @@ from pptx.oxml.xmlchemy import (
 )
 
 
+class CT_AlphaModulateFixedEffect(BaseOxmlElement):
+    """`a:alphaModFix` custom element class.
+
+    The `amt` attribute is an `ST_PositivePercentage` (0%+), represented in
+    Python as a float fraction (e.g. ``0.5`` for 50%). Defaults to ``1.0``
+    (fully opaque / unmodulated) when omitted, per the XSD default ``100%``.
+    """
+
+    amt = OptionalAttribute("amt", ST_PositivePercentage, default=1.0)
+
+
 class CT_Blip(BaseOxmlElement):
     """
     <a:blip> element
     """
 
+    # -- the CT_Blip children are an unbounded `xsd:choice` of effect
+    # -- elements followed by an optional `a:extLst`. `alphaModFix` is
+    # -- modelled here as a `ZeroOrOne` because PowerPoint only ever emits
+    # -- a single `a:alphaModFix` for picture transparency; other effects
+    # -- are not modelled. --
+    alphaModFix: "CT_AlphaModulateFixedEffect | None" = (
+        ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+            "a:alphaModFix", successors=("a:extLst",)
+        )
+    )
     rEmbed = OptionalAttribute("r:embed", ST_RelationshipId)
 
 

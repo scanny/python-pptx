@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import IO, TYPE_CHECKING, Literal
+from typing import IO, TYPE_CHECKING, Literal, cast
 
 from pptx.dml.line import LineFormat
 from pptx.enum.shapes import MSO_SHAPE, MSO_SHAPE_TYPE, PP_MEDIA_TYPE
@@ -14,6 +14,7 @@ from pptx.shared import ParentedElementProxy
 from pptx.util import lazyproperty
 
 if TYPE_CHECKING:
+    from pptx.oxml.dml.fill import CT_AlphaModulateFixedEffect, CT_Blip
     from pptx.oxml.shapes.picture import CT_Picture
     from pptx.oxml.shapes.shared import CT_LineProperties
     from pptx.oxml.timing import CT_TLTimeCondition
@@ -168,8 +169,7 @@ class Movie(_BasePicture):
         rIds: list[str] = []
         rIds.extend(
             self._pic.xpath(
-                "./p:nvPicPr/p:nvPr/a:videoFile/@r:link"
-                " | ./p:nvPicPr/p:nvPr/a:audioFile/@r:link"
+                "./p:nvPicPr/p:nvPr/a:videoFile/@r:link" " | ./p:nvPicPr/p:nvPr/a:audioFile/@r:link"
             )
         )
         rIds.extend(self._pic.xpath("./p:nvPicPr/p:nvPr/p:extLst/p:ext/p14:media/@r:embed"))
@@ -443,8 +443,7 @@ class Movie(_BasePicture):
             return
         if not isinstance(value, (int, float)) or value < 0:
             raise ValueError(
-                "start_time must be a non-negative number of seconds or None, got %r"
-                % (value,)
+                "start_time must be a non-negative number of seconds or None, got %r" % (value,)
             )
         cond.delay = int(round(value * 1000))
 
@@ -601,6 +600,65 @@ class Picture(_BasePicture):
     def shape_type(self) -> MSO_SHAPE_TYPE:
         """Unconditionally `MSO_SHAPE_TYPE.PICTURE` in this case."""
         return MSO_SHAPE_TYPE.PICTURE
+
+    @property
+    def transparency(self) -> float:
+        """Picture transparency as a percentage in ``[0.0, 100.0]``.
+
+        Corresponds to the ``Picture Transparency`` slider in PowerPoint's
+        Format Picture pane. ``0.0`` is fully opaque (the default) and
+        ``100.0`` is fully transparent.
+
+        Read/write. Returns ``0.0`` when no ``a:alphaModFix`` child is
+        present on the picture's ``a:blip`` element — the XML "no effect
+        applied" encoding for full opacity.
+
+        Assigning a value in ``[0.0, 100.0]`` writes
+        ``p:blipFill/a:blip/a:alphaModFix@amt`` with the complementary
+        alpha-amount (``(100 - transparency) * 1000`` in the XML, since
+        ``amt`` encodes *remaining* opacity). Assigning ``0`` or ``0.0``
+        removes any existing ``a:alphaModFix`` child.
+
+        Raises ``ValueError`` when the shape has no ``a:blip`` element
+        (malformed picture whose image data has been stripped) or when
+        the value is outside ``[0.0, 100.0]``.
+
+        .. versionadded:: 2026.05.0
+        """
+        blipFill = self._pic.blipFill
+        blip = cast("CT_Blip | None", blipFill.blip if blipFill is not None else None)
+        alphaModFix = blip.alphaModFix if blip is not None else None
+        if alphaModFix is None:
+            return 0.0
+        # -- amt is the remaining-opacity fraction (1.0 == fully opaque) --
+        return (1.0 - cast(float, alphaModFix.amt)) * 100.0
+
+    @transparency.setter
+    def transparency(self, value: float) -> None:
+        if not isinstance(value, (int, float)):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(
+                "transparency must be a number in range 0.0 to 100.0, got %r" % (value,)
+            )
+        if value < 0.0 or value > 100.0:
+            raise ValueError("transparency must be in range 0.0 to 100.0, got %r" % (value,))
+        blipFill = self._pic.blipFill
+        if blipFill is None:
+            raise ValueError("cannot set transparency on a picture with no blipFill")
+        blip = cast("CT_Blip | None", blipFill.blip)
+        if blip is None:
+            raise ValueError("cannot set transparency on a picture with no a:blip element")
+        # -- 0 (or 0.0) removes any existing a:alphaModFix --
+        if value == 0:
+            # -- xmlchemy generates `_remove_alphaModFix` / `get_or_add_alphaModFix`
+            # -- on the ZeroOrOne; those dynamic methods aren't visible to pyright --
+            blip._remove_alphaModFix()  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+            return
+        # -- amt encodes remaining opacity as a fraction in [0.0, 1.0]. --
+        alphaModFix = cast(
+            "CT_AlphaModulateFixedEffect",
+            blip.get_or_add_alphaModFix(),  # pyright: ignore[reportAttributeAccessIssue, reportUnknownMemberType]
+        )
+        alphaModFix.amt = (100.0 - float(value)) / 100.0
 
 
 class _MediaFormat(ParentedElementProxy):
