@@ -29,12 +29,6 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
   count ignores one because it only counts `r:link`-style attributes
   and misses `r:embed` occurrences on `a:blip` and `p:blipFill` leaves.
 
-- **FU-6: `_BaseShapes.clear(preserve_placeholders=True)` GC semantics
-  (from W15 #96).** Relies on the save-time reachability walk from
-  #956 to remove orphaned image / chart / media parts — doesn't
-  explicitly unhook at delete time. Add a test that clear() + save
-  actually shrinks the zip (analogous to #956 tests).
-
 
 
 ## Done
@@ -52,6 +46,23 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
   (8 tests covering the warning-free invariant and the zip-entry
   uniqueness invariant) as a regression guard. Branch
   ``feat/fu3-verify-no-dupe-warning``.
+
+- **FU-6 (test-only, landed; surfaced a real chart-GC gap).**
+  ``tests/test_fu6_clear_gc.py`` pins that
+  ``Slide.clear_shapes()`` + ``save()`` compose with the save-time
+  ``iter_parts()`` reachability walk: clearing a picture-bearing
+  deck recovers ~60 KB (every ``ppt/media/*`` entry gone, the three
+  added image SHAs absent from the reopened package), and
+  placeholders are preserved under the default
+  ``preserve_placeholders=True``. The investigation also surfaced a
+  real gap: :class:`GraphicFrame` carries no ``.delete()`` override,
+  so clearing a chart-bearing slide does *not* drop the slide ->
+  chart rel and the chart + embedded xlsx linger. Distinct from FU-4
+  (refcount bug): the chart rel is never dropped at all. A companion
+  scenario in ``test_fu6_clear_gc.py`` pins the current behaviour so
+  a future ``GraphicFrame.delete()`` fix flips the assertion loudly;
+  the fix itself is left as a follow-up feature (candidate FU-7) for
+  explicit scoping.
 
 - **FU-5 (reviewed and dropped).** The scratch branch
   `scratch/wave-15-orphan-parts-residue` carried two WIP commits
