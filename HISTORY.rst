@@ -123,6 +123,28 @@ Unreleased
   where only the placeholder run is rewritten and the flanking prose
   runs' ``a:rPr`` is left untouched.
 
+- verify: #617 trendlines work on column-chart series. Issue #617
+  (https://github.com/scanny/python-pptx/issues/617) reported that
+  trendlines could be added to line-chart series but not column-chart
+  series. The capability has always been present on this fork:
+  :meth:`~pptx.chart.series._BaseSeries.add_trendline` and
+  :attr:`~pptx.chart.series._BaseSeries.trendlines` live on the shared
+  ``_BaseSeries`` base, which |BarSeries| inherits via
+  ``_BaseCategorySeries``. Column charts render as ``c:barChart`` with
+  ``c:barDir=col`` — the series class is the same |BarSeries| used by
+  bar charts — so every :class:`~pptx.enum.chart.XL_TRENDLINE_TYPE`
+  member (LINEAR, LOGARITHMIC, POLYNOMIAL, POWER, EXPONENTIAL,
+  MOVING_AVG) attaches, round-trips, and displays on-chart equation /
+  R-squared labels exactly as it does on line-chart series.
+  ``tests/test_issue_617_column_trendline_verify.py`` pins the
+  end-to-end contract — API-surface guard, every trendline type,
+  multiple trendlines per series, ``display_equation`` /
+  ``display_r_squared``, a ``Presentation.save`` + reopen round-trip,
+  the expected ``c:trendline/c:trendlineType`` XML fragment under a
+  ``c:barChart``/``c:ser``, and every column-chart variant (clustered,
+  stacked, 100% stacked). No code change — the behaviour is the
+  existing trendline feature exercised through a column-chart shape.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
