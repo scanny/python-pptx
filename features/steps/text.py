@@ -6,8 +6,9 @@ from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
+from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, PP_AUTO_NUMBER
-from pptx.util import Emu
+from pptx.util import Emu, Pt
 
 # given ===================================================
 
@@ -442,4 +443,36 @@ def then_paragraph_bullet_color_rgb_eq_ff0000(context):
     actual = context.paragraph.bullet.color.rgb
     assert actual == RGBColor(0xFF, 0x00, 0x00), (
         "paragraph.bullet.color.rgb == %r" % actual
+    )
+
+
+# -- _Paragraph.write_rich (#753) -------------------------
+
+
+@when("I call paragraph.write_rich with a mix of plain, bold, and sized parts")
+def when_I_call_paragraph_write_rich_mixed(context):
+    # -- start with an empty paragraph so only the runs we author are present --
+    context.paragraph.clear()
+    context.paragraph.write_rich(
+        "plain ",
+        ("bold ", {"bold": True}),
+        ("big red", {"size": Pt(24), "color": RGBColor(0xFF, 0x00, 0x00)}),
+    )
+
+
+@then("the paragraph contains three runs with the expected text and formatting")
+def then_paragraph_has_three_runs(context):
+    runs = context.paragraph.runs
+    assert len(runs) == 3, "expected 3 runs, got %d" % len(runs)
+
+    assert runs[0].text == "plain ", "runs[0].text == %r" % runs[0].text
+    assert runs[0].font.bold is None, "runs[0].font.bold == %r" % runs[0].font.bold
+
+    assert runs[1].text == "bold ", "runs[1].text == %r" % runs[1].text
+    assert runs[1].font.bold is True, "runs[1].font.bold == %r" % runs[1].font.bold
+
+    assert runs[2].text == "big red", "runs[2].text == %r" % runs[2].text
+    assert runs[2].font.size == Pt(24), "runs[2].font.size == %r" % runs[2].font.size
+    assert runs[2].font.color.rgb == RGBColor(0xFF, 0x00, 0x00), (
+        "runs[2].font.color.rgb == %r" % runs[2].font.color.rgb
     )

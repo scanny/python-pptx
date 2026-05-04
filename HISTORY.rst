@@ -14,6 +14,23 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #753 add ``_Paragraph.write_rich(*parts)`` rich-text authoring
+  helper. Issue #753
+  (https://github.com/scanny/python-pptx/issues/753) asked for a more
+  ergonomic way to build a paragraph that mixes bold, italic, coloured,
+  and plain runs than the per-run ``add_run`` / ``run.font.*`` loop. The
+  new method accepts a positional sequence of *parts* — each a ``str``,
+  a ``(text, formatting)`` 2-tuple, or a mapping with a ``"text"`` key —
+  and appends one ``a:r`` run per part with the formatting applied to the
+  run's ``font``. Recognised formatting keys are ``bold``, ``italic``,
+  ``underline``, ``size`` (a |Length|, e.g. ``Pt(18)``), ``color`` (an
+  ``RGBColor``), and ``font_name``; unknown keys raise ``ValueError`` so
+  typos surface at authoring time. The method returns the paragraph to
+  support chaining. It is a thin loop over
+  :meth:`._Paragraph.add_run`, so the emitted XML is identical to the
+  per-run idiom and round-trips through PowerPoint unchanged. See the
+  "Rich text in one call" section in ``docs/user/text.rst``.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

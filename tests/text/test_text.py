@@ -2167,6 +2167,118 @@ class Describe_Paragraph(object):
         with pytest.raises(ValueError):
             paragraph.replace_text("", "y")
 
+    def it_can_write_rich_text_in_one_call_issue_753(self):
+        """Regression test for issue #753 — mixed-formatting authoring helper."""
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        result = paragraph.write_rich(
+            "plain ",
+            ("bold ", {"bold": True}),
+            ("italic", {"italic": True}),
+        )
+
+        # -- returns the paragraph for chaining --
+        assert result is paragraph
+        runs = paragraph.runs
+        assert len(runs) == 3
+        assert [r.text for r in runs] == ["plain ", "bold ", "italic"]
+        assert runs[0].font.bold is None
+        assert runs[0].font.italic is None
+        assert runs[1].font.bold is True
+        assert runs[1].font.italic is None
+        assert runs[2].font.bold is None
+        assert runs[2].font.italic is True
+
+    def it_applies_every_supported_formatting_key_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        paragraph.write_rich(
+            (
+                "all of it",
+                {
+                    "bold": True,
+                    "italic": True,
+                    "underline": True,
+                    "size": Pt(24),
+                    "color": RGBColor(0xFF, 0x00, 0x00),
+                    "font_name": "Calibri",
+                },
+            )
+        )
+
+        (run,) = paragraph.runs
+        assert run.text == "all of it"
+        assert run.font.bold is True
+        assert run.font.italic is True
+        assert run.font.underline is True
+        assert run.font.size == Pt(24)
+        assert run.font.name == "Calibri"
+        assert run.font.color.rgb == RGBColor(0xFF, 0x00, 0x00)
+
+    def it_accepts_a_mapping_part_with_a_text_key_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        paragraph.write_rich({"text": "hi", "bold": True, "italic": False})
+
+        (run,) = paragraph.runs
+        assert run.text == "hi"
+        assert run.font.bold is True
+        assert run.font.italic is False
+
+    def it_accepts_an_MSO_UNDERLINE_value_for_underline_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        paragraph.write_rich(("wavy", {"underline": MSO_UNDERLINE.WAVY_LINE}))
+
+        (run,) = paragraph.runs
+        assert run.font.underline == MSO_UNDERLINE.WAVY_LINE
+
+    def it_appends_runs_after_existing_content_in_write_rich(self):
+        paragraph = _Paragraph(
+            cast("CT_TextParagraph", element('a:p/a:r/a:t"existing"')), None
+        )
+
+        paragraph.write_rich(" added")
+
+        assert [r.text for r in paragraph.runs] == ["existing", " added"]
+
+    def it_accepts_zero_parts_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        paragraph.write_rich()
+
+        assert paragraph.runs == ()
+
+    def it_raises_ValueError_on_unknown_formatting_key_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        with pytest.raises(ValueError, match="unknown rich-text formatting key"):
+            paragraph.write_rich(("x", {"weight": 700}))
+
+    def it_raises_TypeError_on_non_str_non_tuple_non_mapping_part_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        with pytest.raises(TypeError, match="each part must be"):
+            paragraph.write_rich(42)
+
+    def it_raises_ValueError_on_wrong_length_tuple_part_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        with pytest.raises(ValueError, match="tuple part must be"):
+            paragraph.write_rich(("only-one-element",))
+
+    def it_raises_ValueError_on_mapping_part_missing_text_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        with pytest.raises(ValueError, match="must contain a 'text' key"):
+            paragraph.write_rich({"bold": True})
+
+    def it_raises_TypeError_on_non_str_text_in_tuple_in_write_rich(self):
+        paragraph = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        with pytest.raises(TypeError, match="must be str"):
+            paragraph.write_rich((123, {}))
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterator, NamedTuple, cast
+from typing import TYPE_CHECKING, Any, Iterator, Mapping, NamedTuple, cast
 
 from pptx.dml.color import ColorFormat as _ColorFormat
 from pptx.dml.color import _Color  # pyright: ignore[reportPrivateUsage]  # noqa: PLC2701
@@ -1820,6 +1820,38 @@ class _Paragraph(Subshape):
         self.clear()
         self._element.append_text(text)
 
+    def write_rich(self, *parts: object) -> _Paragraph:
+        """Append runs for each of `parts` to this paragraph, returning self.
+
+        Each part is one of:
+
+        * a ``str`` -- appended as a run carrying no explicit character formatting
+          (inherits from the paragraph / layout / master style hierarchy).
+        * a ``(text, formatting)`` 2-tuple -- ``formatting`` is a mapping of
+          character-property names to values, applied to the run's font.
+        * a mapping with a ``"text"`` key -- equivalent to the tuple form with
+          ``text = part["text"]`` and ``formatting = {k: v for k, v in part.items()
+          if k != "text"}``.
+
+        Recognised formatting keys are ``bold`` and ``italic`` (``True`` / ``False``
+        / ``None``), ``underline`` (``bool`` or an :ref:`MsoTextUnderlineType`
+        member), ``size`` (``Length``, e.g. ``Pt(18)``), ``color`` (``RGBColor``),
+        and ``font_name`` (``str``). ``None`` values are accepted (and clear the
+        corresponding setting). Unknown keys raise ``ValueError`` -- callers that
+        need lower-level access should use :meth:`.add_run` directly.
+
+        The method is a thin loop over :meth:`.add_run`; each part becomes exactly
+        one ``a:r`` element. Returns the paragraph to support chaining (e.g.
+        ``p.write_rich(...).space_after = Pt(6)``).
+        """
+        for part in parts:
+            text, fmt = _parse_rich_part(part)
+            run = self.add_run()
+            run.text = text
+            if fmt:
+                _apply_run_formatting(run, fmt)
+        return self
+
     @property
     def _defRPr(self) -> CT_TextCharacterProperties:
         """The element that defines the default run properties for runs in this paragraph.
@@ -2035,3 +2067,77 @@ def _replace_in_runs(runs: list[CT_RegularTextRun], find: str, replace: str) -> 
             run.text = new_text
 
     return len(matches)
+
+
+_RICH_FORMATTING_KEYS = frozenset({"bold", "italic", "underline", "size", "color", "font_name"})
+
+
+def _parse_rich_part(part: object) -> tuple[str, Mapping[str, Any] | None]:
+    """Validate and decompose a single `write_rich` part.
+
+    Returns a ``(text, formatting)`` pair where ``formatting`` is ``None``
+    for a plain-string part. See :meth:`._Paragraph.write_rich` for the
+    accepted input shapes.
+    """
+    if isinstance(part, str):
+        return part, None
+    if isinstance(part, tuple):
+        tup = cast("tuple[Any, ...]", part)
+        if len(tup) != 2:
+            raise ValueError(f"tuple part must be (text, formatting); got {len(tup)}-tuple")
+        raw_text, raw_fmt = tup
+        if not isinstance(raw_text, str):
+            raise TypeError(
+                f"first element of tuple part must be str, got {type(raw_text).__name__}"
+            )
+        if not isinstance(raw_fmt, Mapping):
+            raise TypeError(
+                f"second element of tuple part must be a mapping, got {type(raw_fmt).__name__}"
+            )
+        return raw_text, cast("Mapping[str, Any]", raw_fmt)
+    if isinstance(part, Mapping):
+        mapping = cast("Mapping[str, Any]", part)
+        if "text" not in mapping:
+            raise ValueError("mapping part must contain a 'text' key")
+        raw_text = mapping["text"]
+        if not isinstance(raw_text, str):
+            raise TypeError(
+                f"'text' value in mapping part must be str, got {type(raw_text).__name__}"
+            )
+        return raw_text, {k: v for k, v in mapping.items() if k != "text"}
+    raise TypeError(
+        "each part must be str, (text, dict) tuple, or mapping with a "
+        f"'text' key; got {type(part).__name__}"
+    )
+
+
+def _apply_run_formatting(run: _Run, fmt: Mapping[str, Any]) -> None:
+    """Apply the formatting dict `fmt` to `run.font`.
+
+    See :meth:`._Paragraph.write_rich` for the recognised keys and accepted
+    value types. Unknown keys raise ``ValueError``.
+    """
+    unknown = set(fmt) - _RICH_FORMATTING_KEYS
+    if unknown:
+        raise ValueError(
+            f"unknown rich-text formatting key(s): {sorted(unknown)!r}; "
+            f"supported keys are {sorted(_RICH_FORMATTING_KEYS)!r}"
+        )
+    font = run.font
+    if "bold" in fmt:
+        font.bold = fmt["bold"]
+    if "italic" in fmt:
+        font.italic = fmt["italic"]
+    if "underline" in fmt:
+        font.underline = fmt["underline"]
+    if "size" in fmt:
+        font.size = fmt["size"]
+    if "font_name" in fmt:
+        font.name = fmt["font_name"]
+    if "color" in fmt:
+        color = fmt["color"]
+        if color is None:
+            # -- clearing color is not directly supported on Font; no-op --
+            pass
+        else:
+            font.color.rgb = color
