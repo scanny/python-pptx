@@ -2094,7 +2094,7 @@ tl.rotation = -45
 - `Chart.category_axis` / `Chart.value_axis` / `Chart.date_axis` — Axis accessors.
 - `_BaseAxis.visible` — Show/hide the axis. `[Added in 2026.05.0]`
 - `_BaseAxis.has_title` / `_BaseAxis.axis_title` — `AxisTitle` with `.text_frame`, `.format`, `.has_text_frame`.
-- `_BaseAxis.has_major_gridlines` / `.has_minor_gridlines` / `.major_gridlines` / `.minor_gridlines` — Gridline toggles and `MajorGridlines` proxy.
+- `_BaseAxis.has_major_gridlines` / `.has_minor_gridlines` / `.major_gridlines` / `.minor_gridlines` — Gridline toggles plus `MajorGridlines` and `MinorGridlines` proxies (each exposes `.format` for line / fill styling). `minor_gridlines` is `[Added in 2026.05.1.dev0]`.
 - `_BaseAxis.major_tick_mark` / `.minor_tick_mark` / `.tick_labels` — Tick-mark positions and `TickLabels`.
 - `_BaseAxis.category_type` / `.crosses` / `.crosses_at` — Axis positioning.
 - `_BaseAxis.scale_minimum` / `.scale_maximum` / `.minimum_scale` / `.maximum_scale` — Scale bounds.
@@ -2108,6 +2108,7 @@ tl.rotation = -45
 - `Legend.position` / `.include_in_layout` / `.font` / `.horz_offset`.
 - `Legend.exclude_entry(idx)` / `.include_entry(idx)` / `.hidden_entries` — Hide / re-show individual legend entries without removing the underlying series (PowerPoint's *Format Legend Entry → Delete*). `[Added in 2026.05.0]`
 - `MajorGridlines.format` — `ChartFormat`.
+- `MinorGridlines.format` — `ChartFormat` for the minor-gridlines `c:minorGridlines/c:spPr` block (`.line`, `.fill`, `.shadow`). Destructively adds the `c:minorGridlines` element when first accessed. `[Added in 2026.05.1.dev0]`
 
 ---
 

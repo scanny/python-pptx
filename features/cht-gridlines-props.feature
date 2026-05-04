@@ -9,3 +9,15 @@ Feature: Gridlines properties
      Then gridlines.format is a ChartFormat object
       And gridlines.format.fill is a FillFormat object
       And gridlines.format.line is a LineFormat object
+
+
+  Scenario: Get minor gridlines.format
+    Given a minor gridlines
+     Then gridlines.format is a ChartFormat object
+      And gridlines.format.fill is a FillFormat object
+      And gridlines.format.line is a LineFormat object
+
+
+  Scenario: Get Axis.minor_gridlines
+    Given an axis
+     Then axis.minor_gridlines is a MinorGridlines object

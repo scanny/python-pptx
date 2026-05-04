@@ -111,6 +111,18 @@ class _BaseAxis(object):
         """
         return MajorGridlines(self._element)
 
+    @lazyproperty
+    def minor_gridlines(self):
+        """|MinorGridlines| object providing access to minor-gridline formatting.
+
+        Accessing this property is destructive in the sense that a `c:minorGridlines`
+        element is added to the axis XML if one is not already present. Use
+        :attr:`has_minor_gridlines` to test for presence non-destructively. The
+        returned proxy exposes a ``.format`` property of type |ChartFormat| for
+        setting the gridline color, width, dash style, etc.
+        """
+        return MinorGridlines(self._element)
+
     @property
     def major_tick_mark(self):
         """
@@ -490,6 +502,26 @@ class MajorGridlines(ElementProxy):
         """
         majorGridlines = self._xAx.get_or_add_majorGridlines()
         return ChartFormat(majorGridlines)
+
+
+class MinorGridlines(ElementProxy):
+    """Provides access to the properties of the minor gridlines appearing on an axis."""
+
+    def __init__(self, xAx):
+        super(MinorGridlines, self).__init__(xAx)
+        self._xAx = xAx  # axis element, catAx, dateAx, or valAx
+
+    @lazyproperty
+    def format(self):
+        """|ChartFormat| object providing access to shape formatting.
+
+        Returns the |ChartFormat| object providing line, fill, and shadow
+        formatting for these minor gridlines. Accessing this property is
+        destructive in that it adds a ``c:minorGridlines`` element to the
+        axis XML if not already present.
+        """
+        minorGridlines = self._xAx.get_or_add_minorGridlines()
+        return ChartFormat(minorGridlines)
 
 
 class TickLabels(object):

@@ -266,6 +266,8 @@ rst_epilog = """
 
 .. |Marker| replace:: :class:`.Marker`
 
+.. |MinorGridlines| replace:: :class:`.MinorGridlines`
+
 .. |MasterPlaceholder| replace:: :class:`.MasterPlaceholder`
 
 .. |MasterPlaceholders| replace:: :class:`.MasterPlaceholders`

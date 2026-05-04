@@ -31,6 +31,13 @@ def given_a_major_gridlines(context):
     context.gridlines = axis.major_gridlines
 
 
+@given("a minor gridlines")
+def given_a_minor_gridlines(context):
+    prs = Presentation(test_pptx("cht-gridlines-props"))
+    axis = prs.slides[0].shapes[0].chart.value_axis
+    context.gridlines = axis.minor_gridlines
+
+
 @given("a value axis having category axis crossing of {crossing}")
 def given_a_value_axis_having_cat_ax_crossing_of(context, crossing):
     slide_idx = {"automatic": 0, "maximum": 2, "minimum": 3, "2.75": 4, "-1.5": 5}[crossing]
@@ -310,6 +317,12 @@ def then_axis_has_major_or_minor_gridlines_is_expected_value(context, major_or_m
 def then_axis_major_gridlines_is_a_MajorGridlines_object(context):
     axis = context.axis
     assert type(axis.major_gridlines).__name__ == "MajorGridlines"
+
+
+@then("axis.minor_gridlines is a MinorGridlines object")
+def then_axis_minor_gridlines_is_a_MinorGridlines_object(context):
+    axis = context.axis
+    assert type(axis.minor_gridlines).__name__ == "MinorGridlines"
 
 
 @then("axis.{major_or_minor}_unit is {value}")
