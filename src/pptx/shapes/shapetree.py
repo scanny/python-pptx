@@ -134,6 +134,30 @@ class _BaseShapes(ParentedElementProxy):
             if isinstance(shape, GroupShape):
                 yield from shape.shapes.descendants()
 
+    def iter_leaf_shapes(self) -> Iterator[BaseShape]:
+        """Generate each non-group descendant shape in document (z-order) sequence.
+
+        This is a leaf-only variant of :meth:`descendants`: it yields every
+        |BaseShape| that would be yielded by :meth:`descendants` *except* the
+        |GroupShape| containers themselves. The result is the set of shapes
+        that actually carry rendered content — autoshapes, pictures,
+        connectors, graphic frames (tables, charts, OLE), and so on — flattened
+        across every nesting depth. For a slide that contains no groups this
+        iterator yields the same sequence as ``iter(shapes)``.
+
+        Useful when you want to touch every drawable element once without
+        having to special-case the group containers (e.g. collecting alt-text,
+        auditing fills, exporting a shape-by-shape report).
+
+        The iterator walks the XML tree lazily; side-effects on the returned
+        proxies (e.g. ``shape.delete()``) during iteration are unsupported and
+        may skip or revisit siblings. Materialize with
+        ``list(shapes.iter_leaf_shapes())`` when you need a stable snapshot.
+
+        .. versionadded:: 2026.05.0
+        """
+        return (s for s in self.descendants() if not isinstance(s, GroupShape))
+
     def clone_placeholder(self, placeholder: LayoutPlaceholder) -> None:
         """Add a new placeholder shape based on `placeholder`.
 

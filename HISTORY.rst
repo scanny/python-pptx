@@ -14,6 +14,15 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #435 add :meth:`.SlideShapes.iter_leaf_shapes` — a leaf-only
+  variant of :meth:`.SlideShapes.descendants` that yields every non-
+  :class:`.GroupShape` descendant in document (z-order) sequence. Useful
+  when you want to touch every drawable element on a slide once (collect
+  alt-text, audit fills, export a shape-by-shape report) without having
+  to special-case the group containers. Walks into nested groups at every
+  depth; for a slide that contains no groups it yields the same sequence
+  as ``iter(shapes)``.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

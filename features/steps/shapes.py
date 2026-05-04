@@ -13,6 +13,7 @@ from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE, PP_PLACEHOLDER, PROG_ID
 from pptx.shapes.base import BaseShape
+from pptx.shapes.group import GroupShape
 from pptx.util import Emu, Inches
 
 # given ===================================================
@@ -765,3 +766,36 @@ def then_get_by_name_with_include_descendants(context):
     hit = context.shapes.get_by_name("Oval 2", include_descendants=True)
     assert hit is not None
     assert hit.name == "Oval 2"
+
+
+# --- issue #435: iter_leaf_shapes() — leaf-only variant of descendants() ---
+
+
+@then("len(list(slide.shapes.iter_leaf_shapes())) == 4")
+def then_len_iter_leaf_shapes_equals_4(context):
+    leaves = list(context.slide.shapes.iter_leaf_shapes())
+    assert (
+        len(leaves) == 4
+    ), "expected 4 leaf shapes (1 top + 3 nested, group container excluded), got %d" % len(leaves)
+
+
+@then("slide.shapes.iter_leaf_shapes() omits the group container")
+def then_iter_leaf_shapes_omits_group(context):
+    leaves = list(context.slide.shapes.iter_leaf_shapes())
+    assert not any(
+        isinstance(s, GroupShape) for s in leaves
+    ), "expected no GroupShape instances, got %r" % [type(s).__name__ for s in leaves]
+    names = [s.name for s in leaves]
+    assert "Group 4" not in names, "expected 'Group 4' to be filtered out, got %r" % names
+
+
+@then("slide.shapes.iter_leaf_shapes() preserves descendants() order minus groups")
+def then_iter_leaf_shapes_preserves_order(context):
+    descendants_names = [s.name for s in context.slide.shapes.descendants()]
+    expected = [
+        n
+        for n, s in zip(descendants_names, context.slide.shapes.descendants())
+        if not isinstance(s, GroupShape)
+    ]
+    got = [s.name for s in context.slide.shapes.iter_leaf_shapes()]
+    assert got == expected, "expected %r (descendants minus groups), got %r" % (expected, got)

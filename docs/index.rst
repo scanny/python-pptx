@@ -95,7 +95,9 @@ Feature Support
 * Enumerate every shape on a slide — including the descendants of any group,
   at any nesting depth — via :attr:`.Slide.shape_tree_flat` (or the
   :meth:`.SlideShapes.descendants` iterator it wraps). Mirrors PowerPoint's
-  Selection Pane listing. :meth:`.SlideShapes.get_by_name` and
+  Selection Pane listing. :meth:`.SlideShapes.iter_leaf_shapes` is a
+  leaf-only variant that skips the group containers and yields only the
+  drawable shapes. :meth:`.SlideShapes.get_by_name` and
   :meth:`.SlideShapes.find_all_by_name` gained an ``include_descendants``
   keyword that flips their search to the same flat traversal
 

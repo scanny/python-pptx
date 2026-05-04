@@ -214,6 +214,19 @@ Both return the same ordering as :meth:`~.SlideShapes.descendants`
 
 See issue #532.
 
+When you only care about the drawable leaf shapes -- autoshapes, pictures,
+connectors, graphic frames, and so on -- and want to skip the group
+containers themselves, use :meth:`~.SlideShapes.iter_leaf_shapes`. It's a
+leaf-only variant of :meth:`~.SlideShapes.descendants` that walks into every
+group at every depth and yields only the non-group shapes, preserving the
+same z-order::
+
+    # e.g. collect alt-text from every renderable shape on the slide
+    for shape in slide.shapes.iter_leaf_shapes():
+        print(shape.name, shape.alt_text)
+
+See issue #435.
+
 
 Accessibility -- shape alt-text and title
 -----------------------------------------

@@ -1592,6 +1592,56 @@ class DescribeSlideShapes(object):
 
         assert [s.name for s in shapes.descendants()] == ["A", "B"]
 
+    def it_can_iterate_leaf_shapes_skipping_group_containers(self):
+        # --- issue #435: iter_leaf_shapes yields only non-GroupShape leaves ---
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=Top},"
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=3,name=Group},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=4,name=Inner1},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=Inner2}"
+            ")"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        # --- group container itself is filtered out; order matches descendants() ---
+        assert [s.name for s in shapes.iter_leaf_shapes()] == ["Top", "Inner1", "Inner2"]
+
+    def it_walks_into_nested_groups_in_iter_leaf_shapes(self):
+        spTree = element(
+            "p:spTree/("
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=2,name=Outer},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=LeafA},"
+            "p:grpSp/("
+            "p:nvGrpSpPr/p:cNvPr{id=4,name=Inner},"
+            "p:grpSpPr,"
+            "p:sp/p:nvSpPr/p:cNvPr{id=5,name=DeepLeaf}"
+            ")"
+            ")"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        # --- every GroupShape is skipped regardless of nesting depth ---
+        assert [s.name for s in shapes.iter_leaf_shapes()] == ["LeafA", "DeepLeaf"]
+
+    def it_yields_every_top_shape_from_iter_leaf_shapes_when_no_groups(self):
+        spTree = element(
+            "p:spTree/("
+            "p:sp/p:nvSpPr/p:cNvPr{id=2,name=A},"
+            "p:sp/p:nvSpPr/p:cNvPr{id=3,name=B}"
+            ")"
+        )
+        shapes = SlideShapes(spTree, None)
+
+        # --- matches plain iteration when there are no groups to unwrap ---
+        assert [s.name for s in shapes.iter_leaf_shapes()] == ["A", "B"]
+
     def it_can_get_a_shape_by_name_including_descendants(self):
         spTree = element(
             "p:spTree/("

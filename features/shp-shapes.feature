@@ -514,3 +514,11 @@ Feature: Access a shape on a slide
     Given a slide with 1 top-level shape plus a group of 3 shapes
      Then shapes.get_by_name of an inner-group shape is None by default
       And shapes.get_by_name of an inner-group shape with include_descendants finds it
+
+  # -- issue #435: iter_leaf_shapes() is the leaf-only variant of descendants();
+  # -- it skips GroupShape containers and yields only the drawable leaves.
+  Scenario: SlideShapes.iter_leaf_shapes() yields only non-group descendants
+    Given a slide with 1 top-level shape plus a group of 3 shapes
+     Then len(list(slide.shapes.iter_leaf_shapes())) == 4
+      And slide.shapes.iter_leaf_shapes() omits the group container
+      And slide.shapes.iter_leaf_shapes() preserves descendants() order minus groups
