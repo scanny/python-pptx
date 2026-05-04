@@ -458,6 +458,158 @@ class DescribeBaseShape(object):
         shape.is_hidden = new_value
         assert shape._element.xml == xml(expected_cxml)
 
+    # -- #447: theme_style_refs read/write access -------------------------
+
+    def it_returns_None_for_theme_style_refs_on_a_shape_without_p_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        assert shape.theme_style_refs is None
+
+    @pytest.mark.parametrize(
+        ("sp_cxml", "expected"),
+        [
+            (
+                "p:sp/p:style/(a:lnRef{idx=1},a:fillRef{idx=3},a:effectRef{idx=2},"
+                "a:fontRef{idx=minor})",
+                (1, 3, 2, "minor"),
+            ),
+            (
+                "p:cxnSp/p:style/(a:lnRef{idx=2},a:fillRef{idx=0},a:effectRef{idx=1},"
+                "a:fontRef{idx=minor})",
+                (2, 0, 1, "minor"),
+            ),
+            (
+                "p:pic/p:style/(a:lnRef{idx=0},a:fillRef{idx=0},a:effectRef{idx=0},"
+                "a:fontRef{idx=none})",
+                (0, 0, 0, "none"),
+            ),
+        ],
+    )
+    def it_reads_theme_style_refs_from_p_style(self, sp_cxml, expected):
+        from pptx.shapes.base import ThemeStyleRefs
+
+        shape = BaseShape(cast("ShapeElement", element(sp_cxml)), None)
+        refs = shape.theme_style_refs
+        assert isinstance(refs, ThemeStyleRefs)
+        assert (refs.line_ref, refs.fill_ref, refs.effect_ref, refs.font_ref) == expected
+
+    def it_returns_None_for_theme_style_refs_on_a_graphicFrame(self):
+        shape = BaseShape(
+            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
+        )
+        assert shape.theme_style_refs is None
+
+    def it_returns_None_for_theme_style_refs_on_a_group_shape(self):
+        shape = BaseShape(
+            cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
+        )
+        assert shape.theme_style_refs is None
+
+    def it_can_set_theme_style_refs_on_an_sp(self):
+        from pptx.shapes.base import ThemeStyleRefs
+
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+
+        shape.theme_style_refs = ThemeStyleRefs(1, 2, 3, "major")
+
+        refs = shape.theme_style_refs
+        assert refs is not None
+        assert refs == (1, 2, 3, "major")
+
+    def it_can_set_theme_style_refs_using_a_plain_tuple(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+
+        shape.theme_style_refs = (0, 5, 2, "minor")  # type: ignore[assignment]
+
+        refs = shape.theme_style_refs
+        assert refs is not None
+        assert refs == (0, 5, 2, "minor")
+
+    def it_replaces_any_existing_p_style_on_assignment(self):
+        from pptx.shapes.base import ThemeStyleRefs
+
+        shape = BaseShape(
+            cast(
+                "ShapeElement",
+                element(
+                    "p:sp/p:style/(a:lnRef{idx=9},a:fillRef{idx=9},a:effectRef{idx=9},"
+                    "a:fontRef{idx=major})"
+                ),
+            ),
+            None,
+        )
+
+        shape.theme_style_refs = ThemeStyleRefs(2, 3, 1, "minor")
+
+        refs = shape.theme_style_refs
+        assert refs == (2, 3, 1, "minor")
+        # -- exactly one p:style child after replacement --
+        assert len(shape._element.findall(qn("p:style"))) == 1
+
+    def it_clears_p_style_when_assigned_None(self):
+        shape = BaseShape(
+            cast(
+                "ShapeElement",
+                element(
+                    "p:sp/p:style/(a:lnRef{idx=1},a:fillRef{idx=3},a:effectRef{idx=2},"
+                    "a:fontRef{idx=minor})"
+                ),
+            ),
+            None,
+        )
+
+        shape.theme_style_refs = None
+
+        assert shape.theme_style_refs is None
+        assert shape._element.find(qn("p:style")) is None
+
+    def it_inserts_p_style_before_txBody_on_an_sp(self):
+        from pptx.shapes.base import ThemeStyleRefs
+
+        shape = BaseShape(
+            cast("ShapeElement", element("p:sp/(p:spPr,p:txBody)")), None
+        )
+
+        shape.theme_style_refs = ThemeStyleRefs(1, 2, 3, "major")
+
+        # -- p:style must appear after p:spPr but before p:txBody --
+        children = list(shape._element)
+        tags = [c.tag for c in children]
+        assert tags.index(qn("p:style")) < tags.index(qn("p:txBody"))
+        assert tags.index(qn("p:spPr")) < tags.index(qn("p:style"))
+
+    def it_raises_when_setting_theme_style_refs_on_a_graphicFrame(self):
+        shape = BaseShape(
+            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
+        )
+        with pytest.raises(ValueError, match="does not support a p:style"):
+            shape.theme_style_refs = (1, 2, 3, "minor")  # type: ignore[assignment]
+
+    def it_raises_when_setting_theme_style_refs_on_a_group_shape(self):
+        shape = BaseShape(
+            cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
+        )
+        with pytest.raises(ValueError, match="does not support a p:style"):
+            shape.theme_style_refs = (1, 2, 3, "minor")  # type: ignore[assignment]
+
+    @pytest.mark.parametrize(
+        "bad_font_ref",
+        ["Major", "regular", "", "MAJOR", "bold"],
+    )
+    def it_rejects_invalid_font_ref_strings(self, bad_font_ref):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(ValueError, match="font_ref must be one of"):
+            shape.theme_style_refs = (1, 2, 3, bad_font_ref)  # type: ignore[assignment]
+
+    def it_rejects_negative_ref_indices(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(ValueError, match="must be non-negative"):
+            shape.theme_style_refs = (-1, 2, 3, "minor")  # type: ignore[assignment]
+
+    def it_rejects_non_integer_ref_values(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(TypeError, match="must be non-negative int"):
+            shape.theme_style_refs = ("1", 2, 3, "minor")  # type: ignore[assignment]
+
     # -- #508: alt_text / title accessibility description ------------------
 
     @pytest.mark.parametrize(

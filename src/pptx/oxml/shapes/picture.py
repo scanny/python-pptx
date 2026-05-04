@@ -11,6 +11,7 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 if TYPE_CHECKING:
+    from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes.shared import CT_ShapeProperties
     from pptx.util import Length
 
@@ -24,6 +25,9 @@ class CT_Picture(BaseShapeElement):
     nvPicPr = OneAndOnlyOne("p:nvPicPr")
     blipFill = ZeroOrOne("p:blipFill", successors=("p:spPr",))
     spPr: CT_ShapeProperties = OneAndOnlyOne("p:spPr")  # pyright: ignore[reportAssignmentType]
+    style: "CT_ShapeStyle | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:style", successors=("p:extLst",)
+    )
 
     @property
     def blip_rId(self) -> str | None:
@@ -121,9 +125,7 @@ class CT_Picture(BaseShapeElement):
         The emitted `a:blip` carries `r:link` instead of `r:embed`, referencing an external
         relationship rather than an embedded image part.
         """
-        return parse_xml(
-            cls._pic_link_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy)
-        )
+        return parse_xml(cls._pic_link_tmpl() % (shape_id, name, escape(desc), rId, x, y, cx, cy))
 
     @classmethod
     def new_video_pic(

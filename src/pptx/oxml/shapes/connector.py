@@ -11,6 +11,7 @@ from pptx.oxml.simpletypes import ST_DrawingElementId, XsdUnsignedInt
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, RequiredAttribute, ZeroOrOne
 
 if TYPE_CHECKING:
+    from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes.shared import CT_ShapeProperties
 
 
@@ -30,6 +31,9 @@ class CT_Connector(BaseShapeElement):
     _tag_seq = ("p:nvCxnSpPr", "p:spPr", "p:style", "p:extLst")
     nvCxnSpPr = OneAndOnlyOne("p:nvCxnSpPr")
     spPr: CT_ShapeProperties = OneAndOnlyOne("p:spPr")  # pyright: ignore[reportAssignmentType]
+    style: "CT_ShapeStyle | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:style", successors=("p:extLst",)
+    )
     del _tag_seq
 
     @classmethod

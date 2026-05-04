@@ -416,6 +416,19 @@ register_element_cls("a:headEnd", CT_LineEndProperties)
 register_element_cls("a:tailEnd", CT_LineEndProperties)
 
 
+from pptx.oxml.dml.shape_style import (  # noqa: E402
+    CT_FontReference,
+    CT_ShapeStyle,
+    CT_StyleMatrixReference,
+)
+
+register_element_cls("a:effectRef", CT_StyleMatrixReference)
+register_element_cls("a:fillRef", CT_StyleMatrixReference)
+register_element_cls("a:fontRef", CT_FontReference)
+register_element_cls("a:lnRef", CT_StyleMatrixReference)
+register_element_cls("p:style", CT_ShapeStyle)
+
+
 from pptx.oxml.presentation import (  # noqa: E402
     CT_EmbeddedFontDataId,
     CT_EmbeddedFontList,
