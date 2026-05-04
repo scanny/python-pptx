@@ -2173,6 +2173,167 @@ class Describe_Background(object):
         assert cSld.xml == xml("p:cSld")
 
 
+class Describe_EffectiveBackground(object):
+    """Unit-test suite for `pptx.slide._EffectiveBackground` objects."""
+
+    def it_exposes_its_source_and_owner(self):
+        from pptx.slide import _EffectiveBackground
+
+        slide = Slide(element("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill"), None)
+        eff = _EffectiveBackground("slide", slide)
+
+        assert eff.source == "slide"
+        assert eff.owner is slide
+
+    def it_exposes_the_resolved_bg_element(self):
+        from pptx.slide import _EffectiveBackground
+
+        slide = Slide(element("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill"), None)
+        eff = _EffectiveBackground("slide", slide)
+
+        bg = eff.bg_element
+        assert bg is not None
+        assert bg.tag == qn("p:bg")
+        assert bg is slide._element.cSld.bg
+
+    def it_returns_a_non_destructive_FillFormat_when_bgPr_present(self):
+        from pptx.slide import _EffectiveBackground
+
+        slide = Slide(element("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill"), None)
+        before_xml = slide._element.xml
+
+        eff = _EffectiveBackground("slide", slide)
+        fill = eff.fill
+
+        assert isinstance(fill, FillFormat)
+        # -- reading .fill does not mutate the XML --
+        assert slide._element.xml == before_xml
+
+    def it_returns_None_fill_when_resolved_bg_is_a_bgRef(self):
+        from pptx.slide import _EffectiveBackground
+
+        slide = Slide(element("p:sld/p:cSld/p:bg/p:bgRef"), None)
+        before_xml = slide._element.xml
+
+        eff = _EffectiveBackground("slide", slide)
+
+        assert eff.fill is None
+        # -- reading the bgRef case must not swap p:bgRef for p:bgPr/a:noFill --
+        assert slide._element.xml == before_xml
+
+
+class DescribeSlide_effective_background(object):
+    """Unit-test suite for `Slide.effective_background` inheritance walk."""
+
+    def it_returns_None_when_no_ancestor_has_a_p_bg(self, request):
+        """No slide/layout/master has a p:bg → None."""
+        slide = Slide(element("p:sld/p:cSld"), None)
+        layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        master = SlideMaster(element("p:sldMaster/p:cSld"), None)
+        # -- wire slide.slide_layout and layout.slide_master with property mocks --
+        _mock_property(request, Slide, "slide_layout", return_value=layout)
+        _mock_property(request, SlideLayout, "slide_master", return_value=master)
+
+        assert slide.effective_background is None
+
+    def it_resolves_at_slide_when_slide_has_p_bg(self):
+        slide = Slide(element("p:sld/p:cSld/p:bg/p:bgPr/a:solidFill"), None)
+
+        eff = slide.effective_background
+
+        assert eff is not None
+        assert eff.source == "slide"
+        assert eff.owner is slide
+
+    def it_resolves_at_layout_when_only_layout_has_p_bg(self, request):
+        slide = Slide(element("p:sld/p:cSld"), None)
+        layout = SlideLayout(
+            element("p:sldLayout/p:cSld/p:bg/p:bgPr/a:solidFill"), None
+        )
+        _mock_property(request, Slide, "slide_layout", return_value=layout)
+
+        eff = slide.effective_background
+
+        assert eff is not None
+        assert eff.source == "layout"
+        assert eff.owner is layout
+
+    def it_resolves_at_master_when_only_master_has_p_bg(self, request):
+        slide = Slide(element("p:sld/p:cSld"), None)
+        layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        master = SlideMaster(element("p:sldMaster/p:cSld/p:bg/p:bgRef"), None)
+        _mock_property(request, Slide, "slide_layout", return_value=layout)
+        _mock_property(request, SlideLayout, "slide_master", return_value=master)
+
+        eff = slide.effective_background
+
+        assert eff is not None
+        assert eff.source == "master"
+        assert eff.owner is master
+
+
+class DescribeSlideLayout_effective_background(object):
+    """Unit-test suite for `SlideLayout.effective_background`."""
+
+    def it_returns_None_when_neither_layout_nor_master_has_p_bg(self, request):
+        layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        master = SlideMaster(element("p:sldMaster/p:cSld"), None)
+        _mock_property(request, SlideLayout, "slide_master", return_value=master)
+
+        assert layout.effective_background is None
+
+    def it_resolves_at_layout_when_layout_has_p_bg(self):
+        layout = SlideLayout(
+            element("p:sldLayout/p:cSld/p:bg/p:bgPr/a:solidFill"), None
+        )
+
+        eff = layout.effective_background
+
+        assert eff is not None
+        assert eff.source == "layout"
+        assert eff.owner is layout
+
+    def it_resolves_at_master_when_only_master_has_p_bg(self, request):
+        layout = SlideLayout(element("p:sldLayout/p:cSld"), None)
+        master = SlideMaster(element("p:sldMaster/p:cSld/p:bg/p:bgRef"), None)
+        _mock_property(request, SlideLayout, "slide_master", return_value=master)
+
+        eff = layout.effective_background
+
+        assert eff is not None
+        assert eff.source == "master"
+        assert eff.owner is master
+
+
+class DescribeSlideMaster_effective_background(object):
+    """Unit-test suite for `SlideMaster.effective_background`."""
+
+    def it_returns_None_when_master_has_no_p_bg(self):
+        master = SlideMaster(element("p:sldMaster/p:cSld"), None)
+
+        assert master.effective_background is None
+
+    def it_wraps_its_own_p_bg_when_present(self):
+        master = SlideMaster(element("p:sldMaster/p:cSld/p:bg/p:bgRef"), None)
+
+        eff = master.effective_background
+
+        assert eff is not None
+        assert eff.source == "master"
+        assert eff.owner is master
+
+
+def _mock_property(request, cls, name, return_value):
+    """Patch `cls.name` as a property that always returns `return_value`."""
+    from unittest import mock as _mock
+
+    patcher = _mock.patch.object(cls, name, new_callable=_mock.PropertyMock)
+    prop_mock = patcher.start()
+    prop_mock.return_value = return_value
+    request.addfinalizer(patcher.stop)
+    return prop_mock
+
+
 class Describe_resolve_theme_colors(object):
     """Unit-test suite for `pptx.slide._resolve_theme_colors` helper."""
 

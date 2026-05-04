@@ -180,6 +180,7 @@ prs.save("out.pptx")
 - `Slide.is_hidden` — Read/write boolean for hidden-slide flag. `[Added in 2026.05.0]`
 - `Slide.follow_master_background` — True when the slide inherits its background from the master / layout.
 - `Slide.background` — `_Background` proxy; exposes `fill` for solid / gradient / picture backgrounds, plus the side-effect-free `bg_element` accessor for the raw `p:bg` element. `[bg_element added in 2026.05.0]`
+- `Slide.effective_background` — Side-effect-free `_EffectiveBackground` view that walks `slide → layout → master` and returns the rendered background of the first ancestor with a `p:bg`. Exposes `.source` (`"slide"` / `"layout"` / `"master"`), `.owner`, `.bg_element`, and `.fill` (non-destructive `FillFormat`, or `None` for a `p:bgRef` style reference). Fixes #809. `SlideLayout.effective_background` and `SlideMaster.effective_background` provide the analogous walk on layouts and masters. `[Added in 2026.05.0]`
 - `Slide.copy_background_from(source_slide)` — Deep-copy the source slide's `p:bg` subtree onto this slide (or restore inheritance if the source inherits). `[Added in 2026.05.0]`
 
 - `Slide.follow_master_background` / `Slide.follow_master_background()` — Dual-form attribute. Read it as a bool — True when the slide inherits its background from the master / layout, False when the slide carries an explicit `p:bg`. Call it (`slide.follow_master_background()`) to revert an overridden background to master inheritance — PowerPoint's *Reset Background* button equivalent. The callable form was `[Added in 2026.05.0.dev0]`.
@@ -205,6 +206,7 @@ prs.save("out.pptx")
 - `Slide.show_master_shapes` (read/write `bool`) — `p:sld/@showMasterSp="0"` hides the master's non-placeholder shapes (e.g. a company logo) from this slide; mirrors PowerPoint's *Hide Background Graphics* checkbox. `[Added in 1.0.2.dev0]`
 - `Slide.background` / `Slide.follow_master_background()` — Per-slide background.
 - `Slide.background.bg_element` — Side-effect-free read access to the underlying `p:bg` element; returns `None` when the slide inherits. `[Added in 2026.05.0]`
+- `Slide.effective_background` — Side-effect-free `_EffectiveBackground` view that walks `slide → layout → master` and resolves the rendered background (including inherited layout / master colors). Fixes #809. `[Added in 2026.05.0]`
 - `Slide.copy_background_from(source_slide)` — Deep-copy the source slide's `p:bg` markup onto this slide; inheriting source restores inheritance on the destination. `[Added in 2026.05.0]`
 - `Slide.has_notes_slide` / `Slide.notes_slide` — Lazy notes page.
 - `Slide.find_shapes_by_xpath(xpath_expr)` — Evaluate a namespaced XPath against `p:spTree` and return matching shapes. `[Added in 1.0.2.dev0]`

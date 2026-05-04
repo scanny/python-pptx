@@ -279,6 +279,49 @@ class Slide(_BaseSlide):
         return SlideTags(self.part)
 
     @property
+    def effective_background(self) -> _EffectiveBackground | None:
+        """Resolved :class:`_EffectiveBackground` from the inheritance chain, or |None|.
+
+        Walks ``slide → layout → master`` in that order and returns a
+        read-only |_EffectiveBackground| view of the first ancestor that
+        carries an explicit ``p:bg`` child. Returns |None| when no ancestor
+        declares a background (a rare case — PowerPoint-authored decks
+        almost always carry a master-level ``p:bg``).
+
+        Complements the side-effect-prone :attr:`Slide.background` accessor
+        (whose :attr:`~_Background.fill` materializes ``p:bgPr/a:noFill``
+        on first read, clobbering inheritance). :attr:`effective_background`
+        lets callers **read** the rendered background without disturbing
+        the XML — in particular::
+
+            >>> slide.effective_background.fill.fore_color.rgb  # safe
+
+        resolves the inherited layout / master color when the slide has
+        no ``p:bg`` of its own. Fixes the round-trip read path reported in
+        issue #809.
+
+        .. versionadded:: 2026.05.0
+        """
+        # -- 1. slide itself --
+        if self._element.cSld.bg is not None:
+            return _EffectiveBackground("slide", self)
+        # -- 2. layout --
+        try:
+            layout = self.slide_layout
+        except (AttributeError, KeyError):  # pragma: no cover - defensive
+            return None
+        if layout._element.cSld.bg is not None:  # pyright: ignore[reportPrivateUsage]
+            return _EffectiveBackground("layout", layout)
+        # -- 3. master --
+        try:
+            master = layout.slide_master
+        except (AttributeError, KeyError):  # pragma: no cover - defensive
+            return None
+        if master._element.cSld.bg is not None:  # pyright: ignore[reportPrivateUsage]
+            return _EffectiveBackground("master", master)
+        return None
+
+    @property
     def follow_master_background(self) -> _FollowMasterBackground:
         """|True| if this slide inherits the slide master background.
 
@@ -942,6 +985,31 @@ class SlideLayout(_BaseSlide):
     _element: CT_SlideLayout  # pyright: ignore[reportIncompatibleVariableOverride]
     part: SlideLayoutPart  # pyright: ignore[reportIncompatibleMethodOverride]
 
+    @property
+    def effective_background(self) -> _EffectiveBackground | None:
+        """Resolved :class:`_EffectiveBackground` from the layout inheritance chain, or |None|.
+
+        Walks ``layout → master`` in that order and returns a read-only
+        |_EffectiveBackground| view of the first ancestor that carries an
+        explicit ``p:bg`` child. Returns |None| when neither the layout
+        nor its master declares a background.
+
+        See :attr:`Slide.effective_background` for the slide-level
+        analogue and the ``p:bg`` / ``p:bgRef`` semantics. This accessor
+        is side-effect free — unlike :attr:`SlideLayout.background`.
+
+        .. versionadded:: 2026.05.0
+        """
+        if self._element.cSld.bg is not None:
+            return _EffectiveBackground("layout", self)
+        try:
+            master = self.slide_master
+        except (AttributeError, KeyError):  # pragma: no cover - defensive
+            return None
+        if master._element.cSld.bg is not None:  # pyright: ignore[reportPrivateUsage]
+            return _EffectiveBackground("master", master)
+        return None
+
     @lazyproperty
     def header_footer(self) -> _HeaderFooter:
         """|_HeaderFooter| object controlling header/footer/slide-number/date visibility.
@@ -1219,6 +1287,26 @@ class SlideMaster(_BaseMaster):
     _element: CT_SlideMaster  # pyright: ignore[reportIncompatibleVariableOverride]
 
     part: SlideMasterPart  # pyright: ignore[reportIncompatibleMethodOverride]
+
+    @property
+    def effective_background(self) -> _EffectiveBackground | None:
+        """Resolved :class:`_EffectiveBackground` of this master, or |None| when absent.
+
+        The master is the top of the background inheritance chain, so this
+        accessor simply wraps the master's own ``p:bg`` (if any) in a
+        read-only |_EffectiveBackground| view. Returns |None| when the
+        master carries no explicit background.
+
+        Included for completeness with :attr:`Slide.effective_background`
+        and :attr:`SlideLayout.effective_background` so callers that walk
+        slide-like objects polymorphically can read the rendered
+        background without reaching into the subclass hierarchy.
+
+        .. versionadded:: 2026.05.0
+        """
+        if self._element.cSld.bg is None:
+            return None
+        return _EffectiveBackground("master", self)
 
     def add_layout(self, name: str, based_on: SlideLayout | None = None) -> SlideLayout:
         """Return a new |SlideLayout| created on this master with `name`.
@@ -2435,6 +2523,83 @@ class _Background(ElementProxy):
         bgPr = self._cSld.get_or_add_bgPr()
         part = self._parent if self._parent is not None else None
         return FillFormat.from_fill_parent(bgPr, part)
+
+
+class _EffectiveBackground:
+    """Read-only view of the slide background PowerPoint would actually render.
+
+    Unlike :class:`_Background` — which is bound to a single slide / layout /
+    master and is side-effect-prone (its :attr:`~_Background.fill` accessor
+    materializes a ``p:bgPr/a:noFill`` subtree on first read) — an
+    |_EffectiveBackground| resolves the inheritance chain
+    *slide → layout → master* and exposes the first ancestor that carries an
+    explicit ``p:bg``. Access is purely read-only: no accessor on this class
+    mutates the underlying XML.
+
+    Returned from :attr:`Slide.effective_background` (and
+    :attr:`SlideLayout.effective_background` /
+    :attr:`SlideMaster.effective_background`). Instances are not constructed
+    by client code.
+
+    .. versionadded:: 2026.05.0
+    """
+
+    def __init__(self, source: str, owner: _BaseSlide):
+        self._source = source
+        self._owner = owner
+
+    @property
+    def source(self) -> str:
+        """``"slide"``, ``"layout"``, or ``"master"`` — which ancestor supplied the background.
+
+        Lets callers tell whether the rendered background is a slide-level
+        override (``"slide"``), inherited from the layout (``"layout"``), or
+        inherited from the master (``"master"``). See
+        :attr:`Slide.effective_background`.
+        """
+        return self._source
+
+    @property
+    def owner(self) -> _BaseSlide:
+        """The slide-like object (|Slide| / |SlideLayout| / |SlideMaster|) that owns the `p:bg`.
+
+        Useful when the caller wants to operate on the explicit background
+        with the full :class:`_Background` surface — for example,
+        ``effective.owner.background.fill`` walks back to the mutable
+        proxy. Reading this property does not mutate anything.
+        """
+        return self._owner
+
+    @property
+    def bg_element(self) -> CT_Background:
+        """The underlying ``p:bg`` element that supplies the rendered background.
+
+        Guaranteed to be non-|None| — an |_EffectiveBackground| is only
+        produced when a ``p:bg`` was resolved in the inheritance chain.
+        """
+        bg = self._owner._element.cSld.bg  # pyright: ignore[reportPrivateUsage]
+        assert bg is not None  # guaranteed by the factory
+        return bg
+
+    @property
+    def fill(self) -> FillFormat | None:
+        """|FillFormat| reading the resolved ``p:bg/p:bgPr`` non-destructively.
+
+        Returns |None| when the resolved ``p:bg`` carries a ``p:bgRef``
+        (a theme-keyed background-style reference) instead of an explicit
+        ``p:bgPr`` — ``p:bgRef`` is not an :class:`FillFormat` surface and
+        has no directly-readable ``fore_color``. Callers that need to
+        inspect a style reference can read :attr:`bg_element` directly.
+
+        Unlike :attr:`_Background.fill`, reading this property is
+        **side-effect free**: the underlying XML is not modified, so the
+        inheritance link remains intact.
+        """
+        bg = self.bg_element
+        bgPr = bg.bgPr
+        if bgPr is None:
+            return None
+        return FillFormat.from_fill_parent(bgPr, self._owner)
 
 
 def _parse_theme_element(theme_part: Part) -> BaseOxmlElement | None:

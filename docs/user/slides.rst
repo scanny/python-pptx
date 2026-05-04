@@ -497,6 +497,48 @@ reference keyed on the master theme is copied verbatim, so copying a
 theme-bound background between presentations with different masters may
 yield unresolved style references.
 
+**Reading the rendered background — inheritance-aware**::
+
+    >>> # the slide itself has no p:bg — background is inherited
+    >>> slide.background.bg_element
+    None
+    >>> eff = slide.effective_background
+    >>> eff.source
+    'layout'                      # this slide inherits from its layout
+    >>> eff.fill.fore_color.rgb
+    RGBColor(0xFF, 0x00, 0x00)    # the layout's color
+
+:attr:`.Slide.effective_background` walks the inheritance chain
+*slide → layout → master* and returns a side-effect-free
+:class:`.Slide._EffectiveBackground` view of the first ancestor carrying
+an explicit ``p:bg``. Unlike :attr:`.Slide.background`, reading through
+this proxy does **not** materialize a ``p:bgPr/a:noFill`` subtree on the
+slide, so inheritance stays intact. Use it whenever you need to
+**read** the background color (or other fill properties) PowerPoint
+would actually render, including when the color comes from the layout
+or master (issue #809).
+
+The returned proxy exposes:
+
+* :attr:`~pptx.slide._EffectiveBackground.source` — ``"slide"``,
+  ``"layout"``, or ``"master"``, indicating which ancestor supplied the
+  resolved background.
+* :attr:`~pptx.slide._EffectiveBackground.owner` — the slide-like
+  object (|Slide| / |SlideLayout| / |SlideMaster|) owning the ``p:bg``.
+* :attr:`~pptx.slide._EffectiveBackground.bg_element` — the resolved
+  ``p:bg`` lxml element.
+* :attr:`~pptx.slide._EffectiveBackground.fill` — a
+  :class:`.FillFormat` reading the ``p:bg/p:bgPr`` non-destructively,
+  or |None| when the resolved ``p:bg`` wraps a theme-keyed ``p:bgRef``
+  (a background-style reference has no directly-readable color).
+
+:attr:`.Slide.effective_background` returns |None| only when neither
+the slide nor its layout nor its master declares a background — a rare
+case, since PowerPoint-authored decks almost always carry a master-level
+``p:bg``. :attr:`.SlideLayout.effective_background` and
+:attr:`.SlideMaster.effective_background` provide the analogous walk on
+their respective slide-like objects.
+
 **The slide layout**::
 
     >>> layout = slide.slide_layout
