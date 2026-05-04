@@ -29,6 +29,14 @@ lists the public methods, properties, and classes that make up that surface.
 Items marked `[Added in 2026.05.0]` are additions from this fork — every
 other item is inherited from the upstream base.
 
+The fork's upstream-issue audit has now classified every open item on
+`scanny/python-pptx` into one of two buckets: substantive gaps that were
+closed by a shipped feature or verify-close regression test (recorded here
+and in `HISTORY.rst`), and non-gaps — usage questions, out-of-scope
+requests, environment bugs, corrupt source files, and duplicates — which
+are catalogued one-liner-per-issue in
+[`docs/community/issue-triage.rst`](docs/community/issue-triage.rst).
+
 **Table of contents**
 
 - [Opening and saving presentations](#opening-and-saving-presentations)

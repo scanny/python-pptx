@@ -57,11 +57,14 @@ additions marked `[Added in <version>.dev0]`) lives in `FEATURES.md`.
 
 **Actively maintained** on `loadfix/python-pptx`. This fork is under
 continuous development: upstream issues from `scanny/python-pptx` are
-triaged and addressed here, and the fork ships 300+ audited-issue
+triaged and addressed here, and the fork ships 340+ audited-issue
 capabilities layered on top of upstream `1.0.2`. See `FEATURES.md` for
 the single-page capability catalogue (fork-era additions are marked
 `[Added in <version>.dev0]`) and `HISTORY.rst` for the user-visible
-changelog.
+changelog. The remaining upstream issues that do not represent a code
+gap in this fork (usage questions, out-of-scope requests, environment
+bugs, corrupt source files, duplicates) are catalogued in
+`docs/community/issue-triage.rst` with a one-line disposition each.
 
 Unstable. Not yet published to PyPI — install from source only. Current
 version: `2026.05.0`; versioning is CalVer (`YYYY.MM.patch`). The public

@@ -20,7 +20,7 @@ It can also be used to simply automate the production of a slide or two that wou
 tedious to get right by hand, which is how this all got started.
 
 This is a fork of `scanny/python-pptx <https://github.com/scanny/python-pptx>`_
-(upstream ``1.0.2``, 2024-08-07), extended with 190+ additional OOXML features. See
+(upstream ``1.0.2``, 2024-08-07), extended with 400+ additional OOXML features. See
 the project `README <https://github.com/loadfix/python-pptx/blob/master/README.md>`_
 and `FEATURES.md <https://github.com/loadfix/python-pptx/blob/master/FEATURES.md>`_
 for the full catalogue of capabilities.
@@ -188,6 +188,7 @@ Community Guide
    community/faq
    community/support
    community/updates
+   community/issue-triage
 
 
 .. _api:

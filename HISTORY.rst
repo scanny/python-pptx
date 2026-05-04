@@ -16,6 +16,23 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: triage 107 audit non-gap items — consolidated disposition page
+  under ``docs/community/issue-triage.rst``, plus regression tests in
+  ``tests/test_non_gap_triage.py`` that pin ~15 items whose "missing
+  feature" complaint is in fact satisfied by shipped APIs (``#473``
+  value-axis visibility, ``#538`` notes + comments, ``#540``
+  per-point data labels, ``#541``/``#553`` ``Picture.image.blob``,
+  ``#564`` table-cell highlight colour, ``#614`` shape fill fore
+  colour, ``#665``/``#968`` line-chart ``None`` gaps, ``#671``
+  ``Slide.name`` round-trip, ``#680`` ``Chart.replace_data``, ``#684``
+  run replace-text formatting preservation, ``#710``
+  ``line_spacing=Pt()``, ``#729`` ``Length`` arithmetic, ``#794``
+  bubble scale, ``#841`` ``Shape.shadow``, ``#962`` run hyperlinks,
+  ``#1050`` file-like binary-mode open). Closes the audit backlog:
+  every one of the 444 audited upstream issues now has either a
+  shipped-feature record in ``FEATURES.md``, a verify-close test, or
+  a disposition entry in the triage page.
+
 - docs: #870 project status — active maintenance note in README and
   updates.rst. Issue #870
   (https://github.com/scanny/python-pptx/issues/870) asked whether
