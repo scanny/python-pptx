@@ -123,6 +123,28 @@ This class is not intended to be constructed directly.
    :undoc-members:
 
 
+|_EffectiveBackground| objects
+------------------------------
+
+An ``_EffectiveBackground`` object is returned by the ``effective_background``
+property on a |Slide|, |SlideLayout|, or |SlideMaster|. Unlike |_Background|,
+reading through this proxy is side-effect free: no accessor materializes a
+``p:bgPr/a:noFill`` subtree on the underlying XML. It resolves the
+inheritance chain *slide → layout → master* and exposes the first ancestor
+carrying an explicit ``p:bg`` child.
+
+This addresses the read path reported in issue #809 — callers that only
+want to *read* the background PowerPoint would render (including inherited
+layout / master backgrounds) should prefer ``effective_background`` over
+``background``, whose ``.fill`` accessor is destructive.
+
+This class is not intended to be constructed directly.
+
+.. autoclass:: pptx.slide._EffectiveBackground()
+   :members:
+   :undoc-members:
+
+
 |SlideMasters| objects
 ----------------------
 

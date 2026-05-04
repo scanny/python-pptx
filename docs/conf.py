@@ -92,6 +92,8 @@ rst_epilog = """
 
 .. |_Background| replace:: :class:`._Background`
 
+.. |_EffectiveBackground| replace:: :class:`._EffectiveBackground`
+
 .. |BarPlot| replace:: :class:`.BarPlot`
 
 .. |BarSeries| replace:: :class:`.BarSeries`

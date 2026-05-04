@@ -14,6 +14,23 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #809 add ``Slide.effective_background`` for inheritance-aware
+  reads. Issue #809
+  (https://github.com/scanny/python-pptx/issues/809) reported that a
+  slide whose layout carries a solid-color ``p:bg`` could not be
+  interrogated for its rendered color — ``slide.background.fill``
+  destructively materializes a ``p:bgPr/a:noFill`` subtree on first
+  read, silently clobbering the inheritance link. The new
+  ``Slide.effective_background`` (plus ``SlideLayout.effective_background``
+  and ``SlideMaster.effective_background``) walks *slide → layout →
+  master* and returns a side-effect-free
+  ``pptx.slide._EffectiveBackground`` view of the first ancestor
+  carrying an explicit ``p:bg``. The proxy exposes ``.source``
+  (``"slide"`` / ``"layout"`` / ``"master"``), ``.owner``,
+  ``.bg_element``, and ``.fill`` (``None`` for a ``p:bgRef`` style
+  reference). Reading through the proxy does not mutate the underlying
+  XML, so inheritance stays intact.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

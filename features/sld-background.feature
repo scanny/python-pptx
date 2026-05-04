@@ -38,3 +38,26 @@ Feature: slide background
       And a source Slide object with no explicit background
      When I call slide.copy_background_from(source)
      Then the destination slide has no explicit p:bg element
+
+
+  Scenario: Slide.effective_background resolves at the slide level when set
+    Given a slide with its own explicit fill background
+     Then slide.effective_background.source is "slide"
+      And slide.effective_background.fill reads the slide color
+
+
+  Scenario: Slide.effective_background resolves at the layout level when inherited
+    Given a slide inheriting a layout-level fill background
+     Then slide.effective_background.source is "layout"
+      And slide.effective_background.fill reads the layout color
+
+
+  Scenario: Slide.effective_background falls through to the master when needed
+    Given a slide with no explicit background and no layout background
+     Then slide.effective_background.source is "master"
+
+
+  Scenario: Reading Slide.effective_background is side-effect free
+    Given a slide inheriting a layout-level fill background
+     When I read slide.effective_background.fill.fore_color.rgb
+     Then the slide still has no explicit p:bg element
