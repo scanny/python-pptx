@@ -78,13 +78,49 @@ class TextFrame(Subshape):
         self._element = self._txBody = txBody
         self._parent = parent
 
-    def add_paragraph(self):
+    def add_paragraph(
+        self,
+        text: str | None = None,
+        *,
+        bold: bool | None = None,
+        italic: bool | None = None,
+        size: Length | int | None = None,
+        color: RGBColor | MSO_THEME_COLOR | None = None,
+        font_name: str | None = None,
+    ) -> _Paragraph:
+        """Return a new |_Paragraph| appended to this text frame's paragraphs.
+
+        When `text` is not |None|, a single run (`a:r`) is created inside the new paragraph
+        carrying that text. Any run-level formatting kwargs (`bold`, `italic`, `size`,
+        `color`, `font_name`) are applied to that run's |Font|. All run-level kwargs are
+        keyword-only.
+
+        `size` accepts a |Length| (use :class:`~pptx.util.Pt` for points). `color` accepts
+        an |RGBColor| (explicit RGB) or a member of :class:`MSO_THEME_COLOR`. Passing any
+        run-level kwarg without `text` raises ``ValueError`` — there is no run to apply it
+        to. See issue #134.
         """
-        Return new |_Paragraph| instance appended to the sequence of
-        paragraphs contained in this text frame.
-        """
+        has_run_kwarg = any(v is not None for v in (bold, italic, size, color, font_name))
+        if text is None and has_run_kwarg:
+            raise ValueError(
+                "run-level formatting kwargs (bold, italic, size, color, font_name) "
+                "require `text` to be supplied as well"
+            )
         p = self._txBody.add_p()
-        return _Paragraph(p, self)
+        paragraph = _Paragraph(p, self)
+        if text is not None:
+            # -- delegate text / formatting to _Paragraph.add_run so the
+            # -- kwarg semantics stay in one place. add_paragraph's contract
+            # -- is to return the paragraph, not the run.
+            paragraph.add_run(
+                text,
+                bold=bold,
+                italic=italic,
+                size=size,
+                color=color,
+                font_name=font_name,
+            )
+        return paragraph
 
     @property
     def auto_size(self) -> MSO_AUTO_SIZE | None:
@@ -1158,6 +1194,53 @@ class _FontColorFormat(_ColorFormat):
         )  # pyright: ignore[reportOptionalCall]
 
 
+def _apply_font_kwargs(
+    font: Font,
+    *,
+    bold: bool | None,
+    italic: bool | None,
+    size: Length | int | None,
+    color: object,
+    font_name: str | None,
+) -> None:
+    """Apply the shorthand run-level kwargs from `add_run` / `add_paragraph` to `font`.
+
+    Only non-|None| values are applied, leaving untouched attributes to continue
+    inheriting from their style hierarchy. `size` accepts any |Length| or raw int EMU.
+    `color` is dispatched by type: an |RGBColor| sets ``font.color.rgb``; a member of
+    :class:`~pptx.enum.dml.MSO_THEME_COLOR_INDEX` sets ``font.color.theme_color``.
+    `color` is annotated as ``object`` here because both public entry points
+    (``TextFrame.add_paragraph`` and ``_Paragraph.add_run``) narrow to the
+    declared union but run-time user input may violate that — we still want to
+    surface a clear ``TypeError`` rather than an opaque attribute error.
+    See issue #134.
+    """
+    # -- delayed imports avoid a circular dependency: pptx.dml.color imports
+    # -- from pptx.text indirectly through the proxy object graph.
+    from pptx.dml.color import RGBColor as _RGBColor
+    from pptx.enum.dml import MSO_THEME_COLOR_INDEX as _MSO_THEME_COLOR_INDEX
+
+    if bold is not None:
+        font.bold = bold
+    if italic is not None:
+        font.italic = italic
+    if size is not None:
+        font.size = size if isinstance(size, Length) else Emu(size)
+    if font_name is not None:
+        font.name = font_name
+    if color is None:
+        return
+    if isinstance(color, _RGBColor):
+        font.color.rgb = color
+        return
+    if isinstance(color, _MSO_THEME_COLOR_INDEX):
+        font.color.theme_color = color
+        return
+    raise TypeError(
+        "`color` must be an RGBColor or MSO_THEME_COLOR member, got " f"{type(color).__name__}"
+    )
+
+
 def _resolve_solid_fill_rgb(rPr_like, theme_colors):
     """Return resolved |RGBColor| for `rPr_like/a:solidFill`, or |None|.
 
@@ -1606,10 +1689,43 @@ class _Paragraph(Subshape):
         """
         self._p.add_math_equation(omml_xml)
 
-    def add_run(self) -> _Run:
-        """Return a new run appended to the runs in this paragraph."""
+    def add_run(
+        self,
+        text: str | None = None,
+        *,
+        bold: bool | None = None,
+        italic: bool | None = None,
+        size: Length | int | None = None,
+        color: RGBColor | MSO_THEME_COLOR | None = None,
+        font_name: str | None = None,
+    ) -> _Run:
+        """Return a new run appended to the runs in this paragraph.
+
+        When `text` is not |None`, the new run's text is set to `text`. Any run-level
+        formatting kwargs (`bold`, `italic`, `size`, `color`, `font_name`) are applied
+        to the new run's |Font|. All run-level kwargs are keyword-only. `size` accepts
+        a |Length| value (use :class:`~pptx.util.Pt` for points). `color` accepts an
+        |RGBColor| (explicit RGB) or a member of :class:`MSO_THEME_COLOR`. See issue
+        #134.
+        """
         r = self._p.add_r()
-        return _Run(r, self)
+        run = _Run(r, self)
+        if text is not None:
+            run.text = text
+        # -- touch `run.font` only when a run-level kwarg is present; otherwise
+        # -- a bare `add_run()` would spuriously create an `a:rPr`, breaking
+        # -- the pre-existing XML-shape contract and regressing existing tests.
+        has_run_kwarg = any(v is not None for v in (bold, italic, size, color, font_name))
+        if has_run_kwarg:
+            _apply_font_kwargs(
+                run.font,
+                bold=bold,
+                italic=italic,
+                size=size,
+                color=color,
+                font_name=font_name,
+            )
+        return run
 
     @property
     def alignment(self) -> PP_PARAGRAPH_ALIGNMENT | None:

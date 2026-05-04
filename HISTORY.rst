@@ -180,6 +180,17 @@ Unreleased
   depth; for a slide that contains no groups it yields the same sequence
   as ``iter(shapes)``.
 
+- feat: #134 ``TextFrame.add_paragraph(text, *, bold, italic, size, color,
+  font_name)`` and ``_Paragraph.add_run(text, *, bold, italic, size, color,
+  font_name)`` accept the text and common run-level formatting in one call,
+  collapsing the previous three-line ``p = tf.add_paragraph(); p.text = ...``
+  / ``run = p.add_run(); run.text = ...; run.font.bold = True`` idiom. All
+  formatting kwargs are keyword-only; ``color`` accepts an ``RGBColor`` or a
+  member of ``MSO_THEME_COLOR``. Passing a run-level kwarg to
+  ``add_paragraph`` without ``text`` raises ``ValueError`` (there is no run
+  to apply it to). The bare no-argument calls remain fully backwards
+  compatible.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new
