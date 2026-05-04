@@ -56,6 +56,11 @@ def when_I_assign_member_to_picture_auto_shape_type(context, member):
     context.picture.auto_shape_type = getattr(MSO_AUTO_SHAPE_TYPE, member)
 
 
+@when("I assign {value} to picture.transparency")
+def when_I_assign_value_to_picture_transparency(context, value):
+    context.picture.transparency = float(value)
+
+
 # then ====================================================
 
 
@@ -93,3 +98,10 @@ def then_image_ext_eq(context, expected):
 def then_image_content_type_eq(context, expected):
     actual = context.image.content_type
     assert actual == expected, "image.content_type == %r" % actual
+
+
+@then("picture.transparency == {expected}")
+def then_picture_transparency_eq(context, expected):
+    expected_value = float(expected)
+    actual = context.picture.transparency
+    assert abs(actual - expected_value) < 1e-6, "picture.transparency == %r" % actual

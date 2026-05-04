@@ -11,6 +11,7 @@ from pptx.oxml.shapes.shared import BaseShapeElement
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, ZeroOrOne
 
 if TYPE_CHECKING:
+    from pptx.oxml.dml.fill import CT_BlipFillProperties
     from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes.shared import CT_ShapeProperties
     from pptx.util import Length
@@ -23,7 +24,9 @@ class CT_Picture(BaseShapeElement):
     """
 
     nvPicPr = OneAndOnlyOne("p:nvPicPr")
-    blipFill = ZeroOrOne("p:blipFill", successors=("p:spPr",))
+    blipFill: "CT_BlipFillProperties | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:blipFill", successors=("p:spPr",)
+    )
     spPr: CT_ShapeProperties = OneAndOnlyOne("p:spPr")  # pyright: ignore[reportAssignmentType]
     style: "CT_ShapeStyle | None" = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
         "p:style", successors=("p:extLst",)

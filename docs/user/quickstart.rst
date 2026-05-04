@@ -162,6 +162,20 @@ before setting the text it contains.
 
 .. note::
 
+    A picture's transparency can be adjusted via the read/write
+    :attr:`~pptx.shapes.picture.Picture.transparency` property, expressed as a
+    percentage in ``[0.0, 100.0]``. This corresponds to the *Picture
+    Transparency* slider in PowerPoint's Format Picture pane::
+
+        pic = slide.shapes.add_picture(img_path, left, top)
+        pic.transparency = 50.0   # 50 % transparent
+        pic.transparency = 0      # fully opaque (removes the effect)
+
+    ``0`` means fully opaque (the default) and ``100`` means fully
+    transparent.
+
+.. note::
+
     Animated GIFs inserted with ``add_picture()`` display only the first
     frame in edit view and in many third-party renderers. PowerPoint for
     Windows animates the GIF when the deck is running in slideshow mode;
