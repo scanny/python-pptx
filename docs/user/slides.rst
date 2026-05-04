@@ -389,6 +389,80 @@ master-level shared shapes by assigning
 ``slide.show_master_shapes = False``.
 
 
+Adding a watermark
+------------------
+
+A "watermark" in PowerPoint is typically a semi-transparent picture or
+a lightly-colored piece of text that shows through on every slide of
+the deck (issue #793). PowerPoint itself doesn't have a dedicated
+watermark feature — authors add the watermark to the *slide master*
+so that every slide inheriting from that master displays it. The same
+approach works in python-pptx using the shared-shapes machinery
+covered in the previous section plus :attr:`.Picture.transparency`.
+
+**Picture watermark**
+
+Add the image to ``prs.slide_master.shapes`` and dial back its opacity
+with :attr:`~pptx.shapes.picture.Picture.transparency` (a percentage in
+``[0.0, 100.0]`` — ``0`` is fully opaque, ``100`` is invisible)::
+
+    from pptx import Presentation
+    from pptx.util import Inches
+
+    prs = Presentation()
+    master = prs.slide_masters[0]
+
+    # -- centered on a 10" x 7.5" slide, roomy enough to read through --
+    pic = master.shapes.add_picture(
+        "company-logo.png", Inches(3), Inches(2.25), Inches(4), Inches(3)
+    )
+    pic.transparency = 80.0                    # 80% transparent
+
+    prs.slides.add_slide(prs.slide_layouts[1])
+    prs.save("deck.pptx")                      # watermark shows on every slide
+
+The watermark is authored once on the master; any slide created from
+any layout under that master picks it up automatically, with no
+per-slide bookkeeping.
+
+**Text watermark**
+
+When a simple "DRAFT", "CONFIDENTIAL", or "SAMPLE" text stamp is
+enough, a large lightly-colored textbox on the master works the same
+way::
+
+    from pptx import Presentation
+    from pptx.dml.color import RGBColor
+    from pptx.util import Inches, Pt
+
+    prs = Presentation()
+    master = prs.slide_masters[0]
+
+    tb = master.shapes.add_textbox(Inches(1), Inches(3), Inches(8), Inches(1.5))
+    tf = tb.text_frame
+    tf.text = "DRAFT"
+    run = tf.paragraphs[0].runs[0]
+    run.font.size = Pt(96)
+    run.font.color.rgb = RGBColor(0xC0, 0xC0, 0xC0)   # light gray
+
+    prs.save("deck.pptx")
+
+Use :attr:`~pptx.dml.color.ColorFormat.alpha` on the run color for an
+even subtler effect — the text is drawn at the chosen color with
+per-pixel translucency, layered over the slide's own content.
+
+**Excluding the watermark from a single slide**
+
+A title slide or cover slide often shouldn't carry the watermark.
+Because the watermark is a master shape, opting out on one slide is a
+single assignment::
+
+    title_slide = prs.slides[0]
+    title_slide.show_master_shapes = False   # hides *all* master shapes
+
+See :attr:`.Slide.show_master_shapes` above for the full semantics.
+
+
 Header, footer, slide number, and date placeholders
 ---------------------------------------------------
 

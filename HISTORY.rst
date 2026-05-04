@@ -14,6 +14,19 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #793 watermark recipe using MasterShapes + Picture.transparency.
+  Issue #793 (https://github.com/scanny/python-pptx/issues/793) asked
+  how to add a watermark that appears on every slide. PowerPoint's
+  convention is to author the watermark on the slide master so every
+  inheriting slide picks it up; the ``docs/user/slides.rst`` "Adding a
+  watermark" section now walks through the two common variants — a
+  transparent picture via ``prs.slide_masters[0].shapes.add_picture``
+  plus :attr:`.Picture.transparency`, or a lightly-colored textbox via
+  ``master.shapes.add_textbox`` — plus the
+  :attr:`.Slide.show_master_shapes` opt-out for the title slide. A new
+  ``tests/test_issue_793_watermark_recipe.py`` regression suite pins
+  the code paths the recipe depends on. No public-API change.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
