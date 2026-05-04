@@ -22,7 +22,6 @@ Unreleased
   or ``ooxml-validate`` is absent; the new docs section explains how
   to wire both in for contributors running the full drift guard.
 
-<<<<<<< HEAD
 - chore(types): cleanup ~65 pyright strict-mode errors across
   ``src/pptx/api.py``, ``src/pptx/animation.py``,
   ``src/pptx/oxml/chart/series.py``, ``src/pptx/oxml/text.py``,
