@@ -595,11 +595,9 @@ class TcRange(object):
         return height, width
 
     @lazyproperty
-    def in_same_table(self):
+    def in_same_table(self) -> bool:
         """True if both cells provided to constructor are in same table."""
-        if self._tc.tbl is self._other_tc.tbl:
-            return True
-        return False
+        return self._tc.tbl is self._other_tc.tbl
 
     @lazyproperty
     def spans_all_columns(self) -> bool:

@@ -236,7 +236,7 @@ class CT_GroupShape(BaseShapeElement):
         This method is recursive "upwards" since a change in a group shape
         can change the position and size of its containing group.
         """
-        if not self.tag == qn("p:grpSp"):
+        if self.tag != qn("p:grpSp"):
             return
 
         x, y, cx, cy = self._child_extents

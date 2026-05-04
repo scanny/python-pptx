@@ -25,11 +25,10 @@ from pptx.util import lazyproperty
 if TYPE_CHECKING:
     from pptx.chart.data import ChartData
     from pptx.enum.chart import XL_CHART_TYPE
-    from pptx.media import Video
+    from pptx.media import Audio, Video
     from pptx.opc.package import Part
     from pptx.oxml.xmlchemy import BaseOxmlElement
     from pptx.package import Package
-    from pptx.media import Audio, Video
     from pptx.parts.image import Image, ImagePart
 
 

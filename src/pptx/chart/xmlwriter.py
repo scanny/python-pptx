@@ -9,7 +9,6 @@ from pptx.enum.chart import XL_CHART_TYPE
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import nsdecls, qn
 
-
 # -- PowerPoint cycles through these six theme-accent colors when assigning default colors to
 # -- chart series. See GitHub issue #529 for details.
 _ACCENT_COLORS = ("accent1", "accent2", "accent3", "accent4", "accent5", "accent6")
@@ -225,7 +224,7 @@ class _BaseSeriesXmlWriter(object):
         in the overall data point sequence of the chart and is started at
         *offset*.
         """
-        xml = ('                <c:ptCount val="{pt_count}"/>\n').format(pt_count=len(values))
+        xml = (f'                <c:ptCount val="{len(values)}"/>\n')
 
         pt_tmpl = (
             '                <c:pt idx="{idx}">\n'
@@ -2720,18 +2719,18 @@ class _PlotFragmentBuilder(object):
         pt_xml = ""
         for idx, label in enumerate(labels):
             pt_xml += (
-                '                <c:pt idx="{idx}">\n'
-                "                  <c:v>{v}</c:v>\n"
+                f'                <c:pt idx="{idx}">\n'
+                f"                  <c:v>{escape(label)}</c:v>\n"
                 "                </c:pt>\n"
-            ).format(idx=idx, v=escape(label))
+            )
         return (
             "          <c:cat>\n"
             "            <c:strLit>\n"
-            '              <c:ptCount val="{count}"/>\n'
-            "{pt_xml}"
+            f'              <c:ptCount val="{len(labels)}"/>\n'
+            f"{pt_xml}"
             "            </c:strLit>\n"
             "          </c:cat>\n"
-        ).format(count=len(labels), pt_xml=pt_xml)
+        )
 
     def _val_xml(self, series):
         """Build a `c:val/c:numLit` element containing numeric series values.
@@ -2745,19 +2744,19 @@ class _PlotFragmentBuilder(object):
             if v is None:
                 continue
             pt_xml += (
-                '                <c:pt idx="{idx}">\n'
-                "                  <c:v>{v}</c:v>\n"
+                f'                <c:pt idx="{idx}">\n'
+                f"                  <c:v>{v}</c:v>\n"
                 "                </c:pt>\n"
-            ).format(idx=idx, v=v)
+            )
         return (
             "          <c:val>\n"
             "            <c:numLit>\n"
-            "              <c:formatCode>{nf}</c:formatCode>\n"
-            '              <c:ptCount val="{count}"/>\n'
-            "{pt_xml}"
+            f"              <c:formatCode>{series.number_format}</c:formatCode>\n"
+            f'              <c:ptCount val="{len(values)}"/>\n'
+            f"{pt_xml}"
             "            </c:numLit>\n"
             "          </c:val>\n"
-        ).format(nf=series.number_format, count=len(values), pt_xml=pt_xml)
+        )
 
 
 class _BarPlotFragmentBuilder(_PlotFragmentBuilder):
@@ -2786,17 +2785,12 @@ class _BarPlotFragmentBuilder(_PlotFragmentBuilder):
     def _one_ser_xml(self, ser_idx, series):
         return (
             "        <c:ser>\n"
-            '          <c:idx val="{ser_idx}"/>\n'
-            '          <c:order val="{ser_idx}"/>\n'
-            "{tx_xml}"
-            "{cat_xml}"
-            "{val_xml}"
+            f'          <c:idx val="{ser_idx}"/>\n'
+            f'          <c:order val="{ser_idx}"/>\n'
+            f"{self._tx_xml(series)}"
+            f"{self._cat_xml()}"
+            f"{self._val_xml(series)}"
             "        </c:ser>\n"
-        ).format(
-            ser_idx=ser_idx,
-            tx_xml=self._tx_xml(series),
-            cat_xml=self._cat_xml(),
-            val_xml=self._val_xml(series),
         )
 
     @property
@@ -2849,20 +2843,14 @@ class _LinePlotFragmentBuilder(_PlotFragmentBuilder):
     def _one_ser_xml(self, ser_idx, series):
         return (
             "        <c:ser>\n"
-            '          <c:idx val="{ser_idx}"/>\n'
-            '          <c:order val="{ser_idx}"/>\n'
-            "{tx_xml}"
-            "{marker_xml}"
-            "{cat_xml}"
-            "{val_xml}"
+            f'          <c:idx val="{ser_idx}"/>\n'
+            f'          <c:order val="{ser_idx}"/>\n'
+            f"{self._tx_xml(series)}"
+            f"{self._marker_xml}"
+            f"{self._cat_xml()}"
+            f"{self._val_xml(series)}"
             '          <c:smooth val="0"/>\n'
             "        </c:ser>\n"
-        ).format(
-            ser_idx=ser_idx,
-            tx_xml=self._tx_xml(series),
-            marker_xml=self._marker_xml,
-            cat_xml=self._cat_xml(),
-            val_xml=self._val_xml(series),
         )
 
     @property

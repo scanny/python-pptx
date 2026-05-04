@@ -28,7 +28,7 @@ class _BaseAxis(object):
         self._xAx = xAx
 
     @property
-    def axis_title(self):
+    def axis_title(self) -> AxisTitle:
         """An |AxisTitle| object providing access to title properties.
 
         Calling this property is destructive in the sense that it adds an
@@ -39,7 +39,7 @@ class _BaseAxis(object):
         return AxisTitle(self._element.get_or_add_title())
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """
         The |ChartFormat| object providing access to the shape formatting
         properties of this axis, such as its line color and fill.
@@ -47,16 +47,14 @@ class _BaseAxis(object):
         return ChartFormat(self._element)
 
     @property
-    def has_major_gridlines(self):
+    def has_major_gridlines(self) -> bool:
         """
         Read/write boolean value specifying whether this axis has gridlines
         at its major tick mark locations. Assigning |True| to this property
         causes major gridlines to be displayed. Assigning |False| causes them
         to be removed.
         """
-        if self._element.majorGridlines is None:
-            return False
-        return True
+        return self._element.majorGridlines is not None
 
     @has_major_gridlines.setter
     def has_major_gridlines(self, value):
@@ -66,16 +64,14 @@ class _BaseAxis(object):
             self._element._remove_majorGridlines()
 
     @property
-    def has_minor_gridlines(self):
+    def has_minor_gridlines(self) -> bool:
         """
         Read/write boolean value specifying whether this axis has gridlines
         at its minor tick mark locations. Assigning |True| to this property
         causes minor gridlines to be displayed. Assigning |False| causes them
         to be removed.
         """
-        if self._element.minorGridlines is None:
-            return False
-        return True
+        return self._element.minorGridlines is not None
 
     @has_minor_gridlines.setter
     def has_minor_gridlines(self, value):
@@ -85,16 +81,14 @@ class _BaseAxis(object):
             self._element._remove_minorGridlines()
 
     @property
-    def has_title(self):
+    def has_title(self) -> bool:
         """Read/write boolean specifying whether this axis has a title.
 
         |True| if this axis has a title, |False| otherwise. Assigning |True|
         causes an axis title to be added if not already present. Assigning
         |False| causes any existing title to be deleted.
         """
-        if self._element.title is None:
-            return False
-        return True
+        return self._element.title is not None
 
     @has_title.setter
     def has_title(self, value):
@@ -104,7 +98,7 @@ class _BaseAxis(object):
             self._element._remove_title()
 
     @lazyproperty
-    def major_gridlines(self):
+    def major_gridlines(self) -> MajorGridlines:
         """
         The |MajorGridlines| object representing the major gridlines for
         this axis.
@@ -112,7 +106,7 @@ class _BaseAxis(object):
         return MajorGridlines(self._element)
 
     @lazyproperty
-    def minor_gridlines(self):
+    def minor_gridlines(self) -> MinorGridlines:
         """|MinorGridlines| object providing access to minor-gridline formatting.
 
         Accessing this property is destructive in the sense that a `c:minorGridlines`
@@ -219,7 +213,7 @@ class _BaseAxis(object):
         axPos.val = value
 
     @property
-    def reverse_order(self):
+    def reverse_order(self) -> bool:
         """Read/write bool value specifying whether to reverse plotting order for axis.
 
         For a category axis, this reverses the order in which the categories are
@@ -240,7 +234,7 @@ class _BaseAxis(object):
         )
 
     @lazyproperty
-    def tick_labels(self):
+    def tick_labels(self) -> TickLabels:
         """
         The |TickLabels| instance providing access to axis tick label
         formatting properties. Tick labels are the numbers appearing on
@@ -267,7 +261,7 @@ class _BaseAxis(object):
         tickLblPos.val = value
 
     @property
-    def visible(self):
+    def visible(self) -> bool:
         """Read/write. |True| if axis is visible, |False| otherwise.
 
         The backing `c:delete` element has an OOXML-specified default of `val="true"`
@@ -282,7 +276,7 @@ class _BaseAxis(object):
         if delete is None:
             return False
         # -- treat a missing `val` attribute as the OOXML default of `true` --
-        return False if delete.val else True
+        return not delete.val
 
     @visible.setter
     def visible(self, value):
@@ -304,7 +298,7 @@ class AxisTitle(ElementProxy):
         self._title = title
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to shape formatting.
 
         Return the |ChartFormat| object providing shape formatting properties
@@ -313,7 +307,7 @@ class AxisTitle(ElementProxy):
         return ChartFormat(self._element)
 
     @property
-    def has_text_frame(self):
+    def has_text_frame(self) -> bool:
         """Read/write Boolean specifying presence of a text frame.
 
         Return |True| if this axis title has a text frame, and |False|
@@ -321,9 +315,7 @@ class AxisTitle(ElementProxy):
         already present. Assigning |False| causes any existing text frame to
         be removed along with any text contained in the text frame.
         """
-        if self._title.tx_rich is None:
-            return False
-        return True
+        return self._title.tx_rich is not None
 
     @has_text_frame.setter
     def has_text_frame(self, value):
@@ -333,7 +325,7 @@ class AxisTitle(ElementProxy):
             self._title._remove_tx()
 
     @property
-    def text_frame(self):
+    def text_frame(self) -> TextFrame:
         """|TextFrame| instance for this axis title.
 
         Return a |TextFrame| instance allowing read/write access to the text
@@ -495,7 +487,7 @@ class MajorGridlines(ElementProxy):
         self._xAx = xAx  # axis element, catAx or valAx
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """
         The |ChartFormat| object providing access to the shape formatting
         properties of this data point, such as line and fill.
@@ -512,7 +504,7 @@ class MinorGridlines(ElementProxy):
         self._xAx = xAx  # axis element, catAx, dateAx, or valAx
 
     @lazyproperty
-    def format(self):
+    def format(self) -> ChartFormat:
         """|ChartFormat| object providing access to shape formatting.
 
         Returns the |ChartFormat| object providing line, fill, and shadow
@@ -532,7 +524,7 @@ class TickLabels(object):
         self._element = xAx_elm
 
     @lazyproperty
-    def font(self):
+    def font(self) -> Font:
         """
         The |Font| object that provides access to the text properties for
         these tick labels, such as bold, italic, etc.
@@ -564,7 +556,7 @@ class TickLabels(object):
         self.number_format_is_linked = False
 
     @property
-    def number_format_is_linked(self):
+    def number_format_is_linked(self) -> bool:
         """
         Read/write boolean specifying whether number formatting should be
         taken from the source spreadsheet rather than the value of
@@ -652,9 +644,8 @@ class ValueAxis(_BaseAxis):
     @crosses.setter
     def crosses(self, value):
         cross_xAx = self._cross_xAx
-        if value == XL_AXIS_CROSSES.CUSTOM:
-            if cross_xAx.crossesAt is not None:
-                return
+        if value == XL_AXIS_CROSSES.CUSTOM and cross_xAx.crossesAt is not None:
+            return
         cross_xAx._remove_crosses()
         cross_xAx._remove_crossesAt()
         if value == XL_AXIS_CROSSES.CUSTOM:

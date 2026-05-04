@@ -91,7 +91,9 @@ class PackageReader(Container[bytes]):
         instance.
         """
         blob_reader, uri = self._blob_reader, partname.rels_uri
-        return blob_reader[uri] if uri in blob_reader else None
+        # -- _PhysPkgReader implements only `__contains__` / `__getitem__`, not
+        # -- `.get()`, so we can't substitute a dict-style `blob_reader.get(uri, None)`.
+        return blob_reader[uri] if uri in blob_reader else None  # noqa: SIM401
 
     @lazyproperty
     def _blob_reader(self) -> _PhysPkgReader:

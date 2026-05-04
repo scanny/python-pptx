@@ -1192,7 +1192,7 @@ class SlidePlaceholders(ParentedElementProxy):
 
     def __iter__(self):
         """Generate placeholder shapes in `idx` order."""
-        ph_elms = sorted([e for e in self._element.iter_ph_elms()], key=lambda e: e.ph_idx)
+        ph_elms = sorted(self._element.iter_ph_elms(), key=lambda e: e.ph_idx)
         return (SlideShapeFactory(e, self) for e in ph_elms)
 
     def __len__(self) -> int:

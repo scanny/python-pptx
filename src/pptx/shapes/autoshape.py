@@ -137,7 +137,7 @@ class AdjustmentCollection:
         `guides` is a list of `a:gd` elements. Guides with a name that does not match an adjustment
         object are skipped.
         """
-        adjustments_by_name = dict((adj.name, adj) for adj in adjustments)
+        adjustments_by_name = {adj.name: adj for adj in adjustments}
         for gd in guides:
             name = gd.name
             actual = int(gd.fmla[4:])

@@ -342,6 +342,7 @@ class GraphicFrame(BaseShape):
         if not self.has_table:
             raise ValueError("shape does not contain a table")
         tbl = self._graphicFrame.graphic.graphicData.tbl
+        assert tbl is not None  # -- `has_table` guarantees this --
         return Table(tbl, self)
 
     @property

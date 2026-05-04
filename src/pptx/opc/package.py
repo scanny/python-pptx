@@ -281,7 +281,7 @@ class OpcPackage(_RelatableMixin):
         # -- from the package-root rels graph) so they survive round-trip. Any parts
         # -- already reachable via the rels graph are filtered out to preserve the
         # -- rel-walk as the source of truth for everything else.
-        reachable: Set[Part] = {p for p in self.iter_parts()}
+        reachable: Set[Part] = set(self.iter_parts())
         self._orphan_parts = tuple(
             parts[pn] for pn in orphan_partnames if parts[pn] not in reachable
         )

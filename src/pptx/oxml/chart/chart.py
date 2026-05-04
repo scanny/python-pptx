@@ -102,10 +102,7 @@ class CT_Chart(BaseOxmlElement):
         """
         True if this chart has a legend defined, False otherwise.
         """
-        legend = self.legend
-        if legend is None:
-            return False
-        return True
+        return self.legend is not None
 
     @has_legend.setter
     def has_legend(self, bool_value):
