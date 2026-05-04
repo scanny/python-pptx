@@ -363,6 +363,7 @@ prs.save("out.pptx")
 - `SlideShapes.find_all_by_name(name, include_descendants=False)` / `SlideShapes.get_by_name(name, include_descendants=False)` — Look up shapes by `cNvPr/@name`; pass `include_descendants=True` to walk into every group on the slide. `[Added in 2026.05.0]`
 - `SlideShapes.clear(preserve_placeholders=True)` / `Slide.clear_shapes(preserve_placeholders=True)` — Bulk-remove every top-level shape from the tree; placeholders are preserved by default. Per-shape `.delete()` side effects (dropping a picture's image relationship, a chart's embedded chart part, etc.) run in the normal way. `[Added in 2026.05.0]`
 - `SlideShapes.descendants()` / `Slide.shape_tree_flat` — Iterator over every shape on the slide including the children of any `GroupShape`, yielded in document (z-order) sequence with each group yielded before its contents. Selection-Pane-equivalent traversal. `[Added in 2026.05.0]`
+- `SlideShapes.iter_leaf_shapes()` — Iterator over every non-`GroupShape` descendant on the slide in document (z-order) sequence. Leaf-only variant of `SlideShapes.descendants()` — walks into nested groups at every depth and yields only the drawable shapes (autoshapes, pictures, connectors, graphic frames, etc.), skipping the group containers themselves. `[Added in 2026.05.0.dev0]`
 - `SlideShapes.title` — Title placeholder shape, if any.
 - `SlideShapes.placeholders` — `SlidePlaceholders` view.
 - `SlideShapes.turbo_add_enabled` — Bulk-add performance mode for programmatic authoring.
