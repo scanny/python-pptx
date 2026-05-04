@@ -4,7 +4,52 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 ## Open
 
-_None tracked yet._
+- **FU-1: `_FontColorFormat` cache staleness (from W17 #537).** On a fresh
+  run with no `a:solidFill`, `font.color.rgb = RGBColor(...)` writes the
+  XML correctly, but subsequent reads of `font.color.rgb` raise because
+  `_FontColorFormat._promote()` caches the pre-promote `_NoneColor`
+  proxy into `font.__dict__["color"]` before the base setter upgrades
+  to `_SRgbColor`. Fix: invalidate / re-resolve the `lazyproperty`
+  after promotion.
+
+- **FU-2: `Chart.value_axis` returns secondary axis on combo charts (from
+  W17 #833).** `chart.value_axis` returns the LAST `c:valAx` in the
+  chartSpace, so on a combo chart with bar + line + secondary axis it
+  hands back the secondary axis. Callers must dig into
+  `chart._chartSpace.plotArea.primary_valAx` to touch the primary.
+  Options: (a) return primary by default and add
+  `chart.primary_value_axis` alias; (b) keep behavior, add
+  `chart.primary_value_axis` + deprecation note; (c) error on combo
+  charts and require explicit side-selection. Needs user-facing
+  decision before any code change.
+
+- **FU-3: Duplicate `slideLayout7.xml` on save-after-reopen (from W12
+  #956).** After opening a default deck and re-saving, the zip emits
+  `UserWarning: Duplicate name: 'ppt/slideLayouts/slideLayout7.xml'`.
+  Two distinct layout parts end up with the same partname when
+  `iter_parts()` walks the reachable graph. Investigate whether the
+  cloner or the reachability walk is the source.
+
+- **FU-4: `_rel_ref_count` doesn't count `@r:embed` attribute references
+  (flagged in early waves).** Causes shared-image refcount
+  underreporting. When two shapes share the same image rel, the ref
+  count ignores one because it only counts `r:link`-style attributes
+  and misses `r:embed` occurrences on `a:blip` and `p:blipFill` leaves.
+
+- **FU-5: Orphan-parts round-trip WIP (from Wave 15 cleanup).** Preserved
+  on `scratch/wave-15-orphan-parts-residue` — two unreviewed commits
+  touching `src/pptx/opc/package.py`, `src/pptx/opc/serialized.py`,
+  `tests/opc/test_package.py`, and an untracked
+  `tests/test_chartex_roundtrip.py`. Review whether the approach is
+  sound and either land or drop.
+
+- **FU-6: `_BaseShapes.clear(preserve_placeholders=True)` GC semantics
+  (from W15 #96).** Relies on the save-time reachability walk from
+  #956 to remove orphaned image / chart / media parts — doesn't
+  explicitly unhook at delete time. Add a test that clear() + save
+  actually shrinks the zip (analogous to #956 tests).
+
+
 
 ## Done
 
