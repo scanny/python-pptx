@@ -590,6 +590,34 @@ You can see the line for the "West" region is *smoothed* into a curve while
 the other two have their points connected with straight line segments.
 
 
+Marker formatting (line, XY, and radar charts)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On a line chart *with markers* (``LINE_MARKERS`` /
+``LINE_MARKERS_STACKED`` / ``LINE_MARKERS_STACKED_100``), an XY (scatter)
+chart, or a radar chart, each series exposes a :attr:`~pptx.chart.marker.Marker`
+object via ``series.marker``. Its ``style``, ``size``, and ``format``
+control the marker's shape, diameter, and fill / line, respectively.
+``marker.format`` is a :class:`~pptx.dml.chtfmt.ChartFormat`, so the
+familiar ``fill`` / ``line`` surface applies — for example, to set the
+marker's border color and border width::
+
+    from pptx.dml.color import RGBColor
+    from pptx.enum.chart import XL_MARKER_STYLE
+    from pptx.util import Pt
+
+    series = chart.series[0]
+    series.marker.style = XL_MARKER_STYLE.CIRCLE
+    series.marker.size = 10
+    series.marker.format.line.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    series.marker.format.line.width = Pt(1.5)
+    series.marker.format.fill.solid()
+    series.marker.format.fill.fore_color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+
+The same recipe works on ``chart.plots[0].series[i]`` of an
+``XY_SCATTER``-family chart or a ``RADAR_MARKERS`` chart. Issue #872.
+
+
 Pie Chart
 ---------
 

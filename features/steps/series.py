@@ -140,6 +140,11 @@ def when_I_add_a_series_with_number_format(context, strval):
     context.series_data = chart_data.add_series(**params)
 
 
+@when("I assign RGBColor(0xFF, 0x00, 0x00) to marker.format.line.color.rgb")
+def when_I_assign_rgbcolor_to_marker_format_line_color_rgb(context):
+    context.marker.format.line.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+
+
 @when("I assign {value} to marker.size")
 def when_I_assign_value_to_marker_size(context, value):
     new_value = None if value == "None" else int(value)
@@ -229,6 +234,20 @@ def then_marker_format_fill_is_a_FillFormat_object(context):
 def then_marker_format_line_is_a_LineFormat_object(context):
     marker = context.marker
     assert type(marker.format.line).__name__ == "LineFormat"
+
+
+@then("marker.format.line.color.rgb is FF0000")
+def then_marker_format_line_color_rgb_is_FF0000(context):
+    rgb = context.marker.format.line.color.rgb
+    assert rgb == RGBColor(0xFF, 0x00, 0x00), "got %s" % rgb
+
+
+@then("the marker spPr/a:ln/a:solidFill/a:srgbClr val is FF0000")
+def then_marker_spPr_a_ln_a_solidFill_a_srgbClr_val_is_FF0000(context):
+    ser = context.marker._element
+    srgb = ser.xpath("c:marker/c:spPr/a:ln/a:solidFill/a:srgbClr")
+    assert len(srgb) == 1, "got %d srgbClr elements" % len(srgb)
+    assert srgb[0].get("val") == "FF0000", "got %s" % srgb[0].get("val")
 
 
 @then("marker.size is {case}")

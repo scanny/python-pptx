@@ -161,6 +161,24 @@ Unreleased
   and #715 API surface. No code change — the feature is the already-
   existing ``TextFrame.auto_size`` setter.
 
+- verify: #872 set marker border color on line-marker charts via
+  ``series.marker.format.line.color.rgb``.
+  Issue #872 (https://github.com/scanny/python-pptx/issues/872) asked for a
+  way to set the *border* color of data-point markers on a line chart with
+  markers. The capability is already reachable through the existing public
+  API: ``_MarkerMixin.marker`` on a line / XY / radar series returns a
+  :class:`~pptx.chart.marker.Marker` whose ``.format`` property returns a
+  :class:`~pptx.dml.chtfmt.ChartFormat` wrapping the ``c:marker`` element's
+  ``c:spPr``. From there ``format.line.color.rgb`` writes
+  ``c:ser/c:marker/c:spPr/a:ln/a:solidFill/a:srgbClr @val`` (and
+  ``format.line.width`` writes the companion ``a:ln @w``). A new
+  ``tests/test_issue_872_marker_border_color_verify.py`` regression suite
+  pins the proxy chain, the emitted XML, a save + reopen round-trip, and
+  verifies the same recipe on XY (scatter) and Radar series too. A new
+  behave scenario in ``features/cht-marker-props.feature`` documents the
+  recipe from the user's perspective. No code change — the feature is the
+  already-existing ``_MarkerMixin.marker`` + ``Marker.format`` surface.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
