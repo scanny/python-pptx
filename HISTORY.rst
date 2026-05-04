@@ -103,6 +103,25 @@ Unreleased
   source chart's blob, and survives save+reopen alongside the expected
   series values. No public-API change.
 
+- verify: #833 resolved by #141 / #470 (secondary value axis).
+  Issue #833 (https://github.com/scanny/python-pptx/issues/833) asked
+  for a way to build a chart with two Y (value) axes — the familiar
+  PowerPoint "columns on the left axis, line on the right axis"
+  layout. This capability is already on this fork via the pair of
+  features that landed under ``feat: #141 secondary value axis read
+  access`` (adding :attr:`Chart.has_secondary_value_axis` and
+  :attr:`Chart.secondary_value_axis`) and ``feat: #470 combo charts``
+  / ``feat: #338 add_plot`` (adding :meth:`Chart.add_plot` so a second
+  plot can be overlaid on an existing chart). Together they let a
+  caller author a bar+line combo chart with a secondary value axis
+  and set independent min/max/major_unit on both axes. A new
+  ``tests/test_issue_833_two_y_axis_verify.py`` suite pins the
+  reporter's workflow end-to-end, including round-trip through
+  ``Presentation.save`` + reopen. No code change; authoring a
+  secondary ``c:valAx`` from scratch on a library-created chart still
+  requires direct XML composition (see ``docs/user/charts.rst`` under
+  "Secondary value axis").
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
