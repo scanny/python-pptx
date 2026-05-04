@@ -14,6 +14,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #950 add ai-use-cases page. Issue #950
+  (https://github.com/scanny/python-pptx/issues/950) asked whether
+  python-pptx will "include Generative AI". The new
+  ``docs/user/ai-use-cases.rst`` page explains that AI orchestration
+  (prompts, model calls, auth, safety) is caller-side, sketches the
+  patterns that compose well with python-pptx (LLM-authored JSON →
+  deck, content translation, accessibility alt-text, data-to-slide
+  pipelines, deck summarisation), and points at
+  :ref:`rendering-to-pdf-video-or-image-formats` for the downstream
+  ``.pptx`` → PDF/PNG/MP4 step.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
