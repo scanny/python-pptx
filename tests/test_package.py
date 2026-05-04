@@ -18,6 +18,7 @@ from pptx.opc.package import Part, _Relationship
 from pptx.opc.packuri import PackURI
 from pptx.package import (
     Package,
+    _ensure_seekable,
     _ImageParts,
     _looks_like_svg,
     _MediaParts,
@@ -655,3 +656,88 @@ class Describe_MediaParts(object):
     @pytest.fixture
     def package_(self, request):
         return instance_mock(request, Package)
+
+
+class Describe_ensure_seekable(object):
+    """Unit tests for `pptx.package._ensure_seekable`.
+
+    Regression coverage for issue #866 — image file-like objects backed by
+    non-seekable streams (e.g. blob-URL readers, HTTP upload streams)
+    previously caused format-detection failures because downstream consumers
+    consumed bytes that couldn't be rewound.
+    """
+
+    def it_passes_path_strings_through_unchanged(self):
+        assert _ensure_seekable("some/path.png") == "some/path.png"
+
+    def it_passes_seekable_streams_through_unchanged(self):
+        stream = io.BytesIO(b"blob")
+        assert _ensure_seekable(stream) is stream
+
+    def it_materializes_non_seekable_streams_into_BytesIO(self):
+        class NoSeek:
+            def __init__(self, data: bytes):
+                self._buf = io.BytesIO(data)
+
+            def read(self, *a, **k):
+                return self._buf.read(*a, **k)
+
+        blob = b"\x89PNG\r\n\x1a\nrest-of-bytes"
+        result = _ensure_seekable(NoSeek(blob))
+
+        assert isinstance(result, io.BytesIO)
+        assert result.read() == blob
+        result.seek(0)
+        assert result.read() == blob  # -- re-readable after materialization --
+
+    def it_materializes_streams_whose_seek_raises(self):
+        """A stream advertising seek() but raising on call is treated as non-seekable."""
+
+        class AngrySeek:
+            def __init__(self, data: bytes):
+                self._buf = io.BytesIO(data)
+
+            def read(self, *a, **k):
+                return self._buf.read(*a, **k)
+
+            def tell(self):
+                return 0
+
+            def seek(self, *a, **k):
+                raise OSError("unseekable")
+
+        blob = b"GIF89a..."
+        result = _ensure_seekable(AngrySeek(blob))
+
+        assert isinstance(result, io.BytesIO)
+        assert result.read() == blob
+
+    def it_preserves_a_name_attribute_when_materializing(self):
+        class NoSeekNamed:
+            def __init__(self, data: bytes, name: str):
+                self._buf = io.BytesIO(data)
+                self.name = name
+
+            def read(self, *a, **k):
+                return self._buf.read(*a, **k)
+
+        result = _ensure_seekable(NoSeekNamed(b"blob", "blob-upload.png"))
+
+        assert isinstance(result, io.BytesIO)
+        assert getattr(result, "name", None) == "blob-upload.png"
+
+    def it_ignores_a_non_string_name_attribute(self):
+        class NoSeekFunnyName:
+            def __init__(self, data: bytes):
+                self._buf = io.BytesIO(data)
+                self.name = 12345  # -- e.g. a file-descriptor int from `fileno` --
+
+            def read(self, *a, **k):
+                return self._buf.read(*a, **k)
+
+        result = _ensure_seekable(NoSeekFunnyName(b"blob"))
+
+        assert isinstance(result, io.BytesIO)
+        # -- `name` should not be set to a non-string value on the returned buffer --
+        name = getattr(result, "name", None)
+        assert name is None or isinstance(name, str)

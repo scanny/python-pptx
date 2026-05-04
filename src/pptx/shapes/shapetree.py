@@ -534,6 +534,11 @@ class _BaseGroupShapes(_BaseShapes):
         used, the unspecified dimension is calculated to preserve the aspect ratio of the image.
         If both are specified, the picture is stretched to fit, without regard to its native
         aspect ratio.
+
+        The file-like form does not require a filename or a seekable stream; a non-seekable
+        reader (e.g. one backed by a browser blob URL or an HTTP-upload stream) is fully
+        materialized in memory so the image's format is still detected from its bytes. See
+        issue #866.
         """
         image_part, rId = self.part.get_or_add_image_part(image_file)
         pic = self._add_pic_from_image_part(image_part, rId, left, top, width, height)

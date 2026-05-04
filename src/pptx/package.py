@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import os
 import re
 from typing import IO, Iterator, cast
@@ -311,7 +312,14 @@ class _ImageParts(object):
         python-pptx does not bundle an SVG rasterizer. Callers must pre-rasterize
         SVG content to PNG (or another supported raster format) before inserting
         it. See the "Inserting SVG images" section of the user guide.
+
+        When `image_file` is a non-seekable file-like object (e.g. a stream
+        backed by a blob URL or an HTTP upload reader), its full content is
+        read into an in-memory buffer before the SVG sniff and PIL-backed
+        format detection run. This ensures format detection succeeds even
+        when the stream cannot be rewound. See issue #866.
         """
+        image_file = _ensure_seekable(image_file)
         _raise_if_svg(image_file)
         image = Image.from_file(image_file)
         image_part = self._find_by_sha1(image.sha1)
@@ -397,6 +405,45 @@ def _raise_if_svg(image_file: str | IO[bytes]) -> None:
 
     if restore is not None:
         restore()
+
+
+def _ensure_seekable(image_file: str | IO[bytes]) -> str | IO[bytes]:
+    """Return a seekable form of `image_file`, materializing if necessary.
+
+    Paths and already-seekable file-like objects are returned unchanged. A
+    file-like object without a functioning ``seek`` method (e.g. a pipe-backed
+    reader, a ``urllib`` response, or a stream backed by a browser blob URL)
+    is fully read into a :class:`io.BytesIO` which is then returned in its
+    place. The returned BytesIO preserves the original's ``name`` attribute
+    when present so downstream filename inference still works.
+
+    Called at the top of :meth:`_ImageParts.get_or_add_image_part` so every
+    subsequent consumer (SVG sniff, PIL format detection, SHA1 digest) sees
+    the full blob from offset 0. See issue #866.
+    """
+    if isinstance(image_file, str):
+        return image_file
+
+    seek = getattr(image_file, "seek", None)
+    tell = getattr(image_file, "tell", None)
+    if callable(seek) and callable(tell):
+        try:
+            pos = tell()
+            seek(pos)
+        except (OSError, ValueError):
+            # -- stream advertises seek/tell but rejects them; treat as non-seekable --
+            pass
+        else:
+            return image_file
+
+    # -- non-seekable: materialize and preserve a `name` attribute if present --
+    blob = image_file.read()
+    buf = io.BytesIO(blob)
+    name = getattr(image_file, "name", None)
+    if isinstance(name, str):
+        # -- preserves `os.path.basename(buf.name)` downstream filename inference --
+        buf.name = name
+    return buf
 
 
 def _read_image_head(image_file: str | IO[bytes]):

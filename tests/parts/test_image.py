@@ -129,6 +129,55 @@ class DescribeImage(object):
         _init_.assert_called_once_with(image, b"blob", "foo.png")
         assert isinstance(image, Image)
 
+    def it_can_construct_from_a_non_seekable_stream(self):
+        """Regression for issue #866.
+
+        A file-like object without a ``seek`` method (e.g. a pipe-backed reader
+        or a stream materialized from a browser blob URL) should still load —
+        the code previously raised ``AttributeError`` looking up ``seek`` on
+        such streams. The stream is read from its current position.
+        """
+        with open(test_image_path, "rb") as f:
+            blob = f.read()
+
+        class NoSeek:
+            def __init__(self, data: bytes):
+                self._buf = io.BytesIO(data)
+
+            def read(self, *a, **k):
+                return self._buf.read(*a, **k)
+
+        image = Image.from_file(NoSeek(blob))
+
+        assert image.blob == blob
+        assert image.filename is None
+        assert image.ext == "jpg"
+
+    def it_can_construct_from_a_stream_with_rejecting_seek(self):
+        """A stream that advertises seek() but raises on call is read as-is.
+
+        Regression for issue #866 — ``from_file`` must not propagate the
+        ``OSError``/``ValueError`` raised by a closed or pipe-backed stream's
+        ``seek`` call. The read proceeds from the current position.
+        """
+        with open(test_image_path, "rb") as f:
+            blob = f.read()
+
+        class AngrySeek:
+            def __init__(self, data: bytes):
+                self._buf = io.BytesIO(data)
+
+            def read(self, *a, **k):
+                return self._buf.read(*a, **k)
+
+            def seek(self, *a, **k):
+                raise OSError("unseekable")
+
+        image = Image.from_file(AngrySeek(blob))
+
+        assert image.blob == blob
+        assert image.ext == "jpg"
+
     def it_knows_its_blob(self, blob_fixture):
         image, expected_value = blob_fixture
         assert image.blob == expected_value

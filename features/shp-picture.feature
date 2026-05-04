@@ -103,3 +103,10 @@ Feature: Picture properties and methods
       | monty-truth.png  | "png"  | "image/png"   |
       | CVS_LOGO.WMF     | "wmf"  | "image/x-wmf" |
       | pic.emf          | "emf"  | "image/x-emf" |
+
+
+  Scenario: Add a picture from a non-seekable stream (issue #866)
+    Given a blank slide
+     When I add the image monty-truth.png via a non-seekable stream
+     Then the added picture.image.ext == "png"
+      And the added picture.image.content_type == "image/png"

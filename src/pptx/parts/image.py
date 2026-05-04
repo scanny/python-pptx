@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import io
 import os
@@ -178,7 +179,12 @@ class Image(object):
     def from_file(cls, image_file: str | IO[bytes]) -> Image:
         """Return a new |Image| object loaded from `image_file`.
 
-        `image_file` can be either a path (str) or a file-like object.
+        `image_file` can be either a path (str) or a file-like object. The file-like
+        object does not need to be seekable — non-seekable streams (e.g. an
+        HTTP-upload ``request.files[...].stream`` or a blob-URL-backed reader) are
+        consumed as-is from their current position. When a filename can be inferred
+        from the stream's ``name`` attribute it is retained for use as the
+        image-part description. See issue #866.
         """
         if isinstance(image_file, str):
             # treat image_file as a path
@@ -186,12 +192,21 @@ class Image(object):
                 blob = f.read()
             filename = os.path.basename(image_file)
         else:
-            # assume image_file is a file-like object
-            # ---reposition file cursor if it has one---
-            if callable(getattr(image_file, "seek")):
-                image_file.seek(0)
+            # assume image_file is a file-like object; rewind if seekable so the
+            # full blob is read regardless of prior consumer position
+            seek = getattr(image_file, "seek", None)
+            if callable(seek):
+                # -- fall through silently when a stream reports seekable but
+                # -- rejects the seek (e.g. a closed or pipe-backed file); the
+                # -- read below proceeds from the current position --
+                with contextlib.suppress(OSError, ValueError):
+                    seek(0)
             blob = image_file.read()
-            filename = None
+            # -- best-effort filename inference from the stream's `name` attr
+            # -- (present on file objects opened via `open()` and commonly set
+            # -- by upload libraries); ignored when non-string. See issue #866.
+            name_attr = getattr(image_file, "name", None)
+            filename = os.path.basename(name_attr) if isinstance(name_attr, str) else None
 
         return cls.from_blob(blob, filename)
 
