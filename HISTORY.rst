@@ -14,6 +14,22 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #430 ``SlideShapes.add_movie`` accepts MP3 / audio clips.
+  Issue #430 (https://github.com/scanny/python-pptx/issues/430) reported
+  that passing an MP3 to :meth:`SlideShapes.add_movie` failed — the
+  method's name suggests video-only, but in OOXML the same ``p:pic``
+  shape carries audio, distinguished only by an ``<a:audioFile>`` child
+  in place of ``<a:videoFile>``. The fork-era audio-MIME work already
+  shipped support: passing ``mime_type="audio/mpeg"`` (or any other
+  ``audio/*`` value such as ``audio/mp3``, ``audio/wav``,
+  ``audio/x-wav``) makes ``add_movie`` emit ``<a:audioFile>``, register
+  the matching ``audio/*`` content-type override, and produce a clip
+  PowerPoint opens as audio. ``tests/test_issue_430_add_movie_mp3_verify.py``
+  pins the behavior end-to-end — MP3 by path, MP3 by file-like (the
+  reporter's call signature), save + reopen round-trip, and the
+  ``audio/*`` prefix sniff across multiple spellings — so the path
+  cannot silently regress.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
