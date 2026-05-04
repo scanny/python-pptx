@@ -17,20 +17,24 @@ saving should produce a meaningfully smaller zip because each removed
 :class:`Picture` drops its image rel from the slide part, making the
 image part unreachable on the next save.
 
-A companion test documents a real finding surfaced while writing this
-regression: :class:`GraphicFrame` (the class backing chart and embedded
-OLE shapes) carries *no* ``delete()`` override, so ``clear_shapes()``
-does NOT drop the chart rel — its :class:`~pptx.parts.chart.ChartPart`
-and any descendant :class:`~pptx.parts.embeddedpackage.EmbeddedXlsxPart`
-remain in the saved zip. That is a pre-existing limitation of the
-wave-15 #96 ``.delete()`` chain for charts and is tracked separately;
-the rest of this test documents the current behaviour so a future fix
-has a clear pin to flip.
+A companion test closes the chart-GC loop surfaced while writing the
+original FU-6 regression: :class:`GraphicFrame` now overrides
+:meth:`BaseShape.delete` (FU-7) and drops every slide-part rel it
+carries — classic ``c:chart`` / extended ``cx:chart``, embedded or
+linked ``p:oleObj``, OLE-icon ``a:blip`` embed, the four
+``dgm:relIds`` SmartArt rIds, and the ``am3d:model3D`` embed —
+letting the save-time GC reap the no-longer-reachable chart /
+embedded xlsx / OLE / diagram / 3D parts. The test in
+:meth:`DescribeFU6ClearShapesGC.it_gcs_chart_parts_on_clear_shapes`
+pins that the chart part and its embedded xlsx are both gone from
+the saved zip after ``clear_shapes()``.
 
 Cross-references:
 
 * Wave 15 #96 — ``SlideShapes.clear()`` / ``Slide.clear_shapes()``
 * Wave 12 #956 — save-time ``iter_parts()`` reachability GC
+* FU-7 — ``GraphicFrame.delete()`` drops chart / chartex / OLE /
+  SmartArt / 3D-model rels
 """
 
 from __future__ import annotations
@@ -195,22 +199,17 @@ class DescribeFU6ClearShapesGC:
         # -- no non-placeholder shapes to remove -> no meaningful shrink --
         assert abs(before_size - after_size) < 512
 
-    # -- charts: document the current GraphicFrame.delete() gap ----------
+    # -- charts: FU-7 closes the GraphicFrame.delete() gap --------------
 
-    def but_chart_parts_are_NOT_gc_ed_by_clear_shapes(self):
-        # -- FINDING: :class:`GraphicFrame` does not override
-        # -- :meth:`BaseShape.delete`, so clearing a slide that holds a
-        # -- chart does not drop the slide-part -> chart rel. The chart
-        # -- part therefore remains reachable on save and the slide's
-        # -- rels file still points at it.
-        # --
-        # -- This test pins the *current* behaviour so a future fix that
-        # -- teaches GraphicFrame.delete() to drop its rel will cause
-        # -- this test to fail loudly and be inverted at the same time
-        # -- the fix lands. Contrast with
-        # -- ``test_issue_956_delete_slide_cleanup`` where deleting the
-        # -- whole slide (rather than just its shapes) *does* GC the
-        # -- chart because the slide-part itself becomes unreachable.
+    def it_gcs_chart_parts_on_clear_shapes(self):
+        # -- FU-7: :class:`GraphicFrame` now overrides
+        # -- :meth:`BaseShape.delete` to drop every slide-part rel the
+        # -- frame holds (classic chart, extended chartex, OLE object,
+        # -- OLE icon image, SmartArt four-rIds, and 3D-model embed).
+        # -- Clearing a chart-bearing slide therefore drops the slide ->
+        # -- chart rel, and :meth:`OpcPackage.save` -> iter_parts()
+        # -- reachability walk prunes the chart part + its embedded
+        # -- xlsx dependency on the next save.
         prs = Presentation()
         layout = prs.slide_layouts[6]
         slide = prs.slides.add_slide(layout)
@@ -231,30 +230,30 @@ class DescribeFU6ClearShapesGC:
         buf = io.BytesIO()
         prs.save(buf)
 
-        # -- the chart part (and its embedded xlsx) both survive in the
-        # -- zip today: the slide still holds its rel to the chart, so
-        # -- iter_parts() still walks into it on save. --
+        # -- the chart part and its embedded xlsx are both gone from the
+        # -- zip: clear_shapes() dropped the slide -> chart rel, making
+        # -- both parts unreachable from iter_parts() at save time. --
         entries = _zip_entries(buf)
-        assert any("ppt/charts/chart" in n for n in entries), (
-            "chart part expected to linger today — if this fails, "
-            "GraphicFrame.delete() likely learned to drop its rel. "
-            "Update FU-6 pin: invert the assertion."
+        assert not any("ppt/charts/chart" in n for n in entries), (
+            "expected chart part to be GC'd after clear_shapes(); "
+            f"got entries: {[n for n in entries if 'chart' in n]}"
         )
-        assert any("ppt/embeddings/" in n for n in entries)
-        # -- and the slide's rels file still points at the chart --
+        assert not any("ppt/embeddings/" in n for n in entries), (
+            "expected embedded xlsx to be GC'd after clear_shapes(); "
+            f"got entries: {[n for n in entries if 'embed' in n]}"
+        )
+        # -- and the slide's rels file no longer points at the chart --
         buf.seek(0)
         with zipfile.ZipFile(buf) as zf:
             slide_rels = zf.read("ppt/slides/_rels/slide1.xml.rels").decode()
-        assert "charts/chart" in slide_rels
+        assert "charts/chart" not in slide_rels
 
     # -- mixed deck: partial GC --------------------------------------------
 
-    def it_gcs_pictures_from_a_mixed_chart_and_picture_deck(self):
-        # -- Even in a mixed deck (pictures + chart), the picture parts
-        # -- are cleaned up even though the chart parts are not. This
-        # -- confirms the GC walks correctly and that the chart gap
-        # -- doesn't "poison" image GC for other shapes on the same
-        # -- slide.
+    def it_gcs_pictures_and_charts_from_a_mixed_deck(self):
+        # -- FU-7 closes the chart-GC gap: in a mixed deck (pictures +
+        # -- chart), both the picture parts AND the chart / embedded
+        # -- xlsx parts are now GC'd after clear_shapes() + save. --
         prs = Presentation()
         blank = prs.slide_layouts[6]
         pic_slide = prs.slides.add_slide(blank)
@@ -281,6 +280,6 @@ class DescribeFU6ClearShapesGC:
         entries = _zip_entries(buf)
         # -- picture part GC'd -> no ppt/media/* entries --
         assert [n for n in entries if n.startswith("ppt/media/")] == []
-        # -- chart part + xlsx still present (documented limitation) --
-        assert any("ppt/charts/chart" in n for n in entries)
-        assert any("ppt/embeddings/" in n for n in entries)
+        # -- chart part + xlsx GC'd -> no ppt/charts/* or ppt/embeddings/* entries --
+        assert not any("ppt/charts/chart" in n for n in entries)
+        assert not any("ppt/embeddings/" in n for n in entries)

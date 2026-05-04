@@ -23,6 +23,23 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 ## Done
 
+- **FU-7 (fixed).** :class:`~pptx.shapes.graphfrm.GraphicFrame` now
+  overrides :meth:`~pptx.shapes.base.BaseShape.delete` to drop every
+  slide-part rel the graphic frame carries — classic ``c:chart``,
+  Office 2016+ extended ``cx:chart``, embedded or linked ``p:oleObj``
+  plus the companion icon image ``a:blip/@r:embed``, the four
+  SmartArt ``dgm:relIds`` attributes, and ``am3d:model3D/@r:embed``.
+  Closes the chart-GC gap surfaced by FU-6: calling
+  ``slide.shapes.clear()`` on a chart-bearing slide now composes with
+  the save-time :meth:`iter_parts` reachability walk so the chart
+  part and its embedded xlsx dependency are pruned on the next save.
+  Inverted the FU-6 ``but_chart_parts_are_NOT_gc_ed_by_clear_shapes``
+  pin to ``it_gcs_chart_parts_on_clear_shapes``, added
+  ``tests/test_fu7_graphfrm_delete_rels.py`` (chart / chartex / OLE /
+  SmartArt / 3D-model / table coverage), and expanded
+  ``tests/shapes/test_graphfrm.py`` with per-kind delete-and-drop-rel
+  unit tests. Branch ``fix/fu7-graphic-frame-delete-rels``.
+
 - **FU-1 (fixed).** `_FontColorFormat._promote()` now drops the cached
   `color` entry on `font.__dict__` and returns the live `ColorFormat`
   (`font.fill.fore_color`), so the deferred-promotion proxy no longer
