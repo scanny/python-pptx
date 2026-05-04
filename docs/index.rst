@@ -89,6 +89,11 @@ Feature Support
 * Ungroup a :class:`.GroupShape` in place via :meth:`.GroupShape.ungroup`,
   hoisting each child onto the slide at its slide-relative effective rectangle
 
+* Author a table, chart, picture, textbox, auto-shape, or connector directly
+  inside a :class:`.GroupShape` via the same ``add_*`` methods available on
+  :class:`.SlideShapes` (issue #627) — the group's extents recalculate to
+  include the new shape
+
 * Detect and round-trip-preserve embedded 3D models (PowerPoint 365 "Insert > 3D
   Models") via :attr:`.GraphicFrame.has_model_3d`,
   :attr:`.GraphicFrame.model_3d_xml`, and the

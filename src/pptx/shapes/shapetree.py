@@ -526,6 +526,30 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return cast(Shape, self._shape_factory(sp))
 
+    def add_table(
+        self, rows: int, cols: int, left: Length, top: Length, width: Length, height: Length
+    ) -> GraphicFrame:
+        """Add a |GraphicFrame| object containing a table.
+
+        The table has the specified number of `rows` and `cols` and the specified position and
+        size. `width` is the *total* width of the table (not the width of a single column); it is
+        evenly distributed between the columns of the new table. Likewise, `height` is the *total*
+        (authored) height of the table (not the height of a single row); it is evenly distributed
+        between the rows, so each row is initially ``height // rows`` EMU tall. The last column
+        and last row absorb any integer-division remainder so ``sum(col_widths) == width`` and
+        ``sum(row_heights) == height``. Once PowerPoint opens the file its layout engine may
+        grow individual rows to fit their text content — see the "Table height and row height"
+        section of the user guide for the caveat. Note that the `.table` property on the returned
+        |GraphicFrame| shape must be used to access the enclosed |Table| object.
+
+        This method is available on |SlideShapes|, |LayoutShapes|, |MasterShapes|, and
+        |GroupShapes| — a table may be authored directly inside a group. When added to a group
+        the group's position and extents are recalculated to include the new table.
+        """
+        graphicFrame = self._add_graphicFrame_containing_table(rows, cols, left, top, width, height)
+        self._recalculate_extents()
+        return cast(GraphicFrame, self._shape_factory(graphicFrame))
+
     def add_textbox(self, left: Length, top: Length, width: Length, height: Length) -> Shape:
         """Return newly added text box shape appended to this shape tree.
 
@@ -579,7 +603,16 @@ class _BaseGroupShapes(_BaseShapes):
         graphicFrame = CT_GraphicalObjectFrame.new_chart_graphicFrame(
             shape_id, name, rId, x, y, cx, cy
         )
-        self._spTree.append(graphicFrame)
+        self._element.insert_element_before(graphicFrame, "p:extLst")
+        return graphicFrame
+
+    def _add_graphicFrame_containing_table(
+        self, rows: int, cols: int, x: Length, y: Length, cx: Length, cy: Length
+    ) -> CT_GraphicalObjectFrame:
+        """Return a newly added `p:graphicFrame` element containing a table as specified."""
+        _id = self._next_shape_id
+        name = "Table %d" % (_id - 1)
+        graphicFrame = self._element.add_table(_id, name, rows, cols, x, y, cx, cy)
         return graphicFrame
 
     def _add_cxnSp(
@@ -775,25 +808,6 @@ class SlideShapes(_BaseGroupShapes):
             movie.start_condition = "withPrevious"
         return cast(GraphicFrame, movie)
 
-    def add_table(
-        self, rows: int, cols: int, left: Length, top: Length, width: Length, height: Length
-    ) -> GraphicFrame:
-        """Add a |GraphicFrame| object containing a table.
-
-        The table has the specified number of `rows` and `cols` and the specified position and
-        size. `width` is the *total* width of the table (not the width of a single column); it is
-        evenly distributed between the columns of the new table. Likewise, `height` is the *total*
-        (authored) height of the table (not the height of a single row); it is evenly distributed
-        between the rows, so each row is initially ``height // rows`` EMU tall. The last column
-        and last row absorb any integer-division remainder so ``sum(col_widths) == width`` and
-        ``sum(row_heights) == height``. Once PowerPoint opens the file its layout engine may
-        grow individual rows to fit their text content — see the "Table height and row height"
-        section of the user guide for the caveat. Note that the `.table` property on the returned
-        |GraphicFrame| shape must be used to access the enclosed |Table| object.
-        """
-        graphicFrame = self._add_graphicFrame_containing_table(rows, cols, left, top, width, height)
-        return cast(GraphicFrame, self._shape_factory(graphicFrame))
-
     def clone_layout_placeholders(self, slide_layout: SlideLayout) -> None:
         """Add placeholder shapes based on those in `slide_layout`.
 
@@ -861,15 +875,6 @@ class SlideShapes(_BaseGroupShapes):
             if elm.ph_idx == 0:
                 return cast(Shape, self._shape_factory(elm))
         return None
-
-    def _add_graphicFrame_containing_table(
-        self, rows: int, cols: int, x: Length, y: Length, cx: Length, cy: Length
-    ) -> CT_GraphicalObjectFrame:
-        """Return a newly added `p:graphicFrame` element containing a table as specified."""
-        _id = self._next_shape_id
-        name = "Table %d" % (_id - 1)
-        graphicFrame = self._spTree.add_table(_id, name, rows, cols, x, y, cx, cy)
-        return graphicFrame
 
     def _add_video_timing(self, pic: CT_Picture) -> None:
         """Add a `p:video` element under `p:sld/p:timing`.

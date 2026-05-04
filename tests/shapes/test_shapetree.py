@@ -588,6 +588,17 @@ class Describe_BaseGroupShapes(object):
         shapes._shape_factory.assert_called_once_with(shapes, sp)
         assert shape is shape_
 
+    def it_can_add_a_table(self, base_table_fixture):
+        shapes, rows, cols, x, y, cx, cy, table_, expected_xml = base_table_fixture
+
+        table = shapes.add_table(rows, cols, x, y, cx, cy)
+
+        graphicFrame = shapes._element.xpath("p:graphicFrame")[0]
+        shapes._shape_factory.assert_called_once_with(shapes, graphicFrame)
+        shapes._recalculate_extents.assert_called_once_with(shapes)
+        assert table is table_
+        assert shapes._element.xml == expected_xml
+
     def it_knows_the_index_of_each_of_its_shapes(self, index_fixture):
         shapes, shape_, expected_value = index_fixture
         assert shapes.index(shape_) == expected_value
@@ -921,6 +932,41 @@ class Describe_BaseGroupShapes(object):
 
         return shapes, x, y, cx, cy, sp, shape_
 
+    @pytest.fixture
+    def base_table_fixture(self, _recalculate_extents_, _shape_factory_, table_):
+        # #627 — add_table is now on `_BaseGroupShapes`, so every slide-family
+        # shape-tree (SlideShapes, LayoutShapes, MasterShapes, GroupShapes)
+        # can add a table. This fixture exercises the base implementation.
+        shapes = _BaseGroupShapes(element("p:spTree"), None)
+        rows, cols, x, y, cx, cy = 1, 2, 10, 11, 12, 13
+        _shape_factory_.return_value = table_
+        expected_xml = (
+            '<p:spTree xmlns:p="http://schemas.openxmlformats.org/presentati'
+            'onml/2006/main">\n  <p:graphicFrame xmlns:a="http://schemas.ope'
+            'nxmlformats.org/drawingml/2006/main">\n    <p:nvGraphicFramePr>'
+            '\n      <p:cNvPr id="1" name="Table 0"/>\n      <p:cNvGraphicFr'
+            'amePr>\n        <a:graphicFrameLocks noGrp="1"/>\n      </p:cNv'
+            "GraphicFramePr>\n      <p:nvPr/>\n    </p:nvGraphicFramePr>\n  "
+            '  <p:xfrm>\n      <a:off x="10" y="11"/>\n      <a:ext cx="12" '
+            'cy="13"/>\n    </p:xfrm>\n    <a:graphic>\n      <a:graphicData'
+            ' uri="http://schemas.openxmlformats.org/drawingml/2006/table">'
+            '\n        <a:tbl>\n          <a:tblPr firstRow="1" bandRow="1">'
+            "\n            <a:tableStyleId>{5C22544A-7EE6-4342-B048-85BDC9FD"
+            "1C3A}</a:tableStyleId>\n          </a:tblPr>\n          <a:tblG"
+            'rid>\n            <a:gridCol w="6"/>\n            <a:gridCol w='
+            '"6"/>\n          </a:tblGrid>\n          <a:tr h="13">\n       '
+            "     <a:tc>\n              <a:txBody>\n                <a:bodyP"
+            "r/>\n                <a:lstStyle/>\n                <a:p/>\n   "
+            "           </a:txBody>\n              <a:tcPr/>\n            </"
+            "a:tc>\n            <a:tc>\n              <a:txBody>\n          "
+            "      <a:bodyPr/>\n                <a:lstStyle/>\n             "
+            "   <a:p/>\n              </a:txBody>\n              <a:tcPr/>\n"
+            "            </a:tc>\n          </a:tr>\n        </a:tbl>\n     "
+            " </a:graphicData>\n    </a:graphic>\n  </p:graphicFrame>\n</p:s"
+            "pTree>"
+        )
+        return shapes, rows, cols, x, y, cx, cy, table_, expected_xml
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -1007,12 +1053,137 @@ class Describe_BaseGroupShapes(object):
     def slide_part_(self, request):
         return instance_mock(request, SlidePart)
 
+    @pytest.fixture
+    def table_(self, request):
+        return instance_mock(request, Table)
+
 
 class DescribeGroupShapes(object):
     def it_recalculates_its_extents_to_help(self, recalc_fixture):
         shapes = recalc_fixture
         shapes._recalculate_extents()
         shapes._grpSp.recalculate_extents.assert_called_once_with()
+
+    def it_inherits_add_methods_from_BaseGroupShapes(self):
+        # Issue #627 — GroupShapes must expose add_table/add_chart/add_picture/
+        # add_textbox/add_shape/add_connector so a table or chart can be
+        # authored directly inside a group.
+        assert issubclass(GroupShapes, _BaseGroupShapes)
+
+    def it_can_add_a_table_inside_a_group_shape(self):
+        # Integration-style check against a real Presentation (issue #627).
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        group = slide.shapes.add_group_shape()
+
+        original_count = len(group.shapes)
+        gf = group.shapes.add_table(2, 3, Inches(1), Inches(1), Inches(4), Inches(2))
+
+        assert isinstance(gf, GraphicFrame)
+        assert gf.has_table is True
+        assert len(group.shapes) == original_count + 1
+        # -- group extents recalculate to include the new table --
+        assert group.width > 0
+        assert group.height > 0
+
+    def it_can_add_a_chart_inside_a_group_shape(self):
+        # Integration-style check (issue #627).
+        from pptx import Presentation
+        from pptx.chart.data import CategoryChartData
+        from pptx.enum.chart import XL_CHART_TYPE
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        group = slide.shapes.add_group_shape()
+
+        chart_data = CategoryChartData()
+        chart_data.categories = ["A", "B", "C"]
+        chart_data.add_series("Series 1", (1, 2, 3))
+
+        original_count = len(group.shapes)
+        gf = group.shapes.add_chart(
+            XL_CHART_TYPE.BAR_CLUSTERED,
+            Inches(1),
+            Inches(1),
+            Inches(4),
+            Inches(3),
+            chart_data,
+        )
+
+        assert isinstance(gf, GraphicFrame)
+        assert gf.has_chart is True
+        assert len(group.shapes) == original_count + 1
+
+    def it_can_add_a_textbox_inside_a_group_shape(self):
+        # Integration-style check (issue #627).
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        group = slide.shapes.add_group_shape()
+
+        original_count = len(group.shapes)
+        tb = group.shapes.add_textbox(Inches(1), Inches(1), Inches(2), Inches(1))
+
+        assert isinstance(tb, Shape)
+        assert len(group.shapes) == original_count + 1
+
+    def it_can_add_a_picture_inside_a_group_shape(self):
+        # Integration-style check (issue #627).
+        import os
+
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        group = slide.shapes.add_group_shape()
+        test_image = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "test_files",
+            "python-powered.png",
+        )
+
+        original_count = len(group.shapes)
+        pic = group.shapes.add_picture(test_image, Inches(1), Inches(1), Inches(2), Inches(2))
+
+        assert isinstance(pic, Picture)
+        assert len(group.shapes) == original_count + 1
+
+    def it_can_add_an_autoshape_inside_a_group_shape(self):
+        # Integration-style check (issue #627).
+        from pptx import Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        group = slide.shapes.add_group_shape()
+
+        original_count = len(group.shapes)
+        shape = group.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+
+        assert isinstance(shape, Shape)
+        assert len(group.shapes) == original_count + 1
+
+    def it_can_add_a_connector_inside_a_group_shape(self):
+        # Integration-style check (issue #627).
+        from pptx import Presentation
+        from pptx.enum.shapes import MSO_CONNECTOR
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        group = slide.shapes.add_group_shape()
+
+        original_count = len(group.shapes)
+        conn = group.shapes.add_connector(
+            MSO_CONNECTOR.STRAIGHT, Inches(1), Inches(1), Inches(2), Inches(2)
+        )
+
+        assert isinstance(conn, Connector)
+        assert len(group.shapes) == original_count + 1
 
     # fixtures -------------------------------------------------------
 

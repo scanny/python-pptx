@@ -120,6 +120,25 @@ A couple things to note:
   to fit their text content.
 
 
+Adding a table inside a group shape
+-----------------------------------
+
+``add_table`` is also available on :class:`.GroupShapes`, so a table can be
+authored directly inside a group (issue #627). The group's position and
+extents recalculate to include the new table::
+
+    >>> slide = prs.slides.add_slide(prs.slide_layouts[6])
+    >>> group = slide.shapes.add_group_shape()
+    >>> gf = group.shapes.add_table(
+    ...     2, 3, Inches(1), Inches(1), Inches(4), Inches(2)
+    ... )
+    >>> gf.has_table
+    True
+
+The same pattern works on :class:`.LayoutShapes` and :class:`.MasterShapes`
+— a layout or master can carry a table as a shared, template-level shape.
+
+
 Inserting a table into a table placeholder
 ------------------------------------------
 

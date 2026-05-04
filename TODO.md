@@ -8,4 +8,8 @@ _None tracked yet._
 
 ## Done
 
-_None tracked yet._
+- Issue #627 — author tables and charts (plus textbox / picture / auto-shape /
+  connector) directly inside a `GroupShape` via `group.shapes.add_table(...)`
+  etc. `add_table` promoted from `SlideShapes` onto the shared
+  `_BaseGroupShapes` base so every subclass inherits it. Branch
+  `feat/issue-627-group-shapes-authoring`.
