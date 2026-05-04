@@ -405,6 +405,19 @@ class Presentation(PartElementProxy):
         optional ``msoffcrypto-tool`` dependency. `zip_date_time` and `password` are
         orthogonal: `zip_date_time` stamps the inner (plaintext) zip members before the
         encryption wrapper is applied.
+
+        When `file` is a string path ending in ``.pptm`` or ``.ppsm``, the
+        presentation-part content-type override is written as the
+        macro-enabled variant
+        (``application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml``
+        for ``.pptm``, and
+        ``application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml``
+        for ``.ppsm``) so PowerPoint opens the file as macro-enabled. The
+        swap is scoped to the single save call and is a no-op when the
+        current content-type already matches the target extension. File-
+        like streams do not trigger the swap (there's no filename to
+        sniff); in that case the presentation part keeps whatever
+        content-type it currently carries. See issue #976.
         """
         self.part.save(file, zip_date_time, password=password)
 

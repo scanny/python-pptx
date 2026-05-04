@@ -14,6 +14,28 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #976 add ``ActionSetting.macro`` for VBA macro click actions.
+  Issue #976 (https://github.com/scanny/python-pptx/issues/976) asked
+  for a way to make a shape click invoke a VBA macro in a macro-enabled
+  (``.pptm`` / ``.ppsm``) package — PowerPoint's "Insert > Action > Run
+  macro" behaviour. The new :attr:`pptx.action.ActionSetting.macro`
+  read/write property reads and writes the
+  ``ppaction://macro?name=<Module.Sub>`` action verb on a shape's
+  ``a:hlinkClick`` (or ``a:hlinkHover`` when ``hover=True``), e.g.
+  ``shape.click_action.macro = "Module1.MySub"``; assigning |None|
+  clears the macro action. In tandem,
+  :meth:`pptx.presentation.Presentation.save` now promotes the
+  presentation-part content-type override to the macro-enabled variant
+  (``application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml``
+  for ``.pptm``, ``…slideshow.macroEnabled.main+xml`` for ``.ppsm``)
+  whenever the caller passes a string path with one of those
+  extensions, so the resulting package opens as macro-enabled in
+  PowerPoint without needing a separate save method. The swap is a
+  no-op when the current content type already matches. The library
+  only wires the action pointer at the shape level; authoring the VBA
+  code itself remains out of scope. New regression suite:
+  ``tests/test_issue_976_macro_action.py``.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and

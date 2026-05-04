@@ -314,6 +314,28 @@ both cleaned up::
 surface (``hyperlink``, ``target_slide``, ``screen_tip``, and
 ``set_sound`` / ``remove_sound`` for a WAV chime).
 
+Run a VBA macro on click (macro-enabled packages only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PowerPoint's *Insert → Action → Run macro* menu writes a
+``ppaction://macro?name=Module.Sub`` action verb on the shape's
+``a:hlinkClick``. Use :attr:`~pptx.action.ActionSetting.macro` to read
+or write that pointer::
+
+    shape.click_action.macro = "Module1.MySub"
+
+Reading returns the macro identifier (``"Module1.MySub"``) or |None|
+when the action is not a macro action. Assigning |None| (or the empty
+string) removes an existing macro action; other action kinds
+(hyperlinks, slide-jumps, sounds) are left untouched.
+
+Saving the deck with a ``.pptm`` extension auto-promotes the
+presentation-part content type so PowerPoint opens the file as
+macro-enabled (``.ppsm`` works the same way for a macro-enabled
+slideshow). python-pptx only wires the shape-level *pointer* — the
+VBA macro itself must already exist in the package's VBA project,
+which python-pptx neither authors nor removes. See issue #976.
+
 
 Custom shape properties (persisted metadata)
 --------------------------------------------

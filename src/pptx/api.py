@@ -195,5 +195,6 @@ def _is_pptx_package(prs_part: PresentationPart):
         CT.PML_PRES_MACRO_MAIN,
         CT.PML_TEMPLATE_MAIN,
         CT.PML_SLIDESHOW_MAIN,
+        CT.PML_SLIDESHOW_MACRO_MAIN,
     )
     return prs_part.content_type in valid_content_types

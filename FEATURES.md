@@ -108,7 +108,7 @@ wide = Presentation(pptx_format="16:9")
 ```
 
 - `pptx.Presentation(pptx=None, password=None, pptx_format=None)` — Factory returning a `pptx.presentation.Presentation`. `password`, `pptx_format`, `.potx` / `.potm` / `.ppsx` templates, and Flat-OPC input are `[Added in 2026.05.0]`.
-- `Presentation.save(file, password=None)` — Write the presentation to a path or file-like. `password=` re-encrypts with Agile Encryption. `[Added in 2026.05.0]`
+- `Presentation.save(file, password=None)` — Write the presentation to a path or file-like. `password=` re-encrypts with Agile Encryption. When `file` is a string path ending in `.pptm` or `.ppsm`, the presentation-part content-type override is auto-promoted to the matching macro-enabled variant so the package opens as macro-enabled in PowerPoint. `[Added in 2026.05.0]` (macro-enabled extension sniffing `[Added in 2026.05.0]` — see issue #976)
 - `Presentation.save_ppsx(file)` — Save as a PowerPoint slideshow (`.ppsx`) by flipping the main-part content-type. `[Added in 2026.05.0]`
 - `Presentation.save_flat_xml(file)` — Save as single-file Flat-OPC XML. `[Added in 2026.05.0]`
 - `Presentation.slide_width` / `Presentation.slide_height` — Read/write slide dimensions as `Emu` lengths.
@@ -2242,8 +2242,9 @@ for shape in slide.shapes:
 ## Action settings and click actions
 
 `click_action` wraps the shape's on-click behaviour: hyperlink, jump to
-slide, run program, launch OLE object, play sound. The fork adds first-
-class `target_slide`, `screen_tip`, and embedded-sound support.
+slide, run program, launch OLE object, play sound, or run a VBA macro.
+The fork adds first-class `target_slide`, `screen_tip`, embedded-sound,
+and `macro` support.
 
 ```python
 from pptx import Presentation
@@ -2266,7 +2267,12 @@ action.screen_tip = "Go to slide 2"
 action.set_sound("chime.wav")
 print(action.sound.name)
 
-prs.save("out.pptx")
+# invoke a VBA macro on click (see issue #976)
+macro_shape = slide1.shapes.add_shape(MSO_SHAPE.RECTANGLE,
+                                      Inches(4), Inches(1), Inches(2), Inches(1))
+macro_shape.click_action.macro = "Module1.MySub"
+# saving with a .pptm extension auto-promotes the content-type override
+prs.save("deck.pptm")
 ```
 
 - `BaseShape.click_action` — `ActionSetting` proxy.
@@ -2275,9 +2281,10 @@ prs.save("out.pptx")
 - `ActionSetting.target_slide` — Read/write slide for `hlinksldjump` actions. `[Added in 2026.05.0]`
 - `ActionSetting.screen_tip` — Hover tooltip text. `[Added in 2026.05.0]` PowerPoint only renders the tooltip when the action also has a target (URL / slide-jump / sound / `ppaction://` verb); see issue #1022.
 - `ActionSetting.sound` / `ActionSetting.set_sound(path_or_stream)` / `ActionSetting.remove_sound()` — Embedded click-sound authoring. `[Added in 2026.05.0]`
+- `ActionSetting.macro` — Read/write VBA macro name invoked on click, e.g. `"Module1.MySub"`. Emits `a:hlinkClick@action="ppaction://macro?name=<name>"`. Assigning `None` clears the macro action (leaves other action verbs untouched). Only wires the shape-level pointer — the macro itself must live in the enclosing `.pptm` / `.ppsm` package. `[Added in 2026.05.0]` (issue #976)
 - `Sound.name` / `Sound.blob` — Read-only embedded-sound view. `[Added in 2026.05.0]`
 - `pptx.media.Audio` — Value object representing the embedded sound file. `[Added in 2026.05.0]`
-- Enum: `PP_ACTION`.
+- Enum: `PP_ACTION` (including `PP_ACTION.RUN_MACRO`).
 
 ---
 

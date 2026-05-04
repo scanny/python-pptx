@@ -354,6 +354,137 @@ class DescribeActionSetting(object):
         # no hyperlink is created just to clear a non-existent tooltip
         assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
 
+    # -- macro (ppaction://macro) ----------------------------------
+
+    def it_returns_None_macro_when_no_hyperlink_is_present(self):
+        action_setting = ActionSetting(element("p:cNvPr"), None)
+        assert action_setting.macro is None
+
+    def it_returns_None_macro_when_hyperlink_has_no_action_verb(self):
+        action_setting = ActionSetting(
+            element("p:cNvPr/a:hlinkClick{r:id=rId1}"), None
+        )
+        assert action_setting.macro is None
+
+    def it_returns_None_macro_when_action_verb_is_not_macro(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick")
+        cNvPr.hlinkClick.action = "ppaction://hlinkshowjump?jump=nextslide"
+        action_setting = ActionSetting(cNvPr, None)
+        assert action_setting.macro is None
+
+    def it_returns_None_macro_when_macro_action_has_no_name_field(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick")
+        cNvPr.hlinkClick.action = "ppaction://macro"
+        action_setting = ActionSetting(cNvPr, None)
+        assert action_setting.macro is None
+
+    def it_reads_the_macro_name_from_the_action_attribute(self):
+        cNvPr = element("p:cNvPr/a:hlinkClick")
+        cNvPr.hlinkClick.action = "ppaction://macro?name=Module1.MySub"
+        action_setting = ActionSetting(cNvPr, None)
+        assert action_setting.macro == "Module1.MySub"
+
+    def it_reads_the_macro_name_from_the_hover_hyperlink(self):
+        cNvPr = element("p:cNvPr/a:hlinkHover")
+        cNvPr.hlinkHover.action = "ppaction://macro?name=HoverMacro"
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+        assert action_setting.macro == "HoverMacro"
+
+    def it_creates_a_hlinkClick_when_setting_macro_with_no_hyperlink(self):
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = "Module1.Go"
+
+        # -- verify the action attribute directly; cxml attr-value grammar
+        # -- does not accept the '?' and '=' characters in ppaction URLs
+        hlinkClick = cNvPr.hlinkClick
+        assert hlinkClick is not None
+        assert hlinkClick.action == "ppaction://macro?name=Module1.Go"
+        assert action_setting.action is PP_ACTION.RUN_MACRO
+        assert action_setting.macro == "Module1.Go"
+
+    def it_sets_the_macro_name_on_hlinkHover_when_hover_is_True(self):
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None, hover=True)
+
+        action_setting.macro = "HoverSub"
+
+        assert cNvPr.hlinkClick is None
+        assert cNvPr.hlinkHover is not None
+        assert cNvPr.hlinkHover.action == "ppaction://macro?name=HoverSub"
+
+    def it_replaces_an_existing_macro_with_a_new_name(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        cNvPr = element("p:cNvPr")
+        cNvPr.get_or_add_hlinkClick().action = "ppaction://macro?name=Old"
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = "New"
+
+        assert cNvPr.hlinkClick.action == "ppaction://macro?name=New"
+
+    def it_replaces_an_existing_hyperlink_with_a_macro(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        # -- start with a URL hyperlink carrying an external relationship
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId7}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = "ReplaceMe"
+
+        # -- the URL relationship is dropped, action attribute rewritten
+        assert part_.drop_rel.call_args_list == [call("rId7")]
+        hlinkClick = cNvPr.hlinkClick
+        assert hlinkClick is not None
+        assert hlinkClick.action == "ppaction://macro?name=ReplaceMe"
+        # -- the original r:id is gone (rel was dropped and hlink replaced)
+        assert not hlinkClick.rId
+
+    def it_removes_the_macro_when_assigned_None(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        cNvPr.get_or_add_hlinkClick().action = "ppaction://macro?name=Gone"
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = None
+
+        # the hlinkClick itself is removed because it carried nothing but the macro
+        assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
+
+    def it_removes_the_macro_when_assigned_empty_string(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        cNvPr = element("p:cNvPr")
+        cNvPr.get_or_add_hlinkClick().action = "ppaction://macro?name=Gone"
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = ""
+
+        assert action_setting._element.xml == xml("p:cNvPr")
+
+    def it_leaves_other_actions_alone_when_clearing_macro(self, part_prop_, part_):
+        part_prop_.return_value = part_
+        # -- the action is a slide-jump, not a macro; assigning None must
+        # -- not clobber it
+        cNvPr = element("p:cNvPr/a:hlinkClick{r:id=rId9}")
+        cNvPr.hlinkClick.action = "ppaction://hlinksldjump"
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = None
+
+        part_.drop_rel.assert_not_called()
+        # -- the hlinkClick survived intact
+        assert cNvPr.hlinkClick is not None
+        assert cNvPr.hlinkClick.rId == "rId9"
+        assert cNvPr.hlinkClick.action == "ppaction://hlinksldjump"
+
+    def it_silently_ignores_clear_macro_when_no_hyperlink_is_present(self):
+        cNvPr = element("p:cNvPr{a:a=a,r:r=r}")
+        action_setting = ActionSetting(cNvPr, None)
+
+        action_setting.macro = None
+
+        assert action_setting._element.xml == xml("p:cNvPr{a:a=a,r:r=r}")
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(

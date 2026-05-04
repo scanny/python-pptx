@@ -125,3 +125,27 @@ Feature: Get and set click action properties
     Given a shape having click action none
      When I assign Hover me to hover_action.screen_tip
      Then hover_action.screen_tip is Hover me
+
+
+  Scenario: Read ActionSetting.macro from an existing pptm
+    Given a shape having click action run macro
+     Then click_action.macro is Dummy_Macro
+      And click_action.action is RUN_MACRO
+
+  Scenario: Set ActionSetting.macro on a fresh shape
+    Given a shape having click action none
+     When I assign Module1.MySub to click_action.macro
+     Then click_action.action is RUN_MACRO
+      And click_action.macro is Module1.MySub
+
+  Scenario: Clear ActionSetting.macro via None
+    Given a shape having click action none
+     When I assign Module1.MySub to click_action.macro
+      And I assign None to click_action.macro
+     Then click_action.action is NONE
+      And click_action.macro is None
+
+  Scenario: Saving to a .pptm path writes the macro-enabled content type
+    Given an otherwise-empty presentation
+     When I save it as a .pptm
+     Then the saved package has the macro-enabled presentation content type

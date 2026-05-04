@@ -155,9 +155,7 @@ class DescribePresentationPart(object):
     def it_can_save_the_package_as_ppsx(self, package_):
         from pptx.opc.constants import CONTENT_TYPE as CT
 
-        prs_part = PresentationPart(
-            None, CT.PML_PRESENTATION_MAIN, package_, None
-        )
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
 
         # -- stub `package.save` to capture the content-type that was in effect
         # -- at the moment of the save call (the whole point of `save_ppsx`).
@@ -180,9 +178,7 @@ class DescribePresentationPart(object):
         from pptx.opc.constants import CONTENT_TYPE as CT
 
         zdt = (2024, 6, 15, 9, 30, 0)
-        prs_part = PresentationPart(
-            None, CT.PML_PRESENTATION_MAIN, package_, None
-        )
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
 
         prs_part.save_ppsx("prs.ppsx", zdt, password="s3cret")
 
@@ -193,15 +189,127 @@ class DescribePresentationPart(object):
     def and_save_ppsx_restores_content_type_when_package_save_raises(self, package_):
         from pptx.opc.constants import CONTENT_TYPE as CT
 
-        prs_part = PresentationPart(
-            None, CT.PML_PRESENTATION_MAIN, package_, None
-        )
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
         package_.save.side_effect = RuntimeError("boom")
 
         with pytest.raises(RuntimeError, match="boom"):
             prs_part.save_ppsx("prs.ppsx")
 
         # -- original content type is restored via `finally:` even on error --
+        assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
+
+    # -- issue #976 save .pptm / .ppsm auto-promotes content type --------
+
+    def it_swaps_content_type_when_saving_with_pptm_extension(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
+
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save("deck.pptm")
+
+        # -- during the save, content type is the macro-enabled variant --
+        assert observed_cts == [CT.PML_PRES_MACRO_MAIN]
+        # -- after the save, original content type is restored --
+        assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
+
+    def it_swaps_content_type_when_saving_with_ppsm_extension(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save("deck.ppsm")
+
+        assert observed_cts == [CT.PML_SLIDESHOW_MACRO_MAIN]
+        assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
+
+    def it_pptm_extension_matching_is_case_insensitive(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save("DECK.PPTM")
+
+        assert observed_cts == [CT.PML_PRES_MACRO_MAIN]
+
+    def but_it_does_not_swap_when_saving_pptx(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save("deck.pptx")
+
+        assert observed_cts == [CT.PML_PRESENTATION_MAIN]
+
+    def but_it_does_not_swap_when_saving_to_a_stream(self, package_):
+        import io as _io
+
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save(_io.BytesIO())
+
+        # -- a stream carries no extension to sniff; original CT preserved
+        assert observed_cts == [CT.PML_PRESENTATION_MAIN]
+
+    def it_is_a_noop_swap_when_already_macro_enabled(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        # -- file was loaded as .pptm, already has the macro content type
+        prs_part = PresentationPart(None, CT.PML_PRES_MACRO_MAIN, package_, None)
+        observed_cts: list[str] = []
+
+        def _observe_save(*args, **kwargs):  # type: ignore[no-untyped-def]
+            observed_cts.append(prs_part.content_type)
+
+        package_.save.side_effect = _observe_save
+
+        prs_part.save("deck.pptm")
+
+        # -- content type unchanged; the fast path is taken
+        assert observed_cts == [CT.PML_PRES_MACRO_MAIN]
+        assert prs_part.content_type == CT.PML_PRES_MACRO_MAIN
+
+    def it_restores_content_type_when_save_raises_during_pptm_save(self, package_):
+        from pptx.opc.constants import CONTENT_TYPE as CT
+
+        prs_part = PresentationPart(None, CT.PML_PRESENTATION_MAIN, package_, None)
+        package_.save.side_effect = RuntimeError("boom")
+
+        with pytest.raises(RuntimeError, match="boom"):
+            prs_part.save("deck.pptm")
+
         assert prs_part.content_type == CT.PML_PRESENTATION_MAIN
 
     def it_can_add_a_font_part_and_relate_it(self, request, package_, relate_to_):
