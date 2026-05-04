@@ -14,6 +14,20 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #452 resolved by #971 (``BaseShape.is_hidden``). Issue #452
+  (https://github.com/scanny/python-pptx/issues/452) asked for a
+  supported way to toggle a shape's visibility without deleting it —
+  the PowerPoint "Selection Pane eye-icon" idiom. The #971 feature
+  shipped ``BaseShape.is_hidden``, a read/write ``bool`` mapping the
+  ``hidden`` attribute on the shape's ``cNvPr`` element, available on
+  every shape kind (``p:sp``, ``p:pic``, ``p:cxnSp``, ``p:grpSp``,
+  ``p:graphicFrame``). ``tests/test_issue_452_shape_hidden_verify.py``
+  pins the #452 reporter's end-to-end workflow: default visible state,
+  setter emits ``cNvPr/@hidden="1"``, unhide clears the attribute,
+  ``Presentation.save`` + reopen round-trip, per-shape independence
+  across sibling shapes, and coverage across all five ``nv*Pr``
+  parent variants.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
