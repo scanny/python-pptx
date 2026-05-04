@@ -1125,6 +1125,10 @@ prs.save("out.pptx")
 - `_Run.hyperlink` — `_Hyperlink` proxy.
 - `_Hyperlink.address` — Read/write external URL (setting to `None` removes the hyperlink). Font-color writes for hyperlinked runs are `[Added in 2026.05.0]`. For a slide-jump hyperlink, `address` returns `None` — use `target_slide`.
 - `_Hyperlink.target_slide` — Read/write `Slide` for a run-level `hlinksldjump` (run the user clicks jumps to the assigned slide). Assigning `None` (or `del run.hyperlink.target_slide`) removes any hyperlink on the run. `[Added in 2026.05.0]`
+- `_Hyperlink.screen_tip` — Read/write ScreenTip (`tooltip` attribute on the run's `a:hlinkClick`). Same PowerPoint visibility caveat as `ActionSetting.screen_tip` — needs a URL, slide-jump, or sound to actually render. `[Added in 2026.05.0]` (issue #455)
+- `_Hyperlink.sound` — Returns a `Sound` for the embedded click-sound on the run, or `None`. `[Added in 2026.05.0]` (issue #455)
+- `_Hyperlink.set_sound(audio_file, name=None, mime_type=None)` — Attach a WAV clip played when the run is clicked. Accepts a path, file-like, or `Audio` instance. Replaces any prior sound. `[Added in 2026.05.0]` (issue #455)
+- `_Hyperlink.remove_sound()` — Remove the embedded sound on the run, preserving any URL / slide-jump / tooltip on the same `a:hlinkClick`. `[Added in 2026.05.0]` (issue #455)
 - `BaseShape.click_action` — `ActionSetting` for click-triggered behaviours (hyperlinks, target-slide, run-program, play-sound).
 - `ActionSetting.action` — `PP_ACTION` enum.
 - `ActionSetting.hyperlink` — Outer hyperlink access.
@@ -1301,6 +1305,7 @@ prs.save("out.pptx")
 - `Font.highlight_color` / `Font.clear_highlight_color()` — Read/write `ColorFormat` for the text-highlight (text-background) swatch PowerPoint exposes on the Home ribbon. Accepts both `.rgb = RGBColor(...)` and `.theme_color = MSO_THEME_COLOR.ACCENT_1`. Backed by `a:rPr/a:highlight`. Issue #675. `[Added in 1.0.2.dev0]`
 - `_Hyperlink.address` — Run-level hyperlink URL (setter creates/clears the `a:hlinkClick`). Returns `None` when the run carries a slide-jump instead of a URL.
 - `_Hyperlink.target_slide` — Read/write `Slide` for a run-level slide-jump hyperlink (PowerPoint's "Place in This Document"). Setter swaps the run's `a:hlinkClick` for a `hlinksldjump` action and slide relationship; assigning `None` (or `del run.hyperlink.target_slide`) removes any hyperlink on the run. `[Added in 2026.05.0]`
+- `_Hyperlink.screen_tip` / `_Hyperlink.sound` / `_Hyperlink.set_sound(...)` / `_Hyperlink.remove_sound()` — Unified run-hyperlink surface with `ActionSetting`: ScreenTip + embedded click-sound on the run's `a:hlinkClick`. `[Added in 2026.05.0]` (issue #455)
 
 ---
 

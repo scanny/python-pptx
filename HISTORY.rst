@@ -14,6 +14,28 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #455 unify ``Run.hyperlink`` with ``click_action`` /
+  ``ActionSetting``. Issue #455
+  (https://github.com/scanny/python-pptx/issues/455) asked for
+  ``_Run.hyperlink`` to support the full capability surface
+  ``ActionSetting`` offers on shapes. Two gaps remained after the
+  #1077 slide-jump work: ``_Hyperlink.screen_tip`` and the sound
+  attach/remove trio (``_Hyperlink.sound`` getter,
+  ``_Hyperlink.set_sound()``, ``_Hyperlink.remove_sound()``). This
+  change adds all four on ``_Hyperlink``, mirroring the same
+  documented semantics as their ``ActionSetting`` counterparts —
+  including the PowerPoint ScreenTip-visibility caveat from
+  issue #1022. Clearing the hyperlink now also drops any embedded-
+  sound ``AUDIO`` relationship so round-trips don't leave dangling
+  rels. Run-level hyperlink *color* is unchanged — keep using
+  ``Font.use_theme_hyperlink_color`` (issue #940). A run's
+  ``a:rPr`` has no ``a:hlinkMouseOver`` child, so hover actions
+  remain shape-only. Unit tests in
+  ``tests/text/test_text.py::Describe_Hyperlink`` and an end-to-end
+  round-trip suite in ``tests/test_issue_455_run_hyperlink_verify.py``
+  pin the new surface; ``docs/api/text.rst`` gains a ``_Hyperlink``
+  section and ``docs/user/text.rst`` documents the unified idiom.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the

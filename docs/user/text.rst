@@ -378,6 +378,49 @@ run carries a slide-jump, and |None| otherwise. To remove a slide-jump on a
 run, assign |None| or ``del run.hyperlink.target_slide``. The URL-based
 :attr:`._Hyperlink.address` and the slide-jump :attr:`._Hyperlink.target_slide`
 are mutually exclusive -- setting one clears the other.
+
+
+Adding a ScreenTip or a click-sound to a run hyperlink
+------------------------------------------------------
+
+As of the fix for `issue #455`_, :class:`._Hyperlink` exposes the same
+capability surface as a shape-level :class:`~pptx.action.ActionSetting`
+for the subset of actions that are valid on a text run. In addition to
+:attr:`._Hyperlink.address` and :attr:`._Hyperlink.target_slide`, a run
+hyperlink also carries:
+
+* :attr:`._Hyperlink.screen_tip` -- the ``tooltip`` attribute on the
+  run's ``a:hlinkClick`` element, shown on hover in slide-show mode.
+* :attr:`._Hyperlink.sound` + :meth:`._Hyperlink.set_sound` /
+  :meth:`._Hyperlink.remove_sound` -- an embedded WAV clip played when
+  the run is clicked during a slide show.
+
+.. _issue #455: https://github.com/scanny/python-pptx/issues/455
+
+::
+
+    run.hyperlink.address = "https://example.com/"
+    run.hyperlink.screen_tip = "Open example.com"
+    run.hyperlink.set_sound("chime.wav")
+
+.. note::
+   PowerPoint only *displays* a ScreenTip on hover when the hyperlink
+   carries an actionable target -- a URL, slide jump, or embedded
+   sound. Setting ``screen_tip`` on a run whose hyperlink has no other
+   target writes a spec-valid but behaviorally inert
+   ``<a:hlinkClick tooltip="..."/>`` element that PowerPoint ignores at
+   display time. This is the same caveat that applies to
+   :attr:`ActionSetting.screen_tip` on shapes (see `issue #1022`_).
+
+.. _issue #1022: https://github.com/scanny/python-pptx/issues/1022
+
+Run-level hyperlink *color* is not controlled through ``run.hyperlink``
+-- assign the run's font color directly and use
+:attr:`Font.use_theme_hyperlink_color` to record whether PowerPoint
+should honor the explicit color or fall back to the theme's hyperlink
+color. See :ref:`text-hyperlink-color-guide` below.
+
+
 Reading effective font properties
 ---------------------------------
 

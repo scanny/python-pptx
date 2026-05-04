@@ -81,6 +81,23 @@ a paragraph's ``a:pPr`` element. It is obtained as the
    :undoc-members:
 
 
+|_Hyperlink| objects
+--------------------
+
+The |_Hyperlink| object is obtained as :attr:`_Run.hyperlink` and
+provides read/write access to a run's ``a:hlinkClick`` child element.
+Since issue #455 it exposes the same capability surface as a shape's
+:class:`~pptx.action.ActionSetting` for the subset of actions valid on
+a text run: URL, slide jump, ScreenTip, and embedded sound. Run-level
+hyperlink color is controlled separately via
+:attr:`Font.use_theme_hyperlink_color`.
+
+.. autoclass:: _Hyperlink()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
+
 |_Field| objects
 ----------------
 
