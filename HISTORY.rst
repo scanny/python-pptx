@@ -16,6 +16,22 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- test: expand behave coverage (+52 scenarios across features/prs-round-trip.feature)
+  covering save/reload fidelity for Wave 12-22 fork additions — ``BaseShape``
+  flip/hide/alt_text/title/zorder/get_by_name/find_all_by_name/iter_leaf_shapes,
+  ``TextFrame`` rotation/font_scale/line_space_reduction/replace_text,
+  ``_Paragraph.delete`` / ``_Run.delete`` / ``write_rich`` / bullet auto-number,
+  ``Font`` baseline/subscript/shadow/effect_format.glow/strikethrough/name_ea /
+  name_cs/highlight_color, ``Slide`` is_hidden/show_master_shapes/name/tags /
+  slide_layout setter/notes/animation, ``Chart`` display_blanks_as /
+  tick_label_skip/tick_mark_skip/tick_labels.rotation/add_plot/trendline /
+  Trendline.delete/replace_data_preserve_formulas/error_bars, ``Table``
+  border_left/style_id/add_row/add_column/cell merge, ``ActionSetting``
+  hover hyperlink/screen_tip, ``ColorFormat.alpha``, ``SlideShapes``
+  add_picture_link, ``Picture`` crop_left/crop_right, ``LineFormat``
+  dash_style/end_arrow.type, ``Sections`` round-trip, ``Slides.duplicate``
+  round-trip. Pytest 6619 + behave 1501 pass.
+
 - fix: FU-7 ``GraphicFrame.delete()`` now drops every slide-part rel the
   frame carries — classic ``c:chart/@r:id``, Office 2016+ extended
   ``cx:chart/@r:id``, embedded or linked ``p:oleObj/@r:id`` plus the
