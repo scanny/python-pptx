@@ -19,8 +19,7 @@ class DescribeCT_AlternateContent(object):
 
     def it_provides_access_to_its_Choice_children(self):
         ac = element(
-            "mc:AlternateContent/(mc:Choice{Requires=a14},mc:Choice{Requires=p14"
-            "},mc:Fallback)"
+            "mc:AlternateContent/(mc:Choice{Requires=a14},mc:Choice{Requires=p14" "},mc:Fallback)"
         )
         assert isinstance(ac, CT_AlternateContent)
         choices = ac.choices
@@ -46,15 +45,19 @@ class DescribeCT_AlternateContent(object):
 
     @pytest.fixture(
         params=[
-            # -- no Choice: nothing yielded even if Fallback contains shapes --
-            ("mc:AlternateContent/mc:Fallback/p:sp", 0),
-            # -- empty Choice: nothing yielded --
+            # -- no Choice but Fallback has shapes: Fallback is surfaced (issue #621) --
+            ("mc:AlternateContent/mc:Fallback/p:sp", 1),
+            # -- no Choice and no Fallback: nothing yielded --
+            ("mc:AlternateContent", 0),
+            # -- empty Choice, no Fallback: nothing yielded --
             ("mc:AlternateContent/mc:Choice", 0),
+            # -- empty Choice, Fallback has shape: fall through to Fallback (issue #621) --
+            ("mc:AlternateContent/(mc:Choice,mc:Fallback/p:sp)", 1),
             # -- single shape in Choice --
             ("mc:AlternateContent/mc:Choice/p:sp", 1),
             # -- multiple shapes in Choice in document order --
             ("mc:AlternateContent/mc:Choice/(p:sp,p:sp,p:sp)", 3),
-            # -- nested AlternateContent flattens by preferring inner Choice --
+            # -- nested AlternateContent flattens via preferred-choice-then-fallback --
             (
                 "mc:AlternateContent/mc:Choice/(p:sp,mc:AlternateContent/(mc:Cho"
                 "ice/p:sp,mc:Fallback/p:sp))",
@@ -62,17 +65,19 @@ class DescribeCT_AlternateContent(object):
             ),
             # -- non-shape children are skipped --
             ("mc:AlternateContent/mc:Choice/(p:extLst,p:sp)", 1),
-            # -- mc:Fallback is ignored even if it has shapes --
+            # -- Fallback is ignored when first Choice has shapes --
             ("mc:AlternateContent/(mc:Choice/p:sp,mc:Fallback/(p:sp,p:sp))", 1),
-            # -- only first Choice is walked --
+            # -- when first Choice yields shapes, later Choices are not walked --
             ("mc:AlternateContent/(mc:Choice/p:sp,mc:Choice/(p:sp,p:sp))", 1),
+            # -- first empty Choice is skipped, second Choice with shapes is used --
+            ("mc:AlternateContent/(mc:Choice,mc:Choice/(p:sp,p:sp))", 2),
         ]
     )
     def iter_choice_fixture(self, request):
         cxml, expected_count = request.param
         return element(cxml), expected_count
 
-    def it_iterates_shape_elements_from_the_first_Choice(self, iter_choice_fixture):
+    def it_iterates_shape_elements_resolving_Choice_then_Fallback(self, iter_choice_fixture):
         ac, expected_count = iter_choice_fixture
         shape_tags = (qn("p:sp"), qn("p:grpSp"), qn("p:graphicFrame"))
         shape_elms = list(ac.iter_choice_shape_elms(shape_tags))

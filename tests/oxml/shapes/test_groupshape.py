@@ -113,10 +113,19 @@ class DescribeCT_GroupShape(object):
         assert len(fallbacks) == 1
         assert len(fallbacks[0].findall(p_sp_tag)) == 1
 
-    def it_yields_nothing_from_AlternateContent_without_Choice(self):
-        spTree = element(
-            "p:spTree/(p:nvGrpSpPr,p:grpSpPr,mc:AlternateContent/mc:Fallback/p:sp)"
-        )
+    def it_surfaces_Fallback_shapes_when_no_Choice_is_present(self):
+        """Issue #621 regression — fall through to mc:Fallback if Choice is absent or empty."""
+        p_sp_tag = "{http://schemas.openxmlformats.org/presentationml/2006/main}sp"
+        mc_fb_tag = "{http://schemas.openxmlformats.org/markup-compatibility/2006}Fallback"
+        spTree = element("p:spTree/(p:nvGrpSpPr,p:grpSpPr,mc:AlternateContent/mc:Fallback/p:sp)")
+        shape_elms = list(spTree.iter_shape_elms())
+        assert len(shape_elms) == 1
+        assert shape_elms[0].tag == p_sp_tag
+        assert shape_elms[0].getparent().tag == mc_fb_tag
+
+    def it_yields_nothing_from_AlternateContent_with_no_content(self):
+        """Empty AlternateContent (no Choice and no Fallback) yields nothing."""
+        spTree = element("p:spTree/(p:nvGrpSpPr,p:grpSpPr,mc:AlternateContent)")
         assert list(spTree.iter_shape_elms()) == []
 
     def it_surfaces_different_shape_tags_inside_AlternateContent(self):
