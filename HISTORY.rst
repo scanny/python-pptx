@@ -14,6 +14,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #823 add recipe for editing footer/slide-number/date placeholders.
+  Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
+  how to edit "the character in the lower-left corner" of slides —
+  typically the footer, slide-number, or date placeholder authored on
+  the slide master (and optionally overridden on a specific layout).
+  The ``docs/user/slides.rst`` "Editing the footer, slide-number, or
+  date placeholder text" section now shows how to locate each latent
+  placeholder by ``placeholder_format.type`` (portable across masters
+  whose ``idx`` values differ), edit its text, and pair the edit with
+  a ``header_footer`` visibility toggle. A new
+  ``tests/test_issue_823_footer_edit_recipe.py`` regression suite pins
+  the code paths the recipe depends on — including the latent-
+  placeholders-not-cloned contract and the watermark-shape fallback.
+  No public-API change.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
