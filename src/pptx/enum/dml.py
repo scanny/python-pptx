@@ -422,6 +422,46 @@ class MSO_THEME_COLOR_INDEX(BaseXmlEnum):
     MS API Name: `MsoThemeColorIndex`
 
     http://msdn.microsoft.com/en-us/library/office/ff860782(v=office.15).aspx
+
+    Note:
+        Each enum member maps to a specific ``val`` attribute written on
+        ``<a:schemeClr>``. OOXML defines *two* parallel sets of scheme-color
+        names, connected at the theme level by ``<a:clrMap>``:
+
+        - **Slide-level names** — ``tx1``, ``bg1``, ``tx2``, ``bg2``,
+          ``accent1``-``accent6``, ``hlink``, ``folHlink``. These are what
+          PowerPoint writes in slide, layout, and master content (shape
+          fills, run text colors, etc.). They correspond to
+          :attr:`TEXT_1`, :attr:`BACKGROUND_1`, :attr:`TEXT_2`,
+          :attr:`BACKGROUND_2`, :attr:`ACCENT_1`-:attr:`ACCENT_6`,
+          :attr:`HYPERLINK`, :attr:`FOLLOWED_HYPERLINK`.
+
+        - **Theme-level names** — ``dk1``, ``lt1``, ``dk2``, ``lt2``, plus
+          the same ``accent1``-``accent6``, ``hlink``, ``folHlink``. These
+          are the actual color definitions inside the theme's
+          ``<a:clrScheme>``. They correspond to :attr:`DARK_1`,
+          :attr:`LIGHT_1`, :attr:`DARK_2`, :attr:`LIGHT_2` (and the same
+          accent/hyperlink members as above).
+
+        The slide-master's ``<p:clrMap>`` connects them, typically as
+        ``bg1→lt1``, ``tx1→dk1``, ``bg2→lt2``, ``tx2→dk2`` (accents and
+        hyperlinks pass through by name). Authors can swap the mapping to
+        flip light/dark schemes without editing slide content.
+
+        **Which name should you use when assigning ``theme_color``?** Match
+        what PowerPoint writes at that location:
+
+        - On a run, shape fill, or other slide-level content, use
+          :attr:`TEXT_1` / :attr:`BACKGROUND_1` / :attr:`TEXT_2` /
+          :attr:`BACKGROUND_2` (writes ``tx1`` / ``bg1`` / ``tx2`` /
+          ``bg2``). This is what the PowerPoint UI emits.
+        - Inside a theme's own ``<a:clrScheme>``, use :attr:`DARK_1` /
+          :attr:`LIGHT_1` / :attr:`DARK_2` / :attr:`LIGHT_2` (writes
+          ``dk1`` / ``lt1`` / ``dk2`` / ``lt2``).
+
+        Both sets are accepted by PowerPoint in slide content — the
+        slide-level names are strongly preferred for interoperability and
+        round-trip stability.
     """
 
     NOT_THEME_COLOR = (0, "", "Indicates the color is not a theme color.")
@@ -445,17 +485,43 @@ class MSO_THEME_COLOR_INDEX(BaseXmlEnum):
     ACCENT_6 = (10, "accent6", "Specifies the Accent 6 theme color.")
     """Specifies the Accent 6 theme color."""
 
-    BACKGROUND_1 = (14, "bg1", "Specifies the Background 1 theme color.")
-    """Specifies the Background 1 theme color."""
+    BACKGROUND_1 = (
+        14,
+        "bg1",
+        "Specifies the Background 1 theme color (slide-level; writes "
+        '`<a:schemeClr val="bg1">`). Mapped to `lt1` by a default '
+        "`<p:clrMap>`. See also :attr:`LIGHT_1`.",
+    )
+    """Specifies the Background 1 theme color (slide-level; writes ``bg1``)."""
 
-    BACKGROUND_2 = (16, "bg2", "Specifies the Background 2 theme color.")
-    """Specifies the Background 2 theme color."""
+    BACKGROUND_2 = (
+        16,
+        "bg2",
+        "Specifies the Background 2 theme color (slide-level; writes "
+        '`<a:schemeClr val="bg2">`). Mapped to `lt2` by a default '
+        "`<p:clrMap>`. See also :attr:`LIGHT_2`.",
+    )
+    """Specifies the Background 2 theme color (slide-level; writes ``bg2``)."""
 
-    DARK_1 = (1, "dk1", "Specifies the Dark 1 theme color.")
-    """Specifies the Dark 1 theme color."""
+    DARK_1 = (
+        1,
+        "dk1",
+        "Specifies the Dark 1 theme color (theme-level; writes "
+        '`<a:schemeClr val="dk1">`). Used inside a theme\'s '
+        "`<a:clrScheme>`; slide content typically uses :attr:`TEXT_1` "
+        "(which maps to this via `<p:clrMap>`).",
+    )
+    """Specifies the Dark 1 theme color (theme-level; writes ``dk1``)."""
 
-    DARK_2 = (3, "dk2", "Specifies the Dark 2 theme color.")
-    """Specifies the Dark 2 theme color."""
+    DARK_2 = (
+        3,
+        "dk2",
+        "Specifies the Dark 2 theme color (theme-level; writes "
+        '`<a:schemeClr val="dk2">`). Used inside a theme\'s '
+        "`<a:clrScheme>`; slide content typically uses :attr:`TEXT_2` "
+        "(which maps to this via `<p:clrMap>`).",
+    )
+    """Specifies the Dark 2 theme color (theme-level; writes ``dk2``)."""
 
     FOLLOWED_HYPERLINK = (12, "folHlink", "Specifies the theme color for a clicked hyperlink.")
     """Specifies the theme color for a clicked hyperlink."""
@@ -463,17 +529,43 @@ class MSO_THEME_COLOR_INDEX(BaseXmlEnum):
     HYPERLINK = (11, "hlink", "Specifies the theme color for a hyperlink.")
     """Specifies the theme color for a hyperlink."""
 
-    LIGHT_1 = (2, "lt1", "Specifies the Light 1 theme color.")
-    """Specifies the Light 1 theme color."""
+    LIGHT_1 = (
+        2,
+        "lt1",
+        "Specifies the Light 1 theme color (theme-level; writes "
+        '`<a:schemeClr val="lt1">`). Used inside a theme\'s '
+        "`<a:clrScheme>`; slide content typically uses :attr:`BACKGROUND_1` "
+        "(which maps to this via `<p:clrMap>`).",
+    )
+    """Specifies the Light 1 theme color (theme-level; writes ``lt1``)."""
 
-    LIGHT_2 = (4, "lt2", "Specifies the Light 2 theme color.")
-    """Specifies the Light 2 theme color."""
+    LIGHT_2 = (
+        4,
+        "lt2",
+        "Specifies the Light 2 theme color (theme-level; writes "
+        '`<a:schemeClr val="lt2">`). Used inside a theme\'s '
+        "`<a:clrScheme>`; slide content typically uses :attr:`BACKGROUND_2` "
+        "(which maps to this via `<p:clrMap>`).",
+    )
+    """Specifies the Light 2 theme color (theme-level; writes ``lt2``)."""
 
-    TEXT_1 = (13, "tx1", "Specifies the Text 1 theme color.")
-    """Specifies the Text 1 theme color."""
+    TEXT_1 = (
+        13,
+        "tx1",
+        "Specifies the Text 1 theme color (slide-level; writes "
+        '`<a:schemeClr val="tx1">`). Mapped to `dk1` by a default '
+        "`<p:clrMap>`. See also :attr:`DARK_1`.",
+    )
+    """Specifies the Text 1 theme color (slide-level; writes ``tx1``)."""
 
-    TEXT_2 = (15, "tx2", "Specifies the Text 2 theme color.")
-    """Specifies the Text 2 theme color."""
+    TEXT_2 = (
+        15,
+        "tx2",
+        "Specifies the Text 2 theme color (slide-level; writes "
+        '`<a:schemeClr val="tx2">`). Mapped to `dk2` by a default '
+        "`<p:clrMap>`. See also :attr:`DARK_2`.",
+    )
+    """Specifies the Text 2 theme color (slide-level; writes ``tx2``)."""
 
     MIXED = (
         -2,

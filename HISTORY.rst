@@ -14,6 +14,29 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #634 clarify ``MSO_THEME_COLOR_INDEX`` ↔ ``<a:schemeClr val>``
+  mapping. Issue #634
+  (https://github.com/scanny/python-pptx/issues/634) reported that the
+  XML tag names (``tx1`` / ``bg1`` / ``dk1`` / ``lt1`` / etc.) don't
+  visibly match the enum member names (``TEXT_1`` / ``BACKGROUND_1`` /
+  ``DARK_1`` / ``LIGHT_1``). The mapping is intentional — OOXML carries
+  two parallel sets of scheme-color names connected by the slide
+  master's ``<p:clrMap>``: slide-level (``tx1`` / ``bg1`` / ``tx2`` /
+  ``bg2``) and theme-level (``dk1`` / ``lt1`` / ``dk2`` / ``lt2``).
+  ``MSO_THEME_COLOR_INDEX`` exposes a member for every value of OOXML
+  ``ST_SchemeColorVal`` (except ``phClr``), correctly writing the
+  slide-level tag PowerPoint itself emits when callers assign
+  ``TEXT_1`` / ``BACKGROUND_1`` / ``TEXT_2`` / ``BACKGROUND_2`` and the
+  theme-level tag when they assign ``DARK_1`` / ``LIGHT_1`` / ``DARK_2``
+  / ``LIGHT_2``. The enum's class docstring, each ambiguous member's
+  description, and ``docs/api/enum/MsoThemeColorIndex.rst`` now spell
+  out the two sets plus the default ``<p:clrMap>`` that connects them.
+  ``tests/test_issue_634_theme_color_mapping_verify.py`` pins the
+  two-way mapping (enum → ``xml_value`` and ``from_xml`` → enum) plus
+  round-trip behavior through ``font.color.theme_color`` for both the
+  ``TEXT_1`` / ``tx1`` and ``DARK_1`` / ``dk1`` cases and confirms the
+  MS-API integer values.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
