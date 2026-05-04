@@ -191,7 +191,7 @@ trivial to convert — keep the ``VIDEO_ID`` and substitute it into the
 caller is responsible for supplying a playable form.
 
 Trade-offs vs :meth:`~SlideShapes.add_movie`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **Package size**: URL-linked video keeps the ``.pptx`` small — only the
   poster PNG lives in the package. Embedded video (``add_movie``) inlines

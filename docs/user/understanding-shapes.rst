@@ -315,7 +315,7 @@ surface (``hyperlink``, ``target_slide``, ``screen_tip``, and
 ``set_sound`` / ``remove_sound`` for a WAV chime).
 
 Run a VBA macro on click (macro-enabled packages only)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 PowerPoint's *Insert → Action → Run macro* menu writes a
 ``ppaction://macro?name=Module.Sub`` action verb on the shape's

@@ -50,21 +50,37 @@ The ``a:graphicData/@uri`` discriminator for SmartArt is
 resolve against the **slide part's** relationships to the four backing
 parts:
 
-================  ================  ================================================================  =====================================================================
-Attribute         rel-type suffix   Content-type                                                      Root element / purpose
-================  ================  ================================================================  =====================================================================
-``r:dm``          diagramData       ``application/vnd.openxmlformats-officedocument.drawingml``       ``dgm:dataModel`` — the *semantic tree*: nodes (``dgm:pt``), their
-                                    ``.diagramData+xml``                                              text runs, and connections (``dgm:cxn``). Authoring happens here.
-``r:lo``          diagramLayout     ``application/vnd.openxmlformats-officedocument.drawingml``       ``dgm:layoutDef`` — the *layout algorithm program*. Usually
-                                    ``.diagramLayout+xml``                                            referenced from the Office-installed catalogue (Hierarchy, Cycle,
-                                                                                                      Process, List, Matrix, Pyramid, Relationship, Picture) rather than
-                                                                                                      authored from scratch.
-``r:cs``          diagramColors     ``application/vnd.openxmlformats-officedocument.drawingml``       ``dgm:colorsDef`` — a *color-variation* binding theme color slots
-                                    ``.diagramColors+xml``                                            to a color transform (e.g. ``Colorful - Accent Colors``,
-                                                                                                      ``Gradient Range - Accent 1``).
-``r:qs``          diagramQuickStyle ``application/vnd.openxmlformats-officedocument.drawingml``       ``dgm:styleDef`` — the *style variation* picking fill / line /
-                                    ``.diagramStyle+xml``                                             effect recipes (e.g. ``Simple Fill``, ``Inset``, ``Polished``).
-================  ================  ================================================================  =====================================================================
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 30 45
+
+   * - Attribute
+     - rel-type suffix
+     - Content-type
+     - Root element / purpose
+   * - ``r:dm``
+     - diagramData
+     - ``application/vnd.openxmlformats-officedocument.drawingml.diagramData+xml``
+     - ``dgm:dataModel`` — the *semantic tree*: nodes (``dgm:pt``), their
+       text runs, and connections (``dgm:cxn``). Authoring happens here.
+   * - ``r:lo``
+     - diagramLayout
+     - ``application/vnd.openxmlformats-officedocument.drawingml.diagramLayout+xml``
+     - ``dgm:layoutDef`` — the *layout algorithm program*. Usually
+       referenced from the Office-installed catalogue (Hierarchy, Cycle,
+       Process, List, Matrix, Pyramid, Relationship, Picture) rather than
+       authored from scratch.
+   * - ``r:cs``
+     - diagramColors
+     - ``application/vnd.openxmlformats-officedocument.drawingml.diagramColors+xml``
+     - ``dgm:colorsDef`` — a *color-variation* binding theme color slots
+       to a color transform (e.g. ``Colorful - Accent Colors``,
+       ``Gradient Range - Accent 1``).
+   * - ``r:qs``
+     - diagramQuickStyle
+     - ``application/vnd.openxmlformats-officedocument.drawingml.diagramStyle+xml``
+     - ``dgm:styleDef`` — the *style variation* picking fill / line /
+       effect recipes (e.g. ``Simple Fill``, ``Inset``, ``Polished``).
 
 A fifth, optional part is often present:
 

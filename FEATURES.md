@@ -303,8 +303,8 @@ layout = prs.slide_layouts[5]
 intro = prs.slides.add_slide(layout)
 body = prs.slides.add_slide(layout)
 
-prs.sections.add_section(name="Intro", first_slide=intro)
-prs.sections.add_section(name="Body", first_slide=body)
+prs.sections.add_section(name="Intro", slides=[intro])
+prs.sections.add_section(name="Body", slides=[body])
 
 for sec in prs.sections:
     print(sec.id, sec.name, [s.slide_id for s in sec.slides])
@@ -313,7 +313,7 @@ prs.save("out.pptx")
 ```
 
 - `Presentation.sections` — `Sections` collection. `[Added in 2026.05.0]`
-- `Sections.add_section(name, first_slide)` / `Sections.remove(section)` / `Sections.index(section)` — CRUD. `[Added in 2026.05.0]`
+- `Sections.add_section(name, slides=(), id=None)` / `Sections.remove(section)` / `Sections.index(section)` — CRUD. `[Added in 2026.05.0]`
 - `Sections.find_containing(slide)` — The `Section` a slide belongs to, or `None`. `[Added in 2026.05.0]`
 - `Sections.get_by_id(id)` / `Sections.get_by_name(name)` — Lookups. `[Added in 2026.05.0]`
 - `Section.id` / `.index` / `.name` / `.slides` — Core metadata and membership. `[Added in 2026.05.0]`
@@ -696,6 +696,7 @@ detection, and SVG input that raises the dedicated
 ```python
 from io import BytesIO
 from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.util import Inches
 
 prs = Presentation()
@@ -977,6 +978,7 @@ complete bullet-format API via `_Paragraph.bullet`.
 from pptx import Presentation
 from pptx.util import Emu, Inches, Pt
 from pptx.dml.color import RGBColor
+from pptx.enum.lang import MSO_LANGUAGE_ID
 from pptx.enum.text import MSO_TEXT_STRIKE_TYPE
 
 prs = Presentation()
@@ -1009,6 +1011,7 @@ new_run.text = " Twin"
 new_run.font.copy_from(run.font)
 
 # build a paragraph
+tf = tb.text_frame
 p = tf.paragraphs[0]
 r = p.add_run()
 r.text = "Hello {NAME}"
@@ -1985,6 +1988,7 @@ bounds without cropping. Placeholders are looked up by `idx` on
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
+from pptx.util import Inches
 
 prs = Presentation()
 slide = prs.slides.add_slide(prs.slide_layouts[5])
@@ -2085,10 +2089,21 @@ labels, gridlines, axis titles, and (fork-era) `visible`, custom number
 formats, date-axis major/minor unit, and axis position.
 
 ```python
-from pptx.util import Pt
-from pptx.enum.chart import XL_TICK_MARK
+from pptx import Presentation
+from pptx.chart.data import CategoryChartData
+from pptx.enum.chart import XL_CHART_TYPE, XL_TICK_MARK
+from pptx.util import Inches, Pt
 
-chart = ...  # a Chart
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[5])
+data = CategoryChartData()
+data.categories = ["A", "B", "C"]
+data.add_series("S", (1, 2, 3))
+chart = slide.shapes.add_chart(
+    XL_CHART_TYPE.COLUMN_CLUSTERED,
+    Inches(1), Inches(1), Inches(6), Inches(4), data,
+).chart
+
 cat_axis = chart.category_axis
 cat_axis.visible = True
 cat_axis.has_major_gridlines = False
@@ -2133,11 +2148,21 @@ Every series exposes per-point customisation, line / marker format, data
 labels (series-level and per-point), error bars, and trendlines.
 
 ```python
-from pptx.util import Pt
+from pptx import Presentation
+from pptx.chart.data import CategoryChartData
 from pptx.dml.color import RGBColor
-from pptx.enum.chart import XL_TRENDLINE_TYPE
+from pptx.enum.chart import XL_CHART_TYPE, XL_TRENDLINE_TYPE
+from pptx.util import Inches, Pt
 
-chart = ...  # a Chart
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[5])
+data = CategoryChartData()
+data.categories = ["A", "B", "C"]
+data.add_series("S", (1, 2, 3))
+chart = slide.shapes.add_chart(
+    XL_CHART_TYPE.LINE,
+    Inches(1), Inches(1), Inches(6), Inches(4), data,
+).chart
 series = chart.series[0]
 
 # series-level formatting
@@ -2158,8 +2183,7 @@ pt.format.fill.solid()
 pt.format.fill.fore_color.rgb = RGBColor(0xCC, 0x33, 0x33)
 
 # error bars + trendline
-series.has_error_bars = True
-series.error_bars.include_negative = False
+series.set_error_bars(value=5.0)
 series.add_trendline(XL_TRENDLINE_TYPE.LINEAR, display_r_squared=True)
 ```
 
@@ -2315,7 +2339,7 @@ start-conditions.
 from pptx import Presentation
 from pptx.util import Inches
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.enum.animation import MSO_ANIMATION_EFFECT, MSO_ANIMATION_TRIGGER
+from pptx.enum.animation import MSO_ANIMATION_TYPE, MSO_ANIMATION_TRIGGER
 
 prs = Presentation()
 slide = prs.slides.add_slide(prs.slide_layouts[5])
@@ -2323,15 +2347,14 @@ slide = prs.slides.add_slide(prs.slide_layouts[5])
 shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE,
                                Inches(1), Inches(1), Inches(2), Inches(1))
 shape.set_animation(
-    effect=MSO_ANIMATION_EFFECT.FADE,
+    MSO_ANIMATION_TYPE.FADE_IN,
     trigger=MSO_ANIMATION_TRIGGER.ON_CLICK,
-    delay=0.5,
-    duration=1.0,
+    delay=500,  # milliseconds
 )
 
 # read back
 for eff in slide.animation_sequence:
-    print(eff.trigger, eff.effect, eff.target_shape_id)
+    print(eff.shape_id, eff.preset_class, eff.preset_id, eff.delay)
 
 prs.save("out.pptx")
 ```
@@ -2340,9 +2363,9 @@ prs.save("out.pptx")
 - `Slide.animation_sequence` — Tuple of `AnimationEffectView` in document order. `[Added in 2026.05.0]`
 - `Slide.iter_shape_animations()` — Iterate over `ShapeAnimation` entries. `[Added in 2026.05.0]`
 - `BaseShape.animation` — Read-only `AnimationEffect` or `None`. `[Added in 2026.05.0]`
-- `BaseShape.set_animation(effect, trigger=..., delay=0, duration=None)` — Author an effect on this shape. `[Added in 2026.05.0]`
-- `AnimationEffectView.effect` / `.trigger` / `.delay` / `.duration` / `.target_shape_id`. `[Added in 2026.05.0]`
-- Enums: `MSO_ANIMATION_EFFECT`, `MSO_ANIMATION_TRIGGER`.
+- `BaseShape.set_animation(effect_type, trigger="onClick", delay=0)` — Author an effect on this shape. `delay` is milliseconds. Passing `effect_type=None` removes the animation. `[Added in 2026.05.0]`
+- `AnimationEffectView.shape_id` / `.preset_class` / `.preset_id` / `.preset_subtype` / `.delay`. `[Added in 2026.05.0]`
+- Enums: `MSO_ANIMATION_TYPE`, `MSO_ANIMATION_TRIGGER`.
 
 ---
 
@@ -2521,19 +2544,19 @@ Fonts used in a presentation can be embedded (TTF or OTF) into the
 package. `[Added in 2026.05.0]`.
 
 ```python
+from io import BytesIO
 from pptx import Presentation
 
 prs = Presentation()
-prs.embed_font(
-    "Inter-Regular.ttf", typeface="Inter",
-    regular=True, bold=False, italic=False,
-)
+# font_file may be a path or any binary file-like; here we inline a minimal
+# byte-stream to keep the snippet self-contained.
+prs.embed_font(BytesIO(b"\x00\x01"), typeface="Inter", style="regular")
 print(prs.embedded_fonts)   # ("Inter", ...)
 
-prs.save("out.pptx")
+prs.save(BytesIO())
 ```
 
-- `Presentation.embed_font(font_file, typeface, regular=True, bold=False, italic=False, bold_italic=False)` — Embed a TrueType / OpenType font file into the package. `[Added in 2026.05.0]`
+- `Presentation.embed_font(font_file, typeface, style="regular")` — Embed a TrueType / OpenType font file into the package. `style` is one of `"regular"`, `"bold"`, `"italic"`, or `"boldItalic"`; call again for the same typeface to add additional style slots. `[Added in 2026.05.0]`
 - `Presentation.embedded_fonts` — Tuple of typeface names currently embedded. `[Added in 2026.05.0]`
 - `FontFile` — Internal part representation.
 - `pptx.text.fonts.Font` — Low-level TTF-table reader used by `fit_text`.
@@ -2578,8 +2601,8 @@ prs.custom_properties["ReviewerCount"] = 3
 prs.custom_properties["IsDraft"] = True
 
 ep = prs.extended_properties
-ep.set("Company", "Example Inc")
-print(ep.get("Application"))
+ep.company = "Example Inc"
+print(ep.application)
 
 prs.save("out.pptx")
 ```
@@ -2589,7 +2612,7 @@ prs.save("out.pptx")
 - `CustomProperties.__getitem__` / `__setitem__` / `__delitem__` / `__contains__` / `__iter__` / `__len__` / `.add(name, value)` / `.get(name, default=None)` / `.names()` / `.items()` — Full mapping interface (accepts `str`, `int`, `float`, `bool`, `datetime`). `[Added in 2026.05.0]`
 - Microsoft Information Protection (MIP) / Azure Information Protection sensitivity labels ride on top of `custom_properties` as an `MSIP_Label_<GUID>_<Field>` bundle (`Enabled`, `SetDate`, `Method`, `Name`, `SiteId`, `ContentBits`). See the "Microsoft sensitivity labels (MIP)" recipe in `docs/user/presentations.rst`. `[Added in 2026.05.0]`
 - `Presentation.extended_properties` — `ExtendedProperties` proxy for `docProps/app.xml`. `[Added in 2026.05.0]`
-- `ExtendedProperties.get(name)` / `ExtendedProperties.set(name, value)` — Generic reads/writes. Typed accessors (`company`, `manager`, `application`, `app_version`, `total_time`, `pages`, `words`, `template`, `presentation_format`, `slides`, `hidden_slides`, `notes`, `mm_clips`, `title_of_parts`, `heading_pairs`, etc.) are generated from a declarative spec. `[Added in 2026.05.0]`
+- Typed accessors on `Presentation.extended_properties` (`application`, `app_version`, `company`, `manager`, `hyperlink_base`, `presentation_format`, `template`, `slide_count`) wrap the `docProps/app.xml` elements. `slide_count` is refreshed at save-time from the presentation's slide list. `[Added in 2026.05.0]`
 
 ---
 
@@ -2721,7 +2744,7 @@ print(RGBColor(0x2E, 0x74, 0xB5))
 - `pptx.util.Length` — Base class; `.inches`, `.pt`, `.emu`, `.cm`, `.mm`, `.centipoints`.
 - `pptx.util.Inches` / `.Emu` / `.Pt` / `.Cm` / `.Mm` / `.Centipoints` — Typed constructors.
 - `pptx.dml.color.RGBColor(r, g, b)` / `RGBColor.from_string("RRGGBB")` — Color value with hex output.
-- `pptx.enum.*` — Every enumeration (`MSO_SHAPE`, `MSO_CONNECTOR_TYPE`, `PP_PLACEHOLDER`, `XL_CHART_TYPE`, `XL_MARKER_STYLE`, `XL_LEGEND_POSITION`, `XL_TICK_MARK`, `PP_TRANSITION_TYPE`, `MSO_ANIMATION_EFFECT`, etc.).
+- `pptx.enum.*` — Every enumeration (`MSO_SHAPE`, `MSO_CONNECTOR_TYPE`, `PP_PLACEHOLDER`, `XL_CHART_TYPE`, `XL_MARKER_STYLE`, `XL_LEGEND_POSITION`, `XL_TICK_MARK`, `PP_TRANSITION_TYPE`, `MSO_ANIMATION_TYPE`, etc.).
 
 ---
 

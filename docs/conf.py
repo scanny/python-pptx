@@ -184,6 +184,8 @@ rst_epilog = """
 
 .. |DataLabel| replace:: :class:`.DataLabel`
 
+.. |_DataTable| replace:: :class:`~pptx.chart.chart._DataTable`
+
 .. |DataLabels| replace:: :class:`.DataLabels`
 
 .. |DateAxis| replace:: :class:`.DateAxis`
@@ -264,6 +266,8 @@ rst_epilog = """
 
 .. |MajorGridlines| replace:: :class:`.MajorGridlines`
 
+.. |ManualLayout| replace:: :class:`~pptx.chart.datalabel.ManualLayout`
+
 .. |Marker| replace:: :class:`.Marker`
 
 .. |MinorGridlines| replace:: :class:`.MinorGridlines`
@@ -312,6 +316,10 @@ rst_epilog = """
 
 .. |PieSeries| replace:: :class:`.PieSeries`
 
+.. |PiePlot| replace:: :class:`~pptx.chart.plot.PiePlot`
+
+.. |Pie3DPlot| replace:: :class:`~pptx.chart.plot.Pie3DPlot`
+
 .. |_PlaceholderFormat| replace:: :class:`._PlaceholderFormat`
 
 .. |PlaceholderGraphicFrame| replace:: :class:`.PlaceholderGraphicFrame`
@@ -355,6 +363,10 @@ rst_epilog = """
 .. |Series| replace:: :class:`.Series`
 
 .. |SeriesCollection| replace:: :class:`.SeriesCollection`
+
+.. |SeriesLines| replace:: :class:`~pptx.chart.plot.SeriesLines`
+
+.. |SheetReference| replace:: :class:`~pptx.chart.series.SheetReference`
 
 .. |EffectFormat| replace:: :class:`.EffectFormat`
 
@@ -405,6 +417,8 @@ rst_epilog = """
 .. |TagsPart| replace:: :class:`.TagsPart`
 
 .. |TextFrame| replace:: :class:`.TextFrame`
+
+.. |TextFrameRect| replace:: :class:`~pptx.text.text.TextFrameRect`
 
 .. |TickLabels| replace:: :class:`.TickLabels`
 

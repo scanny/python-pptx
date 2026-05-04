@@ -407,7 +407,7 @@ the merged content in the output deck.
 
 
 Extended document properties are synced on save
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Every ``.pptx`` package carries an *extended properties* XML part at
 ``docProps/app.xml`` that records (among other things) the total slide count

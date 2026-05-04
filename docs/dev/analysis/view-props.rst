@@ -115,17 +115,17 @@ The MVP exposes six read/write properties on
 :class:`pptx.presentation.ViewProps` (plus an escape-hatch ``element``
 property for raw-XML access):
 
-===========================  ==============================================  ====================
-Python API                    OOXML source                                    Default when absent
-===========================  ==============================================  ====================
-``view_type``                 ``p:viewPr/@lastView``                          ``PP_VIEW_TYPE.NORMAL``
-``show_comments``             ``p:viewPr/@showComments``                      ``True``
-``show_formatting``           ``p:sorterViewPr/@showFormatting``              ``True``
-``slide_view_zoom``           ``p:slideViewPr/p:cSldViewPr/p:cViewPr/p:scale``  ``1.0``
-``notes_view_zoom``           ``p:notesViewPr/p:cSldViewPr/p:cViewPr/p:scale``  ``1.0``
-``outline_view_zoom``         ``p:outlineViewPr/p:cViewPr/p:scale``            ``1.0``
-``sorter_view_zoom``          ``p:sorterViewPr/p:cViewPr/p:scale``             ``1.0``
-===========================  ==============================================  ====================
+===========================  ================================================  =======================
+Python API                   OOXML source                                      Default when absent
+===========================  ================================================  =======================
+``view_type``                ``p:viewPr/@lastView``                            ``PP_VIEW_TYPE.NORMAL``
+``show_comments``            ``p:viewPr/@showComments``                        ``True``
+``show_formatting``          ``p:sorterViewPr/@showFormatting``                ``True``
+``slide_view_zoom``          ``p:slideViewPr/p:cSldViewPr/p:cViewPr/p:scale``  ``1.0``
+``notes_view_zoom``          ``p:notesViewPr/p:cSldViewPr/p:cViewPr/p:scale``  ``1.0``
+``outline_view_zoom``        ``p:outlineViewPr/p:cViewPr/p:scale``             ``1.0``
+``sorter_view_zoom``         ``p:sorterViewPr/p:cViewPr/p:scale``              ``1.0``
+===========================  ================================================  =======================
 
 Plus :attr:`.Presentation.first_slide_num` which wraps
 ``p:presentation/@firstSlideNum``.

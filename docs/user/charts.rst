@@ -811,7 +811,7 @@ rather than all appearing in the source series's color (see GitHub issue
 #529).
 
 Choosing the right ChartData subclass for replace_data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :meth:`Chart.replace_data` requires the |ChartData| subclass to match the
 chart's type family, because the underlying XML shape (``c:cat``/``c:val`` vs
@@ -855,7 +855,7 @@ value, and writes the full ``<mc:AlternateContent>`` wrapper when you assign a v
 greater than 48.
 
 Suppressing zero-valued bars (blank-cell display)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :attr:`Chart.display_blanks_as` surfaces PowerPoint's "Hidden and Empty
 Cells" / "Show empty cells as" setting — the ``<c:dispBlanksAs>`` element —

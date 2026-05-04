@@ -994,6 +994,8 @@ round-trips) and update the theme so PowerPoint honors it::
     theme_part.theme.hlink_color = RGBColor(0xFF, 0x00, 0x00)
 
 .. _`issue #940`: https://github.com/scanny/python-pptx/issues/940
+
+
 Attaching a click-action sound
 ------------------------------
 
