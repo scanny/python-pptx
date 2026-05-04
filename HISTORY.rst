@@ -166,6 +166,19 @@ Unreleased
   gained dedicated autoclass entries for both ``LayoutShapes`` and
   ``MasterShapes``.
 
+- fix: #579 ``series.values`` no longer raises ``ValueError`` when the
+  chart XML contains a non-numeric ``c:pt/c:v`` inside a ``c:numCache``.
+  Issue #579 (https://github.com/scanny/python-pptx/issues/579) reported
+  that some authoring tools emit string text (e.g. an "N/A" label) inside
+  what is schema-wise a numeric cache. The previous implementation called
+  ``float(v.text)`` unconditionally, raising ``ValueError`` on the first
+  such point. ``CT_StrVal_NumVal_Composite.value`` now returns |None| for
+  a non-numeric (or empty) ``c:v`` — the same sentinel already used for
+  a missing ``c:pt`` — so ``series.values``, ``series.x_values``, and
+  ``BubbleSeries.iter_bubble_sizes`` iterate cleanly past the bad cell
+  instead of aborting the read. Covered by
+  ``tests/test_issue_579_series_string_values.py``.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the

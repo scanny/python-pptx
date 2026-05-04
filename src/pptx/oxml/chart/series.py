@@ -475,7 +475,19 @@ class CT_StrVal_NumVal_Composite(BaseOxmlElement):
 
     @property
     def value(self):
+        """The float value of the text in the required ``<c:v>`` child, or |None|.
+
+        Returns |None| when the ``c:v`` child is empty or holds text that
+        cannot be parsed as a float. Some authoring tools emit string
+        values inside a ``c:numCache`` (see issue #579); rather than
+        raising ``ValueError`` when iterating ``series.values``, a
+        non-numeric cached value is treated the same as a missing (blank)
+        data point.
         """
-        The float value of the text in the required ``<c:v>`` child.
-        """
-        return float(self.v.text)
+        text = self.v.text
+        if text is None:
+            return None
+        try:
+            return float(text)
+        except ValueError:
+            return None
