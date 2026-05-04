@@ -36,13 +36,6 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
   count ignores one because it only counts `r:link`-style attributes
   and misses `r:embed` occurrences on `a:blip` and `p:blipFill` leaves.
 
-- **FU-5: Orphan-parts round-trip WIP (from Wave 15 cleanup).** Preserved
-  on `scratch/wave-15-orphan-parts-residue` — two unreviewed commits
-  touching `src/pptx/opc/package.py`, `src/pptx/opc/serialized.py`,
-  `tests/opc/test_package.py`, and an untracked
-  `tests/test_chartex_roundtrip.py`. Review whether the approach is
-  sound and either land or drop.
-
 - **FU-6: `_BaseShapes.clear(preserve_placeholders=True)` GC semantics
   (from W15 #96).** Relies on the save-time reachability walk from
   #956 to remove orphaned image / chart / media parts — doesn't
@@ -52,6 +45,25 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 
 ## Done
+
+- **FU-5 (reviewed and dropped).** The scratch branch
+  `scratch/wave-15-orphan-parts-residue` carried two WIP commits
+  (`ac064932`, `1136c764`) targeting orphan-parts round-trip — the
+  same changes to `src/pptx/opc/package.py`, `tests/opc/test_package.py`,
+  and a new `tests/test_chartex_roundtrip.py` regression test. Those
+  changes were fully superseded by commit `0271c930` on master
+  (``fix(opc): preserve chartEx fallback parts + embedded xlsx on
+  round-trip``), which landed the identical implementation plus the
+  regression test. The scratch branch's `src/pptx/opc/serialized.py`
+  delta was additionally stale (lacked the later RMS-protection
+  handling now on master). Dropped the scratch branch; orphan-parts
+  handling on master is correct — parts declared in
+  ``[Content_Types].xml`` but unreachable from the package-root rels
+  graph (e.g. ``mc:AlternateContent`` fallback charts) are discovered
+  during load, their dependent rels subtree is walked, and empty
+  ``.rels`` files that were physically present in the input are
+  preserved on save. Verified by ``tests/test_chartex_roundtrip.py``
+  and the full pytest run (6557 passed).
 
 - Issue #627 — author tables and charts (plus textbox / picture / auto-shape /
   connector) directly inside a `GroupShape` via `group.shapes.add_table(...)`
