@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from pptx.enum.chart import XL_DATA_LABEL_POSITION
 from pptx.oxml import parse_xml
-from pptx.oxml.ns import nsdecls
+from pptx.oxml.ns import nsdecls, qn
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     OneAndOnlyOne,
+    OxmlElement,
     RequiredAttribute,
     ZeroOrMore,
     ZeroOrOne,
@@ -65,6 +66,64 @@ class CT_DLbl(BaseOxmlElement):
         tx._remove_strRef()
         tx.get_or_add_rich()
         return tx
+
+    @property
+    def text_from_cells_f(self):
+        """Text of ``c:tx/c:strRef/c:f`` on this ``c:dLbl``, or |None|.
+
+        Returns |None| when no ``c:tx/c:strRef/c:f`` is present, or when the
+        ``c:f`` element is empty.
+        """
+        fs = self.xpath("c:tx/c:strRef/c:f")
+        if not fs:
+            return None
+        text = fs[0].text
+        return text if text else None
+
+    def set_text_from_cells_f(self, value):
+        """Write *value* as text of ``c:tx/c:strRef/c:f``.
+
+        Creates the ``c:tx``, ``c:strRef``, and ``c:f`` elements in schema
+        order if not already present. Any existing ``c:rich`` sibling of the
+        new ``c:strRef`` is removed first, because ``c:tx`` allows exactly
+        one of ``c:strRef`` or ``c:rich``.
+        """
+        tx = self.get_or_add_tx()
+        # -- c:tx is a choice of c:strRef or c:rich; drop any c:rich first --
+        tx._remove_rich()
+        strRefs = tx.xpath("c:strRef")
+        if strRefs:
+            strRef = strRefs[0]
+        else:
+            strRef = OxmlElement("c:strRef")
+            tx.append(strRef)
+        fs = strRef.findall(qn("c:f"))
+        if fs:
+            f = fs[0]
+        else:
+            f = OxmlElement("c:f")
+            # -- c:f is the first child of c:strRef (before c:strCache/c:extLst) --
+            strRef.insert(0, f)
+        f.text = str(value)
+
+    def remove_text_from_cells(self):
+        """Remove any ``c:tx/c:strRef`` subtree.
+
+        If the ``c:tx`` becomes empty (no ``c:rich`` sibling either), the
+        ``c:tx`` element itself is removed because the XSD defines ``c:tx``
+        as a required choice between ``c:strRef`` and ``c:rich``. If a
+        ``c:rich`` sibling is present, the ``c:tx`` is left in place.
+        """
+        tx = self.tx
+        if tx is None:
+            return
+        strRefs = tx.xpath("c:strRef")
+        for strRef in strRefs:
+            tx.remove(strRef)
+        # -- remove the now-empty c:tx so it doesn't violate the XSD choice --
+        riches = tx.xpath("c:rich")
+        if not riches:
+            self._remove_tx()
 
     @property
     def idx_val(self):

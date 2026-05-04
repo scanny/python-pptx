@@ -224,6 +224,23 @@ Unreleased
   form the XSD allows. See the "Subscript and superscript" section in
   ``docs/user/text.rst`` for the usage pattern.
 
+- feat: #953 ``DataLabel.text_from_cells`` for per-point "Value From Cells"
+  data-label text. Issue `#953
+  <https://github.com/scanny/python-pptx/issues/953>`_ asked for programmatic
+  access to PowerPoint's **Value From Cells** option (Format Data Labels >
+  Label Options > Value From Cells), which lets an individual data label
+  render text sourced from a worksheet cell rather than the series value.
+  A new read/write :attr:`.DataLabel.text_from_cells` string property exposes
+  the per-point ``c:dLbl/c:tx/c:strRef/c:f`` formula. The getter returns the
+  formula — e.g. ``"Sheet1!$D$2"`` — or |None| when no cell reference is set.
+  The setter writes a ``c:dLbl/c:tx/c:strRef/c:f`` subtree (creating the
+  ``c:dLbl`` and ``c:tx`` ancestors if not present) and removes any pre-
+  existing ``c:tx/c:rich`` custom-text sibling, since ``c:tx`` allows exactly
+  one of ``c:strRef`` or ``c:rich`` per the CT_Tx schema. Assigning |None|
+  removes the ``c:strRef`` (and the now-empty ``c:tx``) so the label reverts
+  to the series-level show-flag defaults. The series-wide
+  ``c:extLst/c15:datalabelsRange`` variant is not modelled in this MVP.
+
 - feat: #1024 / #1025 ``DataLabel.set_manual_layout(x, y)`` /
   ``clear_manual_layout()`` / ``manual_layout``. Issues
   `#1024 <https://github.com/scanny/python-pptx/issues/1024>`_ and

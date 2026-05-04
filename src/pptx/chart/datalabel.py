@@ -28,6 +28,7 @@ class ManualLayout(NamedTuple):
     x: float
     y: float
 
+
 # -- Per-chart-type whitelist of valid c:dLblPos values. Derived from
 # -- ECMA-376 / ISO-IEC-29500 §21.2.2.45 and confirmed against the
 # -- PowerPoint UI. Assigning a position not in the set for the plot's
@@ -505,6 +506,55 @@ class DataLabel(object):
             return
         dLbl = self._get_or_add_dLbl()
         dLbl.get_or_add_dLblPos().val = value
+
+    @property
+    def text_from_cells(self):
+        """Read/write str formula pointing this data label's text at a cell range.
+
+        Returns the formula — e.g. ``"Sheet1!$D$2"`` — carried in
+        ``c:dLbl/c:tx/c:strRef/c:f`` on this point's ``c:dLbl``, which is how
+        PowerPoint's **Value From Cells** data-label option (Format Data
+        Labels > Label Options > Value From Cells) stores the source range
+        for per-point label text. |None| when no ``c:tx/c:strRef/c:f``
+        subtree is present (the default; the label then renders the value /
+        category / series-name chosen by the ``show_*`` flags).
+
+        Assigning a string writes ``c:dLbl/c:tx/c:strRef/c:f`` with that text,
+        creating the ``c:dLbl``, ``c:tx``, ``c:strRef``, and ``c:f`` elements
+        in schema order if not already present. Any pre-existing ``c:rich``
+        subtree under ``c:tx`` (from a prior :attr:`text_frame` / custom-text
+        assignment) is removed first, since ``c:tx`` allows exactly one of
+        ``c:strRef`` or ``c:rich``. Assigning |None| removes the ``c:strRef``
+        subtree; if no ``c:rich`` sibling remains, the ``c:tx`` is removed
+        along with it to keep the ``c:dLbl`` schema-valid.
+
+        PowerPoint populates an ``c:strCache`` sibling under the ``c:strRef``
+        when it opens a file that references a range, to carry the *current*
+        cached text of each referenced cell. python-pptx does not populate
+        the cache; PowerPoint refreshes it on open from the embedded xlsx,
+        so setting ``text_from_cells`` to a formula like ``"Sheet1!$D$2"``
+        and saving produces a file that renders the label text sourced from
+        cell ``D2`` when opened in PowerPoint.
+
+        Addresses issue #953.
+
+        .. versionadded:: 2026.05.1
+        """
+        dLbl = self._dLbl
+        if dLbl is None:
+            return None
+        return dLbl.text_from_cells_f
+
+    @text_from_cells.setter
+    def text_from_cells(self, value):
+        if value is None:
+            dLbl = self._dLbl
+            if dLbl is None:
+                return
+            dLbl.remove_text_from_cells()
+            return
+        dLbl = self._get_or_add_dLbl()
+        dLbl.set_text_from_cells_f(str(value))
 
     @property
     def text_frame(self):

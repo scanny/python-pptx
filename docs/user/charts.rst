@@ -439,6 +439,27 @@ This writes a ``c:dLbl/c:layout/c:manualLayout`` subtree with ``c:xMode`` and
 `issue #1024 <https://github.com/scanny/python-pptx/issues/1024>`_ and
 `issue #1025 <https://github.com/scanny/python-pptx/issues/1025>`_.
 
+Individual data labels can also be bound to a cell range so that the label
+text is taken from worksheet cells instead of the series value — the same
+behaviour as PowerPoint's **Value From Cells** option (Format Data Labels >
+Label Options > Value From Cells)::
+
+    point = chart.plots[0].series[0].points[2]
+    point.data_label.text_from_cells = "Sheet1!$D$2"
+
+    # read back as a str (or None when no cell reference is set)
+    assert point.data_label.text_from_cells == "Sheet1!$D$2"
+
+    # remove the cell reference — the label reverts to whatever the
+    # series-level show_* flags specify
+    point.data_label.text_from_cells = None
+
+This writes ``c:dLbl/c:tx/c:strRef/c:f`` with the supplied formula. PowerPoint
+refreshes the ``c:strCache`` sibling under ``c:strRef`` on open, so a file
+saved with :attr:`DataLabel.text_from_cells` set to a single-cell range
+renders the label text sourced from that cell. Addresses
+`issue #953 <https://github.com/scanny/python-pptx/issues/953>`_.
+
 .. note::
    A newly-added doughnut or exploded-doughnut chart emits its default
    ``c:dLbls`` block with ``c:showVal val="1"``, so the numeric values appear

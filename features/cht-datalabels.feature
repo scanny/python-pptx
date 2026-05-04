@@ -276,3 +276,23 @@ Feature: Access and modify data labels properties
       And I clear the data label manual layout
      Then data_label.manual_layout is None
       And the c:dLbl for the point has no c:layout subtree
+
+
+  Scenario: DataLabel.text_from_cells defaults to None (issue #953)
+    Given a data label
+     Then data_label.text_from_cells is None
+
+
+  Scenario: DataLabel.text_from_cells setter writes c:dLbl/c:tx/c:strRef/c:f
+    Given a data label
+     When I assign 'Sheet1!$D$2' to data_label.text_from_cells
+     Then data_label.text_from_cells is 'Sheet1!$D$2'
+      And the c:dLbl for the point has c:tx/c:strRef/c:f with text 'Sheet1!$D$2'
+
+
+  Scenario: DataLabel.text_from_cells None setter removes the c:strRef
+    Given a data label
+     When I assign 'Sheet1!$D$2' to data_label.text_from_cells
+      And I assign None to data_label.text_from_cells
+     Then data_label.text_from_cells is None
+      And the c:dLbl for the point has no c:tx subtree
