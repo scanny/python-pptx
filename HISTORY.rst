@@ -130,6 +130,17 @@ Unreleased
   ``PP_AUTO_NUMBER`` alias, and a :meth:`Presentation.save` + reopen
   round-trip of all three configurations.
 
+- fix: #1026 ``TextFrame.fit_text()`` no longer crashes when the text
+  contains characters the chosen font cannot measure — arrows (``→`` /
+  ``←`` / ``↑`` / ``↓``), CJK ideographs, emoji, or any codepoint that
+  causes Pillow's ``ImageFont.getbbox`` to raise. The measurement path
+  in ``src/pptx/text/layout.py`` now falls back to per-character
+  measurement, substituting the width of ``?`` (the OpenType-required
+  ``.notdef`` fallback glyph) for any char that still fails, so a sensible
+  integer point size is returned instead of an uncaught
+  ``UnicodeEncodeError`` / ``OSError`` / ``ValueError``. Genuine font-load
+  failures continue to raise ``TextLayoutError`` per #168.
+
 - docs: #950 add ai-use-cases page. Issue #950
   (https://github.com/scanny/python-pptx/issues/950) asked whether
   python-pptx will "include Generative AI". The new

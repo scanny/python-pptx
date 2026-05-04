@@ -336,23 +336,73 @@ class _Fonts(object):
         return cls.fonts[(font_path, point_size)]
 
 
+def _measure_px(font: object, text: str) -> tuple[int, int]:
+    """Return (px_width, px_height) of `text` rendered in `font`.
+
+    Prefers the modern ``getbbox`` API, falling back to the legacy ``getsize``
+    API for older Pillow releases. Callers must ensure `text` is a value the
+    font can measure; glyph-level fallback happens in `_rendered_size`.
+    """
+    # ---modern Pillow exposes `getbbox`; older releases expose `getsize`---
+    getbbox = getattr(font, "getbbox", None)
+    if getbbox is not None:
+        left, top, right, bottom = getbbox(text)
+        return right - left, bottom - top
+    getsize = getattr(font, "getsize")  # noqa: B009 - legacy Pillow fallback
+    px_width, px_height = getsize(text)
+    return px_width, px_height
+
+
 def _rendered_size(text, point_size, font_file):
     """
     Return a (width, height) pair representing the size of *text* in English
     Metric Units (EMU) when rendered at *point_size* in the font defined in
     *font_file*.
+
+    Characters the font cannot measure (e.g. arrows, CJK ideographs, emoji
+    when the font lacks those glyphs, or any codepoint that triggers a Pillow
+    layout error) fall back to the width of ``?`` in the same font so the
+    measurement still produces a usable approximation instead of crashing.
+    See issue #1026.
     """
     emu_per_inch = 914400
     px_per_inch = 72.0
 
     font = _Fonts.font(font_file, point_size)
     try:
-        px_width, px_height = font.getsize(text)
-    except AttributeError:
-        left, top, right, bottom = font.getbbox(text)
-        px_width, px_height = right - left, bottom - top
+        px_width, px_height = _measure_px(font, text)
+    except (UnicodeEncodeError, OSError, ValueError):
+        # ---fall back to per-character measurement, substituting a neutral
+        # ---glyph (`?`) for any codepoint the font cannot measure.
+        px_width, px_height = _measure_with_fallback(font, text)
 
     emu_width = int(px_width / px_per_inch * emu_per_inch)
     emu_height = int(px_height / px_per_inch * emu_per_inch)
 
     return emu_width, emu_height
+
+
+def _measure_with_fallback(font: object, text: str) -> tuple[int, int]:
+    """Return (px_width, px_height) measuring `text` char-by-char.
+
+    Any character that raises during measurement is replaced with ``?`` (a
+    glyph every TrueType font is required by the OpenType spec to provide).
+    This keeps `fit_text()` working when `text` contains arrows, CJK
+    characters, emoji or other codepoints the caller's font cannot render,
+    rather than crashing deep inside Pillow. See issue #1026.
+    """
+    # ---baseline height comes from a known-good glyph so height-only
+    # ---calculations ("Ty") remain accurate when `text` is empty or all
+    # ---fallback glyphs.
+    _, baseline_h = _measure_px(font, "?")
+    total_w = 0
+    max_h = baseline_h
+    for ch in text:
+        try:
+            w, h = _measure_px(font, ch)
+        except (UnicodeEncodeError, OSError, ValueError):
+            w, h = _measure_px(font, "?")
+        total_w += w
+        if h > max_h:
+            max_h = h
+    return total_w, max_h
