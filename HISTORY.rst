@@ -237,6 +237,19 @@ Unreleased
   ``docs/user/text.rst`` ("Copying font formatting") for usage.
   Issue #566 (https://github.com/scanny/python-pptx/issues/566).
 
+- Add #485 ``TextFrame.upright`` and complete ``TextFrame.rotation`` API for
+  text-rotation control inside a rotated shape. ``TextFrame.upright`` is a
+  new read/write boolean that maps ``a:bodyPr/@upright``: when ``True`` the
+  text stays visually upright even if the enclosing shape is rotated,
+  mirroring PowerPoint's "keep text upright" option on a rotated shape.
+  ``TextFrame.rotation`` (introduced earlier for ``a:bodyPr/@rot``) now
+  also accepts |None| to clear the attribute entirely, in addition to the
+  existing ``int`` / ``float`` (degrees) semantics. Tests in
+  ``tests/text/test_text.py`` pin both setters, an acceptance scenario in
+  ``features/txt-textframe.feature`` drives them end-to-end, and the
+  "Rotating text inside a shape" section of ``docs/user/text.rst`` walks
+  through a rotated-shape-with-upright-text example. Issue #485.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the

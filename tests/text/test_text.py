@@ -398,6 +398,65 @@ class DescribeTextFrame(object):
         text_frame.rotation = new_value
         assert text_frame._element.xml == xml(expected_cxml)
 
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "expected_cxml"),
+        [
+            # -- assigning None on an element with @rot removes the attribute --
+            ("p:txBody/a:bodyPr{rot=2700000}", "p:txBody/a:bodyPr"),
+            # -- assigning None on an element without @rot is a no-op --
+            ("p:txBody/a:bodyPr", "p:txBody/a:bodyPr"),
+        ],
+    )
+    def it_clears_rotation_when_assigned_None(
+        self, txBody_cxml: str, expected_cxml: str
+    ):
+        """Assigning `None` to `TextFrame.rotation` removes `@rot` — issue #485."""
+        text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
+        text_frame.rotation = None
+        assert text_frame._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "expected_value"),
+        [
+            # -- default (no upright attribute) is False --
+            ("p:txBody/a:bodyPr", False),
+            # -- explicit upright=1 reads as True --
+            ("p:txBody/a:bodyPr{upright=1}", True),
+            # -- explicit upright=0 reads as False --
+            ("p:txBody/a:bodyPr{upright=0}", False),
+        ],
+    )
+    def it_knows_its_upright_setting(self, txBody_cxml: str, expected_value: bool):
+        """`TextFrame.upright` reflects `a:bodyPr/@upright` — issue #485."""
+        text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
+        assert text_frame.upright is expected_value
+
+    @pytest.mark.parametrize(
+        ("txBody_cxml", "new_value", "expected_cxml"),
+        [
+            # -- assigning True adds @upright="1" --
+            ("p:txBody/a:bodyPr", True, "p:txBody/a:bodyPr{upright=1}"),
+            # -- assigning False (the default) clears any explicit setting --
+            ("p:txBody/a:bodyPr{upright=1}", False, "p:txBody/a:bodyPr"),
+            # -- toggling False->True on a bare element adds the attribute --
+            ("p:txBody/a:bodyPr", False, "p:txBody/a:bodyPr"),
+            # -- toggling True on an element already carrying the attribute
+            #    is idempotent (still @upright="1")
+            (
+                "p:txBody/a:bodyPr{upright=1}",
+                True,
+                "p:txBody/a:bodyPr{upright=1}",
+            ),
+        ],
+    )
+    def it_can_change_its_upright_setting(
+        self, txBody_cxml: str, new_value: bool, expected_cxml: str
+    ):
+        """Assignment updates the `a:bodyPr/@upright` attribute — issue #485."""
+        text_frame = TextFrame(cast("CT_TextBody", element(txBody_cxml)), None)
+        text_frame.upright = new_value
+        assert text_frame._element.xml == xml(expected_cxml)
+
     def it_knows_the_part_it_belongs_to(self, text_frame_with_parent_):
         text_frame, parent_ = text_frame_with_parent_
         part = text_frame.part

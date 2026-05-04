@@ -101,6 +101,17 @@ def when_I_assign_value_to_text_frame_word_wrap(context, value):
     context.text_frame.word_wrap = new_value
 
 
+@when("I assign {value} to text_frame.rotation")
+def when_I_assign_value_to_text_frame_rotation(context, value):
+    new_value = None if value == "None" else float(value)
+    context.text_frame.rotation = new_value
+
+
+@when("I assign {value} to text_frame.upright")
+def when_I_assign_value_to_text_frame_upright(context, value):
+    context.text_frame.upright = {"True": True, "False": False}[value]
+
+
 @when("I call TextFrame.fit_text()")
 def when_I_call_TextFrame_fit_text(context):
     from helpers import test_file
@@ -222,6 +233,20 @@ def then_text_frame_word_wrap_is_value(context, value):
     expected_value = {"True": True, "False": False, "None": None}[value]
     text_frame = context.text_frame
     assert text_frame.word_wrap is expected_value
+
+
+@then("text_frame.rotation == {value}")
+def then_text_frame_rotation_eq_value(context, value):
+    expected = float(value)
+    actual = context.text_frame.rotation
+    assert actual == expected, "expected %s, got %s" % (expected, actual)
+
+
+@then("text_frame.upright is {value}")
+def then_text_frame_upright_is_value(context, value):
+    expected_value = {"True": True, "False": False}[value]
+    text_frame = context.text_frame
+    assert text_frame.upright is expected_value
 
 
 @then("the size of the text is 10pt or 11pt")

@@ -73,3 +73,28 @@ Feature: Get and change properties of shape text frame
       | True  |
       | False |
       | None  |
+
+
+  Scenario Outline: TextFrame.rotation setter
+    Given a TextFrame object as text_frame
+     When I assign <value> to text_frame.rotation
+     Then text_frame.rotation == <expected>
+
+    Examples: Rotation values
+      | value | expected |
+      | 0     | 0.0      |
+      | 45    | 45.0     |
+      | 90.5  | 90.5     |
+      | -90   | 270.0    |
+      | None  | 0.0      |
+
+
+  Scenario Outline: TextFrame.upright setter
+    Given a TextFrame object as text_frame
+     When I assign <value> to text_frame.upright
+     Then text_frame.upright is <value>
+
+    Examples: Upright settings
+      | value |
+      | True  |
+      | False |

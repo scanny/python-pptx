@@ -226,6 +226,9 @@ class CT_TextBodyProperties(BaseOxmlElement):
     rot: float | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "rot", ST_Angle, default=0.0
     )
+    upright: bool = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "upright", XsdBoolean, default=False
+    )
     lIns: Length = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "lIns", ST_Coordinate32, default=Emu(91440)
     )

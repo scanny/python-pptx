@@ -326,13 +326,34 @@ class TextFrame(Subshape):
         Negative values assigned (e.g. ``-90``) are normalized to the
         equivalent positive rotation in the range ``[0, 360)``. Both integer
         and float values are accepted; PowerPoint stores the value in
-        60000ths of a degree under the hood. See issue #133.
+        60000ths of a degree under the hood. Assigning |None| (or ``0``)
+        removes the ``@rot`` attribute entirely. See issues #133 and #485.
         """
         return self._bodyPr.rot
 
     @rotation.setter
-    def rotation(self, value: float):
-        self._bodyPr.rot = value
+    def rotation(self, value: float | None):
+        # -- `None` removes the attribute (equivalent to the default 0.0). The
+        # -- `OptionalAttribute` descriptor treats `value == default` as
+        # -- "remove attr" so assigning 0.0 or 0 has the same effect.
+        self._bodyPr.rot = 0.0 if value is None else value
+
+    @property
+    def upright(self) -> bool:
+        """`True` when text is displayed upright regardless of shape rotation.
+
+        Read/write. Corresponds to the ``upright`` attribute of the
+        ``a:bodyPr`` element. Returns |False| (the default) when the
+        attribute is not present. When |True|, text remains visually upright
+        even if the enclosing shape is rotated (compare with the default
+        behaviour, where rotating the shape also rotates its text). See
+        issue #485.
+        """
+        return self._bodyPr.upright
+
+    @upright.setter
+    def upright(self, value: bool):
+        self._bodyPr.upright = bool(value)
 
     @property
     def text(self) -> str:
