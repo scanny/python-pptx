@@ -487,6 +487,15 @@ class Chart(PartElementProxy):
             autoTitleDeleted.val = True
             return
         chart.get_or_add_title()
+        # -- GitHub issue #643: when re-enabling the title, clear any
+        # -- prior `c:autoTitleDeleted val="1"` so PowerPoint's auto-title
+        # -- logic engages (for a single-series chart, the title renders
+        # -- as the series name; otherwise PowerPoint shows the "Chart Title"
+        # -- placeholder). Leaving `autoTitleDeleted="1"` alongside an empty
+        # -- `c:title` suppresses the auto-title entirely. --
+        autoTitleDeleted = chart.autoTitleDeleted
+        if autoTitleDeleted is not None and autoTitleDeleted.val is True:
+            autoTitleDeleted.val = False
 
     @property
     def legend(self):

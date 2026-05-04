@@ -14,6 +14,20 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #643 ``Chart.has_title = True`` now clears a stale
+  ``c:autoTitleDeleted val="1"`` so PowerPoint's auto-title logic
+  engages. Issue #643 (https://github.com/scanny/python-pptx/issues/643)
+  reported that toggling ``has_title`` on after a prior ``False`` leaves
+  the chart with an empty title and a still-``val="1"``
+  ``c:autoTitleDeleted`` — which PowerPoint reads as "the user
+  explicitly deleted the auto-title", so the series-name auto-fill never
+  kicks in and the user sees an empty title (or the "Chart Title"
+  placeholder on PowerPoint's rendering surface) rather than the series
+  name. The setter now sets ``autoTitleDeleted val="0"`` when a title is
+  added, matching the XML PowerPoint writes for a title authored via
+  *Chart Title > Title Above Chart*. Covered by
+  ``tests/test_issue_643_chart_title_default.py``.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
