@@ -51,6 +51,22 @@ def when_I_add_the_stream_image_filename_using_add_picture(context, filename):
     shapes.add_picture(stream, Inches(1.25), Inches(1.25))
 
 
+@when("I add the image {filename} via a non-seekable stream")
+def when_I_add_the_image_filename_via_non_seekable_stream(context, filename):
+    """Exercises the issue #866 path: stream without a ``seek`` method."""
+
+    class _NoSeek:
+        def __init__(self, data: bytes):
+            self._buf = io.BytesIO(data)
+
+        def read(self, *a, **k):
+            return self._buf.read(*a, **k)
+
+    with open(test_image(filename), "rb") as f:
+        stream = _NoSeek(f.read())
+    context.picture = context.slide.shapes.add_picture(stream, Inches(1.25), Inches(1.25))
+
+
 @when("I assign MSO_AUTO_SHAPE_TYPE.{member} to picture.auto_shape_type")
 def when_I_assign_member_to_picture_auto_shape_type(context, member):
     context.picture.auto_shape_type = getattr(MSO_AUTO_SHAPE_TYPE, member)
@@ -112,6 +128,18 @@ def then_image_ext_eq(context, expected):
 def then_image_content_type_eq(context, expected):
     actual = context.image.content_type
     assert actual == expected, "image.content_type == %r" % actual
+
+
+@then('the added picture.image.ext == "{expected}"')
+def then_added_picture_image_ext_eq(context, expected):
+    actual = context.picture.image.ext
+    assert actual == expected, "picture.image.ext == %r" % actual
+
+
+@then('the added picture.image.content_type == "{expected}"')
+def then_added_picture_image_content_type_eq(context, expected):
+    actual = context.picture.image.content_type
+    assert actual == expected, "picture.image.content_type == %r" % actual
 
 
 @then("picture.transparency == {expected}")

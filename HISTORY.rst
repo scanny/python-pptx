@@ -14,6 +14,27 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix: #866 robust image format detection for non-seekable streams.
+  Issue #866 (https://github.com/scanny/python-pptx/issues/866) asked
+  whether python-pptx can detect an image's type when the caller passes
+  in-memory bytes built from a browser blob URL (no filename, often
+  via a stream wrapper that doesn't support ``seek``). The previous
+  implementation raised ``AttributeError`` looking up ``seek`` on
+  non-seekable file-likes, and — on the SVG-sniff path — could consume
+  the first 2 KiB of a non-seekable stream before the PIL-backed format
+  detection saw it, leaving Pillow with a truncated blob.
+  :meth:`pptx.parts.image.Image.from_file` now probes the stream for a
+  usable ``seek`` method, silently falls through when the seek is
+  missing or rejected by the underlying file, and (as a best-effort)
+  reads a ``name`` attribute to populate the image's filename. A new
+  ``_ensure_seekable`` helper at the top of
+  :meth:`pptx.package._ImageParts.get_or_add_image_part` materializes a
+  non-seekable stream into a :class:`io.BytesIO` once, so downstream
+  SVG sniffing, PIL format detection, and SHA1 digest all see the full
+  blob from offset 0. Happy path (seekable ``BytesIO``, file paths)
+  is unchanged — only non-seekable streams and streams with a raising
+  ``seek`` take the new materialization path.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —

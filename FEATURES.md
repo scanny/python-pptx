@@ -356,7 +356,7 @@ prs.save("out.pptx")
 - `Slide.shapes` — `SlideShapes` ordered collection.
 - `SlideShapes.add_shape(shape_type, left, top, width, height)` — Append a preset auto shape.
 - `SlideShapes.add_textbox(left, top, width, height)` — Append a standalone text box.
-- `SlideShapes.add_picture(path_or_stream, left, top, width=None, height=None)` — Inline picture.
+- `SlideShapes.add_picture(path_or_stream, left, top, width=None, height=None)` — Inline picture. The stream form accepts non-seekable file-like objects — blob-URL readers, HTTP upload streams, pipe-backed readers — and will sniff the format regardless of `seek` availability; a stream's `name` attribute, when present, is used as the image description. Issue #866. `[Added in 2026.05.0]` for the non-seekable-stream support.
 - `SlideShapes.add_picture_link(url, left, top, width=None, height=None)` — Linked (external URL) picture. `[Added in 2026.05.0]`
 - `SlideShapes.add_movie(path_or_stream, left, top, width, height, poster_frame_image=None, mime_type=None, autoplay=False)` — Add a video/audio shape. `autoplay` is `[Added in 2026.05.0]`.
 - `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Append a chart graphic frame.
