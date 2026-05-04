@@ -14,6 +14,22 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add #1109 ``Slide.slide_layout`` setter. Issue #1109
+  (https://github.com/scanny/python-pptx/issues/1109) asked for a way
+  to re-point an existing slide at a different slide layout, including
+  a layout belonging to a different slide master. python-pptx 1.0
+  exposed ``Slide.slide_layout`` as read-only. Assigning to the
+  attribute now rewrites the slide's underlying
+  ``RT.SLIDE_LAYOUT`` relationship; same-master swaps are lossless and
+  cross-master swaps round-trip through save/reopen. The slide's own
+  shape tree is not rewritten — the slide continues to inherit theme /
+  font / background through the new layout's master via PowerPoint's
+  normal inheritance chain. A new underlying
+  ``SlidePart.slide_layout`` setter carries the rel rewrite, a behave
+  scenario in ``features/sld-slide.feature`` pins both same-master and
+  cross-master round-trip, and ``tests/test_issue_1109_change_layout.py``
+  exercises the happy path plus the foreign-presentation ValueError.
+
 - docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
   Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
   the difference is between :attr:`~pptx.text.text.Font.color` and

@@ -10,7 +10,7 @@ from pptx.enum.shapes import PROG_ID
 from pptx.media import Audio, Video
 from pptx.opc.constants import CONTENT_TYPE as CT
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
-from pptx.opc.package import Part
+from pptx.opc.package import Part, _Relationship
 from pptx.opc.packuri import PackURI
 from pptx.oxml.slide import CT_NotesMaster, CT_NotesSlide, CT_Slide
 from pptx.oxml.theme import CT_OfficeStyleSheet
@@ -38,6 +38,7 @@ from ..unitutil.mock import (
     initializer_mock,
     instance_mock,
     method_mock,
+    property_mock,
 )
 
 
@@ -661,6 +662,52 @@ class DescribeSlidePart(object):
         slide_layout = slide_part.slide_layout
         slide_part.part_related_by.assert_called_once_with(slide_part, RT.SLIDE_LAYOUT)
         assert slide_layout is slide_layout_
+
+    def it_can_change_its_slide_layout(self, request, package_):
+        """Assigning Slide.slide_layout rewrites the SLIDE_LAYOUT rel."""
+        # -- fake-part provides the new layout_part --
+        new_layout_part_ = instance_mock(request, SlideLayoutPart, package=package_)
+        new_layout_ = instance_mock(request, SlideLayout, part=new_layout_part_)
+        # -- the slide-part has an existing SLIDE_LAYOUT rel under 'rId1' --
+        existing_rel = instance_mock(request, _Relationship, reltype=RT.SLIDE_LAYOUT)
+        rels_ = {"rId1": existing_rel}
+        rels_prop_ = property_mock(request, SlidePart, "rels", return_value=rels_)
+        relate_to_ = method_mock(
+            request, SlidePart, "relate_to", return_value="rId7", autospec=True
+        )
+        drop_rel_ = method_mock(request, SlidePart, "drop_rel", autospec=True)
+        slide_part = SlidePart(None, None, package_, None)
+
+        slide_part.slide_layout = new_layout_
+
+        rels_prop_.assert_called()
+        relate_to_.assert_called_once_with(slide_part, new_layout_part_, RT.SLIDE_LAYOUT)
+        drop_rel_.assert_called_once_with(slide_part, "rId1")
+
+    def it_reuses_the_rel_when_assigning_the_same_slide_layout(self, request, package_):
+        """No drop_rel call if relate_to returned the same rId already in use."""
+        layout_part_ = instance_mock(request, SlideLayoutPart, package=package_)
+        layout_ = instance_mock(request, SlideLayout, part=layout_part_)
+        existing_rel = instance_mock(request, _Relationship, reltype=RT.SLIDE_LAYOUT)
+        rels_ = {"rId3": existing_rel}
+        property_mock(request, SlidePart, "rels", return_value=rels_)
+        method_mock(request, SlidePart, "relate_to", return_value="rId3", autospec=True)
+        drop_rel_ = method_mock(request, SlidePart, "drop_rel", autospec=True)
+        slide_part = SlidePart(None, None, package_, None)
+
+        slide_part.slide_layout = layout_
+
+        drop_rel_.assert_not_called()
+
+    def it_raises_when_new_layout_is_from_a_different_package(self, request, package_):
+        """Cross-package layout assignment raises ValueError."""
+        other_package_ = instance_mock(request, Package)
+        foreign_layout_part_ = instance_mock(request, SlideLayoutPart, package=other_package_)
+        foreign_layout_ = instance_mock(request, SlideLayout, part=foreign_layout_part_)
+        slide_part = SlidePart(None, None, package_, None)
+
+        with pytest.raises(ValueError, match="same presentation"):
+            slide_part.slide_layout = foreign_layout_
 
     def it_knows_the_minimal_element_xml_for_a_slide(self):
         path = absjoin(test_file_dir, "minimal_slide.xml")

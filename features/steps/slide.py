@@ -109,6 +109,19 @@ def given_a_presentation_with_n_masters_and_no_explicit_master_name(context, n_m
     )
 
 
+@given("a fresh presentation with a slide on layout 0")
+def given_a_fresh_presentation_with_a_slide_on_layout_0(context):
+    context.prs = Presentation()
+    context.slide = context.prs.slides.add_slide(context.prs.slide_layouts[0])
+
+
+@given("a presentation with two masters and a slide on master 0 layout 0")
+def given_a_presentation_with_two_masters_and_slide_on_master0_layout0(context):
+    context.prs = Presentation(test_pptx("prs-slide-masters"))
+    layout = context.prs.slide_masters[0].slide_layouts[0]
+    context.slide = context.prs.slides.add_slide(layout)
+
+
 # when ====================================================
 
 
@@ -143,6 +156,17 @@ def when_I_set_slide_show_master_shapes_to_value(context, value):
         context.prs = Presentation(test_pptx("shp-shapes"))
         context.slide = context.prs.slides[0]
     context.slide.show_master_shapes = {"True": True, "False": False}[value]
+
+
+@when("I set slide.slide_layout to layout {idx:d} of the same master")
+def when_I_set_slide_slide_layout_to_layout_N_of_same_master(context, idx):
+    context.slide.slide_layout = context.prs.slide_layouts[idx]
+
+
+@when("I set slide.slide_layout to master {master_idx:d} layout {layout_idx:d}")
+def when_I_set_slide_slide_layout_to_master_M_layout_N(context, master_idx, layout_idx):
+    layout = context.prs.slide_masters[master_idx].slide_layouts[layout_idx]
+    context.slide.slide_layout = layout
 
 
 # then ====================================================
@@ -261,6 +285,46 @@ def then_after_save_load_slide_show_master_shapes_is(context, value):
     actual_value = reopened.slides[0].show_master_shapes
     assert actual_value is expected_value, (
         "slide.show_master_shapes is %s" % actual_value
+    )
+
+
+@then("slide.slide_layout is layout {idx:d} of master {master_idx:d}")
+def then_slide_slide_layout_is_layout_N_of_master_M(context, idx, master_idx):
+    expected = context.prs.slide_masters[master_idx].slide_layouts[idx]
+    actual = context.slide.slide_layout
+    assert actual is expected, "slide.slide_layout is %r, expected %r" % (actual, expected)
+
+
+@then("after a save/load round-trip slide.slide_layout is layout {idx:d} of master {master_idx:d}")
+def then_after_roundtrip_slide_layout_is_layout_N_of_master_M(context, idx, master_idx):
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    expected = reopened.slide_masters[master_idx].slide_layouts[idx]
+    actual = reopened.slides[0].slide_layout
+    assert actual is expected, "after round-trip slide.slide_layout is %r" % actual
+
+
+@then("slide.slide_layout is on master {master_idx:d}")
+def then_slide_slide_layout_is_on_master_M(context, master_idx):
+    expected_master = context.prs.slide_masters[master_idx]
+    actual_master = context.slide.slide_layout.slide_master
+    assert actual_master is expected_master, (
+        "slide.slide_layout.slide_master is %r, expected %r" % (actual_master, expected_master)
+    )
+
+
+@then("after a save/load round-trip slide.slide_layout is on master {master_idx:d}")
+def then_after_roundtrip_slide_layout_is_on_master_M(context, master_idx):
+    buf = io.BytesIO()
+    context.prs.save(buf)
+    buf.seek(0)
+    reopened = Presentation(buf)
+    expected_master = reopened.slide_masters[master_idx]
+    actual_master = reopened.slides[0].slide_layout.slide_master
+    assert actual_master is expected_master, (
+        "after round-trip slide.slide_layout.slide_master is %r" % actual_master
     )
 
 
