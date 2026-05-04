@@ -352,6 +352,11 @@ that allow all the data labels in its scope to be formatted at once.
    :member-order: bysource
    :undoc-members:
 
+.. autoclass:: pptx.chart.datalabel.ManualLayout()
+   :members:
+   :member-order: bysource
+   :undoc-members:
+
 
 |Series| objects
 ----------------
