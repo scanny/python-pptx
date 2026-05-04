@@ -116,6 +116,74 @@ class DescribeGraphicFrame(object):
     @pytest.mark.parametrize(
         "graphicData_uri, expected_value",
         (
+            (GRAPHIC_DATA_URI_CHART, None),
+            (GRAPHIC_DATA_URI_OLEOBJ, None),
+            (GRAPHIC_DATA_URI_TABLE, None),
+        ),
+    )
+    def it_reports_chartex_type_as_None_for_non_chartex_graphic_frames(
+        self, graphicData_uri, expected_value
+    ):
+        graphicFrame = element("p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % graphicData_uri)
+        assert GraphicFrame(graphicFrame, None).chartex_type is expected_value
+
+    @pytest.mark.parametrize(
+        "layoutId_attr, expected_value",
+        (
+            ("boxWhisker", "boxWhisker"),
+            ("waterfall", "waterfall"),
+            ("funnel", "funnel"),
+            ("treemap", "treemap"),
+            ("sunburst", "sunburst"),
+            ("clusteredColumn", "clusteredColumn"),
+        ),
+    )
+    def it_reports_the_cx_series_layoutId_via_chartex_type(
+        self, request, layoutId_attr, expected_value
+    ):
+        # -- chartex graphicFrame with `cx:chart r:id="rId9"` --
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/cx:chart{r:id=rId9}"
+            % GRAPHIC_DATA_URI_CHARTEX
+        )
+        # -- stub a chartEx part whose `.blob` carries a `cx:series` with the test's layoutId
+        cx_xml = (
+            '<cx:chartSpace xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex">'
+            "<cx:chart><cx:plotArea><cx:plotAreaRegion>"
+            f'<cx:series layoutId="{layoutId_attr}"/>'
+            "</cx:plotAreaRegion></cx:plotArea></cx:chart></cx:chartSpace>"
+        ).encode("utf-8")
+        chartex_part_ = instance_mock(request, Part, blob=cx_xml)
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.return_value = chartex_part_
+        property_mock(request, GraphicFrame, "part", return_value=slide_part_)
+
+        chartex_type = GraphicFrame(graphicFrame, None).chartex_type
+
+        slide_part_.related_part.assert_called_once_with("rId9")
+        assert chartex_type == expected_value
+
+    def but_chartex_type_is_None_when_the_related_part_is_absent(self, request):
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}/cx:chart{r:id=rIdMissing}"
+            % GRAPHIC_DATA_URI_CHARTEX
+        )
+        slide_part_ = instance_mock(request, SlidePart)
+        slide_part_.related_part.side_effect = KeyError("rIdMissing")
+        property_mock(request, GraphicFrame, "part", return_value=slide_part_)
+
+        assert GraphicFrame(graphicFrame, None).chartex_type is None
+
+    def and_chartex_type_is_None_when_cx_chart_rId_is_missing(self):
+        # -- chartex uri but no `cx:chart` child --
+        graphicFrame = element(
+            "p:graphicFrame/a:graphic/a:graphicData{uri=%s}" % GRAPHIC_DATA_URI_CHARTEX
+        )
+        assert GraphicFrame(graphicFrame, None).chartex_type is None
+
+    @pytest.mark.parametrize(
+        "graphicData_uri, expected_value",
+        (
             (GRAPHIC_DATA_URI_CHART, False),
             (GRAPHIC_DATA_URI_OLEOBJ, False),
             (GRAPHIC_DATA_URI_TABLE, True),

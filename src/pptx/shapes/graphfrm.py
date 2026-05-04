@@ -12,6 +12,8 @@ from lxml import etree
 
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import qn
 from pptx.shapes.base import BaseShape
 from pptx.shapes.model3d import Model3D
 from pptx.shared import ParentedElementProxy
@@ -89,6 +91,54 @@ class GraphicFrame(BaseShape):
         if not self.has_chart:
             raise ValueError("shape does not contain a chart")
         return self.chart_part.chart.chart_type
+
+    @property
+    def chartex_type(self) -> str | None:
+        """Layout-id string of the chartex chart in this graphic frame, or |None|.
+
+        Returns |None| when this graphic frame does not contain an Office 2016+
+        extended (``cx:``) chart (i.e. when :attr:`has_chartex` is |False|) or when
+        the chartex part is unresolvable or carries no ``cx:series`` with a
+        ``@layoutId`` attribute.
+
+        When |True|-ish, the returned string is the raw ``cx:series/@layoutId``
+        value of the first ``cx:series`` in the referenced ``cx:chartSpace`` part.
+        Recognised Office 2016+ values include:
+        ``"funnel"``, ``"treemap"``, ``"sunburst"``, ``"waterfall"``,
+        ``"boxWhisker"`` (box-and-whisker), ``"clusteredColumn"``
+        (histogram — distinguish Pareto by presence of a sibling
+        ``paretoLine`` series), ``"paretoLine"``, and ``"regionMap"``.
+
+        This is a discovery / round-trip hint; structured read/write of
+        chartex charts is still deferred. See
+        ``docs/dev/analysis/chartex-foundation.rst`` and per-kind design notes.
+        """
+        if not self.has_chartex:
+            return None
+        rId = self._graphicFrame.graphicData.cx_chart_rId
+        if rId is None:
+            return None
+        try:
+            chartex_part = self.part.related_part(rId)
+        except KeyError:
+            return None
+        blob = cast("bytes | None", getattr(chartex_part, "blob", None))
+        if not blob:
+            return None
+        # -- `etree.XMLSyntaxError` is not exposed in the typings used here, so
+        # -- a narrow catch would require a pyright ignore. A malformed chartex
+        # -- part in an already-loaded package is a pathological / unlikely case
+        # -- — a raw `Exception` catch is acceptable for a best-effort
+        # -- read-only discovery helper.
+        try:
+            root = parse_xml(blob)
+        except Exception:
+            return None
+        series = root.find(".//" + qn("cx:series"))
+        if series is None:
+            return None
+        layoutId = series.get("layoutId")
+        return layoutId
 
     @property
     def has_chart(self) -> bool:

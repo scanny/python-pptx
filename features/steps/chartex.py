@@ -74,6 +74,12 @@ def then_shape_chart_type_is_UNSUPPORTED_CHARTEX(context):
     assert actual is XL_CHART_TYPE.UNSUPPORTED_CHARTEX, "shape.chart_type is %s" % actual
 
 
+@then('shape.chartex_type == "{expected}"')
+def then_shape_chartex_type_equals(context, expected):
+    actual = context.shape.chartex_type
+    assert actual == expected, "shape.chartex_type is %r" % actual
+
+
 @then("shape.shape_type == MSO_SHAPE_TYPE.CHART")
 def then_shape_shape_type_is_chart(context):
     # -- existing step in shape.py asserts via parameterised string match;
