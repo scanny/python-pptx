@@ -126,6 +126,23 @@ Unreleased
   ``TextFrame.font_scale`` / ``TextFrame.line_space_reduction``
   setters.
 
+- verify: #1034 resolved by #839 (add_movie_link). Issue #1034
+  (https://github.com/scanny/python-pptx/issues/1034) asked for a way to
+  insert an online video — e.g. a YouTube or Vimeo URL — into a slide
+  without embedding the media bytes, matching PowerPoint's *Insert >
+  Video > Online Video* workflow. Wave 17 #839
+  (``feat/issue-839-url-video``) shipped
+  :meth:`.SlideShapes.add_movie_link`, which emits a ``p:pic`` whose
+  ``a:videoFile`` and ``p14:media`` descriptors both carry ``r:link``
+  pointing at the same external-mode ``VIDEO`` relationship; only the
+  poster-frame image is embedded in the package so decks stay small. A
+  new ``tests/test_issue_1034_online_video_verify.py`` regression suite
+  pins the reporter-facing contract: basic YouTube embed, Vimeo embed,
+  custom poster-frame image, save + reopen round-trip preserving both
+  URL and poster, and a cross-reference to the #839 API surface. No
+  code change — the feature is the already-existing
+  ``SlideShapes.add_movie_link`` method.
+
 - verify: #824 resolved by #1044 (MasterShapes inherits add_picture).
   Issue #824 (https://github.com/scanny/python-pptx/issues/824) asked
   whether pictures can be added to a slide master so they appear on every
