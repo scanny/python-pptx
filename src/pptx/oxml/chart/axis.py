@@ -6,6 +6,7 @@ from pptx.enum.chart import (
     XL_AXIS_CROSSES,
     XL_AXIS_POSITION,
     XL_CROSS_BETWEEN,
+    XL_TICK_LABEL_ALIGNMENT,
     XL_TICK_LABEL_POSITION,
     XL_TICK_MARK,
 )
@@ -118,6 +119,7 @@ class CT_CatAx(BaseAxisElement):
     txPr = ZeroOrOne("c:txPr", successors=_tag_seq[13:])
     crosses = ZeroOrOne("c:crosses", successors=_tag_seq[15:])
     crossesAt = ZeroOrOne("c:crossesAt", successors=_tag_seq[16:])
+    lblAlgn = ZeroOrOne("c:lblAlgn", successors=_tag_seq[18:])
     lblOffset = ZeroOrOne("c:lblOffset", successors=_tag_seq[19:])
     tickLblSkip = ZeroOrOne("c:tickLblSkip", successors=_tag_seq[20:])
     tickMarkSkip = ZeroOrOne("c:tickMarkSkip", successors=_tag_seq[21:])
@@ -196,6 +198,16 @@ class CT_DateAx(BaseAxisElement):
     majorUnit = ZeroOrOne("c:majorUnit", successors=_tag_seq[20:])
     minorUnit = ZeroOrOne("c:minorUnit", successors=_tag_seq[22:])
     del _tag_seq
+
+
+class CT_LblAlgn(BaseOxmlElement):
+    """`c:lblAlgn` element, specifying category-axis tick-label horizontal alignment.
+
+    The `val` attribute takes one of `ctr`, `l`, or `r` — the values defined by
+    `ST_LblAlgn` in `dml-chart.xsd`.
+    """
+
+    val = RequiredAttribute("val", XL_TICK_LABEL_ALIGNMENT)
 
 
 class CT_LblOffset(BaseOxmlElement):

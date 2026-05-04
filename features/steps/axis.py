@@ -11,6 +11,7 @@ from pptx.enum.chart import (
     XL_AXIS_POSITION,
     XL_CATEGORY_TYPE,
     XL_CROSS_BETWEEN,
+    XL_TICK_LABEL_ALIGNMENT,
 )
 
 # given ===================================================
@@ -198,6 +199,21 @@ def when_I_assign_XL_AXIS_POSITION_member_to_axis_position(context, member):
 @when("I assign XL_CROSS_BETWEEN.{member} to value_axis.cross_between")
 def when_I_assign_XL_CROSS_BETWEEN_member_to_value_axis_cross_between(context, member):
     context.value_axis.cross_between = getattr(XL_CROSS_BETWEEN, member)
+
+
+@when("I assign XL_TICK_LABEL_ALIGNMENT.{member} to category_axis.label_align")
+def when_I_assign_XL_TICK_LABEL_ALIGNMENT_member_to_category_axis_label_align(context, member):
+    context.axis.label_align = getattr(XL_TICK_LABEL_ALIGNMENT, member)
+
+
+@when("I assign non-member value to category_axis.label_align")
+def when_I_assign_non_member_value_to_category_axis_label_align(context):
+    try:
+        context.axis.label_align = "foobar"
+    except ValueError as exc:
+        context.raised_exception = exc
+    else:
+        context.raised_exception = None
 
 
 @when("I assign {value} to category_axis.tick_label_skip")
@@ -401,6 +417,13 @@ def then_axis_position_is_XL_AXIS_POSITION_member(context, member):
 def then_value_axis_cross_between_is_XL_CROSS_BETWEEN_member(context, member):
     expected_value = getattr(XL_CROSS_BETWEEN, member)
     actual_value = context.value_axis.cross_between
+    assert actual_value is expected_value, "got %s" % actual_value
+
+
+@then("category_axis.label_align is XL_TICK_LABEL_ALIGNMENT.{member}")
+def then_category_axis_label_align_is_XL_TICK_LABEL_ALIGNMENT_member(context, member):
+    expected_value = getattr(XL_TICK_LABEL_ALIGNMENT, member)
+    actual_value = context.axis.label_align
     assert actual_value is expected_value, "got %s" % actual_value
 
 

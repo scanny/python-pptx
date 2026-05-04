@@ -21,6 +21,7 @@ from pptx.enum.chart import (
     XL_AXIS_POSITION,
     XL_CATEGORY_TYPE,
     XL_CROSS_BETWEEN,
+    XL_TICK_LABEL_ALIGNMENT,
     XL_TICK_MARK,
 )
 from pptx.enum.chart import (
@@ -936,6 +937,53 @@ class DescribeCategoryAxis(object):
         category_axis = CategoryAxis(element("c:catAx"))
         with pytest.raises(ValueError):
             category_axis.tick_mark_skip = bad_value
+
+    @pytest.mark.parametrize(
+        ("catAx_cxml", "expected_value"),
+        [
+            ("c:catAx", XL_TICK_LABEL_ALIGNMENT.CENTER),
+            ("c:catAx/c:lblAlgn{val=ctr}", XL_TICK_LABEL_ALIGNMENT.CENTER),
+            ("c:catAx/c:lblAlgn{val=l}", XL_TICK_LABEL_ALIGNMENT.LEFT),
+            ("c:catAx/c:lblAlgn{val=r}", XL_TICK_LABEL_ALIGNMENT.RIGHT),
+        ],
+    )
+    def it_knows_its_label_align(self, catAx_cxml, expected_value):
+        category_axis = CategoryAxis(element(catAx_cxml))
+        assert category_axis.label_align is expected_value
+
+    @pytest.mark.parametrize(
+        ("catAx_cxml", "new_value", "expected_cxml"),
+        [
+            # -- assigning CENTER (the default) removes the backing element --
+            ("c:catAx", XL_TICK_LABEL_ALIGNMENT.CENTER, "c:catAx"),
+            ("c:catAx/c:lblAlgn{val=l}", XL_TICK_LABEL_ALIGNMENT.CENTER, "c:catAx"),
+            # -- assigning LEFT / RIGHT writes the element --
+            ("c:catAx", XL_TICK_LABEL_ALIGNMENT.LEFT, "c:catAx/c:lblAlgn{val=l}"),
+            ("c:catAx", XL_TICK_LABEL_ALIGNMENT.RIGHT, "c:catAx/c:lblAlgn{val=r}"),
+            # -- replaces an existing value --
+            (
+                "c:catAx/c:lblAlgn{val=l}",
+                XL_TICK_LABEL_ALIGNMENT.RIGHT,
+                "c:catAx/c:lblAlgn{val=r}",
+            ),
+            # -- insertion is sequence-aware: before lblOffset, tickLblSkip --
+            (
+                "c:catAx/(c:auto{val=1},c:lblOffset{val=100},c:tickLblSkip{val=2})",
+                XL_TICK_LABEL_ALIGNMENT.LEFT,
+                "c:catAx/(c:auto{val=1},c:lblAlgn{val=l},c:lblOffset{val=100},c:tickLblSkip{val=2})",
+            ),
+        ],
+    )
+    def it_can_change_its_label_align(self, catAx_cxml, new_value, expected_cxml):
+        category_axis = CategoryAxis(element(catAx_cxml))
+        category_axis.label_align = new_value
+        assert category_axis._element.xml == xml(expected_cxml)
+
+    @pytest.mark.parametrize("bad_value", ["foo", 42, None, "ctr"])
+    def but_it_raises_on_assign_bad_label_align(self, bad_value):
+        category_axis = CategoryAxis(element("c:catAx"))
+        with pytest.raises(ValueError):
+            category_axis.label_align = bad_value
 
     # fixtures -------------------------------------------------------
 

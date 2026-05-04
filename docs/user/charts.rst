@@ -183,6 +183,20 @@ default — label / tick every category). Assigning ``1`` removes the
 backing ``c:tickLblSkip`` / ``c:tickMarkSkip`` element so the XML stays
 minimal. A value less than ``1`` raises ``ValueError``.
 
+Category-axis tick labels can be *left-*, *center-*, or *right-aligned*
+within the horizontal slot each label is drawn in.
+:attr:`CategoryAxis.label_align` is a read/write
+:ref:`XlTickLabelAlignment` value mapping to ``c:catAx/c:lblAlgn/@val``::
+
+    from pptx.enum.chart import XL_TICK_LABEL_ALIGNMENT
+
+    category_axis = chart.category_axis
+    category_axis.label_align = XL_TICK_LABEL_ALIGNMENT.LEFT
+
+Returns ``XL_TICK_LABEL_ALIGNMENT.CENTER`` (the PowerPoint default) when
+no ``c:lblAlgn`` element is present. Assigning ``CENTER`` removes the
+backing element. Assigning a non-member raises ``ValueError``.
+
 .. image:: /_static/img/chart-03.png
 
 Okay, that was probably going a bit too far. But it gives us an idea of the

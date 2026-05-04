@@ -307,3 +307,26 @@ Feature: Axis properties
     Given a category axis
      When I assign 0 to category_axis.tick_mark_skip
      Then ValueError is raised
+
+
+  Scenario: Get CategoryAxis.label_align default
+    Given a category axis
+     Then category_axis.label_align is XL_TICK_LABEL_ALIGNMENT.CENTER
+
+
+  Scenario Outline: Set CategoryAxis.label_align
+    Given a category axis
+     When I assign XL_TICK_LABEL_ALIGNMENT.<member> to category_axis.label_align
+     Then category_axis.label_align is XL_TICK_LABEL_ALIGNMENT.<member>
+
+    Examples: CategoryAxis.label_align assignment cases
+      | member |
+      | CENTER |
+      | LEFT   |
+      | RIGHT  |
+
+
+  Scenario: CategoryAxis.label_align raises on non-member assignment
+    Given a category axis
+     When I assign non-member value to category_axis.label_align
+     Then ValueError is raised
