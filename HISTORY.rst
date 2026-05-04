@@ -14,6 +14,22 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #537 clarify Font.color (shortcut) vs Font.fill (full FillFormat).
+  Issue #537 (https://github.com/scanny/python-pptx/issues/537) asked what
+  the difference is between :attr:`~pptx.text.text.Font.color` and
+  :attr:`~pptx.text.text.Font.fill`, since both seemed to do the same
+  thing on a solid-fill run. The ``docs/user/text.rst`` "Font color vs.
+  font fill" section now explains that ``Font.color`` is a shortcut for
+  ``Font.fill.fore_color`` on solid fills — the two resolve to the same
+  ``<a:solidFill>`` element — while ``Font.fill`` is the full
+  |FillFormat| surface (gradient, pattern, back colour) for any fill
+  kind beyond a flat colour. A new
+  ``tests/test_issue_537_font_fill_vs_color_verify.py`` regression suite
+  pins the shortcut-vs-full-surface contract: identical XML from both
+  paths on a solid fill, and the gradient / patterned / back-colour /
+  gradient-stops surfaces remain reachable only through ``Font.fill``.
+  No public-API change.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
