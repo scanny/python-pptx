@@ -33,7 +33,17 @@ class TextFitter(tuple):
         fits at a smaller size (#936), that smaller size is returned. Only when no
         point size in ``1..max_size`` allows the text to fit (for example a single
         word wider than the shape at point size 1, #773) is `TextLayoutError` raised.
+
+        `max_size` must be a positive integer (>=1). A `TextLayoutError` is raised
+        when `max_size < 1`, because no point size in the considered range is
+        meaningful (see issue #168).
         """
+        # ---guard: `max_size` must allow at least one candidate point size---
+        if int(max_size) < 1:
+            raise TextLayoutError(
+                "max_size must be >= 1 (got %r); at least one candidate point size is "
+                "required for fit_text() to succeed" % max_size
+            )
         line_source = _LineSource(text)
         text_fitter = cls(line_source, extents, font_file)
         point_size = text_fitter._best_fit_font_size(max_size)

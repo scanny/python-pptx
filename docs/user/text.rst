@@ -193,6 +193,21 @@ computes a best-fit point size and applies it directly to each run (so no
 placeholder text frames; the placeholder's effective width and height are
 obtained from its slide layout when not overridden on the slide.
 
+.. note::
+   ``fit_text`` needs to measure rendered glyph widths, which requires a
+   real TrueType / OpenType file on disk. By default it searches the
+   operating system's well-known font directories (macOS and Windows
+   only) for a file matching ``font_family`` / ``bold`` / ``italic``. On
+   Linux — or on any system where the requested typeface is not
+   installed — pass an explicit ``font_file`` argument pointing at a
+   ``.ttf`` or ``.otf`` file bundled with your application, or set
+   ``text_frame.auto_size = MSO_AUTO_SIZE.NONE`` (or
+   ``MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE``) and let PowerPoint handle the
+   layout. All font-discovery failures surface as
+   :class:`pptx.exc.TextLayoutError`, as does an attempt to fit text
+   into a shape whose margins exceed its width or height. See
+   issue #168.
+
 
 Applying paragraph formatting
 -----------------------------
