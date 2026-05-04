@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pptx.oxml.chart.datalabel import CT_DLbls
+from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import (
     ST_BarDir,
     ST_BubbleScale,
@@ -83,13 +84,20 @@ class BaseChartElement(BaseOxmlElement):
     def iter_sers(self):
         """
         Generate each ``<c:ser>`` child element in this xChart in
-        c:order/@val sequence (not document or c:idx order).
+        c:order/@val sequence (not document or c:idx order). Series with a
+        missing (spec-required) `c:order` child sort after ordered ones, in
+        document order, so iteration does not fail for decks that omit it.
         """
+        ser_elms = self.xpath("./c:ser")
 
-        def ser_order(ser):
-            return ser.order.val
+        def ser_order(item):
+            doc_idx, ser = item
+            order_elm = ser.find(qn("c:order"))
+            # -- sort sers with missing c:order last, preserving document order between them --
+            return (0, order_elm.val) if order_elm is not None else (1, doc_idx)
 
-        return (ser for ser in sorted(self.xpath("./c:ser"), key=ser_order))
+        indexed = list(enumerate(ser_elms))
+        return (ser for _, ser in sorted(indexed, key=ser_order))
 
     @property
     def sers(self):

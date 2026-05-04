@@ -459,23 +459,33 @@ class CT_PlotArea(BaseOxmlElement):
     @property
     def last_ser(self):
         """
-        Return the last `<c:ser>` element in the last xChart element, based
-        on series order (not necessarily the same element as document order).
+        Return the last `<c:ser>` element in the last non-empty xChart element,
+        based on series order (not necessarily the same element as document
+        order). Returns |None| only if no xChart in this plotArea contains any
+        `c:ser` children.
+
+        Walking backwards through xCharts (rather than only inspecting the
+        final xChart) tolerates plotAreas where the last xChart has been left
+        without series — for example, by a hand-assembled deck or a prior
+        rewrite — so callers that need a "template" series to clone can still
+        find one (GitHub issue #596).
         """
-        last_xChart = self.xCharts[-1]
-        sers = last_xChart.sers
-        if not sers:
-            return None
-        return sers[-1]
+        for xChart in reversed(self.xCharts):
+            sers = xChart.sers
+            if sers:
+                return sers[-1]
+        return None
 
     @property
     def next_idx(self):
         """
         Return the next available `c:ser/c:idx` value within the scope of
         this chart, the maximum idx value found on existing series,
-        incremented by one.
+        incremented by one. Series with a missing `c:idx` child are skipped
+        rather than raising, to tolerate decks that omit the (spec-required)
+        child element.
         """
-        idx_vals = [s.idx.val for s in self.sers]
+        idx_vals = [s.idx.val for s in self.sers if s.find(qn("c:idx")) is not None]
         if not idx_vals:
             return 0
         return max(idx_vals) + 1
@@ -485,9 +495,11 @@ class CT_PlotArea(BaseOxmlElement):
         """
         Return the next available `c:ser/c:order` value within the scope of
         this chart, the maximum order value found on existing series,
-        incremented by one.
+        incremented by one. Series with a missing `c:order` child are skipped
+        rather than raising, to tolerate decks that omit the (spec-required)
+        child element.
         """
-        order_vals = [s.order.val for s in self.sers]
+        order_vals = [s.order.val for s in self.sers if s.find(qn("c:order")) is not None]
         if not order_vals:
             return 0
         return max(order_vals) + 1

@@ -179,6 +179,26 @@ Unreleased
   recipe from the user's perspective. No code change — the feature is the
   already-existing ``_MarkerMixin.marker`` + ``Marker.format`` surface.
 
+- fix: #596 ``AttributeError: 'NoneType' object has no attribute 'idx'``
+  when growing a chart via :meth:`~pptx.chart.chart.Chart.replace_data`.
+  Issue #596 (https://github.com/scanny/python-pptx/issues/596) reported
+  a crash inside ``_BaseSeriesXmlRewriter._add_cloned_sers`` at
+  ``new_ser.idx.val = plotArea.next_idx``. The root cause is a
+  ``c:plotArea`` whose final ``c:xChart`` has no ``c:ser`` children —
+  ``plotArea.last_ser`` returned ``None``, so ``deepcopy(None)``
+  propagated a ``None`` into the ``.idx`` access. ``last_ser`` now walks
+  backwards through ``plotArea.xCharts`` to find the last xChart that
+  actually contains a series, the cloner inserts a bridge ser into the
+  (previously empty) last xChart so subsequent clones land inside it,
+  and missing (spec-required) ``c:idx`` / ``c:order`` children on the
+  template series are synthesized on the clone. A truly seriesless
+  ``c:plotArea`` now raises a clear ``ValueError`` instead of the
+  obscure ``AttributeError``. ``plotArea.next_idx`` / ``next_order``
+  also tolerate series that omit their ``c:idx`` / ``c:order`` children
+  rather than raising ``InvalidXmlError``. A new
+  ``tests/test_issue_596_clone_ser_no_idx.py`` regression suite pins
+  each scenario.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
