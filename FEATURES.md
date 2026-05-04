@@ -1864,7 +1864,7 @@ prs.save("out.pptx")
 - `ActionSetting.hyperlink` — `Hyperlink` proxy with `.address` (read/write URL).
 - `ActionSetting.action` — `PP_ACTION` (HYPERLINK, FIRST_SLIDE, NEXT_SLIDE, PREVIOUS_SLIDE, LAST_SLIDE, NAMED_SLIDE, END_SHOW, RUN_PROGRAM, ...).
 - `ActionSetting.target_slide` — Read/write `Slide` (auto-sets `action` to `NAMED_SLIDE`).
-- `ActionSetting.screen_tip` — Read/write hover-tooltip text. `[Added in 1.0.2.dev0]`
+- `ActionSetting.screen_tip` — Read/write hover-tooltip text. `[Added in 1.0.2.dev0]` PowerPoint only *renders* the tooltip when the hyperlink also carries an actionable target (URL / slide jump / sound / `ppaction://` verb); pair `screen_tip` with `hyperlink.address` or `target_slide` to make it visible. See issue #1022.
 - `ActionSetting.set_sound(sound_file, filename=None)` / `ActionSetting.remove_sound()` / `ActionSetting.sound` — Click-action sound attachment. `[Added in 1.0.2.dev0]`
 - `Sound.blob` / `Sound.name` / `Sound.rId` — Embedded click-sound payload. `[Added in 1.0.2.dev0]`
 - `_Run.hyperlink` — Run-scoped hyperlink with `.address`.
@@ -2225,7 +2225,7 @@ prs.save("out.pptx")
 - `ActionSetting.action` — `PP_ACTION` enum (read-only).
 - `ActionSetting.hyperlink` — `_Hyperlink` proxy.
 - `ActionSetting.target_slide` — Read/write slide for `hlinksldjump` actions. `[Added in 2026.05.0]`
-- `ActionSetting.screen_tip` — Hover tooltip text. `[Added in 2026.05.0]`
+- `ActionSetting.screen_tip` — Hover tooltip text. `[Added in 2026.05.0]` PowerPoint only renders the tooltip when the action also has a target (URL / slide-jump / sound / `ppaction://` verb); see issue #1022.
 - `ActionSetting.sound` / `ActionSetting.set_sound(path_or_stream)` / `ActionSetting.remove_sound()` — Embedded click-sound authoring. `[Added in 2026.05.0]`
 - `Sound.name` / `Sound.blob` — Read-only embedded-sound view. `[Added in 2026.05.0]`
 - `pptx.media.Audio` — Value object representing the embedded sound file. `[Added in 2026.05.0]`
