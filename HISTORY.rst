@@ -14,6 +14,37 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #440 resolved by #828 (``Chart.series_in_rows``). Issue #440
+  (https://github.com/scanny/python-pptx/issues/440) asked for a
+  supported way to distinguish a chart whose source data is laid out
+  with series **in columns** (PowerPoint's default) from one whose
+  data has been switched to series **in rows** (via *Chart Design >
+  Switch Row/Column* in the PowerPoint UI). OOXML does not persist a
+  dedicated ``@switchRowCol`` attribute — the orientation is implicit
+  in the shape of the ``c:f`` cell-range references under each
+  ``c:ser``. The resolution shipped in Wave 11 as
+  :attr:`.Chart.series_in_rows` (``feat(chart): #828 add
+  Chart.series_in_rows read-only accessor``), which parses the first
+  series's category and series-name references and returns ``False``
+  (series-in-columns), ``True`` (series-in-rows), or ``None`` when
+  the orientation can't be determined (no series, XY/scatter or
+  bubble chart with no ``c:cat`` or parseable ``c:tx``, or inline
+  literals). Read-only because PowerPoint rewrites every ``c:ser``
+  sub-reference on the UI toggle and emulating that without a live
+  workbook would silently diverge from what PowerPoint re-authors on
+  next save — callers needing to flip orientation should re-author
+  via :meth:`.Chart.replace_data` with the data transposed.
+  ``tests/test_issue_440_data_alignment_verify.py`` pins the #440
+  reporter's perspective: default-layout chart reads ``False``,
+  post-switch XML reads ``True``, single-cell ``c:cat`` falls
+  through to the ``c:tx`` row check, XY/scatter and bubble charts
+  with no parseable refs read ``None`` (while freshly authored
+  XY/bubble charts fall through to ``False`` via their row-1
+  ``c:tx`` ref), empty chart reads ``None``, and the orientation
+  signal survives a ``Presentation.save`` + reopen round-trip.
+  Cross-references the fine-grained XML-shape unit tests in
+  ``tests/chart/test_chart.py::DescribeChart``.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"
