@@ -812,10 +812,18 @@ run.text = "world"
 run.font.bold = True
 run.font.size = Pt(24)
 
-# second paragraph
+# one-call rich-text authoring
 p2 = tf.add_paragraph()
-p2.text = "Second line"
-p2.level = 1
+p2.write_rich(
+    ("Bold ",   {"bold": True}),
+    ("italic ", {"italic": True}),
+    "regular",
+)
+
+# third paragraph
+p3 = tf.add_paragraph()
+p3.text = "Second line"
+p3.level = 1
 
 # bulk replace across paragraphs
 n = tf.replace_text("world", "everyone")
@@ -841,6 +849,9 @@ prs.save("out.pptx")
 - `TextFrame.replace_text(find, replace)` — Bulk search/replace preserving per-run formatting. `[Added in 2026.05.0]`
 - `_Paragraph.text` / `.runs` / `.alignment` / `.level` / `.space_before` / `.space_after` / `.line_spacing` — Paragraph formatting.
 - `_Paragraph.add_run(text=None, *, bold=None, italic=None, size=None, color=None, font_name=None)` / `.add_line_break()` — Authoring. `add_run` accepts the run text plus keyword-only run-level formatting shortcuts (same kwargs and semantics as `TextFrame.add_paragraph`). `[Added in 2026.05.0]` for the `text=` / run-level kwargs (issue #134).
+
+- `_Paragraph.add_run()` / `.add_line_break()` — Authoring.
+- `_Paragraph.write_rich(*parts)` — One-call mixed-formatting paragraph authoring. Each part is a `str`, a `(text, formatting)` 2-tuple, or a mapping with a `"text"` key. Recognised formatting keys: `bold`, `italic`, `underline`, `size` (a `Length`, e.g. `Pt(18)`), `color` (an `RGBColor`), and `font_name`. Unknown keys raise `ValueError`. Returns the paragraph for chaining. `[Added in 2026.05.0]`
 - `_Paragraph.add_field(field_type, text="")` — Append a `a:fld` (slide number, date, etc.). `[Added in 2026.05.0]`
 - `_Paragraph.add_math_equation(omml_xml)` — Append an OMML equation. `[Added in 2026.05.0]`
 - `_Paragraph.delete()` — Remove this paragraph. `[Added in 2026.05.0]`

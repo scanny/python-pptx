@@ -110,3 +110,9 @@ Feature: Change paragraph properties
       | "a\vb\vc" | "a\vb\vc"      |
       | "a\nb\vc" | "a\vb\vc"      |
       | "a\x1Bc"  | "a_x001B_c"    |
+
+
+  Scenario: _Paragraph.write_rich authors mixed-formatting runs in one call (#753)
+    Given a _Paragraph object as paragraph
+     When I call paragraph.write_rich with a mix of plain, bold, and sized parts
+     Then the paragraph contains three runs with the expected text and formatting

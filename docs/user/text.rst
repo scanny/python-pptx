@@ -301,6 +301,57 @@ A run can also be made into a hyperlink by providing a target URL::
     run.hyperlink.address = 'https://github.com/scanny/python-pptx'
 
 
+Rich text in one call
+---------------------
+
+Authoring a paragraph that mixes bold, italic, coloured, and plain runs with
+:meth:`._Paragraph.add_run` is accurate but verbose — every run takes four or
+five lines to build up. :meth:`._Paragraph.write_rich` folds that loop into a
+single call. Each positional argument is a *part* describing one run; the
+method appends the runs to the paragraph in order and returns the paragraph so
+calls chain naturally.
+
+A part is one of:
+
+* a plain ``str`` — appended as a run with no explicit character formatting
+  (it inherits from the paragraph, layout, and master);
+* a ``(text, formatting)`` 2-tuple — the formatting mapping is applied to
+  the run's ``font``;
+* a mapping with a ``"text"`` key — equivalent to the tuple form, with the
+  remaining keys treated as the formatting.
+
+Recognised formatting keys are ``bold`` and ``italic`` (tri-state
+``True`` / ``False`` / ``None``), ``underline`` (``True`` / ``False`` /
+``None`` or a :ref:`MsoTextUnderlineType` member), ``size`` (a |Length|,
+most commonly ``Pt(n)``), ``color`` (an |RGBColor|), and ``font_name`` (a
+string — the Latin typeface slot). Any other key raises ``ValueError``; use
+:meth:`._Paragraph.add_run` directly when you need finer-grained control
+(theme colour, East-Asian / complex-script font slots, hyperlink, etc.).
+
+::
+
+    from pptx import Presentation
+    from pptx.dml.color import RGBColor
+    from pptx.util import Inches, Pt
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(6), Inches(1))
+    p = tb.text_frame.paragraphs[0]
+
+    p.write_rich(
+        ("Bold ",   {"bold": True}),
+        ("italic ", {"italic": True}),
+        "regular ",
+        ("red", {"color": RGBColor(0xC0, 0x00, 0x00), "size": Pt(18)}),
+    )
+
+``write_rich`` is a thin loop over :meth:`._Paragraph.add_run` — one ``a:r``
+element is emitted per part — so runs authored this way round-trip through
+PowerPoint, :attr:`._Paragraph.replace_text`, and :meth:`._Paragraph.runs`
+exactly as if each was built by hand.
+
+
 Jumping to another slide from a word in a paragraph
 ---------------------------------------------------
 

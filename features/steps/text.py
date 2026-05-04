@@ -488,3 +488,35 @@ def then_new_paragraph_run_carries_text_and_font_kwargs(context):
     assert run.text == "styled line", "run.text == %r" % run.text
     assert run.font.italic is True, "run.font.italic is %r" % run.font.italic
     assert run.font.name == "Arial", "run.font.name == %r" % run.font.name
+
+
+# -- _Paragraph.write_rich (#753) -------------------------
+
+
+@when("I call paragraph.write_rich with a mix of plain, bold, and sized parts")
+def when_I_call_paragraph_write_rich_mixed(context):
+    # -- start with an empty paragraph so only the runs we author are present --
+    context.paragraph.clear()
+    context.paragraph.write_rich(
+        "plain ",
+        ("bold ", {"bold": True}),
+        ("big red", {"size": Pt(24), "color": RGBColor(0xFF, 0x00, 0x00)}),
+    )
+
+
+@then("the paragraph contains three runs with the expected text and formatting")
+def then_paragraph_has_three_runs(context):
+    runs = context.paragraph.runs
+    assert len(runs) == 3, "expected 3 runs, got %d" % len(runs)
+
+    assert runs[0].text == "plain ", "runs[0].text == %r" % runs[0].text
+    assert runs[0].font.bold is None, "runs[0].font.bold == %r" % runs[0].font.bold
+
+    assert runs[1].text == "bold ", "runs[1].text == %r" % runs[1].text
+    assert runs[1].font.bold is True, "runs[1].font.bold == %r" % runs[1].font.bold
+
+    assert runs[2].text == "big red", "runs[2].text == %r" % runs[2].text
+    assert runs[2].font.size == Pt(24), "runs[2].font.size == %r" % runs[2].font.size
+    assert runs[2].font.color.rgb == RGBColor(0xFF, 0x00, 0x00), (
+        "runs[2].font.color.rgb == %r" % runs[2].font.color.rgb
+    )
