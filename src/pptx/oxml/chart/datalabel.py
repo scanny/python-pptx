@@ -40,6 +40,7 @@ class CT_DLbl(BaseOxmlElement):
     )
     idx = OneAndOnlyOne("c:idx")
     tx = ZeroOrOne("c:tx", successors=_tag_seq[3:])
+    numFmt = ZeroOrOne("c:numFmt", successors=_tag_seq[4:])
     spPr = ZeroOrOne("c:spPr", successors=_tag_seq[5:])
     txPr = ZeroOrOne("c:txPr", successors=_tag_seq[6:])
     dLblPos = ZeroOrOne("c:dLblPos", successors=_tag_seq[7:])

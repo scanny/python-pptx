@@ -14,6 +14,25 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat: #638, #803 per-point data-label ``number_format`` on category, XY,
+  and bubble series. Issue #638
+  (https://github.com/scanny/python-pptx/issues/638) and issue #803
+  (https://github.com/scanny/python-pptx/issues/803) asked for a way to
+  override the data-label number format on an individual data point —
+  until now ``number_format`` was only available at the plot-level or
+  series-level :class:`DataLabels`. The |DataLabel| proxy returned by
+  :attr:`Point.data_label` now exposes read/write
+  :attr:`DataLabel.number_format` and
+  :attr:`DataLabel.number_format_is_linked` properties. Assignment writes
+  ``c:ser/c:dLbls/c:dLbl[c:idx/@val="N"]/c:numFmt/@formatCode`` with
+  ``sourceLinked="0"``; toggling ``number_format_is_linked`` back to
+  |True| rewrites ``sourceLinked="1"`` so PowerPoint renders the linked
+  source format instead. The same accessor works uniformly for
+  ``CategoryPoints``, ``XyPoints``, and ``BubblePoints``. The ``c:numFmt``
+  slot was previously untypable on ``CT_DLbl``; this release adds the
+  ``ZeroOrOne`` descriptor in the correct schema position (between
+  ``c:tx`` and ``c:spPr`` per ECMA-376 §21.2.2.48).
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —

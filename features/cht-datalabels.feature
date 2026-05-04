@@ -234,3 +234,25 @@ Feature: Access and modify data labels properties
       | having-or-not |
       | having        |
       | having no     |
+
+
+  Scenario: DataLabel.number_format defaults to 'General' (issues #638 and #803)
+    Given a data label
+     Then data_label.number_format is 'General'
+      And data_label.number_format_is_linked is True
+
+
+  Scenario: Assigning DataLabel.number_format writes c:dLbl/c:numFmt/@formatCode
+    Given a data label
+     When I assign '0.00%' to data_label.number_format
+     Then data_label.number_format is '0.00%'
+      And data_label.number_format_is_linked is False
+      And the c:dLbl for the point has c:numFmt with formatCode '0.00%' and sourceLinked '0'
+
+
+  Scenario: DataLabel.number_format_is_linked setter toggles sourceLinked
+    Given a data label
+     When I assign '0.0%' to data_label.number_format
+      And I assign True to data_label.number_format_is_linked
+     Then data_label.number_format_is_linked is True
+      And the c:dLbl for the point has c:numFmt with formatCode '0.0%' and sourceLinked '1'

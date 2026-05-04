@@ -383,6 +383,24 @@ Note this is distinct from :attr:`DataLabel.text_frame` on an individual
 (backed by ``c:dLbl/c:tx/c:rich``). The collection-level property is for
 formatting, not content.
 
+Per-point number-format control is also available on |DataLabel|, allowing
+individual data points to carry a different format string than the series-
+or plot-level :attr:`DataLabels.number_format`. Reach the label through the
+:attr:`Point.data_label` accessor on category, XY, or bubble series, then
+assign to :attr:`DataLabel.number_format` (writes
+``c:dLbl/c:numFmt/@formatCode`` per ECMA-376)::
+
+    point = chart.plots[0].series[0].points[2]
+    point.data_label.number_format = "0.00%"
+    assert point.data_label.number_format_is_linked is False
+
+Clearing a per-point override is done by re-linking to the source value
+(``point.data_label.number_format_is_linked = True``), which leaves the
+format code in place but tells PowerPoint to render using the source
+format instead (addresses
+`issue #638 <https://github.com/scanny/python-pptx/issues/638>`_ and
+`issue #803 <https://github.com/scanny/python-pptx/issues/803>`_).
+
 .. note::
    A newly-added doughnut or exploded-doughnut chart emits its default
    ``c:dLbls`` block with ``c:showVal val="1"``, so the numeric values appear

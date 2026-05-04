@@ -231,6 +231,56 @@ class DescribePoint(object):
         assert dPt.xpath("c:spPr/a:ln") == []
         assert dPt.xpath("c:spPr/a:effectLst") == []
 
+    @pytest.mark.parametrize(
+        ("points_cls", "ser_cxml"),
+        [
+            # -- CategoryPoints (bar / column / line / pie series) --
+            (CategoryPoints, "c:ser/c:cat/c:numRef/c:numCache/c:ptCount{val=5}"),
+            # -- XyPoints (scatter series) --
+            (
+                XyPoints,
+                "c:ser/(c:xVal/c:numRef/c:numCache/c:ptCount{val=5},c:yVal/c"
+                ":numRef/c:numCache/c:ptCount{val=5})",
+            ),
+            # -- BubblePoints (bubble series) --
+            (
+                BubblePoints,
+                "c:ser/(c:xVal/c:numRef/c:numCache/c:ptCount{val=5},c:yVal/c"
+                ":numRef/c:numCache/c:ptCount{val=5},c:bubbleSize/c:numRef/c"
+                ":numCache/c:ptCount{val=5})",
+            ),
+        ],
+    )
+    def it_exposes_per_point_number_format_for_all_series_types(self, points_cls, ser_cxml):
+        """Regression for #638/#803 — per-point number_format via data_label.
+
+        Exercises the user-level workflow: reach into ``points[n].data_label``
+        and assign a format string. Verifies it lands at
+        ``c:ser/c:dLbls/c:dLbl[c:idx/@val="N"]/c:numFmt/@formatCode`` and the
+        default is ``"General"``.
+        """
+        ser = element(ser_cxml)
+        points = points_cls(ser)
+        dl = points[2].data_label
+
+        # -- default before any assignment --
+        assert dl.number_format == "General"
+        assert dl.number_format_is_linked is True
+
+        dl.number_format = "0.00%"
+
+        # -- round-trips --
+        assert points[2].data_label.number_format == "0.00%"
+        assert points[2].data_label.number_format_is_linked is False
+
+        # -- lands on the right XML path --
+        assert ser.xpath('c:dLbls/c:dLbl[c:idx/@val="2"]/c:numFmt/@formatCode') == ["0.00%"]
+        assert ser.xpath('c:dLbls/c:dLbl[c:idx/@val="2"]/c:numFmt/@sourceLinked') == ["0"]
+
+        # -- sibling points remain unaffected --
+        assert points[0].data_label.number_format == "General"
+        assert points[4].data_label.number_format == "General"
+
     def it_can_preserve_a_solid_fill_color_on_negative_bars_issue_504(self):
         """Regression for #504.
 

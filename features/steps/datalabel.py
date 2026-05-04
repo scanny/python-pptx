@@ -99,6 +99,16 @@ def when_I_assign_value_to_data_label_has_text_frame(context, value):
     context.data_label.has_text_frame = new_value
 
 
+@when("I assign '{value}' to data_label.number_format")
+def when_I_assign_value_to_data_label_number_format(context, value):
+    context.data_label.number_format = value
+
+
+@when("I assign {value} to data_label.number_format_is_linked")
+def when_I_assign_value_to_data_label_number_format_is_linked(context, value):
+    context.data_label.number_format_is_linked = {"True": True, "False": False}[value]
+
+
 @when("I assign {value} to data_label.position")
 def when_I_assign_value_to_data_label_position(context, value):
     new_value = None if value == "None" else getattr(XL_DATA_LABEL_POSITION, value)
@@ -174,6 +184,40 @@ def then_data_label_has_text_frame_is_value(context, value):
     expected_value = {"True": True, "False": False}[value]
     data_label = context.data_label
     assert data_label.has_text_frame is expected_value
+
+
+@then("data_label.number_format is '{value}'")
+def then_data_label_number_format_is_value(context, value):
+    actual = context.data_label.number_format
+    assert actual == value, "data_label.number_format is %r, expected %r" % (actual, value)
+
+
+@then("data_label.number_format_is_linked is {value}")
+def then_data_label_number_format_is_linked_is_value(context, value):
+    expected = {"True": True, "False": False}[value]
+    actual = context.data_label.number_format_is_linked
+    assert actual is expected, "data_label.number_format_is_linked is %s" % actual
+
+
+@then(
+    "the c:dLbl for the point has c:numFmt with formatCode '{format_code}' "
+    "and sourceLinked '{source_linked}'"
+)
+def then_c_dLbl_has_c_numFmt_formatCode_sourceLinked(context, format_code, source_linked):
+    ser = context.data_label._ser
+    numFmts = ser.xpath("c:dLbls/c:dLbl/c:numFmt")
+    assert len(numFmts) == 1, "expected a single c:dLbl/c:numFmt, got %d" % len(numFmts)
+    numFmt = numFmts[0]
+    actual_format_code = numFmt.get("formatCode")
+    assert actual_format_code == format_code, "c:numFmt/@formatCode is %r, expected %r" % (
+        actual_format_code,
+        format_code,
+    )
+    actual_source_linked = numFmt.get("sourceLinked")
+    assert actual_source_linked == source_linked, "c:numFmt/@sourceLinked is %r, expected %r" % (
+        actual_source_linked,
+        source_linked,
+    )
 
 
 @then("data_label.position is {value}")
