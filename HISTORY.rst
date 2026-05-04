@@ -14,6 +14,21 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- verify: #824 resolved by #1044 (MasterShapes inherits add_picture).
+  Issue #824 (https://github.com/scanny/python-pptx/issues/824) asked
+  whether pictures can be added to a slide master so they appear on every
+  inheriting slide. The capability was delivered by the fork-era
+  resolution of issue #575, which promoted ``MasterShapes`` and
+  ``LayoutShapes`` to subclass ``_BaseGroupShapes`` — exposing
+  ``add_picture``, ``add_textbox``, ``add_shape``, ``add_connector``,
+  ``add_group_shape`` and ``build_freeform`` on the master and layout
+  shape collections. The new
+  ``tests/test_issue_824_master_add_picture_verify.py`` pins the
+  contract from the reporter's perspective: ``master.shapes.add_picture``
+  returns a :class:`~pptx.shapes.picture.Picture`, writes the image into
+  the master part (not a slide), and survives save + reopen. Companion
+  to the #1044 layout-textbox verify module.
+
 - docs: #823 add recipe for editing footer/slide-number/date placeholders.
   Issue #823 (https://github.com/scanny/python-pptx/issues/823) asked
   how to edit "the character in the lower-left corner" of slides —
