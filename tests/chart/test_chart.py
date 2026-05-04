@@ -1320,6 +1320,14 @@ class DescribeChart(object):
             ("c:chart/c:title", True, "c:chart/c:title"),
             ("c:chart/c:title", False, "c:chart/c:autoTitleDeleted{val=1}"),
             ("c:chart", False, "c:chart/c:autoTitleDeleted{val=1}"),
+            # -- issue #643: re-enabling the title on a chart whose prior
+            # -- `has_title = False` set `autoTitleDeleted="1"` clears that
+            # -- flag so PowerPoint's auto-title engages. --
+            (
+                "c:chart/c:autoTitleDeleted{val=1}",
+                True,
+                "c:chart/(c:title/(c:layout,c:overlay{val=0}),c:autoTitleDeleted{val=0})",
+            ),
         ]
     )
     def has_title_set_fixture(self, request):
