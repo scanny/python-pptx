@@ -29,6 +29,25 @@ Unreleased
   placeholders-not-cloned contract and the watermark-shape fallback.
   No public-API change.
 
+- verify: #525 textbox auto-grow to fit text via ``TextFrame.auto_size``.
+  Issue #525 (https://github.com/scanny/python-pptx/issues/525) asked for a
+  way to have a textbox resize vertically to fit its text. The capability
+  has always been present:
+  :attr:`~pptx.text.text.TextFrame.auto_size` accepts
+  :class:`~pptx.enum.text.MSO_AUTO_SIZE` and writes the corresponding
+  ``a:bodyPr`` auto-fit choice — ``a:spAutoFit`` for
+  ``SHAPE_TO_FIT_TEXT`` (PowerPoint resizes the shape to fit the text when
+  the file is opened), ``a:normAutofit`` for ``TEXT_TO_FIT_SHAPE`` (text
+  shrinks to fit the shape), and ``a:noAutofit`` for ``NONE``. Assigning
+  ``None`` clears the choice so the setting is inherited from the
+  layout/master/theme. The library cannot *compute* the new shape bounds
+  itself (that requires per-font metrics at render time), but it emits the
+  right XML so PowerPoint performs the resize on open. A new
+  ``tests/test_issue_525_shape_autofit_verify.py`` suite pins each
+  auto-fit choice and its round-trip through save + reopen, plus the
+  single-sibling invariant on reassignment. No code change — the feature
+  is the already-existing ``TextFrame.auto_size`` setter.
+
 - docs: #1022 clarify ``ActionSetting.screen_tip`` visibility rules.
   Issue #1022 (https://github.com/scanny/python-pptx/issues/1022)
   reported that assigning ``click_action.screen_tip`` stores the
