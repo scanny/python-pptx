@@ -687,6 +687,38 @@ class XL_CROSS_BETWEEN(BaseXmlEnum):
     """Value axis crosses the category axis at the midpoint of each category."""
 
 
+class XL_TICK_LABEL_ALIGNMENT(BaseXmlEnum):
+    """Specifies the horizontal alignment of category-axis tick labels.
+
+    Maps the `ST_LblAlgn` simple type defined in `dml-chart.xsd`, which takes one
+    of `ctr` (center), `l` (left), or `r` (right). Corresponds to the
+    `c:catAx/c:lblAlgn/@val` attribute on a category axis. PowerPoint surfaces
+    this as the "Label alignment" drop-down on the *Format Axis* pane.
+
+    Example::
+
+        from pptx.enum.chart import XL_TICK_LABEL_ALIGNMENT
+
+        category_axis = chart.category_axis
+        category_axis.label_align = XL_TICK_LABEL_ALIGNMENT.CENTER
+
+    MS API Name: `XlTickLabelAlignment`
+
+    https://learn.microsoft.com/en-us/office/vba/api/excel.xlticklabelalignment
+
+    .. versionadded:: 2026.05.1
+    """
+
+    CENTER = (-4108, "ctr", "Tick labels are center-aligned.")
+    """Tick labels are center-aligned."""
+
+    LEFT = (-4131, "l", "Tick labels are left-aligned.")
+    """Tick labels are left-aligned."""
+
+    RIGHT = (-4152, "r", "Tick labels are right-aligned.")
+    """Tick labels are right-aligned."""
+
+
 class XL_DISPLAY_BLANKS_AS(BaseXmlEnum):
     """Specifies how blank (empty) cells are displayed in a chart.
 

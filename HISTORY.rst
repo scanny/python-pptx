@@ -176,6 +176,16 @@ Unreleased
   into the ``c:xVal`` element tree by hand
   (https://github.com/scanny/python-pptx/issues/393).
 
+- feat: #481 add :attr:`.CategoryAxis.label_align` — read/write
+  :ref:`XlTickLabelAlignment` property mapping to
+  ``c:catAx/c:lblAlgn/@val`` with values ``CENTER`` / ``LEFT`` / ``RIGHT``
+  (``ctr`` / ``l`` / ``r``). Exposes PowerPoint's "Label alignment"
+  drop-down on the *Format Axis* pane. Returns ``CENTER`` (the PowerPoint
+  default) when the ``c:lblAlgn`` element is absent; assigning ``CENTER``
+  removes the backing element so the XML stays minimal. Assigning a
+  non-member raises :class:`ValueError`. Also adds the new
+  ``pptx.enum.chart.XL_TICK_LABEL_ALIGNMENT`` enum.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"

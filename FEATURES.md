@@ -1393,6 +1393,7 @@ prs.save("out.pptx")
 - `Axis.visible` — Read/write `bool` toggling axis visibility via the `c:delete` element. Writes `val="1"` / `val="0"` explicitly so PowerPoint honors the setting (see issue #852). `[Fixed in 1.0.2.dev0]`
 - `TickLabels.rotation` — Read/write clockwise rotation (degrees) of axis tick labels, mapping to `c:txPr/a:bodyPr/@rot`. Accepts `int` or `float`; default `0.0`. `[Added in 1.0.2.dev0]`
 - `CategoryAxis.tick_label_skip` / `CategoryAxis.tick_mark_skip` — Read/write `int` (>=1) thinning out how often a category-axis label or major tick is drawn (`c:tickLblSkip/@val` and `c:tickMarkSkip/@val`). `1` (default) draws every category; `2` draws every other; and so on. Assigning `1` removes the backing element; values `<1` raise `ValueError`. `[Added in 1.0.2.dev0]`
+- `CategoryAxis.label_align` — Read/write `XL_TICK_LABEL_ALIGNMENT` (`CENTER` / `LEFT` / `RIGHT`) mapping the horizontal alignment of category-axis tick labels to `c:catAx/c:lblAlgn/@val` (`ctr` / `l` / `r`). Returns `CENTER` (the PowerPoint default) when no `c:lblAlgn` element is present; assigning `CENTER` removes the backing element so the XML stays minimal. Assigning a non-member raises `ValueError`. `[Added in 2026.05.1.dev0]`
 - `ValueAxis.crosses` / `.crosses_at` / `.major_unit` / `.minor_unit`.
 - `DateAxis.major_unit` / `.minor_unit` — Time-axis spacing. `[Added in 1.0.2.dev0]`
 - `Series.values` / `Series.categories` / `Series.name` / `Series.format` / `Series.marker` / `Series.points`.
@@ -1411,6 +1412,7 @@ prs.save("out.pptx")
 - `pptx.enum.chart.XL_CHART_TYPE` — Full chart-type enum including 2D, 3D, XY, bubble, radar, doughnut, area, and a chartex passthrough sentinel (`UNSUPPORTED_CHARTEX`) for unknown `cx:` types `[Added in 1.0.2.dev0]`.
 - `pptx.enum.chart.XL_ERROR_BAR_TYPE` / `XL_ERROR_BAR_INCLUDE` / `XL_ERROR_BAR_DIRECTION` — Error-bar configuration. `[Added in 1.0.2.dev0]`
 - `pptx.enum.chart.XL_DISPLAY_BLANKS_AS` — How blank cells render (`GAPS` / `ZERO` / `INTERPOLATED`), used by `Chart.display_blanks_as`. `[Added in 1.0.2.dev0]`
+- `pptx.enum.chart.XL_TICK_LABEL_ALIGNMENT` — Horizontal alignment of category-axis tick labels (`CENTER` / `LEFT` / `RIGHT`), used by `CategoryAxis.label_align`. `[Added in 2026.05.1.dev0]`
 
 - `pptx.enum.chart.XL_TRENDLINE_TYPE` — Trendline regression type (LINEAR, LOGARITHMIC, POLYNOMIAL, POWER, EXPONENTIAL, MOVING_AVG). `[Added in 1.0.2.dev0]`
 - `pptx.chart.data.CategoryChartData` / `XyChartData` / `BubbleChartData` — Chart-data builders.

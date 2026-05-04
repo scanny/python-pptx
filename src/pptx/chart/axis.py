@@ -8,6 +8,7 @@ from pptx.enum.chart import (
     XL_AXIS_POSITION,
     XL_CATEGORY_TYPE,
     XL_CROSS_BETWEEN,
+    XL_TICK_LABEL_ALIGNMENT,
     XL_TICK_LABEL_POSITION,
     XL_TICK_MARK,
 )
@@ -342,6 +343,30 @@ class CategoryAxis(_BaseAxis):
         axis. Unconditionally ``CATEGORY_SCALE`` for a |CategoryAxis| object.
         """
         return XL_CATEGORY_TYPE.CATEGORY_SCALE
+
+    @property
+    def label_align(self) -> XL_TICK_LABEL_ALIGNMENT:
+        """Horizontal alignment of category-axis tick labels.
+
+        Read/write. Corresponds to ``c:lblAlgn/@val`` on this category axis,
+        one of ``XL_TICK_LABEL_ALIGNMENT`` ``CENTER``, ``LEFT``, or ``RIGHT``.
+        Returns ``CENTER`` (the PowerPoint default) when no ``c:lblAlgn``
+        element is present. Assigning ``CENTER`` removes the backing element
+        so the XML stays minimal. Assigning a non-member raises ``ValueError``.
+        """
+        lblAlgn = self._element.lblAlgn
+        if lblAlgn is None:
+            return XL_TICK_LABEL_ALIGNMENT.CENTER
+        return lblAlgn.val
+
+    @label_align.setter
+    def label_align(self, value: XL_TICK_LABEL_ALIGNMENT):
+        XL_TICK_LABEL_ALIGNMENT.validate(value)
+        self._element._remove_lblAlgn()
+        if value == XL_TICK_LABEL_ALIGNMENT.CENTER:
+            return
+        lblAlgn = self._element._add_lblAlgn()
+        lblAlgn.val = value
 
     @property
     def tick_label_skip(self) -> int:

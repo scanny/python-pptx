@@ -49,6 +49,7 @@ can be found here:
    XlErrorBarType
    XlLegendPosition
    XlMarkerStyle
+   XlTickLabelAlignment
    XlTickLabelPosition
    XlTickMark
    XlTrendlineType
