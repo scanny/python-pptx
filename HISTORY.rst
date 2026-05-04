@@ -14,6 +14,27 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #367 cross-slide text-linking recipe (no native field links in
+  OOXML). Issue #367 (https://github.com/scanny/python-pptx/issues/367)
+  asked for a way to link two text fields across slides so that editing
+  one auto-updates the other — the PowerPoint analogue of an Excel cell
+  reference. OOXML has no such primitive: ``<a:fld>`` ``@type`` is a
+  closed set (``slidenum``, ``datetime`` / ``datetime1``…``datetime13``
+  / ``datetimeFigureOut``, ``footer``) computed by PowerPoint itself;
+  there is no bookmark primitive in PresentationML and no formula layer
+  in DrawingML. A new ``docs/user/linked-content.rst`` page catalogues
+  what PowerPoint *does* support (the native fields above, hyperlinks to
+  another slide, live-linked Excel OLE embeds) and documents the
+  canonical python-pptx recipe: keep one source of truth in the
+  generation script and re-author the shared string onto every target
+  slide. A new ``tests/test_issue_367_field_links_recipe.py`` regression
+  suite pins the primitives the recipe leans on — ``add_field`` for the
+  native-field triad, re-author loops stamping a shared header from one
+  Python variable (including the "customer renamed the project" refresh
+  path and the master-shape name-lookup variant), and
+  :meth:`.TextFrame.replace_text` for the ``{{ token }}`` substitution
+  variant. No public-API change.
+
 - docs: #829 template replacement recipe (text + pictures). Issue #829
   (https://github.com/scanny/python-pptx/issues/829) collected utility
   functions several reporters had written for a common workflow: open
