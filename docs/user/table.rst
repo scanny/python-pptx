@@ -110,6 +110,14 @@ A couple things to note:
   contains a table using its :attr:`~.BaseShape.has_table` property and you
   access the table object using the shape's :attr:`~.GraphicFrame.table`
   property.
+* The ``width`` and ``height`` arguments are the **total** width and height
+  of the table — not the width of a single column or the height of a single
+  row. ``add_table`` distributes ``width`` evenly across the ``cols`` columns
+  and ``height`` evenly across the ``rows`` rows, with the last column / row
+  absorbing any integer-division remainder so ``sum(col.width) == width`` and
+  ``sum(row.height) == height``. See `Table height and row height`_ below for
+  the caveat that PowerPoint may later grow individual rows at render time
+  to fit their text content.
 
 
 Inserting a table into a table placeholder
