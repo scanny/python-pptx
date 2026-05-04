@@ -139,6 +139,7 @@ User Guide
    user/ole-objects
    user/comments
    user/use-cases
+   user/ai-use-cases
    user/concepts
 
 
