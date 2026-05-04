@@ -16,6 +16,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- docs: #870 project status — active maintenance note in README and
+  updates.rst. Issue #870
+  (https://github.com/scanny/python-pptx/issues/870) asked whether
+  python-pptx is still actively maintained. The README "Status"
+  section and ``docs/community/updates.rst`` now state clearly that
+  this fork (``loadfix/python-pptx``) is under active maintenance,
+  that upstream issues are triaged and addressed here, and point at
+  ``FEATURES.md`` (capability catalogue, 300+ audited issues) and
+  ``HISTORY.rst`` (changelog) as the canonical references. Docs-only;
+  no public-API change.
+
 - docs: #829 template replacement recipe (text + pictures). Issue #829
   (https://github.com/scanny/python-pptx/issues/829) collected utility
   functions several reporters had written for a common workflow: open
