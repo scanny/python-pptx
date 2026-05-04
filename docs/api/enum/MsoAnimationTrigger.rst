@@ -3,6 +3,8 @@
 ``MSO_ANIMATION_TRIGGER``
 =========================
 
+.. py:class:: pptx.enum.animation.MSO_ANIMATION_TRIGGER
+
 Identifies what causes an animation effect to play.
 
 The MVP supports two triggers that cover the vast majority of real-world

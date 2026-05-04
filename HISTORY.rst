@@ -16,7 +16,6 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
-<<<<<<< HEAD
 - chore(types): cleanup ~65 pyright strict-mode errors across
   ``src/pptx/api.py``, ``src/pptx/animation.py``,
   ``src/pptx/oxml/chart/series.py``, ``src/pptx/oxml/text.py``,
