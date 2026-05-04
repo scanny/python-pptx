@@ -330,3 +330,55 @@ Two geometry kinds are supported:
 For dynamic presets — any preset whose path depends on one or more adjustment values (e.g.
 ``ROUNDED_RECTANGLE``, ``CHEVRON``) — ``Shape.path_geometry`` returns ``None``. The
 DrawingML formula evaluator needed to resolve these is not yet implemented.
+
+
+Reading and writing a shape's theme-style refs
+----------------------------------------------
+
+PowerPoint's ribbon "Shape Styles" gallery is encoded in the shape's
+``<p:style>`` subtree — four references into the slide master's
+``<a:fmtScheme>`` / ``<a:fontScheme>``:
+
+* ``<a:lnRef idx="…">`` — line style index.
+* ``<a:fillRef idx="…">`` — fill style index.
+* ``<a:effectRef idx="…">`` — effect style index.
+* ``<a:fontRef idx="major|minor|none">`` — font-collection key.
+
+``BaseShape.theme_style_refs`` exposes these as a
+:class:`~pptx.shapes.base.ThemeStyleRefs` named-tuple. A newly-added
+auto-shape carries the defaults PowerPoint emits for a subtle-effect
+preset::
+
+    from pptx import Presentation
+    from pptx.util import Inches
+    from pptx.enum.shapes import MSO_SHAPE
+    from pptx.shapes.base import ThemeStyleRefs
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    shape = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+    )
+
+    print(shape.theme_style_refs)
+    # ThemeStyleRefs(line_ref=1, fill_ref=3, effect_ref=2, font_ref='minor')
+
+Assign a :class:`~pptx.shapes.base.ThemeStyleRefs` (or any matching 4-tuple)
+to select a different preset from the theme's format-scheme, or assign
+|None| to drop the ``<p:style>`` entirely (leaving the shape with only
+its explicit ``<p:spPr>`` properties)::
+
+    shape.theme_style_refs = ThemeStyleRefs(2, 4, 1, "major")
+    shape.theme_style_refs = None          # -- clear the preset --
+
+Index ``0`` means "no style from the matrix" (the "No Fill" / "No
+Outline" choice in PowerPoint's UI); indices ``1..N`` select the Nth
+line / fill / effect style from the slide master theme. The ``font_ref``
+string must be one of ``"major"``, ``"minor"``, or ``"none"``. The
+actual visual result of each index depends on the theme.
+
+Read-only inspection works for every simple shape that has a ``<p:style>``
+(autoshapes, text-boxes, connectors, pictures); writing is also supported
+on these four shape kinds. Graphic-frame wrappers (charts, tables,
+SmartArt) and group shapes do not carry a ``<p:style>`` — reading returns
+|None| and assigning raises :class:`ValueError`.

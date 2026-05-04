@@ -43,6 +43,10 @@ The following properties and methods are common to all shapes.
    :member-order: bysource
    :undoc-members:
 
+.. autoclass:: pptx.shapes.base.ThemeStyleRefs()
+   :members:
+   :show-inheritance:
+
 
 |Shape| objects (AutoShapes)
 ----------------------------

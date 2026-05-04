@@ -366,6 +366,7 @@ prs.save("out.pptx")
 - `BaseShape.flip_horizontal` / `.flip_vertical` / `.flip_horizontally()` / `.flip_vertically()` — Mirroring. `[Added in 2026.05.0]`
 - `BaseShape.alt_text` / `.title` — Accessibility fields. `[Added in 2026.05.0]`
 - `BaseShape.is_hidden` — Show/hide a shape without deleting it. `[Added in 2026.05.0]`
+- `BaseShape.theme_style_refs` — Read/write a shape's four theme-style references (line / fill / effect indices into `a:fmtScheme`, plus the `a:fontRef` collection key) as a `ThemeStyleRefs` named-tuple, mirroring PowerPoint's "Shape Styles" gallery. Assigning `None` clears the `<p:style>` child. Graphic-frame and group-shape parents raise `ValueError`. `[Added in 2026.05.0]`
 - `BaseShape.shadow` — `ShadowFormat` proxy (with `.inherit`, `.blur_radius`, `.distance`, `.angle`, etc.). `[Added in 2026.05.0]`
 - `BaseShape.click_action` — `ActionSetting` for on-click behaviour.
 - `BaseShape.animation` / `BaseShape.set_animation(...)` — Read or author an entrance / exit / emphasis effect on this shape. `[Added in 2026.05.0]`

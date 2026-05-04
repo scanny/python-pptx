@@ -27,6 +27,7 @@ from pptx.oxml.xmlchemy import (
 )
 
 if TYPE_CHECKING:
+    from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes.shared import (
         CT_ApplicationNonVisualDrawingProps,
         CT_NonVisualDrawingProps,
@@ -195,9 +196,16 @@ class CT_Shape(BaseShapeElement):
 
     get_or_add_txBody: Callable[[], CT_TextBody]
 
+    _tag_seq = ("p:nvSpPr", "p:spPr", "p:style", "p:txBody", "p:extLst")
     nvSpPr: CT_ShapeNonVisual = OneAndOnlyOne("p:nvSpPr")  # pyright: ignore[reportAssignmentType]
     spPr: CT_ShapeProperties = OneAndOnlyOne("p:spPr")  # pyright: ignore[reportAssignmentType]
-    txBody: CT_TextBody | None = ZeroOrOne("p:txBody", successors=("p:extLst",))  # pyright: ignore
+    style: CT_ShapeStyle | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:style", successors=("p:txBody", "p:extLst")
+    )
+    txBody: CT_TextBody | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]
+        "p:txBody", successors=("p:extLst",)
+    )
+    del _tag_seq
 
     def add_path(self, w: Length, h: Length) -> CT_Path2D:
         custGeom = self.spPr.custGeom

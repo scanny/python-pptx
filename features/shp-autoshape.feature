@@ -44,3 +44,20 @@ Feature: Shape properties and methods
   Scenario: Shape.auto_shape_type for a shape with an unknown prst (issue #749)
      Given an auto-shape with an unknown prst as shape
       Then shape.auto_shape_type is None
+
+
+  Scenario: BaseShape.theme_style_refs on a newly-added auto-shape (issue #447)
+     Given a 1-inch rectangle shape
+      Then shape.theme_style_refs is (1, 3, 2, "minor")
+
+
+  Scenario: BaseShape.theme_style_refs writes a new p:style (issue #447)
+     Given a 1-inch rectangle shape
+      When I assign shape.theme_style_refs = (2, 4, 1, "major")
+      Then shape.theme_style_refs is (2, 4, 1, "major")
+
+
+  Scenario: BaseShape.theme_style_refs can be cleared (issue #447)
+     Given a 1-inch rectangle shape
+      When I assign shape.theme_style_refs = None
+      Then shape.theme_style_refs is None

@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from lxml import etree
 
 from pptx.action import ActionSetting
 from pptx.dml.effect import ShadowFormat
-from pptx.oxml.ns import qn
+from pptx.oxml import parse_xml
+from pptx.oxml.ns import nsdecls, qn
 from pptx.shared import ElementProxy
 from pptx.util import Emu, lazyproperty
 
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
     from pptx.animation import AnimationEffect
     from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
     from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+    from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes import ShapeElement
     from pptx.oxml.shapes.groupshape import CT_GroupShape
     from pptx.oxml.shapes.shared import CT_Placeholder
@@ -51,6 +53,28 @@ if TYPE_CHECKING:
         def _next_shape_id(self) -> int: ...
 
         def _shape_factory(self, shape_elm: ShapeElement) -> BaseShape: ...
+
+
+class ThemeStyleRefs(NamedTuple):
+    """Four-tuple of shape-style references into the theme's format-scheme.
+
+    Returned by :attr:`BaseShape.theme_style_refs` and accepted by its setter.
+    The three integer fields index into the slide master theme's
+    ``a:fmtScheme`` — ``lnStyleLst``, ``fillStyleLst``, and ``effectStyleLst``
+    respectively — and ``font_ref`` is one of ``"major"``, ``"minor"``, or
+    ``"none"`` (per ``ST_FontCollectionIndex``) keying into ``a:fontScheme``.
+
+    Index ``0`` means "no style from the matrix" (PowerPoint's UI equivalent
+    is "No Fill" / "No Outline"); indices ``1..N`` select the Nth style in
+    the theme's corresponding list.
+
+    .. versionadded:: 2026.05.0
+    """
+
+    line_ref: int
+    fill_ref: int
+    effect_ref: int
+    font_ref: str
 
 
 class BaseShape(object):
@@ -722,9 +746,7 @@ class BaseShape(object):
 
     @is_hidden.setter
     def is_hidden(self, value: bool) -> None:
-        self._element._nvXxPr.cNvPr.hidden = bool(  # pyright: ignore[reportPrivateUsage]
-            value
-        )
+        self._element._nvXxPr.cNvPr.hidden = bool(value)  # pyright: ignore[reportPrivateUsage]
 
     @property
     def is_placeholder(self) -> bool:
@@ -851,6 +873,113 @@ class BaseShape(object):
         Like ``MSO_SHAPE_TYPE.CHART``. Must be implemented by subclasses.
         """
         raise NotImplementedError(f"{type(self).__name__} does not implement `.shape_type`")
+
+    @property
+    def theme_style_refs(self) -> ThemeStyleRefs | None:
+        """Four-tuple of theme-style references on this shape, or |None|.
+
+        Maps to the shape's ``p:style`` child (``a:CT_ShapeStyle``). Returns
+        a :class:`ThemeStyleRefs` named-tuple with the ``idx`` of each of the
+        four ``*Ref`` children (``a:lnRef``, ``a:fillRef``, ``a:effectRef``,
+        ``a:fontRef``) when the shape carries a ``p:style``, or |None| when
+        it does not (e.g. placeholders, graphic-frame wrappers, and group
+        shapes do not have a ``p:style``).
+
+        The first three fields are zero-based theme-matrix indices; the
+        fourth (``font_ref``) is the ``ST_FontCollectionIndex`` token —
+        ``"major"``, ``"minor"``, or ``"none"``.
+
+        Assigning a :class:`ThemeStyleRefs` (or any 4-tuple in the same
+        order) writes a fresh ``p:style`` subtree — each ``*Ref`` gets its
+        ``idx`` set and an ``<a:schemeClr val="accent1"/>`` color-choice
+        child (matching what PowerPoint writes when the user applies a
+        preset from the Shape Styles gallery). Assigning |None| removes the
+        ``p:style`` subtree entirely.
+
+        Setting a ``p:style`` is only supported on simple shapes
+        (``p:sp``, ``p:cxnSp``, ``p:pic``). Assigning on a shape whose
+        underlying element is a graphic-frame or group-shape raises
+        :class:`ValueError`.
+
+        Sample read::
+
+            refs = shape.theme_style_refs
+            if refs is not None:
+                print(refs.line_ref, refs.fill_ref, refs.effect_ref, refs.font_ref)
+
+        Sample write::
+
+            shape.theme_style_refs = ThemeStyleRefs(1, 2, 0, "minor")
+
+        See issue #447.
+
+        .. versionadded:: 2026.05.0
+        """
+        style = self._element.find(qn("p:style"))
+        if style is None:
+            return None
+        style = cast("CT_ShapeStyle", style)
+        return ThemeStyleRefs(
+            line_ref=style.lnRef.idx,
+            fill_ref=style.fillRef.idx,
+            effect_ref=style.effectRef.idx,
+            font_ref=style.fontRef.idx,
+        )
+
+    @theme_style_refs.setter
+    def theme_style_refs(self, value: ThemeStyleRefs | tuple[int, int, int, str] | None) -> None:
+        successors_by_tag = {
+            qn("p:sp"): ("p:txBody", "p:extLst"),
+            qn("p:cxnSp"): ("p:extLst",),
+            qn("p:pic"): ("p:extLst",),
+        }
+        elm = self._element
+        if elm.tag not in successors_by_tag:
+            raise ValueError(
+                "shape does not support a p:style (theme_style_refs is only available on"
+                " auto-shapes, text-boxes, connectors, and pictures)"
+            )
+        # -- always drop any existing p:style first, whether clearing or rewriting --
+        existing = elm.find(qn("p:style"))
+        if existing is not None:
+            elm.remove(existing)
+        if value is None:
+            return
+
+        line_ref, fill_ref, effect_ref, font_ref = value
+        # -- defend against silently coerced non-int inputs at runtime even --
+        # -- though the type signature requires ints                        --
+        if not (
+            isinstance(line_ref, int)  # pyright: ignore[reportUnnecessaryIsInstance]
+            and isinstance(fill_ref, int)  # pyright: ignore[reportUnnecessaryIsInstance]
+            and isinstance(effect_ref, int)  # pyright: ignore[reportUnnecessaryIsInstance]
+        ):
+            raise TypeError("line_ref, fill_ref, and effect_ref must be non-negative int values")
+        if line_ref < 0 or fill_ref < 0 or effect_ref < 0:
+            raise ValueError("line_ref, fill_ref, and effect_ref must be non-negative")
+        if font_ref not in ("major", "minor", "none"):
+            raise ValueError(
+                "font_ref must be one of 'major', 'minor', or 'none';" f" got {font_ref!r}"
+            )
+
+        style_xml = (
+            f"<p:style {nsdecls('a', 'p')}>\n"
+            f'  <a:lnRef idx="{line_ref}">\n'
+            f'    <a:schemeClr val="accent1"/>\n'
+            f"  </a:lnRef>\n"
+            f'  <a:fillRef idx="{fill_ref}">\n'
+            f'    <a:schemeClr val="accent1"/>\n'
+            f"  </a:fillRef>\n"
+            f'  <a:effectRef idx="{effect_ref}">\n'
+            f'    <a:schemeClr val="accent1"/>\n'
+            f"  </a:effectRef>\n"
+            f'  <a:fontRef idx="{font_ref}">\n'
+            f'    <a:schemeClr val="lt1"/>\n'
+            f"  </a:fontRef>\n"
+            f"</p:style>"
+        )
+        new_style = cast("etree.ElementBase", parse_xml(style_xml))
+        elm.insert_element_before(new_style, *successors_by_tag[elm.tag])
 
     @property
     def title(self) -> str:

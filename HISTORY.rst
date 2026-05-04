@@ -210,6 +210,19 @@ Unreleased
   ``""``) removes the corresponding title. *axis* is one of
   ``"category"``, ``"value"``, or ``"secondary_value"``.
 
+- Add #447 ``BaseShape.theme_style_refs`` for reading and writing a
+  shape's theme-style preset. Returns a :class:`ThemeStyleRefs`
+  named-tuple (``line_ref``, ``fill_ref``, ``effect_ref``, ``font_ref``)
+  read from the shape's ``<p:style>`` child and the four ``<a:*Ref>``
+  grandchildren; setter accepts the named-tuple (or a plain 4-tuple) to
+  author a fresh ``<p:style>`` or |None| to drop it. Works on
+  autoshapes, text-boxes, connectors, and pictures; graphic-frame and
+  group-shape parents raise :class:`ValueError` because those element
+  kinds do not carry a ``<p:style>``. See
+  ``docs/user/autoshapes.rst`` for the end-to-end snippet and
+  :class:`~pptx.shapes.base.ThemeStyleRefs` for the data-class
+  signature.
+
 - verify: #419 ``FillFormat.blip_fill`` on shapes regression test.
   Issue #419 (https://github.com/scanny/python-pptx/issues/419) asked
   for a supported way to apply PowerPoint's "Picture or texture fill"

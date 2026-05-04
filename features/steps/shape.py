@@ -1324,3 +1324,36 @@ def then_freed_child_renders_at_same_slide_rectangle(context):
         shape.effective_height,
     )
     assert got == context.expected_rect, "expected %r, got %r" % (context.expected_rect, got)
+
+
+# -- issue #447: theme-style refs ---------------------------------------
+
+
+def _parse_theme_style_refs_arg(arg):
+    """Parse a Gherkin literal like ``(1, 3, 2, "minor")`` or ``None``."""
+    arg = arg.strip()
+    if arg == "None":
+        return None
+    arg = arg.strip("()")
+    parts = [p.strip() for p in arg.split(",")]
+    line_ref = int(parts[0])
+    fill_ref = int(parts[1])
+    effect_ref = int(parts[2])
+    font_ref = parts[3].strip().strip('"').strip("'")
+    return (line_ref, fill_ref, effect_ref, font_ref)
+
+
+@when("I assign shape.theme_style_refs = {value_str}")
+def when_I_assign_shape_theme_style_refs(context, value_str):
+    context.shape.theme_style_refs = _parse_theme_style_refs_arg(value_str)
+
+
+@then("shape.theme_style_refs is {expected_str}")
+def then_shape_theme_style_refs_is(context, expected_str):
+    expected = _parse_theme_style_refs_arg(expected_str)
+    actual = context.shape.theme_style_refs
+    if expected is None:
+        assert actual is None, "expected None, got %r" % (actual,)
+        return
+    assert actual is not None, "expected %r, got None" % (expected,)
+    assert tuple(actual) == tuple(expected), "expected %r, got %r" % (expected, actual)
