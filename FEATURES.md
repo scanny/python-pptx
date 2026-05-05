@@ -1560,7 +1560,8 @@ prs.save("out.pptx")
 Every slide exposes `Slide.transition` — a `Transition` proxy that reads /
 writes the transition type (23 variants including `MORPH`, wrapped in
 `mc:AlternateContent` with a `p:fade` fallback for pre-2013 viewers),
-duration, advance-on-click, advance-after-time, PowerPoint speed preset
+duration, advance-on-click, advance-after-time (ms) or the equivalent
+seconds-based `advance_after_seconds` alias, PowerPoint speed preset
 (SLOW / MEDIUM / FAST), `morph_option` granularity
 (`byObject` / `byWord` / `byChar`), and per-variant directional accessors
 like `wipe_direction`. Shape animations can be authored via
@@ -1591,6 +1592,8 @@ t.speed = PP_TRANSITION_SPEED.FAST
 t.duration = 750           # milliseconds (via p14:dur)
 t.advance_on_click = True
 t.advance_after_time = 5000   # also advance automatically after 5 s
+# equivalent seconds-based alias (writes @advTm in ms under the hood):
+# t.advance_after_seconds = 5.0
 
 # MORPH transition (wrapped in mc:AlternateContent with p:fade fallback)
 slide2 = prs.slides.add_slide(prs.slide_layouts[6])
