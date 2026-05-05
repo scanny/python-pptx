@@ -10,6 +10,7 @@ import collections
 import copy
 from typing import IO, TYPE_CHECKING, DefaultDict, Iterator, Mapping, Set, cast
 
+from pptx.exc import PackageNotFoundError
 from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.opc.oxml import CT_Relationships, serialize_part_xml
@@ -362,8 +363,19 @@ class _PackageLoader:
         """|_ContentTypeMap| object providing content-types for items of this package.
 
         Provides a content-type (MIME-type) for any given partname.
+
+        Raises :class:`pptx.exc.PackageNotFoundError` when the archive is a valid zip
+        but is missing the ``[Content_Types].xml`` part required by the Open Packaging
+        Conventions — i.e. the file is a zip but not a valid OOXML package.
         """
-        return _ContentTypeMap.from_xml(self._package_reader[CONTENT_TYPES_URI])
+        try:
+            content_types_blob = self._package_reader[CONTENT_TYPES_URI]
+        except KeyError as exc:
+            raise PackageNotFoundError(
+                "Package is missing '[Content_Types].xml'; the file is a valid zip "
+                "but not a valid OOXML package."
+            ) from exc
+        return _ContentTypeMap.from_xml(content_types_blob)
 
     @lazyproperty
     def _package_reader(self) -> PackageReader:
