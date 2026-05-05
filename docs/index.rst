@@ -82,7 +82,7 @@ Feature Support
   slide-sorter formatting) via :attr:`Presentation.view_props`, plus the
   "Number slides from" setting via :attr:`Presentation.first_slide_num`
 * Open and save password-protected (ECMA-376 Agile Encryption) .pptx files
-  (requires optional ``msoffcrypto-tool``)
+  (requires optional ``python-ooxml-crypto``)
 * Author a shape-click "Run macro" action via
   :attr:`.ActionSetting.macro`, which writes
   ``ppaction://macro?name=<Module.Sub>`` on the shape's ``a:hlinkClick``;

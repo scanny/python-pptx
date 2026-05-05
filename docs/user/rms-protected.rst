@@ -85,7 +85,7 @@ happen *outside* python-pptx. Each workaround below produces a plain
 
 Password-protected (ECMA-376 Agile Encryption) files are a different
 mechanism and *are* supported — see the note about ``password=`` in
-:doc:`presentations` and the ``msoffcrypto-tool`` optional dependency.
+:doc:`presentations` and the ``python-ooxml-crypto`` optional dependency.
 
 See also
 --------

@@ -29,12 +29,12 @@ Requirements
 Optional dependencies
 ---------------------
 
-* `msoffcrypto-tool <https://pypi.org/project/msoffcrypto-tool/>`_ — required only
+* `python-ooxml-crypto <https://pypi.org/project/python-ooxml-crypto/>`_ — required only
   to open or save password-protected ``.pptx`` files. It is imported lazily the
   first time a ``password`` argument is passed to :func:`pptx.Presentation` or
   :meth:`Presentation.save`. Install it with::
 
-      pip install msoffcrypto-tool
+      pip install python-ooxml-crypto
 
   If you never use the ``password`` argument, |pp| has no extra runtime
   dependency.

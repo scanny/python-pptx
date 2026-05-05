@@ -402,7 +402,7 @@ class Presentation(PartElementProxy):
 
         When `password` is provided, the saved .pptx is password-protected using ECMA-376
         Agile Encryption (the same scheme PowerPoint uses). Encryption requires the
-        optional ``msoffcrypto-tool`` dependency. `zip_date_time` and `password` are
+        optional ``python-ooxml-crypto`` dependency. `zip_date_time` and `password` are
         orthogonal: `zip_date_time` stamps the inner (plaintext) zip members before the
         encryption wrapper is applied.
 

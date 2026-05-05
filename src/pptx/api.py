@@ -80,7 +80,7 @@ def Presentation(
 
     When *password* is provided, an encrypted (password-protected) ``.pptx``
     file is decrypted before loading. This requires the optional
-    ``msoffcrypto-tool`` dependency. Opening an encrypted package without
+    ``python-ooxml-crypto`` dependency. Opening an encrypted package without
     a password raises :class:`pptx.exc.EncryptedPackageError`.
 
     Opening a file wrapped in Azure RMS / AIP / IRM protection raises

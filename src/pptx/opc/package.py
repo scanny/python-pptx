@@ -99,7 +99,7 @@ class OpcPackage(_RelatableMixin):
         """Return an |OpcPackage| instance loaded with the contents of `pkg_file`.
 
         When `password` is provided and the package is encrypted, the package is decrypted
-        before loading. Decryption requires the optional ``msoffcrypto-tool`` dependency.
+        before loading. Decryption requires the optional ``python-ooxml-crypto`` dependency.
         """
         return cls(pkg_file, password)._load()
 
@@ -242,7 +242,7 @@ class OpcPackage(_RelatableMixin):
         saves of identical content (reproducible-build / source-control friendly).
 
         When `password` is provided, the resulting .pptx is password-protected using
-        ECMA-376 Agile Encryption; this requires the optional ``msoffcrypto-tool``
+        ECMA-376 Agile Encryption; this requires the optional ``python-ooxml-crypto``
         dependency. The two keywords are orthogonal: `zip_date_time` stamps the inner
         (plaintext) zip members before the package is wrapped in the encryption
         container.

@@ -187,9 +187,9 @@ the ECMA-376 Agile Encryption scheme PowerPoint writes when a user chooses
     # ... edit as normal ...
     prs.save('new-secret.pptx', password='hunter2')
 
-This feature requires the optional ``msoffcrypto-tool`` package::
+This feature requires the optional ``python-ooxml-crypto`` package::
 
-    pip install msoffcrypto-tool
+    pip install python-ooxml-crypto
 
 If a password-protected file is opened without a password, or with the wrong
 password, a :class:`pptx.exc.EncryptedPackageError` is raised. Omitting the

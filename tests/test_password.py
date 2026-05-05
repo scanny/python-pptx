@@ -1,6 +1,6 @@
 """Integration tests for password-protected .pptx read/write.
 
-These exercise the real msoffcrypto-tool integration end-to-end without mocks, so they
+These exercise the real python-ooxml-crypto integration end-to-end without mocks, so they
 complement the more granular tests in :mod:`tests.opc.test__crypto` and
 :mod:`tests.opc.test_serialized`.
 """
@@ -22,11 +22,11 @@ from .unitutil.file import absjoin, test_file_dir
 
 _MINIMAL_PPTX = absjoin(test_file_dir, "minimal.pptx")
 
-# -- Issue #327: skip the entire module when msoffcrypto-tool is absent;
+# -- Issue #327: skip the entire module when python-ooxml-crypto is absent;
 #    every test here requires the optional dependency. --
 pytestmark = pytest.mark.skipif(
-    importlib.util.find_spec("msoffcrypto") is None,
-    reason="msoffcrypto-tool is not installed (optional test dependency for issue #327)",
+    importlib.util.find_spec("ooxml_crypto") is None,
+    reason="python-ooxml-crypto is not installed (optional test dependency for issue #327)",
 )
 
 

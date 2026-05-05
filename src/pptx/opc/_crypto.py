@@ -1,27 +1,24 @@
 """Optional password-protection (ECMA-376 Agile Encryption) support.
 
-Reading and writing password-protected `.pptx` files is delegated to the optional
-``msoffcrypto-tool`` third-party package so that python-pptx does not need to carry
+Reading and writing password-protected ``.pptx`` files is delegated to the optional
+``python-ooxml-crypto`` third-party package so that python-pptx does not need to carry
 its own implementation of AES key derivation and CFBF compound-document parsing.
 
 This module is a thin adapter:
 
 * :func:`is_encrypted_stream` sniffs the OLE2 compound-document magic signature so a
-  caller can detect an encrypted package without loading ``msoffcrypto`` at all.
+  caller can detect an encrypted package without loading ``ooxml_crypto`` at all.
+* :func:`is_rms_protected_stream` identifies RMS/AIP/IRM-protected CFBF wrappers so
+  callers can emit a targeted error (python-ooxml-crypto does not decrypt those).
 * :func:`decrypt_stream` decrypts an encrypted OOXML stream to bytes.
 * :func:`encrypt_bytes` encrypts plain OOXML bytes to an encrypted bytestring.
 
 Each function raises :class:`pptx.exc.EncryptedPackageError` with an actionable message
-when ``msoffcrypto-tool`` is not installed or the password is wrong.
+when ``python-ooxml-crypto`` is not installed or the password is wrong.
 """
-
-# pyright: reportMissingTypeStubs=false, reportUnknownMemberType=false
-# pyright: reportUnknownVariableType=false, reportUnknownArgumentType=false
-# pyright: reportCallIssue=false
 
 from __future__ import annotations
 
-import io
 from typing import IO
 
 from pptx.exc import EncryptedPackageError
@@ -49,8 +46,8 @@ _RMS_MARKERS: tuple[bytes, ...] = (
 _RMS_SNIFF_MAX = 64 * 1024
 
 _MISSING_DEP_MSG = (
-    "password-protected .pptx files require the optional 'msoffcrypto-tool' "
-    "package. Install it with `pip install msoffcrypto-tool`."
+    "password-protected .pptx files require the optional 'python-ooxml-crypto' "
+    "package. Install it with `pip install python-ooxml-crypto`."
 )
 
 
@@ -93,29 +90,45 @@ def is_rms_protected_stream(stream: IO[bytes]) -> bool:
 def decrypt_stream(stream: IO[bytes], password: str) -> bytes:
     """Return the plaintext OOXML bytes from encrypted `stream`.
 
-    Raises :class:`pptx.exc.EncryptedPackageError` if ``msoffcrypto-tool`` is not
+    Raises :class:`pptx.exc.EncryptedPackageError` if ``python-ooxml-crypto`` is not
     installed, if the file is not a supported encrypted OOXML file, or if `password`
     is wrong.
     """
     try:
-        import msoffcrypto
-        from msoffcrypto.exceptions import DecryptionError, FileFormatError, InvalidKeyError
+        from ooxml_crypto import (
+            IntegrityCheckError,
+            MalformedContainerError,
+            OoxmlCryptoError,
+            UnsupportedAlgorithmError,
+            WrongPasswordError,
+            decrypt,
+        )
     except ImportError as exc:
         raise EncryptedPackageError(_MISSING_DEP_MSG) from exc
 
+    # -- read the whole stream; ooxml_crypto's bytes-in API decouples us from stream
+    # -- semantics and matches how we emit from encrypt_bytes below.
+    pos = stream.tell()
     try:
-        office_file = msoffcrypto.OfficeFile(stream)
-        office_file.load_key(password=password, verify_password=True)
-        out = io.BytesIO()
-        office_file.decrypt(out)
-    except InvalidKeyError as exc:
+        stream.seek(0)
+        data = stream.read()
+    finally:
+        stream.seek(pos)
+
+    try:
+        return decrypt(data, password)
+    except WrongPasswordError as exc:
         raise EncryptedPackageError(
             "password does not match the password used to encrypt this .pptx file"
         ) from exc
-    except (DecryptionError, FileFormatError, ValueError) as exc:
+    except UnsupportedAlgorithmError as exc:
+        raise EncryptedPackageError(
+            f"encryption algorithm not supported by ooxml_crypto: {exc}"
+        ) from exc
+    except (IntegrityCheckError, MalformedContainerError) as exc:
         raise EncryptedPackageError(f"unable to decrypt .pptx file: {exc}") from exc
-
-    return out.getvalue()
+    except OoxmlCryptoError as exc:
+        raise EncryptedPackageError(f"unable to decrypt .pptx file: {exc}") from exc
 
 
 def encrypt_bytes(plain_bytes: bytes, password: str) -> bytes:
@@ -124,20 +137,26 @@ def encrypt_bytes(plain_bytes: bytes, password: str) -> bytes:
     Uses ECMA-376 Agile Encryption (the format PowerPoint writes when a user sets a
     password in the desktop app).
 
-    Raises :class:`pptx.exc.EncryptedPackageError` if ``msoffcrypto-tool`` is not
+    Raises :class:`pptx.exc.EncryptedPackageError` if ``python-ooxml-crypto`` is not
     installed or encryption fails.
     """
     try:
-        from msoffcrypto.exceptions import EncryptionError
-        from msoffcrypto.format.ooxml import OOXMLFile
+        from ooxml_crypto import (
+            InvalidEncryptOptionsError,
+            OoxmlCryptoError,
+            WeakPasswordError,
+            encrypt,
+        )
     except ImportError as exc:
         raise EncryptedPackageError(_MISSING_DEP_MSG) from exc
 
     try:
-        office_file = OOXMLFile(io.BytesIO(plain_bytes))
-        out = io.BytesIO()
-        office_file.encrypt(password, out)
-    except EncryptionError as exc:
-        raise EncryptedPackageError(f"unable to encrypt .pptx file: {exc}") from exc
+        # -- allow any password length to preserve prior (msoffcrypto-tool predecessor) behavior where
+        # -- the caller is responsible for password policy, not the library. --
+        from ooxml_crypto import EncryptOptions
 
-    return out.getvalue()
+        return encrypt(plain_bytes, password, EncryptOptions(allow_weak_password=True))
+    except (WeakPasswordError, InvalidEncryptOptionsError) as exc:
+        raise EncryptedPackageError(f"invalid encryption options: {exc}") from exc
+    except OoxmlCryptoError as exc:
+        raise EncryptedPackageError(f"unable to encrypt .pptx file: {exc}") from exc

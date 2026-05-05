@@ -3,6 +3,25 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- build(crypto): swap password-protection backend from
+  ``msoffcrypto-tool`` to the sibling ``python-ooxml-crypto`` package.
+  ``pptx.opc._crypto`` (``decrypt_stream``, ``encrypt_bytes``) now
+  delegates to ``ooxml_crypto.decrypt`` / ``ooxml_crypto.encrypt``
+  — same public behaviour (stream-in → bytes-out; bytes-in → bytes-out;
+  ``EncryptedPackageError`` on missing dep / wrong password / malformed
+  container), but the dependency is a fork-local package rather than
+  an external PyPI tool. Error messages now point at
+  ``python-ooxml-crypto``; ``requirements-test.txt`` updated; every
+  test in ``tests/opc/test__crypto.py`` + ``tests/test_password.py``
+  + ``tests/test_issue_930_rms_clear_error.py`` now keys its optional-
+  skip guard on ``ooxml_crypto`` instead of ``msoffcrypto``. Round-trip
+  verified: encrypt → decrypt of a minimal ``.pptx`` yields identical
+  bytes through the new backend, and wrong-password still raises
+  ``EncryptedPackageError`` with the same user-facing message.
+
 2026.05.0 — CalVer alignment across the loadfix series
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

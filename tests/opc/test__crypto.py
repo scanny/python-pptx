@@ -19,10 +19,10 @@ from pptx.opc._crypto import (
 )
 
 # -- Issue #327: gracefully skip tests that depend on the optional
-#    msoffcrypto-tool package when it is not installed. --
-requires_msoffcrypto = pytest.mark.skipif(
-    importlib.util.find_spec("msoffcrypto") is None,
-    reason="msoffcrypto-tool is not installed (optional test dependency for issue #327)",
+#    python-ooxml-crypto package when it is not installed. --
+requires_ooxml_crypto = pytest.mark.skipif(
+    importlib.util.find_spec("ooxml_crypto") is None,
+    reason="python-ooxml-crypto is not installed (optional test dependency for issue #327)",
 )
 
 
@@ -50,34 +50,34 @@ class Describe_is_encrypted_stream:
 class Describe_decrypt_stream:
     """Unit-test suite for `pptx.opc._crypto.decrypt_stream`."""
 
-    def it_raises_when_msoffcrypto_is_not_installed(self, monkeypatch: pytest.MonkeyPatch):
-        # -- block the msoffcrypto import so the ImportError branch executes --
+    def it_raises_when_ooxml_crypto_is_not_installed(self, monkeypatch: pytest.MonkeyPatch):
+        # -- block the ooxml_crypto import so the ImportError branch executes --
         import builtins
 
         real_import = builtins.__import__
 
         def fake_import(name: str, *args: object, **kwargs: object):
-            if name.startswith("msoffcrypto"):
+            if name.startswith("ooxml_crypto"):
                 raise ImportError(name)
             return real_import(name, *args, **kwargs)  # pyright: ignore[reportArgumentType]
 
         monkeypatch.setattr(builtins, "__import__", fake_import)
 
-        with pytest.raises(EncryptedPackageError, match="msoffcrypto-tool"):
+        with pytest.raises(EncryptedPackageError, match="python-ooxml-crypto"):
             decrypt_stream(io.BytesIO(b""), "pw")
 
-    @requires_msoffcrypto
+    @requires_ooxml_crypto
     def it_raises_on_wrong_password(self, encrypted_minimal_pptx: bytes):
         with pytest.raises(EncryptedPackageError, match="password does not match"):
             decrypt_stream(io.BytesIO(encrypted_minimal_pptx), "wrong")
 
     def it_raises_on_malformed_encrypted_input(self):
-        # -- bytes that pass the OLE sniff but fail further down the msoffcrypto path --
+        # -- bytes that pass the OLE sniff but fail further down the ooxml_crypto path --
         garbage = _OLE_SIGNATURE + b"\x00" * 4096
         with pytest.raises(EncryptedPackageError):
             decrypt_stream(io.BytesIO(garbage), "pw")
 
-    @requires_msoffcrypto
+    @requires_ooxml_crypto
     def it_returns_plain_bytes_on_success(
         self, encrypted_minimal_pptx: bytes, minimal_pptx_bytes: bytes
     ):
@@ -102,22 +102,22 @@ class Describe_decrypt_stream:
 class Describe_encrypt_bytes:
     """Unit-test suite for `pptx.opc._crypto.encrypt_bytes`."""
 
-    def it_raises_when_msoffcrypto_is_not_installed(self, monkeypatch: pytest.MonkeyPatch):
+    def it_raises_when_ooxml_crypto_is_not_installed(self, monkeypatch: pytest.MonkeyPatch):
         import builtins
 
         real_import = builtins.__import__
 
         def fake_import(name: str, *args: object, **kwargs: object):
-            if name.startswith("msoffcrypto"):
+            if name.startswith("ooxml_crypto"):
                 raise ImportError(name)
             return real_import(name, *args, **kwargs)  # pyright: ignore[reportArgumentType]
 
         monkeypatch.setattr(builtins, "__import__", fake_import)
 
-        with pytest.raises(EncryptedPackageError, match="msoffcrypto-tool"):
+        with pytest.raises(EncryptedPackageError, match="python-ooxml-crypto"):
             encrypt_bytes(b"", "pw")
 
-    @requires_msoffcrypto
+    @requires_ooxml_crypto
     def it_produces_a_CFBF_container(self):
         import os
 
@@ -129,7 +129,7 @@ class Describe_encrypt_bytes:
 
         assert encrypted.startswith(_OLE_SIGNATURE)
 
-    @requires_msoffcrypto
+    @requires_ooxml_crypto
     def it_produces_bytes_that_round_trip_through_decrypt(self):
         import os
 
@@ -144,8 +144,8 @@ class Describe_encrypt_bytes:
 
 
 class Describe_missing_dep_message:
-    """The message exposed when msoffcrypto-tool is absent."""
+    """The message exposed when python-ooxml-crypto is absent."""
 
     def it_mentions_the_package_and_pip_install(self):
-        assert "msoffcrypto-tool" in _crypto._MISSING_DEP_MSG
+        assert "python-ooxml-crypto" in _crypto._MISSING_DEP_MSG
         assert "pip install" in _crypto._MISSING_DEP_MSG

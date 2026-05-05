@@ -56,9 +56,9 @@ def _rms_bytes() -> bytes:
     * the 8-byte OLE2 signature, so :func:`is_encrypted_stream` matches;
     * the UTF-16LE-encoded directory-entry name ``DRMEncryptedTransform``,
       so :func:`is_rms_protected_stream` matches;
-    * some filler so msoffcrypto-tool (if installed) would still fail quickly
+    * some filler so python-ooxml-crypto (if installed) would still fail quickly
       — but python-pptx raises :class:`RmsProtectedPackageError` *before*
-      forwarding to msoffcrypto.
+      forwarding to ooxml_crypto.
     """
     transform = "DRMEncryptedTransform".encode("utf-16-le")
     content = "DRMContent".encode("utf-16-le")
@@ -124,7 +124,7 @@ class Describe_PhysPkgReader_factory_on_rms:
 
     def and_it_raises_RmsProtectedPackageError_even_when_password_is_supplied(self):
         # -- Even with a password, an RMS-wrapped file cannot be decrypted
-        # --- by python-pptx. The error must fire before msoffcrypto is called. --
+        # --- by python-pptx. The error must fire before ooxml_crypto is called. --
         stream = io.BytesIO(_rms_bytes())
 
         with pytest.raises(RmsProtectedPackageError):

@@ -61,7 +61,7 @@ class UnsupportedImageTypeError(PythonPptxError):
 class EncryptedPackageError(PythonPptxError):
     """Raised when opening an encrypted .pptx without a valid password.
 
-    Also raised when the optional ``msoffcrypto-tool`` dependency is required to decrypt
+    Also raised when the optional ``python-ooxml-crypto`` dependency is required to decrypt
     or encrypt a package but is not installed.
     """
 

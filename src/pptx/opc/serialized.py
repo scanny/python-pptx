@@ -69,7 +69,7 @@ class PackageReader(Container[bytes]):
     The package may be in zip-format (a .pptx file) or expanded into a directory structure,
     perhaps by unzipping a .pptx file. When `password` is provided, a password-protected
     .pptx file is decrypted before reading; this requires the optional
-    ``msoffcrypto-tool`` dependency.
+    ``python-ooxml-crypto`` dependency.
     """
 
     def __init__(self, pkg_file: str | IO[bytes], password: str | None = None):
@@ -108,7 +108,7 @@ class PackageWriter:
     the |_Relationships| object containing relationships for the package. `parts` is a sequence of
     |Part| subtype instance to be written to the package. When `password` is provided the
     package is encrypted using ECMA-376 Agile Encryption (requires the optional
-    ``msoffcrypto-tool`` dependency).
+    ``python-ooxml-crypto`` dependency).
 
     Its single API classmethod is :meth:`write`. This class is not intended to be instantiated.
     """
@@ -231,7 +231,7 @@ class _PhysPkgReader(Container[PackURI]):
 
         When `pkg_file` is an encrypted OOXML package (CFBF / OLE2 container), the file
         is decrypted with `password` and the resulting plaintext bytes are read as a
-        zip package. Decryption requires the optional ``msoffcrypto-tool`` dependency.
+        zip package. Decryption requires the optional ``python-ooxml-crypto`` dependency.
         """
         # --- for pkg_file other than str, assume it's a stream and pass it to Zip
         # --- reader to sort out
@@ -262,7 +262,7 @@ class _PhysPkgReader(Container[PackURI]):
         """Return decrypted-payload BytesIO if `stream` is encrypted, else None.
 
         Raises :class:`pptx.exc.EncryptedPackageError` when the stream is encrypted and
-        either `password` is None or ``msoffcrypto-tool`` is not installed.
+        either `password` is None or ``python-ooxml-crypto`` is not installed.
 
         Raises :class:`pptx.exc.RmsProtectedPackageError` when the stream is wrapped in
         Azure RMS / AIP / IRM protection. RMS-protected packages are CFBF containers
