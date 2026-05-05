@@ -210,6 +210,8 @@ class CT_TableCell(BaseOxmlElement):
 
     get_or_add_tcPr: Callable[[], CT_TableCellProperties]
     get_or_add_txBody: Callable[[], CT_TextBody]
+    _insert_tcPr: Callable[[CT_TableCellProperties], CT_TableCellProperties]
+    _insert_txBody: Callable[[CT_TextBody], CT_TextBody]
 
     _tag_seq = ("a:txBody", "a:tcPr", "a:extLst")
     txBody: CT_TextBody | None = ZeroOrOne(  # pyright: ignore[reportAssignmentType]

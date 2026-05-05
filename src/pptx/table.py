@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, Iterator
 
 from pptx.dml.fill import FillFormat
@@ -12,6 +13,8 @@ from pptx.text.text import TextFrame
 from pptx.util import Emu, lazyproperty
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from pptx.enum.text import MSO_VERTICAL_ANCHOR
     from pptx.oxml.shapes.shared import CT_LineProperties
     from pptx.oxml.table import CT_Table, CT_TableCell, CT_TableCol, CT_TableRow
@@ -241,6 +244,65 @@ class _Cell(Subshape):
         if not isinstance(other, type(self)):
             return True
         return self._tc is not other._tc
+
+    def clone_from(self, other_cell: _Cell) -> Self:
+        """Copy visual and content properties from `other_cell` onto this cell.
+
+        Deep-copies ``other_cell``'s text body (``a:txBody`` — paragraphs, runs,
+        and run-level formatting) and cell-properties subtree (``a:tcPr`` —
+        fill, edge and diagonal borders, margins, vertical anchor) onto this
+        cell, replacing any existing content or formatting. Merge state
+        (``gridSpan`` / ``rowSpan`` / ``hMerge`` / ``vMerge``) and the cell's
+        position in the table are preserved — the receiving cell does not
+        move. Returns ``self`` so calls can be chained.
+
+        ``other_cell`` is not modified. ``other_cell`` may belong to a
+        different table, a different slide, or even a different presentation;
+        no relationship-graph work is required because table cells carry no
+        relationships of their own.
+
+        Assigning ``cell.text = "..."`` loses every formatting attribute this
+        method preserves; use :meth:`clone_from` when you want a cell that
+        looks identical to another cell but at a different ``(row, col)``.
+        """
+        src_tc = other_cell._tc
+        tgt_tc = self._tc
+
+        # -- replace text body (paragraphs, runs, run-level formatting) --
+        src_txBody = src_tc.txBody
+        # -- drop any existing txBody on self; `get_or_add_txBody` would
+        # -- return the existing one, which we want to fully replace --
+        if tgt_tc.txBody is not None:
+            tgt_tc.remove(tgt_tc.txBody)
+        if src_txBody is not None:
+            # -- insert a deep copy at the position `a:txBody` belongs in --
+            tgt_tc._insert_txBody(copy.deepcopy(src_txBody))  # pyright: ignore[reportPrivateUsage]
+
+        # -- replace cell-properties subtree (fill, borders, margins,
+        # -- anchor, etc.). Preserve merge-state attributes which live on
+        # -- the `a:tc` element itself (not inside `a:tcPr`). --
+        src_tcPr = src_tc.tcPr
+        if tgt_tc.tcPr is not None:
+            tgt_tc.remove(tgt_tc.tcPr)
+        if src_tcPr is not None:
+            tgt_tc._insert_tcPr(copy.deepcopy(src_tcPr))  # pyright: ignore[reportPrivateUsage]
+
+        # -- invalidate any cached proxy objects (FillFormat, LineFormat on
+        # -- the six border sides) that captured a reference to the
+        # -- now-replaced `a:tcPr` element. They'll be lazily re-created on
+        # -- next access, pointing at the freshly-cloned subtree. --
+        for cached in (
+            "fill",
+            "border_bottom",
+            "border_diagonal_down",
+            "border_diagonal_up",
+            "border_left",
+            "border_right",
+            "border_top",
+        ):
+            self.__dict__.pop(cached, None)
+
+        return self  # pyright: ignore[reportReturnType]
 
     @lazyproperty
     def border_bottom(self) -> LineFormat:
@@ -574,9 +636,7 @@ class _CellBorder(object):
 
     def __init__(self, tc: CT_TableCell, side: str):
         if side not in self._VALID_SIDES:
-            raise ValueError(
-                "side must be one of %s, got %r" % (self._VALID_SIDES, side)
-            )
+            raise ValueError("side must be one of %s, got %r" % (self._VALID_SIDES, side))
         self._tc = tc
         self._side = side
 

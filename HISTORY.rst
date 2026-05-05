@@ -16,6 +16,14 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat(table): add ``_Cell.clone_from(other_cell) -> Self`` — copies the full
+  ``a:txBody`` (paragraphs, runs, run-level formatting) and ``a:tcPr`` (fill,
+  edge/diagonal borders, margins, vertical anchor) subtrees from another cell
+  onto this one while preserving the receiving cell's position in its table
+  and its merge-state attributes. Returns ``self`` for chaining and does not
+  mutate the source. Resolves the CLO-9 clone-API gap where
+  ``cell.text = "..."`` previously discarded every formatting attribute.
+
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``
   auto-skips when the sibling ``../ooxml-reference-corpus/`` checkout

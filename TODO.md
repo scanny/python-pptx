@@ -108,6 +108,13 @@ library calls; everything else is narrower but composes with them.
 
 ## Done
 
+- **CLO-9: ``_Cell.clone_from(other_cell) -> Self``.** Copies full
+  ``a:txBody`` (paragraphs, runs, run-level formatting) and ``a:tcPr``
+  (fill, edge and diagonal borders, margins, vertical anchor) subtrees
+  from one cell onto another while preserving position and merge-state.
+  Returns ``self``; source is not mutated. Branch
+  ``feat/clo9-cell-clone-from``.
+
 - **Wave 24 (overnight polish pass).** Five parallel agents, all merged
   to master (``5adf390b..8aa60af5``).
   - **24-A deeper types**: pyright ``src/pptx`` 6255 → 6208 (-47),

@@ -573,6 +573,42 @@ setting a colour on only one side still renders, because PowerPoint
 treats the two edges independently.
 
 
+Cloning cell formatting with ``clone_from``
+-------------------------------------------
+
+Assigning ``cell.text = "..."`` replaces the content of a cell but discards
+every formatting property the cell carries — paragraph alignment, run-level
+bold / italic / color / font, cell fill, borders, margins, and vertical
+anchor are all lost. :meth:`._Cell.clone_from` copies both the visual and
+content properties of another cell onto the receiving cell in one call,
+leaving the cell's position in its table (``row_idx`` / ``col_idx``) and any
+existing merge-state attributes alone::
+
+    >>> # --- treat cell(0, 0) as the "template" cell ----------------
+    >>> template = table.cell(0, 0)
+    >>> template.text = "Header"
+    >>> template.fill.solid()
+    >>> template.fill.fore_color.rgb = RGBColor(0x4F, 0x81, 0xBD)
+    >>> template.border_bottom.color.rgb = RGBColor(0x00, 0x00, 0x00)
+    >>> template.border_bottom.width = Pt(1.5)
+    >>> template.vertical_anchor = MSO_ANCHOR.MIDDLE
+    >>> template.margin_left = Inches(0.15)
+
+    >>> # --- apply the same look to every other header cell ---------
+    >>> for col in range(1, len(table.columns)):
+    ...     table.cell(0, col).clone_from(template)
+
+:meth:`._Cell.clone_from` deep-copies the source cell's ``a:txBody`` subtree
+(paragraphs, runs, and run-level formatting) and ``a:tcPr`` subtree (fill,
+edge and diagonal borders, margins, vertical anchor), replacing whatever
+was on the target. The source cell is not modified. The source cell may
+belong to a different table, slide, or even presentation — cell cloning
+requires no relationship-graph work because table cells carry no
+relationships of their own.
+
+The method returns ``self`` so calls can be chained.
+
+
 Applying a table style
 ----------------------
 

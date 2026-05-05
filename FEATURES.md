@@ -1304,6 +1304,7 @@ prs.save("out.pptx")
 - `_Column.width` / `_Column.delete()` — Column-level access. `[Added in 2026.05.0]`
 - `_Cell.text` / `.text_frame` / `.vertical_anchor` / `.fill` — Core cell props.
 - `_Cell.merge(other)` / `_Cell.split()` / `_Cell.is_merge_origin` / `_Cell.is_spanned` / `_Cell.span_height` / `_Cell.span_width` — Cell merging.
+- `_Cell.clone_from(other_cell)` — Copy visuals and content (text body + `a:tcPr`: fill, borders, margins, anchor) from another cell onto this one while preserving the receiving cell's `(row, col)` position and merge-state. Returns `self`. Source is not mutated. Resolves the CLO-9 gap where `cell.text = "..."` discards every formatting attribute. `[Added in 2026.05.0]`
 - `_Cell.row_idx` / `_Cell.col_idx` — Positional readback. `[Added in 2026.05.0]`
 - `_Cell.margin_top` / `.margin_bottom` / `.margin_left` / `.margin_right` — Cell padding.
 - `_Cell.border_top` / `.border_bottom` / `.border_left` / `.border_right` / `.border_diagonal_down` / `.border_diagonal_up` — Cell-border `_CellBorder` proxies. `[Added in 2026.05.0]`

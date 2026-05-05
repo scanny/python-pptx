@@ -163,3 +163,17 @@ Feature: Table cell proxy objects
       | inherited | MSO_ANCHOR.TOP    |
       | middle    | MSO_ANCHOR.BOTTOM |
       | bottom    | None              |
+
+
+  Scenario: _Cell.clone_from() copies visuals and content
+    Given a fully-styled source _Cell and a plain target _Cell
+     When I call target_cell.clone_from(source_cell)
+     Then target_cell.text == "styled"
+      And target_cell.fill.fore_color.rgb is RGBColor(0xFF, 0x00, 0x00)
+      And target_cell.border_left.color.rgb is RGBColor(0x00, 0x00, 0xFF)
+      And target_cell.border_left.width == Pt(1.5)
+      And target_cell.border_diagonal_down.color.rgb is RGBColor(0x00, 0xFF, 0x00)
+      And target_cell.margin_left == Inches(0.2)
+      And target_cell.vertical_anchor == MSO_ANCHOR.MIDDLE
+      And target_cell.clone_from returned target_cell
+      And source_cell was not mutated by the clone
