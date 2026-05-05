@@ -131,6 +131,12 @@ class ExtendedPropertiesPart(XmlPart):
         self._element.template_text = value
 
     # -- `<Slides>` count (issue #131) -----------------------------------
+    #
+    # NOTE: the slide count is re-synced from ``sldIdLst`` at save-time
+    # (see :meth:`blob` below), so a manually-assigned value is clobbered on
+    # save. The setter is kept for low-level callers, but end users should
+    # not rely on overriding the count — the authoritative source is the
+    # presentation's slide list.
 
     @property
     def slide_count(self) -> int:
@@ -144,6 +150,24 @@ class ExtendedPropertiesPart(XmlPart):
     @slide_count.setter
     def slide_count(self, value: int) -> None:
         self._element.slide_count = value
+
+    # -- `<DocSecurity>` flag (ECMA-376 §22.2.2.6) ------------------------
+
+    @property
+    def doc_security(self) -> int | None:
+        """Value of the `<DocSecurity>` element, or |None| if the element is absent.
+
+        The flag records coarse document security state per ECMA-376:
+        0 = none, 1 = password-protected, 2 = read-only recommended,
+        4 = read-only enforced, 8 = locked for annotation. python-pptx does
+        not enforce the flag — it is a hint consumed by viewers and
+        collaboration tooling. Assigning |None| removes the element.
+        """
+        return self._element.doc_security
+
+    @doc_security.setter
+    def doc_security(self, value: int | None) -> None:
+        self._element.doc_security = value
 
     # -- serialization hook ---------------------------------------------
 
