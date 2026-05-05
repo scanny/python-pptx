@@ -979,6 +979,135 @@ class DescribeChart(object):
         shapes_.clone_chart.assert_called_once_with(chart, 11, 22, 33, 44)
         assert result is clone_result_
 
+    # -- Chart.clone_from (in-place chart clone, CLO-8 follow-up) -----
+
+    def it_can_clone_contents_from_another_chart_in_place(self, request):
+        """Chart.clone_from drops existing rels, runs F1/F5 clone, replaces XML in place.
+
+        Mirrors the assertions in DescribeChartPart.it_can_clone_a_chart_part_from_another
+        but exercised against the *in-place* entry point: the partname is preserved,
+        the element identity of `c:chartSpace` is preserved, and both the F1 rId-remapper
+        and the F5 xlsx-cloner are invoked.
+        """
+        from pptx.opc.constants import CONTENT_TYPE as CT
+        from pptx.opc.packuri import PackURI
+        from pptx.parts.chart import ChartPart
+
+        # --- build a source chart with an embedded-data rId referenced in XML ---
+        src_cs = element("c:chartSpace{r:a=b}/c:externalData{r:id=rIdSRC}")
+        src_part = ChartPart(PackURI("/ppt/charts/chart1.xml"), CT.DML_CHART, None, src_cs)
+        src_chart = Chart(src_cs, src_part)
+
+        # --- build a target chart that references different rIds ---
+        tgt_cs = element(
+            "c:chartSpace{r:a=b}/(c:externalData{r:id=rIdOLD},c:spPr/a:blipFill"
+            "/a:blip{r:embed=rIdIMG})"
+        )
+        tgt_part = ChartPart(PackURI("/ppt/charts/chart2.xml"), CT.DML_CHART, None, tgt_cs)
+        tgt_chart = Chart(tgt_cs, tgt_part)
+
+        # --- mock the F1 cloner so we can assert delegation + swap in the remapped XML ---
+        remapped_cs = element("c:chartSpace{r:a=b}/c:externalData{r:id=rIdNEW}")
+        PartRelationshipCloner_ = class_mock(request, "pptx.chart.chart.PartRelationshipCloner")
+        PartRelationshipCloner_.clone.return_value = remapped_cs
+
+        # --- mock the F5 xlsx-cloner so we can assert delegation without filesystem IO ---
+        clone_embedded_xlsx_ = function_mock(request, "pptx.chart.chart.clone_embedded_xlsx")
+
+        # --- tgt_part.rels returns a dict-like stub recording each pop() call ---
+        popped_rels = {"rIdOLD": object(), "rIdIMG": object()}
+        dropped = []
+        rels_stub = _DroppingRelsStub(popped_rels, dropped)
+        property_mock(request, ChartPart, "rels").return_value = rels_stub
+
+        result = tgt_chart.clone_from(src_chart)
+
+        # --- returns self for chaining ---
+        assert result is tgt_chart
+        # --- partname is preserved ---
+        assert tgt_part.partname == PackURI("/ppt/charts/chart2.xml")
+        # --- F1 remap was invoked with (src_part, tgt_part, src_chartSpace) ---
+        PartRelationshipCloner_.clone.assert_called_once_with(src_part, tgt_part, src_cs)
+        # --- F5 xlsx clone was invoked (source→target) ---
+        clone_embedded_xlsx_.assert_called_once_with(src_part, tgt_part)
+        # --- old rIds were dropped before the clone ran ---
+        assert set(dropped) == {"rIdOLD", "rIdIMG"}
+        # --- the target chartSpace is the SAME element object (in-place) ---
+        assert tgt_chart._chartSpace is tgt_cs
+        # --- its content now matches the remapped clone (rIdNEW, not rIdOLD) ---
+        assert tgt_cs.find(qn("c:externalData")).get(qn("r:id")) == "rIdNEW"
+        # --- the old externalData element is gone ---
+        ext_lst = tgt_cs.findall(qn("c:externalData"))
+        assert len(ext_lst) == 1
+        # --- and the blipFill subtree referencing rIdIMG is gone too (replaced wholesale) ---
+        assert tgt_cs.find(qn("c:spPr")) is None
+
+    def it_performs_the_clone_end_to_end_against_a_real_presentation(self):
+        """End-to-end: build two charts, clone source→target, verify wiring.
+
+        This exercises the real F1/F5 cloners without mocks so we catch
+        regressions the mocked unit test above can't — specifically: the
+        embedded-xlsx rel IS re-allocated on the target part, the
+        ``c:externalData/@r:id`` on the target chartSpace resolves to a
+        live ``EmbeddedXlsxPart``, and the target chart's partname is
+        preserved through the operation.
+        """
+        from pptx import Presentation
+        from pptx.chart.data import CategoryChartData as _CCD
+        from pptx.enum.chart import XL_CHART_TYPE as _XCT
+        from pptx.util import Inches as _In
+
+        prs = Presentation()
+        slide_1 = prs.slides.add_slide(prs.slide_layouts[5])
+        slide_2 = prs.slides.add_slide(prs.slide_layouts[5])
+
+        src_cd = _CCD()
+        src_cd.categories = ["A", "B", "C"]
+        src_cd.add_series("Src", (10.0, 20.0, 30.0))
+        src_gf = slide_1.shapes.add_chart(
+            _XCT.LINE,
+            _In(1),
+            _In(1),
+            _In(5),
+            _In(3),
+            src_cd,
+        )
+
+        tgt_cd = _CCD()
+        tgt_cd.categories = ["X", "Y", "Z"]
+        tgt_cd.add_series("Tgt", (1.0, 2.0, 3.0))
+        tgt_gf = slide_2.shapes.add_chart(
+            _XCT.BAR_CLUSTERED,
+            _In(1),
+            _In(1),
+            _In(5),
+            _In(3),
+            tgt_cd,
+        )
+
+        src_chart = src_gf.chart
+        tgt_chart = tgt_gf.chart
+        src_part = src_chart.part
+        tgt_part_before = tgt_chart.part
+        tgt_partname_before = tgt_part_before.partname
+
+        result = tgt_chart.clone_from(src_chart)
+
+        # --- returns self ---
+        assert result is tgt_chart
+        # --- the target's partname is preserved (in-place clone) ---
+        assert tgt_chart.part is tgt_part_before
+        assert tgt_chart.part.partname == tgt_partname_before
+        # --- the chart-type switched from BAR_CLUSTERED to the source's LINE ---
+        assert tgt_chart.chart_type == _XCT.LINE
+        # --- the target's embedded workbook bytes match the source's ---
+        assert tgt_chart.workbook is not None
+        assert tgt_chart.workbook == src_chart.workbook
+        # --- but the target's xlsx part is NOT the same object as the source's ---
+        assert tgt_chart.part.chart_workbook.xlsx_part is not src_part.chart_workbook.xlsx_part
+        # --- the slide-side graphicFrame rel still points at tgt_part ---
+        assert tgt_gf.chart.part is tgt_part_before
+
     # -- Chart.user_shapes / has_user_shapes (issue #351) -------------
 
     def it_returns_the_related_chart_drawing_part_for_user_shapes(self, request):
@@ -2057,6 +2186,26 @@ class _XlsxPartStub(object):
 
     def __init__(self, blob):
         self.blob = blob
+
+
+class _DroppingRelsStub(object):
+    """Minimal dict-like rels stand-in for Chart.clone_from tests.
+
+    Records every ``pop(rId)`` into the `dropped` list; ``__contains__`` delegates
+    to the seeded mapping so the production code's ``if rid in rels`` guard exercises
+    a realistic path.
+    """
+
+    def __init__(self, seeded, dropped):
+        self._seeded = seeded
+        self._dropped = dropped
+
+    def __contains__(self, key):
+        return key in self._seeded
+
+    def pop(self, key):
+        self._dropped.append(key)
+        return self._seeded.pop(key, None)
 
 
 def _build_update_cached_xlsx_blob(string_cells, number_cells, formula_cells=None):

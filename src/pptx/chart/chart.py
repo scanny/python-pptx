@@ -25,8 +25,10 @@ from pptx.chart.xmlwriter import SeriesXmlRewriterFactory, _PlotFragmentBuilder
 from pptx.dml.chtfmt import ChartFormat
 from pptx.enum.chart import XL_CHART_TYPE, XL_DISPLAY_BLANKS_AS
 from pptx.opc.constants import RELATIONSHIP_TYPE as RT
+from pptx.opc.package import PartRelationshipCloner
 from pptx.oxml import parse_xml
 from pptx.oxml.ns import qn
+from pptx.parts.embeddedpackage import clone_embedded_xlsx
 from pptx.shared import ElementProxy, PartElementProxy
 from pptx.text.text import Font, TextFrame
 from pptx.util import lazyproperty
@@ -930,6 +932,90 @@ class Chart(PartElementProxy):
         """
         return shapes.clone_chart(self, x, y, cx, cy)
 
+    def clone_from(self, source_chart):
+        """Replace this chart's content with a deep clone of `source_chart`.
+
+        Read-mutate counterpart to :meth:`clone_to` / the
+        :meth:`SlideShapes.add_chart_from` authoring wrapper (CLO-8
+        follow-up): rather than *adding* a new chart graphic frame, this
+        method rewrites the receiving chart in place so every existing
+        reference — the enclosing ``p:graphicFrame`` on the slide, the
+        slide-part rel pointing at this chart part, callers holding a
+        reference to this :class:`Chart` — remains valid.
+
+        The chart part's partname is preserved; only the contents change:
+
+        * ``c:chartSpace`` XML is deep-copied from `source_chart` with
+          every ``r:id`` / ``r:embed`` / ``r:link`` rewritten against
+          freshly-allocated relationships on this chart's part (so
+          image / theme-override / user-shapes / chart-style targets
+          are re-established).
+        * The embedded ``.xlsx`` workbook is re-cloned into its own
+          :class:`EmbeddedXlsxPart` on this chart's package —
+          PowerPoint expects each chart to own its "Edit Data"
+          workbook, and sharing an xlsx part across charts breaks that
+          dialog (see :func:`clone_embedded_xlsx`).
+        * Any user-shapes drawing carried by `source_chart` is cloned
+          via the relationship walk above; image / theme-override
+          parts are reused in the same-package case and materialised
+          in the cross-package case just as for
+          :meth:`clone_to` / :meth:`SlideShapes.add_chart_from`.
+        * The old chart's relationships (embedded xlsx, user-shapes,
+          chart images, theme override, chart-style / chart-colors)
+          are dropped up front so they can be garbage-collected by the
+          package's reachability walk on next save.
+
+        `source_chart` may live in this same presentation (intra-deck
+        refresh) or in a different one (cross-deck refresh). Use this
+        when you want to preserve the current chart's position on the
+        slide while replacing its data + styling; callers wanting a
+        brand-new chart shape should use :meth:`clone_to` or
+        :meth:`SlideShapes.add_chart_from` instead.
+
+        Returns ``self`` so calls can be chained.
+
+        .. versionadded:: 2026.05.3
+        """
+        target_part = self.part
+        source_chart_part = source_chart.part
+        target_cs = self._chartSpace
+
+        # -- 1. drop every rel currently referenced from this chart's chartSpace
+        # -- XML so the new rIds allocated in step 2 reuse the freshly-vacant
+        # -- slots and the old targets (xlsx, user-shapes, images, theme-override,
+        # -- chart-style, ...) are reachable only through the remapped element. --
+        _drop_chart_xml_rels(target_part, target_cs)
+
+        # -- 2. deep-copy source's chartSpace, walk every r:id / r:embed / r:link,
+        # -- allocate matching relationships on this part (same-package reuses
+        # -- non-xlsx targets; cross-package materialises fresh duplicates), and
+        # -- rewrite the rIds on the clone. --
+        remapped_cs = PartRelationshipCloner.clone(
+            source_chart_part, target_part, source_chart._chartSpace
+        )
+
+        # -- 3. copy the remapped content into the existing chartSpace element
+        # -- in place, preserving element identity so proxy objects and the
+        # -- chart part's lazyproperty caches (`chart`, `chart_workbook`) remain
+        # -- valid. lxml's `clear()` wipes text, tail, attributes, and children
+        # -- in one call; we then mirror the clone's attributes and reparent
+        # -- every child into the existing element. --
+        target_cs.clear()
+        for attr_name, attr_val in remapped_cs.attrib.items():
+            target_cs.set(attr_name, attr_val)
+        for child in list(remapped_cs):
+            target_cs.append(child)
+
+        # -- 4. re-embed source's xlsx workbook as an independent copy, overriding
+        # -- F1's same-package "reuse" semantics so each chart owns its own
+        # -- "Edit Data" workbook (a shared xlsx part breaks PowerPoint's dialog).
+        # -- Must happen after the XML replacement above because the setter
+        # -- rewrites ``c:externalData/@r:id`` on the target chartSpace; doing
+        # -- it first would be clobbered by the ``clear()`` above. --
+        clone_embedded_xlsx(source_chart_part, target_part)
+
+        return self
+
     @property
     def has_user_shapes(self) -> bool:
         """Read-only |bool| specifying whether this chart has any user-shape annotations.
@@ -1262,6 +1348,30 @@ class _DataTable(ElementProxy):
             return
         child = getattr(self._dTable, "get_or_add_%s" % attr_name)()
         child.val = bool(value)
+
+
+def _drop_chart_xml_rels(chart_part, chartSpace):
+    """Drop every rel on `chart_part` referenced from `chartSpace` XML.
+
+    Walks every ``r:id`` / ``r:embed`` / ``r:link`` attribute under
+    ``chartSpace`` and removes each distinct rId from the part's
+    relationship collection. Rels not referenced from the chart XML
+    (which would be unusual but not impossible) are left alone.
+
+    Helper for the in-place :meth:`Chart.clone_from` (CLO-8 follow-up),
+    which must vacate the target part's rel slots before re-running
+    the F1 / F5 cloner against it.
+    """
+    rIds = set()
+    for el in chartSpace.xpath("descendant-or-self::*[@r:id or @r:embed or @r:link]"):
+        for attr_name in (qn("r:id"), qn("r:embed"), qn("r:link")):
+            rid = el.get(attr_name)
+            if rid is not None:
+                rIds.add(rid)
+    rels = chart_part.rels
+    for rid in rIds:
+        if rid in rels:
+            rels.pop(rid)
 
 
 def _new_default_dTable():

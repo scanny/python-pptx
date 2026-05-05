@@ -36,3 +36,13 @@ Feature: Cross-slide chart copy
      When I call slide_2.shapes.add_chart_from(source_chart, x, y) with no size
      Then slide 2 has a chart shape at (x, y) sized 5 by 3 inches
       And the cloned chart has a distinct chart part
+
+  Scenario: Chart.clone_from replaces a target chart's contents in place
+    Given two charts with embedded workbooks on two different slides
+     When I call target_chart.clone_from(source_chart)
+     Then the target chart's partname is preserved
+      And the target chart's chart-type matches the source chart
+      And the target chart has a distinct embedded xlsx part from the source
+      And the target chart's workbook bytes equal the source workbook bytes
+      And the slide's graphicFrame still references the target chart part
+      And the round-tripped presentation still has both charts

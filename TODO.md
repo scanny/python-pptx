@@ -20,8 +20,9 @@ work lands.
    `PackageNotFoundError` (or similarly descriptive exception). Only
    open issue on the tracker.
 3. **Close CLO-8 follow-up** — in-place
-   `Chart.clone_from(source_chart) -> Self`. Currently the only open
-   TODO.md item besides these audit findings.
+   `Chart.clone_from(source_chart) -> Self`. **(Done — see CLO-8
+   follow-up entry under "Done" below; branch
+   `feat/clo8-chart-clone-from-inplace`.)**
 4. **Bump README version string.** README currently advertises
    `2026.05.0`; should be `2026.05.2` (or `2026.05.3` once item 1
    ships).
@@ -42,15 +43,26 @@ work lands.
 
 ## Open
 
-- **CLO-8 (follow-up): read-mutate `Chart.clone_from(source_chart) -> Self`.**
-  The primary `SlideShapes.add_chart_from` deliverable shipped; replacing
-  an EXISTING chart's content in place is still open — tracked as a
-  follow-up because it requires draining the chart part's existing
-  relationship graph (embedded xlsx, user-shapes, image, theme-override)
-  before re-running the F1 / F5 cloning against the existing part.
+(none — all tracked items in the Audit-findings section above)
 
 
 ## Done
+
+- **CLO-8 (follow-up): ``Chart.clone_from(source_chart) -> Self``.**
+  In-place read-mutate counterpart to the CLO-8 primary
+  ``SlideShapes.add_chart_from``. Drops every rel referenced by this
+  chart's current ``c:chartSpace`` (embedded xlsx, user-shapes, chart
+  images, theme-override, chart-style / chart-colors), deep-copies the
+  source's ``c:chartSpace`` with every ``r:id`` / ``r:embed`` /
+  ``r:link`` rewritten against freshly-allocated rels on this part,
+  replaces the chartSpace content in place (element identity preserved
+  so caller-held ``Chart`` references remain valid), and re-embeds the
+  source's ``.xlsx`` workbook as an independent copy so PowerPoint's
+  "Edit Data" dialog stays wired per-chart. The chart part's partname
+  is preserved throughout, so the enclosing ``p:graphicFrame`` on the
+  slide and its rel still reference this chart. Returns ``self`` for
+  chaining. Supports same-presentation and cross-presentation sources.
+  Branch ``feat/clo8-chart-clone-from-inplace``.
 
 - **CLO-1: ``Slide.clone_shapes_from(other_slide, include_placeholders=True)
   -> None``.** Composite wrapper on top of ``BaseShape.clone_onto``: walks
