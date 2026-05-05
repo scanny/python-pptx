@@ -609,6 +609,40 @@ relationships of their own.
 The method returns ``self`` so calls can be chained.
 
 
+Cloning an entire table
+-----------------------
+
+When you need to reproduce the look and content of an existing table —
+for instance, to keep a summary table consistent across several slides
+— :meth:`.Table.clone_from` copies every styling axis in a single call.
+It deep-copies each cell via :meth:`._Cell.clone_from`, assigns column
+widths and row heights from the matching source column / row, copies
+the source's :attr:`~.Table.style_id` when present, and mirrors all
+six header/banding flags (``first_row``, ``first_col``, ``last_row``,
+``last_col``, ``horz_banding``, ``vert_banding``)::
+
+    >>> # --- target table must already have the same shape as the source ---
+    >>> source_table = prs.slides[0].shapes[1].table      # 3x4, say
+    >>> target_shape = slide.shapes.add_table(
+    ...     rows=3, cols=4, left=Inches(1), top=Inches(4),
+    ...     width=Inches(6), height=Inches(2),
+    ... )
+    >>> target_table = target_shape.table
+    >>> target_table.clone_from(source_table)
+    <pptx.table.Table object at 0x...>
+
+The source table may belong to a different slide or even presentation —
+table cells carry no relationships of their own, so cross-presentation
+cloning requires no relationship-graph work. The source is not modified.
+
+:meth:`.Table.clone_from` raises :class:`ValueError` when the source and
+target have a different row or column count — a clone does not resize the
+target. Build a table with the desired dimensions first (e.g. via
+:meth:`.SlideShapes.add_table`) before calling ``clone_from``.
+
+The method returns ``self`` so calls can be chained.
+
+
 Applying a table style
 ----------------------
 

@@ -119,3 +119,24 @@ Feature: Table properties and methods
      Given a 2x2 Table object as table
       When I assign table.vert_banding = True
       Then table.vert_banding is True
+
+
+  Scenario: Table.clone_from() copies widths, heights, cells, style, flags
+    Given a fully-styled source Table and a plain 2x2 target Table
+     When I call target_table.clone_from(source_table)
+     Then target_table.cell(0, 0).text == "A"
+      And target_table.cell(0, 0).fill.fore_color.rgb is RGBColor(0xFF, 0x00, 0x00)
+      And target_table.cell(1, 1).text == "D"
+      And target_table.columns[0].width == Inches(3)
+      And target_table.rows[0].height == Inches(1.5)
+      And target_table.style_id is "{2D5ABB26-0587-4C30-8999-92F81FD0307C}"
+      And target_table.first_row is True
+      And target_table.horz_banding is True
+      And target_table.clone_from returned target_table
+      And source_table was not mutated by the clone
+
+
+  Scenario: Table.clone_from() raises ValueError on dimension mismatch
+    Given a 2x2 source Table and a 3x2 target Table
+     When I call target_table.clone_from(source_table) expecting ValueError
+     Then a ValueError was raised mentioning "row/column count mismatch"

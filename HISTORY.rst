@@ -102,6 +102,17 @@ Unreleased
   and its merge-state attributes. Returns ``self`` for chaining and does not
   mutate the source. Resolves the CLO-9 clone-API gap where
   ``cell.text = "..."`` previously discarded every formatting attribute.
+- feat(table): add ``Table.clone_from(source_table) -> Self`` (CLO-10) — the
+  whole-table counterpart to ``_Cell.clone_from``. Copies every column width,
+  every row height, every cell (delegating per-cell to ``_Cell.clone_from``),
+  the source's ``style_id`` when present, and all six header / banding flags
+  (``first_row`` / ``first_col`` / ``last_row`` / ``last_col`` /
+  ``horz_banding`` / ``vert_banding``). Returns ``self`` for chaining; source
+  is not mutated. Works intra- and cross-presentation because table cells
+  carry no relationships of their own. Raises ``ValueError`` when the source
+  and target have a different row or column count — ``clone_from`` does not
+  resize the target. See the "Cloning an entire table" section of
+  ``docs/user/table.rst``.
 
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``

@@ -44,9 +44,7 @@ def given_a_freshly_added_RxC_Table_object_as_table(context, rows: int, cols: in
     """
     prs = Presentation()
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    graphic_frame = slide.shapes.add_table(
-        rows, cols, Inches(1), Inches(1), Inches(6), Inches(2)
-    )
+    graphic_frame = slide.shapes.add_table(rows, cols, Inches(1), Inches(1), Inches(6), Inches(2))
     context.table_ = graphic_frame.table
 
 
@@ -94,6 +92,46 @@ def given_a_second_proxy_instance_for_that_cell_as_other_cell(context):
 def given_a_Column_object_as_column(context):
     prs = Presentation(test_pptx("shp-shapes"))
     context.column = prs.slides[0].shapes[3].table.columns[0]
+
+
+@given("a fully-styled source Table and a plain 2x2 target Table")
+def given_a_fully_styled_source_table_and_a_plain_target_table(context):
+    """Build two freshly-added 2x2 tables; style the source, leave the target plain."""
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    src = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2)).table
+    tgt = slide.shapes.add_table(2, 2, Inches(1), Inches(4), Inches(6), Inches(2)).table
+
+    src.cell(0, 0).text = "A"
+    src.cell(0, 0).fill.solid()
+    src.cell(0, 0).fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    src.cell(0, 1).text = "B"
+    src.cell(1, 0).text = "C"
+    src.cell(1, 1).text = "D"
+    src.columns[0].width = Inches(3)
+    src.columns[1].width = Inches(2)
+    src.rows[0].height = Inches(1.5)
+    src.rows[1].height = Inches(0.75)
+    src.style_id = "{2D5ABB26-0587-4C30-8999-92F81FD0307C}"
+    src.first_row = True
+    src.horz_banding = True
+
+    context.source_table = src
+    context.source_table_xml_snapshot = src._tbl.xml  # pyright: ignore[reportPrivateUsage]
+    context.target_table = tgt
+
+
+@given("a 2x2 source Table and a 3x2 target Table")
+def given_a_2x2_source_table_and_3x2_target_table(context):
+    """Dimension-mismatch fixture — source has 2 rows, target has 3."""
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    context.source_table = slide.shapes.add_table(
+        2, 2, Inches(1), Inches(1), Inches(6), Inches(2)
+    ).table
+    context.target_table = slide.shapes.add_table(
+        3, 2, Inches(1), Inches(4), Inches(6), Inches(2)
+    ).table
 
 
 @given("a fully-styled source _Cell and a plain target _Cell")
@@ -227,18 +265,14 @@ def when_I_call_table_rows_0_delete(context):
 @when("I call table.columns.add()")
 def when_I_call_table_columns_add(context):
     # ---remember the prior last column's width before adding---
-    context.prior_last_column_width = context.table_.columns[
-        len(context.table_.columns) - 1
-    ].width
+    context.prior_last_column_width = context.table_.columns[len(context.table_.columns) - 1].width
     context.added_column = context.table_.columns.add()
 
 
 @when("I call table.add_column()")
 def when_I_call_table_add_column(context):
     # ---remember the prior last column's width before adding---
-    context.prior_last_column_width = context.table_.columns[
-        len(context.table_.columns) - 1
-    ].width
+    context.prior_last_column_width = context.table_.columns[len(context.table_.columns) - 1].width
     context.added_column = context.table_.add_column()
 
 
@@ -260,6 +294,20 @@ def when_I_call_origin_cell_merge_other_cell(context):
 @when("I call target_cell.clone_from(source_cell)")
 def when_I_call_target_clone_from_source(context):
     context.clone_from_result = context.target_cell.clone_from(context.source_cell)
+
+
+@when("I call target_table.clone_from(source_table)")
+def when_I_call_target_table_clone_from_source(context):
+    context.clone_from_result = context.target_table.clone_from(context.source_table)
+
+
+@when("I call target_table.clone_from(source_table) expecting ValueError")
+def when_I_call_target_table_clone_from_source_expect_error(context):
+    try:
+        context.target_table.clone_from(context.source_table)
+        context.raised_exception = None
+    except ValueError as e:
+        context.raised_exception = e
 
 
 # then ====================================================
@@ -563,9 +611,7 @@ def then_target_cell_vertical_anchor_eq(context, value):
 
 @then("target_cell.clone_from returned target_cell")
 def then_clone_from_returned_target(context):
-    assert context.clone_from_result is context.target_cell, (
-        "clone_from did not return target_cell"
-    )
+    assert context.clone_from_result is context.target_cell, "clone_from did not return target_cell"
 
 
 @then("source_cell was not mutated by the clone")
@@ -573,3 +619,77 @@ def then_source_cell_not_mutated(context):
     actual = context.source_cell._tc.xml  # pyright: ignore[reportPrivateUsage]
     expected = context.source_xml_snapshot
     assert actual == expected, "source_cell XML changed after clone_from"
+
+
+@then('target_table.cell({r:d}, {c:d}).text == "{text_value}"')
+def then_target_table_cell_text_eq(context, r, c, text_value):
+    actual = context.target_table.cell(r, c).text
+    assert actual == text_value, "target_table.cell(%d, %d).text == %r" % (r, c, actual)
+
+
+@then("target_table.cell({r:d}, {c:d}).fill.fore_color.rgb is RGBColor({red}, {g}, {b})")
+def then_target_table_cell_fill_rgb_eq(context, r, c, red, g, b):
+    actual = context.target_table.cell(r, c).fill.fore_color.rgb
+    expected = RGBColor(int(red, 16), int(g, 16), int(b, 16))
+    assert actual == expected, "target_table.cell(%d, %d).fill.fore_color.rgb == %s" % (
+        r,
+        c,
+        actual,
+    )
+
+
+@then("target_table.columns[{idx:d}].width == Inches({num_lit})")
+def then_target_table_column_width_eq(context, idx, num_lit):
+    actual = context.target_table.columns[idx].width
+    expected = Inches(float(num_lit))
+    assert actual == expected, "target_table.columns[%d].width == %s" % (idx, actual)
+
+
+@then("target_table.rows[{idx:d}].height == Inches({num_lit})")
+def then_target_table_row_height_eq(context, idx, num_lit):
+    actual = context.target_table.rows[idx].height
+    expected = Inches(float(num_lit))
+    assert actual == expected, "target_table.rows[%d].height == %s" % (idx, actual)
+
+
+@then("target_table.style_id is {value}")
+def then_target_table_style_id_is(context, value):
+    actual = context.target_table.style_id
+    expected = eval(value)
+    assert actual == expected, "target_table.style_id is %r" % (actual,)
+
+
+@then("target_table.first_row is {bool_lit}")
+def then_target_table_first_row_is(context, bool_lit):
+    actual = context.target_table.first_row
+    expected = eval(bool_lit)
+    assert actual is expected, "target_table.first_row is %s" % actual
+
+
+@then("target_table.horz_banding is {bool_lit}")
+def then_target_table_horz_banding_is(context, bool_lit):
+    actual = context.target_table.horz_banding
+    expected = eval(bool_lit)
+    assert actual is expected, "target_table.horz_banding is %s" % actual
+
+
+@then("target_table.clone_from returned target_table")
+def then_target_table_clone_from_returned_self(context):
+    assert (
+        context.clone_from_result is context.target_table
+    ), "clone_from did not return target_table"
+
+
+@then("source_table was not mutated by the clone")
+def then_source_table_was_not_mutated(context):
+    actual = context.source_table._tbl.xml  # pyright: ignore[reportPrivateUsage]
+    expected = context.source_table_xml_snapshot
+    assert actual == expected, "source_table XML changed after clone_from"
+
+
+@then('a ValueError was raised mentioning "{fragment}"')
+def then_a_valueerror_was_raised_mentioning(context, fragment):
+    assert context.raised_exception is not None, "expected ValueError, none raised"
+    assert fragment in str(
+        context.raised_exception
+    ), "ValueError message %r does not mention %r" % (str(context.raised_exception), fragment)
