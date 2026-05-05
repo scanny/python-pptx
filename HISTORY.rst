@@ -16,6 +16,7 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+<<<<<<< HEAD
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape
@@ -35,6 +36,18 @@ Unreleased
   typical "re-author this deck slide onto a fresh layout" script from
   ~150 lines of XML gymnastics to a single call. Docs:
   ``docs/user/slides.rst`` ("Cloning all shapes from another slide").
+=======
+- test(shapes): add a dedicated ``GroupShape.clone_onto`` regression suite
+  (CLO-11). ``BaseShape.clone_onto`` already handled group shapes
+  correctly, but the group-specific code paths (child-coordinate-system
+  preservation on an outer-group position override, nested groups,
+  re-embedding a picture or chart that lives inside a cloned group,
+  unique fresh ids on every descendant ``cNvPr``) had no dedicated
+  coverage. Added 9 pytest tests in ``tests/test_clo11_group_clone.py``
+  and 5 behave scenarios in ``features/shp-clone-onto.feature``
+  exercising each angle, including a save/reload round-trip. No
+  production-code changes.
+>>>>>>> feat/clo11-group-shape-clone
 
 - fix(opc): ``PartRelationshipCloner._get_or_clone_part`` now dispatches
   through ``XmlPart.load`` when cross-package-cloning an XML part (e.g.
