@@ -4,7 +4,106 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 ## Open
 
-_None tracked yet._
+### Fidelity / clone API gaps
+
+Surfaced during a round-trip replication exercise on
+``Dickinson_Sample_Slides.pptx`` (2026-05-05) where we wanted to
+read an arbitrary deck with ``python-pptx`` and write out a
+faithful replica using the library only. The script currently has
+to fall through to raw ``lxml`` (``_element`` + ``copy.deepcopy``)
+at every fidelity boundary because the proxy layer's setters lose
+formatting that readers can see. Each gap below, if shipped, would
+eliminate an XML escape hatch from that replicator.
+
+Priority ordering: **CLO-1** and **CLO-2** together collapse the
+replicator from ~150 lines of XML gymnastics to ~6 lines of
+library calls; everything else is narrower but composes with them.
+
+- **CLO-1: `Slide.clone_shapes_from(other_slide, include_placeholders=True) -> None`.**
+  Clone every top-level shape from ``other_slide`` onto ``self``.
+  The composite operation that reduces a typical "re-author from
+  an existing deck" script to a handful of lines. Would internally
+  walk ``other_slide.shapes`` and call CLO-2 on each.
+
+- **CLO-2: `BaseShape.clone_onto(shape_tree, left=None, top=None) -> BaseShape`.**
+  Copy a shape (the full ``<p:sp>`` / ``<p:pic>`` /
+  ``<p:graphicFrame>`` / ``<p:cxnSp>`` / ``<p:grpSp>`` subtree) into
+  another shape tree, optionally at a new position. Whole-slide
+  clones already ship (``Slides.duplicate`` /
+  ``Slides.add_slide_from_external``); this is the missing
+  per-shape granularity. Must rewrite shape-id to avoid collisions
+  in the destination, and re-embed any referenced image / chart /
+  OLE / media / SmartArt / 3D-model parts just like FU-7's
+  ``GraphicFrame.delete`` inversed (drop rels → add rels).
+
+- **CLO-3: `BaseShape.replace_spPr_from(other_shape) -> Self`.**
+  Clone fill / line / effect / geometry-hints from another shape
+  onto this one. Lets callers mix-and-match "new shape shell, old
+  look" without touching ``_element``. Composes with CLO-2 (which
+  replaces the whole shape) as a narrower alternative.
+
+- **CLO-4: `BaseShape.replace_text_frame_from(other_shape) -> Self`.**
+  Clone the entire ``<p:txBody>`` subtree — run formatting,
+  paragraph properties, levels, list styles — from another shape
+  onto this one. ``TextFrame.text = "..."`` writes plain text only
+  and loses per-run font / color / caps / size.
+
+- **CLO-5: `TextFrame.clone_from(other_text_frame) -> Self`.**
+  Same as CLO-4 but callable directly on a ``TextFrame`` instead
+  of requiring shape-level access. Useful for placeholder → slide
+  or table-cell → slide text migration.
+
+- **CLO-6: `_Paragraph.clone_from(other_paragraph) -> Self` and
+  `_Run.clone_from(other_run) -> Self`.**
+  The next layer down from CLO-5 — per-paragraph / per-run
+  formatting clone. Covers the case where a caller wants to mix
+  text from two sources inside one text frame.
+
+- **CLO-7: Extended `BaseShape.theme_style_refs`.**
+  W14 #447 shipped read/write for the four ``<p:style>`` index
+  refs, but the property always writes the default ``accent1``
+  color choice on the four child ``<a:schemeClr>`` entries. Extend
+  so callers can preserve or specify each ref's actual color
+  choice (``<a:schemeClr val="bg1"/>`` vs ``<a:schemeClr val="accent2"/>``
+  etc.). Cleanest shape: a second NamedTuple field like
+  ``ThemeStyleRefColors(line, fill, effect, font)``.
+
+- **CLO-8: `Chart.clone_from(source_chart) -> Self` and/or
+  `Chart.apply_template(source_chart)` accepting a live Chart.**
+  ``SlideShapes.add_chart(type, data)`` always writes fresh XML
+  with default axis / plot / legend / title formatting and series
+  colors. A clone would preserve chart title text styling, axis
+  label fonts, series fill colors, plot-area position, and
+  trendlines. Today you can pull categories/values but lose all
+  styling. ``Chart.apply_template`` already exists for
+  ``.crtx`` template files — extend to accept another in-deck
+  Chart as the "template".
+
+- **CLO-9: `_Cell.clone_from(other_cell) -> Self`.**
+  Copy runs, borders (including diagonals), fill, margins,
+  vertical anchor, and padding from another cell. Today
+  ``cell.text = "..."`` loses every one of those.
+
+- **CLO-10: `Table.clone_from(source_table) -> Self`.**
+  Whole-table version of CLO-9 — column widths + row heights +
+  every cell (delegating per-cell to CLO-9) + table style +
+  header/first-row/banded-rows flags.
+
+- **CLO-11: `GroupShape.clone_onto(shape_tree) -> GroupShape`.**
+  Nominally covered by CLO-2 in the protocol sense, but groups
+  carry nested content that needs correct recursion (each child
+  shape's local transform + the group's own ``chOff`` / ``chExt``
+  viewport). Call out explicitly so the implementation of CLO-2
+  doesn't silently degrade on groups.
+
+- **CLO-12: `SlideShapes.add_picture_from(other_picture, left=None, top=None) -> Picture`.**
+  One-call equivalent of "extract blob, re-embed as picture, copy
+  spPr". Saves the ``BytesIO(other.image.blob)`` dance and
+  automatically preserves crop / outline / effects. A narrow
+  alias CLO-2 makes unnecessary but is the most ergonomic name
+  for the common picture-only case.
+
+
 
 
 ## Done
