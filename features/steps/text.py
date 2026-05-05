@@ -520,3 +520,134 @@ def then_paragraph_has_three_runs(context):
     assert runs[2].font.color.rgb == RGBColor(0xFF, 0x00, 0x00), (
         "runs[2].font.color.rgb == %r" % runs[2].font.color.rgb
     )
+
+
+# -- _Paragraph.clone_from / _Run.clone_from (CLO-6) ---------------------
+
+
+def _build_two_text_frame_fixture(context):
+    """Populate `context.src_tf` and `context.dst_tf` in a fresh presentation."""
+    from pptx.util import Inches
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    src_tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+    dst_tb = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(4), Inches(1))
+    context.src_tf = src_tb.text_frame
+    context.dst_tf = dst_tb.text_frame
+
+
+@given("a source paragraph with bullet, level, alignment, and a formatted run")
+def given_source_paragraph_with_pPr_and_formatted_run(context):
+    _build_two_text_frame_fixture(context)
+    src_p = context.src_tf.paragraphs[0]
+    src_p.alignment = PP_ALIGN.CENTER
+    src_p.level = 2
+    src_p.bullet.auto_number(PP_AUTO_NUMBER.ARABIC_PERIOD, start_at=3)
+    run = src_p.add_run()
+    run.text = "Hello"
+    run.font.bold = True
+    run.font.size = Pt(18)
+    run.font.color.rgb = RGBColor(0xFF, 0x66, 0x00)
+    context.src_paragraph = src_p
+
+
+@given("a destination paragraph in a separate text frame")
+def given_destination_paragraph_in_separate_text_frame(context):
+    context.dst_paragraph = context.dst_tf.paragraphs[0]
+
+
+@when("I call dst_paragraph.clone_from(src_paragraph)")
+def when_call_dst_paragraph_clone_from_src(context):
+    context.dst_paragraph.clone_from(context.src_paragraph)
+
+
+@when("I call dst_paragraph.clone_from(src_paragraph) capturing the return")
+def when_call_dst_paragraph_clone_from_src_capturing(context):
+    context.return_value = context.dst_paragraph.clone_from(context.src_paragraph)
+
+
+@then("dst_paragraph.level equals src_paragraph.level")
+def then_dst_paragraph_level_equals_src(context):
+    assert context.dst_paragraph.level == context.src_paragraph.level, (
+        "dst level %r != src level %r"
+        % (context.dst_paragraph.level, context.src_paragraph.level)
+    )
+
+
+@then("dst_paragraph.alignment equals src_paragraph.alignment")
+def then_dst_paragraph_alignment_equals_src(context):
+    assert context.dst_paragraph.alignment == context.src_paragraph.alignment
+
+
+@then("dst_paragraph.bullet.type equals src_paragraph.bullet.type")
+def then_dst_paragraph_bullet_type_equals_src(context):
+    assert context.dst_paragraph.bullet.type == context.src_paragraph.bullet.type
+
+
+@then("dst_paragraph.runs carry the same text and formatting as the source")
+def then_dst_paragraph_runs_match_src(context):
+    src_runs = context.src_paragraph.runs
+    dst_runs = context.dst_paragraph.runs
+    assert len(dst_runs) == len(src_runs), (
+        "len(dst.runs) == %d != %d" % (len(dst_runs), len(src_runs))
+    )
+    for src_r, dst_r in zip(src_runs, dst_runs):
+        assert dst_r.text == src_r.text
+        assert dst_r.font.bold == src_r.font.bold
+        assert dst_r.font.size == src_r.font.size
+        assert dst_r.font.color.rgb == src_r.font.color.rgb
+
+
+@then("the return value is the destination paragraph")
+def then_return_value_is_destination_paragraph(context):
+    assert context.return_value is context.dst_paragraph
+
+
+@given("a source run with bold, italic, size, color, and highlight")
+def given_source_run_with_formatting_and_highlight(context):
+    _build_two_text_frame_fixture(context)
+    src_p = context.src_tf.paragraphs[0]
+    run = src_p.add_run()
+    run.text = "SRC"
+    run.font.bold = True
+    run.font.italic = True
+    run.font.size = Pt(20)
+    run.font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+    run.font.highlight_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+    context.src_run = run
+
+
+@given("a destination run in a separate text frame")
+def given_destination_run_in_separate_text_frame(context):
+    dst_p = context.dst_tf.paragraphs[0]
+    run = dst_p.add_run()
+    run.text = "orig"
+    context.dst_run = run
+
+
+@when("I call dst_run.clone_from(src_run)")
+def when_call_dst_run_clone_from_src(context):
+    context.dst_run.clone_from(context.src_run)
+
+
+@when("I call dst_run.clone_from(src_run) capturing the return")
+def when_call_dst_run_clone_from_src_capturing(context):
+    context.return_value = context.dst_run.clone_from(context.src_run)
+
+
+@then("dst_run has the same text and formatting as src_run")
+def then_dst_run_has_same_text_and_formatting(context):
+    src = context.src_run
+    dst = context.dst_run
+    assert dst.text == src.text, "dst.text %r != src.text %r" % (dst.text, src.text)
+    assert dst.font.bold == src.font.bold
+    assert dst.font.italic == src.font.italic
+    assert dst.font.size == src.font.size
+    assert dst.font.color.rgb == src.font.color.rgb
+    assert dst.font.highlight_color.rgb == src.font.highlight_color.rgb
+
+
+@then("the return value is the destination run")
+def then_return_value_is_destination_run(context):
+    assert context.return_value is context.dst_run

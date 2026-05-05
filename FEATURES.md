@@ -883,9 +883,11 @@ prs.save("out.pptx")
 - `_Paragraph.add_math_equation(omml_xml)` — Append an OMML equation. `[Added in 2026.05.0]`
 - `_Paragraph.delete()` — Remove this paragraph. `[Added in 2026.05.0]`
 - `_Paragraph.replace_text(find, replace)` — Per-paragraph search/replace. `[Added in 2026.05.0]`
+- `_Paragraph.clone_from(other)` — Deep-copy another paragraph's `a:pPr` (level / alignment / indent / margins / bullet / auto-number / spacing), run children (`a:r`, `a:br`, `a:fld`, inline `mc:AlternateContent` math equations), and `a:endParaRPr` into this paragraph. Works across text frames. Returns self for chaining. `[Added in 2026.05.0]`
 - `_Paragraph.font` / `.bullet` — Paragraph-level font and bullet-format proxies.
 - `_Run.text` / `_Run.font` / `_Run.hyperlink` — Run identity.
 - `_Run.delete()` — Remove this run. `[Added in 2026.05.0]`
+- `_Run.clone_from(other)` — Deep-copy another run's full `a:rPr` (every explicit character property including solid fill, highlight, baseline shift, strikethrough, hyperlink marker, all Wave-era additions) plus text into this run. Works across text frames. Returns self for chaining. Complements the narrower `Font.copy_from`. `[Added in 2026.05.0]`
 
 ---
 
@@ -1063,6 +1065,7 @@ prs.save("out.pptx")
 - `Font.effective_color` — Resolved RGB, walking paragraph/placeholder/layout/master/theme inheritance. `[Added in 2026.05.0]`
 - `Font.effective_size` / `Font.effective_bold` / `Font.effective_italic` / `Font.effective_name` — Resolved size / bold / italic / Latin-typeface for this run, walking the same inheritance chain (run `a:rPr` → paragraph `a:defRPr` → body `a:lstStyle` → master `p:txStyles` → presentation `p:defaultTextStyle`). Returns `None` when no ancestor in the chain declares the property. `[Added in 2026.05.0]`
 - `Font.copy_from(other)` — Copy every *explicit* character property from `other` onto this font (bold / italic / underline / strikethrough / size / name / name_ea / name_cs / language_id / color / highlight_color / `use_theme_hyperlink_color`). Inherited (`effective_*`) values are not resolved. Destination properties absent on `other` are cleared so the two runs match at the XML level. Returns self for chaining. `[Added in 2026.05.0]`
+- `_Paragraph.clone_from(other)` / `_Run.clone_from(other)` — Broader-scope clone counterparts to `Font.copy_from`: `_Paragraph.clone_from` deep-copies the source paragraph's `a:pPr`, runs, and `a:endParaRPr`; `_Run.clone_from` deep-copies the source run's full `a:rPr` and text. Both return self. See the "Cloning paragraph/run formatting" section of `docs/user/text.rst`. `[Added in 2026.05.0]`
 - `Font.language_id` — `MSO_LANGUAGE_ID` enum.
 - `Font.use_theme_hyperlink_color` — When the run wraps a hyperlink, toggle using the theme's hyperlink color. `[Added in 2026.05.0]`
 - `ColorFormat.rgb` / `.theme_color` / `.brightness` / `.type` / `.alpha` / `.to_rgb()` — Color type resolution, tint/shade, plus `alpha` and `to_rgb()`. `[Added in 2026.05.0]` for `alpha` and `to_rgb`.

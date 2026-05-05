@@ -471,6 +471,51 @@ focused on the character-property surface; use
 :attr:`.Font.effect_format` directly for those.
 
 
+Cloning paragraph/run formatting
+--------------------------------
+
+:meth:`.Font.copy_from` (above) handles the character-property surface
+of a single run. When you need to clone the *paragraph-level* formatting
+(level, alignment, indent, margins, bullet / auto-number, spacing) or
+replace a run's entire ``a:rPr`` (including ``a:solidFill`` /
+``a:highlight`` / hyperlink marker / baseline-shift and every other
+``rPr`` child), use the two clone methods:
+
+* :meth:`._Paragraph.clone_from` — deep-copies the source paragraph's
+  ``a:pPr`` onto the destination, replaces the destination's run
+  children (``a:r``, ``a:br``, ``a:fld``, and any inline
+  ``mc:AlternateContent`` — e.g. math equations) with deep-copies of
+  the source's, and copies any ``a:endParaRPr`` the source carries.
+* :meth:`._Run.clone_from` — deep-copies the source run's ``a:rPr``
+  onto the destination (so every explicit character property and any
+  rPr descendant survives, not just the curated set ``copy_from``
+  handles) and copies the run text.
+
+Both methods return ``self`` for chaining, perform a deep copy (the
+two paragraphs / runs are independent afterwards; later edits to one
+do not affect the other), and work across text frames — the source
+may live on a different slide, shape, or presentation::
+
+    # --- duplicate a bulleted paragraph into a different text frame ---
+    src_p = template_slide.shapes[1].text_frame.paragraphs[2]
+    new_p = body_tf.add_paragraph()
+    new_p.clone_from(src_p)
+
+    # --- copy an entire run (rPr + text) into a newly added run ---
+    src_run = template_slide.shapes.title.text_frame.paragraphs[0].runs[0]
+    new_run = body_tf.paragraphs[0].add_run()
+    new_run.clone_from(src_run)
+
+``clone_from`` operates at the XML level — the destination's ``a:pPr``
+/ ``a:rPr`` is replaced outright, not merged — so any pre-existing
+explicit setting on the destination that the source does not carry is
+discarded. This matches :meth:`.Font.copy_from`'s "match the source"
+contract, just at a broader scope. Hyperlink *relationships* referenced
+from the source (``a:hlinkClick/@r:id`` points to a part-level
+relationship) are **not** migrated by ``clone_from``; cross-part
+hyperlink cloning is handled at the slide / presentation layer.
+
+
 Rich text in one call
 ---------------------
 

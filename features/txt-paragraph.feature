@@ -116,3 +116,38 @@ Feature: Change paragraph properties
     Given a _Paragraph object as paragraph
      When I call paragraph.write_rich with a mix of plain, bold, and sized parts
      Then the paragraph contains three runs with the expected text and formatting
+
+
+  # -- _Paragraph.clone_from (CLO-6) ---------------------------------
+
+  Scenario: _Paragraph.clone_from copies pPr and runs from another paragraph
+     Given a source paragraph with bullet, level, alignment, and a formatted run
+       And a destination paragraph in a separate text frame
+      When I call dst_paragraph.clone_from(src_paragraph)
+      Then dst_paragraph.level equals src_paragraph.level
+       And dst_paragraph.alignment equals src_paragraph.alignment
+       And dst_paragraph.bullet.type equals src_paragraph.bullet.type
+       And dst_paragraph.runs carry the same text and formatting as the source
+
+
+  Scenario: _Paragraph.clone_from returns self for chaining
+     Given a source paragraph with bullet, level, alignment, and a formatted run
+       And a destination paragraph in a separate text frame
+      When I call dst_paragraph.clone_from(src_paragraph) capturing the return
+      Then the return value is the destination paragraph
+
+
+  # -- _Run.clone_from (CLO-6) ---------------------------------------
+
+  Scenario: _Run.clone_from copies rPr and text from another run
+     Given a source run with bold, italic, size, color, and highlight
+       And a destination run in a separate text frame
+      When I call dst_run.clone_from(src_run)
+      Then dst_run has the same text and formatting as src_run
+
+
+  Scenario: _Run.clone_from returns self for chaining
+     Given a source run with bold, italic, size, color, and highlight
+       And a destination run in a separate text frame
+      When I call dst_run.clone_from(src_run) capturing the return
+      Then the return value is the destination run
