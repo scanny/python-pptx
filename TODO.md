@@ -4,91 +4,16 @@ Tracked work for this fork. Move entries into the "Done" section below as they s
 
 ## Open
 
-### Fidelity / clone API gaps
-
-Surfaced during a round-trip replication exercise on
-``Dickinson_Sample_Slides.pptx`` (2026-05-05) where we wanted to
-read an arbitrary deck with ``python-pptx`` and write out a
-faithful replica using the library only. The script currently has
-to fall through to raw ``lxml`` (``_element`` + ``copy.deepcopy``)
-at every fidelity boundary because the proxy layer's setters lose
-formatting that readers can see. Each gap below, if shipped, would
-eliminate an XML escape hatch from that replicator.
-
-Priority ordering: **CLO-1** and **CLO-2** together collapse the
-replicator from ~150 lines of XML gymnastics to ~6 lines of
-library calls; everything else is narrower but composes with them.
-
-- **CLO-2: `BaseShape.clone_onto(shape_tree, left=None, top=None) -> BaseShape`.**
-  Copy a shape (the full ``<p:sp>`` / ``<p:pic>`` /
-  ``<p:graphicFrame>`` / ``<p:cxnSp>`` / ``<p:grpSp>`` subtree) into
-  another shape tree, optionally at a new position. Whole-slide
-  clones already ship (``Slides.duplicate`` /
-  ``Slides.add_slide_from_external``); this is the missing
-  per-shape granularity. Must rewrite shape-id to avoid collisions
-  in the destination, and re-embed any referenced image / chart /
-  OLE / media / SmartArt / 3D-model parts just like FU-7's
-  ``GraphicFrame.delete`` inversed (drop rels → add rels).
-
-- **CLO-3: `BaseShape.replace_spPr_from(other_shape) -> Self`.**
-  Clone fill / line / effect / geometry-hints from another shape
-  onto this one. Lets callers mix-and-match "new shape shell, old
-  look" without touching ``_element``. Composes with CLO-2 (which
-  replaces the whole shape) as a narrower alternative.
-
-- **CLO-6: `_Paragraph.clone_from(other_paragraph) -> Self` and
-  `_Run.clone_from(other_run) -> Self`.**
-  The next layer down from CLO-5 — per-paragraph / per-run
-  formatting clone. Covers the case where a caller wants to mix
-  text from two sources inside one text frame.
-
-- **CLO-7: Extended `BaseShape.theme_style_refs`.**
-  W14 #447 shipped read/write for the four ``<p:style>`` index
-  refs, but the property always writes the default ``accent1``
-  color choice on the four child ``<a:schemeClr>`` entries. Extend
-  so callers can preserve or specify each ref's actual color
-  choice (``<a:schemeClr val="bg1"/>`` vs ``<a:schemeClr val="accent2"/>``
-  etc.). Cleanest shape: a second NamedTuple field like
-  ``ThemeStyleRefColors(line, fill, effect, font)``.
-
-- **CLO-8 (partial): `Chart.clone_from(source_chart) -> Self` /
-  `Chart.apply_template(source_chart)` accepting a live Chart.**
-  The primary deliverable — ``SlideShapes.add_chart_from`` — shipped;
-  see *Done* below. Read-mutate ``Chart.clone_from`` (replace this
-  chart's ``c:chartSpace`` with the source's while preserving the
-  target part's partname and rebuilding its rels) is still open;
-  tracked as a follow-up because it requires draining the chart
-  part's existing relationships graph (embedded xlsx, user-shapes,
-  image, theme-override) before re-running the F1 / F5 cloning
-  against the existing part.
-
-- **CLO-9: `_Cell.clone_from(other_cell) -> Self`.**
-  Copy runs, borders (including diagonals), fill, margins,
-  vertical anchor, and padding from another cell. Today
-  ``cell.text = "..."`` loses every one of those.
-
-<<<<<<< HEAD
-- **CLO-11: `GroupShape.clone_onto(shape_tree) -> GroupShape`.**
-  Nominally covered by CLO-2 in the protocol sense, but groups
-  carry nested content that needs correct recursion (each child
-  shape's local transform + the group's own ``chOff`` / ``chExt``
-  viewport). Call out explicitly so the implementation of CLO-2
-  doesn't silently degrade on groups.
-=======
-- **CLO-10: `Table.clone_from(source_table) -> Self`.**
-  Whole-table version of CLO-9 — column widths + row heights +
-  every cell (delegating per-cell to CLO-9) + table style +
-  header/first-row/banded-rows flags.
->>>>>>> feat/clo11-group-shape-clone
-
-
+- **CLO-8 (follow-up): read-mutate `Chart.clone_from(source_chart) -> Self`.**
+  The primary `SlideShapes.add_chart_from` deliverable shipped; replacing
+  an EXISTING chart's content in place is still open — tracked as a
+  follow-up because it requires draining the chart part's existing
+  relationship graph (embedded xlsx, user-shapes, image, theme-override)
+  before re-running the F1 / F5 cloning against the existing part.
 
 
 ## Done
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 - **CLO-1: ``Slide.clone_shapes_from(other_slide, include_placeholders=True)
   -> None``.** Composite wrapper on top of ``BaseShape.clone_onto``: walks
   ``other_slide.shapes`` and appends a deep-copy of each top-level shape
@@ -102,7 +27,6 @@ library calls; everything else is narrower but composes with them.
   idx), and ``include_placeholders=False`` skips placeholders entirely.
   Source is not mutated; returns ``None``. Branch
   ``feat/clo1-slide-clone-shapes-from``.
-=======
 - **CLO-4 / CLO-5: whole-text-frame clone (paired).**
   Added ``TextFrame.clone_from(other_text_frame) -> Self`` and
   ``BaseShape.replace_text_frame_from(other_shape) -> Self``.
@@ -119,8 +43,6 @@ library calls; everything else is narrower but composes with them.
   ``self`` for chaining and deep-copy (sources untouched, destinations
   independent). Works across slides / presentations. Branch
   ``feat/clo4-5-text-frame-clone-from``.
->>>>>>> feat/clo4-5-text-frame-clone-from
-=======
 - **CLO-11: `GroupShape.clone_onto` correctness verified.**
   CLO-2 (``BaseShape.clone_onto``) already handled groups correctly —
   this task added a dedicated regression suite confirming it. Covered
@@ -134,8 +56,6 @@ library calls; everything else is narrower but composes with them.
   system (``a:chOff`` / ``a:chExt`` unchanged); plus cross-presentation
   re-embedding and round-trip save/reload. No production-code changes
   were needed.
->>>>>>> feat/clo11-group-shape-clone
-=======
 - **CLO-12: ``SlideShapes.add_picture_from(other_picture, left=None,
   top=None, width=None, height=None) -> Picture``.** Ergonomic picture-
   specific alias for ``BaseShape.clone_onto``. Re-embeds the source's
@@ -146,7 +66,6 @@ library calls; everything else is narrower but composes with them.
   ``None`` (preserves the source value). Supports intra- and cross-
   presentation sources. Branch ``feat/clo12-add-picture-from``.
 
->>>>>>> feat/clo12-add-picture-from
 
 - **CLO-8 (primary deliverable): full-fidelity chart-clone front door.**
   Added ``SlideShapes.add_chart_from(source_chart, left, top,
