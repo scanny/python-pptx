@@ -54,6 +54,25 @@ Released: 2026-05-05
 Unreleased
 ++++++++++
 
+
+2026.05.3 — Cross-tree shape cloning APIs
++++++++++++++++++++++++++++++++++++++++++
+
+Released: 2026-05-05
+
+This release ships the CLO-1 through CLO-12 cross-tree shape cloning
+APIs (BaseShape.clone_onto, Slide.clone_shapes_from,
+TextFrame.clone_from, BaseShape.replace_text_frame_from,
+BaseShape.replace_spPr_from, Chart.clone_from, add_chart_from,
+add_picture_from, Table.clone_from, _Cell.clone_from, and a
+theme-style-with-colors accessor) — enough to rewrite a typical
+"replicate an existing deck" script using only the public library
+surface, without dropping to raw lxml. Also:
+PackageNotFoundError on missing [Content_Types].xml (upstream #3),
+py3.13 classifier, README version bump, repo-root scratch-audit
+cleanup, oxml.__all__ regression lock, and two clone_shapes_from
+fidelity hotfixes surfaced by the Dickinson replicator.
+
 - docs: bump README version string to match ``__version__``.
 - chore: remove stale ``DOCS_AUDIT.md`` (58 KB) and ``TEST_AUDIT.md``
   (29 KB) scratch audit artefacts from the repo root. Both were
