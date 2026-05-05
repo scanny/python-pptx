@@ -524,7 +524,16 @@ class Slide(_BaseSlide):
                 # -- the ``<p:ph>`` marker on the clone and route it       --
                 # -- through ``clone_onto`` so the chart / table / image   --
                 # -- travels to the target fully re-embedded.              --
-                if shape.has_chart or shape.has_table or shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                # -- Test on the underlying XML tag, not on ``shape_type``.
+                # -- A picture placeholder's ``shape_type`` is ``PLACEHOLDER``
+                # -- (not ``PICTURE``), but its XML tag is ``<p:pic>`` — same
+                # -- for chart / table / OLE placeholders which live inside
+                # -- ``<p:graphicFrame>``. Include both here plus the
+                # -- ``has_chart``/``has_table`` guards in case a future
+                # -- placeholder kind surfaces chart/table content by some
+                # -- other mechanism.
+                tag = shape._element.tag.split("}")[-1]
+                if tag in ("pic", "graphicFrame") or shape.has_chart or shape.has_table:
                     _clone_non_text_placeholder_onto(shape, self.shapes)
                     continue
                 # -- Text-only placeholders fall back to per-paragraph     --
@@ -2767,6 +2776,16 @@ def _clone_non_text_placeholder_onto(shape: BaseShape, shape_tree: SlideShapes) 
 
     from pptx.oxml.ns import qn as _qn
 
+    # -- Capture the source shape's effective geometry BEFORE stripping <p:ph>.
+    # -- A placeholder's left/top/width/height are often inherited from its
+    # -- layout (the placeholder's own <p:spPr><a:xfrm/> may be absent); once
+    # -- we remove <p:ph> the clone loses that inheritance and renders with
+    # -- zero size unless we materialise the geometry explicitly.
+    eff_left = shape.left
+    eff_top = shape.top
+    eff_width = shape.width
+    eff_height = shape.height
+
     # -- Deep-copy the source shape's element so we can strip <p:ph> without
     # -- mutating the source. ``BaseShape`` stores the element at ._element
     # -- and the ``is_placeholder`` flag hinges on the presence of <p:ph>
@@ -2774,6 +2793,19 @@ def _clone_non_text_placeholder_onto(shape: BaseShape, shape_tree: SlideShapes) 
     src_elm = _copy.deepcopy(shape._element)
     for ph in src_elm.xpath(".//p:ph"):
         ph.getparent().remove(ph)
+
+    # -- Materialise the effective geometry on the clone's <p:spPr>. Use
+    # -- each shape kind's natural geometry descriptors (`.x` / `.y` /
+    # -- `.cx` / `.cy` on the element, which xmlchemy auto-creates an
+    # -- <a:xfrm>/<a:off>/<a:ext> subtree for).
+    if eff_left is not None:
+        src_elm.x = eff_left
+    if eff_top is not None:
+        src_elm.y = eff_top
+    if eff_width is not None:
+        src_elm.cx = eff_width
+    if eff_height is not None:
+        src_elm.cy = eff_height
 
     # -- Construct a temporary proxy bound to the cleaned element. Use the
     # -- same shape-factory the source slide uses so we pick up Picture /
