@@ -1662,6 +1662,45 @@ class DescribeSlideShapes(object):
         assert ext.get("cx") == "914400"
         assert ext.get("cy") == "914400"
 
+    def it_can_add_a_picture_from_another_picture(self, request):
+        """add_picture_from delegates to Picture.clone_onto (CLO-12)."""
+        other_picture_ = instance_mock(request, Picture)
+        clone_ = instance_mock(request, Picture)
+        other_picture_.clone_onto.return_value = clone_
+        shapes = SlideShapes(None, None)
+
+        result = shapes.add_picture_from(other_picture_, Inches(1), Inches(2))
+
+        other_picture_.clone_onto.assert_called_once_with(shapes, left=Inches(1), top=Inches(2))
+        assert result is clone_
+
+    def it_defaults_left_and_top_to_None_on_add_picture_from(self, request):
+        """add_picture_from preserves source position when left/top omitted."""
+        other_picture_ = instance_mock(request, Picture)
+        clone_ = instance_mock(request, Picture)
+        other_picture_.clone_onto.return_value = clone_
+        shapes = SlideShapes(None, None)
+
+        result = shapes.add_picture_from(other_picture_)
+
+        other_picture_.clone_onto.assert_called_once_with(shapes, left=None, top=None)
+        assert result is clone_
+
+    def it_applies_width_and_height_overrides_on_add_picture_from(self, request):
+        """add_picture_from assigns width/height to the clone when supplied."""
+        other_picture_ = instance_mock(request, Picture)
+        clone_ = instance_mock(request, Picture)
+        other_picture_.clone_onto.return_value = clone_
+        shapes = SlideShapes(None, None)
+
+        result = shapes.add_picture_from(
+            other_picture_, Inches(1), Inches(2), width=Inches(4), height=Inches(3)
+        )
+
+        assert clone_.width == Inches(4)
+        assert clone_.height == Inches(3)
+        assert result is clone_
+
     def it_can_add_an_svg_picture(
         self,
         part_prop_,

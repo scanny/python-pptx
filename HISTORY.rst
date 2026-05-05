@@ -16,6 +16,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat(CLO-12): add ``SlideShapes.add_picture_from(other_picture,
+  left=None, top=None, width=None, height=None) -> Picture`` — a narrow
+  picture-specific alias for ``BaseShape.clone_onto`` that re-embeds the
+  source's image bytes on this slide's package and automatically
+  preserves crop (``a:srcRect``), outline, effects, rotation, and flip
+  — everything the manual ``BytesIO(src.image.blob)`` + ``add_picture``
+  dance discards. ``left`` / ``top`` / ``width`` / ``height`` are
+  optional overrides (``None`` preserves the source value). Supports
+  intra- and cross-presentation sources. Resolves the CLO-12 clone-API
+  ergonomics gap.
+
 - fix(opc): ``PartRelationshipCloner._get_or_clone_part`` now dispatches
   through ``XmlPart.load`` when cross-package-cloning an XML part (e.g.
   a chart part), instead of calling the ``XmlPart`` constructor directly

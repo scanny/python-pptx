@@ -219,6 +219,29 @@ use the layout-based placeholder-adoption flow.
 See issue-tracker CLO-2.
 
 
+Cloning a picture with :meth:`.SlideShapes.add_picture_from`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the common "I want a copy of that picture on this slide" case,
+:meth:`.SlideShapes.add_picture_from` is a narrower, more ergonomic
+alias for :meth:`~.BaseShape.clone_onto`. It re-embeds the source's
+image bytes on this slide's package and automatically preserves crop
+(``a:srcRect``), outline, effects, rotation, and flip — everything
+that the ``BytesIO(src.image.blob)`` + ``add_picture`` dance loses::
+
+    src_pic = src_slide.shapes[0]            # an existing Picture
+    clone = tgt_slide.shapes.add_picture_from(src_pic)
+
+    # Optional overrides — `None` (the default for each) preserves source
+    clone2 = tgt_slide.shapes.add_picture_from(
+        src_pic, left=Inches(3), top=Inches(2),
+        width=Inches(2), height=Inches(1),
+    )
+
+Cross-presentation copies are supported — the referenced image part is
+materialised in the destination package. See issue-tracker CLO-12.
+
+
 Flat traversal (Selection Pane-equivalent)
 ------------------------------------------
 
