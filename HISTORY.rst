@@ -77,6 +77,14 @@ Unreleased
   pins ``from pptx import *`` to ``{Presentation}`` so the top-level
   surface doesn't regress either. Purely defensive — no public-API
   change.
+- fix(opc): wrap missing ``[Content_Types].xml`` in ``PackageNotFoundError``
+  (closes upstream #3). Opening a file/stream that is a valid zip but lacks
+  the ``[Content_Types].xml`` part required by the Open Packaging Conventions
+  previously surfaced a bare ``KeyError`` originating from the zip lookup.
+  The error is now raised as :class:`pptx.exc.PackageNotFoundError` with a
+  clear diagnostic message; the original ``KeyError`` is preserved via
+  ``raise ... from exc`` so traceback diagnostics remain intact.
+
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape
