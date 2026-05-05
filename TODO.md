@@ -2,6 +2,44 @@
 
 Tracked work for this fork. Move entries into the "Done" section below as they ship; link the PR / commit.
 
+## Audit findings 2026-05-05
+
+Captured from a project audit run on 2026-05-05. Each bullet is an
+actionable follow-up; promote into "Open" (or straight to "Done") as
+work lands.
+
+1. **Cut release for Unreleased CLO-1..12 ledger.** Master is
+   `8e382107`, 23+ commits past the `2026.05.2` tag released earlier
+   today. The Unreleased changelog section logs CLO-1 through CLO-12
+   cross-tree cloning (`Slide.clone_shapes_from`, `TextFrame.clone_from`,
+   `BaseShape.clone_onto`, `Table.clone_from`, `_Cell.clone_from`,
+   `add_chart_from`, `add_picture_from`, `GroupShape.clone_onto`) plus
+   two slide-clone hotfixes. Warrants a `2026.05.3` tag.
+2. **Close GitHub issue #3** — bare `KeyError('[Content_Types].xml')`
+   raised on a package missing its content-types part. Wrap in a typed
+   `PackageNotFoundError` (or similarly descriptive exception). Only
+   open issue on the tracker.
+3. **Close CLO-8 follow-up** — in-place
+   `Chart.clone_from(source_chart) -> Self`. Currently the only open
+   TODO.md item besides these audit findings.
+4. **Bump README version string.** README currently advertises
+   `2026.05.0`; should be `2026.05.2` (or `2026.05.3` once item 1
+   ships).
+5. **Seal submodule oxml leakage.** 665 `CT_*` / `ST_*` names are
+   reachable via `pptx.oxml.*` and friends — up from the W11-E baseline
+   of ~500 because the CLO series added XML classes. Add explicit
+   `__all__` on the top-level package and the major subpackages so the
+   public surface is enumerable.
+6. **Update `pyproject.toml` classifiers.** Classifiers stop at
+   Python 3.12 despite `requires-python >= 3.8`. Add 3.13, and drop 3.8
+   if the runtime test matrix allows.
+7. **Move or delete scratch audit artefacts.** `DOCS_AUDIT.md` (58 KB)
+   and `TEST_AUDIT.md` (29 KB) are stale internal meta-documents
+   tracked in the repo root. Relocate to an `audits/` directory or
+   delete outright.
+8. **Git-tag 2026.05.1 and 2026.05.2.** Verify both releases carry
+   git tags; add them if missing.
+
 ## Open
 
 - **CLO-8 (follow-up): read-mutate `Chart.clone_from(source_chart) -> Self`.**
