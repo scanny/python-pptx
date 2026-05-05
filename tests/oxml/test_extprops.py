@@ -150,6 +150,57 @@ class DescribeCT_ExtendedProperties(object):
         with pytest.raises(TypeError, match="Company"):
             props.company_text = 42  # type: ignore[assignment]
 
+    # -- `<DocSecurity>` -------------------------------------------------
+
+    def it_returns_None_when_DocSecurity_is_absent(self):
+        props = CT_ExtendedProperties.new_extendedProperties()
+
+        assert props.doc_security is None
+
+    @pytest.mark.parametrize(("text", "expected"), [("0", 0), ("1", 1), ("8", 8)])
+    def it_reads_doc_security_when_present(self, text: str, expected: int):
+        props = self._props_with_child_xml("DocSecurity", text)
+
+        assert props.doc_security == expected
+
+    def it_returns_None_when_DocSecurity_text_is_invalid(self):
+        props = self._props_with_child_xml("DocSecurity", "not-a-number")
+
+        assert props.doc_security is None
+
+    def it_writes_DocSecurity_on_first_write(self):
+        props = CT_ExtendedProperties.new_extendedProperties()
+
+        props.doc_security = 2
+
+        assert props.doc_security == 2
+
+    def it_overwrites_DocSecurity_when_already_present(self):
+        props = self._props_with_child_xml("DocSecurity", "0")
+
+        props.doc_security = 4
+
+        assert props.doc_security == 4
+
+    def it_removes_DocSecurity_when_set_to_None(self):
+        props = self._props_with_child_xml("DocSecurity", "2")
+
+        props.doc_security = None
+
+        assert props.doc_security is None
+        qname = (
+            "{http://schemas.openxmlformats.org/officeDocument/2006/"
+            "extended-properties}DocSecurity"
+        )
+        assert props.find(qname) is None
+
+    @pytest.mark.parametrize("bad_value", [-1, True, "2", 2.0])
+    def it_raises_on_a_bad_doc_security_value(self, bad_value: object):
+        props = CT_ExtendedProperties.new_extendedProperties()
+
+        with pytest.raises(ValueError, match="doc_security"):
+            props.doc_security = bad_value  # type: ignore[assignment]
+
     # -- helpers ----------------------------------------------------------
 
     @staticmethod

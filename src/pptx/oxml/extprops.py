@@ -46,6 +46,13 @@ class CT_ExtendedProperties(BaseOxmlElement):
         return properties
 
     # -- `<Slides>` (int) ------------------------------------------------
+    #
+    # NOTE: ``slide_count`` is refreshed from the presentation's ``sldIdLst`` at
+    # save-time by :meth:`pptx.parts.extprops.ExtendedPropertiesPart.blob`, so any
+    # value written directly via this setter is clobbered on save. The property
+    # is exposed primarily for downstream inspection tools that need to read the
+    # count without parsing the full presentation; callers should not expect a
+    # manually-assigned ``slide_count`` to survive a round-trip.
 
     @property
     def slide_count(self) -> int:
@@ -81,6 +88,47 @@ class CT_ExtendedProperties(BaseOxmlElement):
             # -- is missing.
             slides = SubElement(self, qn("ep:Slides"))
         slides.text = str(value)
+
+    # -- `<DocSecurity>` (int) -------------------------------------------
+
+    @property
+    def doc_security(self) -> int | None:
+        """Integer value of the `<DocSecurity>` child element, or |None| if absent.
+
+        Per ECMA-376 Part 1 §22.2.2.6 this is a flag set recording coarse document
+        security state: 0 = none, 1 = password-protected, 2 = read-only recommended,
+        4 = read-only enforced, 8 = locked for annotation. Returns |None| (not 0)
+        when the element is absent so callers can distinguish "no flag set" from
+        "element not written".
+        """
+        element = self.find(qn("ep:DocSecurity"))
+        if element is None or element.text is None:
+            return None
+        try:
+            return int(element.text)
+        except ValueError:
+            return None
+
+    @doc_security.setter
+    def doc_security(self, value: int | None) -> None:
+        """Set the `<DocSecurity>` child element, or remove it when `value` is |None|.
+
+        `value` must be a non-negative `int` or |None`. Assigning |None| removes the
+        element; assigning 0 writes ``<DocSecurity>0</DocSecurity>``.
+        """
+        element = self.find(qn("ep:DocSecurity"))
+        if value is None:
+            if element is not None:
+                self.remove(element)
+            return
+        # -- reject bools up-front: they subclass int but carry no meaningful flag value --
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise ValueError(
+                "doc_security must be a non-negative int or None, got %r" % (value,)
+            )
+        if element is None:
+            element = SubElement(self, qn("ep:DocSecurity"))
+        element.text = str(value)
 
     # -- string-valued fields --------------------------------------------
 

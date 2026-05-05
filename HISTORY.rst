@@ -13,6 +13,35 @@ loadfix/python-docx and loadfix/python-xlsx.
 
 - Add interop-validate behave scenarios wiring loadfix/ooxml-validate as a round-trip fidelity check.
 
+2026.05.1 — vt:date + DocSecurity fixes
++++++++++++++++++++++++++++++++++++++++
+
+Released: 2026-05-05
+
+Closes #2 (vt:date) and documents the DocSecurity extended-property.
+
+- feat(custom-properties): accept ``datetime.date`` values and serialise
+  them as ``vt:date`` (ISO-8601 ``YYYY-MM-DD``) per ECMA-376 Part 1
+  §22.4.2.7. A ``vt:date`` in the source file now round-trips as a
+  plain :class:`datetime.date` (previously it was widened to
+  ``datetime`` by the shared ``_parse_iso_datetime`` decoder, losing
+  the on-disk distinction). ``datetime.datetime`` continues to route
+  to ``vt:filetime``. Surfaced by Wave 3-B.
+
+- feat(extended-properties): expose the ``<DocSecurity>`` flag as
+  :attr:`ExtendedPropertiesPart.doc_security` (read/write, ``int | None``).
+  ECMA-376 Part 1 §22.2.2.6 defines the flag as 0 = none,
+  1 = password-protected, 2 = read-only recommended, 4 = read-only
+  enforced, 8 = locked for annotation. Assigning |None| removes the
+  element.
+
+- docs(extended-properties): document that
+  :attr:`ExtendedPropertiesPart.slide_count` is resynced from the
+  presentation's ``sldIdLst`` at save-time and so manually-assigned
+  values are clobbered on save. The setter is retained for low-level
+  callers, but end users should treat the slide list as the
+  authoritative source.
+
 Unreleased
 ++++++++++
 
@@ -170,7 +199,6 @@ Unreleased
   and target have a different row or column count — ``clone_from`` does not
   resize the target. See the "Cloning an entire table" section of
   ``docs/user/table.rst``.
-
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``
   auto-skips when the sibling ``../ooxml-reference-corpus/`` checkout

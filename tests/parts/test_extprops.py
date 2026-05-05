@@ -114,6 +114,34 @@ class DescribeExtendedPropertiesPart(object):
 
         assert ext_props.company == "New Corp"
 
+    # -- `<DocSecurity>` (ECMA-376 §22.2.2.6) ----------------------------
+
+    def it_returns_None_when_doc_security_is_absent(self):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+
+        assert ext_props.doc_security is None
+
+    def it_round_trips_doc_security_through_the_blob(self):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+        # -- avoid the save-time slide-count refresh; it's orthogonal here --
+        ext_props._package = None  # type: ignore[assignment]
+
+        ext_props.doc_security = 2
+
+        assert ext_props.doc_security == 2
+        assert b"<DocSecurity>2</DocSecurity>" in ext_props.blob
+
+    def it_removes_doc_security_on_assignment_to_None(self):
+        ext_props = ExtendedPropertiesPart.default(None)  # type: ignore[arg-type]
+        ext_props._package = None  # type: ignore[assignment]
+        ext_props.doc_security = 4
+        assert ext_props.doc_security == 4
+
+        ext_props.doc_security = None
+
+        assert ext_props.doc_security is None
+        assert b"DocSecurity" not in ext_props.blob
+
 
 class _FakePackage(object):
     """Minimal test double that stands in for `pptx.package.Package`."""

@@ -42,8 +42,10 @@ FMTID_CUSTOM = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}"
 MIN_PID = 2
 
 # -- A python value that can be round-tripped as a custom property. Mirrors the types
-# -- supported by the five vt: elements emitted by :meth:`CT_CustomProperties.set_value`.
-CustomPropValue = Union[str, int, float, bool, dt.datetime]
+# -- supported by the six vt: elements emitted by :meth:`CT_CustomProperties.set_value`.
+# -- Note: `datetime` subclasses `date`, so `dt.date` covers both — the encoder
+# -- dispatches `datetime` to ``vt:filetime`` and a plain `date` to ``vt:date``.
+CustomPropValue = Union[str, int, float, bool, dt.date]
 
 
 class CT_CustomProperties(BaseOxmlElement):
@@ -180,7 +182,9 @@ def _vt_tag_and_text_for(value: CustomPropValue) -> tuple[str, str]:
 
     Note the ``bool`` branch must precede the ``int`` branch because ``bool`` is a
     subclass of ``int`` in Python — an unguarded ``isinstance(x, int)`` would route
-    ``True`` and ``False`` to ``vt:i4`` instead of ``vt:bool``.
+    ``True`` and ``False`` to ``vt:i4`` instead of ``vt:bool``. Similarly the
+    ``datetime`` branch must precede the ``date`` branch because ``datetime``
+    subclasses ``date``.
     """
     if isinstance(value, bool):
         return "vt:bool", "true" if value else "false"
@@ -200,10 +204,13 @@ def _vt_tag_and_text_for(value: CustomPropValue) -> tuple[str, str]:
         if value.tzinfo is not None:
             value = value.astimezone(dt.timezone.utc).replace(tzinfo=None)
         return "vt:filetime", value.strftime("%Y-%m-%dT%H:%M:%SZ")
+    if isinstance(value, dt.date):
+        # -- a plain calendar date (no time, no zone) per ECMA-376 §22.4.2.7 --
+        return "vt:date", value.strftime("%Y-%m-%d")
     if isinstance(value, str):  # pyright: ignore[reportUnnecessaryIsInstance]
         return "vt:lpwstr", value
     raise TypeError(
-        "custom-property value must be str, int, float, bool, or datetime; got %s"
+        "custom-property value must be str, int, float, bool, date, or datetime; got %s"
         % type(value).__name__
     )
 
@@ -245,6 +252,31 @@ def _parse_iso_datetime(text: str) -> dt.datetime | None:
     return parsed
 
 
+def _parse_iso_date(text: str) -> dt.date | None:
+    """Parse a ``vt:date`` ISO-8601 value (``YYYY-MM-DD``) into a ``date``.
+
+    Returns |None| when `text` is empty or unparseable. Tolerates producers
+    that mistakenly tack on a ``T...`` time component or a trailing ``Z`` /
+    timezone designator — the spec forbids both, but unzipping real-world
+    ``.pptx`` files occasionally turns them up and reading should not fail.
+    The return type is a plain :class:`datetime.date` (never a `datetime`),
+    which lets round-trips distinguish `vt:date` from `vt:filetime`.
+    """
+    if not text:
+        return None
+    s = text.strip()
+    if s.endswith("Z"):
+        s = s[:-1]
+    if len(s) >= 6 and s[-6] in ("+", "-") and s[-3] == ":":
+        s = s[:-6]
+    if "T" in s:
+        s = s.split("T", 1)[0]
+    try:
+        return dt.datetime.strptime(s, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
 # -- Per-tag decoders for vt: value elements. Maps Clark-name -> (text -> python value).
 # -- The str / int / float families share a few tag names each; factoring the decoder
 # -- table out as a module-level dict keeps `_python_value_of` a flat lookup instead of
@@ -273,7 +305,10 @@ _VT_DECODERS: dict[str, object] = {
     qn("vt:bool"): lambda text: text.strip().lower() in ("true", "1"),
     # -- datetimes --
     qn("vt:filetime"): _parse_iso_datetime,
-    qn("vt:date"): _parse_iso_datetime,
+    # -- calendar dates (ECMA-376 §22.4.2.7); decoded to `date` so the python type
+    # -- preserves the on-disk distinction between `vt:date` and `vt:filetime` on
+    # -- round-trip.
+    qn("vt:date"): _parse_iso_date,
 }
 
 
