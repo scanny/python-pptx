@@ -54,6 +54,21 @@ Released: 2026-05-05
 Unreleased
 ++++++++++
 
+- chore(oxml): add a regression test (audit item #5) pinning the curated
+  ``from pptx.oxml import *`` wildcard surface. ``pptx.oxml`` side-effect
+  imports bind ~235 ``CT_*`` element classes as module-level attributes
+  (they have to, to wire the ``lxml`` element-class registry); the
+  existing ``__all__`` already restricts the wildcard surface to a
+  six-item set (``parse_xml``, ``qn``, ``register_element_cls``,
+  ``parse_from_template``, ``oxml_parser``, ``NamespacePrefixedTag``),
+  but nothing was stopping a future contributor from accidentally
+  expanding that set. The new ``tests/test_audit_oxml_all.py`` locks the
+  invariant: ``from pptx.oxml import *`` must not surface any ``CT_*``
+  or ``ST_*`` names, and explicit ``from pptx.oxml import CT_X`` still
+  works for callers that reach for specific internals by name. Also
+  pins ``from pptx import *`` to ``{Presentation}`` so the top-level
+  surface doesn't regress either. Purely defensive — no public-API
+  change.
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape
