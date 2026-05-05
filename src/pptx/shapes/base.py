@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from pptx.animation import AnimationEffect
     from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
     from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
+    from pptx.opc.package import Part
     from pptx.oxml.dml.shape_style import CT_ShapeStyle
     from pptx.oxml.shapes import ShapeElement
     from pptx.oxml.shapes.groupshape import CT_GroupShape
@@ -43,14 +44,18 @@ if TYPE_CHECKING:
     class _ShapesParent(Protocol):
         """Structural type for the shape-collection parent of a shape.
 
-        The concrete parent class (e.g. `SlideShapes`) exposes these three members that
-        `BaseShape.duplicate()` needs to append a new shape to the shape tree.
+        The concrete parent class (e.g. `SlideShapes`) exposes these members that
+        `BaseShape.duplicate()` and `BaseShape.clone_onto()` need to append a new
+        shape to the shape tree and resolve its owning part.
         """
 
         _spTree: CT_GroupShape
 
         @property
         def _next_shape_id(self) -> int: ...
+
+        @property
+        def part(self) -> BaseSlidePart: ...
 
         def _shape_factory(self, shape_elm: ShapeElement) -> BaseShape: ...
 
@@ -444,6 +449,124 @@ class BaseShape(object):
 
         # -- dispatch to subclass delete() for part-cleanup (e.g. Picture drops image rel) --
         self.delete()
+
+    def clone_onto(
+        self,
+        shape_tree: _ShapesParent,
+        left: Length | None = None,
+        top: Length | None = None,
+    ) -> BaseShape:
+        """Deep-copy this shape into `shape_tree`, return the new proxy.
+
+        The source shape's full XML subtree (``<p:sp>``, ``<p:pic>``,
+        ``<p:graphicFrame>``, ``<p:cxnSp>``, or ``<p:grpSp>``) is deep-copied
+        and appended to the end of `shape_tree` (making the clone the topmost
+        shape in z-order on that tree). Every external relationship the
+        subtree carries — image blobs on ``a:blip``, chart / chartex parts on
+        ``c:chart`` or ``cx:chart``, OLE payloads and their icon images,
+        SmartArt's four ``dgm:relIds`` rels, ``am3d:model3D`` 3D-model media,
+        hyperlink externals, and any other ``r:id`` / ``r:embed`` / ``r:link``
+        reference — is re-materialised on `shape_tree`'s owning package (or
+        reused when source and target already share a package) and each
+        matching attribute on the clone is rewritten to the new rId so the
+        result is self-contained and fully valid.
+
+        The ``cNvPr/@id`` of the cloned top-level shape (and every descendant
+        ``p:cNvPr`` inside a cloned group) is reassigned a fresh, unique id on
+        the target tree so the clone never collides with an existing shape id.
+        The clone's top-level name is made unique against the target tree's
+        existing ``p:cNvPr/@name`` values, derived from the source name.
+
+        Optional ``left`` / ``top`` override the clone's slide-relative
+        position. ``None`` leaves the corresponding coordinate unchanged from
+        the source. For a ``p:grpSp`` the override applies to the group's
+        outer ``a:xfrm/a:off`` (the child coordinate system is preserved); for
+        every other shape kind it applies to the shape's own
+        ``p:spPr/a:xfrm/a:off`` (``p:xfrm/a:off`` for a ``p:graphicFrame``).
+
+        `shape_tree` may belong to this same presentation (copying a shape
+        from one slide to another — or cloning within the same slide) or to a
+        different presentation entirely (cross-presentation copy). In the
+        cross-package case every referenced part is materialised in the
+        target package; no cross-package references are retained.
+
+        Placeholders raise :class:`NotImplementedError` because a placeholder
+        duplicates its ``idx`` which breaks the "one shape per idx" slide
+        invariant; clone the underlying content onto a fresh non-placeholder
+        shape instead.
+
+        .. versionadded:: 2026.05.0
+        """
+        from pptx.opc.package import PartRelationshipCloner
+        from pptx.oxml.ns import qn as _qn
+
+        # -- Placeholders would duplicate their `idx` on the target slide,  --
+        # -- which breaks the "one placeholder per idx" invariant and can   --
+        # -- confuse PowerPoint's layout-inheritance machinery. Placeholder --
+        # -- content belongs on the slide via the layout, not on the shape  --
+        # -- tree directly.                                                 --
+        if self._element.has_ph_elm:
+            raise NotImplementedError(
+                "BaseShape.clone_onto() does not support placeholder shapes; placeholders are"
+                " cloned from the slide layout rather than from an existing placeholder."
+            )
+
+        src_part = self.part
+        tgt_part = shape_tree.part
+        spTree = shape_tree._spTree  # pyright: ignore[reportPrivateUsage]
+
+        # -- 1. Deep-copy the XML subtree and re-materialise every rId-bearing  --
+        # --    relationship (images, chart parts, OLE parts, etc.) against the --
+        # --    target part. `PartRelationshipCloner` walks every `r:id`,       --
+        # --    `r:embed`, `r:link` attribute and rewrites them on the clone.   --
+        new_elm = cast(
+            "ShapeElement",
+            PartRelationshipCloner.clone(src_part, tgt_part, self._element),
+        )
+
+        # -- 2. Handle SmartArt's `dgm:relIds` separately: its rIds live on     --
+        # --    non-standard attribute names (`r:dm` / `r:lo` / `r:qs` / `r:cs`)--
+        # --    that `PartRelationshipCloner` does not recognise. Walk each one --
+        # --    and rewrite it to a new rId on the target part.                 --
+        _clone_dgm_relIds(new_elm, src_part, tgt_part)
+
+        # -- 3. Reassign every `cNvPr/@id` in the cloned subtree. For a simple  --
+        # --    shape this is just the top-level `p:cNvPr`; for a group shape   --
+        # --    it is every descendant `p:cNvPr` so nested children don't       --
+        # --    collide either.                                                 --
+        # -- 4. Append to the target `p:spTree` *before* bumping ids so the     --
+        # --    `_next_shape_id` readout (which checks `spTree.max_shape_id`)   --
+        # --    observes each just-assigned id and yields the next free value.  --
+        spTree.insert_element_before(new_elm, "p:extLst")
+        for cNvPr in new_elm.xpath(".//p:cNvPr"):
+            cNvPr.id = shape_tree._next_shape_id  # pyright: ignore[reportPrivateUsage]
+
+        # -- 5. Give the clone a unique name relative to the target tree. The  --
+        # --    source's name is used as the basename; descendant names inside --
+        # --    a cloned group are left unchanged (matching `GroupShape.       --
+        # --    duplicate` behaviour).                                         --
+        new_elm._nvXxPr.cNvPr.name = _unique_shape_name(  # pyright: ignore[reportPrivateUsage]
+            self.name, spTree
+        )
+
+        # -- 6. Apply optional position override. For a `p:grpSp` this writes  --
+        # --    the outer `a:xfrm/a:off` (child `a:chOff`/`a:chExt` preserved);--
+        # --    every other shape kind writes its own `a:off` via the standard --
+        # --    `.x`/`.y` descriptors.                                         --
+        if left is not None or top is not None:
+            if new_elm.tag == _qn("p:grpSp"):
+                xfrm = cast("CT_GroupShape", new_elm).get_or_add_xfrm()
+                if left is not None:
+                    xfrm.x = left
+                if top is not None:
+                    xfrm.y = top
+            else:
+                if left is not None:
+                    new_elm.x = left
+                if top is not None:
+                    new_elm.y = top
+
+        return shape_tree._shape_factory(new_elm)  # pyright: ignore[reportPrivateUsage]
 
     def duplicate(self) -> BaseShape:
         """Return a new shape that is a duplicate of this shape.
@@ -1149,6 +1272,85 @@ class BaseShape(object):
         if parent is None:
             raise ValueError("shape has no parent shape tree; z-order is undefined")
         return list(cast("CT_GroupShape", parent).iter_shape_elms())
+
+
+def _clone_dgm_relIds(
+    clone_elm: ShapeElement,
+    src_part: "Part",
+    tgt_part: "Part",
+) -> None:
+    """Rewrite every ``dgm:relIds/@r:{dm,lo,qs,cs}`` on `clone_elm` against `tgt_part`.
+
+    SmartArt diagram frames reference their four XML parts (data, layout,
+    quickStyle, colors) via a ``dgm:relIds`` element whose attributes use
+    the non-standard ``r:dm`` / ``r:lo`` / ``r:qs`` / ``r:cs`` names rather
+    than the conventional ``r:id``. :class:`PartRelationshipCloner` only
+    rewrites the three standard rId attributes, so any SmartArt rId on the
+    clone still references an rId that lives on `src_part`. This helper
+    walks every ``dgm:relIds`` found on `clone_elm` (or its descendants),
+    looks each rId up on `src_part`, clones the referenced part into the
+    target package (or reuses an existing part if already present), creates
+    a matching relationship on `tgt_part`, and rewrites the attribute to
+    the newly-allocated rId.
+
+    Does nothing when the clone contains no SmartArt subtree.
+    """
+    relIds_tag = qn("dgm:relIds")
+    dgm_attrs = (qn("r:dm"), qn("r:lo"), qn("r:qs"), qn("r:cs"))
+    relIds_elms = clone_elm.xpath(".//dgm:relIds")
+    if not relIds_elms:
+        return
+
+    for relIds in relIds_elms:
+        if relIds.tag != relIds_tag:
+            continue  # pragma: no cover -- xpath already filters by tag
+        for attr in dgm_attrs:
+            old_rId = relIds.get(attr)
+            if old_rId is None:
+                continue
+            try:
+                src_rel = src_part.rels[old_rId]
+            except KeyError:  # pragma: no cover -- defensive: dangling rId
+                continue
+            if src_rel.is_external:  # pragma: no cover -- SmartArt rels are internal
+                new_rId = tgt_part.relate_to(src_rel.target_ref, src_rel.reltype, is_external=True)
+            else:
+                tgt_target_part = _get_or_clone_sibling_part(src_rel.target_part, tgt_part)
+                new_rId = tgt_part.relate_to(tgt_target_part, src_rel.reltype)
+            relIds.set(attr, new_rId)
+
+
+def _get_or_clone_sibling_part(src_target_part: "Part", tgt_part: "Part") -> "Part":
+    """Return a Part mirroring `src_target_part` on `tgt_part`'s package.
+
+    Reuses the source part when the two parts already share a package (same-
+    package clone). Otherwise materialises a shallow duplicate of the source
+    part with a non-colliding partname in the target package, preserving the
+    content-type and blob bytes. Relationships *within* the target part are
+    not recursed into — the SmartArt case needs a four-part shallow clone,
+    not deep graph cloning.
+    """
+    from pptx.opc.package import (
+        XmlPart,
+        _partname_template_for,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    tgt_package = tgt_part.package
+    if src_target_part.package is tgt_package:
+        return src_target_part
+
+    partname_tmpl = _partname_template_for(src_target_part.partname)
+    new_partname = tgt_package.next_partname(partname_tmpl)
+    blob = src_target_part.blob
+    src_cls = type(src_target_part)
+    # -- XmlPart subclasses take a parsed `element` in their constructor; use
+    # -- `load` to parse the blob into a fresh element tree on the target
+    # -- package. Non-XML parts use the standard blob signature.
+    if issubclass(src_cls, XmlPart):
+        cloned = src_cls.load(new_partname, src_target_part.content_type, tgt_package, blob)
+    else:
+        cloned = src_cls(new_partname, src_target_part.content_type, tgt_package, blob)
+    return cloned
 
 
 def _group_xfrm_params(

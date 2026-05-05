@@ -171,6 +171,54 @@ element that has been removed from the shape tree; do not use the
 instance further. See issue #730.
 
 
+Cloning a shape onto another shape tree
+---------------------------------------
+
+:meth:`~.BaseShape.duplicate` creates a copy of a shape in the same shape
+tree; :meth:`~.BaseShape.clone_onto` is its cross-tree cousin. It deep-
+copies the shape into any target shape tree — another slide, a layout,
+a master, or even a slide in a *different* presentation — re-embeds every
+referenced package part (image blobs, chart parts, OLE payloads, media
+blobs, SmartArt data/layout/style/colors parts, 3D-model media) on the
+target's package, and returns the appropriately-typed proxy::
+
+    src_rect = src_slide.shapes[0]
+    clone = src_rect.clone_onto(tgt_slide.shapes)                # same position
+    clone2 = src_rect.clone_onto(tgt_slide.shapes,
+                                 left=Inches(3), top=Inches(2))  # override pos
+
+Every shape kind is supported: :class:`.Shape` (auto-shapes, text
+boxes), :class:`.Picture`, :class:`.GraphicFrame` (tables, charts,
+OLE objects, SmartArt, 3D models), :class:`.Connector`, and
+:class:`.GroupShape`. The clone receives a fresh, unique ``cNvPr/@id``
+on the target tree (every descendant id is reassigned too for a cloned
+group) and a unique ``cNvPr/@name`` derived from the source name.
+
+Optional ``left`` and ``top`` keyword arguments override the clone's
+slide-relative position. Passing ``None`` (the default) keeps the
+source position. For a group shape the override applies to the outer
+``a:xfrm/a:off`` while the group's child coordinate system
+(``a:chOff``/``a:chExt``) is preserved so nested children keep their
+internal layout.
+
+Cross-presentation copies are fully supported — when the target tree
+belongs to a different presentation every referenced part is
+materialised in the target package, so the saved deck is self-
+contained with no cross-package references. Same-presentation copies
+reuse the referenced parts directly (e.g. two slides can share the
+same image part) which is both safe and efficient. If you need an
+independent chart part (so editing one doesn't edit the other) use
+:meth:`.SlideShapes.clone_chart`, which is the chart-specific
+deep-clone primitive.
+
+Placeholders cannot be cloned — a placeholder's ``idx`` would duplicate
+on the target slide and break the "one shape per idx" invariant. Clone
+the underlying content onto a fresh non-placeholder shape instead, or
+use the layout-based placeholder-adoption flow.
+
+See issue-tracker CLO-2.
+
+
 Flat traversal (Selection Pane-equivalent)
 ------------------------------------------
 
