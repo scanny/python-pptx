@@ -20,7 +20,7 @@ goes to the original author.
 pip install git+https://github.com/loadfix/python-pptx.git
 ```
 
-Requires Python 3.8+.
+Requires Python 3.9+.
 
 ## Usage
 

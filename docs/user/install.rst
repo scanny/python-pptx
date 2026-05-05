@@ -18,7 +18,7 @@ To add |pp| as a project dependency with uv::
 Requirements
 ------------
 
-* Python 3.8 or later
+* Python 3.9 or later
 * `lxml <https://pypi.org/project/lxml/>`_
 * `Pillow <https://pypi.org/project/Pillow/>`_
 * `XlsxWriter <https://pypi.org/project/XlsxWriter/>`_ (used by the charting features)

@@ -6,6 +6,12 @@ Release History
 Unreleased
 ++++++++++
 
+- build: drop Python 3.8 support; bump ``requires-python`` to ``>=3.9``
+  and remove ``py38`` from the tox envlist (closes #4). Python 3.8
+  went EOL 2024-10. Aligns the fork's minimum with the sibling
+  ``loadfix/python-docx`` floor so a single project can pin both.
+  ``README.md`` and ``docs/user/install.rst`` updated accordingly.
+
 - build(crypto): swap password-protection backend from
   ``msoffcrypto-tool`` to the sibling ``python-ooxml-crypto`` package.
   ``pptx.opc._crypto`` (``decrypt_stream``, ``encrypt_bytes``) now
