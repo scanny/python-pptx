@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Iterator, cast
 
 from pptx.dml.color import RGBColor
 from pptx.dml.fill import FillFormat
-from pptx.enum.shapes import PP_PLACEHOLDER
+from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
 from pptx.enum.transition import (
     PP_TRANSITION_SIDE_DIRECTION,
     PP_TRANSITION_SPEED,
@@ -517,9 +517,19 @@ class Slide(_BaseSlide):
             if shape.is_placeholder:
                 if not include_placeholders:
                     continue
-                # -- placeholders can't go through clone_onto (CLO-2 raises);
-                # -- fall back to per-paragraph text-body clone when this
-                # -- slide has a matching-idx placeholder.
+                # -- Placeholders holding chart / table / picture content  --
+                # -- carry that content as ``<p:graphicFrame>`` or         --
+                # -- ``<p:pic>`` XML that is structurally clone-safe even  --
+                # -- though the element is flagged as a placeholder. Strip --
+                # -- the ``<p:ph>`` marker on the clone and route it       --
+                # -- through ``clone_onto`` so the chart / table / image   --
+                # -- travels to the target fully re-embedded.              --
+                if shape.has_chart or shape.has_table or shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                    _clone_non_text_placeholder_onto(shape, self.shapes)
+                    continue
+                # -- Text-only placeholders fall back to per-paragraph     --
+                # -- text-body clone when this slide has a matching-idx    --
+                # -- placeholder.                                          --
                 try:
                     src_idx = shape.placeholder_format.idx
                 except ValueError:  # pragma: no cover -- defensive
@@ -2736,6 +2746,40 @@ def _clone_text_frame(src: TextFrame, tgt: TextFrame) -> None:
     for src_p in src_paragraphs[1:]:
         new_p = tgt.add_paragraph()
         new_p.clone_from(src_p)
+
+
+def _clone_non_text_placeholder_onto(shape: BaseShape, shape_tree: SlideShapes) -> None:
+    """Clone a chart / table / picture placeholder onto `shape_tree` as non-placeholder.
+
+    Placeholders holding chart / table / picture content carry that content
+    in structurally clone-safe XML (``<p:graphicFrame>`` or ``<p:pic>``).
+    ``BaseShape.clone_onto`` refuses to clone placeholders because duplicating
+    a placeholder ``idx`` would break the slide invariant — but the underlying
+    content is perfectly cloneable. This helper strips the ``<p:ph>`` marker
+    (the placeholder flag) from a deep-copy of the source shape, then routes
+    the now-non-placeholder shape through ``clone_onto``.
+
+    The resulting shape loses its layout inheritance (its size / position /
+    title-from-layout properties become explicit) but the chart / table /
+    image content is fully preserved and re-embedded on the target package.
+    """
+    import copy as _copy
+
+    from pptx.oxml.ns import qn as _qn
+
+    # -- Deep-copy the source shape's element so we can strip <p:ph> without
+    # -- mutating the source. ``BaseShape`` stores the element at ._element
+    # -- and the ``is_placeholder`` flag hinges on the presence of <p:ph>
+    # -- inside <p:nvSpPr>/<p:nvPicPr>/<p:nvGraphicFramePr>.
+    src_elm = _copy.deepcopy(shape._element)
+    for ph in src_elm.xpath(".//p:ph"):
+        ph.getparent().remove(ph)
+
+    # -- Construct a temporary proxy bound to the cleaned element. Use the
+    # -- same shape-factory the source slide uses so we pick up Picture /
+    # -- GraphicFrame with the right proxy class.
+    temp_shape = shape._parent._shape_factory(src_elm)  # pyright: ignore[reportPrivateUsage]
+    temp_shape.clone_onto(shape_tree)
 
 
 def _parse_theme_element(theme_part: Part) -> BaseOxmlElement | None:
