@@ -35,7 +35,7 @@ from pptx.shapes.placeholder import (
     TablePlaceholder,
 )
 from pptx.shared import ParentedElementProxy
-from pptx.util import Emu, lazyproperty
+from pptx.util import Emu, Inches, lazyproperty
 
 if TYPE_CHECKING:
     from pptx.chart.chart import Chart
@@ -375,6 +375,62 @@ class _BaseGroupShapes(_BaseShapes):
         self._recalculate_extents()
         return cast("GraphicFrame", self._shape_factory(graphicFrame))
 
+    def add_chart_from(
+        self,
+        source_chart: Chart,
+        left: Length,
+        top: Length,
+        width: Length | None = None,
+        height: Length | None = None,
+    ) -> GraphicFrame:
+        """Add a new chart that is a deep clone of `source_chart` (CLO-8).
+
+        This is the ergonomic front door for the chart-copy primitive: it
+        produces a chart on this shape tree that preserves every piece of
+        styling the source chart carries — title text styling, axis label
+        fonts, series fill colors, plot-area position, trendlines, error
+        bars, data labels, legend formatting — which ``add_chart(type,
+        data)`` cannot reproduce because that path emits fresh default-styled
+        XML.
+
+        Internally this delegates to :meth:`clone_chart`: a fresh
+        :class:`~pptx.parts.chart.ChartPart` is materialised in this slide's
+        package containing a deep copy of the source's ``c:chartSpace`` XML;
+        every relationship the source carries (embedded xlsx, theme override,
+        chart images, user-shapes drawing, ...) is re-established on the new
+        chart part; the embedded workbook is duplicated into its own
+        :class:`~pptx.parts.embeddedpackage.EmbeddedXlsxPart` so PowerPoint's
+        "Edit Data" dialog stays wired per-chart. The clone is
+        structurally-independent of the source.
+
+        `source_chart` may live in this same presentation (intra-deck copy)
+        or in a different one (cross-deck copy). In the cross-package case
+        every referenced part — chart, xlsx, theme-override, image — is
+        materialised in this package so no cross-package references are
+        retained.
+
+        `left` and `top` position the new chart's graphic frame (EMU
+        |Length|). `width` and `height` default to 5 × 3 inches when
+        omitted, matching PowerPoint's default chart shape size. They do not
+        inherit from the source chart because a chart's position and extents
+        live on its enclosing ``p:graphicFrame``, not on the chart XML
+        itself; callers wanting exact-match sizing should read those values
+        from the source chart's ``GraphicFrame`` (e.g. ``source_gf.left``,
+        ``source_gf.top``, ``source_gf.width``, ``source_gf.height``).
+
+        Returns the newly-created |GraphicFrame| shape containing the
+        duplicated chart; the clone :class:`~pptx.chart.chart.Chart` is
+        reached via the returned frame's
+        :attr:`~pptx.shapes.graphfrm.GraphicFrame.chart` property.
+
+        .. versionadded:: 2026.05.0
+        """
+        if width is None:
+            width = Inches(5)
+        if height is None:
+            height = Inches(3)
+        return self.clone_chart(source_chart, left, top, width, height)
+
     def clone_chart(
         self,
         source_chart: Chart,
@@ -405,6 +461,9 @@ class _BaseGroupShapes(_BaseShapes):
         Returns the newly-created |GraphicFrame| containing the duplicated
         chart; use its :attr:`~pptx.shapes.graphfrm.GraphicFrame.chart`
         property to reach the underlying |Chart| object.
+
+        See also :meth:`add_chart_from` for a more ergonomic signature with
+        optional default width/height.
         """
         new_chart_part = ChartPart.clone_from(source_chart.part, self.part.package)
         rId = self.part.relate_to(new_chart_part, RT.CHART)

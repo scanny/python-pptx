@@ -82,6 +82,19 @@ Unreleased
   (notably shape-clone workflows) can preserve or change per-ref theme
   tints during a round-trip. ``theme_style_refs`` now also preserves any
   existing ``schemeClr`` values when re-assigned.
+- feat(CLO-8): add ``SlideShapes.add_chart_from(source_chart, left, top,
+  width=None, height=None)`` — an ergonomic front door for the chart-copy
+  primitive. Unlike ``add_chart(type, data)`` (which emits fresh
+  default-styled XML), ``add_chart_from`` produces a full-fidelity clone
+  that preserves every styling attribute the source carries — title text
+  styling, axis label fonts, series fill colors, plot-area position,
+  trendlines, error bars, data labels, legend formatting. ``width`` and
+  ``height`` default to 5 × 3 inches when omitted. Delegates to
+  :meth:`SlideShapes.clone_chart` (which remains available with its
+  positional ``x, y, cx, cy`` signature) so the new chart part is
+  structurally-independent: deep-copied ``c:chartSpace`` XML, every
+  chart-part relationship re-established, embedded workbook duplicated.
+  Same-presentation and cross-presentation cloning both supported.
 
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``

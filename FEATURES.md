@@ -369,6 +369,7 @@ prs.save("out.pptx")
 - `SlideShapes.add_movie(path_or_stream, left, top, width, height, poster_frame_image=None, mime_type=None, autoplay=False)` — Add a video/audio shape. `autoplay` is `[Added in 2026.05.0]`.
 - `SlideShapes.add_movie_link(url, poster_frame_image, left, top, width, height)` — Add a URL-linked (online) video shape. `[Added in 2026.05.0]`
 - `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Append a chart graphic frame.
+- `SlideShapes.add_chart_from(source_chart, left, top, width=None, height=None)` — Append a full-fidelity deep clone of `source_chart` (preserves title text styling, axis label fonts, series fill colors, plot-area position, trendlines, error bars, data labels, legend formatting — everything `add_chart` cannot reproduce because it emits fresh default-styled XML). `width` and `height` default to 5 × 3 inches when omitted. Delegates to `clone_chart`; the clone is structurally-independent (fresh chart part, distinct embedded xlsx). Same-presentation and cross-presentation sources are both supported. CLO-8. `[Added in 2026.05.0]`
 - `SlideShapes.clone_chart(chart, x, y, cx=None, cy=None)` — Copy a chart from another slide/presentation into this slide. `[Added in 2026.05.0]`
 - `SlideShapes.add_connector(connector_type, begin_x, begin_y, end_x, end_y)` — Connector line between two points.
 - `SlideShapes.add_group_shape(shapes=())` — Wrap shapes in a group. `[Added in 2026.05.0]`
@@ -2021,6 +2022,7 @@ prs.save("out.pptx")
 ```
 
 - `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Append a new chart. Every 3-D chart-type writer is `[Added in 2026.05.0]`.
+- `SlideShapes.add_chart_from(source_chart, left, top, width=None, height=None)` — Full-fidelity deep clone of `source_chart`. Preserves title/axis/series/legend/trendline/error-bar/data-label styling that `add_chart(type, data)` cannot reproduce. Defaults to 5 × 3 inches when size omitted. CLO-8. `[Added in 2026.05.0]`
 - `SlideShapes.clone_chart(chart, x, y, cx=None, cy=None)` — Clone a chart from any slide or presentation into this slide, including its embedded workbook. `[Added in 2026.05.0]`
 - `GraphicFrame.has_chart` / `GraphicFrame.chart` — Predicate and accessor.
 - `Chart.chart_type` — `XL_CHART_TYPE` enum value.

@@ -68,16 +68,16 @@ library calls; everything else is narrower but composes with them.
   etc.). Cleanest shape: a second NamedTuple field like
   ``ThemeStyleRefColors(line, fill, effect, font)``.
 
-- **CLO-8: `Chart.clone_from(source_chart) -> Self` and/or
+- **CLO-8 (partial): `Chart.clone_from(source_chart) -> Self` /
   `Chart.apply_template(source_chart)` accepting a live Chart.**
-  ``SlideShapes.add_chart(type, data)`` always writes fresh XML
-  with default axis / plot / legend / title formatting and series
-  colors. A clone would preserve chart title text styling, axis
-  label fonts, series fill colors, plot-area position, and
-  trendlines. Today you can pull categories/values but lose all
-  styling. ``Chart.apply_template`` already exists for
-  ``.crtx`` template files — extend to accept another in-deck
-  Chart as the "template".
+  The primary deliverable — ``SlideShapes.add_chart_from`` — shipped;
+  see *Done* below. Read-mutate ``Chart.clone_from`` (replace this
+  chart's ``c:chartSpace`` with the source's while preserving the
+  target part's partname and rebuilding its rels) is still open;
+  tracked as a follow-up because it requires draining the chart
+  part's existing relationships graph (embedded xlsx, user-shapes,
+  image, theme-override) before re-running the F1 / F5 cloning
+  against the existing part.
 
 - **CLO-9: `_Cell.clone_from(other_cell) -> Self`.**
   Copy runs, borders (including diagonals), fill, margins,
@@ -107,6 +107,18 @@ library calls; everything else is narrower but composes with them.
 
 
 ## Done
+
+- **CLO-8 (primary deliverable): full-fidelity chart-clone front door.**
+  Added ``SlideShapes.add_chart_from(source_chart, left, top,
+  width=None, height=None)`` — an ergonomic wrapper on the existing
+  ``clone_chart`` primitive that emits a deep clone preserving every
+  styling attribute the source carries (title text, axis label fonts,
+  series fills, plot-area position, trendlines, error bars, data
+  labels, legend formatting), where ``add_chart(type, data)`` emits
+  fresh default-styled XML. ``width`` and ``height`` default to 5 × 3
+  inches. Works intra- and cross-presentation. Read-mutate
+  ``Chart.clone_from`` is still open as a follow-up (see CLO-8 partial
+  entry above). Branch ``feat/clo8-chart-clone-from``.
 
 - **Wave 24 (overnight polish pass).** Five parallel agents, all merged
   to master (``5adf390b..8aa60af5``).

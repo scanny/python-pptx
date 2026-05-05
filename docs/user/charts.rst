@@ -75,6 +75,41 @@ and :class:`.MasterShapes`, so a chart can be authored directly inside a group
 (issue #627) or carried on a layout / master as a shared template-level shape.
 
 
+Cloning an existing chart with full fidelity
+--------------------------------------------
+
+:meth:`~.SlideShapes.add_chart` emits fresh, default-styled XML. When you
+need to duplicate a chart while preserving everything that makes it look the
+way it does — title text styling, axis label fonts, series fill colors,
+plot-area position, trendlines, error bars, data-label placement, legend
+formatting — use :meth:`~.SlideShapes.add_chart_from` instead::
+
+    from pptx.util import Inches
+
+    # `source_chart` is a Chart obtained from any slide of any presentation
+    new_gf = slide_2.shapes.add_chart_from(
+        source_chart,
+        Inches(1), Inches(1),          # left, top
+        Inches(5), Inches(3),          # width, height (optional)
+    )
+    new_chart = new_gf.chart
+
+The clone is structurally-independent of the source: a fresh chart part is
+materialised in the destination package with a deep copy of the source's
+``c:chartSpace`` XML, every relationship the source carries (embedded xlsx,
+theme override, chart images, user-shapes drawing, ...) is re-established on
+the new chart part, and the embedded workbook is duplicated into its own
+part so PowerPoint's "Edit Data" dialog stays wired per-chart.
+
+``source_chart`` may live in this same presentation (intra-deck copy) or in
+a different one (cross-deck copy). When ``width`` and ``height`` are
+omitted, the new chart defaults to 5 × 3 inches.
+
+The underlying primitive, :meth:`~.SlideShapes.clone_chart`, is still
+available and takes positional ``x, y, cx, cy`` arguments without the
+default-size sugar.
+
+
 XY and Bubble charts
 --------------------
 
