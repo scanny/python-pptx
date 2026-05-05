@@ -54,6 +54,8 @@ Released: 2026-05-05
 Unreleased
 ++++++++++
 
+- build: pyproject.toml classifiers — add py3.13.
+
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape
