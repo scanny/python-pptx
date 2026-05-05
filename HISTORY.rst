@@ -54,6 +54,12 @@ Released: 2026-05-05
 Unreleased
 ++++++++++
 
+- chore: remove stale ``DOCS_AUDIT.md`` (58 KB) and ``TEST_AUDIT.md``
+  (29 KB) scratch audit artefacts from the repo root. Both were
+  internal meta-documents tracking a one-off 2026-05 audit against
+  commit ``1a345f8f``; nothing references them and they do not ship
+  in the sdist/wheel. Not a user-visible change.
+
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape

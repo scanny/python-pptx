@@ -33,10 +33,15 @@ work lands.
 6. **Update `pyproject.toml` classifiers.** Classifiers stop at
    Python 3.12 despite `requires-python >= 3.8`. Add 3.13, and drop 3.8
    if the runtime test matrix allows.
-7. **Move or delete scratch audit artefacts.** `DOCS_AUDIT.md` (58 KB)
+7. ~~**Move or delete scratch audit artefacts.** `DOCS_AUDIT.md` (58 KB)
    and `TEST_AUDIT.md` (29 KB) are stale internal meta-documents
    tracked in the repo root. Relocate to an `audits/` directory or
-   delete outright.
+   delete outright.~~ **Done** — both files deleted on branch
+   `chore/audit-7-scratch-cleanup`. Rationale: nothing in the repo
+   (sources, docs, packaging, tests) referenced either file, the
+   content was snapshot-in-time against commit `1a345f8f`, and the
+   actionable findings had already been promoted into this TODO.md
+   list.
 8. **Git-tag 2026.05.1 and 2026.05.2.** Verify both releases carry
    git tags; add them if missing.
 
