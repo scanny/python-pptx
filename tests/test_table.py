@@ -182,6 +182,126 @@ class DescribeTable(object):
 
         assert table._tbl.xml == xml(expected_tbl_cxml)
 
+    def it_can_clone_from_another_table(self):
+        """clone_from copies widths, heights, cells, style-id and flags."""
+        from pptx import Presentation
+        from pptx.dml.color import RGBColor
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        src = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2)).table
+        tgt = slide.shapes.add_table(2, 2, Inches(1), Inches(4), Inches(6), Inches(2)).table
+
+        # -- populate source --
+        src.cell(0, 0).text = "A"
+        src.cell(0, 0).fill.solid()
+        src.cell(0, 0).fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+        src.cell(0, 1).text = "B"
+        src.cell(1, 0).text = "C"
+        src.cell(1, 1).text = "D"
+        src.columns[0].width = Inches(3)
+        src.columns[1].width = Inches(2)
+        src.rows[0].height = Inches(1.5)
+        src.rows[1].height = Inches(0.75)
+        src.style_id = "{2D5ABB26-0587-4C30-8999-92F81FD0307C}"
+        src.first_row = True
+        src.horz_banding = True
+        src.last_col = True
+
+        # -- populate target with junk that must be overwritten --
+        tgt.cell(0, 0).text = "junk"
+
+        result = tgt.clone_from(src)
+
+        # -- chainable --
+        assert result is tgt
+        # -- cells cloned --
+        assert tgt.cell(0, 0).text == "A"
+        assert tgt.cell(0, 0).fill.fore_color.rgb == RGBColor(0xFF, 0x00, 0x00)
+        assert tgt.cell(0, 1).text == "B"
+        assert tgt.cell(1, 0).text == "C"
+        assert tgt.cell(1, 1).text == "D"
+        # -- column widths cloned --
+        assert tgt.columns[0].width == Inches(3)
+        assert tgt.columns[1].width == Inches(2)
+        # -- row heights cloned --
+        assert tgt.rows[0].height == Inches(1.5)
+        assert tgt.rows[1].height == Inches(0.75)
+        # -- style-id cloned --
+        assert tgt.style_id == "{2D5ABB26-0587-4C30-8999-92F81FD0307C}"
+        # -- boolean flags cloned --
+        assert tgt.first_row is True
+        assert tgt.horz_banding is True
+        assert tgt.last_col is True
+        assert tgt.first_col is False
+        assert tgt.last_row is False
+        assert tgt.vert_banding is False
+
+    def but_it_raises_on_row_count_mismatch(self):
+        """clone_from refuses to resize; caller must build a matching table."""
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        src = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2)).table
+        tgt = slide.shapes.add_table(3, 2, Inches(1), Inches(4), Inches(6), Inches(2)).table
+
+        with pytest.raises(ValueError, match=r"row/column count mismatch"):
+            tgt.clone_from(src)
+
+    def and_it_raises_on_column_count_mismatch(self):
+        """Mismatched column count also raises."""
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        src = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2)).table
+        tgt = slide.shapes.add_table(2, 3, Inches(1), Inches(4), Inches(6), Inches(2)).table
+
+        with pytest.raises(ValueError, match=r"row/column count mismatch"):
+            tgt.clone_from(src)
+
+    def and_it_does_not_mutate_the_source_table(self):
+        """clone_from must not alter the source table's XML."""
+        from pptx import Presentation
+        from pptx.dml.color import RGBColor
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        src = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2)).table
+        src.cell(0, 0).text = "source"
+        src.cell(0, 0).fill.solid()
+        src.cell(0, 0).fill.fore_color.rgb = RGBColor(0xAB, 0xCD, 0xEF)
+        src.first_row = True
+        src_xml_before = src._tbl.xml
+
+        tgt = slide.shapes.add_table(2, 2, Inches(1), Inches(4), Inches(6), Inches(2)).table
+        tgt.clone_from(src)
+
+        # -- source XML unchanged --
+        assert src._tbl.xml == src_xml_before
+        # -- independent: mutating target does not leak back --
+        tgt.cell(0, 0).text = "mutated"
+        assert src.cell(0, 0).text == "source"
+
+    def and_it_tolerates_a_source_without_style_id(self):
+        """A source table with no style_id leaves the target's style_id alone."""
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        src = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2)).table
+        src.style_id = None  # -- explicitly clear
+        assert src.style_id is None
+
+        tgt = slide.shapes.add_table(2, 2, Inches(1), Inches(4), Inches(6), Inches(2)).table
+        tgt_style_before = tgt.style_id
+
+        tgt.clone_from(src)
+
+        # -- unchanged because source had no style-id to copy --
+        assert tgt.style_id == tgt_style_before
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

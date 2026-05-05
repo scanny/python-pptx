@@ -67,11 +67,6 @@ library calls; everything else is narrower but composes with them.
   vertical anchor, and padding from another cell. Today
   ``cell.text = "..."`` loses every one of those.
 
-- **CLO-10: `Table.clone_from(source_table) -> Self`.**
-  Whole-table version of CLO-9 — column widths + row heights +
-  every cell (delegating per-cell to CLO-9) + table style +
-  header/first-row/banded-rows flags.
-
 - **CLO-11: `GroupShape.clone_onto(shape_tree) -> GroupShape`.**
   Nominally covered by CLO-2 in the protocol sense, but groups
   carry nested content that needs correct recursion (each child
@@ -141,6 +136,14 @@ library calls; everything else is narrower but composes with them.
   from one cell onto another while preserving position and merge-state.
   Returns ``self``; source is not mutated. Branch
   ``feat/clo9-cell-clone-from``.
+
+- **CLO-10: ``Table.clone_from(source_table) -> Self``.** Whole-table
+  counterpart to CLO-9: copies every column width, every row height,
+  every cell (delegating per-cell to ``_Cell.clone_from``), the source's
+  ``style_id`` when present, and all six header / banding flags. Returns
+  ``self``; source is not mutated. Raises ``ValueError`` when dimensions
+  differ. Works intra- and cross-presentation. Branch
+  ``feat/clo10-table-clone-from``.
 
 - **Wave 24 (overnight polish pass).** Five parallel agents, all merged
   to master (``5adf390b..8aa60af5``).

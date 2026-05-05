@@ -1305,6 +1305,7 @@ prs.save("out.pptx")
 - `Table.add_row(height=None)` / `Table.add_column(width=None)` — One-liner shortcuts that delegate to `_RowCollection.add` / `_ColumnCollection.add`. `[Added in 2026.05.0]`
 - `Table.style_id` — Apply a built-in table style by GUID. `[Added in 2026.05.0]`
 - `Table.first_row` / `last_row` / `first_col` / `last_col` / `horz_banding` / `vert_banding` — Style-flag booleans.
+- `Table.clone_from(source_table)` — Whole-table clone: copies every column width, every row height, every cell (delegating to `_Cell.clone_from`), the source's `style_id`, and all six header/banding flags from `source_table` onto this one. Returns `self`. Source is not mutated. Raises `ValueError` when source and target have different dimensions. Works intra- and cross-presentation. `[Added in 2026.05.0]`
 - `Table.notify_height_changed()` / `Table.notify_width_changed()` — Hooks to recompute graphic-frame extents after cell mutation.
 - `_RowCollection.add(height=None)` — Append a row; height inherits from the last row or defaults to ~370,840 EMU. `[Added in 2026.05.0]`
 - `_RowCollection.remove(row)` — Delete a row. `[Added in 2026.05.0]`

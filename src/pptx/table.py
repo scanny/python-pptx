@@ -66,6 +66,63 @@ class Table(object):
         """
         return _Cell(self._tbl.tc(row_idx, col_idx), self)
 
+    def clone_from(self, source: Table) -> Self:
+        """Copy column widths, row heights, table-style, flags, and every cell from *source*.
+
+        Deep-copies each cell via :meth:`._Cell.clone_from`, assigns each column's
+        width and each row's height from the matching source column/row, copies the
+        source's :attr:`style_id` when present, and mirrors the six header/banding
+        flags (:attr:`first_row`, :attr:`first_col`, :attr:`last_row`,
+        :attr:`last_col`, :attr:`horz_banding`, :attr:`vert_banding`). Returns
+        ``self`` so calls can be chained.
+
+        Raises :class:`ValueError` when *source* has a different row or column
+        count than this table — a clone does not resize the target. Build a table
+        with the desired dimensions first (e.g. with
+        :meth:`.SlideShapes.add_table`) before calling ``clone_from``.
+
+        *source* is not modified. *source* may belong to a different slide or
+        even a different presentation; table cells carry no relationships of
+        their own so no relationship-graph work is required.
+        """
+        src_rows, src_cols = source.rows, source.columns
+        tgt_rows, tgt_cols = self.rows, self.columns
+        src_row_count, src_col_count = len(src_rows), len(src_cols)
+        tgt_row_count, tgt_col_count = len(tgt_rows), len(tgt_cols)
+        if src_row_count != tgt_row_count or src_col_count != tgt_col_count:
+            raise ValueError(
+                "row/column count mismatch: source is %dx%d, self is %dx%d"
+                % (src_row_count, src_col_count, tgt_row_count, tgt_col_count)
+            )
+
+        # -- column widths --
+        for c in range(tgt_col_count):
+            tgt_cols[c].width = src_cols[c].width
+
+        # -- row heights --
+        for r in range(tgt_row_count):
+            tgt_rows[r].height = src_rows[r].height
+
+        # -- every cell (delegates to _Cell.clone_from) --
+        for r in range(tgt_row_count):
+            for c in range(tgt_col_count):
+                self.cell(r, c).clone_from(source.cell(r, c))
+
+        # -- table-style GUID (may be absent on source) --
+        src_style_id = source.style_id
+        if src_style_id is not None:
+            self.style_id = src_style_id
+
+        # -- header / first-col / banding flags --
+        self.first_row = source.first_row
+        self.first_col = source.first_col
+        self.last_row = source.last_row
+        self.last_col = source.last_col
+        self.horz_banding = source.horz_banding
+        self.vert_banding = source.vert_banding
+
+        return self
+
     @lazyproperty
     def columns(self) -> _ColumnCollection:
         """|_ColumnCollection| instance for this table.
