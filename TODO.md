@@ -8,13 +8,6 @@ Captured from a project audit run on 2026-05-05. Each bullet is an
 actionable follow-up; promote into "Open" (or straight to "Done") as
 work lands.
 
-1. **Cut release for Unreleased CLO-1..12 ledger.** Master is
-   `8e382107`, 23+ commits past the `2026.05.2` tag released earlier
-   today. The Unreleased changelog section logs CLO-1 through CLO-12
-   cross-tree cloning (`Slide.clone_shapes_from`, `TextFrame.clone_from`,
-   `BaseShape.clone_onto`, `Table.clone_from`, `_Cell.clone_from`,
-   `add_chart_from`, `add_picture_from`, `GroupShape.clone_onto`) plus
-   two slide-clone hotfixes. Warrants a `2026.05.3` tag.
 2. **Close GitHub issue #3** — bare `KeyError('[Content_Types].xml')`
    raised on a package missing its content-types part. Wrap in a typed
    `PackageNotFoundError` (or similarly descriptive exception). Only
@@ -52,6 +45,15 @@ work lands.
 
 
 ## Done
+
+- **Wave 26-B: cut 2026.05.3 release.** Rolled HISTORY.rst (Unreleased
+  ledger → 2026.05.3 — Cross-tree shape cloning APIs, Released 2026-05-05),
+  bumped ``__version__`` to ``2026.05.3``, tagged ``v2026.05.3``, and
+  pushed master + the new tag. Also backfilled Audit-8: renamed the
+  local-only ``2026.05.1`` / ``2026.05.2`` tags to v-prefixed annotated
+  tags (``v2026.05.1`` / ``v2026.05.2``) and pushed them to origin so
+  every CalVer release now carries a consistent v-prefixed annotated
+  tag. Full pytest run clean (6755 passed, 2 skipped).
 
 - **CLO-8 (follow-up): ``Chart.clone_from(source_chart) -> Self``.**
   In-place read-mutate counterpart to the CLO-8 primary
