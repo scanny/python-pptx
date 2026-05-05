@@ -199,6 +199,7 @@ prs.save("out.pptx")
 - `Slide.transition` — Slide transition proxy. `[Added in 2026.05.0]`
 - `Slide.has_animations` / `Slide.timing_xml` / `Slide.animation_sequence` / `Slide.iter_shape_animations()` — Animation introspection. `[Added in 2026.05.0]`
 - `Slide.find_shapes_by_xpath(xpath_expr)` — Evaluate an XPath against this slide's shape tree and return matching `BaseShape` proxies. `[Added in 2026.05.0]`
+- `Slide.clone_shapes_from(other_slide, include_placeholders=True)` — Deep-copy every top-level shape from `other_slide` onto this slide via `BaseShape.clone_onto`. Referenced package parts (images, charts, OLE, SmartArt, 3D-model media, hyperlinks) are re-embedded in the target package; each clone gets a fresh `cNvPr/@id` and uniquified `@name`; source z-order is preserved. Placeholders are handled separately — CLO-2 raises on placeholders because duplicating a placeholder `idx` breaks the "one shape per idx" invariant — so when `include_placeholders=True` (the default) the source placeholder's text body is deep-copied into this slide's matching-`idx` placeholder (per-paragraph via `_Paragraph.clone_from`), or skipped if no match exists. `include_placeholders=False` skips placeholders entirely. Source is not mutated. Returns `None`. CLO-1. `[Added in 2026.05.0]`
 
 - `Presentation.slides` — `Slides` collection (sequence).
 - `Slides.add_slide(slide_layout, index=None)` — Append a new slide (or insert it at zero-based `index`; ``index`` keyword added in 2026.05.0, #194).

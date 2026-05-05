@@ -339,6 +339,69 @@ layouts). Callers who need strict per-slide layout control can reassign
 drive :meth:`Slides.add_slide_from_external` per-slide.
 
 
+Cloning all shapes from another slide
+-------------------------------------
+
+:meth:`.Slide.clone_shapes_from` deep-copies every top-level shape from
+another slide onto this one. It's the composite operation that reduces a
+typical "re-author from an existing deck" script to a handful of lines --
+use it when you want the *contents* of another slide on *this* slide
+without replacing this slide's layout binding, background, transition, or
+notes::
+
+    from pptx import Presentation
+
+    source = Presentation("library-deck.pptx")
+    target = Presentation("report-deck.pptx")
+
+    src_slide = source.slides[3]                              # the "donor" slide
+    tgt_slide = target.slides.add_slide(target.slide_layouts[5])
+    tgt_slide.clone_shapes_from(src_slide)                    # one call
+
+    target.save("report-deck.pptx")
+
+Each source shape is cloned via :meth:`.BaseShape.clone_onto`, so every
+referenced package part (image blobs, chart parts, OLE payloads, SmartArt
+four-part subgraphs, 3D-model media, hyperlinks) is re-embedded in the
+target package. Each clone receives a fresh ``cNvPr/@id`` and a
+uniquified ``cNvPr/@name``; the source shape-tree is not mutated. Source
+document (z-order) order is preserved on the target.
+
+**Placeholders.** PowerPoint treats placeholders as a special case:
+their ``idx`` is inherited from the slide layout, and duplicating the
+element breaks the "one shape per idx" invariant PowerPoint relies on.
+``clone_shapes_from`` therefore handles placeholders separately:
+
+* When ``include_placeholders=True`` (the default) and this slide has a
+  placeholder with the *same* ``idx`` as a source placeholder, the
+  source placeholder's text body is deep-copied into the matching
+  placeholder (preserving run-level formatting, paragraph properties,
+  and bullet / auto-number / spacing). When no matching ``idx`` exists
+  on the target, the source placeholder is skipped (no new placeholder
+  is created -- that would require the layout change :meth:`.Slide.slide_layout`
+  is for).
+* When ``include_placeholders=False`` every placeholder on the source is
+  skipped entirely; only non-placeholder shapes are cloned.
+
+For a cross-slide + cross-presentation example::
+
+    from pptx import Presentation
+
+    source = Presentation("2024-template.pptx")
+    target = Presentation("2025-empty.pptx")
+
+    src = source.slides[0]
+    tgt = target.slides.add_slide(target.slide_layouts[0])    # same title layout
+    tgt.clone_shapes_from(src)                                # title text transfers
+
+    target.save("2025-filled.pptx")
+
+See :meth:`.BaseShape.clone_onto` for the per-shape primitive this is a
+thin wrapper over, and :meth:`.Slides.add_slide_from_external` when you
+want the whole slide (background, transition, notes, layout binding)
+not just its shapes.
+
+
 Importing a slide layout from another master
 --------------------------------------------
 

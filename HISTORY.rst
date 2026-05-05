@@ -16,6 +16,26 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
+  — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
+  ``other_slide.shapes`` and appends a deep-copy of every top-level shape
+  to this slide's shape tree; referenced package parts (image blobs,
+  chart parts, OLE payloads, SmartArt four-part subgraphs, 3D-model
+  media, hyperlinks) are re-embedded on this slide's package and each
+  clone receives a fresh unique shape-id and uniquified ``cNvPr/@name``.
+  Source document (z-order) is preserved. Placeholders are handled
+  specially because CLO-2 raises on them (duplicating a placeholder
+  ``idx`` breaks the "one shape per idx" invariant): with the default
+  ``include_placeholders=True`` the source placeholder's text body is
+  deep-copied (per-paragraph, via ``_Paragraph.clone_from``) onto this
+  slide's matching-``idx`` placeholder if one exists, and otherwise
+  skipped; with ``include_placeholders=False`` every source placeholder
+  is skipped entirely. Non-text placeholder content is not cloned in
+  this MVP. Source slide is not mutated; returns ``None``. Reduces a
+  typical "re-author this deck slide onto a fresh layout" script from
+  ~150 lines of XML gymnastics to a single call. Docs:
+  ``docs/user/slides.rst`` ("Cloning all shapes from another slide").
+
 - fix(opc): ``PartRelationshipCloner._get_or_clone_part`` now dispatches
   through ``XmlPart.load`` when cross-package-cloning an XML part (e.g.
   a chart part), instead of calling the ``XmlPart`` constructor directly

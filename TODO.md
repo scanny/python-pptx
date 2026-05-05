@@ -19,12 +19,6 @@ Priority ordering: **CLO-1** and **CLO-2** together collapse the
 replicator from ~150 lines of XML gymnastics to ~6 lines of
 library calls; everything else is narrower but composes with them.
 
-- **CLO-1: `Slide.clone_shapes_from(other_slide, include_placeholders=True) -> None`.**
-  Clone every top-level shape from ``other_slide`` onto ``self``.
-  The composite operation that reduces a typical "re-author from
-  an existing deck" script to a handful of lines. Would internally
-  walk ``other_slide.shapes`` and call CLO-2 on each.
-
 - **CLO-2: `BaseShape.clone_onto(shape_tree, left=None, top=None) -> BaseShape`.**
   Copy a shape (the full ``<p:sp>`` / ``<p:pic>`` /
   ``<p:graphicFrame>`` / ``<p:cxnSp>`` / ``<p:grpSp>`` subtree) into
@@ -107,6 +101,20 @@ library calls; everything else is narrower but composes with them.
 
 
 ## Done
+
+- **CLO-1: ``Slide.clone_shapes_from(other_slide, include_placeholders=True)
+  -> None``.** Composite wrapper on top of ``BaseShape.clone_onto``: walks
+  ``other_slide.shapes`` and appends a deep-copy of each top-level shape
+  onto this slide's shape tree, re-embedding every referenced package
+  part (images, charts, OLE, SmartArt, 3D-model media, hyperlinks) and
+  assigning fresh unique ``cNvPr/@id`` / ``@name`` to each clone. Source
+  z-order is preserved. Placeholders are handled specially because CLO-2
+  raises on them; the default ``include_placeholders=True`` deep-copies
+  the source placeholder's text body onto this slide's matching-``idx``
+  placeholder via ``_Paragraph.clone_from`` (or skips when no matching
+  idx), and ``include_placeholders=False`` skips placeholders entirely.
+  Source is not mutated; returns ``None``. Branch
+  ``feat/clo1-slide-clone-shapes-from``.
 
 - **CLO-8 (primary deliverable): full-fidelity chart-clone front door.**
   Added ``SlideShapes.add_chart_from(source_chart, left, top,

@@ -382,3 +382,80 @@ def then_slide_master_slide_layouts_is_a_SlideLayouts_object(context):
 @then("slide_layout.used_by_slides == ()")
 def then_slide_layout_used_by_slides_eq_empty_tuple(context):
     assert context.slide_layout.used_by_slides == ()
+
+
+# Slide.clone_shapes_from (CLO-1) ======================================
+
+
+@given("a fresh presentation with a source slide and a blank target slide")
+def given_fresh_prs_with_source_and_blank_target_slide(context):
+    from pptx.enum.shapes import MSO_CONNECTOR_TYPE, MSO_SHAPE
+    from pptx.util import Inches
+
+    context.prs = Presentation()
+    # -- source slide: layout[0] = title slide (has title + subtitle placeholders) --
+    context.source_slide = context.prs.slides.add_slide(context.prs.slide_layouts[0])
+    title = context.source_slide.shapes.title
+    title.text_frame.text = "Source Title"
+    # -- add an autoshape, textbox, and connector to the source --
+    context.source_slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(3), Inches(2), Inches(1)
+    )
+    context.source_slide.shapes.add_textbox(Inches(1), Inches(4), Inches(2), Inches(1))
+    context.source_slide.shapes.add_connector(
+        MSO_CONNECTOR_TYPE.STRAIGHT, Inches(1), Inches(5), Inches(4), Inches(5)
+    )
+    # -- target slide: blank layout (no placeholder overlap with source) --
+    context.target_slide = context.prs.slides.add_slide(context.prs.slide_layouts[6])
+    # -- snapshot source state so we can check it wasn't mutated --
+    context.src_shape_ids_before = [s.shape_id for s in context.source_slide.shapes]
+    context.src_non_placeholder_count = sum(
+        1 for s in context.source_slide.shapes if not s.is_placeholder
+    )
+
+
+@when("I call target_slide.clone_shapes_from(source_slide)")
+def when_call_clone_shapes_from_default(context):
+    context.tgt_tree_count_before = len(context.target_slide.shapes)
+    context.target_slide.clone_shapes_from(context.source_slide)
+
+
+@when("I call target_slide.clone_shapes_from(source_slide, include_placeholders=False)")
+def when_call_clone_shapes_from_no_placeholders(context):
+    context.tgt_ph_count_before = len(list(context.target_slide.placeholders))
+    context.tgt_tree_count_before = len(context.target_slide.shapes)
+    context.target_slide.clone_shapes_from(context.source_slide, include_placeholders=False)
+
+
+@then("target_slide.shapes contains a clone of every source shape")
+def then_target_has_clone_of_every_source_shape(context):
+    # -- non-placeholder shapes cloned onto target; blank target has none of
+    # -- source's placeholder idxs, so placeholder text copying is a no-op.
+    added = len(context.target_slide.shapes) - context.tgt_tree_count_before
+    expected = context.src_non_placeholder_count
+    assert added == expected, f"expected {expected} non-placeholder clones, got {added}"
+
+
+@then("target_slide shape ids are unique")
+def then_target_shape_ids_are_unique(context):
+    tgt_ids = [s.shape_id for s in context.target_slide.shapes]
+    assert len(tgt_ids) == len(set(tgt_ids)), f"duplicate shape ids on target: {tgt_ids!r}"
+
+
+@then("source_slide shapes are unchanged")
+def then_source_slide_unchanged(context):
+    src_ids_after = [s.shape_id for s in context.source_slide.shapes]
+    src_ids_before = context.src_shape_ids_before
+    assert (
+        src_ids_after == src_ids_before
+    ), f"source shape ids changed: before={src_ids_before!r} after={src_ids_after!r}"
+
+
+@then("target_slide has no placeholders cloned from the source")
+def then_target_no_placeholder_clones(context):
+    # -- placeholder count unchanged on target when include_placeholders=False --
+    tgt_ph_count_after = len(list(context.target_slide.placeholders))
+    assert tgt_ph_count_after == context.tgt_ph_count_before
+    # -- only the non-placeholder source shapes were cloned --
+    added = len(context.target_slide.shapes) - context.tgt_tree_count_before
+    assert added == context.src_non_placeholder_count

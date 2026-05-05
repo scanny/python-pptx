@@ -582,6 +582,124 @@ class DescribeSlide(object):
 
         assert len(slide.shapes) == 0
 
+    def it_can_clone_every_shape_from_another_slide(self):
+        # -- CLO-1: clones every non-placeholder shape from source onto target
+        from pptx import Presentation as _Presentation
+        from pptx.enum.shapes import MSO_CONNECTOR_TYPE, MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = _Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[6])  # blank
+        tgt = prs.slides.add_slide(prs.slide_layouts[6])
+
+        src.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+        src.shapes.add_textbox(Inches(1), Inches(3), Inches(2), Inches(1))
+        src.shapes.add_connector(
+            MSO_CONNECTOR_TYPE.STRAIGHT, Inches(1), Inches(5), Inches(3), Inches(5)
+        )
+        src_ids_before = [s.shape_id for s in src.shapes]
+
+        result = tgt.clone_shapes_from(src)
+
+        assert result is None  # -- mutation method returns None --
+        # -- every source shape transferred onto target --
+        assert len(tgt.shapes) == len(src.shapes) == 3
+        # -- target shape-ids are unique (none collide) --
+        tgt_ids = [s.shape_id for s in tgt.shapes]
+        assert len(tgt_ids) == len(set(tgt_ids))
+        # -- source was not mutated (same id list, same count) --
+        assert [s.shape_id for s in src.shapes] == src_ids_before
+
+    def it_preserves_source_zorder_when_cloning_shapes(self):
+        from pptx import Presentation as _Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = _Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[6])
+        tgt = prs.slides.add_slide(prs.slide_layouts[6])
+        # -- distinct top positions let us recognise each clone by geometry --
+        src.shapes.add_shape(MSO_SHAPE.OVAL, Inches(1), Inches(1), Inches(1), Inches(1))
+        src.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(2), Inches(2), Inches(1), Inches(1))
+        src.shapes.add_shape(
+            MSO_SHAPE.ISOSCELES_TRIANGLE, Inches(3), Inches(3), Inches(1), Inches(1)
+        )
+        src_tops = [s.top for s in src.shapes]
+
+        tgt.clone_shapes_from(src)
+
+        # -- target's shapes appear in the same document (z-order) as source --
+        assert [s.top for s in tgt.shapes] == src_tops
+
+    def it_skips_placeholders_when_include_placeholders_is_False(self):
+        from pptx import Presentation as _Presentation
+        from pptx.enum.shapes import MSO_SHAPE
+        from pptx.util import Inches
+
+        prs = _Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[0])  # has title + subtitle
+        tgt = prs.slides.add_slide(prs.slide_layouts[0])
+        # -- fill the title so we can confirm later that text did NOT transfer --
+        title = src.shapes.title
+        assert title is not None
+        title.text_frame.text = "SRC-TITLE"
+        src.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(4), Inches(2), Inches(1)
+        )
+
+        tgt_ph_count_before = len(list(tgt.placeholders))
+        tgt_tree_count_before = len(tgt.shapes)
+        tgt_title = tgt.shapes.title
+        assert tgt_title is not None
+        tgt_title_text_before = tgt_title.text_frame.text
+
+        tgt.clone_shapes_from(src, include_placeholders=False)
+
+        # -- only the non-placeholder autoshape should have been cloned --
+        assert len(tgt.shapes) == tgt_tree_count_before + 1
+        # -- placeholder count unchanged (no new placeholders created) --
+        assert len(list(tgt.placeholders)) == tgt_ph_count_before
+        # -- target title text is unchanged --
+        assert tgt.shapes.title is not None
+        assert tgt.shapes.title.text_frame.text == tgt_title_text_before
+
+    def it_copies_placeholder_text_into_same_idx_placeholder(self):
+        from pptx import Presentation as _Presentation
+
+        prs = _Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[0])  # Title layout
+        tgt = prs.slides.add_slide(prs.slide_layouts[0])
+        src_title = src.shapes.title
+        assert src_title is not None
+        src_title.text_frame.text = "Source Title"
+
+        tgt.clone_shapes_from(src)  # include_placeholders=True by default
+
+        tgt_title = tgt.shapes.title
+        assert tgt_title is not None
+        # -- source title's text body was cloned onto matching-idx placeholder --
+        assert tgt_title.text_frame.text == "Source Title"
+        # -- source is unchanged --
+        assert src_title.text_frame.text == "Source Title"
+
+    def it_is_a_noop_on_placeholder_when_target_has_no_matching_idx(self):
+        from pptx import Presentation as _Presentation
+
+        prs = _Presentation()
+        # -- source has a title placeholder, target (blank layout) does not --
+        src = prs.slides.add_slide(prs.slide_layouts[0])
+        tgt = prs.slides.add_slide(prs.slide_layouts[6])  # blank
+        assert src.shapes.title is not None
+        src.shapes.title.text_frame.text = "Lost"
+
+        tgt_tree_count_before = len(tgt.shapes)
+        tgt.clone_shapes_from(src)  # include_placeholders=True
+
+        # -- no new shapes created for missing-idx placeholder --
+        assert len(tgt.shapes) == tgt_tree_count_before
+
     def it_provides_selection_pane_equivalent_traversal(self):
         # --- issue #532: shape_tree_flat yields every shape on the slide,
         # --- including descendants of any group, in z-order.

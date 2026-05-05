@@ -116,6 +116,20 @@ Feature: slide properties
      Then slide.shapes is a SlideShapes object
 
 
+  Scenario: Slide.clone_shapes_from clones every non-placeholder shape
+    Given a fresh presentation with a source slide and a blank target slide
+     When I call target_slide.clone_shapes_from(source_slide)
+     Then target_slide.shapes contains a clone of every source shape
+      And target_slide shape ids are unique
+      And source_slide shapes are unchanged
+
+
+  Scenario: Slide.clone_shapes_from skips placeholders when asked
+    Given a fresh presentation with a source slide and a blank target slide
+     When I call target_slide.clone_shapes_from(source_slide, include_placeholders=False)
+     Then target_slide has no placeholders cloned from the source
+
+
   Scenario: Slide.placeholders
     Given a slide
      Then slide.placeholders is a SlidePlaceholders object

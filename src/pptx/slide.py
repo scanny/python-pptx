@@ -481,6 +481,64 @@ class Slide(_BaseSlide):
         """
         self.shapes.clear(preserve_placeholders=preserve_placeholders)
 
+    def clone_shapes_from(self, other_slide: Slide, include_placeholders: bool = True) -> None:
+        """Clone every top-level shape from `other_slide` onto this slide.
+
+        Walks `other_slide.shapes` in document (z-order) and appends a deep
+        copy of each shape to this slide's shape tree via
+        :meth:`.BaseShape.clone_onto`. Every referenced package part (image
+        blobs, chart parts, OLE payloads, SmartArt four-part subgraphs,
+        3D-model media, hyperlinks) is re-embedded on this slide's package
+        so the result is fully self-contained, and each clone's
+        ``cNvPr/@id`` and ``cNvPr/@name`` are made unique against this
+        slide's shape tree. Source-slide z-order is preserved.
+
+        Placeholders are handled separately because CLO-2
+        (:meth:`.BaseShape.clone_onto`) raises ``NotImplementedError`` on
+        placeholders — a placeholder's ``idx`` is inherited from its layout
+        and duplicating the element would break the "one shape per idx"
+        invariant. When ``include_placeholders`` is ``True`` (the default),
+        each placeholder's text body is deep-copied onto this slide's
+        matching-``idx`` placeholder (when one exists) one paragraph at a
+        time via :meth:`._Paragraph.clone_from`, so run-level formatting
+        transfers. When this slide has no placeholder with the same ``idx``
+        the source placeholder is skipped (no new placeholder is created).
+        Non-text placeholder content (e.g. a picture placeholder's image)
+        is *not* cloned in this MVP; only the text body transfers. When
+        ``include_placeholders`` is ``False`` every placeholder on the
+        source slide is skipped entirely.
+
+        `other_slide` is not mutated. Returns ``None`` — this is a
+        mutation method on ``self``.
+
+        .. versionadded:: 2026.05.0
+        """
+        for shape in other_slide.shapes:
+            if shape.is_placeholder:
+                if not include_placeholders:
+                    continue
+                # -- placeholders can't go through clone_onto (CLO-2 raises);
+                # -- fall back to per-paragraph text-body clone when this
+                # -- slide has a matching-idx placeholder.
+                try:
+                    src_idx = shape.placeholder_format.idx
+                except ValueError:  # pragma: no cover -- defensive
+                    continue
+                tgt_ph = next(
+                    (p for p in self.placeholders if p.placeholder_format.idx == src_idx),
+                    None,
+                )
+                if tgt_ph is None or not shape.has_text_frame or not tgt_ph.has_text_frame:
+                    continue
+                # -- ``text_frame`` only exists on subclasses that override
+                # -- ``has_text_frame`` to True (i.e. ``Shape`` and placeholder
+                # -- subclasses); narrow the base-class type here.
+                src_tf = cast("TextFrame", getattr(shape, "text_frame"))
+                tgt_tf = cast("TextFrame", getattr(tgt_ph, "text_frame"))
+                _clone_text_frame(src_tf, tgt_tf)
+                continue
+            shape.clone_onto(self.shapes)
+
     @property
     def shape_tree_flat(self) -> Iterator[BaseShape]:
         """Iterator over every shape on this slide, including descendants of groups.
@@ -2617,6 +2675,33 @@ class _EffectiveBackground:
         if bgPr is None:
             return None
         return FillFormat.from_fill_parent(bgPr, self._owner)
+
+
+def _clone_text_frame(src: TextFrame, tgt: TextFrame) -> None:
+    """Replace `tgt`'s paragraph content with deep-copies of `src`'s paragraphs.
+
+    Clears every paragraph on `tgt` and appends a fresh paragraph for each
+    paragraph on `src`, calling :meth:`._Paragraph.clone_from` to deep-copy
+    the source paragraph's ``a:pPr``, runs, and ``a:endParaRPr`` onto the
+    new paragraph. Used by :meth:`.Slide.clone_shapes_from` to transfer a
+    placeholder's text body without going through the placeholder element
+    itself (which can't be cloned via :meth:`.BaseShape.clone_onto`).
+
+    Works across text frames, slides, and presentations — each paragraph is
+    deep-copied so the source and target remain fully independent after the
+    call returns.
+    """
+    # -- clear `tgt` down to one empty paragraph so we can overwrite that
+    # -- one with the first source paragraph, then append the rest.
+    tgt.clear()
+    src_paragraphs = src.paragraphs
+    if not src_paragraphs:  # pragma: no cover -- a TextFrame always has >=1 `a:p`
+        return
+    # -- after `clear()`, tgt has exactly one `a:p`; reuse it for paragraph 0 --
+    tgt.paragraphs[0].clone_from(src_paragraphs[0])
+    for src_p in src_paragraphs[1:]:
+        new_p = tgt.add_paragraph()
+        new_p.clone_from(src_p)
 
 
 def _parse_theme_element(theme_part: Part) -> BaseOxmlElement | None:
