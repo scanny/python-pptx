@@ -31,6 +31,8 @@ from pptx.text.layout import TextFitter
 from pptx.util import Centipoints, Emu, Length, Pt, lazyproperty
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from pptx.dml.color import ColorFormat, RGBColor
     from pptx.enum.dml import MSO_THEME_COLOR
     from pptx.enum.text import (
@@ -2158,6 +2160,45 @@ class _Paragraph(Subshape):
             self._element.remove(elm)
         return self
 
+    def clone_from(self, other: _Paragraph) -> Self:
+        """Replace this paragraph's formatting and content with a deep copy of `other`.
+
+        The entire `a:p` child tree is rebuilt to match `other` at the XML level:
+
+        * any existing ``a:pPr`` on this paragraph is replaced with a deep-copy
+          of ``other``'s ``a:pPr`` (so level, alignment, indent, margins, line
+          spacing, space before/after, bullet / auto-number — everything carried
+          on ``a:pPr`` — transfers unchanged);
+        * any existing runs, line-breaks, fields, or inline
+          ``mc:AlternateContent`` wrappers (e.g. math equations) on this
+          paragraph are removed, and deep-copies of ``other``'s content children
+          are appended in document order (preserving ``a:r`` / ``a:br`` /
+          ``a:fld`` / ``mc:AlternateContent`` exactly as they appear on the
+          source);
+        * any existing ``a:endParaRPr`` is replaced by a deep-copy of
+          ``other``'s when present, else removed.
+
+        Works across text frames — ``other`` may live on a different paragraph,
+        shape, slide, or presentation. The deep-copy means the two paragraphs
+        are fully independent afterwards; subsequent edits to one do not affect
+        the other. Returns ``self`` to support chaining. Complements the
+        narrower :meth:`.Font.copy_from`, which handles run-level character
+        properties only.
+
+        .. versionadded:: 2026.05.0
+        """
+        src_p = other._p
+        dst_p = self._p
+        # -- remove every child so we can rebuild in document order --
+        for child in list(dst_p):
+            dst_p.remove(child)
+        # -- deep-copy children of the source paragraph in order; this covers
+        # -- a:pPr, a:r, a:br, a:fld, mc:AlternateContent, a:endParaRPr and
+        # -- any other namespaced children PowerPoint may have written.
+        for child in src_p:
+            dst_p.append(deepcopy(child))
+        return self
+
     def delete(self) -> None:
         """Remove this paragraph from its containing text frame.
 
@@ -2387,6 +2428,46 @@ class _Run(Subshape):
     def __init__(self, r: CT_RegularTextRun, parent: ProvidesPart):
         super(_Run, self).__init__(parent)
         self._r = r
+
+    def clone_from(self, other: _Run) -> Self:
+        """Replace this run's character formatting and text with a deep copy of `other`.
+
+        The run's ``a:rPr`` is replaced with a deep-copy of ``other``'s
+        ``a:rPr`` (so every explicit character property — bold, italic,
+        underline, strikethrough, baseline, size, fonts, solid-fill colour,
+        highlight, caps, language id, hyperlink marker, and every other child
+        of ``a:rPr``) transfers unchanged. When ``other`` carries no ``a:rPr``
+        any existing ``a:rPr`` on this run is removed so the two rPrs match at
+        the XML level. The run's text (the ``a:t`` child's content) is also
+        copied from ``other``.
+
+        Works across paragraphs and text frames — ``other`` may live in a
+        different paragraph, shape, slide, or presentation. Complements the
+        narrower :meth:`.Font.copy_from`, which copies a curated set of
+        character properties; ``clone_from`` is the "full run" clone and
+        picks up every ``a:rPr`` child, including Wave-era additions
+        (``a:solidFill``, ``a:highlight``, ``a:hlinkClick``, baseline shift,
+        ``a:latin`` / ``a:ea`` / ``a:cs``, etc.). Returns ``self`` to support
+        chaining.
+
+        .. versionadded:: 2026.05.0
+        """
+        src_r = other._r
+        dst_r = self._r
+        # -- replace rPr: remove any existing, then insert a deep-copy of the
+        # -- source's rPr (when present) before a:t so schema order is preserved.
+        dst_rPr = dst_r.rPr
+        if dst_rPr is not None:
+            dst_r.remove(dst_rPr)
+        src_rPr = src_r.rPr
+        if src_rPr is not None:
+            # -- a:rPr always precedes a:t in a:r; insert at index 0 --
+            dst_r.insert(0, deepcopy(src_rPr))
+        # -- copy the run text (a:t/text contents). Use the raw a:t element so
+        # -- we bypass CT_RegularTextRun.text.setter's control-char escaping;
+        # -- the source text is already escaped (or not) as it should be.
+        dst_r.t.text = src_r.t.text
+        return self
 
     def delete(self) -> None:
         """Remove this run from its containing paragraph.

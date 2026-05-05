@@ -16,6 +16,22 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- Add ``_Paragraph.clone_from(other)`` and ``_Run.clone_from(other)``
+  for per-paragraph / per-run formatting clone. ``_Paragraph.clone_from``
+  deep-copies the source paragraph's ``a:pPr`` (level, alignment, indent,
+  margins, bullet / auto-number, spacing) and replaces the destination's
+  run children with deep-copies of the source's — preserving ``a:r``,
+  ``a:br``, ``a:fld``, and inline ``mc:AlternateContent`` wrappers (e.g.
+  math equations) — plus ``a:endParaRPr`` when present.
+  ``_Run.clone_from`` deep-copies the source run's entire ``a:rPr`` (every
+  explicit character property including ``a:solidFill``, ``a:highlight``,
+  baseline shift, strikethrough, ``a:hlinkClick`` marker, and every other
+  rPr child) and its text. Both methods are deep-copy (sources stay
+  intact, destinations are independent afterwards), work across text
+  frames / slides / presentations, and return ``self`` for chaining.
+  Complements the narrower :meth:`.Font.copy_from`. See
+  ``docs/user/text.rst`` ("Cloning paragraph/run formatting").
+
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``
   auto-skips when the sibling ``../ooxml-reference-corpus/`` checkout

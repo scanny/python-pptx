@@ -2979,6 +2979,149 @@ class Describe_Paragraph(object):
         with pytest.raises(TypeError, match="must be str"):
             paragraph.write_rich((123, {}))
 
+    # -- clone_from (CLO-6) ---------------------------------------------
+
+    def it_returns_self_from_clone_from_for_chaining(self):
+        src = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        result = dst.clone_from(src)
+
+        assert result is dst
+
+    def it_deep_copies_pPr_preserving_level_alignment_and_indent(self):
+        src_cxml = "a:p/a:pPr{lvl=3,algn=ctr,indent=457200,marL=914400}"
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        dst.clone_from(src)
+
+        assert dst.level == 3
+        assert dst.alignment == PP_ALIGN.CENTER
+        assert dst._p.pPr is not None
+        # -- the cloned pPr must be a different element than the source's --
+        assert dst._p.pPr is not src._p.pPr
+
+    def it_preserves_bullet_settings_when_cloning_a_paragraph(self):
+        src_cxml = "a:p/a:pPr{lvl=1}/a:buAutoNum{type=arabicPeriod,startAt=3}"
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        dst.clone_from(src)
+
+        assert dst.level == 1
+        assert dst.bullet.type == "autonum"
+        assert dst.bullet.number_scheme == PP_AUTO_NUMBER.ARABIC_PERIOD
+        assert dst.bullet.start_at == 3
+
+    def it_replaces_existing_pPr_when_cloning(self):
+        src_cxml = "a:p/a:pPr{lvl=2,algn=r}"
+        dst_cxml = "a:p/a:pPr{lvl=5,algn=l}"
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element(dst_cxml)), None)
+
+        dst.clone_from(src)
+
+        assert dst.level == 2
+        assert dst.alignment == PP_ALIGN.RIGHT
+
+    def it_replaces_runs_with_deep_copies_of_source_runs(self):
+        src_cxml = 'a:p/(a:r/a:t"foo",a:r/a:t"bar")'
+        dst_cxml = 'a:p/a:r/a:t"orig"'
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element(dst_cxml)), None)
+
+        dst.clone_from(src)
+
+        assert len(dst._p.r_lst) == 2
+        assert dst._p.r_lst[0].text == "foo"
+        assert dst._p.r_lst[1].text == "bar"
+        # -- deep copy: cloned run elements are distinct from source --
+        assert dst._p.r_lst[0] is not src._p.r_lst[0]
+
+    def it_preserves_line_breaks_and_fields_when_cloning(self):
+        src_cxml = 'a:p/(a:r/a:t"foo",a:br,a:fld{id=1,type=slidenum}/a:t"#")'
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        dst.clone_from(src)
+
+        # -- a:r / a:br / a:fld all survive and stay in document order --
+        children = list(dst._p)
+        tags = [child.tag for child in children]
+        assert tags == [qn("a:r"), qn("a:br"), qn("a:fld")]
+
+    def it_preserves_mc_AlternateContent_wrappers(self):
+        from pptx.oxml import parse_xml
+
+        src_xml = (
+            '<a:p xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'
+            ' xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
+            "<a:r><a:t>before</a:t></a:r>"
+            '<mc:AlternateContent><mc:Choice Requires="a14"'
+            ' xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main">'
+            "<a14:m/></mc:Choice><mc:Fallback><a:r><a:t>fb</a:t></a:r>"
+            "</mc:Fallback></mc:AlternateContent></a:p>"
+        )
+        src = _Paragraph(cast("CT_TextParagraph", parse_xml(src_xml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        dst.clone_from(src)
+
+        assert dst._p.find(qn("mc:AlternateContent")) is not None
+
+    def it_copies_endParaRPr_when_present(self):
+        src_cxml = "a:p/a:endParaRPr{lang=en-US,sz=2400,b=1}"
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        dst.clone_from(src)
+
+        assert dst._p.endParaRPr is not None
+        assert dst._p.endParaRPr.get("sz") == "2400"
+        assert dst._p.endParaRPr.get("b") == "1"
+
+    def it_removes_endParaRPr_when_source_has_none(self):
+        src = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p/a:endParaRPr{sz=2400}")), None)
+
+        dst.clone_from(src)
+
+        assert dst._p.endParaRPr is None
+
+    def it_does_not_mutate_source_paragraph_when_cloning(self):
+        src_cxml = 'a:p/(a:pPr{lvl=2,algn=ctr},a:r/a:t"foo")'
+        src_p = element(src_cxml)
+        snapshot = src_p.xml
+        src = _Paragraph(cast("CT_TextParagraph", src_p), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element('a:p/a:r/a:t"orig"')), None)
+
+        dst.clone_from(src)
+
+        assert src_p.xml == snapshot
+
+    def it_cloned_paragraph_is_independent_of_source_after_clone(self):
+        src_cxml = "a:p/a:pPr{lvl=1,algn=ctr}"
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element("a:p")), None)
+
+        dst.clone_from(src)
+        # -- mutating the source must not affect the clone --
+        src.level = 5
+        src.alignment = PP_ALIGN.RIGHT
+
+        assert dst.level == 1
+        assert dst.alignment == PP_ALIGN.CENTER
+
+    def it_yields_equivalent_xml_after_clone_from(self):
+        src_cxml = 'a:p/(a:pPr{lvl=2,algn=ctr},a:r/(a:rPr{b=1},a:t"hi"),a:endParaRPr{sz=2000})'
+        src = _Paragraph(cast("CT_TextParagraph", element(src_cxml)), None)
+        dst = _Paragraph(cast("CT_TextParagraph", element('a:p/(a:pPr{lvl=9},a:r/a:t"x")')), None)
+
+        dst.clone_from(src)
+
+        assert dst._p.xml == src._p.xml
+
     # fixtures ---------------------------------------------
 
     @pytest.fixture(
@@ -3655,6 +3798,123 @@ class Describe_Run(object):
         run.delete()
 
         assert p.xml == xml(expected_cxml)
+
+    # -- clone_from (CLO-6) ---------------------------------------------
+
+    def it_returns_self_from_clone_from_for_chaining(self):
+        src = _Run(element('a:r/a:t"src"'), None)
+        dst = _Run(element('a:r/a:t"dst"'), None)
+
+        result = dst.clone_from(src)
+
+        assert result is dst
+
+    def it_clones_bold_italic_underline_size_from_source_rPr(self):
+        src_cxml = 'a:r/(a:rPr{b=1,i=1,u=dbl,sz=2800},a:t"body")'
+        dst = _Run(element('a:r/a:t"dst"'), None)
+        src = _Run(element(src_cxml), None)
+
+        dst.clone_from(src)
+
+        assert dst.font.bold is True
+        assert dst.font.italic is True
+        assert dst.font.underline is MSO_UNDERLINE.DOUBLE_LINE
+        assert dst.font.size == Pt(28)
+        assert dst.text == "body"
+
+    def it_clones_solid_fill_color_from_source_rPr(self):
+        src_cxml = 'a:r/(a:rPr/a:solidFill/a:srgbClr{val=2E74B5},a:t"hello")'
+        dst = _Run(element('a:r/a:t"orig"'), None)
+        src = _Run(element(src_cxml), None)
+
+        dst.clone_from(src)
+
+        assert dst.font.color.rgb == RGBColor(0x2E, 0x74, 0xB5)
+
+    def it_clones_highlight_baseline_and_strike(self):
+        src_cxml = (
+            "a:r/(a:rPr{baseline=30000,strike=dblStrike}/a:highlight/"
+            'a:srgbClr{val=FFFF00},a:t"shift")'
+        )
+        dst = _Run(element('a:r/a:t"orig"'), None)
+        src = _Run(element(src_cxml), None)
+
+        dst.clone_from(src)
+
+        assert dst.font.baseline == 30000
+        assert dst.font.strikethrough is MSO_STRIKE.DOUBLE_LINE
+        assert dst.font.highlight_color.rgb == RGBColor(0xFF, 0xFF, 0x00)
+        assert dst.text == "shift"
+
+    def it_clones_text_content(self):
+        src = _Run(element('a:r/a:t"SURFACE"'), None)
+        dst = _Run(element('a:r/a:t"old"'), None)
+
+        dst.clone_from(src)
+
+        assert dst.text == "SURFACE"
+
+    def it_replaces_existing_rPr_with_source_rPr(self):
+        src = _Run(element('a:r/(a:rPr{b=1,sz=1800},a:t"x")'), None)
+        dst = _Run(element('a:r/(a:rPr{i=1,sz=2400},a:t"y")'), None)
+
+        dst.clone_from(src)
+
+        assert dst.font.bold is True
+        assert dst.font.italic is None
+        assert dst.font.size == Pt(18)
+
+    def it_removes_rPr_when_source_has_none(self):
+        src = _Run(element('a:r/a:t"plain"'), None)
+        dst = _Run(element('a:r/(a:rPr{b=1},a:t"styled")'), None)
+
+        dst.clone_from(src)
+
+        assert dst._r.rPr is None
+        assert dst.text == "plain"
+
+    def it_does_not_mutate_source_run_when_cloning(self):
+        src_cxml = 'a:r/(a:rPr{b=1}/a:solidFill/a:srgbClr{val=FF6600},a:t"keep")'
+        src_r = element(src_cxml)
+        snapshot = src_r.xml
+        src = _Run(src_r, None)
+        dst = _Run(element('a:r/a:t"scratch"'), None)
+
+        dst.clone_from(src)
+
+        assert src_r.xml == snapshot
+
+    def it_cloned_run_is_independent_of_source_after_clone(self):
+        src = _Run(element('a:r/(a:rPr{b=1},a:t"hi")'), None)
+        dst = _Run(element('a:r/a:t"x"'), None)
+
+        dst.clone_from(src)
+        # -- mutating the source must not affect the clone --
+        src.font.bold = False
+        src.text = "changed"
+
+        assert dst.font.bold is True
+        assert dst.text == "hi"
+
+    def it_yields_equivalent_xml_after_clone_from(self):
+        from pptx.oxml import parse_xml
+
+        src_xml = (
+            '<a:r xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+            '<a:rPr b="1" i="1" sz="2400" baseline="30000">'
+            '<a:solidFill><a:srgbClr val="2E74B5"/></a:solidFill>'
+            '<a:highlight><a:srgbClr val="FFFF00"/></a:highlight>'
+            '<a:latin typeface="Calibri"/>'
+            "</a:rPr>"
+            "<a:t>payload</a:t>"
+            "</a:r>"
+        )
+        src = _Run(parse_xml(src_xml), None)
+        dst = _Run(element('a:r/a:t"x"'), None)
+
+        dst.clone_from(src)
+
+        assert dst._r.xml == src._r.xml
 
     # fixtures ---------------------------------------------
 
