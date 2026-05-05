@@ -89,13 +89,6 @@ library calls; everything else is narrower but composes with them.
   every cell (delegating per-cell to CLO-9) + table style +
   header/first-row/banded-rows flags.
 
-- **CLO-11: `GroupShape.clone_onto(shape_tree) -> GroupShape`.**
-  Nominally covered by CLO-2 in the protocol sense, but groups
-  carry nested content that needs correct recursion (each child
-  shape's local transform + the group's own ``chOff`` / ``chExt``
-  viewport). Call out explicitly so the implementation of CLO-2
-  doesn't silently degrade on groups.
-
 - **CLO-12: `SlideShapes.add_picture_from(other_picture, left=None, top=None) -> Picture`.**
   One-call equivalent of "extract blob, re-embed as picture, copy
   spPr". Saves the ``BytesIO(other.image.blob)`` dance and
@@ -107,6 +100,20 @@ library calls; everything else is narrower but composes with them.
 
 
 ## Done
+
+- **CLO-11: `GroupShape.clone_onto` correctness verified.**
+  CLO-2 (``BaseShape.clone_onto``) already handled groups correctly —
+  this task added a dedicated regression suite confirming it. Covered
+  by ``tests/test_clo11_group_clone.py`` (9 pytest tests) and five new
+  scenarios in ``features/shp-clone-onto.feature`` exercising: a group
+  of three autoshapes with preserved child positions; nested groups
+  with every descendant surviving and unique fresh ids; a group
+  containing a picture re-embedding its image blob; a group containing
+  a chart with every ``r:id`` resolving on the target slide-part; an
+  outer-group position override that preserves the child coordinate
+  system (``a:chOff`` / ``a:chExt`` unchanged); plus cross-presentation
+  re-embedding and round-trip save/reload. No production-code changes
+  were needed.
 
 - **CLO-8 (primary deliverable): full-fidelity chart-clone front door.**
   Added ``SlideShapes.add_chart_from(source_chart, left, top,

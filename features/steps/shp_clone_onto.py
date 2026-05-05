@@ -191,3 +191,185 @@ def then_clone_group_fresh_id(context):
 def then_clone_position(context):
     assert context.clone.left == Inches(3)
     assert context.clone.top == Inches(4)
+
+
+# ---------- CLO-11: group-clone regression scenarios ---------------------
+
+
+@given("a slide with a group of three autoshapes")
+def given_a_slide_with_a_group_of_three(context):
+    prs = Presentation()
+    context.prs = prs
+    context.src_slide = prs.slides.add_slide(prs.slide_layouts[5])
+    s1 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.OVAL, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
+    s2 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(2), Inches(2), Inches(1), Inches(1)
+    )
+    s3 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(3), Inches(3), Inches(1), Inches(1)
+    )
+    context.src_shape = context.src_slide.shapes.add_group_shape([s1, s2, s3])
+    context.src_child_positions = [
+        (c.left, c.top, c.width, c.height) for c in context.src_shape.shapes
+    ]
+
+
+@given("a slide with a nested group shape")
+def given_a_slide_with_a_nested_group(context):
+    prs = Presentation()
+    context.prs = prs
+    context.src_slide = prs.slides.add_slide(prs.slide_layouts[5])
+    s1 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.OVAL, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
+    s2 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(2), Inches(2), Inches(1), Inches(1)
+    )
+    inner = context.src_slide.shapes.add_group_shape([s1, s2])
+    s3 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(4), Inches(4), Inches(1), Inches(1)
+    )
+    context.src_shape = context.src_slide.shapes.add_group_shape([inner, s3])
+
+
+@given("a slide with a group containing a picture")
+def given_a_slide_with_group_containing_picture(context):
+    prs = Presentation()
+    context.prs = prs
+    context.src_slide = prs.slides.add_slide(prs.slide_layouts[5])
+    pic = context.src_slide.shapes.add_picture(
+        test_image("python-icon.jpeg"), Inches(1), Inches(1)
+    )
+    shp = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(3), Inches(1), Inches(1), Inches(1)
+    )
+    context.src_picture = pic
+    context.src_shape = context.src_slide.shapes.add_group_shape([pic, shp])
+
+
+@given("a slide with a group containing a chart")
+def given_a_slide_with_group_containing_chart(context):
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+
+    prs = Presentation()
+    context.prs = prs
+    context.src_slide = prs.slides.add_slide(prs.slide_layouts[5])
+    cd = CategoryChartData()
+    cd.categories = ["A", "B", "C"]
+    cd.add_series("Series 1", (1, 2, 3))
+    chart_gf = context.src_slide.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(1),
+        Inches(1),
+        Inches(4),
+        Inches(3),
+        cd,
+    )
+    shp = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(5), Inches(1), Inches(1), Inches(1)
+    )
+    context.src_shape = context.src_slide.shapes.add_group_shape([chart_gf, shp])
+
+
+@given("a slide with a group of two autoshapes")
+def given_a_slide_with_group_of_two(context):
+    prs = Presentation()
+    context.prs = prs
+    context.src_slide = prs.slides.add_slide(prs.slide_layouts[5])
+    s1 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.OVAL, Inches(1), Inches(1), Inches(1), Inches(1)
+    )
+    s2 = context.src_slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE, Inches(2), Inches(2), Inches(1), Inches(1)
+    )
+    context.src_shape = context.src_slide.shapes.add_group_shape([s1, s2])
+
+
+@when("I clone the nested group onto the second slide")
+def when_clone_nested_group(context):
+    context.clone = context.src_shape.clone_onto(context.tgt_slide.shapes)
+
+
+@when("I clone the group onto the second slide at (5in, 5in)")
+def when_clone_group_with_pos(context):
+    context.clone = context.src_shape.clone_onto(
+        context.tgt_slide.shapes, left=Inches(5), top=Inches(5)
+    )
+
+
+@then("the clone is a GroupShape containing three autoshapes")
+def then_clone_is_group_of_three(context):
+    assert isinstance(context.clone, GroupShape)
+    assert len(context.clone.shapes) == 3
+
+
+@then("the clone's children have the same relative positions")
+def then_clone_children_same_positions(context):
+    clone_positions = [(c.left, c.top, c.width, c.height) for c in context.clone.shapes]
+    assert clone_positions == context.src_child_positions
+
+
+@then("every descendant shape survives on the clone")
+def then_every_descendant_survives(context):
+    # -- outer(1) + inner(1) + three autoshapes (3) = 5 cNvPrs in total --
+    assert len(context.clone._element.xpath(".//p:cNvPr")) == 5
+    # -- inner nested group still has its two children --
+    inner_clones = [s for s in context.clone.shapes if isinstance(s, GroupShape)]
+    assert len(inner_clones) == 1
+    assert len(inner_clones[0].shapes) == 2
+
+
+@then("every descendant id is unique and fresh")
+def then_every_descendant_id_fresh(context):
+    clone_ids = [
+        int(cnv.get("id")) for cnv in context.clone._element.xpath(".//p:cNvPr")
+    ]
+    src_ids = [
+        int(cnv.get("id")) for cnv in context.src_shape._element.xpath(".//p:cNvPr")
+    ]
+    assert not (set(clone_ids) & set(src_ids))
+    assert len(set(clone_ids)) == len(clone_ids)
+
+
+@then("the cloned group contains a picture with matching image bytes")
+def then_cloned_group_picture(context):
+    pic_clones = [s for s in context.clone.shapes if isinstance(s, Picture)]
+    assert len(pic_clones) == 1
+    assert pic_clones[0].image is not None
+    assert pic_clones[0].image.blob == context.src_picture.image.blob
+
+
+@then("the cloned group contains a chart resolvable on the target part")
+def then_cloned_group_chart(context):
+    chart_in_clone = None
+    for s in context.clone.shapes:
+        if isinstance(s, GraphicFrame) and s.has_chart:
+            chart_in_clone = s
+            break
+    assert chart_in_clone is not None
+    rIds = chart_in_clone._element.xpath(".//@r:id")
+    assert rIds
+    tgt_rels = context.tgt_slide.part.rels
+    for rId in rIds:
+        assert rId in tgt_rels
+
+
+@then("the cloned group is at (5in, 5in)")
+def then_cloned_group_at_5_5(context):
+    assert context.clone.left == Inches(5)
+    assert context.clone.top == Inches(5)
+
+
+@then("the cloned group's child coordinate system is unchanged")
+def then_child_coord_system_unchanged(context):
+    src_xfrm = context.src_shape._element.xfrm
+    clone_xfrm = context.clone._element.xfrm
+    assert src_xfrm is not None
+    assert clone_xfrm is not None
+    assert clone_xfrm.xpath("./a:chOff/@x") == src_xfrm.xpath("./a:chOff/@x")
+    assert clone_xfrm.xpath("./a:chOff/@y") == src_xfrm.xpath("./a:chOff/@y")
+    assert clone_xfrm.xpath("./a:chExt/@cx") == src_xfrm.xpath("./a:chExt/@cx")
+    assert clone_xfrm.xpath("./a:chExt/@cy") == src_xfrm.xpath("./a:chExt/@cy")

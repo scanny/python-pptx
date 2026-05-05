@@ -16,6 +16,17 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- test(shapes): add a dedicated ``GroupShape.clone_onto`` regression suite
+  (CLO-11). ``BaseShape.clone_onto`` already handled group shapes
+  correctly, but the group-specific code paths (child-coordinate-system
+  preservation on an outer-group position override, nested groups,
+  re-embedding a picture or chart that lives inside a cloned group,
+  unique fresh ids on every descendant ``cNvPr``) had no dedicated
+  coverage. Added 9 pytest tests in ``tests/test_clo11_group_clone.py``
+  and 5 behave scenarios in ``features/shp-clone-onto.feature``
+  exercising each angle, including a save/reload round-trip. No
+  production-code changes.
+
 - fix(opc): ``PartRelationshipCloner._get_or_clone_part`` now dispatches
   through ``XmlPart.load`` when cross-package-cloning an XML part (e.g.
   a chart part), instead of calling the ``XmlPart`` constructor directly

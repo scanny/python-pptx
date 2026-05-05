@@ -57,3 +57,37 @@ Feature: BaseShape.clone_onto
       And a second slide in the same presentation
      When I clone the auto-shape onto the second slide at (3in, 4in)
      Then the clone's position is (3in, 4in)
+
+
+  Scenario: Clone a group with three autoshapes preserves child positions
+    Given a slide with a group of three autoshapes
+      And a second slide in the same presentation
+     When I clone the group onto the second slide
+     Then the clone is a GroupShape containing three autoshapes
+      And the clone's children have the same relative positions
+
+  Scenario: Clone a nested group preserves every descendant
+    Given a slide with a nested group shape
+      And a second slide in the same presentation
+     When I clone the nested group onto the second slide
+     Then every descendant shape survives on the clone
+      And every descendant id is unique and fresh
+
+  Scenario: Clone a group containing a picture re-embeds the image
+    Given a slide with a group containing a picture
+      And a second slide in the same presentation
+     When I clone the group onto the second slide
+     Then the cloned group contains a picture with matching image bytes
+
+  Scenario: Clone a group containing a chart re-embeds the chart part
+    Given a slide with a group containing a chart
+      And a second slide in the same presentation
+     When I clone the group onto the second slide
+     Then the cloned group contains a chart resolvable on the target part
+
+  Scenario: Reposition cloned group preserves child coordinate system
+    Given a slide with a group of two autoshapes
+      And a second slide in the same presentation
+     When I clone the group onto the second slide at (5in, 5in)
+     Then the cloned group is at (5in, 5in)
+      And the cloned group's child coordinate system is unchanged
