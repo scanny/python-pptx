@@ -1267,6 +1267,100 @@ def then_slide_2_has_chart_default_size(context):
     assert gf.height == Inches(3)
 
 
+# --- Chart.clone_from (CLO-8 follow-up, in-place chart clone) -------
+
+@given("two charts with embedded workbooks on two different slides")
+def given_two_charts_on_two_slides(context):
+    prs = Presentation()
+    slide1 = prs.slides.add_slide(prs.slide_layouts[5])
+    slide2 = prs.slides.add_slide(prs.slide_layouts[5])
+
+    src_cd = CategoryChartData()
+    src_cd.categories = ["A", "B", "C"]
+    src_cd.add_series("Src", (10.0, 20.0, 30.0))
+    src_gf = slide1.shapes.add_chart(
+        XL_CHART_TYPE.LINE,
+        Inches(1), Inches(1), Inches(5), Inches(3),
+        src_cd,
+    )
+
+    tgt_cd = CategoryChartData()
+    tgt_cd.categories = ["X", "Y", "Z"]
+    tgt_cd.add_series("Tgt", (1.0, 2.0, 3.0))
+    tgt_gf = slide2.shapes.add_chart(
+        XL_CHART_TYPE.BAR_CLUSTERED,
+        Inches(2), Inches(2), Inches(4), Inches(3),
+        tgt_cd,
+    )
+
+    context.prs = prs
+    context.source_chart = src_gf.chart
+    context.target_chart = tgt_gf.chart
+    context.target_gf = tgt_gf
+    context._tgt_partname_before = tgt_gf.chart.part.partname
+    context._tgt_part_before = tgt_gf.chart.part
+    context._src_xlsx_part = src_gf.chart.part.chart_workbook.xlsx_part
+    context._src_chart_type = XL_CHART_TYPE.LINE
+
+
+@when("I call target_chart.clone_from(source_chart)")
+def when_I_call_target_chart_clone_from(context):
+    result = context.target_chart.clone_from(context.source_chart)
+    context._clone_from_result = result
+
+
+@then("the target chart's partname is preserved")
+def then_target_partname_preserved(context):
+    assert context.target_chart.part is context._tgt_part_before
+    assert context.target_chart.part.partname == context._tgt_partname_before
+
+
+@then("the target chart's chart-type matches the source chart")
+def then_target_chart_type_matches_source(context):
+    assert context.target_chart.chart_type == context._src_chart_type
+
+
+@then("the target chart has a distinct embedded xlsx part from the source")
+def then_target_has_distinct_xlsx_part(context):
+    src_xlsx = context._src_xlsx_part
+    tgt_xlsx = context.target_chart.part.chart_workbook.xlsx_part
+    assert src_xlsx is not None
+    assert tgt_xlsx is not None
+    assert src_xlsx is not tgt_xlsx
+
+
+@then("the target chart's workbook bytes equal the source workbook bytes")
+def then_target_workbook_equals_source(context):
+    assert context.target_chart.workbook == context.source_chart.workbook
+
+
+@then("the slide's graphicFrame still references the target chart part")
+def then_gf_still_references_target_chart_part(context):
+    assert context.target_gf.chart.part is context._tgt_part_before
+
+
+@then("the round-tripped presentation still has both charts")
+def then_round_trip_still_has_both_charts(context):
+    import io as _io
+
+    bio = _io.BytesIO()
+    context.prs.save(bio)
+    bio.seek(0)
+    prs2 = Presentation(bio)
+    slides = list(prs2.slides)
+    assert len(slides) == 2
+    gf1 = slides[0].shapes[-1]
+    gf2 = slides[1].shapes[-1]
+    assert gf1.has_chart and gf2.has_chart
+    # -- both charts have their own embedded workbooks --
+    assert gf1.chart.workbook is not None
+    assert gf2.chart.workbook is not None
+    # -- workbook bytes match (source workbook was cloned into target) --
+    assert gf1.chart.workbook == gf2.chart.workbook
+    # -- but distinct parts on reload --
+    assert gf1.chart.part is not gf2.chart.part
+
+
 # --- replace_data_preserve_formulas (issue #239) --------------------
 
 @given("a chart with an embedded workbook and a formula in the last value cell")

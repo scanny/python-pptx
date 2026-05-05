@@ -109,6 +109,28 @@ The underlying primitive, :meth:`~.SlideShapes.clone_chart`, is still
 available and takes positional ``x, y, cx, cy`` arguments without the
 default-size sugar.
 
+Replacing an existing chart's contents in place
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you already have a chart on a slide and want to rewrite it with the
+data + styling of another chart — without disturbing its position, size,
+or the graphic frame referencing it — use :meth:`Chart.clone_from`::
+
+    # `existing_chart` and `source_chart` are each obtained from any slide
+    # of any presentation; both are `Chart` objects.
+    existing_chart.clone_from(source_chart)
+
+The chart's part-name and every slide-side reference to it are preserved
+— only the chart part's contents change. The ``c:chartSpace`` XML is
+deep-copied from ``source_chart`` with every ``r:id`` rewritten against
+freshly-allocated relationships on the target part; the embedded
+``.xlsx`` workbook is re-cloned so PowerPoint's "Edit Data" dialog stays
+wired per-chart. Any user-shapes drawing on the source is cloned along
+with the chart. Same-presentation and cross-presentation sources are
+both supported.
+
+:meth:`Chart.clone_from` returns ``self`` so calls can be chained.
+
 
 XY and Bubble charts
 --------------------

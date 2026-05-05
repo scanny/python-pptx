@@ -85,6 +85,22 @@ Unreleased
   clear diagnostic message; the original ``KeyError`` is preserved via
   ``raise ... from exc`` so traceback diagnostics remain intact.
 
+- feat(CLO-8 follow-up): add ``Chart.clone_from(source_chart) -> Self``
+  — the read-mutate counterpart to the ``SlideShapes.add_chart_from``
+  primary that shipped with the initial CLO-8 wave. Replaces this
+  chart's ``c:chartSpace`` content with a deep clone of ``source_chart``
+  in place: drops every rel referenced from the current chart XML
+  (embedded xlsx, user-shapes drawing, chart images, theme-override,
+  chart-style / chart-colors), deep-copies the source's ``c:chartSpace``
+  with every ``r:id`` / ``r:embed`` / ``r:link`` rewritten against
+  freshly-allocated relationships on this chart's part, re-embeds the
+  source's ``.xlsx`` workbook as an independent copy so PowerPoint's
+  "Edit Data" dialog stays wired per-chart, and preserves the chart
+  part's partname so the enclosing ``p:graphicFrame`` on the slide
+  (and any caller-held references to this ``Chart`` object) remain
+  valid. Returns ``self`` for chaining; ``source_chart`` may live in
+  the same presentation (intra-deck refresh) or a different one
+  (cross-deck refresh).
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape
