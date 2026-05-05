@@ -33,7 +33,7 @@ from pptx.parts.viewprops import ViewPropsPart
 if TYPE_CHECKING:
     from pptx.opc.package import Part
 
-__version__ = "2026.05.1"
+__version__ = "2026.05.2"
 
 sys.modules["pptx.exceptions"] = exceptions
 del sys

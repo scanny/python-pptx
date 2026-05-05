@@ -42,6 +42,15 @@ Closes #2 (vt:date) and documents the DocSecurity extended-property.
   callers, but end users should treat the slide list as the
   authoritative source.
 
+2026.05.2 — Transition.advance_after_seconds alias
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Released: 2026-05-05
+
+- feat(transition): add :attr:`Transition.advance_after_seconds`, a
+  seconds-valued ``float`` alias over the existing milliseconds-valued
+  :attr:`Transition.advance_after_time`.
+
 Unreleased
 ++++++++++
 
