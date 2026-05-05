@@ -405,3 +405,26 @@ Feature: Common shape properties
       | shape-type   |
       | Picture      |
       | GraphicFrame |
+
+
+  Scenario: shape.replace_spPr_from copies visuals but preserves position (autoshape)
+    Given two autoshapes with different fills on a slide as src and tgt
+     When I call tgt.replace_spPr_from(src)
+     Then tgt position and size are unchanged
+      And tgt's fill matches src's fill
+
+  Scenario: shape.replace_spPr_from on a connector copies the line
+    Given two connectors with different line colors on a slide as src and tgt
+     When I call tgt.replace_spPr_from(src)
+     Then tgt's line color matches src's line color
+
+  Scenario: shape.replace_spPr_from on pictures copies outline but keeps position
+    Given two pictures with different line colors on a slide as src and tgt
+     When I call tgt.replace_spPr_from(src)
+     Then tgt position and size are unchanged
+      And tgt's line color matches src's line color
+
+  Scenario: shape.replace_spPr_from raises on a graphic frame
+    Given an autoshape and a graphic-frame on a slide as src and gf
+     Then gf.replace_spPr_from(src) raises ValueError
+      And src.replace_spPr_from(gf) raises ValueError

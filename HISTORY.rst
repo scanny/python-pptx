@@ -16,6 +16,14 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- feat(shapes): add ``BaseShape.replace_spPr_from(other_shape)`` to clone
+  fill, line, effect, and preset-geometry from another shape onto this one
+  while preserving this shape's position by default. Copies the sibling
+  ``p:style`` (theme-style refs) when both shapes have one. Raises
+  ``ValueError`` when either shape lacks a ``p:spPr`` (e.g. graphic frames
+  and group shapes). Pass ``preserve_position=False`` to also copy the
+  source's ``a:xfrm``. Returns ``self`` for chaining. (CLO-3)
+
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``
   auto-skips when the sibling ``../ooxml-reference-corpus/`` checkout

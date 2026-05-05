@@ -395,6 +395,7 @@ prs.save("out.pptx")
 - `BaseShape.delete()` — Remove the shape element from its tree and drop orphan relationships. `[Added in 2026.05.0]`
 - `BaseShape.duplicate()` — Clone this shape in place. `[Added in 2026.05.0]`
 - `BaseShape.replace_with(other_shape)` — Swap this shape for another (geometry + z-order preserved). `[Added in 2026.05.0]`
+- `BaseShape.replace_spPr_from(other_shape, preserve_position=True)` — Clone fill, line, effect, and preset-geometry from `other_shape` onto this shape; this shape's `a:xfrm` is preserved by default so only the visual properties transfer. Also copies the sibling `p:style` (theme-style refs) when both shapes have one. Raises `ValueError` when either shape lacks a `p:spPr` (graphic frames and group shapes). Returns `self` for chaining. `[Added in 2026.05.0]`
 - `BaseShape.bring_forward()` / `.send_backward()` / `.bring_to_front()` / `.send_to_back()` / `.zorder_index` — Z-order mutation. `[Added in 2026.05.0]`
 - `BaseShape.has_chart` / `.has_table` / `.has_text_frame` / `.is_placeholder` — Feature predicates.
 - `BaseShape.has_math_equation` / `.math_equation_xml` — OMML inspection. `[Added in 2026.05.0]`

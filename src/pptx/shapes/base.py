@@ -17,6 +17,8 @@ from pptx.util import Emu, lazyproperty
 if TYPE_CHECKING:
     from typing import Protocol
 
+    from typing_extensions import Self
+
     from pptx.animation import AnimationEffect
     from pptx.enum.animation import MSO_ANIMATION_TRIGGER, MSO_ANIMATION_TYPE
     from pptx.enum.shapes import MSO_SHAPE_TYPE, PP_PLACEHOLDER
@@ -444,6 +446,115 @@ class BaseShape(object):
 
         # -- dispatch to subclass delete() for part-cleanup (e.g. Picture drops image rel) --
         self.delete()
+
+    def replace_spPr_from(
+        self, other_shape: BaseShape, preserve_position: bool = True
+    ) -> Self:
+        """Copy fill, line, effect, and preset-geometry from `other_shape` onto this shape.
+
+        Replaces the visual-properties children of this shape's ``p:spPr`` with
+        deep copies of the corresponding children from `other_shape`'s
+        ``p:spPr``. By default the target shape's ``a:xfrm`` (position and size)
+        is preserved so only the *look* is transferred; pass
+        ``preserve_position=False`` to also copy the ``a:xfrm`` (useful when
+        the caller wants an exact visual clone including position).
+
+        When both shapes have a sibling ``p:style`` (theme-style references),
+        the target's ``p:style`` is replaced with a deep copy of the source's
+        so theme fill/line/effect references travel with the visual properties.
+
+        Returns this shape so calls can be chained.
+
+        Raises :class:`ValueError` if either shape's element does not expose a
+        ``p:spPr`` (e.g. a graphic-frame or a group-shape). Use
+        :meth:`BaseShape.replace_with` when the shapes are of different
+        top-level kinds.
+
+        Example:
+
+            styled = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, 0, 0, 1, 1)
+            styled.fill.solid(); styled.fill.fore_color.rgb = RGBColor(0xFF, 0, 0)
+            target.replace_spPr_from(styled)  # target now has the red fill
+
+        .. versionadded:: 2026.05.0
+        """
+        src_elm = other_shape._element
+        tgt_elm = self._element
+        src_spPr = src_elm.find(qn("p:spPr"))
+        tgt_spPr = tgt_elm.find(qn("p:spPr"))
+        if src_spPr is None or tgt_spPr is None:
+            raise ValueError(
+                "replace_spPr_from requires both shapes to have a p:spPr element;"
+                " graphic-frame and group-shape shapes do not qualify"
+            )
+
+        xfrm_tag = qn("a:xfrm")
+        # -- fills form a single choice group in the schema; any one of these on --
+        # -- the target must be removed when the source specifies any fill.       --
+        fill_tags = frozenset(
+            qn(t)
+            for t in ("a:noFill", "a:solidFill", "a:gradFill", "a:blipFill",
+                      "a:pattFill", "a:grpFill")
+        )
+
+        # -- collect the set of tags being copied in so same-tag targets can be  --
+        # -- removed first. If the source has a fill choice, treat the whole     --
+        # -- group as "incoming" so the target's (different-tag) fill is cleared.--
+        incoming_tags: set[str] = set()
+        src_has_fill = False
+        for child in src_spPr:
+            if child.tag == xfrm_tag:
+                continue
+            incoming_tags.add(child.tag)
+            if child.tag in fill_tags:
+                src_has_fill = True
+        if src_has_fill:
+            incoming_tags |= fill_tags
+        if not preserve_position:
+            incoming_tags.add(xfrm_tag)
+
+        for child in list(tgt_spPr):
+            if child.tag in incoming_tags:
+                tgt_spPr.remove(child)
+
+        # -- deep-copy each source child (in source order, which matches the     --
+        # -- schema sequence) and insert into target at the correct position.    --
+        # -- The `insert_element_before` helper on BaseOxmlElement honors the    --
+        # -- schema's successor set; fall back to append for unknown tags.       --
+        schema_order = (
+            "a:xfrm", "a:custGeom", "a:prstGeom",
+            "a:noFill", "a:solidFill", "a:gradFill", "a:blipFill",
+            "a:pattFill", "a:grpFill",
+            "a:ln", "a:effectLst", "a:effectDag",
+            "a:scene3d", "a:sp3d", "a:extLst",
+        )
+        tag_to_idx = {qn(t): i for i, t in enumerate(schema_order)}
+        for src_child in src_spPr:
+            if src_child.tag == xfrm_tag and preserve_position:
+                continue
+            new_child = copy.deepcopy(src_child)
+            # -- find insertion point: first existing child whose schema index  --
+            # -- is greater than this one's.                                    --
+            idx = tag_to_idx.get(src_child.tag)
+            inserted = False
+            if idx is not None:
+                for i, existing in enumerate(tgt_spPr):
+                    existing_idx = tag_to_idx.get(existing.tag)
+                    if existing_idx is None or existing_idx > idx:
+                        tgt_spPr.insert(i, new_child)
+                        inserted = True
+                        break
+            if not inserted:
+                tgt_spPr.append(new_child)
+
+        # -- also copy the sibling p:style (theme-style refs) when both have one --
+        style_tag = qn("p:style")
+        src_style = src_elm.find(style_tag)
+        tgt_style = tgt_elm.find(style_tag)
+        if src_style is not None and tgt_style is not None:
+            tgt_elm.replace(tgt_style, copy.deepcopy(src_style))
+
+        return cast("Self", self)
 
     def duplicate(self) -> BaseShape:
         """Return a new shape that is a duplicate of this shape.

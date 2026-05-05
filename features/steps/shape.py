@@ -1556,3 +1556,128 @@ def then_group_contains_exactly_one(context, inner_kind):
         assert isinstance(child, Connector)
     else:
         raise AssertionError("unknown inner_kind %r" % inner_kind)
+
+
+# ---- shape.replace_spPr_from() steps ----
+
+
+@given("two autoshapes with different fills on a slide as src and tgt")
+def given_two_autoshapes_with_different_fills(context):
+    from pptx.dml.color import RGBColor
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    src = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1))
+    src.fill.solid()
+    src.fill.fore_color.rgb = RGBColor(0xFF, 0, 0)
+    tgt = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(3), Inches(3), Inches(1), Inches(1))
+    tgt.fill.solid()
+    tgt.fill.fore_color.rgb = RGBColor(0, 0, 0xFF)
+    context.src = src
+    context.tgt = tgt
+    context.tgt_geom = (tgt.left, tgt.top, tgt.width, tgt.height)
+
+
+@given("two connectors with different line colors on a slide as src and tgt")
+def given_two_connectors_with_different_line_colors(context):
+    from pptx.dml.color import RGBColor
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    src = slide.shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, Inches(1), Inches(1), Inches(2), Inches(2)
+    )
+    src.line.color.rgb = RGBColor(0xAB, 0xCD, 0xEF)
+    tgt = slide.shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, Inches(3), Inches(3), Inches(1), Inches(1)
+    )
+    tgt.line.color.rgb = RGBColor(0x11, 0x22, 0x33)
+    context.src = src
+    context.tgt = tgt
+    context.tgt_geom = (tgt.left, tgt.top, tgt.width, tgt.height)
+
+
+@given("two pictures with different line colors on a slide as src and tgt")
+def given_two_pictures_with_different_line_colors(context):
+    from pptx.dml.color import RGBColor
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    img = test_file("python-powered.png")
+    src = slide.shapes.add_picture(img, Inches(1), Inches(1), Inches(2), Inches(1))
+    src.line.color.rgb = RGBColor(0xDE, 0xAD, 0xBE)
+    tgt = slide.shapes.add_picture(img, Inches(3), Inches(3), Inches(1), Inches(1))
+    tgt.line.color.rgb = RGBColor(0x01, 0x02, 0x03)
+    context.src = src
+    context.tgt = tgt
+    context.tgt_geom = (tgt.left, tgt.top, tgt.width, tgt.height)
+
+
+@given("an autoshape and a graphic-frame on a slide as src and gf")
+def given_an_autoshape_and_a_graphicframe(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    src = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1))
+    gf = slide.shapes.add_table(2, 2, Inches(4), Inches(4), Inches(2), Inches(1))
+    context.src = src
+    context.gf = gf
+
+
+@when("I call tgt.replace_spPr_from(src)")
+def when_I_call_tgt_replace_spPr_from_src(context):
+    context.result = context.tgt.replace_spPr_from(context.src)
+
+
+@then("tgt position and size are unchanged")
+def then_tgt_position_and_size_unchanged(context):
+    tgt = context.tgt
+    assert (tgt.left, tgt.top, tgt.width, tgt.height) == context.tgt_geom, (
+        "geometry changed: was %r, now %r"
+        % (context.tgt_geom, (tgt.left, tgt.top, tgt.width, tgt.height))
+    )
+
+
+@then("tgt's fill matches src's fill")
+def then_tgt_fill_matches_src_fill(context):
+    # -- inspect the XML directly because `.fill` is a lazyproperty that --
+    # -- caches a FillFormat tied to the old child element.              --
+    def _fill_color(shape):
+        srgb = shape.element.find(qn("p:spPr") + "/" + qn("a:solidFill") + "/" + qn("a:srgbClr"))
+        return srgb.get("val") if srgb is not None else None
+
+    assert _fill_color(context.tgt) == _fill_color(context.src), (
+        "fill colors differ: tgt=%r src=%r"
+        % (_fill_color(context.tgt), _fill_color(context.src))
+    )
+
+
+@then("tgt's line color matches src's line color")
+def then_tgt_line_color_matches_src_line_color(context):
+    def _line_color(shape):
+        srgb = shape.element.find(
+            qn("p:spPr") + "/" + qn("a:ln") + "/" + qn("a:solidFill") + "/" + qn("a:srgbClr")
+        )
+        return srgb.get("val") if srgb is not None else None
+
+    assert _line_color(context.tgt) == _line_color(context.src), (
+        "line colors differ: tgt=%r src=%r"
+        % (_line_color(context.tgt), _line_color(context.src))
+    )
+
+
+@then("gf.replace_spPr_from(src) raises ValueError")
+def then_gf_replace_spPr_from_src_raises(context):
+    try:
+        context.gf.replace_spPr_from(context.src)
+    except ValueError:
+        return
+    raise AssertionError("gf.replace_spPr_from(src) did not raise")
+
+
+@then("src.replace_spPr_from(gf) raises ValueError")
+def then_src_replace_spPr_from_gf_raises(context):
+    try:
+        context.src.replace_spPr_from(context.gf)
+    except ValueError:
+        return
+    raise AssertionError("src.replace_spPr_from(gf) did not raise")
