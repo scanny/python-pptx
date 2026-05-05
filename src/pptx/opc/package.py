@@ -270,7 +270,6 @@ class OpcPackage(_RelatableMixin):
 
         FlatOpcWriter.write(pkg_file, self._rels, tuple(self.iter_parts()))
 
-
     def _load(self) -> Self:
         """Return the package after loading all parts and relationships."""
         pkg_xml_rels, parts, orphan_partnames = _PackageLoader.load(
@@ -1126,6 +1125,12 @@ class PartRelationshipCloner:
         shallow duplicate: a new Part with a non-colliding partname in the target
         package, the same content-type, and the source part's binary blob.
 
+        XmlPart subclasses (e.g. ``ChartPart``) take a parsed ``element`` in their
+        constructor rather than a ``blob``; they are rebuilt via ``PartClass.load``
+        which parses the serialized XML into a fresh element tree on the target
+        package. Non-XML parts (images, media, embeddings) use the standard ``(
+        partname, content_type, package, blob)`` constructor.
+
         "Shallow" here means relationships *within* `src_target_part` are *not* recursed
         into. Callers that need deep graph cloning (e.g. a chart part that references an
         embedded xlsx) must compose that logic on top of this helper.
@@ -1141,9 +1146,15 @@ class PartRelationshipCloner:
         partname_tmpl = _partname_template_for(src_target_part.partname)
         new_partname = tgt_package.next_partname(partname_tmpl)
         blob = src_target_part.blob
-        cloned = type(src_target_part)(
-            new_partname, src_target_part.content_type, tgt_package, blob
-        )
+        src_cls = type(src_target_part)
+        # -- XmlPart subclasses take a parsed `element`, not a `blob`, in their
+        # -- constructor. Dispatch through `load` which parses the blob into a
+        # -- fresh element tree on the target package. Non-XML parts (ImagePart,
+        # -- MediaPart, ...) use the standard blob-accepting signature. --
+        if issubclass(src_cls, XmlPart):
+            cloned = src_cls.load(new_partname, src_target_part.content_type, tgt_package, blob)
+        else:
+            cloned = src_cls(new_partname, src_target_part.content_type, tgt_package, blob)
         return cloned
 
     def _iter_rIds(self, element: BaseOxmlElement) -> Iterator[str]:

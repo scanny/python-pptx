@@ -64,9 +64,7 @@ class DescribeBaseShape(object):
         ActionSetting_.assert_called_once_with(cNvPr, shape, hover=True)
         assert hover_action is hover_action_
 
-    def it_returns_the_same_hover_action_on_repeated_access(
-        self, ActionSetting_, action_setting_
-    ):
+    def it_returns_the_same_hover_action_on_repeated_access(self, ActionSetting_, action_setting_):
         sp = element("p:sp/p:nvSpPr/p:cNvPr")
         shape = BaseShape(sp, None)
 
@@ -493,15 +491,11 @@ class DescribeBaseShape(object):
         assert (refs.line_ref, refs.fill_ref, refs.effect_ref, refs.font_ref) == expected
 
     def it_returns_None_for_theme_style_refs_on_a_graphicFrame(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None)
         assert shape.theme_style_refs is None
 
     def it_returns_None_for_theme_style_refs_on_a_group_shape(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None)
         assert shape.theme_style_refs is None
 
     def it_can_set_theme_style_refs_on_an_sp(self):
@@ -565,9 +559,7 @@ class DescribeBaseShape(object):
     def it_inserts_p_style_before_txBody_on_an_sp(self):
         from pptx.shapes.base import ThemeStyleRefs
 
-        shape = BaseShape(
-            cast("ShapeElement", element("p:sp/(p:spPr,p:txBody)")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:sp/(p:spPr,p:txBody)")), None)
 
         shape.theme_style_refs = ThemeStyleRefs(1, 2, 3, "major")
 
@@ -578,16 +570,12 @@ class DescribeBaseShape(object):
         assert tags.index(qn("p:spPr")) < tags.index(qn("p:style"))
 
     def it_raises_when_setting_theme_style_refs_on_a_graphicFrame(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None)
         with pytest.raises(ValueError, match="does not support a p:style"):
             shape.theme_style_refs = (1, 2, 3, "minor")
 
     def it_raises_when_setting_theme_style_refs_on_a_group_shape(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None)
         with pytest.raises(ValueError, match="does not support a p:style"):
             shape.theme_style_refs = (1, 2, 3, "minor")
 
@@ -1058,15 +1046,9 @@ class DescribeBaseShape(object):
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
         group = slide.shapes.add_group_shape()
-        s1 = group.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
-        )
-        s2 = group.shapes.add_shape(
-            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
-        )
-        s3 = group.shapes.add_shape(
-            MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
-        )
+        s1 = group.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1))
+        s2 = group.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1))
+        s3 = group.shapes.add_shape(MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1))
 
         assert [s1.zorder_index, s2.zorder_index, s3.zorder_index] == [0, 1, 2]
 
@@ -1091,15 +1073,9 @@ class DescribeBaseShape(object):
 
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
-        s1 = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
-        )
-        s2 = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
-        )
-        s3 = slide.shapes.add_shape(
-            MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
-        )
+        s1 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1))
+        s2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1))
+        s3 = slide.shapes.add_shape(MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1))
         base = slide.shapes.index(s1)
         assert [s1.zorder_index, s2.zorder_index, s3.zorder_index] == [
             base,
@@ -1110,6 +1086,7 @@ class DescribeBaseShape(object):
         s3.send_to_back()
         assert s3.zorder_index == 0
         assert slide.shapes.index(s3) == 0
+
     def it_can_duplicate_an_autoshape(self):
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
@@ -1223,6 +1200,199 @@ class DescribeBaseShape(object):
         assert title is not None
         with pytest.raises(NotImplementedError, match="placeholder"):
             title.duplicate()
+
+    def it_can_clone_an_autoshape_onto_another_slide(self):
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        rect = src.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+        rect.text_frame.text = "hello"
+        tgt_count = len(tgt.shapes)
+
+        clone = rect.clone_onto(tgt.shapes)
+
+        assert isinstance(clone, Shape)
+        assert clone._element is not rect._element
+        assert len(tgt.shapes) == tgt_count + 1
+        assert clone.text_frame.text == "hello"
+        assert clone.left == rect.left
+        assert clone.top == rect.top
+        # -- clone's id must not collide with any existing id on the tgt tree --
+        tgt_ids = [s.shape_id for s in tgt.shapes]
+        assert len(tgt_ids) == len(set(tgt_ids))
+        # -- clone is topmost in z-order on the target tree --
+        assert tgt.shapes[-1]._element is clone._element
+
+    def it_applies_left_top_override_on_clone(self):
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        rect = src.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1))
+
+        clone = rect.clone_onto(tgt.shapes, left=Inches(3), top=Inches(4))
+
+        assert clone.left == Inches(3)
+        assert clone.top == Inches(4)
+        # -- width/height unchanged --
+        assert clone.width == rect.width
+        assert clone.height == rect.height
+
+    def it_can_clone_a_connector(self):
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        conn = src.shapes.add_connector(
+            MSO_CONNECTOR_TYPE.STRAIGHT, Inches(1), Inches(1), Inches(3), Inches(1)
+        )
+
+        clone = cast("Connector", conn.clone_onto(tgt.shapes))
+
+        assert type(clone).__name__ == "Connector"
+        assert clone.begin_x == conn.begin_x
+        assert clone.end_x == conn.end_x
+        # -- different shape-id --
+        assert clone.shape_id != conn.shape_id
+
+    def it_can_clone_a_picture_and_rewires_its_image_rel(self):
+        from tests.unitutil.file import test_file_dir
+
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        pic = src.shapes.add_picture("%s/python-icon.jpeg" % test_file_dir, Inches(1), Inches(1))
+
+        clone = cast("Picture", pic.clone_onto(tgt.shapes))
+
+        assert isinstance(clone, Picture)
+        # -- clone exposes the image (its rId resolves on the target part) --
+        assert clone.image is not None
+        # -- same image bytes (same-package reuse is legitimate) --
+        assert clone.image.blob == pic.image.blob
+
+    def it_reembeds_picture_into_a_different_presentation(self):
+        from tests.unitutil.file import test_file_dir
+
+        prs1 = Presentation()
+        src = prs1.slides.add_slide(prs1.slide_layouts[5])
+        pic = src.shapes.add_picture("%s/python-icon.jpeg" % test_file_dir, Inches(1), Inches(1))
+        prs2 = Presentation()
+        tgt = prs2.slides.add_slide(prs2.slide_layouts[5])
+
+        clone = cast("Picture", pic.clone_onto(tgt.shapes))
+
+        assert clone.image is not None
+        assert clone.image.blob == pic.image.blob
+        # -- the cloned image-part must live on the target package --
+        assert clone.part.package is prs2.part.package
+        # -- source presentation's picture is untouched --
+        assert pic.image.blob is not None
+
+    def it_can_clone_a_graphic_frame_containing_a_table(self):
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        tbl_gf = src.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(3), Inches(1))
+
+        clone = cast("GraphicFrame", tbl_gf.clone_onto(tgt.shapes))
+
+        assert isinstance(clone, GraphicFrame)
+        assert clone.has_table
+        assert clone.shape_id != tbl_gf.shape_id
+
+    def it_can_clone_a_graphic_frame_containing_a_chart(self):
+        from pptx.chart.data import CategoryChartData
+        from pptx.enum.chart import XL_CHART_TYPE
+
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        cd = CategoryChartData()
+        cd.categories = ["A", "B", "C"]
+        cd.add_series("x", (1, 2, 3))
+        gf = src.shapes.add_chart(
+            XL_CHART_TYPE.BAR_CLUSTERED,
+            Inches(1),
+            Inches(1),
+            Inches(4),
+            Inches(3),
+            cd,
+        )
+
+        clone = cast("GraphicFrame", gf.clone_onto(tgt.shapes))
+
+        assert clone.has_chart
+        # -- new rId allocated on target part --
+        clone_rIds = clone._element.xpath(".//@r:id")
+        assert clone_rIds  # -- has at least one @r:id --
+        for rId in clone_rIds:
+            assert rId in tgt.part.rels
+
+    def it_can_clone_a_group_shape(self):
+        from pptx.shapes.group import GroupShape
+
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        grp = src.shapes.add_group_shape()
+        grp.shapes.add_shape(MSO_SHAPE.OVAL, Inches(1), Inches(1), Inches(1), Inches(1))
+        grp.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(2), Inches(2), Inches(1), Inches(1))
+
+        clone = cast("GroupShape", grp.clone_onto(tgt.shapes))
+
+        assert isinstance(clone, GroupShape)
+        # -- every cNvPr in the clone subtree has a fresh id (no source-id re-use) --
+        clone_ids = [int(cNvPr.get("id")) for cNvPr in clone._element.xpath(".//p:cNvPr")]
+        src_ids = [int(cNvPr.get("id")) for cNvPr in grp._element.xpath(".//p:cNvPr")]
+        assert not (set(clone_ids) & set(src_ids))
+
+    def it_clones_onto_the_same_shape_tree(self):
+        # -- same-tree clone_onto yields a fresh shape with unique id/name --
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        rect = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1)
+        )
+
+        clone = rect.clone_onto(slide.shapes, left=Inches(4), top=Inches(4))
+
+        assert clone.shape_id != rect.shape_id
+        assert clone.name != rect.name
+        assert clone.left == Inches(4)
+        assert clone.top == Inches(4)
+
+    def it_raises_when_cloning_a_placeholder(self):
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        title = src.shapes.title
+        assert title is not None
+        with pytest.raises(NotImplementedError, match="placeholder"):
+            title.clone_onto(tgt.shapes)
+
+    def it_survives_round_trip_for_cloned_picture(self):
+        from io import BytesIO
+
+        from tests.unitutil.file import test_file_dir
+
+        prs = Presentation()
+        src = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = prs.slides.add_slide(prs.slide_layouts[5])
+        pic = src.shapes.add_picture("%s/python-icon.jpeg" % test_file_dir, Inches(1), Inches(1))
+        pic.clone_onto(tgt.shapes, left=Inches(2), top=Inches(2))
+
+        buf = BytesIO()
+        prs.save(buf)
+        buf.seek(0)
+        reloaded = Presentation(buf)
+
+        # -- both slides have a picture shape whose image is accessible --
+        pic_counts = [
+            sum(1 for s in sl.shapes if s.shape_type.name == "PICTURE") for sl in reloaded.slides
+        ]
+        assert pic_counts == [1, 1]
+
     @pytest.mark.parametrize(
         ("shape_cxml", "expected_value"),
         [
@@ -1241,9 +1411,7 @@ class DescribeBaseShape(object):
             ("p:graphicFrame/m:oMath", True),
         ],
     )
-    def it_knows_whether_it_contains_an_OMML_equation(
-        self, shape_cxml: str, expected_value: bool
-    ):
+    def it_knows_whether_it_contains_an_OMML_equation(self, shape_cxml: str, expected_value: bool):
         shape_elm = cast("ShapeElement", element(shape_cxml))
         shape = BaseShape(shape_elm, None)
         assert shape.has_math_equation is expected_value
@@ -1276,9 +1444,7 @@ class DescribeBaseShape(object):
         # -- exactly one `<m:oMath` open-tag (the first), not two --
         assert oMath_xml.count("<m:oMath") == 1
 
-    def it_surfaces_an_OMML_equation_on_a_real_slide_regression_892(
-        self
-    ):
+    def it_surfaces_an_OMML_equation_on_a_real_slide_regression_892(self):
         """Regression test for issue #892 ("Support for parsing Equations").
 
         The user-visible request in #892 was "given a .pptx, discover and
@@ -1312,11 +1478,7 @@ class DescribeBaseShape(object):
 
         # -- the #892 "find-equation-in-slide" use case: iterate shapes and
         # -- pull out those that carry an equation --
-        equations = [
-            shape.math_equation_xml
-            for shape in slide.shapes
-            if shape.has_math_equation
-        ]
+        equations = [shape.math_equation_xml for shape in slide.shapes if shape.has_math_equation]
 
         # -- exactly one equation is present in the fixture --
         assert len(equations) == 1
@@ -1325,14 +1487,9 @@ class DescribeBaseShape(object):
         # -- the caller receives a well-formed OMML fragment they can hand to
         # -- an external converter (pandoc, omml.xsl, etc.) --
         assert oMath_xml.startswith("<m:oMath")
-        assert (
-            'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'
-            in oMath_xml
-        )
+        assert 'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"' in oMath_xml
         # -- non-equation shapes on the same slide cleanly report None --
-        non_eq = [
-            shape for shape in slide.shapes if not shape.has_math_equation
-        ]
+        non_eq = [shape for shape in slide.shapes if not shape.has_math_equation]
         assert len(non_eq) >= 1
         for shape in non_eq:
             assert shape.math_equation_xml is None
@@ -1775,12 +1932,8 @@ class DescribeBaseShape_animation(object):
 
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
-        s1 = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
-        )
-        s2 = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
-        )
+        s1 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1))
+        s2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1))
         s1.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
         # -- s2 has no animation bound --
         assert s2.animation is None
@@ -1795,9 +1948,7 @@ class DescribeBaseShape_animation(object):
         shape = slide.shapes.add_shape(
             MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
         )
-        shape.set_animation(
-            MSO_ANIMATION_TYPE.FADE_IN, trigger="onClick", delay=250
-        )
+        shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN, trigger="onClick", delay=250)
         effect = shape.animation
         assert effect is not None
         assert effect.type is MSO_ANIMATION_TYPE.FADE_IN
@@ -1850,9 +2001,7 @@ class DescribeBaseShape_animation(object):
         assert effect.type is MSO_ANIMATION_TYPE.PULSE
         # -- Only one p:spTgt for this shape --
         sld = slide._element
-        matches = sld.xpath(
-            ".//p:spTgt[@spid='%d']" % shape.shape_id
-        )
+        matches = sld.xpath(".//p:spTgt[@spid='%d']" % shape.shape_id)
         assert len(matches) == 1
 
     def it_raises_when_effect_type_is_not_an_enum_member(self):

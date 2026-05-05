@@ -16,6 +16,42 @@ loadfix/python-docx and loadfix/python-xlsx.
 Unreleased
 ++++++++++
 
+- fix(opc): ``PartRelationshipCloner._get_or_clone_part`` now dispatches
+  through ``XmlPart.load`` when cross-package-cloning an XML part (e.g.
+  a chart part), instead of calling the ``XmlPart`` constructor directly
+  with bytes. The constructor expects a parsed element, so the previous
+  code path raised ``TypeError: Type 'bytes' cannot be serialized`` at
+  save time for any cross-package clone of an XML-backed part.
+  Discovered while implementing ``BaseShape.clone_onto`` below; fixes
+  ``GroupShape.duplicate`` and ``SlideShapes.clone_chart`` for the
+  cross-presentation case as a side-effect.
+
+- Add ``BaseShape.clone_onto(shape_tree, left=None, top=None)`` — the
+  keystone cross-tree shape-clone primitive (CLO-2). Deep-copies the
+  source shape (``p:sp`` / ``p:pic`` / ``p:graphicFrame`` / ``p:cxnSp``
+  / ``p:grpSp``) into any target shape tree, re-embeds every referenced
+  package part (image blobs, chart parts, OLE payloads, SmartArt's four
+  ``dgm:relIds`` parts, 3D-model media, hyperlinks) on the target's
+  package via ``PartRelationshipCloner`` plus a SmartArt ``dgm:relIds``
+  pass, rewrites every ``r:id`` / ``r:embed`` / ``r:link`` / ``r:dm`` /
+  ``r:lo`` / ``r:qs`` / ``r:cs`` attribute to new rIds, assigns a fresh
+  unique shape-id (reassigning every descendant id inside a cloned
+  group), generates a unique ``cNvPr/@name`` derived from the source
+  name, and returns the correctly-typed proxy (``Picture``,
+  ``GraphicFrame``, ``GroupShape``, ``Connector``, ``Shape``). Optional
+  ``left`` / ``top`` reposition the clone; on a ``p:grpSp`` the child
+  coordinate system is preserved so nested children keep their relative
+  layout. Same-presentation and cross-presentation targets are both
+  supported — in the cross-package case every referenced part is
+  materialised on the target package. Placeholders raise
+  ``NotImplementedError`` (duplicating a placeholder ``idx`` would
+  break the "one placeholder per idx" slide invariant). Shared-part
+  semantics within a single package match ``PartRelationshipCloner`` —
+  use :meth:`SlideShapes.clone_chart` if you need an independent chart
+  part with its own embedded workbook. Docs:
+  ``docs/user/understanding-shapes.rst``. Clone primitive underpinning
+  the upcoming CLO-1 ``Slide.clone_shapes_from`` wrapper.
+
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``
   auto-skips when the sibling ``../ooxml-reference-corpus/`` checkout
