@@ -860,6 +860,123 @@ class DescribeBaseShape(object):
         with pytest.raises(ValueError, match="other_shape has no parent"):
             old_shape.replace_with(new_shape)
 
+    def it_replaces_spPr_visuals_preserving_position(self):
+        # -- source spPr carries prstGeom=ellipse and a solidFill --
+        src_cxml = (
+            "p:sp/p:spPr/(a:xfrm/(a:off{x=999,y=999},a:ext{cx=999,cy=999}),"
+            "a:prstGeom{prst=ellipse}/a:avLst,"
+            "a:solidFill/a:srgbClr{val=FF0000},"
+            "a:ln/a:solidFill/a:srgbClr{val=00FF00})"
+        )
+        tgt_cxml = (
+            "p:sp/p:spPr/(a:xfrm/(a:off{x=100,y=200},a:ext{cx=300,cy=400}),"
+            "a:prstGeom{prst=rect}/a:avLst,"
+            "a:noFill)"
+        )
+        src = BaseShape(cast("ShapeElement", element(src_cxml)), None)
+        tgt = BaseShape(cast("ShapeElement", element(tgt_cxml)), None)
+
+        result = tgt.replace_spPr_from(src)
+
+        # -- returns self for chaining --
+        assert result is tgt
+        # -- target's xfrm preserved --
+        assert tgt.left == 100
+        assert tgt.top == 200
+        assert tgt.width == 300
+        assert tgt.height == 400
+        spPr = tgt._element.find(qn("p:spPr"))
+        # -- prstGeom replaced by source's --
+        prstGeom = spPr.find(qn("a:prstGeom"))
+        assert prstGeom is not None
+        assert prstGeom.get("prst") == "ellipse"
+        # -- noFill gone, solidFill now present (fill-group replacement) --
+        assert spPr.find(qn("a:noFill")) is None
+        solidFill = spPr.find(qn("a:solidFill"))
+        assert solidFill is not None
+        assert solidFill.find(qn("a:srgbClr")).get("val") == "FF0000"
+        # -- ln copied --
+        ln = spPr.find(qn("a:ln"))
+        assert ln is not None
+        assert ln.find(qn("a:solidFill") + "/" + qn("a:srgbClr")).get("val") == "00FF00"
+
+    def it_can_also_copy_the_xfrm_when_preserve_position_is_False(self):
+        src_cxml = (
+            "p:sp/p:spPr/(a:xfrm/(a:off{x=7,y=8},a:ext{cx=9,cy=10}),"
+            "a:prstGeom{prst=ellipse}/a:avLst)"
+        )
+        tgt_cxml = (
+            "p:sp/p:spPr/(a:xfrm/(a:off{x=1,y=2},a:ext{cx=3,cy=4}),"
+            "a:prstGeom{prst=rect}/a:avLst)"
+        )
+        src = BaseShape(cast("ShapeElement", element(src_cxml)), None)
+        tgt = BaseShape(cast("ShapeElement", element(tgt_cxml)), None)
+
+        tgt.replace_spPr_from(src, preserve_position=False)
+
+        assert tgt.left == 7 and tgt.top == 8
+        assert tgt.width == 9 and tgt.height == 10
+
+    def it_copies_the_sibling_p_style_when_both_shapes_have_one(self):
+        src_cxml = (
+            "p:sp/(p:spPr/a:prstGeom{prst=ellipse}/a:avLst,"
+            "p:style/(a:lnRef{idx=5},a:fillRef{idx=6},a:effectRef{idx=7},"
+            "a:fontRef{idx=minor}))"
+        )
+        tgt_cxml = (
+            "p:sp/(p:spPr/a:prstGeom{prst=rect}/a:avLst,"
+            "p:style/(a:lnRef{idx=1},a:fillRef{idx=1},a:effectRef{idx=1},"
+            "a:fontRef{idx=major}))"
+        )
+        src = BaseShape(cast("ShapeElement", element(src_cxml)), None)
+        tgt = BaseShape(cast("ShapeElement", element(tgt_cxml)), None)
+
+        tgt.replace_spPr_from(src)
+
+        refs = tgt.theme_style_refs
+        assert refs == (5, 6, 7, "minor")
+
+    def it_does_not_add_a_p_style_when_target_has_none(self):
+        # -- when target lacks p:style, source's p:style is not copied in  --
+        # -- (keeping behaviour minimal; caller can set it explicitly)     --
+        src_cxml = (
+            "p:sp/(p:spPr/a:prstGeom{prst=ellipse}/a:avLst,"
+            "p:style/(a:lnRef{idx=5},a:fillRef{idx=6},a:effectRef{idx=7},"
+            "a:fontRef{idx=minor}))"
+        )
+        tgt_cxml = "p:sp/p:spPr/a:prstGeom{prst=rect}/a:avLst"
+        src = BaseShape(cast("ShapeElement", element(src_cxml)), None)
+        tgt = BaseShape(cast("ShapeElement", element(tgt_cxml)), None)
+
+        tgt.replace_spPr_from(src)
+
+        assert tgt.theme_style_refs is None
+
+    def it_raises_when_source_shape_has_no_spPr(self):
+        # -- p:graphicFrame has no p:spPr child --
+        src = BaseShape(
+            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
+        )
+        tgt = BaseShape(
+            cast("ShapeElement", element("p:sp/p:spPr/a:prstGeom{prst=rect}/a:avLst")),
+            None,
+        )
+
+        with pytest.raises(ValueError, match="requires both shapes to have a p:spPr"):
+            tgt.replace_spPr_from(src)
+
+    def it_raises_when_target_shape_has_no_spPr(self):
+        src = BaseShape(
+            cast("ShapeElement", element("p:sp/p:spPr/a:prstGeom{prst=rect}/a:avLst")),
+            None,
+        )
+        tgt = BaseShape(
+            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
+        )
+
+        with pytest.raises(ValueError, match="requires both shapes to have a p:spPr"):
+            tgt.replace_spPr_from(src)
+
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder
