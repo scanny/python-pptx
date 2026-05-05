@@ -149,6 +149,45 @@ class TextFrame(Subshape):
         p = self.paragraphs[0]
         p.clear()
 
+    def clone_from(self, other: TextFrame) -> Self:
+        """Replace this text frame's content with a deep copy of `other`.
+
+        The children of this text frame's ``p:txBody`` (or ``a:txBody`` in a
+        table cell) — ``a:bodyPr``, ``a:lstStyle``, every ``a:p``, and any
+        trailing ``a:endParaRPr`` — are removed and replaced with deep copies
+        of ``other``'s. The destination ``txBody`` *element* is kept intact;
+        only its children are swapped. This preserves round-trip fidelity
+        for the full ``txBody`` tree: body properties (vertical anchor, word
+        wrap, autofit, rotation, insets), default list-style, every
+        paragraph (with its ``a:pPr`` — level, alignment, indent, bullet,
+        spacing), every run (with its ``a:rPr`` — bold, italic, size, fonts,
+        fills, highlight, baseline, hyperlink marker), and any inline
+        ``mc:AlternateContent`` wrappers (e.g. math equations).
+
+        Works across text frames — ``other`` may live on a different shape,
+        slide, or presentation. The deep-copy makes the two text frames
+        fully independent afterwards; subsequent edits to one do not affect
+        the other. Returns ``self`` to support chaining. Complements the
+        narrower :meth:`._Paragraph.clone_from` (single-paragraph) and
+        :meth:`.Font.copy_from` (single run's curated character props).
+        When the caller only has the enclosing shapes, see
+        :meth:`.BaseShape.replace_text_frame_from` for the shape-scoped
+        wrapper.
+
+        .. versionadded:: 2026.05.0
+        """
+        src_txBody = other._txBody
+        dst_txBody = self._txBody
+        # -- remove every child so we can rebuild in document order --
+        for child in list(dst_txBody):
+            dst_txBody.remove(child)
+        # -- deep-copy children of the source body in order; this covers
+        # -- a:bodyPr, a:lstStyle, a:p*, and any trailing a:endParaRPr or
+        # -- other namespaced children PowerPoint may have written.
+        for child in src_txBody:
+            dst_txBody.append(deepcopy(child))
+        return self
+
     def fit_text(
         self,
         font_family: str = "Calibri",

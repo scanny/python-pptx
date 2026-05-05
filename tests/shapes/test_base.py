@@ -1114,6 +1114,94 @@ class DescribeBaseShape(object):
         with pytest.raises(ValueError, match="requires both shapes to have a p:spPr"):
             tgt.replace_spPr_from(src)
 
+    # -- replace_text_frame_from (CLO-4) ---------------------------------
+
+    def it_returns_self_from_replace_text_frame_from_for_chaining(self):
+        from pptx import Presentation
+        from pptx.util import Pt
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        src = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+        tgt = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(3), Inches(1))
+        src.text_frame.text = "X"
+        src.text_frame.paragraphs[0].runs[0].font.size = Pt(18)
+
+        result = tgt.replace_text_frame_from(src)
+
+        assert result is tgt
+
+    def it_clones_the_entire_text_frame_including_run_formatting(self):
+        from pptx import Presentation
+        from pptx.dml.color import RGBColor
+        from pptx.util import Pt
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        src = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+        tgt = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(3), Inches(1))
+        src.text_frame.text = "Styled"
+        run = src.text_frame.paragraphs[0].runs[0]
+        run.font.bold = True
+        run.font.italic = True
+        run.font.size = Pt(24)
+        run.font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+
+        tgt.replace_text_frame_from(src)
+
+        tgt_run = tgt.text_frame.paragraphs[0].runs[0]
+        assert tgt_run.text == "Styled"
+        assert tgt_run.font.bold is True
+        assert tgt_run.font.italic is True
+        assert tgt_run.font.size == Pt(24)
+        assert tgt_run.font.color.rgb == RGBColor(0x2E, 0x74, 0xB5)
+
+    def it_does_not_mutate_the_source_shape_when_cloning_text_frame(self):
+        from pptx import Presentation
+        from pptx.util import Pt
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        src = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+        tgt = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(3), Inches(1))
+        src.text_frame.text = "source"
+        src.text_frame.paragraphs[0].runs[0].font.size = Pt(20)
+        snapshot = src.text_frame._txBody.xml
+
+        tgt.replace_text_frame_from(src)
+        # -- mutating the clone must not affect the source --
+        tgt.text_frame.paragraphs[0].runs[0].text = "mutated"
+
+        assert src.text_frame._txBody.xml == snapshot
+
+    def it_raises_when_source_shape_has_no_text_frame(self):
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        tgt = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+        tgt.text_frame.text = "x"
+        src = slide.shapes.add_connector(
+            MSO_CONNECTOR_TYPE.STRAIGHT, Inches(0), Inches(0), Inches(1), Inches(1)
+        )
+
+        with pytest.raises(ValueError, match="requires both shapes to have a text frame"):
+            tgt.replace_text_frame_from(src)
+
+    def it_raises_when_target_shape_has_no_text_frame(self):
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        src = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+        src.text_frame.text = "x"
+        tgt = slide.shapes.add_connector(
+            MSO_CONNECTOR_TYPE.STRAIGHT, Inches(0), Inches(0), Inches(1), Inches(1)
+        )
+
+        with pytest.raises(ValueError, match="requires both shapes to have a text frame"):
+            tgt.replace_text_frame_from(src)
+
     def it_knows_whether_it_is_a_placeholder(self, is_placeholder_fixture):
         shape, is_placeholder = is_placeholder_fixture
         assert shape.is_placeholder is is_placeholder

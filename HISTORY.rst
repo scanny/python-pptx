@@ -79,6 +79,23 @@ Unreleased
   ``ValueError`` when either shape lacks a ``p:spPr`` (e.g. graphic frames
   and group shapes). Pass ``preserve_position=False`` to also copy the
   source's ``a:xfrm``. Returns ``self`` for chaining. (CLO-3)
+- Add ``TextFrame.clone_from(other_text_frame) -> Self`` and
+  ``BaseShape.replace_text_frame_from(other_shape) -> Self``
+  (CLO-4 / CLO-5) for whole-text-frame clone. ``TextFrame.clone_from``
+  replaces this text frame's ``txBody`` children — ``a:bodyPr``,
+  ``a:lstStyle``, every ``a:p``, any trailing ``a:endParaRPr`` — with
+  deep copies of the source's (the ``txBody`` element itself is kept
+  intact so the enclosing shape's wiring is preserved). Works across
+  slides / presentations; the two text frames are independent
+  afterwards. ``BaseShape.replace_text_frame_from`` is the shape-scoped
+  wrapper: delegates to ``TextFrame.clone_from`` once both shapes are
+  confirmed to have a text frame; raises ``ValueError`` when either
+  lacks one (connector, graphic frame carrying a chart or table, group
+  shape). Replaces the previous fidelity-losing idiom
+  ``shape.text_frame.text = src.text_frame.text`` (which dropped every
+  per-run font / size / colour / bullet and every paragraph-level
+  property). Both return ``self`` for chaining. See
+  ``docs/user/text.rst`` ("Cloning a whole text frame").
 - Add ``_Paragraph.clone_from(other)`` and ``_Run.clone_from(other)``
   for per-paragraph / per-run formatting clone. ``_Paragraph.clone_from``
   deep-copies the source paragraph's ``a:pPr`` (level, alignment, indent,

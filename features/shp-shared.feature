@@ -428,3 +428,34 @@ Feature: Common shape properties
     Given an autoshape and a graphic-frame on a slide as src and gf
      Then gf.replace_spPr_from(src) raises ValueError
       And src.replace_spPr_from(gf) raises ValueError
+
+
+  # -- TextFrame.clone_from / BaseShape.replace_text_frame_from (CLO-4, CLO-5) --
+
+  Scenario: shape.replace_text_frame_from clones the full text frame onto another shape
+    Given two textboxes with different text formatting on a slide as src and tgt
+     When I call tgt.replace_text_frame_from(src)
+     Then tgt.text_frame matches src.text_frame in text and run formatting
+
+  Scenario: shape.replace_text_frame_from returns self for chaining
+    Given two textboxes with different text formatting on a slide as src and tgt
+     When I call tgt.replace_text_frame_from(src) capturing the return
+     Then the return value is tgt
+
+  Scenario: shape.replace_text_frame_from raises when source shape has no text frame
+    Given a textbox and a connector on a slide as tgt and src
+     Then tgt.replace_text_frame_from(src) raises ValueError
+
+  Scenario: shape.replace_text_frame_from raises when target shape has no text frame
+    Given a textbox and a connector on a slide as src and tgt
+     Then tgt.replace_text_frame_from(src) raises ValueError
+
+  Scenario: TextFrame.clone_from clones text and formatting from another text frame
+    Given two textboxes with different text formatting on a slide as src and tgt
+     When I call tgt.text_frame.clone_from(src.text_frame)
+     Then tgt.text_frame matches src.text_frame in text and run formatting
+
+  Scenario: TextFrame.clone_from returns self for chaining
+    Given two textboxes with different text formatting on a slide as src and tgt
+     When I call tgt.text_frame.clone_from(src.text_frame) capturing the return
+     Then the return value is tgt.text_frame
