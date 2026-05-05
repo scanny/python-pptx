@@ -598,6 +598,143 @@ class DescribeBaseShape(object):
         with pytest.raises(TypeError, match="must be non-negative int"):
             shape.theme_style_refs = ("1", 2, 3, "minor")  # type: ignore[assignment]
 
+    # -- CLO-7: theme_style (8-field NamedTuple with schemeClr colors) ----
+
+    def it_returns_None_for_theme_style_on_a_shape_without_p_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        assert shape.theme_style is None
+
+    def it_reads_theme_style_with_per_ref_schemeClr_colors(self):
+        from pptx.shapes.base import ThemeStyle
+
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1}/a:schemeClr{val=accent2},"
+            "a:fillRef{idx=3}/a:schemeClr{val=accent3},"
+            "a:effectRef{idx=2}/a:schemeClr{val=accent4},"
+            "a:fontRef{idx=minor}/a:schemeClr{val=tx1}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+        ts = shape.theme_style
+        assert isinstance(ts, ThemeStyle)
+        assert ts == ThemeStyle(1, "accent2", 3, "accent3", 2, "accent4", "minor", "tx1")
+
+    def it_falls_back_to_default_color_when_schemeClr_child_missing(self):
+        # -- p:style without schemeClr children (valid per-spec, minOccurs=0) --
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1},a:fillRef{idx=3},a:effectRef{idx=2},a:fontRef{idx=minor}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+        ts = shape.theme_style
+        assert ts is not None
+        # -- accent1 is default for ln/fill/effect; lt1 is default for fontRef --
+        assert ts.line_color == "accent1"
+        assert ts.fill_color == "accent1"
+        assert ts.effect_color == "accent1"
+        assert ts.font_color == "lt1"
+
+    def it_can_set_theme_style_with_distinct_colors(self):
+        from pptx.shapes.base import ThemeStyle
+
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+
+        shape.theme_style = ThemeStyle(
+            line_idx=1,
+            line_color="bg1",
+            fill_idx=2,
+            fill_color="accent5",
+            effect_idx=0,
+            effect_color="accent3",
+            font_idx="major",
+            font_color="tx2",
+        )
+
+        ts = shape.theme_style
+        assert ts == (1, "bg1", 2, "accent5", 0, "accent3", "major", "tx2")
+
+    def it_accepts_a_plain_8_tuple_for_theme_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shape.theme_style = (1, "accent2", 2, "accent2", 3, "accent2", "minor", "lt1")
+        ts = shape.theme_style
+        assert ts == (1, "accent2", 2, "accent2", 3, "accent2", "minor", "lt1")
+
+    def it_clears_p_style_when_theme_style_assigned_None(self):
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1}/a:schemeClr{val=accent1},"
+            "a:fillRef{idx=3}/a:schemeClr{val=accent1},"
+            "a:effectRef{idx=2}/a:schemeClr{val=accent1},"
+            "a:fontRef{idx=minor}/a:schemeClr{val=lt1}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+
+        shape.theme_style = None
+
+        assert shape.theme_style is None
+        assert shape._element.find(qn("p:style")) is None
+
+    def it_raises_when_setting_theme_style_on_a_graphicFrame(self):
+        shape = BaseShape(cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None)
+        with pytest.raises(ValueError, match="does not support a p:style"):
+            shape.theme_style = (1, "accent1", 2, "accent1", 3, "accent1", "minor", "lt1")
+
+    def it_rejects_invalid_scheme_color_values_on_theme_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(ValueError, match="ST_SchemeColorVal"):
+            shape.theme_style = (1, "not_a_real_color", 2, "accent1", 3, "accent1", "minor", "lt1")
+
+    def it_rejects_non_str_scheme_color_values(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(TypeError, match="ST_SchemeColorVal string"):
+            shape.theme_style = (
+                1,
+                123,  # type: ignore[arg-type]
+                2,
+                "accent1",
+                3,
+                "accent1",
+                "minor",
+                "lt1",
+            )
+
+    def it_preserves_schemeClr_colors_on_theme_style_refs_round_trip(self):
+        """Writing the 4-field refs view must not reset schemeClr colors."""
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1}/a:schemeClr{val=accent2},"
+            "a:fillRef{idx=3}/a:schemeClr{val=accent2},"
+            "a:effectRef{idx=2}/a:schemeClr{val=accent2},"
+            "a:fontRef{idx=minor}/a:schemeClr{val=bg1}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+
+        # -- legacy-path write updates indexes but keeps existing colors --
+        shape.theme_style_refs = (4, 5, 6, "major")
+
+        ts = shape.theme_style
+        assert ts is not None
+        assert ts.line_idx == 4
+        assert ts.fill_idx == 5
+        assert ts.effect_idx == 6
+        assert ts.font_idx == "major"
+        assert ts.line_color == "accent2"
+        assert ts.fill_color == "accent2"
+        assert ts.effect_color == "accent2"
+        assert ts.font_color == "bg1"
+
+    def it_writes_accent1_scheme_color_on_a_fresh_theme_style_refs_assignment(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shape.theme_style_refs = (1, 2, 3, "minor")
+        ts = shape.theme_style
+        assert ts is not None
+        assert ts.line_color == "accent1"
+        assert ts.font_color == "lt1"
+
     # -- #508: alt_text / title accessibility description ------------------
 
     @pytest.mark.parametrize(

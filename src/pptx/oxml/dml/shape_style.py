@@ -22,11 +22,54 @@ Grammar reference: ECMA-376 Part 1 §20.1.4.1.29 ``CT_ShapeStyle``,
 
 from __future__ import annotations
 
+from pptx.oxml.ns import qn
 from pptx.oxml.simpletypes import XsdString, XsdUnsignedInt
 from pptx.oxml.xmlchemy import BaseOxmlElement, OneAndOnlyOne, RequiredAttribute
 
 
-class CT_StyleMatrixReference(BaseOxmlElement):
+class _StyleRefBase(BaseOxmlElement):
+    """Shared helpers for `a:lnRef`/`a:fillRef`/`a:effectRef`/`a:fontRef`.
+
+    Exposes a ``scheme_color`` read/write accessor for the nested
+    ``<a:schemeClr val="…"/>`` child — the "Shape Styles" gallery sets this
+    alongside the ``idx`` to select which theme color the referenced style is
+    tinted with. Reads return the ``val`` attribute (e.g. ``"accent1"``,
+    ``"bg1"``, ``"tx2"``) or |None| if no ``a:schemeClr`` child is present
+    (the spec allows other color-choice children such as ``a:srgbClr`` but
+    PowerPoint's gallery presets only emit ``a:schemeClr``).
+    """
+
+    @property
+    def scheme_color(self) -> str | None:
+        """Value of the nested ``a:schemeClr/@val``, or |None| when absent."""
+        schemeClr = self.find(qn("a:schemeClr"))
+        if schemeClr is None:
+            return None
+        val = schemeClr.get("val")
+        return val if val is None else str(val)
+
+    @scheme_color.setter
+    def scheme_color(self, value: str | None) -> None:
+        from lxml import etree
+
+        # -- remove any existing color-choice child (schemeClr, srgbClr, …) --
+        for child_tag in (
+            "a:schemeClr",
+            "a:srgbClr",
+            "a:sysClr",
+            "a:prstClr",
+            "a:hslClr",
+            "a:scrgbClr",
+        ):
+            for existing in self.findall(qn(child_tag)):
+                self.remove(existing)
+        if value is None:
+            return
+        schemeClr = etree.SubElement(self, qn("a:schemeClr"))
+        schemeClr.set("val", value)
+
+
+class CT_StyleMatrixReference(_StyleRefBase):
     """`a:lnRef`, `a:fillRef`, or `a:effectRef` element.
 
     References a line-, fill-, or effect-style within the theme's
@@ -38,7 +81,7 @@ class CT_StyleMatrixReference(BaseOxmlElement):
     idx: int = RequiredAttribute("idx", XsdUnsignedInt)  # pyright: ignore[reportAssignmentType]
 
 
-class CT_FontReference(BaseOxmlElement):
+class CT_FontReference(_StyleRefBase):
     """`a:fontRef` element.
 
     Selects ``major`` / ``minor`` / ``none`` from the theme's font-scheme.

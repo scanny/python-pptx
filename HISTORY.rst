@@ -74,6 +74,14 @@ Unreleased
   frames / slides / presentations, and return ``self`` for chaining.
   Complements the narrower :meth:`.Font.copy_from`. See
   ``docs/user/text.rst`` ("Cloning paragraph/run formatting").
+- Add (CLO-7) ``BaseShape.theme_style`` — an eight-field
+  :class:`~pptx.shapes.base.ThemeStyle` named-tuple that pairs each of the
+  four ``<p:style>`` ref indexes with its nested ``<a:schemeClr val="…"/>``
+  theme-color choice (``"accent1"``..``"accent6"``, ``"bg1"``, ``"tx2"``,
+  …). Extends the Wave 14 #447 ``theme_style_refs`` accessor so callers
+  (notably shape-clone workflows) can preserve or change per-ref theme
+  tints during a round-trip. ``theme_style_refs`` now also preserves any
+  existing ``schemeClr`` values when re-assigned.
 
 - build(test): document corpus conformance test setup in
   ``docs/dev/runtests.rst``. ``tests/test_conformance_corpus.py``

@@ -61,3 +61,28 @@ Feature: Shape properties and methods
      Given a 1-inch rectangle shape
       When I assign shape.theme_style_refs = None
       Then shape.theme_style_refs is None
+
+
+  Scenario: BaseShape.theme_style reads per-ref schemeClr colors (CLO-7)
+     Given a 1-inch rectangle shape
+      Then shape.theme_style is (1, "accent1", 3, "accent1", 2, "accent1", "minor", "lt1")
+
+
+  Scenario: BaseShape.theme_style writes a new p:style with distinct colors (CLO-7)
+     Given a 1-inch rectangle shape
+      When I assign shape.theme_style = (2, "accent2", 4, "bg1", 1, "tx2", "major", "accent3")
+      Then shape.theme_style is (2, "accent2", 4, "bg1", 1, "tx2", "major", "accent3")
+
+
+  Scenario: BaseShape.theme_style can be cleared (CLO-7)
+     Given a 1-inch rectangle shape
+      When I assign shape.theme_style = None
+      Then shape.theme_style is None
+       And shape.theme_style_refs is None
+
+
+  Scenario: theme_style_refs preserves existing schemeClr colors on re-assignment (CLO-7)
+     Given a 1-inch rectangle shape
+      When I assign shape.theme_style = (1, "accent5", 3, "accent5", 2, "accent5", "minor", "tx1")
+      And I assign shape.theme_style_refs = (4, 5, 6, "major")
+      Then shape.theme_style is (4, "accent5", 5, "accent5", 6, "accent5", "major", "tx1")

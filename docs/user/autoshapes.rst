@@ -382,3 +382,40 @@ Read-only inspection works for every simple shape that has a ``<p:style>``
 on these four shape kinds. Graphic-frame wrappers (charts, tables,
 SmartArt) and group shapes do not carry a ``<p:style>`` — reading returns
 |None| and assigning raises :class:`ValueError`.
+
+Preserving theme colors with ``BaseShape.theme_style``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each of the four refs on ``<p:style>`` also carries a nested
+``<a:schemeClr val="…"/>`` that selects *which* theme color the referenced
+style is tinted with (``"accent1"``..``"accent6"``, ``"bg1"``/``"bg2"``,
+``"tx1"``/``"tx2"``, etc. — the full ``ST_SchemeColorVal`` set). PowerPoint
+writes ``accent1`` for every ref when you apply a Shape-Styles gallery
+preset, but a user can re-color a shape via the ribbon's Color menu and
+the resulting XML will then carry something like ``<a:schemeClr
+val="accent4"/>`` on each ref.
+
+``BaseShape.theme_style`` exposes an eight-field
+:class:`~pptx.shapes.base.ThemeStyle` view combining the four ``idx``
+values and the four ``schemeClr`` colors — use it instead of
+:attr:`~pptx.shapes.base.BaseShape.theme_style_refs` when you need to
+preserve or change the color assignments during a round-trip::
+
+    from pptx.shapes.base import ThemeStyle
+
+    ts = shape.theme_style
+    # ThemeStyle(line_idx=1, line_color='accent1', fill_idx=3,
+    #            fill_color='accent1', effect_idx=2, effect_color='accent1',
+    #            font_idx='minor', font_color='lt1')
+
+    shape.theme_style = ThemeStyle(
+        line_idx=1, line_color="accent2",
+        fill_idx=3, fill_color="accent2",
+        effect_idx=2, effect_color="accent2",
+        font_idx="minor", font_color="lt1",
+    )
+
+Writing via ``theme_style_refs`` is still supported and preserves the
+per-ref ``schemeClr`` values if a ``<p:style>`` already exists on the
+shape. Assigning ``None`` via either accessor removes the ``<p:style>``
+entirely.

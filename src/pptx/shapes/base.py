@@ -75,6 +75,11 @@ class ThemeStyleRefs(NamedTuple):
     is "No Fill" / "No Outline"); indices ``1..N`` select the Nth style in
     the theme's corresponding list.
 
+    For a richer eight-field view that also carries the ``<a:schemeClr>``
+    color-choice on each ref — needed for round-trip fidelity of shapes whose
+    theme-tint is something other than the default ``accent1`` — see
+    :class:`ThemeStyle` and :attr:`BaseShape.theme_style`.
+
     .. versionadded:: 2026.05.0
     """
 
@@ -82,6 +87,58 @@ class ThemeStyleRefs(NamedTuple):
     fill_ref: int
     effect_ref: int
     font_ref: str
+
+
+# -- ST_SchemeColorVal enumeration from ECMA-376 Part 1 dml-main.xsd --
+_VALID_SCHEME_COLORS: frozenset[str] = frozenset(
+    {
+        "bg1",
+        "tx1",
+        "bg2",
+        "tx2",
+        "accent1",
+        "accent2",
+        "accent3",
+        "accent4",
+        "accent5",
+        "accent6",
+        "hlink",
+        "folHlink",
+        "phClr",
+        "dk1",
+        "lt1",
+        "dk2",
+        "lt2",
+    }
+)
+
+
+class ThemeStyle(NamedTuple):
+    """Eight-tuple combining theme-style ``idx`` and ``schemeClr`` values.
+
+    Returned by :attr:`BaseShape.theme_style` and accepted by its setter.
+    For each of the four references on ``<p:style>`` (``a:lnRef``,
+    ``a:fillRef``, ``a:effectRef``, ``a:fontRef``) this carries both the
+    ``idx`` (index / collection key) and the nested ``<a:schemeClr val="…"/>``
+    tint (e.g. ``"accent1"``, ``"bg1"``, ``"tx2"``).
+
+    The ``*_color`` fields are ``ST_SchemeColorVal`` members:
+    ``"bg1"``/``"tx1"``/``"bg2"``/``"tx2"``/``"accent1"``..``"accent6"``/
+    ``"hlink"``/``"folHlink"``/``"phClr"``/``"dk1"``/``"lt1"``/``"dk2"``/
+    ``"lt2"``. A legacy :class:`ThemeStyleRefs` view (four fields, no colors)
+    is still available via :attr:`BaseShape.theme_style_refs`.
+
+    .. versionadded:: 2026.05.0
+    """
+
+    line_idx: int
+    line_color: str
+    fill_idx: int
+    fill_color: str
+    effect_idx: int
+    effect_color: str
+    font_idx: str
+    font_color: str
 
 
 class BaseShape(object):
@@ -1173,6 +1230,10 @@ class BaseShape(object):
         underlying element is a graphic-frame or group-shape raises
         :class:`ValueError`.
 
+        This accessor discards the nested ``<a:schemeClr>`` color choice
+        carried by each ref. Use :attr:`theme_style` when you need to
+        preserve or change the theme color each ref is tinted with.
+
         Sample read::
 
             refs = shape.theme_style_refs
@@ -1200,27 +1261,23 @@ class BaseShape(object):
 
     @theme_style_refs.setter
     def theme_style_refs(self, value: ThemeStyleRefs | tuple[int, int, int, str] | None) -> None:
+        # -- shape-type gating first so graphic-frame/group errors match
+        # -- the legacy message regardless of ``value``.
         successors_by_tag = {
             qn("p:sp"): ("p:txBody", "p:extLst"),
             qn("p:cxnSp"): ("p:extLst",),
             qn("p:pic"): ("p:extLst",),
         }
-        elm = self._element
-        if elm.tag not in successors_by_tag:
+        if self._element.tag not in successors_by_tag:
             raise ValueError(
                 "shape does not support a p:style (theme_style_refs is only available on"
                 " auto-shapes, text-boxes, connectors, and pictures)"
             )
-        # -- always drop any existing p:style first, whether clearing or rewriting --
-        existing = elm.find(qn("p:style"))
-        if existing is not None:
-            elm.remove(existing)
         if value is None:
+            self._write_theme_style(None)
             return
-
         line_ref, fill_ref, effect_ref, font_ref = value
-        # -- defend against silently coerced non-int inputs at runtime even --
-        # -- though the type signature requires ints                        --
+        # -- legacy-path validation with legacy error messages --
         if not (
             isinstance(line_ref, int)  # pyright: ignore[reportUnnecessaryIsInstance]
             and isinstance(fill_ref, int)  # pyright: ignore[reportUnnecessaryIsInstance]
@@ -1233,20 +1290,169 @@ class BaseShape(object):
             raise ValueError(
                 "font_ref must be one of 'major', 'minor', or 'none';" f" got {font_ref!r}"
             )
+        # -- preserve any existing schemeClr colors so a round-trip via --
+        # -- theme_style_refs doesn't silently reset them.              --
+        existing = self.theme_style
+        if existing is None:
+            line_color = fill_color = effect_color = "accent1"
+            font_color = "lt1"
+        else:
+            line_color = existing.line_color
+            fill_color = existing.fill_color
+            effect_color = existing.effect_color
+            font_color = existing.font_color
+        self._write_theme_style(
+            ThemeStyle(
+                line_idx=line_ref,
+                line_color=line_color,
+                fill_idx=fill_ref,
+                fill_color=fill_color,
+                effect_idx=effect_ref,
+                effect_color=effect_color,
+                font_idx=font_ref,
+                font_color=font_color,
+            )
+        )
+
+    @property
+    def theme_style(self) -> ThemeStyle | None:
+        """Eight-tuple theme-style view on this shape, or |None|.
+
+        Returns a :class:`ThemeStyle` named-tuple carrying the ``idx`` *and*
+        nested ``<a:schemeClr val="…"/>`` color for each of the four
+        ``<p:style>`` child refs (``a:lnRef``, ``a:fillRef``,
+        ``a:effectRef``, ``a:fontRef``). |None| when the shape has no
+        ``<p:style>``.
+
+        Assigning a :class:`ThemeStyle` (or any 8-tuple in the same order)
+        writes a fresh ``<p:style>`` subtree, setting each ``idx`` and the
+        nested ``<a:schemeClr val="…"/>``. The four ``*_color`` values must
+        be ``ST_SchemeColorVal`` members. Assigning |None| removes the
+        ``<p:style>`` subtree entirely.
+
+        Setting is only supported on simple shapes (``p:sp``, ``p:cxnSp``,
+        ``p:pic``) — graphic-frame wrappers and group shapes raise
+        :class:`ValueError`.
+
+        Sample::
+
+            from pptx.shapes.base import ThemeStyle
+            shape.theme_style = ThemeStyle(
+                line_idx=1, line_color="accent2",
+                fill_idx=3, fill_color="accent2",
+                effect_idx=2, effect_color="accent2",
+                font_idx="minor", font_color="lt1",
+            )
+
+        See issue #447.
+
+        .. versionadded:: 2026.05.0
+        """
+        style = self._element.find(qn("p:style"))
+        if style is None:
+            return None
+        style = cast("CT_ShapeStyle", style)
+        return ThemeStyle(
+            line_idx=style.lnRef.idx,
+            line_color=style.lnRef.scheme_color or "accent1",
+            fill_idx=style.fillRef.idx,
+            fill_color=style.fillRef.scheme_color or "accent1",
+            effect_idx=style.effectRef.idx,
+            effect_color=style.effectRef.scheme_color or "accent1",
+            font_idx=style.fontRef.idx,
+            font_color=style.fontRef.scheme_color or "lt1",
+        )
+
+    @theme_style.setter
+    def theme_style(
+        self,
+        value: ThemeStyle | tuple[int, str, int, str, int, str, str, str] | None,
+    ) -> None:
+        if value is None:
+            self._write_theme_style(None)
+            return
+        # -- normalize to a ThemeStyle to get named-field validation --
+        ts = value if isinstance(value, ThemeStyle) else ThemeStyle(*value)
+        self._write_theme_style(ts)
+
+    def _write_theme_style(self, value: ThemeStyle | None) -> None:
+        """Shared write path for :attr:`theme_style` / :attr:`theme_style_refs`.
+
+        Removes any existing ``<p:style>`` and — when ``value`` is not |None|
+        — inserts a freshly-built one in the correct document-order slot for
+        the shape's element kind.
+        """
+        successors_by_tag = {
+            qn("p:sp"): ("p:txBody", "p:extLst"),
+            qn("p:cxnSp"): ("p:extLst",),
+            qn("p:pic"): ("p:extLst",),
+        }
+        elm = self._element
+        if elm.tag not in successors_by_tag:
+            raise ValueError(
+                "shape does not support a p:style (theme_style / theme_style_refs are only"
+                " available on auto-shapes, text-boxes, connectors, and pictures)"
+            )
+        # -- always drop any existing p:style first, whether clearing or rewriting --
+        existing = elm.find(qn("p:style"))
+        if existing is not None:
+            elm.remove(existing)
+        if value is None:
+            return
+
+        (
+            line_idx,
+            line_color,
+            fill_idx,
+            fill_color,
+            effect_idx,
+            effect_color,
+            font_idx,
+            font_color,
+        ) = value
+        # -- defend against silently coerced non-int inputs at runtime even --
+        # -- though the type signature requires ints                        --
+        if not (
+            isinstance(line_idx, int)  # pyright: ignore[reportUnnecessaryIsInstance]
+            and isinstance(fill_idx, int)  # pyright: ignore[reportUnnecessaryIsInstance]
+            and isinstance(effect_idx, int)  # pyright: ignore[reportUnnecessaryIsInstance]
+        ):
+            raise TypeError("line, fill, and effect idx values must be non-negative int")
+        if line_idx < 0 or fill_idx < 0 or effect_idx < 0:
+            raise ValueError("line, fill, and effect idx values must be non-negative")
+        if font_idx not in ("major", "minor", "none"):
+            raise ValueError(
+                "font_idx must be one of 'major', 'minor', or 'none';" f" got {font_idx!r}"
+            )
+        for label, clr in (
+            ("line_color", line_color),
+            ("fill_color", fill_color),
+            ("effect_color", effect_color),
+            ("font_color", font_color),
+        ):
+            if not isinstance(clr, str):  # pyright: ignore[reportUnnecessaryIsInstance]
+                raise TypeError(
+                    f"{label} must be an ST_SchemeColorVal string," f" got {type(clr).__name__}"
+                )
+            if clr not in _VALID_SCHEME_COLORS:
+                raise ValueError(
+                    f"{label} must be a valid ST_SchemeColorVal value (e.g. 'accent1',"
+                    f" 'bg1', 'tx2'); got {clr!r}"
+                )
 
         style_xml = (
             f"<p:style {nsdecls('a', 'p')}>\n"
-            f'  <a:lnRef idx="{line_ref}">\n'
-            f'    <a:schemeClr val="accent1"/>\n'
+            f'  <a:lnRef idx="{line_idx}">\n'
+            f'    <a:schemeClr val="{line_color}"/>\n'
             f"  </a:lnRef>\n"
-            f'  <a:fillRef idx="{fill_ref}">\n'
-            f'    <a:schemeClr val="accent1"/>\n'
+            f'  <a:fillRef idx="{fill_idx}">\n'
+            f'    <a:schemeClr val="{fill_color}"/>\n'
             f"  </a:fillRef>\n"
-            f'  <a:effectRef idx="{effect_ref}">\n'
-            f'    <a:schemeClr val="accent1"/>\n'
+            f'  <a:effectRef idx="{effect_idx}">\n'
+            f'    <a:schemeClr val="{effect_color}"/>\n'
             f"  </a:effectRef>\n"
-            f'  <a:fontRef idx="{font_ref}">\n'
-            f'    <a:schemeClr val="lt1"/>\n'
+            f'  <a:fontRef idx="{font_idx}">\n'
+            f'    <a:schemeClr val="{font_color}"/>\n'
             f"  </a:fontRef>\n"
             f"</p:style>"
         )
