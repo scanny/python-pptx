@@ -112,6 +112,36 @@ class DescribeCT_CustomProperties(object):
         # -- 03:04:05 +05:00 -> 22:04:05 UTC on the previous day --
         assert "<vt:filetime>2024-01-01T22:04:05Z</vt:filetime>" in xml
 
+    def it_serializes_plain_date_as_vt_date(self):
+        """`datetime.date` (not `datetime`) must route to `vt:date`, `YYYY-MM-DD`."""
+        props = CT_CustomProperties.new_customProperties()
+        props.set_value("review", dt.date(2024, 1, 2))
+        xml = etree.tostring(props).decode()
+        assert "<vt:date>2024-01-02</vt:date>" in xml
+        assert "<vt:filetime>" not in xml
+
+    def it_round_trips_a_vt_date_as_a_plain_date(self):
+        """Round-tripping a `date` must yield a `date`, not a `datetime` —
+        otherwise the on-disk distinction between `vt:date` and `vt:filetime`
+        is lost on re-save."""
+        props = CT_CustomProperties.new_customProperties()
+        original = dt.date(2024, 1, 2)
+        props.set_value("review", original)
+
+        retrieved = props.get_value("review")
+
+        assert retrieved == original
+        assert isinstance(retrieved, dt.date)
+        assert not isinstance(retrieved, dt.datetime)
+
+    def it_dispatches_datetime_to_filetime_not_date(self):
+        """`datetime` is a subclass of `date`; the encoder must keep them distinct."""
+        props = CT_CustomProperties.new_customProperties()
+        props.set_value("d", dt.datetime(2024, 1, 2, 3, 4, 5))
+        xml = etree.tostring(props).decode()
+        assert "<vt:filetime>" in xml
+        assert "<vt:date>" not in xml
+
     def it_updates_existing_property_in_place_preserving_pid(self):
         props = CT_CustomProperties.new_customProperties()
         props.set_value("x", "first")
