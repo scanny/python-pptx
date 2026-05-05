@@ -60,6 +60,7 @@ Unreleased
   internal meta-documents tracking a one-off 2026-05 audit against
   commit ``1a345f8f``; nothing references them and they do not ship
   in the sdist/wheel. Not a user-visible change.
+- build: pyproject.toml classifiers — add py3.13.
 
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
