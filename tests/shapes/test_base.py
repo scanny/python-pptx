@@ -64,9 +64,7 @@ class DescribeBaseShape(object):
         ActionSetting_.assert_called_once_with(cNvPr, shape, hover=True)
         assert hover_action is hover_action_
 
-    def it_returns_the_same_hover_action_on_repeated_access(
-        self, ActionSetting_, action_setting_
-    ):
+    def it_returns_the_same_hover_action_on_repeated_access(self, ActionSetting_, action_setting_):
         sp = element("p:sp/p:nvSpPr/p:cNvPr")
         shape = BaseShape(sp, None)
 
@@ -493,15 +491,11 @@ class DescribeBaseShape(object):
         assert (refs.line_ref, refs.fill_ref, refs.effect_ref, refs.font_ref) == expected
 
     def it_returns_None_for_theme_style_refs_on_a_graphicFrame(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None)
         assert shape.theme_style_refs is None
 
     def it_returns_None_for_theme_style_refs_on_a_group_shape(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None)
         assert shape.theme_style_refs is None
 
     def it_can_set_theme_style_refs_on_an_sp(self):
@@ -565,9 +559,7 @@ class DescribeBaseShape(object):
     def it_inserts_p_style_before_txBody_on_an_sp(self):
         from pptx.shapes.base import ThemeStyleRefs
 
-        shape = BaseShape(
-            cast("ShapeElement", element("p:sp/(p:spPr,p:txBody)")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:sp/(p:spPr,p:txBody)")), None)
 
         shape.theme_style_refs = ThemeStyleRefs(1, 2, 3, "major")
 
@@ -578,16 +570,12 @@ class DescribeBaseShape(object):
         assert tags.index(qn("p:spPr")) < tags.index(qn("p:style"))
 
     def it_raises_when_setting_theme_style_refs_on_a_graphicFrame(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None)
         with pytest.raises(ValueError, match="does not support a p:style"):
             shape.theme_style_refs = (1, 2, 3, "minor")
 
     def it_raises_when_setting_theme_style_refs_on_a_group_shape(self):
-        shape = BaseShape(
-            cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None
-        )
+        shape = BaseShape(cast("ShapeElement", element("p:grpSp/p:nvGrpSpPr")), None)
         with pytest.raises(ValueError, match="does not support a p:style"):
             shape.theme_style_refs = (1, 2, 3, "minor")
 
@@ -609,6 +597,143 @@ class DescribeBaseShape(object):
         shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
         with pytest.raises(TypeError, match="must be non-negative int"):
             shape.theme_style_refs = ("1", 2, 3, "minor")  # type: ignore[assignment]
+
+    # -- CLO-7: theme_style (8-field NamedTuple with schemeClr colors) ----
+
+    def it_returns_None_for_theme_style_on_a_shape_without_p_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        assert shape.theme_style is None
+
+    def it_reads_theme_style_with_per_ref_schemeClr_colors(self):
+        from pptx.shapes.base import ThemeStyle
+
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1}/a:schemeClr{val=accent2},"
+            "a:fillRef{idx=3}/a:schemeClr{val=accent3},"
+            "a:effectRef{idx=2}/a:schemeClr{val=accent4},"
+            "a:fontRef{idx=minor}/a:schemeClr{val=tx1}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+        ts = shape.theme_style
+        assert isinstance(ts, ThemeStyle)
+        assert ts == ThemeStyle(1, "accent2", 3, "accent3", 2, "accent4", "minor", "tx1")
+
+    def it_falls_back_to_default_color_when_schemeClr_child_missing(self):
+        # -- p:style without schemeClr children (valid per-spec, minOccurs=0) --
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1},a:fillRef{idx=3},a:effectRef{idx=2},a:fontRef{idx=minor}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+        ts = shape.theme_style
+        assert ts is not None
+        # -- accent1 is default for ln/fill/effect; lt1 is default for fontRef --
+        assert ts.line_color == "accent1"
+        assert ts.fill_color == "accent1"
+        assert ts.effect_color == "accent1"
+        assert ts.font_color == "lt1"
+
+    def it_can_set_theme_style_with_distinct_colors(self):
+        from pptx.shapes.base import ThemeStyle
+
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+
+        shape.theme_style = ThemeStyle(
+            line_idx=1,
+            line_color="bg1",
+            fill_idx=2,
+            fill_color="accent5",
+            effect_idx=0,
+            effect_color="accent3",
+            font_idx="major",
+            font_color="tx2",
+        )
+
+        ts = shape.theme_style
+        assert ts == (1, "bg1", 2, "accent5", 0, "accent3", "major", "tx2")
+
+    def it_accepts_a_plain_8_tuple_for_theme_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shape.theme_style = (1, "accent2", 2, "accent2", 3, "accent2", "minor", "lt1")
+        ts = shape.theme_style
+        assert ts == (1, "accent2", 2, "accent2", 3, "accent2", "minor", "lt1")
+
+    def it_clears_p_style_when_theme_style_assigned_None(self):
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1}/a:schemeClr{val=accent1},"
+            "a:fillRef{idx=3}/a:schemeClr{val=accent1},"
+            "a:effectRef{idx=2}/a:schemeClr{val=accent1},"
+            "a:fontRef{idx=minor}/a:schemeClr{val=lt1}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+
+        shape.theme_style = None
+
+        assert shape.theme_style is None
+        assert shape._element.find(qn("p:style")) is None
+
+    def it_raises_when_setting_theme_style_on_a_graphicFrame(self):
+        shape = BaseShape(cast("ShapeElement", element("p:graphicFrame/p:nvGraphicFramePr")), None)
+        with pytest.raises(ValueError, match="does not support a p:style"):
+            shape.theme_style = (1, "accent1", 2, "accent1", 3, "accent1", "minor", "lt1")
+
+    def it_rejects_invalid_scheme_color_values_on_theme_style(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(ValueError, match="ST_SchemeColorVal"):
+            shape.theme_style = (1, "not_a_real_color", 2, "accent1", 3, "accent1", "minor", "lt1")
+
+    def it_rejects_non_str_scheme_color_values(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        with pytest.raises(TypeError, match="ST_SchemeColorVal string"):
+            shape.theme_style = (
+                1,
+                123,  # type: ignore[arg-type]
+                2,
+                "accent1",
+                3,
+                "accent1",
+                "minor",
+                "lt1",
+            )
+
+    def it_preserves_schemeClr_colors_on_theme_style_refs_round_trip(self):
+        """Writing the 4-field refs view must not reset schemeClr colors."""
+        cxml = (
+            "p:sp/p:style/("
+            "a:lnRef{idx=1}/a:schemeClr{val=accent2},"
+            "a:fillRef{idx=3}/a:schemeClr{val=accent2},"
+            "a:effectRef{idx=2}/a:schemeClr{val=accent2},"
+            "a:fontRef{idx=minor}/a:schemeClr{val=bg1}"
+            ")"
+        )
+        shape = BaseShape(cast("ShapeElement", element(cxml)), None)
+
+        # -- legacy-path write updates indexes but keeps existing colors --
+        shape.theme_style_refs = (4, 5, 6, "major")
+
+        ts = shape.theme_style
+        assert ts is not None
+        assert ts.line_idx == 4
+        assert ts.fill_idx == 5
+        assert ts.effect_idx == 6
+        assert ts.font_idx == "major"
+        assert ts.line_color == "accent2"
+        assert ts.fill_color == "accent2"
+        assert ts.effect_color == "accent2"
+        assert ts.font_color == "bg1"
+
+    def it_writes_accent1_scheme_color_on_a_fresh_theme_style_refs_assignment(self):
+        shape = BaseShape(cast("ShapeElement", element("p:sp/p:spPr")), None)
+        shape.theme_style_refs = (1, 2, 3, "minor")
+        ts = shape.theme_style
+        assert ts is not None
+        assert ts.line_color == "accent1"
+        assert ts.font_color == "lt1"
 
     # -- #508: alt_text / title accessibility description ------------------
 
@@ -1058,15 +1183,9 @@ class DescribeBaseShape(object):
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
         group = slide.shapes.add_group_shape()
-        s1 = group.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
-        )
-        s2 = group.shapes.add_shape(
-            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
-        )
-        s3 = group.shapes.add_shape(
-            MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
-        )
+        s1 = group.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1))
+        s2 = group.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1))
+        s3 = group.shapes.add_shape(MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1))
 
         assert [s1.zorder_index, s2.zorder_index, s3.zorder_index] == [0, 1, 2]
 
@@ -1091,15 +1210,9 @@ class DescribeBaseShape(object):
 
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
-        s1 = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
-        )
-        s2 = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
-        )
-        s3 = slide.shapes.add_shape(
-            MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1)
-        )
+        s1 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1))
+        s2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1))
+        s3 = slide.shapes.add_shape(MSO_SHAPE.DIAMOND, Inches(3), Inches(3), Inches(1), Inches(1))
         base = slide.shapes.index(s1)
         assert [s1.zorder_index, s2.zorder_index, s3.zorder_index] == [
             base,
@@ -1110,6 +1223,7 @@ class DescribeBaseShape(object):
         s3.send_to_back()
         assert s3.zorder_index == 0
         assert slide.shapes.index(s3) == 0
+
     def it_can_duplicate_an_autoshape(self):
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
@@ -1223,6 +1337,7 @@ class DescribeBaseShape(object):
         assert title is not None
         with pytest.raises(NotImplementedError, match="placeholder"):
             title.duplicate()
+
     @pytest.mark.parametrize(
         ("shape_cxml", "expected_value"),
         [
@@ -1241,9 +1356,7 @@ class DescribeBaseShape(object):
             ("p:graphicFrame/m:oMath", True),
         ],
     )
-    def it_knows_whether_it_contains_an_OMML_equation(
-        self, shape_cxml: str, expected_value: bool
-    ):
+    def it_knows_whether_it_contains_an_OMML_equation(self, shape_cxml: str, expected_value: bool):
         shape_elm = cast("ShapeElement", element(shape_cxml))
         shape = BaseShape(shape_elm, None)
         assert shape.has_math_equation is expected_value
@@ -1276,9 +1389,7 @@ class DescribeBaseShape(object):
         # -- exactly one `<m:oMath` open-tag (the first), not two --
         assert oMath_xml.count("<m:oMath") == 1
 
-    def it_surfaces_an_OMML_equation_on_a_real_slide_regression_892(
-        self
-    ):
+    def it_surfaces_an_OMML_equation_on_a_real_slide_regression_892(self):
         """Regression test for issue #892 ("Support for parsing Equations").
 
         The user-visible request in #892 was "given a .pptx, discover and
@@ -1312,11 +1423,7 @@ class DescribeBaseShape(object):
 
         # -- the #892 "find-equation-in-slide" use case: iterate shapes and
         # -- pull out those that carry an equation --
-        equations = [
-            shape.math_equation_xml
-            for shape in slide.shapes
-            if shape.has_math_equation
-        ]
+        equations = [shape.math_equation_xml for shape in slide.shapes if shape.has_math_equation]
 
         # -- exactly one equation is present in the fixture --
         assert len(equations) == 1
@@ -1325,14 +1432,9 @@ class DescribeBaseShape(object):
         # -- the caller receives a well-formed OMML fragment they can hand to
         # -- an external converter (pandoc, omml.xsl, etc.) --
         assert oMath_xml.startswith("<m:oMath")
-        assert (
-            'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'
-            in oMath_xml
-        )
+        assert 'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"' in oMath_xml
         # -- non-equation shapes on the same slide cleanly report None --
-        non_eq = [
-            shape for shape in slide.shapes if not shape.has_math_equation
-        ]
+        non_eq = [shape for shape in slide.shapes if not shape.has_math_equation]
         assert len(non_eq) >= 1
         for shape in non_eq:
             assert shape.math_equation_xml is None
@@ -1775,12 +1877,8 @@ class DescribeBaseShape_animation(object):
 
         prs = Presentation()
         slide = prs.slides.add_slide(prs.slide_layouts[5])
-        s1 = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
-        )
-        s2 = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1)
-        )
+        s1 = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1))
+        s2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(2), Inches(2), Inches(1), Inches(1))
         s1.set_animation(MSO_ANIMATION_TYPE.FADE_IN)
         # -- s2 has no animation bound --
         assert s2.animation is None
@@ -1795,9 +1893,7 @@ class DescribeBaseShape_animation(object):
         shape = slide.shapes.add_shape(
             MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(1), Inches(1)
         )
-        shape.set_animation(
-            MSO_ANIMATION_TYPE.FADE_IN, trigger="onClick", delay=250
-        )
+        shape.set_animation(MSO_ANIMATION_TYPE.FADE_IN, trigger="onClick", delay=250)
         effect = shape.animation
         assert effect is not None
         assert effect.type is MSO_ANIMATION_TYPE.FADE_IN
@@ -1850,9 +1946,7 @@ class DescribeBaseShape_animation(object):
         assert effect.type is MSO_ANIMATION_TYPE.PULSE
         # -- Only one p:spTgt for this shape --
         sld = slide._element
-        matches = sld.xpath(
-            ".//p:spTgt[@spid='%d']" % shape.shape_id
-        )
+        matches = sld.xpath(".//p:spTgt[@spid='%d']" % shape.shape_id)
         assert len(matches) == 1
 
     def it_raises_when_effect_type_is_not_an_enum_member(self):

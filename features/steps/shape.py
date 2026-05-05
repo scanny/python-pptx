@@ -1381,6 +1381,35 @@ def then_shape_theme_style_refs_is(context, expected_str):
     assert tuple(actual) == tuple(expected), "expected %r, got %r" % (expected, actual)
 
 
+# -- CLO-7: theme_style (8-field view with schemeClr colors) ---------
+
+
+def _parse_theme_style_arg(arg):
+    """Parse a Gherkin literal like ``(1, "accent1", 3, "accent1", 2, "accent1", "minor", "lt1")``."""
+    arg = arg.strip()
+    if arg == "None":
+        return None
+    import ast
+
+    return ast.literal_eval(arg)
+
+
+@when("I assign shape.theme_style = {value_str}")
+def when_I_assign_shape_theme_style(context, value_str):
+    context.shape.theme_style = _parse_theme_style_arg(value_str)
+
+
+@then("shape.theme_style is {expected_str}")
+def then_shape_theme_style_is(context, expected_str):
+    expected = _parse_theme_style_arg(expected_str)
+    actual = context.shape.theme_style
+    if expected is None:
+        assert actual is None, "expected None, got %r" % (actual,)
+        return
+    assert actual is not None, "expected %r, got None" % (expected,)
+    assert tuple(actual) == tuple(expected), "expected %r, got %r" % (expected, actual)
+
+
 # ==== issue #582 -- shape.custom_props ===================================
 
 

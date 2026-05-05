@@ -84,6 +84,10 @@ The following properties and methods are common to all shapes.
    :members:
    :show-inheritance:
 
+.. autoclass:: pptx.shapes.base.ThemeStyle()
+   :members:
+   :show-inheritance:
+
 
 |Shape| objects (AutoShapes)
 ----------------------------
