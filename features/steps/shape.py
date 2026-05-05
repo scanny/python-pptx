@@ -1710,3 +1710,104 @@ def then_src_replace_spPr_from_gf_raises(context):
     except ValueError:
         return
     raise AssertionError("src.replace_spPr_from(gf) did not raise")
+
+
+# ---- BaseShape.replace_text_frame_from / TextFrame.clone_from (CLO-4, CLO-5) ----
+
+
+@given("two textboxes with different text formatting on a slide as src and tgt")
+def given_two_textboxes_with_different_formatting(context):
+    from pptx.dml.color import RGBColor
+    from pptx.util import Pt
+
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    src = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+    src.text_frame.text = "Source"
+    run = src.text_frame.paragraphs[0].runs[0]
+    run.font.bold = True
+    run.font.size = Pt(24)
+    run.font.color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    tgt = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(3), Inches(1))
+    tgt.text_frame.text = "other"
+    context.src = src
+    context.tgt = tgt
+
+
+@given("a textbox and a connector on a slide as tgt and src")
+def given_textbox_and_connector_tgt_src(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    tgt = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+    tgt.text_frame.text = "x"
+    src = slide.shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, Inches(0), Inches(0), Inches(1), Inches(1)
+    )
+    context.src = src
+    context.tgt = tgt
+
+
+@given("a textbox and a connector on a slide as src and tgt")
+def given_textbox_and_connector_src_tgt(context):
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    src = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(3), Inches(1))
+    src.text_frame.text = "x"
+    tgt = slide.shapes.add_connector(
+        MSO_CONNECTOR.STRAIGHT, Inches(0), Inches(0), Inches(1), Inches(1)
+    )
+    context.src = src
+    context.tgt = tgt
+
+
+@when("I call tgt.replace_text_frame_from(src)")
+def when_call_tgt_replace_text_frame_from_src(context):
+    context.tgt.replace_text_frame_from(context.src)
+
+
+@when("I call tgt.replace_text_frame_from(src) capturing the return")
+def when_call_tgt_replace_text_frame_from_src_capturing(context):
+    context.return_value = context.tgt.replace_text_frame_from(context.src)
+
+
+@when("I call tgt.text_frame.clone_from(src.text_frame)")
+def when_call_tgt_text_frame_clone_from_src(context):
+    context.tgt.text_frame.clone_from(context.src.text_frame)
+
+
+@when("I call tgt.text_frame.clone_from(src.text_frame) capturing the return")
+def when_call_tgt_text_frame_clone_from_src_capturing(context):
+    context.return_value = context.tgt.text_frame.clone_from(context.src.text_frame)
+
+
+@then("tgt.text_frame matches src.text_frame in text and run formatting")
+def then_tgt_text_frame_matches_src(context):
+    src_run = context.src.text_frame.paragraphs[0].runs[0]
+    tgt_run = context.tgt.text_frame.paragraphs[0].runs[0]
+    assert tgt_run.text == src_run.text, (
+        "tgt text %r != src text %r" % (tgt_run.text, src_run.text)
+    )
+    assert tgt_run.font.bold == src_run.font.bold
+    assert tgt_run.font.size == src_run.font.size
+    assert tgt_run.font.color.rgb == src_run.font.color.rgb
+
+
+@then("tgt.replace_text_frame_from(src) raises ValueError")
+def then_tgt_replace_text_frame_from_src_raises(context):
+    try:
+        context.tgt.replace_text_frame_from(context.src)
+    except ValueError:
+        return
+    raise AssertionError("tgt.replace_text_frame_from(src) did not raise")
+
+
+@then("the return value is tgt")
+def then_return_value_is_tgt(context):
+    assert context.return_value is context.tgt
+
+
+@then("the return value is tgt.text_frame")
+def then_return_value_is_tgt_text_frame(context):
+    # -- `.text_frame` is a fresh proxy each access (not a lazyproperty) so
+    # -- compare the underlying txBody element identity instead.
+    assert context.return_value._txBody is context.tgt.text_frame._txBody

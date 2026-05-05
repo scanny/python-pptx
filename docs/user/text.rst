@@ -516,6 +516,48 @@ relationship) are **not** migrated by ``clone_from``; cross-part
 hyperlink cloning is handled at the slide / presentation layer.
 
 
+Cloning a whole text frame
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The two clone primitives above work paragraph-by-paragraph and
+run-by-run — fine when you want to pull a single paragraph or run from
+one place into another, but verbose when you want the *whole* text
+body to travel (body properties, default list-style, every paragraph,
+every run, every inline math equation). Two methods handle the
+whole-body case:
+
+* :meth:`.TextFrame.clone_from` — replaces this text frame's
+  children (``a:bodyPr``, ``a:lstStyle``, every ``a:p``, and any
+  trailing ``a:endParaRPr``) with deep-copies of the source's. The
+  destination ``txBody`` element is kept intact; only its children
+  are swapped, so the enclosing shape's wiring to its text body is
+  preserved.
+* :meth:`.BaseShape.replace_text_frame_from` — shape-scoped wrapper
+  that delegates to :meth:`.TextFrame.clone_from` once it has
+  confirmed both shapes have a text frame. Raises ``ValueError`` when
+  either shape lacks one (e.g. a connector, a graphic frame holding
+  a chart or table, a group shape).
+
+Use the shape form when you hold shape references and want a
+one-liner; use the text-frame form when you already have both
+:class:`.TextFrame` proxies in hand::
+
+    # --- clone the entire formatted body from one shape onto another ---
+    src_tb = template_slide.shapes[0]   # styled textbox on a template
+    tgt_tb = body_slide.shapes[2]       # plain placeholder on target
+    tgt_tb.replace_text_frame_from(src_tb)
+
+    # --- same effect via the TextFrame proxies ---
+    tgt_tb.text_frame.clone_from(src_tb.text_frame)
+
+This is the single-call alternative to the previous fidelity-losing
+idiom ``shape.text_frame.text = src.text_frame.text`` (which would
+drop every per-run font / size / colour / bullet and every
+paragraph-level property). Both methods deep-copy — the two text
+frames are independent afterwards; edits to one do not affect the
+other. Both return ``self`` to support chaining.
+
+
 Rich text in one call
 ---------------------
 

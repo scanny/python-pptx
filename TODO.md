@@ -42,17 +42,6 @@ library calls; everything else is narrower but composes with them.
   look" without touching ``_element``. Composes with CLO-2 (which
   replaces the whole shape) as a narrower alternative.
 
-- **CLO-4: `BaseShape.replace_text_frame_from(other_shape) -> Self`.**
-  Clone the entire ``<p:txBody>`` subtree — run formatting,
-  paragraph properties, levels, list styles — from another shape
-  onto this one. ``TextFrame.text = "..."`` writes plain text only
-  and loses per-run font / color / caps / size.
-
-- **CLO-5: `TextFrame.clone_from(other_text_frame) -> Self`.**
-  Same as CLO-4 but callable directly on a ``TextFrame`` instead
-  of requiring shape-level access. Useful for placeholder → slide
-  or table-cell → slide text migration.
-
 - **CLO-6: `_Paragraph.clone_from(other_paragraph) -> Self` and
   `_Run.clone_from(other_run) -> Self`.**
   The next layer down from CLO-5 — per-paragraph / per-run
@@ -107,6 +96,23 @@ library calls; everything else is narrower but composes with them.
 
 
 ## Done
+
+- **CLO-4 / CLO-5: whole-text-frame clone (paired).**
+  Added ``TextFrame.clone_from(other_text_frame) -> Self`` and
+  ``BaseShape.replace_text_frame_from(other_shape) -> Self``.
+  ``TextFrame.clone_from`` replaces this text frame's ``txBody``
+  children (``a:bodyPr``, ``a:lstStyle``, every ``a:p``, any trailing
+  ``a:endParaRPr``) with deep-copies of the source's; the destination
+  ``txBody`` element is kept intact so the enclosing shape's wiring is
+  preserved. ``BaseShape.replace_text_frame_from`` is the
+  shape-scoped wrapper — delegates to ``TextFrame.clone_from`` once
+  both shapes are confirmed to have a text frame; raises
+  ``ValueError`` when either lacks one (connector, chart or table
+  graphic frame, group shape). Replaces the fidelity-losing idiom
+  ``shape.text_frame.text = src.text_frame.text``. Both return
+  ``self`` for chaining and deep-copy (sources untouched, destinations
+  independent). Works across slides / presentations. Branch
+  ``feat/clo4-5-text-frame-clone-from``.
 
 - **CLO-8 (primary deliverable): full-fidelity chart-clone front door.**
   Added ``SlideShapes.add_chart_from(source_chart, left, top,

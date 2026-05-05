@@ -736,6 +736,52 @@ class BaseShape(object):
 
         return cast("Self", self)
 
+    def replace_text_frame_from(self, other_shape: BaseShape) -> Self:
+        """Clone the entire text frame from `other_shape` onto this shape.
+
+        Replaces the children of this shape's ``p:txBody`` (body properties,
+        default list style, every paragraph with its ``a:pPr`` / runs / inline
+        ``mc:AlternateContent`` wrappers, and any trailing ``a:endParaRPr``)
+        with deep copies of the corresponding children from
+        ``other_shape``'s ``p:txBody``. The destination ``txBody`` *element*
+        is kept intact; only its children are swapped, so the shape's
+        relationship-to-``txBody`` wiring is preserved.
+
+        Preserves full round-trip fidelity for the text content: per-run font
+        attributes (bold, italic, size, colour, highlight, baseline,
+        hyperlink marker), paragraph-level properties (level, alignment,
+        indent, bullet, spacing), body-level layout (vertical anchor, word
+        wrap, autofit, rotation, insets), default list style, and inline
+        math equations. The assignment ``shape.text_frame.text = "..."``,
+        by contrast, writes plain text only and discards every one of those
+        attributes.
+
+        Works across shapes — ``other_shape`` may live on a different slide
+        or presentation. The deep-copy makes the two text frames fully
+        independent afterwards. Returns ``self`` for chaining. Raises
+        :class:`ValueError` when either shape lacks a text frame (e.g. a
+        connector, a picture with no text body, a graphic-frame chart or
+        table, a group shape). Check :attr:`has_text_frame` on both shapes
+        first when unsure.
+
+        This is a thin shape-scoped wrapper over
+        :meth:`.TextFrame.clone_from`; use that directly if you already
+        have the :class:`~pptx.text.text.TextFrame` proxies in hand.
+
+        .. versionadded:: 2026.05.0
+        """
+        if not (self.has_text_frame and other_shape.has_text_frame):
+            raise ValueError(
+                "replace_text_frame_from requires both shapes to have a text"
+                " frame; check `shape.has_text_frame` on both shapes first"
+            )
+        # -- cast(): has_text_frame True narrows to a shape that exposes     --
+        # -- `.text_frame`; the base class type-sig is deliberately narrower --
+        self_tf = cast("_ShapeWithTextFrame", self).text_frame
+        other_tf = cast("_ShapeWithTextFrame", other_shape).text_frame
+        self_tf.clone_from(other_tf)
+        return self
+
     def duplicate(self) -> BaseShape:
         """Return a new shape that is a duplicate of this shape.
 

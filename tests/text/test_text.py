@@ -826,6 +826,159 @@ class DescribeTextFrame(object):
         return property_mock(request, TextFrame, "text")
 
 
+class DescribeTextFrameCloneFrom(object):
+    """Unit-test suite for `pptx.text.text.TextFrame.clone_from` (CLO-5)."""
+
+    def it_returns_self_from_clone_from_for_chaining(self):
+        src = TextFrame(cast("CT_TextBody", element("p:txBody/a:bodyPr")), None)
+        dst = TextFrame(cast("CT_TextBody", element("p:txBody/a:bodyPr")), None)
+
+        result = dst.clone_from(src)
+
+        assert result is dst
+
+    def it_deep_copies_bodyPr_preserving_anchor_and_wrap(self):
+        src_cxml = "p:txBody/(a:bodyPr{anchor=ctr,wrap=square},a:p)"
+        dst_cxml = "p:txBody/(a:bodyPr{anchor=t,wrap=none},a:p)"
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element(dst_cxml)), None)
+
+        dst.clone_from(src)
+
+        assert dst._txBody.bodyPr.anchor == MSO_ANCHOR.MIDDLE
+        assert dst.word_wrap is True
+        # -- the cloned bodyPr must be a different element than the source's --
+        assert dst._txBody.bodyPr is not src._txBody.bodyPr
+
+    def it_replaces_paragraphs_with_deep_copies(self):
+        src_cxml = 'p:txBody/(a:bodyPr,a:p/a:r/a:t"foo",a:p/a:r/a:t"bar")'
+        dst_cxml = 'p:txBody/(a:bodyPr,a:p/a:r/a:t"orig")'
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element(dst_cxml)), None)
+
+        dst.clone_from(src)
+
+        assert len(dst._txBody.p_lst) == 2
+        assert dst.paragraphs[0].text == "foo"
+        assert dst.paragraphs[1].text == "bar"
+        # -- deep copy: cloned paragraph elements are distinct from source --
+        assert dst._txBody.p_lst[0] is not src._txBody.p_lst[0]
+
+    def it_preserves_run_level_formatting_on_cloned_paragraphs(self):
+        src_cxml = (
+            'p:txBody/(a:bodyPr,'
+            'a:p/a:r/(a:rPr{b=1,sz=2400}/a:solidFill/a:srgbClr{val=FF0000},a:t"bold"))'
+        )
+        dst_cxml = 'p:txBody/(a:bodyPr,a:p/a:r/a:t"orig")'
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element(dst_cxml)), None)
+
+        dst.clone_from(src)
+
+        run = dst.paragraphs[0].runs[0]
+        assert run.text == "bold"
+        assert run.font.bold is True
+        assert run.font.size == Pt(24)
+        assert run.font.color.rgb == RGBColor(0xFF, 0x00, 0x00)
+
+    def it_preserves_paragraph_level_and_alignment_when_cloning(self):
+        src_cxml = (
+            'p:txBody/(a:bodyPr,a:p/(a:pPr{lvl=2,algn=ctr},a:r/a:t"x"))'
+        )
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element("p:txBody/(a:bodyPr,a:p)")), None)
+
+        dst.clone_from(src)
+
+        p = dst.paragraphs[0]
+        assert p.level == 2
+        assert p.alignment == PP_ALIGN.CENTER
+
+    def it_preserves_lstStyle_when_cloning(self):
+        src_cxml = (
+            'p:txBody/(a:bodyPr,'
+            'a:lstStyle/a:lvl1pPr/a:defRPr{sz=1800},a:p)'
+        )
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element("p:txBody/(a:bodyPr,a:p)")), None)
+
+        dst.clone_from(src)
+
+        assert dst._txBody.find(qn("a:lstStyle")) is not None
+
+    def it_replaces_multiple_dst_paragraphs_with_source_single_paragraph(self):
+        src_cxml = 'p:txBody/(a:bodyPr,a:p/a:r/a:t"single")'
+        dst_cxml = (
+            'p:txBody/(a:bodyPr,a:p/a:r/a:t"one",a:p/a:r/a:t"two",a:p/a:r/a:t"three")'
+        )
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element(dst_cxml)), None)
+
+        dst.clone_from(src)
+
+        assert len(dst._txBody.p_lst) == 1
+        assert dst.paragraphs[0].text == "single"
+
+    def it_does_not_mutate_source_text_frame_when_cloning(self):
+        src_cxml = (
+            'p:txBody/(a:bodyPr{anchor=ctr},a:p/(a:pPr{lvl=2},a:r/a:t"foo"))'
+        )
+        src_txBody = element(src_cxml)
+        snapshot = src_txBody.xml
+        src = TextFrame(cast("CT_TextBody", src_txBody), None)
+        dst = TextFrame(cast("CT_TextBody", element('p:txBody/(a:bodyPr,a:p/a:r/a:t"orig")')), None)
+
+        dst.clone_from(src)
+
+        assert src_txBody.xml == snapshot
+
+    def it_cloned_text_frame_is_independent_of_source_after_clone(self):
+        src_cxml = 'p:txBody/(a:bodyPr,a:p/(a:pPr{lvl=1},a:r/a:t"foo"))'
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element("p:txBody/(a:bodyPr,a:p)")), None)
+
+        dst.clone_from(src)
+        # -- mutating the source must not affect the clone --
+        src.paragraphs[0].level = 7
+        src.paragraphs[0].runs[0].text = "mutated"
+
+        assert dst.paragraphs[0].level == 1
+        assert dst.paragraphs[0].runs[0].text == "foo"
+
+    def it_yields_equivalent_xml_after_clone_from(self):
+        src_cxml = (
+            'p:txBody/(a:bodyPr{anchor=ctr,wrap=square},a:lstStyle,'
+            'a:p/(a:pPr{lvl=2,algn=ctr},a:r/(a:rPr{b=1,sz=2000},a:t"hi")))'
+        )
+        src = TextFrame(cast("CT_TextBody", element(src_cxml)), None)
+        dst = TextFrame(cast("CT_TextBody", element('p:txBody/(a:bodyPr,a:p/a:r/a:t"x")')), None)
+
+        dst.clone_from(src)
+
+        assert dst._txBody.xml == src._txBody.xml
+
+    def it_works_across_real_presentation_text_frames(self):
+        from pptx import Presentation
+
+        prs = Presentation()
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        src_tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+        dst_tb = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(4), Inches(1))
+        src_tf = src_tb.text_frame
+        src_tf.text = "styled"
+        src_tf.paragraphs[0].runs[0].font.bold = True
+        src_tf.paragraphs[0].runs[0].font.size = Pt(24)
+        src_tf.paragraphs[0].runs[0].font.color.rgb = RGBColor(0x2E, 0x74, 0xB5)
+
+        dst_tb.text_frame.clone_from(src_tf)
+
+        dst_run = dst_tb.text_frame.paragraphs[0].runs[0]
+        assert dst_run.text == "styled"
+        assert dst_run.font.bold is True
+        assert dst_run.font.size == Pt(24)
+        assert dst_run.font.color.rgb == RGBColor(0x2E, 0x74, 0xB5)
+
+
 class DescribeTextFrameRect(object):
     """Unit-test suite for `pptx.text.text.TextFrameRect` namedtuple."""
 
