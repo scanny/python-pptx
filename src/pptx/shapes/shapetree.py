@@ -899,6 +899,46 @@ class SlideShapes(_BaseGroupShapes):
         self._recalculate_extents()
         return cast(Picture, self._shape_factory(pic))
 
+    def add_picture_from(
+        self,
+        other_picture: Picture,
+        left: Length | None = None,
+        top: Length | None = None,
+        width: Length | None = None,
+        height: Length | None = None,
+    ) -> Picture:
+        """Add a deep clone of `other_picture` to this shape tree (CLO-12).
+
+        Ergonomic one-call equivalent of "extract the image blob, re-embed it
+        as a new picture, then copy the source's ``p:spPr``": the image bytes
+        are re-embedded on this slide's owning package and the clone
+        automatically preserves every formatting attribute the source
+        carries — crop (``a:srcRect``), outline (``a:ln``), effects
+        (``a:effectLst``), rotation, flip, and any custom ``a:xfrm``
+        geometry — which manual ``BytesIO(other.image.blob)`` +
+        ``add_picture`` cannot reproduce.
+        `other_picture` may live in this same presentation (intra-deck copy)
+        or in a different one (cross-deck copy); in the cross-package case
+        its image part is materialised in this package so no cross-package
+        references are retained.
+        `left` / `top` / `width` / `height` are optional overrides for the
+        clone's position and size; |None| (the default for each) preserves
+        the corresponding source value.
+        Returns the newly-added |Picture|.
+        This is a narrow picture-specific alias for
+        :meth:`~.BaseShape.clone_onto` — the general shape-clone primitive
+        handles every shape kind, while ``add_picture_from`` offers a simpler
+        signature for the common picture-only case.
+
+        .. versionadded:: 2026.05.0
+        """
+        clone = cast(Picture, other_picture.clone_onto(self, left=left, top=top))
+        if width is not None:
+            clone.width = width
+        if height is not None:
+            clone.height = height
+        return clone
+
     def add_movie(
         self,
         movie_file: str | IO[bytes],

@@ -81,18 +81,12 @@ library calls; everything else is narrower but composes with them.
   header/first-row/banded-rows flags.
 >>>>>>> feat/clo11-group-shape-clone
 
-- **CLO-12: `SlideShapes.add_picture_from(other_picture, left=None, top=None) -> Picture`.**
-  One-call equivalent of "extract blob, re-embed as picture, copy
-  spPr". Saves the ``BytesIO(other.image.blob)`` dance and
-  automatically preserves crop / outline / effects. A narrow
-  alias CLO-2 makes unnecessary but is the most ergonomic name
-  for the common picture-only case.
-
 
 
 
 ## Done
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 - **CLO-1: ``Slide.clone_shapes_from(other_slide, include_placeholders=True)
@@ -141,6 +135,18 @@ library calls; everything else is narrower but composes with them.
   re-embedding and round-trip save/reload. No production-code changes
   were needed.
 >>>>>>> feat/clo11-group-shape-clone
+=======
+- **CLO-12: ``SlideShapes.add_picture_from(other_picture, left=None,
+  top=None, width=None, height=None) -> Picture``.** Ergonomic picture-
+  specific alias for ``BaseShape.clone_onto``. Re-embeds the source's
+  image bytes on this slide's package and automatically preserves crop
+  (``a:srcRect``), outline, effects, rotation, and flip — everything
+  the manual ``BytesIO(src.image.blob)`` + ``add_picture`` dance
+  discards. ``left`` / ``top`` / ``width`` / ``height`` default to
+  ``None`` (preserves the source value). Supports intra- and cross-
+  presentation sources. Branch ``feat/clo12-add-picture-from``.
+
+>>>>>>> feat/clo12-add-picture-from
 
 - **CLO-8 (primary deliverable): full-fidelity chart-clone front door.**
   Added ``SlideShapes.add_chart_from(source_chart, left, top,

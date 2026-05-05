@@ -367,6 +367,7 @@ prs.save("out.pptx")
 - `SlideShapes.add_textbox(left, top, width, height)` — Append a standalone text box.
 - `SlideShapes.add_picture(path_or_stream, left, top, width=None, height=None)` — Inline picture. The stream form accepts non-seekable file-like objects — blob-URL readers, HTTP upload streams, pipe-backed readers — and will sniff the format regardless of `seek` availability; a stream's `name` attribute, when present, is used as the image description. Issue #866. `[Added in 2026.05.0]` for the non-seekable-stream support.
 - `SlideShapes.add_picture_link(url, left, top, width=None, height=None)` — Linked (external URL) picture. `[Added in 2026.05.0]`
+- `SlideShapes.add_picture_from(other_picture, left=None, top=None, width=None, height=None)` — Ergonomic picture-specific alias for `BaseShape.clone_onto`. Re-embeds the source's image bytes on this slide's package and preserves crop (`a:srcRect`), outline, effects, rotation, and flip — everything the manual `BytesIO(src.image.blob)` + `add_picture` dance discards. Each of `left` / `top` / `width` / `height` defaults to `None`, which preserves the corresponding source value. Supports same-presentation and cross-presentation sources. CLO-12. `[Added in 2026.05.0]`
 - `SlideShapes.add_movie(path_or_stream, left, top, width, height, poster_frame_image=None, mime_type=None, autoplay=False)` — Add a video/audio shape. `autoplay` is `[Added in 2026.05.0]`.
 - `SlideShapes.add_movie_link(url, poster_frame_image, left, top, width, height)` — Add a URL-linked (online) video shape. `[Added in 2026.05.0]`
 - `SlideShapes.add_chart(chart_type, x, y, cx, cy, chart_data)` — Append a chart graphic frame.
@@ -731,6 +732,7 @@ prs.save("out.pptx")
 
 - `SlideShapes.add_picture(image_file, left, top, width=None, height=None)` — Inline picture (PNG, JPEG, GIF, BMP, TIFF, WMF, EMF, SVG supported; `.mpo` support is `[Added in 2026.05.0]`).
 - `SlideShapes.add_picture_link(url, left, top, width=None, height=None)` — Linked (external URL) picture. `[Added in 2026.05.0]`
+- `SlideShapes.add_picture_from(other_picture, left=None, top=None, width=None, height=None)` — One-call clone of an existing `Picture` onto this slide; re-embeds the image bytes on this package and preserves crop, outline, effects, rotation, and flip. Optional overrides default to `None` (preserving the source value). CLO-12. `[Added in 2026.05.0]`
 - `SlideShapes.add_picture_svg(svg_file, left, top, width=None, height=None, png_fallback=None)` — Inline *editable* SVG picture. Embeds the SVG alongside a PNG raster fallback wired up via Microsoft's `asvg:svgBlip` extension so PowerPoint 365+ opens the vector for editing while older clients fall back to the PNG. When `png_fallback` is `None` a built-in 1×1 transparent placeholder PNG is inserted. `[Added in 2026.05.0]`
 - `Picture.image` — `Image` wrapper (`.blob`, `.content_type`, `.ext`, `.filename`, `.size`). EMF content-type correction is `[Added in 2026.05.0]`.
 - `Picture.replace_image(image_file)` — Swap the picture's bytes while preserving position, size, cropping, masking shape, outline, alt-text, and name. `[Added in 2026.05.0]`
