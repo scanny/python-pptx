@@ -51,6 +51,15 @@ Feature: slide-transition round-trip (Foundation F8 MVP)
       And slide.transition is not wrapped in mc:AlternateContent
 
 
+  Scenario: slide.transition.advance_after_seconds round-trips as milliseconds
+    Given a blank slide
+     When I set slide.transition.type to FADE
+      And I set slide.transition.advance_after_seconds to 2.5
+      And I save and reopen the presentation
+     Then slide.transition.advance_after_time is 2500
+      And slide.transition.advance_after_seconds is 2.5
+
+
   Scenario: Slide.animation_sequence is empty for a clean slide
     Given a blank slide
      Then slide.animation_sequence is an empty tuple

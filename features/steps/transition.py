@@ -34,6 +34,11 @@ def when_set_slide_transition_advance_after_time(context, ms):
     context.slide.transition.advance_after_time = ms
 
 
+@when("I set slide.transition.advance_after_seconds to {seconds:g}")
+def when_set_slide_transition_advance_after_seconds(context, seconds):
+    context.slide.transition.advance_after_seconds = seconds
+
+
 @when("I set slide.transition.morph_option to {option}")
 def when_set_slide_transition_morph_option(context, option):
     context.slide.transition.morph_option = option
@@ -79,6 +84,16 @@ def then_slide_transition_advance_after_time_is(context, value):
         expected = int(value)
     actual = context.slide.transition.advance_after_time
     assert actual == expected, "slide.transition.advance_after_time is %s" % actual
+
+
+@then("slide.transition.advance_after_seconds is {value}")
+def then_slide_transition_advance_after_seconds_is(context, value):
+    if value == "None":
+        expected = None
+    else:
+        expected = float(value)
+    actual = context.slide.transition.advance_after_seconds
+    assert actual == expected, "slide.transition.advance_after_seconds is %s" % actual
 
 
 @then("slide.has_animations is {value}")

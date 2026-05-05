@@ -2899,6 +2899,51 @@ class DescribeTransition(object):
         with pytest.raises(ValueError, match="non-negative"):
             transition.advance_after_time = -1
 
+    # -- .advance_after_seconds (seconds convenience over advance_after_time) --
+
+    def it_returns_None_advance_after_seconds_when_absent(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        assert transition.advance_after_seconds is None
+
+    def it_reads_advance_after_seconds_from_advTm_ms(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition{advTm=5000})")
+        transition = Transition(sld)
+        assert transition.advance_after_seconds == 5.0
+
+    def it_writes_advance_after_seconds_as_ms_on_advTm(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.advance_after_seconds = 2.5
+        assert transition.advance_after_time == 2500
+        assert transition.advance_after_seconds == 2.5
+
+    def it_rounds_float_seconds_to_int_ms(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.advance_after_seconds = 0.4567
+        # -- 0.4567 s -> 456.7 ms -> round -> 457 ms --
+        assert transition.advance_after_time == 457
+
+    def it_accepts_int_seconds(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        transition.advance_after_seconds = 3
+        assert transition.advance_after_time == 3000
+
+    def it_clears_advance_after_seconds_when_set_to_None(self):
+        sld = element("p:sld/(p:cSld/p:spTree,p:transition{advTm=5000})")
+        transition = Transition(sld)
+        transition.advance_after_seconds = None
+        assert transition.advance_after_seconds is None
+        assert transition.advance_after_time is None
+
+    def it_rejects_negative_advance_after_seconds(self):
+        sld = element("p:sld/p:cSld/p:spTree")
+        transition = Transition(sld)
+        with pytest.raises(ValueError, match="non-negative"):
+            transition.advance_after_seconds = -0.1
+
     # -- .speed -----------------------------------------------------------
 
     def it_reports_FAST_speed_when_no_transition(self):

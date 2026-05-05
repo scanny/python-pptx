@@ -1951,6 +1951,40 @@ class Transition(ElementProxy):
         transition = self._sld.get_or_add_transition_effective()
         transition.advTm = value
 
+    # -- advance_after_seconds (seconds convenience on top of advance_after_time) --
+
+    @property
+    def advance_after_seconds(self) -> float | None:
+        """Auto-advance delay expressed in *seconds*, or ``None`` when unset.
+
+        Thin convenience view over :attr:`advance_after_time`: reads the
+        ``p:transition/@advTm`` (milliseconds) and returns the value as
+        ``float`` seconds; returns ``None`` when the attribute is absent.
+
+        Setting to a non-negative number writes ``@advTm`` in milliseconds
+        (``int(round(value * 1000))``); setting to ``None`` clears
+        ``@advTm``. Use :attr:`advance_after_time` directly when you need
+        millisecond precision or want to avoid the float round-trip.
+
+        .. versionadded:: 2026.05.0
+        """
+        ms = self.advance_after_time
+        if ms is None:
+            return None
+        return ms / 1000.0
+
+    @advance_after_seconds.setter
+    def advance_after_seconds(self, value: float | int | None) -> None:
+        if value is None:
+            self.advance_after_time = None
+            return
+        if not isinstance(value, (int, float)) or value < 0:
+            raise ValueError(
+                "advance_after_seconds must be a non-negative number (seconds), "
+                "got %r" % (value,)
+            )
+        self.advance_after_time = int(round(float(value) * 1000))
+
     # -- wipe_direction (per-variant flag on p:wipe) -----------------
 
     @property
