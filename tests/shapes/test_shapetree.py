@@ -475,6 +475,40 @@ class Describe_BaseGroupShapes(object):
         _shape_factory_.assert_called_once_with(shapes, graphicFrame)
         assert new_gf is graphic_frame_
 
+    def it_can_add_a_chart_from_a_source_chart(self, request):
+        """add_chart_from delegates to clone_chart for full-fidelity copy (CLO-8)."""
+        from pptx.chart.chart import Chart
+
+        source_chart_ = instance_mock(request, Chart)
+        clone_chart_ = method_mock(request, _BaseGroupShapes, "clone_chart")
+        graphic_frame_ = instance_mock(request, GraphicFrame)
+        clone_chart_.return_value = graphic_frame_
+        shapes = _BaseGroupShapes(None, None)
+        left, top, width, height = 10, 20, 30, 40
+
+        result = shapes.add_chart_from(source_chart_, left, top, width, height)
+
+        clone_chart_.assert_called_once_with(shapes, source_chart_, left, top, width, height)
+        assert result is graphic_frame_
+
+    def it_defaults_width_and_height_on_add_chart_from(self, request):
+        """add_chart_from falls back to Inches(5) x Inches(3) when width/height are omitted."""
+        from pptx.chart.chart import Chart
+        from pptx.util import Inches
+
+        source_chart_ = instance_mock(request, Chart)
+        clone_chart_ = method_mock(request, _BaseGroupShapes, "clone_chart")
+        graphic_frame_ = instance_mock(request, GraphicFrame)
+        clone_chart_.return_value = graphic_frame_
+        shapes = _BaseGroupShapes(None, None)
+
+        result = shapes.add_chart_from(source_chart_, 111, 222)
+
+        clone_chart_.assert_called_once_with(
+            shapes, source_chart_, 111, 222, Inches(5), Inches(3)
+        )
+        assert result is graphic_frame_
+
     def it_can_add_a_connector_shape(self, connector_fixture):
         shapes, connector_type, begin_x, begin_y = connector_fixture[:4]
         end_x, end_y, cxnSp_, connector_ = connector_fixture[4:]

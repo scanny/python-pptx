@@ -23,3 +23,16 @@ Feature: Cross-slide chart copy
      Then presentation B's slide has a chart
       And that chart's chart part belongs to presentation B's package
       And saving presentation B alone round-trips the chart
+
+  Scenario: SlideShapes.add_chart_from adds a full-fidelity clone of a source chart
+    Given a chart with an embedded workbook on slide 1
+     When I call slide_2.shapes.add_chart_from(source_chart, x, y, cx, cy)
+     Then slide 2 has a chart shape at (x, y) sized (cx, cy)
+      And the cloned chart has a distinct chart part
+      And the cloned chart has a distinct embedded xlsx part
+
+  Scenario: SlideShapes.add_chart_from defaults width and height when omitted
+    Given a chart with an embedded workbook on slide 1
+     When I call slide_2.shapes.add_chart_from(source_chart, x, y) with no size
+     Then slide 2 has a chart shape at (x, y) sized 5 by 3 inches
+      And the cloned chart has a distinct chart part

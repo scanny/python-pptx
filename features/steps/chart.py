@@ -1233,6 +1233,40 @@ def then_prs_B_round_trips_the_chart(context):
     assert gf.chart.chart_type == XL_CHART_TYPE.LINE
 
 
+# --- add_chart_from (CLO-8) ----------------------------------------
+
+@when("I call slide_2.shapes.add_chart_from(source_chart, x, y, cx, cy)")
+def when_I_call_slide_2_add_chart_from(context):
+    context._src_xlsx_part = context.source_chart.part.chart_workbook.xlsx_part
+    context._src_chart_part = context.source_chart.part
+    new_gf = context.slide_2.shapes.add_chart_from(
+        context.source_chart, context._x, context._y, context._cx, context._cy
+    )
+    context.new_gf = new_gf
+    context.cloned_chart = new_gf.chart
+
+
+@when("I call slide_2.shapes.add_chart_from(source_chart, x, y) with no size")
+def when_I_call_slide_2_add_chart_from_no_size(context):
+    context._src_xlsx_part = context.source_chart.part.chart_workbook.xlsx_part
+    context._src_chart_part = context.source_chart.part
+    new_gf = context.slide_2.shapes.add_chart_from(
+        context.source_chart, context._x, context._y
+    )
+    context.new_gf = new_gf
+    context.cloned_chart = new_gf.chart
+
+
+@then("slide 2 has a chart shape at (x, y) sized 5 by 3 inches")
+def then_slide_2_has_chart_default_size(context):
+    gf = context.new_gf
+    assert gf.has_chart
+    assert gf.left == context._x
+    assert gf.top == context._y
+    assert gf.width == Inches(5)
+    assert gf.height == Inches(3)
+
+
 # --- replace_data_preserve_formulas (issue #239) --------------------
 
 @given("a chart with an embedded workbook and a formula in the last value cell")
