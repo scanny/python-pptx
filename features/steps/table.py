@@ -96,6 +96,29 @@ def given_a_Column_object_as_column(context):
     context.column = prs.slides[0].shapes[3].table.columns[0]
 
 
+@given("a fully-styled source _Cell and a plain target _Cell")
+def given_a_fully_styled_source_cell_and_a_plain_target_cell(context):
+    """Build a freshly-added 2x2 table, fully style cell(0,0), leave cell(1,1) plain."""
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    gf = slide.shapes.add_table(2, 2, Inches(1), Inches(1), Inches(6), Inches(2))
+    table = gf.table
+
+    source = table.cell(0, 0)
+    source.text = "styled"
+    source.fill.solid()
+    source.fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+    source.border_left.color.rgb = RGBColor(0x00, 0x00, 0xFF)
+    source.border_left.width = Pt(1.5)
+    source.border_diagonal_down.color.rgb = RGBColor(0x00, 0xFF, 0x00)
+    source.margin_left = Inches(0.2)
+    source.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+    context.source_cell = source
+    context.source_xml_snapshot = source._tc.xml  # pyright: ignore[reportPrivateUsage]
+    context.target_cell = table.cell(1, 1)
+
+
 # when ====================================================
 
 
@@ -232,6 +255,11 @@ def when_I_call_cell_split_other_cell(context):
 @when("I call origin_cell.merge(other_cell)")
 def when_I_call_origin_cell_merge_other_cell(context):
     context.origin_cell.merge(context.other_cell)
+
+
+@when("I call target_cell.clone_from(source_cell)")
+def when_I_call_target_clone_from_source(context):
+    context.clone_from_result = context.target_cell.clone_from(context.source_cell)
 
 
 # then ====================================================
@@ -490,3 +518,58 @@ def then_table_vert_banding_is_value(context, bool_lit):
 def then_table_cell_r_c_attr_eq(context, r, c, attr, int_lit):
     actual = getattr(context.table_.cell(r, c), attr)
     assert actual == int_lit, "table.cell(%d, %d).%s == %s" % (r, c, attr, actual)
+
+
+@then('target_cell.text == "{text_value}"')
+def then_target_cell_text_eq_literal(context, text_value):
+    actual = context.target_cell.text
+    assert actual == text_value, "target_cell.text == %r" % (actual,)
+
+
+@then("target_cell.fill.fore_color.rgb is RGBColor({r}, {g}, {b})")
+def then_target_cell_fill_fore_color_rgb_eq(context, r, g, b):
+    actual = context.target_cell.fill.fore_color.rgb
+    expected = RGBColor(int(r, 16), int(g, 16), int(b, 16))
+    assert actual == expected, "target_cell.fill.fore_color.rgb == %s" % actual
+
+
+@then("target_cell.{border}.color.rgb is RGBColor({r}, {g}, {b})")
+def then_target_cell_border_color_rgb_eq(context, border, r, g, b):
+    actual = getattr(context.target_cell, border).color.rgb
+    expected = RGBColor(int(r, 16), int(g, 16), int(b, 16))
+    assert actual == expected, "target_cell.%s.color.rgb == %s" % (border, actual)
+
+
+@then("target_cell.{border}.width == Pt({num_lit})")
+def then_target_cell_border_width_eq(context, border, num_lit):
+    actual = getattr(context.target_cell, border).width
+    expected = Pt(float(num_lit))
+    assert actual == expected, "target_cell.%s.width == %s EMU" % (border, actual)
+
+
+@then("target_cell.margin_{side} == Inches({num_lit})")
+def then_target_cell_margin_side_eq_Inches(context, side, num_lit):
+    actual = getattr(context.target_cell, "margin_%s" % side)
+    expected = Inches(float(num_lit))
+    assert actual == expected, "target_cell.margin_%s == %s" % (side, actual.inches)
+
+
+@then("target_cell.vertical_anchor == {value}")
+def then_target_cell_vertical_anchor_eq(context, value):
+    actual = context.target_cell.vertical_anchor
+    expected = eval(value)
+    assert actual == expected, "target_cell.vertical_anchor == %s" % actual
+
+
+@then("target_cell.clone_from returned target_cell")
+def then_clone_from_returned_target(context):
+    assert context.clone_from_result is context.target_cell, (
+        "clone_from did not return target_cell"
+    )
+
+
+@then("source_cell was not mutated by the clone")
+def then_source_cell_not_mutated(context):
+    actual = context.source_cell._tc.xml  # pyright: ignore[reportPrivateUsage]
+    expected = context.source_xml_snapshot
+    assert actual == expected, "source_cell XML changed after clone_from"

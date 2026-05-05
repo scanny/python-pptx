@@ -364,7 +364,6 @@ class Describe_Cell(object):
         # -- 1.5 pt = 19050 EMU (12700 EMU/pt)
         assert int(tcPr.lnB.get("w")) == 19050
 
-
     def it_knows_its_row_and_col_idx_in_the_table(self, row_col_idx_fixture):
         tc, expected_row_idx, expected_col_idx = row_col_idx_fixture
         cell = _Cell(tc, None)
@@ -584,6 +583,152 @@ class Describe_Cell(object):
         cell.vertical_anchor = new_value
         assert cell._tc.xml == expected_xml
 
+    def it_can_clone_from_another_cell(self):
+        """clone_from copies txBody + tcPr, preserves position, returns self."""
+        from pptx.dml.color import RGBColor
+        from pptx.enum.text import MSO_ANCHOR as ANCHOR
+
+        # -- two cells in separate tables so their positions differ --
+        src_tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        tgt_tbl = element(
+            "a:tbl/(a:tblGrid/(a:gridCol{w=914400},a:gridCol{w=914400}),"
+            "a:tr{h=370840}/(a:tc,a:tc),a:tr{h=370840}/(a:tc,a:tc))"
+        )
+        src_tc, tgt_tc = src_tbl.tc(0, 0), tgt_tbl.tc(1, 1)
+        src = _Cell(src_tc, None)
+        tgt = _Cell(tgt_tc, None)
+
+        # -- populate source with fill, borders, margins, anchor, run-level
+        # -- formatting so we can verify every facet round-trips --
+        src.fill.solid()
+        src.fill.fore_color.rgb = RGBColor(0xFF, 0x00, 0x00)
+        src.border_left.color.rgb = RGBColor(0x00, 0x00, 0xFF)
+        src.border_left.width = Pt(1.5)
+        src.border_diagonal_down.color.rgb = RGBColor(0x00, 0xFF, 0x00)
+        src.margin_left = Inches(0.2)
+        src.margin_top = Inches(0.3)
+        src.margin_right = Inches(0.4)
+        src.margin_bottom = Inches(0.5)
+        src.vertical_anchor = ANCHOR.MIDDLE
+        src.text = "Hello"
+        src_run = src.text_frame.paragraphs[0].runs[0]
+        src_run.font.bold = True
+        src_run.font.color.rgb = RGBColor(0x11, 0x22, 0x33)
+
+        result = tgt.clone_from(src)
+
+        # -- chainable: returns self --
+        assert result is tgt
+        # -- text + run formatting round-tripped --
+        assert tgt.text == "Hello"
+        tgt_run = tgt.text_frame.paragraphs[0].runs[0]
+        assert tgt_run.font.bold is True
+        assert tgt_run.font.color.rgb == RGBColor(0x11, 0x22, 0x33)
+        # -- fill round-tripped --
+        assert tgt.fill.fore_color.rgb == RGBColor(0xFF, 0x00, 0x00)
+        # -- borders (including diagonal) round-tripped --
+        assert tgt.border_left.color.rgb == RGBColor(0x00, 0x00, 0xFF)
+        assert tgt.border_left.width == Pt(1.5)
+        assert tgt.border_diagonal_down.color.rgb == RGBColor(0x00, 0xFF, 0x00)
+        # -- margins round-tripped --
+        assert tgt.margin_left == Inches(0.2)
+        assert tgt.margin_top == Inches(0.3)
+        assert tgt.margin_right == Inches(0.4)
+        assert tgt.margin_bottom == Inches(0.5)
+        # -- vertical anchor round-tripped --
+        assert tgt.vertical_anchor == ANCHOR.MIDDLE
+        # -- position preserved (cell stays at its original (row, col)) --
+        assert tgt.row_idx == 1
+        assert tgt.col_idx == 1
+
+    def and_it_does_not_mutate_the_source_cell(self):
+        """clone_from must not alter the source cell."""
+        from pptx.dml.color import RGBColor
+
+        src_tc = element("a:tc")
+        tgt_tc = element("a:tc")
+        src = _Cell(src_tc, None)
+        src.text = "source"
+        src.fill.solid()
+        src.fill.fore_color.rgb = RGBColor(0xAB, 0xCD, 0xEF)
+        src.border_top.width = Pt(2)
+        src.margin_left = Inches(0.15)
+        src_xml_before = src._tc.xml
+
+        tgt = _Cell(tgt_tc, None)
+        tgt.clone_from(src)
+
+        # -- source tc XML is byte-for-byte unchanged --
+        assert src._tc.xml == src_xml_before
+        # -- and the two cells are independent after the clone: mutating
+        # -- the target must not leak back into the source --
+        tgt.text = "mutated"
+        assert src.text == "source"
+
+    def and_it_replaces_pre_existing_formatting_on_the_target(self):
+        """clone_from overwrites whatever the target cell had before."""
+        from pptx.dml.color import RGBColor
+
+        src = _Cell(element("a:tc"), None)
+        src.text = "src text"
+        src.fill.solid()
+        src.fill.fore_color.rgb = RGBColor(0x11, 0x22, 0x33)
+        src.margin_left = Inches(0.2)
+
+        tgt = _Cell(element("a:tc"), None)
+        tgt.text = "tgt text"
+        tgt.fill.solid()
+        tgt.fill.fore_color.rgb = RGBColor(0xAA, 0xBB, 0xCC)
+        tgt.margin_left = Inches(0.5)
+        tgt.border_right.width = Pt(3)
+
+        tgt.clone_from(src)
+
+        # -- target now mirrors source --
+        assert tgt.text == "src text"
+        assert tgt.fill.fore_color.rgb == RGBColor(0x11, 0x22, 0x33)
+        assert tgt.margin_left == Inches(0.2)
+        # -- previously-set border on target is cleared (wasn't on source) --
+        tcPr = tgt._tc.tcPr
+        assert tcPr is None or tcPr.lnR is None
+
+    def and_it_preserves_merge_state_on_the_target(self):
+        """Merge attributes on the target's `a:tc` are left alone; they live
+        on the element itself, not inside `a:tcPr`, and describe the target's
+        position in its own table."""
+        src = _Cell(element("a:tc"), None)
+        src.text = "src"
+
+        tgt_tc = element("a:tc{gridSpan=2,rowSpan=3,hMerge=false,vMerge=false}")
+        tgt = _Cell(tgt_tc, None)
+
+        tgt.clone_from(src)
+
+        assert tgt._tc.gridSpan == 2
+        assert tgt._tc.rowSpan == 3
+        assert tgt.text == "src"
+
+    def and_it_handles_a_source_cell_without_tcPr(self):
+        """Cloning a plain cell with no tcPr strips any tcPr on the target."""
+        from pptx.dml.color import RGBColor
+
+        src = _Cell(element("a:tc"), None)
+        src.text = "plain"
+
+        tgt = _Cell(element("a:tc"), None)
+        tgt.fill.solid()
+        tgt.fill.fore_color.rgb = RGBColor(0xFF, 0xFF, 0x00)
+        tgt.margin_left = Inches(0.25)
+        assert tgt._tc.tcPr is not None
+
+        tgt.clone_from(src)
+
+        assert tgt.text == "plain"
+        assert tgt._tc.tcPr is None
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture(
@@ -773,9 +918,7 @@ class Describe_Cell(object):
 class Describe_CellBorder(object):
     """Unit-test suite for `pptx.table._CellBorder` adapter."""
 
-    @pytest.mark.parametrize(
-        "side", ["lnL", "lnR", "lnT", "lnB", "lnTlToBr", "lnBlToTr"]
-    )
+    @pytest.mark.parametrize("side", ["lnL", "lnR", "lnT", "lnB", "lnTlToBr", "lnBlToTr"])
     def it_accepts_the_six_legal_sides(self, side):
         tc = element("a:tc")
         _CellBorder(tc, side)  # does not raise

@@ -119,6 +119,12 @@ library calls; everything else is narrower but composes with them.
   inches. Works intra- and cross-presentation. Read-mutate
   ``Chart.clone_from`` is still open as a follow-up (see CLO-8 partial
   entry above). Branch ``feat/clo8-chart-clone-from``.
+- **CLO-9: ``_Cell.clone_from(other_cell) -> Self``.** Copies full
+  ``a:txBody`` (paragraphs, runs, run-level formatting) and ``a:tcPr``
+  (fill, edge and diagonal borders, margins, vertical anchor) subtrees
+  from one cell onto another while preserving position and merge-state.
+  Returns ``self``; source is not mutated. Branch
+  ``feat/clo9-cell-clone-from``.
 
 - **Wave 24 (overnight polish pass).** Five parallel agents, all merged
   to master (``5adf390b..8aa60af5``).
