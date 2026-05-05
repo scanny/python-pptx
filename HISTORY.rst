@@ -54,6 +54,8 @@ Released: 2026-05-05
 Unreleased
 ++++++++++
 
+- docs: bump README version string to match ``__version__``.
+
 - Add ``Slide.clone_shapes_from(other_slide, include_placeholders=True)``
   — the composite CLO-1 wrapper on top of ``BaseShape.clone_onto``. Walks
   ``other_slide.shapes`` and appends a deep-copy of every top-level shape

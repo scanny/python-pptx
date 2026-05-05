@@ -67,7 +67,7 @@ bugs, corrupt source files, duplicates) are catalogued in
 `docs/community/issue-triage.rst` with a one-line disposition each.
 
 Unstable. Not yet published to PyPI — install from source only. Current
-version: `2026.05.0`; versioning is CalVer (`YYYY.MM.patch`). The public
+version: `2026.05.2`; versioning is CalVer (`YYYY.MM.patch`). The public
 API follows the upstream `pptx` surface, so upstream code runs
 unchanged; fork-era additions may still shift before a tagged release.
 
