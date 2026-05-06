@@ -97,8 +97,12 @@ class DescribeCT_Relationships:
 
     def it_can_construct_a_new_relationships_element(self):
         rels = CT_Relationships.new()
+        # -- Shared runtime's CT_Relationships.xml returns bytes with XML
+        # -- declaration (suitable for .rels serialisation); pre-0.2 pptx
+        # -- inherited BaseOxmlElement.xml (pretty-printed str for tests).
         assert rels.xml == (
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>'
+            b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+            b'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>'
         )
 
     def it_can_build_rels_element_incrementally(self):

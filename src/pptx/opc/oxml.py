@@ -1,31 +1,56 @@
-"""OPC-local oxml module to handle OPC-local concerns like relationship parsing."""
+"""Re-export of :mod:`ooxml_opc.oxml` with pptx-local helpers.
+
+The :class:`CT_Types` / :class:`CT_Relationships` / :class:`CT_Default` /
+:class:`CT_Override` / :class:`CT_Relationship` xmlchemy element classes
+live in :mod:`ooxml_opc.oxml` and are re-exported here so external
+callers (including test code) continue to import them from this module.
+
+pptx-local helpers retained:
+
+* :func:`_normalize_xml_decl_quotes` — rewrites the lxml single-quoted
+  XML declaration to double quotes to match Microsoft Office.
+* :func:`oxml_to_encoded_bytes`, :func:`oxml_tostring` — thin wrappers
+  around :func:`etree.tostring` that apply the declaration-quote
+  normalization on the returned bytes.
+* :data:`nsmap` — OPC-local prefix → URI mapping.
+
+The shared CT_ classes are also registered in pptx's own element-class
+lookup so ``pptx.oxml.parse_xml`` returns them on parse.
+"""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, cast
+from typing import TYPE_CHECKING
 
 from lxml import etree
 
-from pptx.opc.constants import NAMESPACE as NS
-from pptx.opc.constants import RELATIONSHIP_TARGET_MODE as RTM
-from pptx.oxml import parse_xml, register_element_cls
-from pptx.oxml.simpletypes import (
-    ST_ContentType,
-    ST_Extension,
-    ST_TargetMode,
-    XsdAnyUri,
-    XsdId,
+from ooxml_opc.oxml import (  # noqa: F401 -- re-exports
+    CT_Default,
+    CT_Override,
+    CT_Relationship,
+    CT_Relationships,
+    CT_Types,
+    serialize_part_xml,
 )
-from pptx.oxml.xmlchemy import (
-    BaseOxmlElement,
-    OptionalAttribute,
-    RequiredAttribute,
-    ZeroOrMore,
-)
+from ooxml_opc.constants import NAMESPACE as NS
 
 if TYPE_CHECKING:
-    from pptx.opc.packuri import PackURI
+    from ooxml_opc.oxml import BaseOxmlElement
 
+__all__ = [
+    "CT_Default",
+    "CT_Override",
+    "CT_Relationship",
+    "CT_Relationships",
+    "CT_Types",
+    "nsmap",
+    "oxml_to_encoded_bytes",
+    "oxml_tostring",
+    "serialize_part_xml",
+]
+
+
+#: OPC-local nsmap.
 nsmap = {
     "ct": NS.OPC_CONTENT_TYPES,
     "pr": NS.OPC_RELATIONSHIPS,
@@ -36,15 +61,9 @@ nsmap = {
 def _normalize_xml_decl_quotes(xml_bytes: bytes) -> bytes:
     """Rewrite the leading XML-declaration in `xml_bytes` to use double quotes.
 
-    lxml emits the XML declaration with single quotes (e.g.
-    ``<?xml version='1.0' encoding='UTF-8' standalone='yes'?>``) while element
-    attributes use double quotes. Microsoft Office and strict validators expect
-    double quotes throughout. This helper replaces the single-quoted attributes
-    in the declaration with double-quoted ones so the emitted XML has
-    consistent quoting without altering element-attribute quoting (which lxml
-    already emits with double quotes).
-
-    A no-op when `xml_bytes` has no XML declaration.
+    lxml emits the XML declaration with single quotes; Microsoft Office
+    and strict validators expect double quotes. No-op when there is no
+    XML declaration.
     """
     if not xml_bytes.startswith(b"<?xml"):
         return xml_bytes
@@ -53,16 +72,15 @@ def _normalize_xml_decl_quotes(xml_bytes: bytes) -> bytes:
         return xml_bytes
     decl = xml_bytes[: end + 2]
     rest = xml_bytes[end + 2 :]
-    # -- only rewrite attribute-value quotes inside the declaration --
     decl = decl.replace(b"'", b'"')
     return decl + rest
 
 
 def oxml_to_encoded_bytes(
-    element: BaseOxmlElement,
+    element: "BaseOxmlElement",
     encoding: str = "utf-8",
     pretty_print: bool = False,
-    standalone: bool | None = None,
+    standalone: "bool | None" = None,
 ) -> bytes:
     xml = etree.tostring(
         element, encoding=encoding, pretty_print=pretty_print, standalone=standalone
@@ -71,10 +89,10 @@ def oxml_to_encoded_bytes(
 
 
 def oxml_tostring(
-    elm: BaseOxmlElement,
-    encoding: str | None = None,
+    elm: "BaseOxmlElement",
+    encoding: "str | None" = None,
     pretty_print: bool = False,
-    standalone: bool | None = None,
+    standalone: "bool | None" = None,
 ):
     xml = etree.tostring(elm, encoding=encoding, pretty_print=pretty_print, standalone=standalone)
     if isinstance(xml, bytes):
@@ -82,138 +100,21 @@ def oxml_tostring(
     return xml
 
 
-def serialize_part_xml(part_elm: BaseOxmlElement) -> bytes:
-    """Produce XML-file bytes for `part_elm`, suitable for writing directly to a `.xml` file.
+# -- Register the shared CT_ classes in pptx's element-class lookup so
+# -- ``pptx.oxml.parse_xml`` returns the custom classes rather than the
+# -- generic ``_Element``. Deferred to dodge the circular-import path
+# -- ``pptx.oxml.coreprops -> pptx.opc.oxml -> pptx.oxml``. --
+def _register() -> None:
+    from pptx.oxml import register_element_cls
 
-    Includes XML-declaration header. The declaration uses double quotes for
-    its pseudo-attributes so the quoting is consistent with element-attribute
-    quoting elsewhere in the output.
-    """
-    return _normalize_xml_decl_quotes(etree.tostring(part_elm, encoding="UTF-8", standalone=True))
-
-
-class CT_Default(BaseOxmlElement):
-    """`<Default>` element.
-
-    Specifies the default content type to be applied to a part with the specified extension.
-    """
-
-    extension: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "Extension", ST_Extension
-    )
-    contentType: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "ContentType", ST_ContentType
-    )
+    register_element_cls("ct:Default", CT_Default)
+    register_element_cls("ct:Override", CT_Override)
+    register_element_cls("ct:Types", CT_Types)
+    register_element_cls("pr:Relationship", CT_Relationship)
+    register_element_cls("pr:Relationships", CT_Relationships)
 
 
-class CT_Override(BaseOxmlElement):
-    """`<Override>` element.
-
-    Specifies the content type to be applied for a part with the specified partname.
-    """
-
-    partName: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "PartName", XsdAnyUri
-    )
-    contentType: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "ContentType", ST_ContentType
-    )
-
-
-class CT_Relationship(BaseOxmlElement):
-    """`<Relationship>` element.
-
-    Represents a single relationship from a source to a target part.
-    """
-
-    rId: str = RequiredAttribute("Id", XsdId)  # pyright: ignore[reportAssignmentType]
-    reltype: str = RequiredAttribute("Type", XsdAnyUri)  # pyright: ignore[reportAssignmentType]
-    target_ref: str = RequiredAttribute(  # pyright: ignore[reportAssignmentType]
-        "Target", XsdAnyUri
-    )
-    targetMode: str = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
-        "TargetMode", ST_TargetMode, default=RTM.INTERNAL
-    )
-
-    @classmethod
-    def new(
-        cls, rId: str, reltype: str, target_ref: str, target_mode: str = RTM.INTERNAL
-    ) -> CT_Relationship:
-        """Return a new `<Relationship>` element.
-
-        `target_ref` is either a partname or a URI.
-        """
-        relationship = cast(CT_Relationship, parse_xml(f'<Relationship xmlns="{nsmap["pr"]}"/>'))
-        relationship.rId = rId
-        relationship.reltype = reltype
-        relationship.target_ref = target_ref
-        relationship.targetMode = target_mode
-        return relationship
-
-
-class CT_Relationships(BaseOxmlElement):
-    """`<Relationships>` element, the root element in a .rels file."""
-
-    relationship_lst: list[CT_Relationship]
-    _insert_relationship: Callable[[CT_Relationship], CT_Relationship]
-
-    relationship = ZeroOrMore("pr:Relationship")
-
-    def add_rel(
-        self, rId: str, reltype: str, target: str, is_external: bool = False
-    ) -> CT_Relationship:
-        """Add a child `<Relationship>` element with attributes set as specified."""
-        target_mode = RTM.EXTERNAL if is_external else RTM.INTERNAL
-        relationship = CT_Relationship.new(rId, reltype, target, target_mode)
-        return self._insert_relationship(relationship)
-
-    @classmethod
-    def new(cls) -> CT_Relationships:
-        """Return a new `<Relationships>` element."""
-        return cast(CT_Relationships, parse_xml(f'<Relationships xmlns="{nsmap["pr"]}"/>'))
-
-    @property
-    def xml_file_bytes(self) -> bytes:
-        """Return XML bytes, with XML-declaration, for this `<Relationships>` element.
-
-        Suitable for saving in a .rels stream, not pretty printed and with an XML declaration at
-        the top.
-        """
-        return oxml_to_encoded_bytes(self, encoding="UTF-8", standalone=True)
-
-
-class CT_Types(BaseOxmlElement):
-    """`<Types>` element.
-
-    The container element for Default and Override elements in [Content_Types].xml.
-    """
-
-    default_lst: list[CT_Default]
-    override_lst: list[CT_Override]
-
-    _add_default: Callable[..., CT_Default]
-    _add_override: Callable[..., CT_Override]
-
-    default = ZeroOrMore("ct:Default")
-    override = ZeroOrMore("ct:Override")
-
-    def add_default(self, ext: str, content_type: str) -> CT_Default:
-        """Add a child `<Default>` element with attributes set to parameter values."""
-        return self._add_default(extension=ext, contentType=content_type)
-
-    def add_override(self, partname: PackURI, content_type: str) -> CT_Override:
-        """Add a child `<Override>` element with attributes set to parameter values."""
-        return self._add_override(partName=partname, contentType=content_type)
-
-    @classmethod
-    def new(cls) -> CT_Types:
-        """Return a new `<Types>` element."""
-        return cast(CT_Types, parse_xml(f'<Types xmlns="{nsmap["ct"]}"/>'))
-
-
-register_element_cls("ct:Default", CT_Default)
-register_element_cls("ct:Override", CT_Override)
-register_element_cls("ct:Types", CT_Types)
-
-register_element_cls("pr:Relationship", CT_Relationship)
-register_element_cls("pr:Relationships", CT_Relationships)
+try:
+    _register()
+except ImportError:  # pragma: no cover
+    pass
