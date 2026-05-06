@@ -6,6 +6,17 @@ Release History
 Unreleased
 ++++++++++
 
+- feat(text): add :attr:`Font.spacing` read/write property exposing the
+  ``a:rPr/@spc`` attribute (OOXML letter-spacing / character-spacing).
+  Value is a |Length| for ergonomic parity with :attr:`Font.size` -- use
+  :class:`~pptx.util.Pt` to set (e.g. ``font.spacing = Pt(1.5)``); the
+  getter returns an EMU-wrapped |Length| (or ``None`` when unset). On
+  the wire the value is stored in hundredths of a point per ECMA-376
+  ``ST_TextPoint`` (range +/-400000, i.e. +/-4000 pt). Assigning
+  ``None`` removes the attribute and restores inheritance from the
+  style hierarchy. Widely used for small-caps labels, tracked titles,
+  and similar typographic effects.
+
 - build: drop Python 3.8 support; bump ``requires-python`` to ``>=3.9``
   and remove ``py38`` from the tox envlist (closes #4). Python 3.8
   went EOL 2024-10. Aligns the fork's minimum with the sibling
