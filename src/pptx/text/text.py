@@ -1185,6 +1185,45 @@ class Font(object):
             self._rPr.sz = sz
 
     @property
+    def spacing(self) -> Length | None:
+        """Letter-spacing (character spacing) for this run.
+
+        Corresponds to the ``a:rPr/@spc`` attribute. Read/write. Positive
+        values expand the space between characters, negative values
+        condense it. |None| (the default) means no explicit spacing is
+        set on this run; the effective spacing is inherited from the
+        style hierarchy.
+
+        PowerPoint stores ``@spc`` in hundredths of a point (ECMA-376
+        ``ST_TextPoint``; range ``-4000..4000`` points). python-pptx
+        surfaces it as a |Length|, consistent with :attr:`size`, so the
+        familiar :class:`~pptx.util.Pt` / :class:`~pptx.util.Emu`
+        constructors and ``.pt`` / ``.emu`` accessors apply::
+
+            >>> font.spacing = Pt(1.5)
+            >>> font.spacing
+            19050
+            >>> font.spacing.pt
+            1.5
+
+        Assign |None| to remove any explicit spacing, restoring
+        inheritance.
+
+        .. versionadded:: 2026.05.4
+        """
+        spc = self._rPr.spc
+        if spc is None:
+            return None
+        return Centipoints(spc)
+
+    @spacing.setter
+    def spacing(self, emu: Length | None):
+        if emu is None:
+            self._rPr.spc = None
+        else:
+            self._rPr.spc = Emu(emu).centipoints
+
+    @property
     def strikethrough(self) -> bool | MSO_TEXT_STRIKE_TYPE | None:
         """Indicates the strikethrough setting for this font.
 

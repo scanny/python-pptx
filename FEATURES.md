@@ -1065,6 +1065,7 @@ prs.save("out.pptx")
 - `Font.baseline` — Vertical baseline-shift for a run, as `int | None` in thousandths of a percent (positive = superscript, negative = subscript, `0` = normal, `None` = inherit). Range `-100000` .. `100000`. Corresponds to `a:rPr/@baseline`. `[Added in 2026.05.0]`
 - `Font.subscript` / `Font.superscript` — Tri-state boolean shortcuts for `Font.baseline`. Assigning `True` writes PowerPoint's default shift (`-25000` / `30000`); `False` writes `0`; `None` clears the attribute. Both properties read from the same underlying `@baseline`, so setting one overrides the other. `[Added in 2026.05.0]`
 - `Font.name_ea` / `Font.name_cs` — East-Asian and complex-script typeface overrides. `[Added in 2026.05.0]`
+- `Font.spacing` — Letter-spacing (character spacing) for the run, corresponding to `a:rPr/@spc`. Read/write `Length | None`; set with a `Pt` value (`font.spacing = Pt(1.5)`), getter returns an EMU-wrapped `Length` (or `None` when unset). OOXML stores the value in hundredths of a point (`ST_TextPoint`, range ±400000 = ±4000 pt); `None` removes the attribute and restores inheritance. `[Added in 2026.05.4]`
 - `Font.color` — `ColorFormat` proxy.
 - `Font.fill` — `FillFormat` for text-body fill (solid, gradient, picture).
 - `Font.effect_format` — `EffectFormat` for glow / shadow / reflection. `[Added in 2026.05.0]`
@@ -1212,6 +1213,13 @@ rect2 = slide.shapes.add_shape(
 )
 rect2.fill.blip_fill("texture.png")
 
+# three-stop gradient fill
+rect3 = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE, Inches(1), Inches(3), Inches(3), Inches(1),
+)
+rect3.fill.gradient()
+rect3.fill.gradient_stops.add_stop(0.5, RGBColor(0xFF, 0xA5, 0x00))
+
 prs.save("out.pptx")
 ```
 
@@ -1220,6 +1228,7 @@ prs.save("out.pptx")
 - `FillFormat.fore_color` / `.back_color` / `.pattern` / `.type` — Per-type accessors.
 - `_GradientFillFormat.gradient_stops` — Gradient stop collection.
 - `_GradientFillFormat.gradient_angle` — Linear-gradient angle in degrees.
+- `_GradientStops.add_stop(position, color=None)` / `.remove(stop)` — Author multi-stop gradients; `position` is a 0.0–1.0 float, `color` accepts an `RGBColor` or `MSO_THEME_COLOR` value. `remove` refuses to shrink below the two-stop minimum per the OOXML schema. `[Added in 2026.05.dev0]`
 - `LineFormat.color` / `.width` / `.fill` — Stroke color, width, and fill overlay.
 - `LineFormat.dash_style` — `MSO_LINE_DASH_STYLE`. Fixed `ROUND_DOT` and `UP_DOWN_ARROW` mappings are `[Added in 2026.05.0]`.
 - `LineFormat.begin_arrow_head_style` / `.end_arrow_head_style` / `.begin_arrow_head_width` / `.end_arrow_head_width` / `.begin_arrow_head_length` / `.end_arrow_head_length` — Arrow-head authoring. `[Added in 2026.05.0]`
@@ -1471,6 +1480,7 @@ prs.save("out.pptx")
 - `CategoryAxis.tick_label_skip` / `CategoryAxis.tick_mark_skip` — Read/write `int` (>=1) thinning out how often a category-axis label or major tick is drawn (`c:tickLblSkip/@val` and `c:tickMarkSkip/@val`). `1` (default) draws every category; `2` draws every other; and so on. Assigning `1` removes the backing element; values `<1` raise `ValueError`. `[Added in 1.0.2.dev0]`
 - `CategoryAxis.label_align` — Read/write `XL_TICK_LABEL_ALIGNMENT` (`CENTER` / `LEFT` / `RIGHT`) mapping the horizontal alignment of category-axis tick labels to `c:catAx/c:lblAlgn/@val` (`ctr` / `l` / `r`). Returns `CENTER` (the PowerPoint default) when no `c:lblAlgn` element is present; assigning `CENTER` removes the backing element so the XML stays minimal. Assigning a non-member raises `ValueError`. `[Added in 2026.05.1.dev0]`
 - `ValueAxis.crosses` / `.crosses_at` / `.major_unit` / `.minor_unit`.
+- `ValueAxis.log_base` — Read/write `float | int | None` flipping a value axis between linear (`None`, the default) and logarithmic scaling, backed by `c:valAx/c:scaling/c:logBase/@val`. Common bases are `10` and `2`; ECMA-376 `ST_LogBase` restricts the value to the inclusive range `[2.0, 1000.0]` and assignments outside that range raise `ValueError`. Assigning `None` removes the `c:logBase` element so the axis reverts to linear. `[Added in 2026.05.4.dev0]`
 - `DateAxis.major_unit` / `.minor_unit` — Time-axis spacing. `[Added in 1.0.2.dev0]`
 - `Series.values` / `Series.categories` / `Series.name` / `Series.format` / `Series.marker` / `Series.points`.
 - `Series.has_error_bars` / `Series.error_bars` / `Series.set_error_bars(type, amount, include, direction)` — Error bars (fixed value / percentage / std deviation / std error). `[Added in 1.0.2.dev0]`

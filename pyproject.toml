@@ -25,6 +25,12 @@ dependencies = [
     "Pillow>=3.3.2",
     "XlsxWriter>=0.5.7",
     "lxml>=3.1.0",
+    # Shared OPC primitives (PackURI, Strict→Transitional translator,
+    # ReproducibleZipWriter, content-type + relationship-type registry,
+    # EMU unit classes). Not yet on PyPI; pinned to the master branch
+    # until a PyPI release lands, after which this becomes
+    # ``python-ooxml-opc>=0.1.0``.
+    "python-ooxml-opc @ git+https://github.com/loadfix/python-ooxml-opc@master",
     "typing_extensions>=4.9.0",
 ]
 description = "Create, read, and update PowerPoint 2007+ (.pptx) files."

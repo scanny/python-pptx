@@ -44,6 +44,54 @@ work lands.
 (none — all tracked items in the Audit-findings section above)
 
 
+## Limitations surfaced 2026-05-06 (deck-generation workflow)
+
+Logged while building a fully programmatic designer-grade deck
+(`_scratch/build_llm_deck.py`). Each item is something a user
+hitting the API at design-level polish had to work around:
+
+1. **No multi-stop gradient API.** `FillFormat.gradient()` creates a
+   default 2-stop gradient, and `_GradientStops` is a read-only
+   `Sequence` — there is no `add_stop(position, color)` / `insert_stop`
+   or `.stops = [...]` setter. To author a 3+ stop gradient the caller
+   must drop into `lxml.etree` and hand-write `<a:gs>` elements under
+   `a:gsLst`, bypassing the xmlchemy descriptors. See the
+   `add_gradient_rect` helper in `_scratch/build_llm_deck.py` for the
+   workaround.
+
+2. **No letter-spacing (tracking) on `Font`.** OOXML supports `spc` on
+   `a:rPr` (hundredths of a point), widely used by designers for small
+   caps labels. `pptx.text.text._Font` exposes no accessor — users
+   must set `rPr.set("spc", str(int(pts * 100)))` on the raw element.
+
+3. **No log-scale on value-axis.** `ValueAxis` has no `log_base` /
+   `scaling` accessor. For context-window or price comparisons that
+   span 2+ orders of magnitude, callers must draw bars with raw
+   rectangles and compute `log10` positions in Python.
+
+4. **No rotated text / `.rotation` on textboxes.** `BaseShape.rotation`
+   rotates the whole shape including its box; there's no way to rotate
+   just the text inside (e.g., 90° axis-label stacking). Workaround:
+   rotate the whole textbox, which shifts its bounding box.
+
+5. **Chart-style limits: no per-data-label formatting.** You can set
+   `plot.data_labels.font` globally but not per-category. Designers who
+   want to emphasise a single bar label (e.g., the latest point) have
+   to fall back to drawn-on-top textboxes.
+
+6. **Slide background: no first-class API.** Setting a slide's full
+   background requires either (a) authoring a `<p:bg>` element in the
+   `CT_Slide` XML, or (b) inserting a full-bleed rectangle and
+   reordering it to the bottom of `spTree`. The current helper
+   `paint_background` in the scratch script does (b).
+
+7. **No built-in preview / render.** The library emits `.pptx` but
+   provides no renderer — verifying a generated deck visually needs
+   external tooling (LibreOffice / MSO / `ooxml-validate`). Not a bug,
+   but worth a line in docs/dev for users building design-tooling on
+   top.
+
+
 ## Done
 
 - **Wave 26-B: cut 2026.05.3 release.** Rolled HISTORY.rst (Unreleased

@@ -1424,6 +1424,27 @@ class DescribeValueAxis(object):
         with pytest.raises(ValueError):
             value_axis.cross_between = "foobar"
 
+    def it_knows_its_log_base(self, log_base_get_fixture):
+        value_axis, expected_value = log_base_get_fixture
+        assert value_axis.log_base == expected_value
+
+    def it_can_set_its_log_base(self, log_base_set_fixture):
+        value_axis, new_value, expected_xml = log_base_set_fixture
+        value_axis.log_base = new_value
+        assert value_axis._element.xml == expected_xml
+
+    def it_can_unset_log_base(self):
+        value_axis = ValueAxis(element("c:valAx/c:scaling/c:logBase{val=10.0}"))
+        value_axis.log_base = None
+        assert value_axis._element.xml == xml("c:valAx/c:scaling")
+        assert value_axis.log_base is None
+
+    @pytest.mark.parametrize("bad_value", [1.0, 1.999, 1000.0001, 1001, -1, 0])
+    def it_raises_on_log_base_out_of_range(self, bad_value: float):
+        value_axis = ValueAxis(element("c:valAx/c:scaling"))
+        with pytest.raises(ValueError, match="log base must be in range"):
+            value_axis.log_base = bad_value
+
     def it_knows_its_major_unit(self, major_unit_get_fixture):
         value_axis, expected_value = major_unit_get_fixture
         assert value_axis.major_unit == expected_value
@@ -1592,6 +1613,40 @@ class DescribeValueAxis(object):
         ]
     )
     def cross_between_set_fixture(self, request):
+        valAx_cxml, new_value, expected_valAx_cxml = request.param
+        value_axis = ValueAxis(element(valAx_cxml))
+        expected_xml = xml(expected_valAx_cxml)
+        return value_axis, new_value, expected_xml
+
+    @pytest.fixture(
+        params=[
+            ("c:valAx/c:scaling", None),
+            ("c:valAx/c:scaling/c:logBase{val=10.0}", 10.0),
+            ("c:valAx/c:scaling/c:logBase{val=2.0}", 2.0),
+        ]
+    )
+    def log_base_get_fixture(self, request):
+        valAx_cxml, expected_value = request.param
+        value_axis = ValueAxis(element(valAx_cxml))
+        return value_axis, expected_value
+
+    @pytest.fixture(
+        params=[
+            ("c:valAx/c:scaling", 10, "c:valAx/c:scaling/c:logBase{val=10.0}"),
+            ("c:valAx/c:scaling", 2.0, "c:valAx/c:scaling/c:logBase{val=2.0}"),
+            (
+                "c:valAx/c:scaling/c:logBase{val=10.0}",
+                2,
+                "c:valAx/c:scaling/c:logBase{val=2.0}",
+            ),
+            (
+                "c:valAx/c:scaling/(c:max{val=100.0},c:min{val=0.0})",
+                10,
+                "c:valAx/c:scaling/(c:logBase{val=10.0},c:max{val=100.0},c:min{val=" "0.0})",
+            ),
+        ]
+    )
+    def log_base_set_fixture(self, request):
         valAx_cxml, new_value, expected_valAx_cxml = request.param
         value_axis = ValueAxis(element(valAx_cxml))
         expected_xml = xml(expected_valAx_cxml)

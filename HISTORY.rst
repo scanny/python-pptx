@@ -6,6 +6,46 @@ Release History
 Unreleased
 ++++++++++
 
+- feat(fill): add ``_GradientStops.add_stop(position, color=None)`` and
+  ``_GradientStops.remove(stop)`` for authoring multi-stop gradient fills
+  without dropping into raw lxml. ``add_stop`` appends a new ``a:gs``
+  with the position stored in OOXML's 1000ths-of-a-percent units and
+  optionally sets an RGB or theme color. ``remove`` refuses to shrink
+  the stop list below the two-stop minimum mandated by
+  ``CT_GradientStopList`` (``minOccurs="2"``). Closes the round-trip
+  gap that previously required callers to hand-edit the ``a:gsLst``
+  element to produce a 3+-stop gradient.
+
+- feat(text): add :attr:`Font.spacing` read/write property exposing the
+  ``a:rPr/@spc`` attribute (OOXML letter-spacing / character-spacing).
+  Value is a |Length| for ergonomic parity with :attr:`Font.size` -- use
+  :class:`~pptx.util.Pt` to set (e.g. ``font.spacing = Pt(1.5)``); the
+  getter returns an EMU-wrapped |Length| (or ``None`` when unset). On
+  the wire the value is stored in hundredths of a point per ECMA-376
+  ``ST_TextPoint`` (range +/-400000, i.e. +/-4000 pt). Assigning
+  ``None`` removes the attribute and restores inheritance from the
+  style hierarchy. Widely used for small-caps labels, tracked titles,
+  and similar typographic effects.
+
+- feat(chart): add ``ValueAxis.log_base`` for logarithmic value-axis
+  scaling. Read/write ``float | int | None``; ``None`` (the default)
+  leaves the axis linear, a numeric value switches it to log scaling
+  with the given base (typically ``10`` or ``2``). Backed by
+  ``c:valAx/c:scaling/c:logBase/@val``. Per ECMA-376 ``ST_LogBase`` the
+  base must lie in ``[2.0, 1000.0]``; values outside that range raise
+  ``ValueError``. Covers the common case of plotting data that spans
+  orders of magnitude (context-window sizes, prices, etc.).
+
+- test(chart): add explicit ``DescribePoint`` coverage for
+  ``Point.data_label`` lookup/create semantics — verifies that
+  ``point.data_label`` surfaces the existing ``c:dLbls/c:dLbl`` whose
+  ``c:idx/@val`` matches the point index (no spurious ``c:dLbl``
+  created) and that assigning through ``point.data_label`` creates the
+  ``c:dLbls`` / ``c:dLbl`` chain in schema order when absent. No
+  behaviour change — documents the contract that has shipped since the
+  per-point data-label work (issues #638 / #716 / #803 /
+  #953 / #1024 / #1025).
+
 - build: drop Python 3.8 support; bump ``requires-python`` to ``>=3.9``
   and remove ``py38`` from the tox envlist (closes #4). Python 3.8
   went EOL 2024-10. Aligns the fork's minimum with the sibling
