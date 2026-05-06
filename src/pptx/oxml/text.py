@@ -28,6 +28,7 @@ from pptx.oxml.simpletypes import (
     ST_TextFontScaleReductionPercent,
     ST_TextFontSize,
     ST_TextIndentLevelType,
+    ST_TextPoint,
     ST_TextSpacingPercentOrPercentString,
     ST_TextSpacingPoint,
     ST_TextTypeface,
@@ -467,6 +468,9 @@ class CT_TextCharacterProperties(BaseOxmlElement):
     strike: MSO_TEXT_STRIKE_TYPE | None = OptionalAttribute(
         "strike", MSO_TEXT_STRIKE_TYPE
     )  # pyright: ignore[reportAssignmentType]
+    spc: int | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
+        "spc", ST_TextPoint
+    )
     baseline: int | None = OptionalAttribute(  # pyright: ignore[reportAssignmentType]
         "baseline", ST_TextBaselinePercent
     )

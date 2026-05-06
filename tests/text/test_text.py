@@ -1173,6 +1173,48 @@ class DescribeFont(object):
         font.size = new_value
         assert font._element.xml == expected_xml
 
+    # -- spacing (letter-spacing / @spc) --------------------------------
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "expected_value"),
+        [
+            ("a:rPr", None),
+            ("a:rPr{spc=0}", 0),
+            ("a:rPr{spc=150}", Pt(1.5)),
+            ("a:rPr{spc=-200}", Pt(-2)),
+        ],
+    )
+    def it_knows_its_spacing(self, rPr_cxml, expected_value):
+        font = Font(element(rPr_cxml))
+        assert font.spacing == expected_value
+
+    @pytest.mark.parametrize(
+        ("rPr_cxml", "new_value", "expected_rPr_cxml"),
+        [
+            ("a:rPr", Pt(1.5), "a:rPr{spc=150}"),
+            ("a:rPr", Pt(-2), "a:rPr{spc=-200}"),
+            ("a:rPr{spc=150}", Pt(2), "a:rPr{spc=200}"),
+        ],
+    )
+    def it_can_set_spacing(self, rPr_cxml, new_value, expected_rPr_cxml):
+        font = Font(element(rPr_cxml))
+        font.spacing = new_value
+        assert font._element.xml == xml(expected_rPr_cxml)
+
+    def it_can_unset_spacing(self):
+        font = Font(element("a:rPr{spc=150}"))
+        font.spacing = None
+        assert font._element.xml == xml("a:rPr")
+
+    def it_accepts_Pt_values_for_spacing(self):
+        # -- Pt(n) round-trips cleanly through `spacing`; the stored @spc
+        # -- attribute is in hundredths of a point (Pt(1.5) -> "150").
+        font = Font(element("a:rPr"))
+        font.spacing = Pt(1.5)
+        assert font.spacing == Pt(1.5)
+        assert font.spacing.pt == 1.5  # pyright: ignore[reportOptionalMemberAccess]
+        assert font._element.xml == xml("a:rPr{spc=150}")
+
     def it_knows_its_latin_typeface(self, name_get_fixture):
         font, expected_value = name_get_fixture
         assert font.name == expected_value

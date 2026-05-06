@@ -852,6 +852,37 @@ class ST_TextFontSize(BaseIntType):
         cls.validate_int_in_range(value, 100, 400000)
 
 
+class ST_TextPoint(BaseIntType):
+    """Valid values for the ``spc`` attribute of ``<a:rPr>`` (and friends).
+
+    Represents a character-spacing (letter-spacing) amount in hundredths
+    of a point. Range is ``-400000..400000`` (i.e. -4000pt..+4000pt).
+    PowerPoint writes the attribute as a raw integer (e.g. ``"150"`` for
+    1.5pt extra spacing).
+
+    Per ECMA-376, ``ST_TextPoint`` is a union of ``ST_TextPointUnqualified``
+    (the raw int) and ``s:ST_UniversalMeasure`` (a numeric literal with a
+    unit suffix like ``"1.5pt"``). On read, both forms are accepted; a
+    universal-measure string is normalised into hundredths of a point. On
+    write, the raw-integer form is used -- matching what PowerPoint itself
+    emits.
+    """
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        # -- tolerate the universal-measure form ("1.5pt", "10mm", ...) on
+        # -- read; normalise into hundredths of a point. Emu has 127 EMU per
+        # -- centipoint, so `.centipoints` gives the hundredths-of-a-point
+        # -- count directly.
+        if str_value and str_value[-1].isalpha():
+            return ST_UniversalMeasure.convert_from_xml(str_value).centipoints
+        return int(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, -400000, 400000)
+
+
 class ST_TextBulletStartAtNum(BaseIntType):
     @classmethod
     def validate(cls, value):
