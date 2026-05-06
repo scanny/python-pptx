@@ -95,6 +95,7 @@ from pptx.oxml.chart.axis import (  # noqa: E402
     CT_DateAx,
     CT_LblAlgn,
     CT_LblOffset,
+    CT_LogBase,
     CT_Orientation,
     CT_Scaling,
     CT_Skip,
@@ -110,6 +111,7 @@ register_element_cls("c:crosses", CT_Crosses)
 register_element_cls("c:dateAx", CT_DateAx)
 register_element_cls("c:lblAlgn", CT_LblAlgn)
 register_element_cls("c:lblOffset", CT_LblOffset)
+register_element_cls("c:logBase", CT_LogBase)
 register_element_cls("c:majorGridlines", CT_ChartLines)
 register_element_cls("c:majorTickMark", CT_TickMark)
 register_element_cls("c:majorUnit", CT_AxisUnit)

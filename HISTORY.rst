@@ -27,6 +27,15 @@ Unreleased
   style hierarchy. Widely used for small-caps labels, tracked titles,
   and similar typographic effects.
 
+- feat(chart): add ``ValueAxis.log_base`` for logarithmic value-axis
+  scaling. Read/write ``float | int | None``; ``None`` (the default)
+  leaves the axis linear, a numeric value switches it to log scaling
+  with the given base (typically ``10`` or ``2``). Backed by
+  ``c:valAx/c:scaling/c:logBase/@val``. Per ECMA-376 ``ST_LogBase`` the
+  base must lie in ``[2.0, 1000.0]``; values outside that range raise
+  ``ValueError``. Covers the common case of plotting data that spans
+  orders of magnitude (context-window sizes, prices, etc.).
+
 - build: drop Python 3.8 support; bump ``requires-python`` to ``>=3.9``
   and remove ``py38`` from the tox envlist (closes #4). Python 3.8
   went EOL 2024-10. Aligns the fork's minimum with the sibling

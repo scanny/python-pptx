@@ -452,6 +452,21 @@ class ST_LblOffset(XsdUnsignedShort):
         cls.validate_int_in_range(value, 0, 1000)
 
 
+class ST_LogBase(XsdDouble):
+    """Logarithm base for `c:logBase/@val` on the value-axis `c:scaling`.
+
+    ECMA-376 Part 1 §21.2.3.25: restriction of `xsd:double` with
+    `minInclusive=2.0` and `maxInclusive=1000.0`. Values outside that
+    range are rejected by conforming readers, so we validate eagerly.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        super(ST_LogBase, cls).validate(value)
+        if value < 2.0 or value > 1000.0:
+            raise ValueError("log base must be in range 2.0 .. 1000.0 inclusive, got %s" % value)
+
+
 class ST_Skip(BaseIntType):
     """Positive integer ≥ 1 for `c:tickLblSkip` / `c:tickMarkSkip` `@val`.
 
@@ -864,7 +879,7 @@ class ST_TextPoint(BaseIntType):
     (the raw int) and ``s:ST_UniversalMeasure`` (a numeric literal with a
     unit suffix like ``"1.5pt"``). On read, both forms are accepted; a
     universal-measure string is normalised into hundredths of a point. On
-    write, the raw-integer form is used -- matching what PowerPoint itself
+    write, the raw-integer form is used — matching what PowerPoint itself
     emits.
     """
 
