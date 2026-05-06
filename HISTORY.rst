@@ -6,6 +6,16 @@ Release History
 Unreleased
 ++++++++++
 
+- feat(fill): add ``_GradientStops.add_stop(position, color=None)`` and
+  ``_GradientStops.remove(stop)`` for authoring multi-stop gradient fills
+  without dropping into raw lxml. ``add_stop`` appends a new ``a:gs``
+  with the position stored in OOXML's 1000ths-of-a-percent units and
+  optionally sets an RGB or theme color. ``remove`` refuses to shrink
+  the stop list below the two-stop minimum mandated by
+  ``CT_GradientStopList`` (``minOccurs="2"``). Closes the round-trip
+  gap that previously required callers to hand-edit the ``a:gsLst``
+  element to produce a 3+-stop gradient.
+
 - build: drop Python 3.8 support; bump ``requires-python`` to ``>=3.9``
   and remove ``py38`` from the tox envlist (closes #4). Python 3.8
   went EOL 2024-10. Aligns the fork's minimum with the sibling

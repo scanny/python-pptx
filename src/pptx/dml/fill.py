@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from pptx.dml.color import ColorFormat
-from pptx.enum.dml import MSO_FILL
+from pptx.dml.color import ColorFormat, RGBColor
+from pptx.enum.dml import MSO_FILL, MSO_THEME_COLOR
 from pptx.oxml.dml.fill import (
     CT_BlipFillProperties,
     CT_GradientFillProperties,
@@ -408,6 +408,51 @@ class _GradientStops(Sequence):
 
     def __len__(self):
         return len(self._gsLst)
+
+    def add_stop(
+        self,
+        position: float,
+        color: RGBColor | MSO_THEME_COLOR | None = None,
+    ) -> _GradientStop:
+        """Add a new gradient stop at *position* and return it.
+
+        *position* is a float between 0.0 and 1.0 inclusive, where 0.0 is the
+        start of the gradient path and 1.0 is the end. The value is stored
+        in OOXML's 1000ths-of-a-percent units (0–100000) on the new
+        ``a:gs`` element.
+
+        When *color* is supplied it sets the stop's color: an |RGBColor|
+        assigns an RGB value (producing ``a:srgbClr``); a member of
+        :ref:`MsoThemeColorIndex` assigns a theme color (producing
+        ``a:schemeClr``). When *color* is |None| (the default) the stop is
+        added with no color child, leaving the caller to configure it via
+        the returned stop's ``.color`` attribute.
+
+        Raises |ValueError| when *position* is outside the 0.0–1.0 range.
+        """
+        gs = self._gsLst._add_gs(pos=float(position))
+        stop = _GradientStop(gs)
+        if color is not None:
+            if isinstance(color, RGBColor):
+                stop.color.rgb = color
+            else:
+                stop.color.theme_color = color
+        return stop
+
+    def remove(self, stop: _GradientStop) -> None:
+        """Remove *stop* from this gradient.
+
+        Raises |ValueError| if removing *stop* would leave fewer than two
+        stops, since ``CT_GradientStopList`` requires ``minOccurs="2"``
+        per the OOXML schema. Raises |ValueError| if *stop* is not a member
+        of this collection.
+        """
+        if len(self._gsLst) <= 2:
+            raise ValueError("gradient must have at least two stops; cannot remove")
+        gs = stop.element
+        if gs.getparent() is not self._gsLst:
+            raise ValueError("stop is not a member of this gradient")
+        self._gsLst.remove(gs)
 
 
 class _GradientStop(ElementProxy):
