@@ -36,6 +36,16 @@ Unreleased
   ``ValueError``. Covers the common case of plotting data that spans
   orders of magnitude (context-window sizes, prices, etc.).
 
+- test(chart): add explicit ``DescribePoint`` coverage for
+  ``Point.data_label`` lookup/create semantics — verifies that
+  ``point.data_label`` surfaces the existing ``c:dLbls/c:dLbl`` whose
+  ``c:idx/@val`` matches the point index (no spurious ``c:dLbl``
+  created) and that assigning through ``point.data_label`` creates the
+  ``c:dLbls`` / ``c:dLbl`` chain in schema order when absent. No
+  behaviour change — documents the contract that has shipped since the
+  per-point data-label work (issues #638 / #716 / #803 /
+  #953 / #1024 / #1025).
+
 - build: drop Python 3.8 support; bump ``requires-python`` to ``>=3.9``
   and remove ``py38`` from the tox envlist (closes #4). Python 3.8
   went EOL 2024-10. Aligns the fork's minimum with the sibling

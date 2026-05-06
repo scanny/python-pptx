@@ -107,11 +107,62 @@ class DescribeCategoryPoints(object):
 
 
 class DescribePoint(object):
-    def it_provides_access_to_its_data_label(self, data_label_fixture):
+    def it_has_a_data_label(self, data_label_fixture):
         point, DataLabel_, ser, idx, data_label_ = data_label_fixture
         data_label = point.data_label
         DataLabel_.assert_called_once_with(ser, idx)
         assert data_label is data_label_
+
+    def it_finds_existing_dLbl_at_matching_idx(self):
+        """`Point.data_label` wraps the existing per-point `c:dLbl` at matching idx.
+
+        When ``c:ser/c:dLbls`` already carries a ``c:dLbl`` whose ``c:idx/@val``
+        matches the point's index, reading properties on
+        ``point.data_label`` must surface values from *that* ``c:dLbl`` — not
+        from a sibling at a different idx or from a freshly-created one.
+        """
+        ser = element(
+            "c:ser/c:dLbls/("
+            "c:dLbl/(c:idx{val=0},c:numFmt{formatCode=0.00,sourceLinked=0}),"
+            "c:dLbl/(c:idx{val=2},c:numFmt{formatCode=0.00%,sourceLinked=0}),"
+            "c:dLbl/(c:idx{val=4},c:numFmt{formatCode=0.0,sourceLinked=0}))"
+        )
+        point = Point(ser, 2)
+
+        data_label = point.data_label
+
+        # -- reads the value from the matching c:dLbl, not a sibling --
+        assert data_label.number_format == "0.00%"
+        assert data_label.number_format_is_linked is False
+        # -- no extra c:dLbl created by the lookup --
+        assert len(ser.xpath('c:dLbls/c:dLbl[c:idx/@val="2"]')) == 1
+        assert len(ser.xpath("c:dLbls/c:dLbl")) == 3
+
+    def it_creates_dLbl_when_absent(self):
+        """`Point.data_label` creates the `c:dLbl` on first write.
+
+        Reading a property on ``point.data_label`` when no per-point
+        ``c:dLbl`` exists must return the default (``"General"``,
+        ``linked=True``) without materialising a ``c:dLbl``. Assigning a
+        value must then create the ``c:dLbls``, ``c:dLbl``, and child
+        elements in schema order.
+        """
+        ser = element("c:ser")
+        point = Point(ser, 3)
+
+        # -- pure read: no c:dLbls / c:dLbl created --
+        assert point.data_label.number_format == "General"
+        assert ser.xpath("c:dLbls") == []
+
+        # -- write: creates c:dLbls/c:dLbl at the correct idx --
+        point.data_label.number_format = "0.00%"
+
+        dLbls = ser.xpath("c:dLbls")
+        assert len(dLbls) == 1
+        dLbl_at_3 = ser.xpath('c:dLbls/c:dLbl[c:idx/@val="3"]')
+        assert len(dLbl_at_3) == 1
+        assert dLbl_at_3[0].xpath("c:numFmt/@formatCode") == ["0.00%"]
+        assert dLbl_at_3[0].xpath("c:numFmt/@sourceLinked") == ["0"]
 
     def it_provides_access_to_its_format(self, format_fixture):
         point, ChartFormat_, ser, chart_format_, expected_xml = format_fixture
