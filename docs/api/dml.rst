@@ -23,6 +23,13 @@ various aspects of shapes.
    :undoc-members:
 
 
+Gradient stops
+--------------
+
+.. automethod:: pptx.dml.fill._GradientStops.add_stop
+.. automethod:: pptx.dml.fill._GradientStops.remove
+
+
 |LineFormat| objects
 --------------------
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from pptx.dml.color import ColorFormat
+from pptx.dml.color import ColorFormat, RGBColor
 from pptx.dml.fill import (
     FillFormat,
     _BlipFill,
@@ -20,7 +20,7 @@ from pptx.dml.fill import (
     _PattFill,
     _SolidFill,
 )
-from pptx.enum.dml import MSO_FILL, MSO_PATTERN
+from pptx.enum.dml import MSO_FILL, MSO_PATTERN, MSO_THEME_COLOR
 from pptx.oxml.dml.fill import CT_GradientStopList
 
 from ..unitutil.cxml import element, xml
@@ -712,6 +712,78 @@ class Describe_GradientStops(object):
         assert len(stops) == 2
         for stop in stops:
             assert isinstance(stop, _GradientStop)
+
+    def it_can_add_a_stop(self):
+        gsLst = CT_GradientStopList.new_gsLst()
+        stops = _GradientStops(gsLst)
+
+        new_stop = stops.add_stop(0.5)
+
+        assert isinstance(new_stop, _GradientStop)
+        assert len(stops) == 3
+        # -- new stop is appended after the two defaults --
+        assert stops[2]._gs is new_stop._gs
+
+    def it_sets_position_in_OOXML_units(self):
+        gsLst = CT_GradientStopList.new_gsLst()
+        stops = _GradientStops(gsLst)
+
+        new_stop = stops.add_stop(0.4224)
+
+        # -- `pos` attribute is stored in 1000ths of a percent --
+        assert new_stop._gs.get("pos") == "42240"
+        # -- and the public float accessor round-trips to the 0.0–1.0 value --
+        assert new_stop.position == 0.4224
+
+    def it_sets_rgb_color_when_provided(self):
+        gsLst = CT_GradientStopList.new_gsLst()
+        stops = _GradientStops(gsLst)
+
+        new_stop = stops.add_stop(0.5, RGBColor(0xAB, 0xCD, 0xEF))
+
+        assert new_stop._gs.xpath("a:srgbClr/@val") == ["ABCDEF"]
+
+    def it_sets_theme_color_when_provided(self):
+        gsLst = CT_GradientStopList.new_gsLst()
+        stops = _GradientStops(gsLst)
+
+        new_stop = stops.add_stop(0.5, MSO_THEME_COLOR.ACCENT_2)
+
+        assert new_stop._gs.xpath("a:schemeClr/@val") == ["accent2"]
+
+    def it_raises_when_add_stop_position_is_out_of_range(self):
+        stops = _GradientStops(CT_GradientStopList.new_gsLst())
+
+        with pytest.raises(ValueError):
+            stops.add_stop(1.001)
+        with pytest.raises(ValueError):
+            stops.add_stop(-0.001)
+
+    def it_can_remove_a_stop(self):
+        gsLst = CT_GradientStopList.new_gsLst()
+        stops = _GradientStops(gsLst)
+        extra = stops.add_stop(0.5)
+        assert len(stops) == 3
+
+        stops.remove(extra)
+
+        assert len(stops) == 2
+
+    def it_raises_when_asked_to_remove_below_two_stops(self):
+        stops = _GradientStops(CT_GradientStopList.new_gsLst())
+        assert len(stops) == 2
+
+        with pytest.raises(ValueError, match="at least two stops"):
+            stops.remove(stops[0])
+
+    def it_raises_when_removing_a_foreign_stop(self):
+        stops_a = _GradientStops(CT_GradientStopList.new_gsLst())
+        stops_a.add_stop(0.5)
+        stops_b = _GradientStops(CT_GradientStopList.new_gsLst())
+        foreign = stops_b[0]
+
+        with pytest.raises(ValueError, match="not a member of this gradient"):
+            stops_a.remove(foreign)
 
 
 class Describe_GradientStop(object):

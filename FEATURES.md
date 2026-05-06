@@ -1212,6 +1212,13 @@ rect2 = slide.shapes.add_shape(
 )
 rect2.fill.blip_fill("texture.png")
 
+# three-stop gradient fill
+rect3 = slide.shapes.add_shape(
+    MSO_SHAPE.RECTANGLE, Inches(1), Inches(3), Inches(3), Inches(1),
+)
+rect3.fill.gradient()
+rect3.fill.gradient_stops.add_stop(0.5, RGBColor(0xFF, 0xA5, 0x00))
+
 prs.save("out.pptx")
 ```
 
@@ -1220,6 +1227,7 @@ prs.save("out.pptx")
 - `FillFormat.fore_color` / `.back_color` / `.pattern` / `.type` — Per-type accessors.
 - `_GradientFillFormat.gradient_stops` — Gradient stop collection.
 - `_GradientFillFormat.gradient_angle` — Linear-gradient angle in degrees.
+- `_GradientStops.add_stop(position, color=None)` / `.remove(stop)` — Author multi-stop gradients; `position` is a 0.0–1.0 float, `color` accepts an `RGBColor` or `MSO_THEME_COLOR` value. `remove` refuses to shrink below the two-stop minimum per the OOXML schema. `[Added in 2026.05.dev0]`
 - `LineFormat.color` / `.width` / `.fill` — Stroke color, width, and fill overlay.
 - `LineFormat.dash_style` — `MSO_LINE_DASH_STYLE`. Fixed `ROUND_DOT` and `UP_DOWN_ARROW` mappings are `[Added in 2026.05.0]`.
 - `LineFormat.begin_arrow_head_style` / `.end_arrow_head_style` / `.begin_arrow_head_width` / `.end_arrow_head_width` / `.begin_arrow_head_length` / `.end_arrow_head_length` — Arrow-head authoring. `[Added in 2026.05.0]`
