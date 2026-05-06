@@ -11,7 +11,13 @@ from pptx.enum.chart import (
     XL_TICK_MARK,
 )
 from pptx.oxml.chart.shared import CT_Title
-from pptx.oxml.simpletypes import ST_AxisUnit, ST_LblOffset, ST_Orientation, ST_Skip
+from pptx.oxml.simpletypes import (
+    ST_AxisUnit,
+    ST_LblOffset,
+    ST_LogBase,
+    ST_Orientation,
+    ST_Skip,
+)
 from pptx.oxml.text import CT_TextBody
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
@@ -200,6 +206,17 @@ class CT_DateAx(BaseAxisElement):
     del _tag_seq
 
 
+class CT_LogBase(BaseOxmlElement):
+    """`c:logBase` element on value-axis `c:scaling`.
+
+    Presence of this element switches the axis from linear to
+    logarithmic scaling. `@val` is the logarithm base, a `double` in the
+    range `[2.0, 1000.0]` per ECMA-376 `ST_LogBase`.
+    """
+
+    val = RequiredAttribute("val", ST_LogBase)
+
+
 class CT_LblAlgn(BaseOxmlElement):
     """`c:lblAlgn` element, specifying category-axis tick-label horizontal alignment.
 
@@ -245,10 +262,36 @@ class CT_Scaling(BaseOxmlElement):
     """
 
     _tag_seq = ("c:logBase", "c:orientation", "c:max", "c:min", "c:extLst")
+    logBase = ZeroOrOne("c:logBase", successors=_tag_seq[1:])
     orientation = ZeroOrOne("c:orientation", successors=_tag_seq[2:])
     max = ZeroOrOne("c:max", successors=_tag_seq[3:])
     min = ZeroOrOne("c:min", successors=_tag_seq[4:])
     del _tag_seq
+
+    @property
+    def log_base(self):
+        """The float value of the ``<c:logBase>`` child, or |None|.
+
+        |None| when no ``c:logBase`` element is present, indicating a
+        linear (i.e. non-logarithmic) axis scale.
+        """
+        logBase = self.logBase
+        if logBase is None:
+            return None
+        return logBase.val
+
+    @log_base.setter
+    def log_base(self, value):
+        """Write the ``<c:logBase>`` child to *value*, or remove it on |None|.
+
+        *value* is a float in the range ``[2.0, 1000.0]`` per
+        ``ST_LogBase``; |None| removes the element and reverts the axis
+        to linear scaling. Validation is delegated to ``ST_LogBase``.
+        """
+        self._remove_logBase()
+        if value is None:
+            return
+        self._add_logBase(val=value)
 
     @property
     def maximum(self):

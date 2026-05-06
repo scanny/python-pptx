@@ -700,6 +700,28 @@ class ValueAxis(_BaseAxis):
         crossBetween.val = value
 
     @property
+    def log_base(self) -> float | None:
+        """Logarithm base for this value axis, or |None| for linear scaling.
+
+        Read/write ``float | int | None``. Corresponds to
+        ``c:valAx/c:scaling/c:logBase/@val``; presence of that element
+        flips the axis from linear to logarithmic scaling, with the base
+        given by ``@val`` (typically ``10.0`` or ``2.0``). Returns
+        |None| when no ``c:logBase`` element is present (the linear
+        default).
+
+        Assigning |None| removes the element, reverting the axis to
+        linear. Assigning a number outside ECMA-376 ``ST_LogBase`` — the
+        inclusive range ``[2.0, 1000.0]`` — raises ``ValueError``.
+        """
+        return self._element.scaling.log_base
+
+    @log_base.setter
+    def log_base(self, value: float | int | None):
+        scaling = self._element.scaling
+        scaling.log_base = value
+
+    @property
     def major_unit(self):
         """
         The float number of units between major tick marks on this value

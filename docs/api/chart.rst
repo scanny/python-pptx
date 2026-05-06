@@ -116,6 +116,8 @@ related to numeric values rather than text category labels.
    :member-order: bysource
    :undoc-members:
 
+   .. autoattribute:: log_base
+
 
 |MajorGridlines| objects
 ------------------------
