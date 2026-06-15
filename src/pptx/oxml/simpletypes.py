@@ -385,6 +385,34 @@ class ST_GapAmount(BaseIntType):
         cls.validate_int_in_range(value, 0, 500)
 
 
+class ST_HoleSize(BaseIntType):
+    """
+    String value is an integer in range 1-90, representing the doughnut hole
+    size as a percent of chart size, optionally including a '%' suffix.
+    """
+
+    @classmethod
+    def convert_from_xml(cls, str_value):
+        if "%" in str_value:
+            return cls.convert_from_percent_literal(str_value)
+        return super(ST_HoleSize, cls).convert_from_xml(str_value)
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 1, 90)
+
+
+class ST_FirstSliceAng(BaseIntType):
+    """
+    String value is an integer in range 0-360, the angle in degrees (clockwise
+    from straight up) of the first pie/doughnut slice.
+    """
+
+    @classmethod
+    def validate(cls, value):
+        cls.validate_int_in_range(value, 0, 360)
+
+
 class ST_Grouping(XsdStringEnumeration):
     """
     Valid values for <c:grouping val=""> attribute. Overloaded for use as

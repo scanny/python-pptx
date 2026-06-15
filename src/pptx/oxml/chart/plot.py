@@ -6,8 +6,10 @@ from pptx.oxml.chart.datalabel import CT_DLbls
 from pptx.oxml.simpletypes import (
     ST_BarDir,
     ST_BubbleScale,
+    ST_FirstSliceAng,
     ST_GapAmount,
     ST_Grouping,
+    ST_HoleSize,
     ST_Overlap,
 )
 from pptx.oxml.xmlchemy import (
@@ -240,7 +242,28 @@ class CT_DoughnutChart(BaseChartElement):
     varyColors = ZeroOrOne("c:varyColors", successors=_tag_seq[1:])
     ser = ZeroOrMore("c:ser", successors=_tag_seq[2:])
     dLbls = ZeroOrOne("c:dLbls", successors=_tag_seq[3:])
+    firstSliceAng = ZeroOrOne("c:firstSliceAng", successors=_tag_seq[5:])
+    holeSize = ZeroOrOne("c:holeSize", successors=_tag_seq[5:])
     del _tag_seq
+
+
+class CT_DoughnutHoleSize(BaseOxmlElement):
+    """``<c:holeSize>`` child of ``<c:doughnutChart>``.
+
+    Expresses the size of the doughnut hole as a percentage of the chart size, an integer in the
+    range 1..90 (PowerPoint accepts 10..90 in its UI).
+    """
+
+    val = OptionalAttribute("val", ST_HoleSize, default=10)
+
+
+class CT_FirstSliceAng(BaseOxmlElement):
+    """``<c:firstSliceAng>`` child of pie/doughnut charts.
+
+    The angle (clockwise from straight up, in degrees 0..360) of the first slice.
+    """
+
+    val = OptionalAttribute("val", ST_FirstSliceAng, default=0)
 
 
 class CT_GapAmount(BaseOxmlElement):

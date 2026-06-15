@@ -124,6 +124,8 @@ from pptx.oxml.chart.plot import (  # noqa: E402
     CT_BubbleChart,
     CT_BubbleScale,
     CT_DoughnutChart,
+    CT_DoughnutHoleSize,
+    CT_FirstSliceAng,
     CT_GapAmount,
     CT_Grouping,
     CT_LineChart,
@@ -140,7 +142,9 @@ register_element_cls("c:barDir", CT_BarDir)
 register_element_cls("c:bubbleChart", CT_BubbleChart)
 register_element_cls("c:bubbleScale", CT_BubbleScale)
 register_element_cls("c:doughnutChart", CT_DoughnutChart)
+register_element_cls("c:firstSliceAng", CT_FirstSliceAng)
 register_element_cls("c:gapWidth", CT_GapAmount)
+register_element_cls("c:holeSize", CT_DoughnutHoleSize)
 register_element_cls("c:grouping", CT_Grouping)
 register_element_cls("c:lineChart", CT_LineChart)
 register_element_cls("c:overlap", CT_Overlap)

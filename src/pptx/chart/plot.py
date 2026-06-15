@@ -202,6 +202,40 @@ class DoughnutPlot(_BasePlot):
     An doughnut plot.
     """
 
+    @property
+    def hole_size(self):
+        """Size of the doughnut hole as an integer percentage of chart size, in range 1..90.
+
+        The default value for a new doughnut chart is 10, representing a hole 10% the diameter of
+        the chart. Assigning a value outside the 1..90 range raises |ValueError|.
+        """
+        holeSize = self._element.holeSize
+        if holeSize is None:
+            return 10
+        return holeSize.val
+
+    @hole_size.setter
+    def hole_size(self, value):
+        holeSize = self._element.get_or_add_holeSize()
+        holeSize.val = value
+
+    @property
+    def first_slice_angle(self):
+        """Angle in degrees (0..360, clockwise from straight up) of the first slice.
+
+        The default value for a new doughnut chart is 0. Assigning a value outside 0..360 raises
+        |ValueError|.
+        """
+        firstSliceAng = self._element.firstSliceAng
+        if firstSliceAng is None:
+            return 0
+        return firstSliceAng.val
+
+    @first_slice_angle.setter
+    def first_slice_angle(self, value):
+        firstSliceAng = self._element.get_or_add_firstSliceAng()
+        firstSliceAng.val = value
+
 
 class LinePlot(_BasePlot):
     """
