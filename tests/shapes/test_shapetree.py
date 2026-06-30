@@ -1265,6 +1265,23 @@ class DescribeSlideShapes(object):
         assert table is table_
         assert shapes._element.xml == expected_xml
 
+    def it_can_add_a_copy_of_a_shape_from_another_slide(self, request, _shape_factory_, shape_):
+        source_sp = element("p:sp/p:nvSpPr/p:cNvPr{id=7,name=Foo}")
+        # Use a simple namespace object so we can set _element without spec_set restrictions
+        source_shape = type("_FakeShape", (), {"_element": source_sp})()
+        spTree = element("p:spTree")
+        shapes = SlideShapes(spTree, None)
+
+        result = shapes.add_copy_of(source_shape)
+
+        # A deep copy of the source element is appended to the shape tree
+        assert len(spTree) == 1
+        new_elm = spTree[0]
+        assert new_elm is not source_sp  # it's a copy, not the original
+        assert new_elm.xml == source_sp.xml
+        _shape_factory_.assert_called_once_with(shapes, new_elm)
+        assert result is shape_
+
     def it_can_clone_placeholder_shapes_from_a_layout(self, clone_fixture):
         shapes, slide_layout_, calls = clone_fixture
         shapes.clone_layout_placeholders(slide_layout_)

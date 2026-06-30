@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import io
 import os
 from typing import IO, TYPE_CHECKING, Callable, Iterable, Iterator, cast
@@ -598,6 +599,18 @@ class SlideShapes(_BaseGroupShapes):
         """
         graphicFrame = self._add_graphicFrame_containing_table(rows, cols, left, top, width, height)
         return cast(GraphicFrame, self._shape_factory(graphicFrame))
+
+    def add_copy_of(self, source_shape: BaseShape) -> BaseShape:
+        """Return a copy of `source_shape` added to the top of the z-order on this slide.
+
+        `source_shape` may come from any slide in the same presentation. The shape element is
+        deep-copied so the two shapes are independent. Shapes that own OPC relationships (pictures
+        and charts) share the underlying parts with the source — changes to the image or chart
+        data will be reflected on both shapes.
+        """
+        new_elm = copy.deepcopy(source_shape._element)
+        self._spTree.append(new_elm)
+        return self._shape_factory(new_elm)
 
     def clone_layout_placeholders(self, slide_layout: SlideLayout) -> None:
         """Add placeholder shapes based on those in `slide_layout`.

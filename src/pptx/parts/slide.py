@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import IO, TYPE_CHECKING, cast
 
 from pptx.enum.shapes import PROG_ID
@@ -157,6 +158,29 @@ class NotesSlidePart(BaseSlidePart):
 
 class SlidePart(BaseSlidePart):
     """Slide part. Corresponds to package files ppt/slides/slide[1-9][0-9]*.xml."""
+
+    @classmethod
+    def clone(cls, source: "SlidePart", package) -> "SlidePart":
+        """Return a new |SlidePart| that is a copy of `source`.
+
+        The new part shares all related parts (images, charts, etc.) with `source` — only the
+        slide XML element itself is deep-copied. Relationships are reproduced in ascending rId
+        order so the rId values in the cloned XML remain valid.
+        """
+        new_part = cls(
+            package.next_partname("/ppt/slides/slide%d.xml"),
+            CT.PML_SLIDE,
+            package,
+            copy.deepcopy(source._element),
+        )
+        # Reproduce relationships in ascending rId order (rId1, rId2, …) so the rId
+        # values embedded in the cloned XML element continue to resolve correctly.
+        for rel in sorted(source.rels.values(), key=lambda r: r.rId):
+            if rel.is_external:
+                new_part.relate_to(rel.target_ref, rel.reltype, is_external=True)
+            else:
+                new_part.relate_to(rel.target_part, rel.reltype)
+        return new_part
 
     @classmethod
     def new(cls, partname, package, slide_layout_part):
