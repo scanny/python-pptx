@@ -494,6 +494,26 @@ class DescribeSlides(object):
         prs_part_.get_slide.assert_called_once_with(slide_id)
         assert slide is expected_value
 
+    def it_can_move_a_slide(self, request):
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b},p:sldId{r:id=c})")
+        slides = Slides(sldIdLst, None)
+        slide_ = instance_mock(request, Slide)
+        method_mock(request, Slides, "index", return_value=1)
+
+        slides.move_slide(slide_, 0)
+
+        assert [s.rId for s in sldIdLst.sldId_lst] == ["b", "a", "c"]
+
+    def it_does_nothing_when_move_slide_target_equals_current_position(self, request):
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})")
+        slides = Slides(sldIdLst, None)
+        slide_ = instance_mock(request, Slide)
+        method_mock(request, Slides, "index", return_value=0)
+
+        slides.move_slide(slide_, 0)
+
+        assert [s.rId for s in sldIdLst.sldId_lst] == ["a", "b"]
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

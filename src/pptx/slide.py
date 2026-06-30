@@ -272,6 +272,19 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def move_slide(self, slide: Slide, position: int) -> None:
+        """Move `slide` so it appears at `position` in the slide sequence (0-based).
+
+        Other slides shift to fill the vacated position. Equivalent to cutting a slide and
+        pasting it at `position`.
+        """
+        current_idx = self.index(slide)
+        if current_idx == position:
+            return
+        sldId = self._sldIdLst.sldId_lst[current_idx]
+        self._sldIdLst.remove(sldId)
+        self._sldIdLst.insert(position, sldId)
+
     def get(self, slide_id: int, default: Slide | None = None) -> Slide | None:
         """Return the slide identified by int `slide_id` in this presentation.
 
