@@ -514,6 +514,25 @@ class DescribeSlides(object):
 
         assert [s.rId for s in sldIdLst.sldId_lst] == ["a", "b"]
 
+    def it_can_duplicate_a_slide(self, request):
+        sldIdLst = element("p:sldIdLst/(p:sldId{r:id=a},p:sldId{r:id=b})")
+        slides = Slides(sldIdLst, None)
+        slide_ = instance_mock(request, Slide)
+        new_slide_ = instance_mock(request, Slide)
+        part_ = property_mock(request, Slides, "part")
+        part_.return_value.duplicate_slide.return_value = ("rIdNew", new_slide_)
+        index_ = method_mock(request, Slides, "index")
+        index_.side_effect = [0, 2]
+        move_slide_ = method_mock(request, Slides, "move_slide")
+
+        result = slides.duplicate_slide(slide_)
+
+        assert part_.return_value.duplicate_slide.call_count == 1
+        assert move_slide_.call_count == 1
+        assert move_slide_.call_args.args[1] is new_slide_
+        assert move_slide_.call_args.args[2] == 1
+        assert result is new_slide_
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture

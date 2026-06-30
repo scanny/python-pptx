@@ -272,6 +272,23 @@ class Slides(ParentedElementProxy):
         self._sldIdLst.add_sldId(rId)
         return slide
 
+    def duplicate_slide(self, slide: Slide, position: int | None = None) -> Slide:
+        """Return a new slide that is a duplicate of `slide`.
+
+        The new slide is inserted immediately after `slide` by default. Use `position` (0-based)
+        to place it at an explicit position in the slide sequence; other slides shift to
+        accommodate.
+
+        Related parts (images, charts, etc.) are *shared*, not deep-copied. Changes to those
+        assets will be reflected on both the original and duplicate slides.
+        """
+        source_idx = self.index(slide)
+        rId, new_slide = self.part.duplicate_slide(slide.part)
+        self._sldIdLst.add_sldId(rId)
+        target_idx = source_idx + 1 if position is None else position
+        self.move_slide(new_slide, target_idx)
+        return new_slide
+
     def move_slide(self, slide: Slide, position: int) -> None:
         """Move `slide` so it appears at `position` in the slide sequence (0-based).
 

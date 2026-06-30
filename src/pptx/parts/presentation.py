@@ -33,6 +33,15 @@ class PresentationPart(XmlPart):
         rId = self.relate_to(slide_part, RT.SLIDE)
         return rId, slide_part.slide
 
+    def duplicate_slide(self, source_slide_part: SlidePart) -> tuple[str, "Slide"]:
+        """Return `(rId, slide)` pair for a copy of `source_slide_part`.
+
+        The new slide part is a clone of `source_slide_part`, sharing its related parts.
+        """
+        new_slide_part = SlidePart.clone(source_slide_part, self.package)
+        rId = self.relate_to(new_slide_part, RT.SLIDE)
+        return rId, new_slide_part.slide
+
     @property
     def core_properties(self) -> CorePropertiesPart:
         """A |CoreProperties| object for the presentation.
