@@ -523,6 +523,14 @@ class Describe_BaseGroupShapes(object):
                 3,
                 "p:spPr/(a:xfrm{flipH=1,flipV=1}/(a:off{x=2,y=3},a:ext{cx=7,cy=5})",
             ),
+            # float EMUs (e.g. shape.height / 2) must become integer XML attrs
+            (
+                1.5,
+                2.5,
+                3.7,
+                5.2,
+                "p:spPr/(a:xfrm/(a:off{x=1,y=2},a:ext{cx=2,cy=2})",
+            ),
         ]
     )
     def add_cxnSp_fixture(self, request):

@@ -58,8 +58,8 @@ class CT_Connector(BaseShapeElement):
                 f"  </p:nvCxnSpPr>\n"
                 f"  <p:spPr>\n"
                 f"    <a:xfrm{flip}>\n"
-                f'      <a:off x="{x}" y="{y}"/>\n'
-                f'      <a:ext cx="{cx}" cy="{cy}"/>\n'
+                f'      <a:off x="{int(x)}" y="{int(y)}"/>\n'
+                f'      <a:ext cx="{int(cx)}" cy="{int(cy)}"/>\n'
                 f"    </a:xfrm>\n"
                 f'    <a:prstGeom prst="{prst}">\n'
                 f"      <a:avLst/>\n"
