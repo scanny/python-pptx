@@ -183,14 +183,12 @@ class lazyproperty(Generic[_T]):
 
         # --- when accessed on instance, start by checking instance __dict__ for
         # --- item with key matching the wrapped function's name
-        value = obj.__dict__.get(self._name)
-        if value is None:
+        if self._name not in obj.__dict__:
             # --- on first access, the __dict__ item will be absent. Evaluate fget()
             # --- and store that value in the (otherwise unused) host-object
             # --- __dict__ value of same name ('fget' nominally)
-            value = self._fget(obj)
-            obj.__dict__[self._name] = value
-        return cast(_T, value)
+            obj.__dict__[self._name] = self._fget(obj)
+        return cast(_T, obj.__dict__[self._name])
 
     def __set__(self, obj: Any, value: Any) -> None:
         """Raises unconditionally, to preserve read-only behavior.
