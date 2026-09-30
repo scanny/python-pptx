@@ -46,3 +46,14 @@ class DescribePresentation(object):
     @pytest.fixture
     def prs_part_(self, request):
         return instance_mock(request, PresentationPart)
+
+
+class DescribeDefaultTemplate(object):
+    """Integration tests for the core properties shipped in the default template."""
+
+    def it_has_no_personal_name_in_core_properties(self):
+        core_props = Presentation().core_properties
+
+        assert core_props.author == ""
+        assert core_props.last_modified_by == "python-pptx"
+        assert "Steve Canny" not in core_props.blob.decode("utf-8")

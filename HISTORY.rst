@@ -3,6 +3,12 @@
 Release History
 ---------------
 
+Unreleased
+++++++++++
+
+- fix: remove personal name from default template core properties
+  (``cp:lastModifiedBy`` is now ``python-pptx``)
+
 1.0.2 (2024-08-07)
 ++++++++++++++++++
 
