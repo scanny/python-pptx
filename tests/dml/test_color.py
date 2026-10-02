@@ -272,9 +272,15 @@ class DescribeRGBColor(object):
         with pytest.raises(ValueError):
             RGBColor(12, 256, 56)
 
-    def it_can_construct_from_a_hex_string_rgb_value(self):
-        rgb = RGBColor.from_string("123456")
-        assert rgb == RGBColor(0x12, 0x34, 0x56)
+    @pytest.mark.parametrize("value", ["ABCDEF", "abcdef"])
+    def it_can_construct_from_a_hex_string_rgb_value(self, value: str):
+        rgb = RGBColor.from_string(value)
+        assert rgb == RGBColor(0xAB, 0xCD, 0xEF)
+
+    @pytest.mark.parametrize("value", ["12345", "0000000", "00000000"])
+    def it_rejects_rgb_hex_strings_with_an_incorrect_length(self, value: str):
+        with pytest.raises(ValueError, match="must be six characters long"):
+            RGBColor.from_string(value)
 
     def it_can_provide_a_hex_string_rgb_value(self):
         assert str(RGBColor(0x12, 0x34, 0x56)) == "123456"
