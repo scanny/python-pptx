@@ -101,8 +101,7 @@ class ColorFormat(object):
             raise ValueError("brightness must be number in range -1.0 to 1.0")
         if isinstance(self._color, _NoneColor):
             msg = (
-                "can't set brightness when color.type is None. Set color.rgb"
-                " or .theme_color first."
+                "can't set brightness when color.type is None. Set color.rgb or .theme_color first."
             )
             raise ValueError(msg)
 
@@ -291,10 +290,12 @@ class RGBColor(tuple):
         return "%02X%02X%02X" % self
 
     @classmethod
-    def from_string(cls, rgb_hex_str):
+    def from_string(cls, rgb_hex_str: str) -> RGBColor:
         """
-        Return a new instance from an RGB color hex string like ``'3C2F80'``.
+        Return a new instance from a six-character RGB hex string like ``'3C2F80'``.
         """
+        if len(rgb_hex_str) != 6:
+            raise ValueError("RGB string must be six characters long, got '%s'" % rgb_hex_str)
         r = int(rgb_hex_str[:2], 16)
         g = int(rgb_hex_str[2:4], 16)
         b = int(rgb_hex_str[4:], 16)
