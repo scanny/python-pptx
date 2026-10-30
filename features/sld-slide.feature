@@ -4,6 +4,21 @@ Feature: slide properties
   I need properties and methods on the slide object
 
 
+  Scenario: Slide.is_hidden defaults to False
+    Given a slide
+     Then slide.is_hidden is False
+
+  Scenario: Hide and unhide a slide
+    Given a new presentation with a titled slide
+     When I set slide.is_hidden to True
+      And I save and reopen the presentation
+     Then slide.is_hidden is True
+      And the slide content and id are unchanged
+     When I set slide.is_hidden to False
+      And I save and reopen the presentation
+     Then slide.is_hidden is False
+      And the slide content and id are unchanged
+
   Scenario Outline: Slide.background
     Given a Slide object having <default-or-overridden> background as slide
      Then slide.background is a _Background object

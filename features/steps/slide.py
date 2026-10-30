@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from behave import given, then
+import io
+
+from behave import given, then, when
 from helpers import test_pptx
 
 from pptx import Presentation
@@ -26,6 +28,14 @@ def given_a_notes_slide(context):
 def given_a_slide(context):
     presentation = Presentation(test_pptx("shp-shapes"))
     context.slide = presentation.slides[0]
+
+
+@given("a new presentation with a titled slide")
+def given_a_new_presentation_with_a_titled_slide(context):
+    context.prs = Presentation()
+    context.slide = context.prs.slides.add_slide(context.prs.slide_layouts[0])
+    context.slide.shapes.title.text = "Hidden slide"
+    context.slide_id = context.slide.slide_id
 
 
 @given("a slide having a notes slide")
@@ -128,6 +138,32 @@ def then_notes_slide_placeholders_is_a_NotesSlidePlaceholders_object(context):
 @then("slide in slide_layout.used_by_slides is True")
 def then_slide_in_slide_layout_used_by_slides_is_True(context):
     assert context.slide in context.slide_layout.used_by_slides
+
+
+@when("I set slide.is_hidden to {value}")
+def when_I_set_slide_is_hidden(context, value):
+    context.slide.is_hidden = {"True": True, "False": False}[value]
+
+
+@when("I save and reopen the presentation")
+def when_I_save_and_reopen_the_presentation(context):
+    stream = io.BytesIO()
+    context.prs.save(stream)
+    stream.seek(0)
+    context.prs = Presentation(stream)
+    context.slide = context.prs.slides[0]
+
+
+@then("the slide content and id are unchanged")
+def then_the_slide_content_and_id_are_unchanged(context):
+    assert len(context.prs.slides) == 1
+    assert context.slide.slide_id == context.slide_id
+    assert context.slide.shapes.title.text == "Hidden slide"
+
+
+@then("slide.is_hidden is {value}")
+def then_slide_is_hidden(context, value):
+    assert context.slide.is_hidden is {"True": True, "False": False}[value]
 
 
 @then("slide.background is a _Background object")
