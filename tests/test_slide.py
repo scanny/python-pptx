@@ -297,6 +297,38 @@ class DescribeNotesSlide(object):
 class DescribeSlide(object):
     """Unit-test suite for `pptx.slide.Slide` objects."""
 
+    @pytest.mark.parametrize(
+        ("attributes", "expected"),
+        [
+            ("", False),
+            ("{show=0}", True),
+            ("{show=false}", True),
+            ("{show=1}", False),
+            ("{show=true}", False),
+        ],
+    )
+    def it_knows_whether_it_is_hidden(self, attributes, expected):
+        sld = element("p:sld%s/p:cSld" % attributes)
+        before = sld.xml
+        assert Slide(sld, None).is_hidden is expected
+        assert sld.xml == before
+
+    @pytest.mark.parametrize("value", [True, False])
+    def it_can_change_its_hidden_state(self, value):
+        initial = "p:sld/p:cSld" if value else "p:sld{show=0}/p:cSld"
+        slide = Slide(element(initial), None)
+        slide.is_hidden = value
+        assert slide.is_hidden is value
+        assert slide._element.get("show") == ("0" if value else None)
+
+    @pytest.mark.parametrize("value", [None, 0, 1, "false", []])
+    def it_rejects_non_boolean_hidden_states(self, value):
+        slide = Slide(element("p:sld{show=0}/p:cSld"), None)
+        before = slide._element.xml
+        with pytest.raises(TypeError):
+            slide.is_hidden = value
+        assert slide._element.xml == before
+
     def it_is_a_BaseSlide_subclass(self, subclass_fixture):
         slide = subclass_fixture
         assert isinstance(slide, _BaseSlide)

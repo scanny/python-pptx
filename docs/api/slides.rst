@@ -22,6 +22,9 @@ is not intended to be constructed directly.
 An individual |Slide| object is accessed by index from |Slides| or as the
 return value of :meth:`add_slide`.
 
+Use ``slide.is_hidden = True`` to skip a slide during a slide show, and
+assign ``False`` to show it again. Hidden slides remain in the collection.
+
 .. autoclass:: pptx.slide.Slide()
    :members:
    :exclude-members: part

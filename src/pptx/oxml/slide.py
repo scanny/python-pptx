@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Callable, cast
 from pptx.oxml import parse_from_template, parse_xml
 from pptx.oxml.dml.fill import CT_GradientFillProperties
 from pptx.oxml.ns import nsdecls
-from pptx.oxml.simpletypes import XsdString
+from pptx.oxml.simpletypes import XsdBoolean, XsdString
 from pptx.oxml.xmlchemy import (
     BaseOxmlElement,
     Choice,
@@ -163,6 +163,7 @@ class CT_Slide(_BaseSlideElement):
     cSld: CT_CommonSlideData = OneAndOnlyOne("p:cSld")  # pyright: ignore[reportAssignmentType]
     clrMapOvr = ZeroOrOne("p:clrMapOvr", successors=_tag_seq[2:])
     timing = ZeroOrOne("p:timing", successors=_tag_seq[4:])
+    show: bool = OptionalAttribute("show", XsdBoolean, default=True)  # pyright: ignore[reportAssignmentType]
     del _tag_seq
 
     @classmethod

@@ -28,6 +28,15 @@ enough not to reuse the id of the last added slide when it's been deleted as
 there doesn't seem to be any record in the XML of the max value assigned.
 
 
+Hidden slides
+-------------
+
+``Slide.is_hidden`` is the inverse of ``p:sld@show``. The schema default
+for ``show`` is true, so an absent attribute means a visible slide.
+Hiding a slide sets ``show="0"``; making it visible removes the attribute.
+This does not remove the slide or alter its relationships or content.
+
+
 XML specimens
 -------------
 

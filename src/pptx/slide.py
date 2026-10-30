@@ -202,6 +202,21 @@ class Slide(_BaseSlide):
         return self.part.has_notes_slide
 
     @property
+    def is_hidden(self) -> bool:
+        """|True| if this slide is skipped during a slide show.
+
+        Read/write boolean. Hiding a slide keeps it in the presentation,
+        with its content and position unchanged. New slides are visible.
+        """
+        return not self._element.show
+
+    @is_hidden.setter
+    def is_hidden(self, value: bool):
+        if not isinstance(value, bool):
+            raise TypeError("is_hidden must be a bool")
+        self._element.show = not value
+
+    @property
     def notes_slide(self) -> NotesSlide:
         """The |NotesSlide| instance for this slide.
 
