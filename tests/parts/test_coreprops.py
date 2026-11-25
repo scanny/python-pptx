@@ -79,6 +79,24 @@ class DescribeCorePropertiesPart(object):
         assert actual_datetime == expected_value
 
     @pytest.mark.parametrize(
+        ("str_val", "expected_value"),
+        [
+            ("2026-01-01T00:30:00.125+05:30", dt.datetime(2025, 12, 31, 19, 0, 0, 125000)),
+            ("2026-01-01T00:30:00.123456789-08:00", dt.datetime(2026, 1, 1, 8, 30, 0, 123456)),
+            ("2026-01-01T00:30:00.5Z", dt.datetime(2026, 1, 1, 0, 30, 0, 500000)),
+            ("2026-01-01T00:30:00.25", dt.datetime(2026, 1, 1, 0, 30, 0, 250000)),
+            ("2012-11-17T11:07:40-05:30", dt.datetime(2012, 11, 17, 16, 37, 40)),
+        ],
+    )
+    def it_reads_date_properties_with_fractional_seconds(
+        self, str_val: str, expected_value: dt.datetime
+    ):
+        coreProperties = self.coreProperties_xml("dcterms:modified", str_val)
+        core_properties = CorePropertiesPart.load(None, None, None, coreProperties)  # type: ignore
+
+        assert core_properties.modified == expected_value
+
+    @pytest.mark.parametrize(
         ("prop_name", "tagname", "value", "str_val", "attrs"),
         [
             (

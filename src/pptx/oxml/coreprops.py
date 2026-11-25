@@ -227,6 +227,8 @@ class CT_CoreProperties(BaseOxmlElement):
 
     _offset_pattern = re.compile(r"([+-])(\d\d):(\d\d)")
 
+    _fraction_pattern = re.compile(r"\.(\d+)")
+
     @classmethod
     def _parse_W3CDTF_to_datetime(cls, w3cdtf_str: str) -> dt.datetime:
         # valid W3CDTF date cases:
@@ -249,6 +251,15 @@ class CT_CoreProperties(BaseOxmlElement):
         if timestamp is None:
             tmpl = "could not parse W3CDTF datetime string '%s'"
             raise ValueError(tmpl % w3cdtf_str)
+        if offset_str.startswith("."):
+            # W3CDTF allows a decimal fraction of the second before the
+            # timezone designator; datetime only keeps microsecond precision
+            fraction_match = cls._fraction_pattern.match(offset_str)
+            if fraction_match is not None:
+                digits = fraction_match.group(1)
+                microseconds = int(digits[:6].ljust(6, "0"))
+                timestamp = timestamp.replace(microsecond=microseconds)
+                offset_str = offset_str[fraction_match.end() :]
         if len(offset_str) == 6:
             return cls._offset_dt(timestamp, offset_str)
         return timestamp
